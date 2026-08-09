@@ -8,6 +8,8 @@ QQC2.ItemDelegate {
     id: root
 
     property color customerColor: "#d2d6de"
+    property string colorCategory: ""
+    property var entityId: null
     property string titleText: ""
     property string subtitleText: ""
     property string tooltipText: ""
@@ -26,6 +28,8 @@ QQC2.ItemDelegate {
 
         CustomerColorDot {
             customerColor: root.customerColor
+            colorCategory: root.colorCategory
+            entityId: root.entityId
             sizeFactor: 0.45
             Layout.preferredWidth: implicitWidth
             Layout.preferredHeight: implicitHeight

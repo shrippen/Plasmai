@@ -11,8 +11,8 @@ var GOLDEN_ANGLE = 137.508
 /** Floor when auto-lowering threshold — keep high enough that pastels stay distinct. */
 var MIN_SIMILARITY = 12
 /** Bump when distinction algorithm changes so cached maps are invalidated. */
-var CACHE_VERSION = 3
-/** How many vivid palette slots to try (golden-angle spread). */
+var CACHE_VERSION = 4
+/** How many palette slots to try (theme-biased + fallback). */
 var PALETTE_SIZE = 72
 /** Soft minimum hue gap; scaled down when many colors are already assigned. */
 var MIN_HUE_SEP = 15 / 360
@@ -20,6 +20,9 @@ var MIN_HUE_SEP = 15 / 360
 var _enabled = true
 /** 0–100: colors closer than this % are "similar" (perceptual + RGB). */
 var _similarityPercent = 22
+/** Theme accent hexes used to bias replacement colors. */
+var _themeBases = []
+var _themeFingerprint = ""
 /** Effective threshold actually used per category after auto-lowering. */
 var _effectiveSimilarity = {
     customer: 22,
@@ -55,6 +58,59 @@ function configure(enabled, similarityPercent) {
     }
     _enabled = nextEnabled
     _similarityPercent = nextPercent
+}
+
+/**
+ * Bias replacement colors toward the active KDE/Kirigami palette.
+ * Accepts hex strings and/or { r, g, b } with channels in 0–1 or 0–255.
+ * Low-chroma greys are skipped so the fallback vivid path still works.
+ */
+function setThemePalette(colors) {
+    var bases = []
+    var seen = {}
+    for (var i = 0; i < (colors || []).length; i++) {
+        var hex = themeColorToHex(colors[i])
+        if (!hex || seen[hex]) {
+            continue
+        }
+        var rgb = hexToRgb(hex)
+        var hsl = rgbToHsl(rgb.r, rgb.g, rgb.b)
+        // Skip near-greys and near-black/white — poor accent anchors
+        if (hsl.s < 0.14) {
+            continue
+        }
+        if (hsl.l < 0.12 || hsl.l > 0.92) {
+            continue
+        }
+        seen[hex] = true
+        bases.push(hex)
+    }
+    var fp = bases.join(",")
+    if (fp !== _themeFingerprint) {
+        _cacheKey = ""
+    }
+    _themeFingerprint = fp
+    _themeBases = bases
+}
+
+function themeColorToHex(c) {
+    if (c === null || c === undefined || c === "") {
+        return ""
+    }
+    if (typeof c === "object") {
+        var r = Number(c.r)
+        var g = Number(c.g)
+        var b = Number(c.b)
+        if (isNaN(r) || isNaN(g) || isNaN(b)) {
+            return normalizeHex(String(c))
+        }
+        // Qt often exposes 0–1; accept 0–255 too
+        if (r <= 1 && g <= 1 && b <= 1) {
+            return rgbToHex(r * 255, g * 255, b * 255)
+        }
+        return rgbToHex(r, g, b)
+    }
+    return normalizeHex(c)
 }
 
 function invalidateCache() {
@@ -222,19 +278,57 @@ function areSimilar(hexA, hexB, thresholdPercent, assignedCount) {
 }
 
 /**
- * High-chroma palette slot — used when the Kimai color must be replaced.
- * Spreads by golden angle with rotating lightness so N greys become N distinct hues.
+ * Replacement palette slot.
+ * When a KDE theme palette is set, candidates grow from those accents
+ * (lightness tiers, then golden-angle spins) so clashes still resolve
+ * but remapped colors feel on-theme. Falls back to a vivid wheel.
  */
 function paletteColor(index) {
     var i = Math.max(0, Math.floor(index))
+    if (_themeBases.length > 0) {
+        var n = _themeBases.length
+        var base = _themeBases[i % n]
+        var cycle = Math.floor(i / n)
+        // 5 lightness/chroma variants per theme accent before spinning hue
+        var tier = cycle % 5
+        var spin = Math.floor(cycle / 5)
+        var dL = [0, 0.10, -0.10, 0.18, -0.16][tier]
+        var color = base
+        if (spin > 0) {
+            // Spin from the theme hue — stays related longer than a random wheel
+            color = shiftHue(base, GOLDEN_ANGLE * spin)
+        }
+        if (dL !== 0) {
+            color = shiftLightness(color, dL)
+        }
+        return boostThemeChroma(color, base)
+    }
     var h = ((GOLDEN_ANGLE * i) % 360) / 360
     if (h < 0) {
         h += 1
     }
-    var tier = i % 5
-    var s = [0.78, 0.70, 0.82, 0.66, 0.74][tier]
-    var l = [0.42, 0.55, 0.48, 0.62, 0.38][tier]
+    var t = i % 5
+    var s = [0.78, 0.70, 0.82, 0.66, 0.74][t]
+    var l = [0.42, 0.55, 0.48, 0.62, 0.38][t]
     var out = hslToRgb(h, s, l)
+    return rgbToHex(out.r, out.g, out.b)
+}
+
+/** Keep remapped colors in a readable chroma band near the theme accent. */
+function boostThemeChroma(color, themeBase) {
+    var rgb = hexToRgb(color)
+    var hsl = rgbToHsl(rgb.r, rgb.g, rgb.b)
+    var baseRgb = hexToRgb(themeBase)
+    var baseHsl = rgbToHsl(baseRgb.r, baseRgb.g, baseRgb.b)
+    if (hsl.s < Math.max(0.35, baseHsl.s * 0.75)) {
+        hsl.s = Math.max(0.45, Math.min(0.85, baseHsl.s * 0.9 + 0.15))
+    }
+    if (hsl.l < 0.22) {
+        hsl.l = 0.36
+    } else if (hsl.l > 0.82) {
+        hsl.l = 0.62
+    }
+    var out = hslToRgb(hsl.h, hsl.s, hsl.l)
     return rgbToHex(out.r, out.g, out.b)
 }
 
@@ -269,8 +363,7 @@ function shiftLightness(hex, delta) {
 }
 
 /**
- * Candidate 0 = keep original. Later candidates prefer the vivid palette
- * (not washed hue-shifts of the same grey, which all looked like pale cyan).
+ * Candidate 0 = keep original. Later candidates prefer the theme-biased palette.
  */
 function colorCandidate(original, attempt) {
     if (attempt <= 0) {
@@ -280,6 +373,9 @@ function colorCandidate(original, attempt) {
         return paletteColor(attempt - 1)
     }
     var extra = attempt - PALETTE_SIZE
+    if (_themeBases.length > 0) {
+        return shiftHue(_themeBases[extra % _themeBases.length], GOLDEN_ANGLE * (Math.floor(extra / _themeBases.length) + 1))
+    }
     return shiftHue(original, GOLDEN_ANGLE * extra)
 }
 
@@ -451,6 +547,7 @@ function rebuild(customers, projects, activities, force) {
     var projList = pack(projects)
     var actList = pack(activities)
     var key = "v" + CACHE_VERSION
+        + "|t:" + _themeFingerprint
         + "|" + (_enabled ? "1" : "0")
         + "|" + _similarityPercent
         + "|c:" + fingerprint(custList)

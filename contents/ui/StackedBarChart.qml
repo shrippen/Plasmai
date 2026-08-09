@@ -147,7 +147,8 @@ Item {
 
                         Repeater {
                             model: dayCol.stackModel
-                            delegate: Rectangle {
+                            delegate: Item {
+                                id: stackSeg
                                 property var stack: modelData
                                 width: parent.width
                                 height: {
@@ -157,7 +158,33 @@ Item {
                                     }
                                     return Math.max(1, Math.round(dayCol.colHeight * (stack.seconds / total)))
                                 }
-                                color: (stack && stack.color) ? stack.color : Kirigami.Theme.highlightColor
+
+                                Rectangle {
+                                    anchors.fill: parent
+                                    color: (stackSeg.stack && stackSeg.stack.color)
+                                           ? stackSeg.stack.color
+                                           : Kirigami.Theme.highlightColor
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    acceptedButtons: Qt.NoButton
+                                    PlasmaComponents3.ToolTip.visible: containsMouse
+                                    PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
+                                    PlasmaComponents3.ToolTip.text: {
+                                        if (!stackSeg.stack) {
+                                            return ""
+                                        }
+                                        var dayLabel = (dayCol.day && dayCol.day.label) ? dayCol.day.label : ""
+                                        var name = stackSeg.stack.name || ""
+                                        var dur = KimaiApi.formatDurationShort(stackSeg.stack.seconds || 0)
+                                        if (dayLabel.length > 0) {
+                                            return dayLabel + " · " + name + " · " + dur
+                                        }
+                                        return name + " · " + dur
+                                    }
+                                }
                             }
                         }
                     }

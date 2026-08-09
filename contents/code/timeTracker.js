@@ -26,7 +26,13 @@ var PROVIDERS = [
         defaultUrl: "",
         urlPlaceholder: "https://kimai.example.com",
         authLabelKey: "token",
-        hintKey: "kimai"
+        hintKey: "kimai",
+        capabilities: {
+            statistics: true,
+            colorDistinction: true,
+            billableFilter: true,
+            workContract: true
+        }
     },
     {
         id: PROVIDER_CLOCKIFY,
@@ -36,7 +42,15 @@ var PROVIDERS = [
         defaultUrl: "https://api.clockify.me/api/v1",
         urlPlaceholder: "https://api.clockify.me/api/v1",
         authLabelKey: "key",
-        hintKey: "clockify"
+        hintKey: "clockify",
+        // Project colors exist, but no Kimai-style customer/activity colors or
+        // global activity catalog — color distinction / Maintenance are Kimai-only.
+        capabilities: {
+            statistics: true,
+            colorDistinction: false,
+            billableFilter: true,
+            workContract: false
+        }
     },
     {
         id: PROVIDER_TOGGL,
@@ -46,7 +60,13 @@ var PROVIDERS = [
         defaultUrl: "https://api.track.toggl.com/api/v9",
         urlPlaceholder: "https://api.track.toggl.com/api/v9",
         authLabelKey: "token",
-        hintKey: "toggl"
+        hintKey: "toggl",
+        capabilities: {
+            statistics: true,
+            colorDistinction: false,
+            billableFilter: true,
+            workContract: false
+        }
     },
     {
         id: PROVIDER_SOLIDTIME,
@@ -56,7 +76,14 @@ var PROVIDERS = [
         defaultUrl: "https://api.solidtime.io",
         urlPlaceholder: "https://api.solidtime.io",
         authLabelKey: "token",
-        hintKey: "solidtime"
+        hintKey: "solidtime",
+        // No entity colors from the API; range stats still work.
+        capabilities: {
+            statistics: true,
+            colorDistinction: false,
+            billableFilter: true,
+            workContract: false
+        }
     }
 ]
 
@@ -82,6 +109,18 @@ function providerMeta(providerId) {
         }
     }
     return PROVIDERS[0]
+}
+
+/** Feature flags for the active tracker (statistics, color distinction, …). */
+function providerCapabilities(providerId) {
+    var meta = providerMeta(providerId)
+    var caps = meta.capabilities || {}
+    return {
+        statistics: caps.statistics === true,
+        colorDistinction: caps.colorDistinction === true,
+        billableFilter: caps.billableFilter === true,
+        workContract: caps.workContract === true
+    }
 }
 
 function isImplemented(providerId) {

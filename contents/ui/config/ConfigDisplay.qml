@@ -7,12 +7,22 @@ import org.kde.plasma.plasma5support as P5Support
 import "../../code/secret.js" as Secret
 import "../../code/sharedConfig.js" as SharedConfig
 import "../../code/geocode.js" as Geocode
+import "../../code/profiles.js" as Profiles
+import "../../code/timeTracker.js" as TimeTracker
 
 Item {
     id: page
 
     readonly property string sharedConfigScript: Secret.fileUrlToPath(Qt.resolvedUrl("../../code/sharedConfig.sh"))
     readonly property int pageMargin: Kirigami.Units.gridUnit
+
+    readonly property var activeProfile: Profiles.profileById(
+        Profiles.parseProfiles(plasmoid.configuration.profilesJson, plasmoid.configuration.kimaiUrl),
+        plasmoid.configuration.activeProfileId || "default"
+    )
+    readonly property var providerCapabilities: TimeTracker.providerCapabilities(
+        activeProfile && activeProfile.provider ? activeProfile.provider : "kimai")
+    readonly property bool supportsColorDistinction: providerCapabilities.colorDistinction
 
     property alias cfg_refreshInterval: refreshIntervalSpin.value
     property alias cfg_recentCount: recentCountSpin.value
@@ -24,6 +34,7 @@ Item {
     property string cfg_locationName
     property alias cfg_popupShowSparkline: popupSparklineCheck.checked
     property alias cfg_desktopShowSparkline: desktopSparklineCheck.checked
+    property alias cfg_showSparklineArcs: sparklineArcsCheck.checked
     property alias cfg_showElapsedInPanel: panelElapsedCheck.checked
     property alias cfg_showProjectInPanel: panelProjectCheck.checked
     property alias cfg_showActivityInPanel: panelActivityCheck.checked
@@ -121,6 +132,7 @@ Item {
             locationName: page.cfg_locationName,
             popupShowSparkline: popupSparklineCheck.checked,
             desktopShowSparkline: desktopSparklineCheck.checked,
+            showSparklineArcs: sparklineArcsCheck.checked,
             showElapsedInPanel: panelElapsedCheck.checked,
             showProjectInPanel: panelProjectCheck.checked,
             showActivityInPanel: panelActivityCheck.checked,
@@ -189,6 +201,9 @@ Item {
         }
         if (typeof shared.desktopShowSparkline === "boolean") {
             desktopSparklineCheck.checked = shared.desktopShowSparkline
+        }
+        if (typeof shared.showSparklineArcs === "boolean") {
+            sparklineArcsCheck.checked = shared.showSparklineArcs
         }
         if (typeof shared.showElapsedInPanel === "boolean") {
             panelElapsedCheck.checked = shared.showElapsedInPanel
@@ -311,6 +326,7 @@ Item {
                 QQC2.CheckBox {
                     id: colorDistinctionCheck
                     Kirigami.FormData.label: i18n("Colors:")
+                    visible: page.supportsColorDistinction
                     text: i18n("Make similar colors distinctive within each category")
                     onCheckedChanged: page.persistShared()
                 }
@@ -318,6 +334,7 @@ Item {
                 QQC2.SpinBox {
                     id: colorSimilaritySpin
                     Kirigami.FormData.label: i18n("Similarity threshold (%):")
+                    visible: page.supportsColorDistinction
                     from: 12
                     to: 80
                     stepSize: 1
@@ -330,10 +347,22 @@ Item {
                 Layout.fillWidth: true
                 Layout.leftMargin: page.pageMargin
                 Layout.rightMargin: page.pageMargin
+                visible: page.supportsColorDistinction
                 wrapMode: Text.WordWrap
                 font.pointSize: Kirigami.Theme.smallFont.pointSize
                 opacity: 0.75
                 text: i18n("Higher similarity values treat more colors as too close. Clashing items get vivid, well-spaced replacement colors (not washed hue-shifts). If too many items cannot fit, the threshold is lowered automatically down to 12%. See Maintenance for clash groups.")
+            }
+
+            PlasmaComponents3.Label {
+                Layout.fillWidth: true
+                Layout.leftMargin: page.pageMargin
+                Layout.rightMargin: page.pageMargin
+                visible: !page.supportsColorDistinction
+                wrapMode: Text.WordWrap
+                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                opacity: 0.75
+                text: i18n("Color distinction is available for Kimai profiles (per-customer / project / activity colors).")
             }
 
             Kirigami.Heading {
@@ -342,6 +371,26 @@ Item {
                 Layout.rightMargin: page.pageMargin
                 level: 2
                 text: i18n("Day sparkline")
+            }
+
+            QQC2.CheckBox {
+                id: sparklineArcsCheck
+                Layout.fillWidth: true
+                Layout.leftMargin: page.pageMargin
+                Layout.rightMargin: page.pageMargin
+                text: i18n("Show sun, moon, and work arcs")
+                checked: true
+                onCheckedChanged: page.persistShared()
+            }
+
+            QQC2.Label {
+                Layout.fillWidth: true
+                Layout.leftMargin: page.pageMargin
+                Layout.rightMargin: page.pageMargin
+                wrapMode: Text.WordWrap
+                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                opacity: 0.75
+                text: i18n("Uncheck “Day sparkline” under Panel flyout or Desktop widget to hide the sparkline entirely.")
             }
 
             Rectangle {
@@ -531,7 +580,7 @@ Item {
                 QQC2.CheckBox {
                     id: popupSparklineCheck
                     Kirigami.FormData.label: " "
-                    text: i18n("Day sparkline")
+                    text: i18n("Day sparkline (bar and arcs)")
                     checked: true
                     onCheckedChanged: page.persistShared()
                 }
@@ -579,7 +628,7 @@ Item {
                 QQC2.CheckBox {
                     id: desktopSparklineCheck
                     Kirigami.FormData.label: " "
-                    text: i18n("Day sparkline")
+                    text: i18n("Day sparkline (bar and arcs)")
                     checked: true
                     onCheckedChanged: page.persistShared()
                 }

@@ -49,6 +49,9 @@
         <entry name="desktopShowSparkline" type="Bool">
             <default>true</default>
         </entry>
+        <entry name="showSparklineArcs" type="Bool">
+            <default>true</default>
+        </entry>
 
         <!-- Panel (taskbar compact representation) -->
         <entry name="showElapsedInPanel" type="Bool">

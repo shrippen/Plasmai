@@ -101,14 +101,16 @@ function resolvePinnedEntries(pinnedStr, projects, activitiesByProject, customer
             ? (activity.name || activity.title || ("#" + entry.activityId))
             : ("#" + entry.activityId)
         var customerName = KimaiApi.customerNameOfProject(project, customersById)
-        var customerColor = KimaiApi.effectiveColorFromActivity(activity, project, customersById)
+        var bar = KimaiApi.barColorInfo(activity, project, customersById)
         result.push({
             projectId: entry.projectId,
             activityId: entry.activityId,
             projectName: projectName,
             activityName: activityName,
             customerName: customerName,
-            customerColor: customerColor
+            customerColor: bar.color,
+            colorCategory: bar.category,
+            entityId: bar.id
         })
     }
     return result

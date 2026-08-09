@@ -12,13 +12,14 @@ A KDE Plasma 6 panel widget for time tracking — Kimai, Clockify, Toggl Track, 
 
 - Live timer in the panel (project/activity + elapsed time)
 - Start, stop, and switch tracking from the popup or desktop widget
-- Manual time entries (+) and a secondary statistics view
+- Manual time entries (+) and a secondary statistics view with charts
 - Recent activities and pinned favorites (customer colors)
 - Multiple profiles per service; API tokens stored in KWallet
 - Backends: **Kimai**, **Clockify**, **Toggl Track**, **SolidTime**
 - Searchable project/activity pickers
 - Today/week work summary (Kimai work contract when available)
-- 24h sparkline with work hours, overtime, and sunrise/sunset coloring
+- Day sparkline: zoomed work-hours bar, sun/moon/work arcs, overtime segments, hour ticks
+- Optional color distinction when customer/project colors clash
 - Shared settings across all widget instances
 - Desktop notifications; optional idle auto-stop
 - Translations: EN, DE, FR, ES, IT, NL, PT (BR), PL, UK, RU, JA, ZH (CN)
@@ -60,7 +61,8 @@ kpackagetool6 -i Plasmai-1.1.0.plasmoid -t Plasma/Applet
 2. Right-click the widget → **Configure Plasmai**
 3. **Connection** tab: choose service (Kimai / Clockify / Toggl / SolidTime), set URL if needed, save API token, test connection
 4. **Favorites** tab: pin frequently used project/activity pairs
-5. **Display** / **Behavior** tabs: recent count, panel labels, idle stop, notifications
+5. **Display** / **Behavior** tabs: recent count, panel labels, sparkline arcs, idle stop, notifications
+6. **Maintenance** tab (optional): review color-clash groups when distinction is enabled
 
 Use **+** on the widget for manual entries and the chart icon for statistics.
 

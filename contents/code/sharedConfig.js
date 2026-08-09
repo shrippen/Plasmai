@@ -14,6 +14,7 @@ var SHARED_KEYS = [
     "longitude",
     "popupShowSparkline",
     "desktopShowSparkline",
+    "showSparklineArcs",
     "showElapsedInPanel",
     "showProjectInPanel",
     "showActivityInPanel",

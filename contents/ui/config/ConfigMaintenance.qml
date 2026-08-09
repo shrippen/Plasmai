@@ -10,6 +10,7 @@ import "../../code/timeTracker.js" as TimeTracker
 import "../../code/profiles.js" as Profiles
 import "../../code/sharedConfig.js" as SharedConfig
 import "../../code/colorDistinct.js" as ColorDistinct
+import "../../code/maintenanceCache.js" as MaintenanceCache
 
 Item {
     id: page
@@ -24,6 +25,9 @@ Item {
     )
     readonly property var tracker: TimeTracker.api(activeProfile && activeProfile.provider
         ? activeProfile.provider : "kimai")
+    readonly property var providerCapabilities: TimeTracker.providerCapabilities(
+        activeProfile && activeProfile.provider ? activeProfile.provider : "kimai")
+    readonly property bool supportsColorDistinction: providerCapabilities.colorDistinction
 
     property string statusText: ""
     property var customers: []
@@ -44,9 +48,37 @@ Item {
         }
     }
 
+    readonly property string themePaletteKey: [
+        String(Kirigami.Theme.highlightColor),
+        String(Kirigami.Theme.positiveTextColor),
+        String(Kirigami.Theme.neutralTextColor),
+        String(Kirigami.Theme.negativeTextColor),
+        String(Kirigami.Theme.linkColor),
+        String(Kirigami.Theme.activeTextColor),
+        String(Kirigami.Theme.visitedLinkColor)
+    ].join("|")
+
+    function settingsFingerprint() {
+        return [
+            plasmoid.configuration.colorDistinctionEnabled !== false ? "1" : "0",
+            String(plasmoid.configuration.colorSimilarityPercent || 22),
+            page.themePaletteKey
+        ].join("|")
+    }
+
     function applyColorOptions() {
+        ColorDistinct.setThemePalette([
+            Kirigami.Theme.highlightColor,
+            Kirigami.Theme.positiveTextColor,
+            Kirigami.Theme.neutralTextColor,
+            Kirigami.Theme.negativeTextColor,
+            Kirigami.Theme.linkColor,
+            Kirigami.Theme.activeTextColor,
+            Kirigami.Theme.visitedLinkColor
+        ])
         ColorDistinct.configure(
-            plasmoid.configuration.colorDistinctionEnabled !== false,
+            page.supportsColorDistinction
+                && plasmoid.configuration.colorDistinctionEnabled !== false,
             plasmoid.configuration.colorSimilarityPercent || 22
         )
     }
@@ -66,7 +98,8 @@ Item {
 
     function rebuildRows() {
         page.applyColorOptions()
-        ColorDistinct.rebuild(page.customers, page.projects, page.activities, true)
+        // Respect ColorDistinct fingerprint cache (do not force).
+        ColorDistinct.rebuild(page.customers, page.projects, page.activities, false)
         page.customerGroups = ColorDistinct.maintenanceGroups("customer", page.customers)
         page.projectGroups = ColorDistinct.maintenanceGroups("project", page.projects)
         page.activityGroups = ColorDistinct.maintenanceGroups("activity", page.activities)
@@ -76,47 +109,193 @@ Item {
             + page.countShifted(page.activityGroups)
     }
 
-    function loadCatalog() {
+    /** Ensure ColorDistinct maps exist without rebuilding clash-group rows. */
+    function syncColorMapsOnly() {
+        page.applyColorOptions()
+        ColorDistinct.rebuild(page.customers, page.projects, page.activities, false)
+    }
+
+    function applyStatusAfterLoad() {
+        if (plasmoid.configuration.colorDistinctionEnabled === false) {
+            statusText = i18n("Color distinction is off. Enable it in Display settings to see clash groups.")
+        } else if (page.groupCount === 0) {
+            statusText = i18n("Loaded %1 customers, %2 projects, %3 activities. No similar colors within a category.",
+                              page.customers.length, page.projects.length, page.activities.length)
+        } else {
+            statusText = i18n("Loaded %1 customers, %2 projects, %3 activities. %4 clash group(s), %5 color(s) shifted.",
+                              page.customers.length, page.projects.length, page.activities.length,
+                              page.groupCount, page.shiftedCount)
+        }
+    }
+
+    function applyCachedCatalog() {
+        var cached = MaintenanceCache.load()
+        page.customers = cached.customers
+        page.projects = cached.projects
+        page.activities = cached.activities
+        page.customerGroups = cached.customerGroups
+        page.projectGroups = cached.projectGroups
+        page.activityGroups = cached.activityGroups
+        page.shiftedCount = cached.shiftedCount
+        page.groupCount = cached.groupCount
+        page.statusText = cached.statusText
+            || i18n("Loaded %1 customers, %2 projects, %3 activities. %4 clash group(s), %5 color(s) shifted.",
+                    page.customers.length, page.projects.length, page.activities.length,
+                    page.groupCount, page.shiftedCount)
+    }
+
+    function persistCache() {
+        MaintenanceCache.store(page.activeProfile ? page.activeProfile.id : "", {
+            customers: page.customers,
+            projects: page.projects,
+            activities: page.activities,
+            entityFingerprint: MaintenanceCache.entityFingerprint(
+                page.customers, page.projects, page.activities),
+            customerGroups: page.customerGroups,
+            projectGroups: page.projectGroups,
+            activityGroups: page.activityGroups,
+            shiftedCount: page.shiftedCount,
+            groupCount: page.groupCount,
+            settingsKey: page.settingsFingerprint(),
+            statusText: page.statusText
+        })
+    }
+
+    /**
+     * Apply any in-process catalog immediately. Recompute clash groups only when
+     * distinction settings / theme changed. Hit the API only when forced, missing,
+     * or older than FRESH_MS (stale-while-revalidate).
+     */
+    function loadCatalog(forceRefresh) {
+        if (!page.supportsColorDistinction) {
+            statusText = i18n("Color distinction is only available for Kimai profiles.")
+            return
+        }
         if (!page.activeProfile || !page.activeProfile.url) {
             statusText = i18n("Configure a server URL on the Connection tab first.")
             return
         }
-        statusText = i18n("Loading customers, projects, and activities…")
+        var profileId = page.activeProfile.id
+        var settingsKey = page.settingsFingerprint()
+        var hadCache = MaintenanceCache.hasCatalog(profileId)
+
+        if (hadCache) {
+            page.applyCachedCatalog()
+            if (!MaintenanceCache.groupsMatch(settingsKey)) {
+                page.rebuildRows()
+                page.applyStatusAfterLoad()
+                page.persistCache()
+            } else {
+                page.syncColorMapsOnly()
+            }
+            if (!forceRefresh && MaintenanceCache.isFresh(profileId)) {
+                return
+            }
+            if (!forceRefresh && MaintenanceCache.isFetching()) {
+                return
+            }
+        }
+
+        if (!hadCache || forceRefresh) {
+            statusText = i18n("Loading customers, projects, and activities…")
+        } else {
+            statusText = i18n("Updating catalog…")
+        }
+
+        MaintenanceCache.setFetching(true)
         Secret.load(execSource, page.kwalletScript, page.activeProfile.id, function(token, err) {
             if (err || !token) {
-                statusText = i18n("Save an API token on the Connection tab first.")
+                MaintenanceCache.setFetching(false)
+                if (!hadCache) {
+                    statusText = i18n("Save an API token on the Connection tab first.")
+                } else {
+                    page.applyStatusAfterLoad()
+                }
                 return
             }
             TimeTracker.applySession(page.activeProfile.provider || "kimai", page.activeProfile)
             var url = TimeTracker.resolveUrl(page.activeProfile)
-            page.tracker.loadCustomers(url, token, function(customersResult) {
-                page.customers = customersResult.ok ? (customersResult.data || []) : []
-                page.tracker.loadProjects(url, token, function(projectsResult) {
-                    page.projects = projectsResult.ok ? (projectsResult.data || []) : []
-                    function finish(acts) {
-                        page.activities = acts || []
-                        page.rebuildRows()
-                        if (plasmoid.configuration.colorDistinctionEnabled === false) {
-                            statusText = i18n("Color distinction is off. Enable it in Display settings to see clash groups.")
-                        } else if (page.groupCount === 0) {
-                            statusText = i18n("Loaded %1 customers, %2 projects, %3 activities. No similar colors within a category.",
-                                              page.customers.length, page.projects.length, page.activities.length)
-                        } else {
-                            statusText = i18n("Loaded %1 customers, %2 projects, %3 activities. %4 clash group(s), %5 color(s) shifted.",
-                                              page.customers.length, page.projects.length, page.activities.length,
-                                              page.groupCount, page.shiftedCount)
-                        }
-                    }
-                    if (typeof page.tracker.loadAllActivities === "function") {
-                        page.tracker.loadAllActivities(url, token, function(actResult) {
-                            finish(actResult.ok ? (actResult.data || []) : [])
-                        })
-                    } else {
-                        finish([])
-                    }
-                })
+            var customersDone = false
+            var projectsDone = false
+            var activitiesDone = false
+            var customersResult = null
+            var projectsResult = null
+            var activitiesResult = null
+
+            function tryFinish() {
+                if (!customersDone || !projectsDone || !activitiesDone) {
+                    return
+                }
+                MaintenanceCache.setFetching(false)
+                var nextCustomers = (customersResult && customersResult.ok) ? (customersResult.data || []) : []
+                var nextProjects = (projectsResult && projectsResult.ok) ? (projectsResult.data || []) : []
+                var nextActivities = (activitiesResult && activitiesResult.ok) ? (activitiesResult.data || []) : []
+                var nextFp = MaintenanceCache.entityFingerprint(nextCustomers, nextProjects, nextActivities)
+                var prev = MaintenanceCache.load()
+                var entitiesChanged = nextFp !== prev.entityFingerprint
+                page.customers = nextCustomers
+                page.projects = nextProjects
+                page.activities = nextActivities
+                if (entitiesChanged || !MaintenanceCache.groupsMatch(settingsKey)) {
+                    page.rebuildRows()
+                } else {
+                    page.syncColorMapsOnly()
+                }
+                page.applyStatusAfterLoad()
+                page.persistCache()
+            }
+
+            page.tracker.loadCustomers(url, token, function(result) {
+                customersResult = result
+                customersDone = true
+                tryFinish()
             })
+            page.tracker.loadProjects(url, token, function(result) {
+                projectsResult = result
+                projectsDone = true
+                tryFinish()
+            })
+            if (typeof page.tracker.loadAllActivities === "function") {
+                page.tracker.loadAllActivities(url, token, function(result) {
+                    activitiesResult = result
+                    activitiesDone = true
+                    tryFinish()
+                })
+            } else {
+                activitiesResult = { ok: true, data: [] }
+                activitiesDone = true
+                tryFinish()
+            }
         })
+    }
+
+    onThemePaletteKeyChanged: {
+        if (page.customers.length || page.projects.length || page.activities.length) {
+            page.rebuildRows()
+            page.applyStatusAfterLoad()
+            page.persistCache()
+        }
+    }
+
+    Connections {
+        target: plasmoid.configuration
+        function onColorDistinctionEnabledChanged() {
+            if (page.customers.length || page.projects.length || page.activities.length) {
+                page.rebuildRows()
+                page.applyStatusAfterLoad()
+                page.persistCache()
+            }
+        }
+        function onColorSimilarityPercentChanged() {
+            if (page.customers.length || page.projects.length || page.activities.length) {
+                page.rebuildRows()
+                page.applyStatusAfterLoad()
+                page.persistCache()
+            }
+        }
+        function onActiveProfileIdChanged() {
+            page.loadCatalog(false)
+        }
     }
 
     Component.onCompleted: {
@@ -124,7 +303,7 @@ Item {
             if (shared) {
                 SharedConfig.applyToConfiguration(plasmoid.configuration, shared)
             }
-            page.loadCatalog()
+            page.loadCatalog(false)
         })
     }
 
@@ -133,18 +312,29 @@ Item {
         anchors.margins: page.pageMargin
         spacing: Kirigami.Units.smallSpacing
 
+        Kirigami.PlaceholderMessage {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            visible: !page.supportsColorDistinction
+            icon.name: "color-picker"
+            text: i18n("Color maintenance is for Kimai")
+            explanation: i18n("Clockify, Toggl, and SolidTime do not expose Kimai-style customer / project / activity colors, so clash groups and color shifting are hidden for those profiles.")
+        }
+
         PlasmaComponents3.Label {
             Layout.fillWidth: true
+            visible: page.supportsColorDistinction
             wrapMode: Text.WordWrap
             text: i18n("Only colors that clash within a category are listed. Each group starts with the entry that kept the Kimai color; shifted variants follow. Unique colors are hidden.")
         }
 
         RowLayout {
             Layout.fillWidth: true
+            visible: page.supportsColorDistinction
             PlasmaComponents3.Button {
                 text: i18n("Reload from server")
                 icon.name: "view-refresh"
-                onClicked: page.loadCatalog()
+                onClicked: page.loadCatalog(true)
             }
             PlasmaComponents3.Label {
                 Layout.fillWidth: true
@@ -156,6 +346,7 @@ Item {
 
         PlasmaComponents3.Label {
             Layout.fillWidth: true
+            visible: page.supportsColorDistinction
             wrapMode: Text.WordWrap
             font.pointSize: Kirigami.Theme.smallFont.pointSize
             opacity: 0.75
@@ -172,6 +363,7 @@ Item {
             id: scroll
             Layout.fillWidth: true
             Layout.fillHeight: true
+            visible: page.supportsColorDistinction
             clip: true
 
             ColumnLayout {

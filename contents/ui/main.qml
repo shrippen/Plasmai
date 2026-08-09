@@ -14,6 +14,7 @@ import "../code/profiles.js" as Profiles
 import "../code/favorites.js" as Favorites
 import "../code/sharedConfig.js" as SharedConfig
 import "../code/colorDistinct.js" as ColorDistinct
+import "../code/maintenanceCache.js" as CatalogCache
 import "."
 
 PlasmoidItem {
@@ -30,6 +31,7 @@ PlasmoidItem {
     readonly property string providerId: (activeProfile && activeProfile.provider)
         ? activeProfile.provider : "kimai"
     readonly property var providerMeta: TimeTracker.providerMeta(providerId)
+    readonly property var providerCapabilities: TimeTracker.providerCapabilities(providerId)
     readonly property var tracker: TimeTracker.api(providerId)
     property string kimaiUrl: TimeTracker.resolveUrl(activeProfile || { url: plasmoid.configuration.kimaiUrl, provider: providerId })
     property string apiToken: ""
@@ -52,9 +54,12 @@ PlasmoidItem {
     property var currentTimesheetId: invalidTimesheetId
     property string currentProject: ""
     property string currentActivity: ""
+    property string currentCustomer: ""
     property string currentDescription: ""
     /** Last active timesheet object (for re-resolving names after catalog load). */
     property var activeTimesheet: null
+    /** Recent entry waiting for switch confirmation while a timer is running. */
+    property var pendingSwitchTimesheet: null
     property int elapsedSeconds: 0
     property var recentTimesheets: []
     property var projects: []
@@ -73,6 +78,12 @@ PlasmoidItem {
     property bool savingDescription: false
     property bool suppressDescHandler: false
     property bool descriptionSavedFlash: false
+    /** True when the description field differs from the last saved/server value. */
+    property bool descriptionDirty: false
+    /** Draft text from the description field (avoids fragile id lookups from root). */
+    property string descriptionDraft: ""
+    /** Focus tracked from the field itself (root cannot read descriptionEdit.id). */
+    property bool descriptionFieldFocused: false
 
     property int todaySeconds: 0
     property int weekSeconds: 0
@@ -81,6 +92,8 @@ PlasmoidItem {
     property bool hasWorkContract: false
     property int totalsElapsedAnchor: 0
     property string currentCustomerColor: KimaiApi.DEFAULT_CUSTOMER_COLOR
+    property string currentColorCategory: ""
+    property var currentColorEntityId: null
     property var workPrefs: ({})
     property var todayTimesheets: []
     /** Extended timesheet cache for the statistics view (multiple weeks). */
@@ -119,6 +132,17 @@ PlasmoidItem {
     readonly property bool showNewActivityHere: compactPopupLayout
         ? plasmoid.configuration.popupShowNewActivity
         : plasmoid.configuration.desktopShowNewActivity
+
+    /** Rebuild distinction maps when the Plasma color scheme accents change. */
+    readonly property string themePaletteKey: [
+        String(Kirigami.Theme.highlightColor),
+        String(Kirigami.Theme.positiveTextColor),
+        String(Kirigami.Theme.neutralTextColor),
+        String(Kirigami.Theme.negativeTextColor),
+        String(Kirigami.Theme.linkColor),
+        String(Kirigami.Theme.activeTextColor)
+    ].join("|")
+    onThemePaletteKeyChanged: root.rebuildColorMaps(true)
 
     readonly property string panelProjectLabel: {
         if (!isTracking) {
@@ -409,7 +433,7 @@ PlasmoidItem {
     }
 
     function openStatsView() {
-        if (!isConfigured) {
+        if (!isConfigured || !providerCapabilities.statistics) {
             return
         }
         mainViewMode = "stats"
@@ -564,14 +588,14 @@ PlasmoidItem {
     function softReload() {
         reloadCredentials(function() {
             syncDisplayStateFromConfig()
-            refreshAll(true)
+            refreshAll(true, true)
         })
     }
 
     function hardReload() {
         reloadCredentials(function() {
             syncDisplayStateFromConfig()
-            refreshAll(false)
+            refreshAll(false, true)
         })
     }
 
@@ -586,6 +610,7 @@ PlasmoidItem {
     function switchProfile(profileId) {
         var currentId = plasmoid.configuration.activeProfileId || "default"
         resetTrackingState()
+        CatalogCache.clear()
         if (currentId !== profileId) {
             // Connections.onActiveProfileIdChanged performs the soft reload.
             plasmoid.configuration.activeProfileId = profileId
@@ -632,15 +657,32 @@ PlasmoidItem {
         currentTimesheetId = invalidTimesheetId
         currentProject = ""
         currentActivity = ""
+        currentCustomer = ""
         currentDescription = ""
         activeTimesheet = null
         currentCustomerColor = KimaiApi.DEFAULT_CUSTOMER_COLOR
+        currentColorCategory = ""
+        currentColorEntityId = null
         elapsedSeconds = 0
         descriptionSavedFlash = false
         descriptionSavedFlashTimer.stop()
+        descriptionDirty = false
+        descriptionDraft = ""
+        descriptionFieldFocused = false
         if (!compactPopupLayout) {
             showNewActivityForm = plasmoid.configuration.desktopShowNewActivity
         }
+    }
+
+    function syncDescriptionField(text) {
+        suppressDescHandler = true
+        currentDescription = text || ""
+        descriptionDraft = currentDescription
+        descriptionDirty = false
+        // TextField is under fullRepresentation — push via onDescriptionDraftChanged there.
+        Qt.callLater(function() {
+            suppressDescHandler = false
+        })
     }
 
     function applyActiveTimesheet(timesheet) {
@@ -656,7 +698,11 @@ PlasmoidItem {
         currentTimesheetId = timesheet.id
         currentProject = KimaiApi.displayProjectName(timesheet, projects)
         currentActivity = KimaiApi.displayActivityName(timesheet, allActivities, activitiesByProject)
+        currentCustomer = KimaiApi.customerNameFromTimesheet(timesheet, customersById)
         currentCustomerColor = KimaiApi.customerColorFromTimesheet(timesheet, customersById)
+        var barInfo = KimaiApi.barColorInfoFromTimesheet(timesheet, customersById)
+        currentColorCategory = barInfo.category
+        currentColorEntityId = barInfo.id
         if (!compactPopupLayout) {
             showNewActivityForm = plasmoid.configuration.desktopShowNewActivity
         }
@@ -667,51 +713,49 @@ PlasmoidItem {
         }
 
         var serverDescription = timesheet.description || ""
-        var descField = (typeof descriptionEdit !== "undefined") ? descriptionEdit : null
-        var editing = !!descField
-            && (descField.activeFocus || descField.text !== currentDescription)
+        var editing = descriptionFieldFocused || descriptionDirty
+            || (descriptionDraft.length > 0 && descriptionDraft !== currentDescription)
         if (!editing) {
-            suppressDescHandler = true
-            currentDescription = serverDescription
-            if (descField) {
-                descField.text = serverDescription
-            }
-            suppressDescHandler = false
+            syncDescriptionField(serverDescription)
         }
     }
 
     function saveCurrentDescription() {
-        if (!isTracking || currentTimesheetId === invalidTimesheetId || currentTimesheetId === undefined) {
+        if (!isTracking) {
+            return
+        }
+        if (currentTimesheetId === invalidTimesheetId || currentTimesheetId === undefined || currentTimesheetId === null || currentTimesheetId === "") {
             return
         }
         if (savingDescription) {
             return
         }
-        if (typeof descriptionEdit === "undefined" || !descriptionEdit) {
-            return
-        }
-        var text = descriptionEdit.text
+        var text = descriptionDraft
         if (text === currentDescription) {
+            descriptionDirty = false
             return
         }
+        if (!isConfigured || !apiToken) {
+            return
+        }
+        if (!tracker || typeof tracker.patchTimesheet !== "function") {
+            setError({ type: "config", status: 0, detail: i18n("This provider cannot update descriptions.") })
+            return
+        }
+
         savingDescription = true
         descriptionSavedFlash = false
         lastError = null
         userMessage = ""
         tracker.patchTimesheet(kimaiUrl, apiToken, currentTimesheetId, { description: text }, function(result) {
             savingDescription = false
-            if (result.ok) {
-                suppressDescHandler = true
-                currentDescription = text
-                if (descriptionEdit) {
-                    descriptionEdit.text = text
-                }
-                suppressDescHandler = false
+            if (result && result.ok) {
+                syncDescriptionField(text)
                 clearError()
                 descriptionSavedFlash = true
                 descriptionSavedFlashTimer.restart()
             } else {
-                setError(result.error)
+                setError(result ? result.error : { type: "network", status: 0, detail: "empty result" })
             }
         })
     }
@@ -998,9 +1042,24 @@ PlasmoidItem {
         })
     }
 
+    function applyThemeColorPalette() {
+        ColorDistinct.setThemePalette([
+            Kirigami.Theme.highlightColor,
+            Kirigami.Theme.positiveTextColor,
+            Kirigami.Theme.neutralTextColor,
+            Kirigami.Theme.negativeTextColor,
+            Kirigami.Theme.linkColor,
+            Kirigami.Theme.activeTextColor,
+            Kirigami.Theme.visitedLinkColor
+        ])
+    }
+
     function rebuildColorMaps(force) {
+        root.applyThemeColorPalette()
+        var distinctionOn = providerCapabilities.colorDistinction
+            && plasmoid.configuration.colorDistinctionEnabled !== false
         ColorDistinct.configure(
-            plasmoid.configuration.colorDistinctionEnabled !== false,
+            distinctionOn,
             plasmoid.configuration.colorSimilarityPercent || 22
         )
         var extra = (allActivities || []).slice()
@@ -1038,7 +1097,11 @@ PlasmoidItem {
         if (activeTimesheet) {
             currentProject = KimaiApi.displayProjectName(activeTimesheet, projects)
             currentActivity = KimaiApi.displayActivityName(activeTimesheet, allActivities, activitiesByProject)
+            currentCustomer = KimaiApi.customerNameFromTimesheet(activeTimesheet, customersById)
             currentCustomerColor = KimaiApi.customerColorFromTimesheet(activeTimesheet, customersById)
+            var barInfo = KimaiApi.barColorInfoFromTimesheet(activeTimesheet, customersById)
+            currentColorCategory = barInfo.category
+            currentColorEntityId = barInfo.id
         }
     }
 
@@ -1046,7 +1109,7 @@ PlasmoidItem {
         return allActivities.length ? allActivities : activities
     }
 
-    function refreshProjects(quiet) {
+    function refreshProjects(quiet, forceCatalog) {
         if (!isConfigured) {
             projects = []
             customers = []
@@ -1055,9 +1118,21 @@ PlasmoidItem {
             return
         }
 
+        var profileId = activeProfile ? activeProfile.id : ""
+        // Reuse in-process catalog when fresh (expand/poll paths); force after config/profile changes.
+        if (!forceCatalog && CatalogCache.isFresh(profileId) && root.projects.length > 0) {
+            rebuildColorMaps()
+            refreshPinnedEntries(true)
+            return
+        }
+        if (!forceCatalog && CatalogCache.isFetching()) {
+            return
+        }
+
         if (!quiet) {
             loadingProjects = true
         }
+        CatalogCache.setFetching(true)
         tracker.loadCustomers(kimaiUrl, apiToken, function(customersResult) {
             customers = customersResult.ok ? (customersResult.data || []) : []
             customersById = KimaiApi.buildCustomersById(customers)
@@ -1068,6 +1143,7 @@ PlasmoidItem {
                     projects = result.data || []
                     function afterActivities(acts) {
                         allActivities = acts || []
+                        CatalogCache.storeEntities(profileId, customers, projects, allActivities)
                         rebuildColorMaps()
                         refreshPinnedEntries(true)
                         if (!isTracking) {
@@ -1082,6 +1158,7 @@ PlasmoidItem {
                         afterActivities([])
                     }
                 } else {
+                    CatalogCache.setFetching(false)
                     setError(result.error)
                     projects = []
                     projectPickerModel = []
@@ -1134,7 +1211,7 @@ PlasmoidItem {
         }
     }
 
-    function refreshAll(quiet) {
+    function refreshAll(quiet, forceCatalog) {
         reloadProfiles()
         syncTrackerSession()
         if (!isConfigured) {
@@ -1152,7 +1229,7 @@ PlasmoidItem {
         }
         refreshActiveTimesheet(!!quiet)
         refreshRecentTimesheets(!!quiet)
-        refreshProjects(!!quiet)
+        refreshProjects(!!quiet, !!forceCatalog)
         refreshWorkTotals()
     }
 
@@ -1313,7 +1390,7 @@ PlasmoidItem {
         }
 
         if (isTracking) {
-            userMessage = i18n("Stop the current timer before starting another")
+            requestRestartFromRecent(timesheet)
             return
         }
 
@@ -1353,6 +1430,48 @@ PlasmoidItem {
                 setError(result.error)
             }
         })
+    }
+
+    function requestRestartFromRecent(timesheet) {
+        if (!isConfigured || isBusy || !timesheet) {
+            return
+        }
+        if (!isTracking) {
+            restartFromRecent(timesheet)
+            return
+        }
+
+        var pid = KimaiApi.projectId(timesheet)
+        var aid = KimaiApi.activityId(timesheet)
+        if (activeTimesheet
+                && String(KimaiApi.projectId(activeTimesheet)) === String(pid)
+                && String(KimaiApi.activityId(activeTimesheet)) === String(aid)) {
+            userMessage = i18n("Already tracking this activity")
+            return
+        }
+
+        pendingSwitchTimesheet = timesheet
+        switchRecentDialog.open()
+    }
+
+    function confirmSwitchFromRecent() {
+        var timesheet = pendingSwitchTimesheet
+        pendingSwitchTimesheet = null
+        if (!timesheet) {
+            return
+        }
+        var pid = KimaiApi.projectId(timesheet)
+        var aid = KimaiApi.activityId(timesheet)
+        if (!pid || !aid) {
+            userMessage = i18n("Could not resolve project or activity for that entry")
+            return
+        }
+        switchToActivity(
+            pid,
+            aid,
+            KimaiApi.displayProjectName(timesheet, root.projects),
+            KimaiApi.displayActivityName(timesheet, root.allActivities, root.activitiesByProject),
+            timesheet.description || "")
     }
 
     compactRepresentation: MouseArea {
@@ -1420,6 +1539,25 @@ PlasmoidItem {
         Layout.minimumWidth: Kirigami.Units.gridUnit * 16
         Layout.minimumHeight: Kirigami.Units.gridUnit * 12
 
+        function scheduleSparkCutouts() {
+            sparkCutoutTimer.restart()
+        }
+
+        property var sparklineItem: null
+
+        function refreshSparkCutouts() {
+            if (sparklineItem) {
+                sparklineItem.scheduleHeaderCutouts()
+            }
+        }
+
+        Timer {
+            id: sparkCutoutTimer
+            interval: 16
+            repeat: false
+            onTriggered: popupRoot.refreshSparkCutouts()
+        }
+
         QQC2.Dialog {
             id: stopConfirmDialog
             parent: popupRoot
@@ -1435,6 +1573,46 @@ PlasmoidItem {
             }
 
             onAccepted: root.stopTracking(false)
+        }
+
+        QQC2.Dialog {
+            id: switchRecentDialog
+            parent: popupRoot
+            anchors.centerIn: parent
+            title: i18n("Switch activity?")
+            modal: true
+            width: Math.min(Kirigami.Units.gridUnit * 20, popupRoot.width * 0.95)
+            standardButtons: QQC2.Dialog.NoButton
+
+            readonly property string pendingProject: root.pendingSwitchTimesheet
+                ? KimaiApi.displayProjectName(root.pendingSwitchTimesheet, root.projects)
+                : ""
+            readonly property string pendingActivity: root.pendingSwitchTimesheet
+                ? KimaiApi.displayActivityName(
+                    root.pendingSwitchTimesheet, root.allActivities, root.activitiesByProject)
+                : ""
+
+            contentItem: PlasmaComponents3.Label {
+                wrapMode: Text.WordWrap
+                text: i18n("Stop %1 · %2 and start %3 · %4?",
+                           root.currentProject, root.currentActivity,
+                           switchRecentDialog.pendingProject, switchRecentDialog.pendingActivity)
+            }
+
+            footer: QQC2.DialogButtonBox {
+                PlasmaComponents3.Button {
+                    text: i18n("Switch")
+                    QQC2.DialogButtonBox.buttonRole: QQC2.DialogButtonBox.AcceptRole
+                }
+                PlasmaComponents3.Button {
+                    text: i18n("Cancel")
+                    QQC2.DialogButtonBox.buttonRole: QQC2.DialogButtonBox.RejectRole
+                }
+            }
+
+            onAccepted: root.confirmSwitchFromRecent()
+            onRejected: root.pendingSwitchTimesheet = null
+            onDiscarded: root.pendingSwitchTimesheet = null
         }
 
         Connections {
@@ -1460,11 +1638,11 @@ PlasmoidItem {
                 margins: Kirigami.Units.smallSpacing
             }
             clip: true
-            contentWidth: availableWidth
-            // Gap between content and the slim scrollbar.
-            rightPadding: slimScrollBar.visible
-                          ? slimScrollBar.width + Kirigami.Units.smallSpacing * 2
-                          : 0
+            // Always reserve space for the overlay scrollbar so right-aligned
+            // labels and wide filter rows are not clipped underneath it.
+            readonly property int scrollGutter: slimScrollBar.width + Kirigami.Units.smallSpacing * 2
+            contentWidth: Math.max(0, width - scrollGutter)
+            rightPadding: 0
             leftPadding: 0
 
             // Custom slim scrollbar — Plasma theme bars stay wide via SVG hints.
@@ -1493,7 +1671,7 @@ PlasmoidItem {
 
             ColumnLayout {
                 id: popupColumn
-                width: popupScroll.availableWidth
+                width: popupScroll.contentWidth
                 spacing: Kirigami.Units.smallSpacing
 
                 RowLayout {
@@ -1521,6 +1699,7 @@ PlasmoidItem {
 
                     PlasmaComponents3.ToolButton {
                         visible: root.isConfigured && root.mainViewMode === "main"
+                                 && root.providerCapabilities.statistics
                         icon.name: "view-statistics"
                         text: i18n("Statistics")
                         display: QQC2.AbstractButton.IconOnly
@@ -1645,13 +1824,16 @@ PlasmoidItem {
                 StatsView {
                     Layout.fillWidth: true
                     visible: root.mainViewMode === "stats" && root.isConfigured
+                             && root.providerCapabilities.statistics
                     timesheets: root.statsTimesheets
                     customersById: root.customersById
                     todayTargetSeconds: root.todayTargetSeconds
                     weekTargetSeconds: root.weekTargetSeconds
                     hasWorkContract: root.hasWorkContract
+                                     && root.providerCapabilities.workContract
                     workDayBegin: root.workDayBegin
                     workDayEnd: root.workDayEnd
+                    supportsBillableFilter: root.providerCapabilities.billableFilter
                     onBackRequested: root.returnToMainView()
                     onNeedMoreHistory: function(rangeBegin, rangeEnd) {
                         root.loadStatsRange(rangeBegin, rangeEnd)
@@ -1683,23 +1865,15 @@ PlasmoidItem {
                                   : Qt.rgba(Kirigami.Theme.textColor.r,
                                             Kirigami.Theme.textColor.g,
                                             Kirigami.Theme.textColor.b, 0.12)
-                    implicitHeight: heroColumn.implicitHeight + Kirigami.Units.largeSpacing * 2
+                    implicitHeight: heroColumn.implicitHeight + Kirigami.Units.smallSpacing * 2
 
                     RowLayout {
                         anchors.fill: parent
-                        anchors.margins: Kirigami.Units.smallSpacing
+                        anchors.leftMargin: Kirigami.Units.smallSpacing
+                        anchors.rightMargin: Kirigami.Units.smallSpacing
+                        anchors.topMargin: Math.max(2, Math.round(Kirigami.Units.smallSpacing * 0.35))
+                        anchors.bottomMargin: Kirigami.Units.smallSpacing
                         spacing: Kirigami.Units.smallSpacing
-
-                        CustomerColorDot {
-                            visible: root.isTracking
-                            Layout.preferredWidth: implicitWidth
-                            Layout.preferredHeight: implicitHeight
-                            Layout.fillHeight: true
-                            Layout.minimumHeight: Kirigami.Units.iconSizes.small
-                            customerColor: root.currentCustomerColor
-                            sizeFactor: 1.0
-                            slotSizeFactor: 0.55
-                        }
 
                         ColumnLayout {
                             id: heroColumn
@@ -1711,14 +1885,43 @@ PlasmoidItem {
                                 visible: root.loadingActive && !root.isTracking && root.currentProject.length === 0
                             }
 
-                            PlasmaComponents3.Label {
+                            RowLayout {
+                                id: trackingHeader
                                 Layout.fillWidth: true
                                 visible: root.isTracking
-                                text: KimaiApi.formatDuration(root.elapsedSeconds)
-                                font.family: "monospace"
-                                font.pointSize: Kirigami.Theme.defaultFont.pointSize + 6
-                                font.bold: true
-                                color: Kirigami.Theme.positiveTextColor
+                                spacing: Kirigami.Units.smallSpacing
+                                z: 3
+                                onWidthChanged: daySparkline.scheduleHeaderCutouts()
+                                onHeightChanged: daySparkline.scheduleHeaderCutouts()
+                                onVisibleChanged: daySparkline.scheduleHeaderCutouts()
+
+                                PlasmaComponents3.Label {
+                                    id: elapsedLabel
+                                    Layout.alignment: Qt.AlignVCenter
+                                    text: KimaiApi.formatDuration(root.elapsedSeconds)
+                                    font.family: "monospace"
+                                    font.pointSize: Kirigami.Theme.defaultFont.pointSize + 6
+                                    font.bold: true
+                                    color: Kirigami.Theme.positiveTextColor
+                                    onWidthChanged: daySparkline.scheduleHeaderCutouts()
+                                    onHeightChanged: daySparkline.scheduleHeaderCutouts()
+                                }
+
+                                Item { Layout.fillWidth: true }
+
+                                PlasmaComponents3.Label {
+                                    id: customerLabel
+                                    visible: root.currentCustomer.length > 0
+                                    Layout.alignment: Qt.AlignVCenter
+                                    Layout.maximumWidth: trackingHeader.width * 0.55
+                                    horizontalAlignment: Text.AlignRight
+                                    elide: Text.ElideRight
+                                    text: root.currentCustomer
+                                    opacity: 0.9
+                                    onWidthChanged: daySparkline.scheduleHeaderCutouts()
+                                    onHeightChanged: daySparkline.scheduleHeaderCutouts()
+                                    onVisibleChanged: daySparkline.scheduleHeaderCutouts()
+                                }
                             }
 
                             PlasmaComponents3.Label {
@@ -1730,9 +1933,18 @@ PlasmoidItem {
                             }
 
                             DaySparkline {
+                                id: daySparkline
                                 Layout.fillWidth: true
-                                Layout.topMargin: 1
-                                Layout.bottomMargin: 1
+                                // Pull sky arcs up under the timer / customer row
+                                Layout.topMargin: {
+                                    if (!(visible && root.isTracking && trackingHeader.visible
+                                          && plasmoid.configuration.showSparklineArcs)) {
+                                        return 1
+                                    }
+                                    return -Math.round(trackingHeader.height * 0.984)
+                                }
+                                Layout.bottomMargin: 0
+                                z: 1
                                 visible: root.isConfigured && root.showSparklineHere
                                 entries: root.todayTimesheets
                                 targetSeconds: root.todayTargetSeconds
@@ -1741,6 +1953,20 @@ PlasmoidItem {
                                 latitude: plasmoid.configuration.latitude
                                 longitude: plasmoid.configuration.longitude
                                 nowTick: root.elapsedSeconds
+                                showArcs: plasmoid.configuration.showSparklineArcs
+                                headerMaskItems: [elapsedLabel, customerLabel]
+                                Component.onCompleted: {
+                                    popupRoot.sparklineItem = daySparkline
+                                    scheduleHeaderCutouts()
+                                }
+                                Component.onDestruction: {
+                                    if (popupRoot.sparklineItem === daySparkline) {
+                                        popupRoot.sparklineItem = null
+                                    }
+                                }
+                                onWidthChanged: scheduleHeaderCutouts()
+                                onHeightChanged: scheduleHeaderCutouts()
+                                onVisibleChanged: scheduleHeaderCutouts()
                             }
 
                             PlasmaComponents3.Label {
@@ -1770,80 +1996,162 @@ PlasmoidItem {
                             }
 
                             ColumnLayout {
+                                id: workSummaryBlock
                                 Layout.fillWidth: true
-                                opacity: root.showWorkSummaryHere ? 1 : 0
-                                visible: opacity > 0
-                                spacing: 1
-                                Behavior on opacity { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+                                visible: root.isTracking || root.showWorkSummaryHere
+                                spacing: Kirigami.Units.smallSpacing / 2
 
-                                Row {
+                                readonly property bool stopBeside: heroColumn.width >= Kirigami.Units.gridUnit * 16
+
+                                RowLayout {
+                                    Layout.fillWidth: true
                                     spacing: Kirigami.Units.smallSpacing
-                                    PlasmaComponents3.Label {
-                                        text: i18n("Today %1", KimaiApi.formatDurationShort(root.todayLiveSeconds))
-                                        font.pointSize: Kirigami.Theme.smallFont.pointSize
-                                        opacity: 0.8
+
+                                    ColumnLayout {
+                                        Layout.fillWidth: false
+                                        Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+                                        Layout.maximumWidth: workSummaryBlock.stopBeside && root.isTracking
+                                            ? Math.max(0, heroColumn.width - stopBesideButton.implicitWidth - Kirigami.Units.smallSpacing)
+                                            : heroColumn.width
+                                        opacity: root.showWorkSummaryHere ? 1 : 0
+                                        visible: root.showWorkSummaryHere
+                                        spacing: 1
+                                        Behavior on opacity { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+
+                                        Row {
+                                            spacing: Kirigami.Units.smallSpacing
+                                            PlasmaComponents3.Label {
+                                                text: i18n("Today %1", KimaiApi.formatDurationShort(root.todayLiveSeconds))
+                                                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                                                opacity: 0.8
+                                            }
+                                            PlasmaComponents3.Label {
+                                                text: "·"
+                                                opacity: 0.45
+                                            }
+                                            PlasmaComponents3.Label {
+                                                text: i18n("Week %1", KimaiApi.formatDurationShort(root.weekLiveSeconds))
+                                                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                                                opacity: 0.8
+                                            }
+                                        }
+
+                                        Row {
+                                            visible: root.hasWorkContract
+                                                     && (root.todayTargetSeconds > 0 || root.weekTargetSeconds > 0)
+                                            spacing: Kirigami.Units.smallSpacing
+
+                                            PlasmaComponents3.Label {
+                                                visible: root.todayTargetSeconds > 0
+                                                text: root.remainingTodayText()
+                                                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                                                opacity: 0.75
+                                                color: root.remainingTodaySeconds >= 0
+                                                       ? Kirigami.Theme.textColor
+                                                       : Kirigami.Theme.neutralTextColor
+                                            }
+                                            PlasmaComponents3.Label {
+                                                visible: root.todayTargetSeconds > 0 && root.weekTargetSeconds > 0
+                                                text: "·"
+                                                opacity: 0.4
+                                            }
+                                            PlasmaComponents3.Label {
+                                                visible: root.weekTargetSeconds > 0
+                                                text: root.remainingWeekText()
+                                                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                                                opacity: 0.75
+                                                color: root.remainingWeekSeconds >= 0
+                                                       ? Kirigami.Theme.textColor
+                                                       : Kirigami.Theme.neutralTextColor
+                                            }
+                                        }
                                     }
-                                    PlasmaComponents3.Label {
-                                        text: "·"
-                                        opacity: 0.45
+
+                                    Item {
+                                        Layout.fillWidth: true
+                                        visible: workSummaryBlock.stopBeside && root.isTracking
                                     }
-                                    PlasmaComponents3.Label {
-                                        text: i18n("Week %1", KimaiApi.formatDurationShort(root.weekLiveSeconds))
-                                        font.pointSize: Kirigami.Theme.smallFont.pointSize
-                                        opacity: 0.8
+
+                                    PlasmaComponents3.Button {
+                                        id: stopBesideButton
+                                        visible: root.isTracking && workSummaryBlock.stopBeside
+                                        Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                                        enabled: !root.isBusy
+                                        text: i18n("Stop")
+                                        icon.name: "media-playback-stop"
+                                        onClicked: root.requestStop()
                                     }
                                 }
 
-                                Row {
-                                    visible: root.hasWorkContract
-                                             && (root.todayTargetSeconds > 0 || root.weekTargetSeconds > 0)
-                                    spacing: Kirigami.Units.smallSpacing
-
-                                    PlasmaComponents3.Label {
-                                        visible: root.todayTargetSeconds > 0
-                                        text: root.remainingTodayText()
-                                        font.pointSize: Kirigami.Theme.smallFont.pointSize
-                                        opacity: 0.75
-                                        color: root.remainingTodaySeconds >= 0
-                                               ? Kirigami.Theme.textColor
-                                               : Kirigami.Theme.neutralTextColor
-                                    }
-                                    PlasmaComponents3.Label {
-                                        visible: root.todayTargetSeconds > 0 && root.weekTargetSeconds > 0
-                                        text: "·"
-                                        opacity: 0.4
-                                    }
-                                    PlasmaComponents3.Label {
-                                        visible: root.weekTargetSeconds > 0
-                                        text: root.remainingWeekText()
-                                        font.pointSize: Kirigami.Theme.smallFont.pointSize
-                                        opacity: 0.75
-                                        color: root.remainingWeekSeconds >= 0
-                                               ? Kirigami.Theme.textColor
-                                               : Kirigami.Theme.neutralTextColor
-                                    }
+                                PlasmaComponents3.Button {
+                                    visible: root.isTracking && !workSummaryBlock.stopBeside
+                                    Layout.fillWidth: true
+                                    enabled: !root.isBusy
+                                    text: i18n("Stop")
+                                    icon.name: "media-playback-stop"
+                                    onClicked: root.requestStop()
                                 }
                             }
 
-                            RowLayout {
-                                id: descriptionRow
+                            Item {
+                                id: descriptionFieldWrap
                                 Layout.fillWidth: true
                                 visible: root.isTracking
-                                spacing: Kirigami.Units.smallSpacing
+                                // Avoid anchors.fill ↔ implicitHeight feedback (zero-height field).
+                                height: descriptionEdit.implicitHeight
+                                implicitHeight: descriptionEdit.implicitHeight
 
                                 QQC2.TextField {
                                     id: descriptionEdit
-                                    Layout.fillWidth: true
+                                    width: parent.width
                                     enabled: !root.savingDescription
                                     placeholderText: i18n("Description")
-                                    // Enter / Return saves; Escape reverts.
+                                    rightPadding: descriptionSaveButton.visible
+                                        ? descriptionSaveButton.width + Kirigami.Units.smallSpacing * 2
+                                        : leftPadding
+
+                                    function applyDraftFromRoot() {
+                                        if (text === root.descriptionDraft) {
+                                            return
+                                        }
+                                        root.suppressDescHandler = true
+                                        text = root.descriptionDraft
+                                        root.suppressDescHandler = false
+                                    }
+
+                                    Connections {
+                                        target: root
+                                        function onDescriptionDraftChanged() {
+                                            descriptionEdit.applyDraftFromRoot()
+                                        }
+                                    }
+
+                                    Component.onCompleted: applyDraftFromRoot()
+                                    onVisibleChanged: {
+                                        if (visible) {
+                                            applyDraftFromRoot()
+                                        }
+                                    }
+
+                                    onActiveFocusChanged: {
+                                        root.descriptionFieldFocused = activeFocus
+                                    }
+
+                                    onTextChanged: {
+                                        if (root.suppressDescHandler) {
+                                            return
+                                        }
+                                        root.descriptionDraft = text
+                                        root.descriptionDirty = (text !== root.currentDescription)
+                                    }
+
                                     onAccepted: root.saveCurrentDescription()
                                     Keys.onPressed: function(event) {
                                         if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                                             root.saveCurrentDescription()
                                             event.accepted = true
                                         } else if (event.key === Qt.Key_Escape) {
-                                            text = root.currentDescription
+                                            root.syncDescriptionField(root.currentDescription)
                                             event.accepted = true
                                         }
                                     }
@@ -1851,32 +2159,30 @@ PlasmoidItem {
 
                                 PlasmaComponents3.ToolButton {
                                     id: descriptionSaveButton
+                                    z: 10
+                                    anchors.right: parent.right
+                                    anchors.rightMargin: Kirigami.Units.smallSpacing / 2
+                                    anchors.verticalCenter: descriptionEdit.verticalCenter
+                                    width: Math.round(Kirigami.Units.iconSizes.small * 1.4)
+                                    height: width
+                                    padding: 0
+                                    display: QQC2.AbstractButton.IconOnly
                                     icon.name: root.descriptionSavedFlash
                                                ? "dialog-ok-apply"
                                                : (root.savingDescription ? "view-refresh"
                                                   : "document-save")
                                     text: i18n("Save description")
-                                    display: QQC2.AbstractButton.IconOnly
                                     visible: root.descriptionSavedFlash
                                              || root.savingDescription
-                                             || descriptionEdit.text !== root.currentDescription
-                                    enabled: !root.descriptionSavedFlash
+                                             || root.descriptionDirty
+                                    enabled: root.descriptionDirty
                                              && !root.savingDescription
-                                             && descriptionEdit.text !== root.currentDescription
+                                             && !root.descriptionSavedFlash
                                     onClicked: root.saveCurrentDescription()
                                     PlasmaComponents3.ToolTip.text: text
                                     PlasmaComponents3.ToolTip.visible: hovered
                                     PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
                                 }
-                            }
-
-                            PlasmaComponents3.Button {
-                                Layout.fillWidth: true
-                                visible: root.isTracking
-                                enabled: !root.isBusy
-                                text: i18n("Stop")
-                                icon.name: "media-playback-stop"
-                                onClicked: root.requestStop()
                             }
 
                             PlasmaComponents3.Button {
@@ -1919,6 +2225,9 @@ PlasmoidItem {
                         delegate: ActivityListRow {
                             Layout.fillWidth: true
                             customerColor: root.pinnedEntries[index].customerColor || KimaiApi.DEFAULT_CUSTOMER_COLOR
+                            colorCategory: root.pinnedEntries[index].colorCategory || ""
+                            entityId: root.pinnedEntries[index].entityId !== undefined
+                                      ? root.pinnedEntries[index].entityId : null
                             titleText: root.pinnedEntries[index].activityName
                             subtitleText: {
                                 var entry = root.pinnedEntries[index]
@@ -2017,7 +2326,11 @@ PlasmoidItem {
                         model: root.loadingRecent && root.recentTimesheets.length === 0 ? 0 : root.recentVisibleCount
                         delegate: ActivityListRow {
                             Layout.fillWidth: true
-                            customerColor: KimaiApi.customerColorFromTimesheet(root.recentTimesheets[index], root.customersById)
+                            readonly property var barInfo: KimaiApi.barColorInfoFromTimesheet(
+                                root.recentTimesheets[index], root.customersById)
+                            customerColor: barInfo.color
+                            colorCategory: barInfo.category
+                            entityId: barInfo.id
                             titleText: KimaiApi.displayActivityName(
                                 root.recentTimesheets[index], root.allActivities, root.activitiesByProject)
                             subtitleText: {
@@ -2031,7 +2344,7 @@ PlasmoidItem {
                                 return bits.join(" · ")
                             }
                             rowEnabled: root.isConfigured && !root.isBusy && root.connectionState !== "error"
-                            onClicked: root.restartFromRecent(root.recentTimesheets[index])
+                            onClicked: root.requestRestartFromRecent(root.recentTimesheets[index])
                         }
                     }
 
@@ -2219,17 +2532,6 @@ PlasmoidItem {
     Component.onCompleted: {
         showNewActivityForm = !compactPopupLayout && plasmoid.configuration.desktopShowNewActivity
         hardReload()
-    }
-
-    onCurrentDescriptionChanged: {
-        if (suppressDescHandler) {
-            return
-        }
-        if (typeof descriptionEdit !== "undefined" && descriptionEdit) {
-            suppressDescHandler = true
-            descriptionEdit.text = currentDescription
-            suppressDescHandler = false
-        }
     }
 
     Connections {

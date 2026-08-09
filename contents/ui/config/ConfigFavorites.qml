@@ -10,6 +10,7 @@ import "../../code/timeTracker.js" as TimeTracker
 import "../../code/profiles.js" as Profiles
 import "../../code/favorites.js" as Favorites
 import "../../code/sharedConfig.js" as SharedConfig
+import "../../code/colorDistinct.js" as ColorDistinct
 import ".."
 
 Item {
@@ -25,6 +26,8 @@ Item {
     )
     readonly property var tracker: TimeTracker.api(activeProfile && activeProfile.provider
         ? activeProfile.provider : "kimai")
+    readonly property var providerCapabilities: TimeTracker.providerCapabilities(
+        activeProfile && activeProfile.provider ? activeProfile.provider : "kimai")
 
     property alias cfg_pinnedActivities: pinnedField.text
     property var availableProjects: []
@@ -79,6 +82,21 @@ Item {
                 page.tracker.loadProjects(TimeTracker.resolveUrl(page.activeProfile), token, function(result) {
                     if (result.ok) {
                         availableProjects = result.data || []
+                        ColorDistinct.setThemePalette([
+                            Kirigami.Theme.highlightColor,
+                            Kirigami.Theme.positiveTextColor,
+                            Kirigami.Theme.neutralTextColor,
+                            Kirigami.Theme.negativeTextColor,
+                            Kirigami.Theme.linkColor,
+                            Kirigami.Theme.activeTextColor,
+                            Kirigami.Theme.visitedLinkColor
+                        ])
+                        ColorDistinct.configure(
+                            page.providerCapabilities.colorDistinction
+                                && plasmoid.configuration.colorDistinctionEnabled !== false,
+                            plasmoid.configuration.colorSimilarityPercent || 22
+                        )
+                        ColorDistinct.rebuild(customers, availableProjects, [], true)
                         projectRows = KimaiApi.projectsGroupedByCustomer(availableProjects, customers)
                         projectsStatus = i18n("Loaded %1 projects.", availableProjects.length)
                         selectedProject = null
@@ -153,6 +171,15 @@ Item {
         return KimaiApi.DEFAULT_CUSTOMER_COLOR
     }
 
+    function customerIdForSection(name) {
+        for (var i = 0; i < projectRows.length; i++) {
+            if (projectRows[i].customerName === name) {
+                return projectRows[i].customerId !== undefined ? projectRows[i].customerId : null
+            }
+        }
+        return null
+    }
+
     RowLayout {
         anchors {
             fill: parent
@@ -209,6 +236,8 @@ Item {
                             anchors.rightMargin: Kirigami.Units.smallSpacing
                             customerRole: true
                             customerColor: page.customerColorForSection(section)
+                            colorCategory: "customer"
+                            entityId: page.customerIdForSection(section)
                             label: section
                         }
                     }
@@ -225,7 +254,9 @@ Item {
                         contentItem: ColorLabelRow {
                             width: parent ? parent.width : implicitWidth
                             customerRole: false
-                            customerColor: modelData.customerColor || KimaiApi.DEFAULT_CUSTOMER_COLOR
+                            customerColor: modelData.projectColor || modelData.customerColor || KimaiApi.DEFAULT_CUSTOMER_COLOR
+                            colorCategory: modelData.colorCategory || ""
+                            entityId: modelData.entityId !== undefined ? modelData.entityId : null
                             label: modelData.project.name
                             labelBold: false
                         }

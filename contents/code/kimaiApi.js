@@ -136,34 +136,62 @@ function customerColorOnly(project, customersById) {
     return ""
 }
 
-function effectiveColorFromProject(project, customersById) {
-    var pc = projectColor(project)
-    if (pc) {
-        return ColorDistinct.adjust("project", project && project.id, pc)
-    }
-    var cc = customerColorOnly(project, customersById)
-    if (cc) {
-        var cid = customerIdOfProject(project)
-        return ColorDistinct.adjust("customer", cid, cc)
-    }
-    return ColorDistinct.adjust("project", project && project.id, DEFAULT_CUSTOMER_COLOR)
+/** Customer-category bar color (shifted), for section headers and customer pills. */
+function customerBarColor(project, customersById) {
+    var cid = customerIdOfProject(project)
+    var raw = customerColorOnly(project, customersById) || DEFAULT_CUSTOMER_COLOR
+    return ColorDistinct.adjust("customer", cid, raw)
 }
 
-function effectiveColorFromActivity(activity, project, customersById) {
+/**
+ * Resolve the hierarchy color for a bar: activity → project → customer → default,
+ * each adjusted within its category. Returns { color, category, id }.
+ */
+function barColorInfo(activity, project, customersById) {
     var ac = activityColor(activity)
-    if (ac) {
-        return ColorDistinct.adjust("activity", activity && activity.id, ac)
+    if (ac && activity && activity.id !== null && activity.id !== undefined) {
+        return {
+            color: ColorDistinct.adjust("activity", activity.id, ac),
+            category: "activity",
+            id: activity.id
+        }
     }
-    return effectiveColorFromProject(project, customersById)
+    var pc = projectColor(project)
+    if (pc && project && project.id !== null && project.id !== undefined) {
+        return {
+            color: ColorDistinct.adjust("project", project.id, pc),
+            category: "project",
+            id: project.id
+        }
+    }
+    var cid = customerIdOfProject(project)
+    var cc = customerColorOnly(project, customersById) || DEFAULT_CUSTOMER_COLOR
+    return {
+        color: ColorDistinct.adjust("customer", cid, cc),
+        category: "customer",
+        id: cid || null
+    }
 }
 
-function effectiveColorFromTimesheet(timesheet, customersById) {
+function barColorInfoFromTimesheet(timesheet, customersById) {
     if (!timesheet) {
-        return DEFAULT_CUSTOMER_COLOR
+        return { color: DEFAULT_CUSTOMER_COLOR, category: "", id: null }
     }
     var activity = (typeof timesheet.activity === "object" && timesheet.activity) ? timesheet.activity : null
     var project = (typeof timesheet.project === "object" && timesheet.project) ? timesheet.project : null
-    return effectiveColorFromActivity(activity, project, customersById)
+    return barColorInfo(activity, project, customersById)
+}
+
+function effectiveColorFromProject(project, customersById) {
+    return barColorInfo(null, project, customersById).color
+}
+
+function effectiveColorFromActivity(activity, project, customersById) {
+    return barColorInfo(activity, project, customersById).color
+}
+
+function effectiveColorFromTimesheet(timesheet, customersById) {
+    return barColorInfoFromTimesheet(timesheet, customersById).color
 }
 
 function customerColorOfProject(project, customersById) {
@@ -371,7 +399,9 @@ function projectsGroupedByCustomer(projects, customers) {
         var name = customerNameOfProject(project, customersById) || "Other"
         if (!groups[name]) {
             groups[name] = {
-                color: customerColorOfProject(project, customersById),
+                // Section bars always use the customer-category shifted color
+                color: customerBarColor(project, customersById),
+                customerId: customerIdOfProject(project),
                 projects: []
             }
             order.push(name)
@@ -396,10 +426,16 @@ function projectsGroupedByCustomer(projects, customers) {
         var list = group.projects
         list.sort(function(a, b) { return String(a.name).localeCompare(String(b.name)) })
         for (var p = 0; p < list.length; p++) {
+            var proj = list[p]
+            var bar = barColorInfo(null, proj, customersById)
             rows.push({
                 customerName: customerName,
-                customerColor: group.color || customerColorOfProject(list[p], customersById),
-                project: list[p]
+                customerId: group.customerId,
+                customerColor: group.color,
+                colorCategory: bar.category,
+                entityId: bar.id,
+                projectColor: bar.color,
+                project: proj
             })
         }
     }
@@ -412,12 +448,18 @@ function projectPickerItems(projects, customers) {
     for (var i = 0; i < rows.length; i++) {
         var row = rows[i]
         var customerName = row.customerName || ""
-        var projectName = row.project.name || ""
+        var projectName = (row.project && row.project.name) || ""
         items.push({
             label: projectName,
             searchText: customerName + " " + projectName,
             section: customerName,
-            color: normalizeCustomerColor(row.customerColor),
+            // Section header uses customer-category color; row uses project cascade
+            color: row.customerColor,
+            colorCategory: "customer",
+            entityId: row.customerId,
+            rowColor: row.projectColor,
+            rowColorCategory: row.colorCategory,
+            rowEntityId: row.entityId,
             value: row.project
         })
     }
@@ -429,11 +471,14 @@ function activityPickerItems(activities, projectId, project, customersById) {
     var items = []
     for (var i = 0; i < rows.length; i++) {
         var activity = rows[i].activity
+        var bar = barColorInfo(activity, project || null, customersById || {})
         items.push({
             label: activity.name || activity.title || ("#" + activity.id),
             searchText: (activity.name || activity.title || "") + " " + activity.id,
             section: rows[i].section,
-            color: effectiveColorFromActivity(activity, project || null, customersById || {}),
+            color: bar.color,
+            colorCategory: bar.category,
+            entityId: bar.id,
             value: activity
         })
     }
@@ -1126,6 +1171,7 @@ function splitIntervalsByQuota(intervals, targetSeconds) {
 /**
  * Model for DaySparkline: fractions of a 24h day in [0, 1].
  * workBegin/End are "HH:MM" (Kimai calendar.businessHours defaults 08:00–18:00).
+ * viewStart/viewEnd zoom to business hours ±1h, expanded to cover all segments and now.
  */
 function buildDaySparklineModel(entries, targetSeconds, workBegin, workEnd, nowMs) {
     var now = (typeof nowMs === "number" && !isNaN(nowMs)) ? nowMs : Date.now()
@@ -1147,10 +1193,43 @@ function buildDaySparklineModel(entries, targetSeconds, workBegin, workEnd, nowM
         })
     }
 
+    var businessStart = (beginMin * 60) / DAY_SECONDS
+    var businessEnd = (endMin * 60) / DAY_SECONDS
+    var nowFrac = Math.max(0, Math.min(1, secondsOfLocalDay(day) / DAY_SECONDS))
+    var hour = 1 / 24
+    var viewStart = businessStart - hour
+    var viewEnd = businessEnd + hour
+    for (i = 0; i < segments.length; i++) {
+        if (segments[i].start < viewStart) {
+            viewStart = segments[i].start
+        }
+        if (segments[i].end > viewEnd) {
+            viewEnd = segments[i].end
+        }
+    }
+    if (nowFrac < viewStart) {
+        viewStart = nowFrac
+    }
+    if (nowFrac > viewEnd) {
+        viewEnd = nowFrac
+    }
+    viewStart = Math.max(0, viewStart)
+    viewEnd = Math.min(1, viewEnd)
+    if (viewEnd - viewStart < hour) {
+        var mid = (viewStart + viewEnd) / 2
+        viewStart = Math.max(0, mid - hour / 2)
+        viewEnd = Math.min(1, viewStart + hour)
+        if (viewEnd - viewStart < hour) {
+            viewStart = Math.max(0, viewEnd - hour)
+        }
+    }
+
     return {
-        businessStart: (beginMin * 60) / DAY_SECONDS,
-        businessEnd: (endMin * 60) / DAY_SECONDS,
-        now: Math.max(0, Math.min(1, secondsOfLocalDay(day) / DAY_SECONDS)),
-        segments: segments
+        businessStart: businessStart,
+        businessEnd: businessEnd,
+        now: nowFrac,
+        segments: segments,
+        viewStart: viewStart,
+        viewEnd: viewEnd
     }
 }

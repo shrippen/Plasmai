@@ -9,15 +9,23 @@
 
 ### Manual entries & statistics
 - **+** in the main view opens a compact editor (project/activity pickers + begin/end)
-- Secondary **Statistics** screen (today/week totals, project breakdown) — switchable without replacing the timer
+- Secondary **Statistics** screen (today/week totals, project breakdown, charts) — switchable without replacing the timer
 
-### i18n
-- Added FR, ES, IT, NL, PT (BR), PL, UK, RU, JA, ZH (CN) alongside EN and DE
-- Strings for statistics, manual entry, multi-provider connection, color distinction, and Maintenance
+### Day sparkline (concept H)
+- Zoomed business-hours view (±1h, expanded for segments and “now”)
+- Sun and moon arcs above the bar; work arc with briefcase icon below
+- Layered bar: moon base → sun fill with soft rise/set bleed → business hours → activity segments
+- Soft holes under the timer/customer header so arcs don’t cross the text
+- Capsule ends stay rounded at any zoom; arc glow stays continuous on wide windows
+- Optional “Show sun, moon, and work arcs” display setting
 
 ### Colors & maintenance
 - Optional within-category color distinction (vivid replacements for clashes)
 - Maintenance settings page listing clash groups (kept vs shifted)
+
+### i18n
+- Added FR, ES, IT, NL, PT (BR), PL, UK, RU, JA, ZH (CN) alongside EN and DE
+- Strings for statistics, manual entry, multi-provider connection, color distinction, and Maintenance
 
 ## 1.0.0
 
