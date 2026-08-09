@@ -8,16 +8,18 @@ import org.kde.plasma.extras as PlasmaExtras
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasma5support as P5Support
 import "../code/kimaiApi.js" as KimaiApi
+import "../code/timeTracker.js" as TimeTracker
 import "../code/secret.js" as Secret
 import "../code/profiles.js" as Profiles
 import "../code/favorites.js" as Favorites
 import "../code/sharedConfig.js" as SharedConfig
+import "../code/colorDistinct.js" as ColorDistinct
 import "."
 
 PlasmoidItem {
     id: root
 
-    readonly property int invalidTimesheetId: -1
+    readonly property var invalidTimesheetId: null
     readonly property string kwalletScript: Secret.fileUrlToPath(Qt.resolvedUrl("../code/kwallet.sh"))
     readonly property string idleScript: Secret.fileUrlToPath(Qt.resolvedUrl("../code/idle.sh"))
     readonly property string notifyScript: Secret.fileUrlToPath(Qt.resolvedUrl("../code/notify.sh"))
@@ -25,11 +27,15 @@ PlasmoidItem {
 
     property var profiles: Profiles.parseProfiles(plasmoid.configuration.profilesJson, plasmoid.configuration.kimaiUrl)
     property var activeProfile: Profiles.profileById(profiles, plasmoid.configuration.activeProfileId || "default")
-    property string kimaiUrl: KimaiApi.normalizeUrl(
-        (activeProfile && activeProfile.url) ? activeProfile.url : plasmoid.configuration.kimaiUrl)
+    readonly property string providerId: (activeProfile && activeProfile.provider)
+        ? activeProfile.provider : "kimai"
+    readonly property var providerMeta: TimeTracker.providerMeta(providerId)
+    readonly property var tracker: TimeTracker.api(providerId)
+    property string kimaiUrl: TimeTracker.resolveUrl(activeProfile || { url: plasmoid.configuration.kimaiUrl, provider: providerId })
     property string apiToken: ""
     property bool tokenLoaded: false
-    property bool isConfigured: kimaiUrl.length > 0 && apiToken.length > 0
+    property bool isConfigured: apiToken.length > 0 && (!providerMeta.needsUrl || kimaiUrl.length > 0)
+    property string mainViewMode: "main"  // main | manual | stats
     property bool credentialsLoading: false
     property var pendingCredentialCallbacks: []
 
@@ -43,10 +49,12 @@ PlasmoidItem {
     property bool loadingPinned: false
     property string userMessage: ""
 
-    property int currentTimesheetId: invalidTimesheetId
+    property var currentTimesheetId: invalidTimesheetId
     property string currentProject: ""
     property string currentActivity: ""
     property string currentDescription: ""
+    /** Last active timesheet object (for re-resolving names after catalog load). */
+    property var activeTimesheet: null
     property int elapsedSeconds: 0
     property var recentTimesheets: []
     property var projects: []
@@ -55,9 +63,10 @@ PlasmoidItem {
     property var projectPickerModel: []
     property var activityPickerModel: []
     property var activities: []
+    property var allActivities: []
     property var pinnedEntries: []
     property var activitiesByProject: ({})
-    property int selectedProjectId: 0
+    property var selectedProjectId: null
     /** Shared open direction for project + activity pickers (true = below). */
     property bool pickerOpenBelow: true
     property bool showNewActivityForm: false
@@ -74,6 +83,11 @@ PlasmoidItem {
     property string currentCustomerColor: KimaiApi.DEFAULT_CUSTOMER_COLOR
     property var workPrefs: ({})
     property var todayTimesheets: []
+    /** Extended timesheet cache for the statistics view (multiple weeks). */
+    property var statsTimesheets: []
+    property var statsRangeBeginMs: 0
+    property var statsRangeEndMs: 0
+    property bool loadingStats: false
     readonly property string workDayBegin: {
         var v = plasmoid.configuration.workDayBegin
         return (v && String(v).length > 0) ? String(v) : KimaiApi.DEFAULT_WORK_DAY_BEGIN
@@ -377,6 +391,130 @@ PlasmoidItem {
         })
     }
 
+    function syncTrackerSession() {
+        TimeTracker.applySession(providerId, activeProfile)
+    }
+
+    function openManualEntry() {
+        if (!isConfigured) {
+            return
+        }
+        mainViewMode = "manual"
+        if (projectPickerModel.length === 0) {
+            refreshProjects(false)
+        }
+        if (typeof manualEntryView !== "undefined" && manualEntryView) {
+            manualEntryView.resetDefaults()
+        }
+    }
+
+    function openStatsView() {
+        if (!isConfigured) {
+            return
+        }
+        mainViewMode = "stats"
+        refreshWorkTotals()
+        // Prefetch a few weeks so day/week switchers work immediately.
+        var now = new Date()
+        var begin = KimaiApi.startOfWeekMonday(now)
+        begin.setDate(begin.getDate() - 7 * 4)
+        loadStatsRange(begin, KimaiApi.endOfWeekSunday(now))
+    }
+
+    /**
+     * Ensure statsTimesheets covers [beginDate, endDate]. Fetches when needed.
+     */
+    function loadStatsRange(beginDate, endDate) {
+        if (!isConfigured || !beginDate || !endDate) {
+            return
+        }
+        var bMs = beginDate.getTime()
+        var eMs = endDate.getTime()
+        if (statsRangeBeginMs && statsRangeEndMs
+            && bMs >= statsRangeBeginMs && eMs <= statsRangeEndMs
+            && statsTimesheets.length > 0) {
+            rehydrateStatsTimesheets()
+            return
+        }
+        var fetchBegin = new Date(statsRangeBeginMs && statsRangeBeginMs < bMs ? statsRangeBeginMs : bMs)
+        var fetchEnd = new Date(statsRangeEndMs && statsRangeEndMs > eMs ? statsRangeEndMs : eMs)
+        // Pad to full weeks
+        fetchBegin = KimaiApi.startOfWeekMonday(fetchBegin)
+        fetchEnd = KimaiApi.endOfWeekSunday(fetchEnd)
+        loadingStats = true
+        tracker.fetchTimesheetsRange(kimaiUrl, apiToken, fetchBegin, fetchEnd, function(result) {
+            loadingStats = false
+            if (result.ok) {
+                statsTimesheets = KimaiApi.hydrateTimesheets(
+                    result.data || [], root.projects,
+                    root.activityCatalog(),
+                    root.activitiesByProject)
+                statsRangeBeginMs = fetchBegin.getTime()
+                statsRangeEndMs = fetchEnd.getTime()
+            }
+        })
+    }
+
+    function rehydrateStatsTimesheets() {
+        if (!statsTimesheets || statsTimesheets.length === 0) {
+            return
+        }
+        statsTimesheets = KimaiApi.hydrateTimesheets(
+            statsTimesheets, root.projects,
+            root.activityCatalog(),
+            root.activitiesByProject)
+    }
+
+    function returnToMainView() {
+        mainViewMode = "main"
+        dismissPickerPopups()
+    }
+
+    function createManualEntry(projectId, activityId, beginText, endText, description) {
+        if (!isConfigured || isBusy) {
+            return
+        }
+        function parseLocalStamp(text) {
+            var s = String(text || "").trim().replace(" ", "T")
+            if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(s)) {
+                s += ":00"
+            }
+            var d = new Date(s)
+            return d
+        }
+        var beginDate = parseLocalStamp(beginText)
+        var endDate = parseLocalStamp(endText)
+        if (isNaN(beginDate.getTime()) || isNaN(endDate.getTime())) {
+            userMessage = i18n("Enter valid begin and end date/time.")
+            return
+        }
+        if (endDate.getTime() <= beginDate.getTime()) {
+            userMessage = i18n("End must be after begin.")
+            return
+        }
+        isBusy = true
+        lastError = null
+        userMessage = ""
+        tracker.createTimesheet(kimaiUrl, apiToken, {
+            begin: KimaiApi.localDateTimeString(beginDate),
+            end: KimaiApi.localDateTimeString(endDate),
+            project: projectId,
+            activity: activityId,
+            description: description || ""
+        }, function(result) {
+            isBusy = false
+            if (result.ok) {
+                clearError()
+                returnToMainView()
+                refreshRecentTimesheets()
+                refreshWorkTotals()
+                sendNotification(i18n("Entry added"), description || i18n("Manual time entry"))
+            } else {
+                setError(result.error)
+            }
+        })
+    }
+
     function reloadProfiles() {
         profiles = Profiles.parseProfiles(plasmoid.configuration.profilesJson, plasmoid.configuration.kimaiUrl)
         activeProfile = Profiles.profileById(profiles, plasmoid.configuration.activeProfileId || "default")
@@ -467,13 +605,16 @@ PlasmoidItem {
             }
             return
         }
+        syncTrackerSession()
         Secret.load(execSource, kwalletScript, activeProfile.id, function(token, err) {
             if (err) {
                 setError({ type: KimaiApi.ErrorType.Network, status: 0, detail: err })
                 apiToken = ""
             } else {
                 apiToken = token || ""
-                if (!token || kimaiUrl.length === 0) {
+                syncTrackerSession()
+                var needsUrl = providerMeta.needsUrl
+                if (!token || (needsUrl && kimaiUrl.length === 0)) {
                     setError({ type: "config", status: 0, detail: "" })
                 } else {
                     clearError()
@@ -492,6 +633,7 @@ PlasmoidItem {
         currentProject = ""
         currentActivity = ""
         currentDescription = ""
+        activeTimesheet = null
         currentCustomerColor = KimaiApi.DEFAULT_CUSTOMER_COLOR
         elapsedSeconds = 0
         descriptionSavedFlash = false
@@ -510,10 +652,10 @@ PlasmoidItem {
         }
 
         isTracking = true
+        activeTimesheet = timesheet
         currentTimesheetId = timesheet.id
-        currentProject = KimaiApi.projectName(timesheet)
-        currentActivity = KimaiApi.activityName(timesheet)
-        currentDescription = timesheet.description || ""
+        currentProject = KimaiApi.displayProjectName(timesheet, projects)
+        currentActivity = KimaiApi.displayActivityName(timesheet, allActivities, activitiesByProject)
         currentCustomerColor = KimaiApi.customerColorFromTimesheet(timesheet, customersById)
         if (!compactPopupLayout) {
             showNewActivityForm = plasmoid.configuration.desktopShowNewActivity
@@ -524,11 +666,54 @@ PlasmoidItem {
             elapsedSeconds = Math.max(0, Math.floor((Date.now() - beginDate.getTime()) / 1000))
         }
 
-        suppressDescHandler = true
-        if (typeof descriptionEdit !== "undefined" && descriptionEdit) {
-            descriptionEdit.text = currentDescription
+        var serverDescription = timesheet.description || ""
+        var descField = (typeof descriptionEdit !== "undefined") ? descriptionEdit : null
+        var editing = !!descField
+            && (descField.activeFocus || descField.text !== currentDescription)
+        if (!editing) {
+            suppressDescHandler = true
+            currentDescription = serverDescription
+            if (descField) {
+                descField.text = serverDescription
+            }
+            suppressDescHandler = false
         }
-        suppressDescHandler = false
+    }
+
+    function saveCurrentDescription() {
+        if (!isTracking || currentTimesheetId === invalidTimesheetId || currentTimesheetId === undefined) {
+            return
+        }
+        if (savingDescription) {
+            return
+        }
+        if (typeof descriptionEdit === "undefined" || !descriptionEdit) {
+            return
+        }
+        var text = descriptionEdit.text
+        if (text === currentDescription) {
+            return
+        }
+        savingDescription = true
+        descriptionSavedFlash = false
+        lastError = null
+        userMessage = ""
+        tracker.patchTimesheet(kimaiUrl, apiToken, currentTimesheetId, { description: text }, function(result) {
+            savingDescription = false
+            if (result.ok) {
+                suppressDescHandler = true
+                currentDescription = text
+                if (descriptionEdit) {
+                    descriptionEdit.text = text
+                }
+                suppressDescHandler = false
+                clearError()
+                descriptionSavedFlash = true
+                descriptionSavedFlashTimer.restart()
+            } else {
+                setError(result.error)
+            }
+        })
     }
 
     function remainingTodayText() {
@@ -590,49 +775,33 @@ PlasmoidItem {
         return lines.join("\n")
     }
 
-    function saveCurrentDescription() {
-        if (!isTracking || currentTimesheetId === invalidTimesheetId || savingDescription || isBusy) {
-            return
-        }
-        if (typeof descriptionEdit === "undefined" || !descriptionEdit) {
-            return
-        }
-        var text = descriptionEdit.text
-        if (text === currentDescription) {
-            return
-        }
-        savingDescription = true
-        descriptionSavedFlash = false
-        KimaiApi.patchTimesheet(kimaiUrl, apiToken, currentTimesheetId, { description: text }, function(result) {
-            savingDescription = false
-            if (result.ok) {
-                suppressDescHandler = true
-                currentDescription = text
-                if (descriptionEdit) {
-                    descriptionEdit.text = text
-                }
-                suppressDescHandler = false
-                clearError()
-                descriptionSavedFlash = true
-                descriptionSavedFlashTimer.restart()
-            } else {
-                setError(result.error)
-                suppressDescHandler = true
-                if (descriptionEdit) {
-                    descriptionEdit.text = currentDescription
-                }
-                suppressDescHandler = false
-            }
-        })
-    }
-
     function applyActivitiesResult(projectId, result, activityIdToSelect) {
         if (result.ok) {
             activities = result.data || []
-            activityPickerModel = KimaiApi.activityPickerItems(activities, projectId)
+            if (projectId) {
+                var copy = {}
+                var key
+                for (key in activitiesByProject) {
+                    if (activitiesByProject.hasOwnProperty(key)) {
+                        copy[key] = activitiesByProject[key]
+                    }
+                }
+                copy[String(projectId)] = activities
+                activitiesByProject = copy
+            }
+            var project = null
+            for (var p = 0; p < projects.length; p++) {
+                if (String(projects[p].id) === String(projectId)) {
+                    project = projects[p]
+                    break
+                }
+            }
+            activityPickerModel = KimaiApi.activityPickerItems(
+                activities, projectId, project, customersById)
             if (activityIdToSelect) {
                 for (var a = 0; a < activityPickerModel.length; a++) {
-                    if (activityPickerModel[a].value && activityPickerModel[a].value.id === activityIdToSelect) {
+                    if (activityPickerModel[a].value
+                        && String(activityPickerModel[a].value.id) === String(activityIdToSelect)) {
                         activityCombo.currentIndex = a
                         return
                     }
@@ -653,7 +822,8 @@ PlasmoidItem {
         }
         var idx = -1
         for (var i = 0; i < projectPickerModel.length; i++) {
-            if (projectPickerModel[i].value && projectPickerModel[i].value.id === projectId) {
+            if (projectPickerModel[i].value
+                && String(projectPickerModel[i].value.id) === String(projectId)) {
                 idx = i
                 break
             }
@@ -663,7 +833,7 @@ PlasmoidItem {
         }
         projectCombo.currentIndex = idx
         selectedProjectId = projectId
-        KimaiApi.loadActivities(kimaiUrl, apiToken, projectId, function(result) {
+        tracker.loadActivities(kimaiUrl, apiToken, projectId, function(result) {
             applyActivitiesResult(projectId, result, activityIdToSelect)
         })
     }
@@ -701,12 +871,14 @@ PlasmoidItem {
             loadingActive = true
         }
 
-        KimaiApi.fetchActiveTimesheet(kimaiUrl, apiToken, function(result) {
+        tracker.fetchActiveTimesheet(kimaiUrl, apiToken, function(result) {
             loadingActive = false
             if (result.ok) {
                 clearError()
                 if (result.data.length > 0) {
-                    applyActiveTimesheet(result.data[0])
+                    var hydratedActive = KimaiApi.hydrateTimesheets(
+                        [result.data[0]], root.projects, root.activityCatalog(), root.activitiesByProject)
+                    applyActiveTimesheet(hydratedActive[0] || result.data[0])
                 } else if (isTracking) {
                     resetTrackingState()
                 }
@@ -725,11 +897,15 @@ PlasmoidItem {
         if (!quiet) {
             loadingRecent = true
         }
-        KimaiApi.fetchRecentTimesheets(kimaiUrl, apiToken, plasmoid.configuration.recentCount, function(result) {
+        tracker.fetchRecentTimesheets(kimaiUrl, apiToken, plasmoid.configuration.recentCount, function(result) {
             loadingRecent = false
             if (result.ok) {
                 clearError()
-                recentTimesheets = KimaiApi.deduplicateRecent(result.data || [])
+                recentTimesheets = KimaiApi.hydrateTimesheets(
+                    KimaiApi.deduplicateRecent(result.data || []),
+                    root.projects,
+                    root.activityCatalog(),
+                    root.activitiesByProject)
             } else {
                 setError(result.error)
                 recentTimesheets = []
@@ -745,15 +921,18 @@ PlasmoidItem {
             weekTargetSeconds = 0
             hasWorkContract = false
             todayTimesheets = []
+            statsTimesheets = []
+            statsRangeBeginMs = 0
+            statsRangeEndMs = 0
             return
         }
 
         var now = new Date()
-        KimaiApi.fetchCurrentUser(kimaiUrl, apiToken, function(userResult) {
+        tracker.fetchCurrentUser(kimaiUrl, apiToken, function(userResult) {
             if (userResult.ok) {
-                workPrefs = KimaiApi.preferenceMap(userResult.data)
-                todayTargetSeconds = KimaiApi.workDaySecondsFromPrefs(workPrefs, now)
-                weekTargetSeconds = KimaiApi.workWeekSecondsFromPrefs(workPrefs, now)
+                workPrefs = tracker.preferenceMap(userResult.data)
+                todayTargetSeconds = tracker.workDaySecondsFromPrefs(workPrefs, now)
+                weekTargetSeconds = tracker.workWeekSecondsFromPrefs(workPrefs, now)
                 hasWorkContract = weekTargetSeconds > 0 || todayTargetSeconds > 0
             } else {
                 workPrefs = ({})
@@ -762,7 +941,7 @@ PlasmoidItem {
                 hasWorkContract = false
             }
 
-            KimaiApi.fetchTimesheetsRange(
+            tracker.fetchTimesheetsRange(
                 kimaiUrl, apiToken,
                 KimaiApi.startOfWeekMonday(now),
                 KimaiApi.endOfWeekSunday(now),
@@ -799,6 +978,15 @@ PlasmoidItem {
                         }
                     }
                     todayTimesheets = todayEntries
+                    // Keep current week available for stats until a wider fetch completes.
+                    if (!statsTimesheets.length || mainViewMode !== "stats") {
+                        statsTimesheets = KimaiApi.hydrateTimesheets(
+                            weekEntries, root.projects,
+                            root.activityCatalog(),
+                            root.activitiesByProject)
+                        statsRangeBeginMs = KimaiApi.startOfWeekMonday(now).getTime()
+                        statsRangeEndMs = KimaiApi.endOfWeekSunday(now).getTime()
+                    }
                     var dayIntervals = KimaiApi.dayIntervalsFromTimesheets(todayEntries, now, nowMs)
                     todaySeconds = 0
                     for (var j = 0; j < dayIntervals.length; j++) {
@@ -808,6 +996,54 @@ PlasmoidItem {
                 }
             )
         })
+    }
+
+    function rebuildColorMaps(force) {
+        ColorDistinct.configure(
+            plasmoid.configuration.colorDistinctionEnabled !== false,
+            plasmoid.configuration.colorSimilarityPercent || 22
+        )
+        var extra = (allActivities || []).slice()
+        if (activities && activities.length) {
+            for (var ai = 0; ai < activities.length; ai++) {
+                extra.push(activities[ai])
+            }
+        }
+        var acts = ColorDistinct.flattenActivitiesByProject(activitiesByProject, extra)
+        ColorDistinct.rebuild(customers, projects, acts, !!force)
+        if (projects && projects.length) {
+            projectPickerModel = KimaiApi.projectPickerItems(projects, customers)
+        }
+        if (selectedProjectId) {
+            var project = null
+            for (var p = 0; p < projects.length; p++) {
+                if (String(projects[p].id) === String(selectedProjectId)) {
+                    project = projects[p]
+                    break
+                }
+            }
+            activityPickerModel = KimaiApi.activityPickerItems(
+                activities, selectedProjectId, project, customersById)
+        }
+        if (Favorites.parsePinned(plasmoid.configuration.pinnedActivities).length > 0) {
+            pinnedEntries = Favorites.resolvePinnedEntries(
+                plasmoid.configuration.pinnedActivities, projects, activitiesByProject,
+                customersById, allActivities)
+        }
+        rehydrateStatsTimesheets()
+        if (recentTimesheets && recentTimesheets.length) {
+            recentTimesheets = KimaiApi.hydrateTimesheets(
+                recentTimesheets, projects, activityCatalog(), activitiesByProject)
+        }
+        if (activeTimesheet) {
+            currentProject = KimaiApi.displayProjectName(activeTimesheet, projects)
+            currentActivity = KimaiApi.displayActivityName(activeTimesheet, allActivities, activitiesByProject)
+            currentCustomerColor = KimaiApi.customerColorFromTimesheet(activeTimesheet, customersById)
+        }
+    }
+
+    function activityCatalog() {
+        return allActivities.length ? allActivities : activities
     }
 
     function refreshProjects(quiet) {
@@ -822,18 +1058,28 @@ PlasmoidItem {
         if (!quiet) {
             loadingProjects = true
         }
-        KimaiApi.loadCustomers(kimaiUrl, apiToken, function(customersResult) {
+        tracker.loadCustomers(kimaiUrl, apiToken, function(customersResult) {
             customers = customersResult.ok ? (customersResult.data || []) : []
             customersById = KimaiApi.buildCustomersById(customers)
-            KimaiApi.loadProjects(kimaiUrl, apiToken, function(result) {
+            tracker.loadProjects(kimaiUrl, apiToken, function(result) {
                 loadingProjects = false
                 if (result.ok) {
                     clearError()
                     projects = result.data || []
-                    projectPickerModel = KimaiApi.projectPickerItems(projects, customers)
-                    refreshPinnedEntries(quiet)
-                    if (!isTracking) {
-                        Qt.callLater(root.preloadLastActivity)
+                    function afterActivities(acts) {
+                        allActivities = acts || []
+                        rebuildColorMaps()
+                        refreshPinnedEntries(true)
+                        if (!isTracking) {
+                            Qt.callLater(root.preloadLastActivity)
+                        }
+                    }
+                    if (typeof tracker.loadAllActivities === "function") {
+                        tracker.loadAllActivities(kimaiUrl, apiToken, function(actResult) {
+                            afterActivities(actResult.ok ? (actResult.data || []) : [])
+                        })
+                    } else {
+                        afterActivities([])
                     }
                 } else {
                     setError(result.error)
@@ -855,15 +1101,20 @@ PlasmoidItem {
             loadingPinned = true
         }
         pinnedEntries = Favorites.resolvePinnedEntries(
-            plasmoid.configuration.pinnedActivities, projects, activitiesByProject, customersById)
+            plasmoid.configuration.pinnedActivities, projects, activitiesByProject,
+            customersById, allActivities)
         loadingPinned = false
 
         for (var i = 0; i < pinned.length; i++) {
             (function(projectId) {
-                if (activitiesByProject[projectId]) {
+                if (activitiesByProject[projectId] || activitiesByProject[String(projectId)]) {
                     return
                 }
-                KimaiApi.loadActivities(kimaiUrl, apiToken, projectId, function(result) {
+                // Names already resolved from allActivities; still cache per-project lists for colors.
+                if (allActivities && allActivities.length > 0) {
+                    return
+                }
+                tracker.loadActivities(kimaiUrl, apiToken, projectId, function(result) {
                     if (result.ok) {
                         var copy = {}
                         var key
@@ -875,7 +1126,8 @@ PlasmoidItem {
                         copy[projectId] = result.data || []
                         activitiesByProject = copy
                         pinnedEntries = Favorites.resolvePinnedEntries(
-                            plasmoid.configuration.pinnedActivities, projects, activitiesByProject, customersById)
+                            plasmoid.configuration.pinnedActivities, projects, activitiesByProject,
+                            customersById, allActivities)
                     }
                 })
             })(pinned[i].projectId)
@@ -884,7 +1136,8 @@ PlasmoidItem {
 
     function refreshAll(quiet) {
         reloadProfiles()
-        if (kimaiUrl.length === 0 || apiToken.length === 0) {
+        syncTrackerSession()
+        if (!isConfigured) {
             connectionState = "offline"
             if (tokenLoaded) {
                 setError({ type: "config", status: 0, detail: "" })
@@ -904,7 +1157,7 @@ PlasmoidItem {
     }
 
     function loadActivitiesForProject(projectId) {
-        selectedProjectId = projectId || 0
+        selectedProjectId = projectId || null
         if (!isConfigured || !projectId) {
             activities = []
             activityPickerModel = []
@@ -912,7 +1165,7 @@ PlasmoidItem {
             return
         }
 
-        KimaiApi.loadActivities(kimaiUrl, apiToken, projectId, function(result) {
+        tracker.loadActivities(kimaiUrl, apiToken, projectId, function(result) {
             applyActivitiesResult(projectId, result)
         })
     }
@@ -925,7 +1178,7 @@ PlasmoidItem {
         isBusy = true
         lastError = null
         userMessage = ""
-        KimaiApi.startTracking(kimaiUrl, apiToken, projectId, activityId, description, function(result) {
+        tracker.startTracking(kimaiUrl, apiToken, projectId, activityId, description, function(result) {
             isBusy = false
             if (result.ok && result.data) {
                 clearError()
@@ -958,14 +1211,14 @@ PlasmoidItem {
         isBusy = true
         lastError = null
         userMessage = ""
-        KimaiApi.stopTracking(kimaiUrl, apiToken, currentTimesheetId, function(stopResult) {
+        tracker.stopTracking(kimaiUrl, apiToken, currentTimesheetId, function(stopResult) {
             if (!stopResult.ok) {
                 isBusy = false
                 setError(stopResult.error)
                 return
             }
             resetTrackingState()
-            KimaiApi.startTracking(kimaiUrl, apiToken, projectId, activityId, description, function(startResult) {
+            tracker.startTracking(kimaiUrl, apiToken, projectId, activityId, description, function(startResult) {
                 isBusy = false
                 if (startResult.ok && startResult.data) {
                     clearError()
@@ -1032,7 +1285,7 @@ PlasmoidItem {
         var stoppedActivity = currentActivity
         isBusy = true
         lastError = null
-        KimaiApi.stopTracking(kimaiUrl, apiToken, currentTimesheetId, function(result) {
+        tracker.stopTracking(kimaiUrl, apiToken, currentTimesheetId, function(result) {
             isBusy = false
             if (result.ok) {
                 clearError()
@@ -1067,17 +1320,22 @@ PlasmoidItem {
         isBusy = true
         userMessage = ""
         lastError = null
-        KimaiApi.restartTimesheet(kimaiUrl, apiToken, timesheet.id, function(result) {
+        tracker.restartTimesheet(kimaiUrl, apiToken, timesheet.id, function(result) {
             if (result.ok) {
                 clearError()
-                applyActiveTimesheet(result.data || timesheet)
+                applyActiveTimesheet(
+                    (KimaiApi.hydrateTimesheets(
+                        [result.data || timesheet], root.projects, root.activityCatalog(), root.activitiesByProject)[0])
+                    || result.data || timesheet)
                 refreshRecentTimesheets()
                 refreshWorkTotals()
                 isBusy = false
                 if (plasmoid.configuration.notifyOnStart) {
                     sendNotification(
                         i18n("Tracking started"),
-                        KimaiApi.projectName(timesheet) + " · " + KimaiApi.activityName(timesheet))
+                        KimaiApi.displayProjectName(timesheet, root.projects)
+                            + " · "
+                            + KimaiApi.displayActivityName(timesheet, root.allActivities, root.activitiesByProject))
                 }
                 return
             }
@@ -1086,7 +1344,10 @@ PlasmoidItem {
             var aid = KimaiApi.activityId(timesheet)
             if (pid && aid) {
                 isBusy = false
-                startTracking(pid, aid, KimaiApi.projectName(timesheet), KimaiApi.activityName(timesheet), timesheet.description || "")
+                startTracking(pid, aid,
+                    KimaiApi.displayProjectName(timesheet, root.projects),
+                    KimaiApi.displayActivityName(timesheet, root.allActivities, root.activitiesByProject),
+                    timesheet.description || "")
             } else {
                 isBusy = false
                 setError(result.error)
@@ -1235,10 +1496,51 @@ PlasmoidItem {
                 width: popupScroll.availableWidth
                 spacing: Kirigami.Units.smallSpacing
 
-                PlasmaExtras.Heading {
+                RowLayout {
                     Layout.fillWidth: true
-                    level: 3
-                    text: i18n("Plasmai")
+                    spacing: Kirigami.Units.smallSpacing
+
+                    PlasmaExtras.Heading {
+                        Layout.fillWidth: true
+                        level: 3
+                        text: root.mainViewMode === "stats" ? i18n("Statistics")
+                              : (root.mainViewMode === "manual" ? i18n("Add entry") : i18n("Plasmai"))
+                    }
+
+                    PlasmaComponents3.ToolButton {
+                        visible: root.isConfigured && root.mainViewMode === "main"
+                        icon.name: "list-add"
+                        text: i18n("Add entry")
+                        display: QQC2.AbstractButton.IconOnly
+                        enabled: !root.isBusy && root.connectionState !== "error"
+                        onClicked: root.openManualEntry()
+                        PlasmaComponents3.ToolTip.text: i18n("Add a manual time entry")
+                        PlasmaComponents3.ToolTip.visible: hovered
+                        PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
+                    }
+
+                    PlasmaComponents3.ToolButton {
+                        visible: root.isConfigured && root.mainViewMode === "main"
+                        icon.name: "view-statistics"
+                        text: i18n("Statistics")
+                        display: QQC2.AbstractButton.IconOnly
+                        enabled: !root.isBusy
+                        onClicked: root.openStatsView()
+                        PlasmaComponents3.ToolTip.text: i18n("Show statistics")
+                        PlasmaComponents3.ToolTip.visible: hovered
+                        PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
+                    }
+
+                    PlasmaComponents3.ToolButton {
+                        visible: root.mainViewMode === "manual" || root.mainViewMode === "stats"
+                        icon.name: "go-previous"
+                        text: i18n("Back")
+                        display: QQC2.AbstractButton.IconOnly
+                        onClicked: root.returnToMainView()
+                        PlasmaComponents3.ToolTip.text: i18n("Back to timer")
+                        PlasmaComponents3.ToolTip.visible: hovered
+                        PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
+                    }
                 }
 
                 QQC2.ComboBox {
@@ -1291,8 +1593,8 @@ PlasmoidItem {
                     Layout.preferredHeight: Kirigami.Units.gridUnit * 8
                     visible: root.showSetupState
                     icon.name: "configure"
-                    text: i18n("Connect your Kimai account")
-                    explanation: i18n("Add your server URL and API token to start tracking time from the panel.")
+                    text: i18n("Connect a time tracker")
+                    explanation: i18n("Add your service, server URL (if needed), and API token to start tracking from the panel.")
                     helpfulAction: Kirigami.Action {
                         text: i18n("Configure Plasmai")
                         icon.name: "configure"
@@ -1318,6 +1620,48 @@ PlasmoidItem {
                         }
                     ]
                 }
+
+                ManualEntryView {
+                    id: manualEntryView
+                    Layout.fillWidth: true
+                    visible: root.mainViewMode === "manual" && root.isConfigured
+                    projectPickerModel: root.projectPickerModel
+                    activityPickerModel: root.activityPickerModel
+                    activitySectionTitles: root.activitySectionTitles
+                    pickerOpenBelow: root.pickerOpenBelow
+                    busy: root.isBusy
+                    configured: root.isConfigured
+                    connectionOk: root.connectionState !== "error"
+                    onAboutToOpenPicker: root.updatePickerOpenDirection()
+                    onProjectChosen: function(projectId) {
+                        root.loadActivitiesForProject(projectId)
+                    }
+                    onSaveRequested: function(projectId, activityId, beginText, endText, description) {
+                        root.createManualEntry(projectId, activityId, beginText, endText, description)
+                    }
+                    onCancelled: root.returnToMainView()
+                }
+
+                StatsView {
+                    Layout.fillWidth: true
+                    visible: root.mainViewMode === "stats" && root.isConfigured
+                    timesheets: root.statsTimesheets
+                    customersById: root.customersById
+                    todayTargetSeconds: root.todayTargetSeconds
+                    weekTargetSeconds: root.weekTargetSeconds
+                    hasWorkContract: root.hasWorkContract
+                    workDayBegin: root.workDayBegin
+                    workDayEnd: root.workDayEnd
+                    onBackRequested: root.returnToMainView()
+                    onNeedMoreHistory: function(rangeBegin, rangeEnd) {
+                        root.loadStatsRange(rangeBegin, rangeEnd)
+                    }
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: Kirigami.Units.smallSpacing
+                    visible: root.mainViewMode === "main"
 
                 // —— Hero ——
                 Rectangle {
@@ -1346,12 +1690,15 @@ PlasmoidItem {
                         anchors.margins: Kirigami.Units.smallSpacing
                         spacing: Kirigami.Units.smallSpacing
 
-                        Rectangle {
+                        CustomerColorDot {
                             visible: root.isTracking
-                            Layout.preferredWidth: 4
+                            Layout.preferredWidth: implicitWidth
+                            Layout.preferredHeight: implicitHeight
                             Layout.fillHeight: true
-                            radius: 2
-                            color: root.currentCustomerColor
+                            Layout.minimumHeight: Kirigami.Units.iconSizes.small
+                            customerColor: root.currentCustomerColor
+                            sizeFactor: 1.0
+                            slotSizeFactor: 0.55
                         }
 
                         ColumnLayout {
@@ -1478,58 +1825,48 @@ PlasmoidItem {
                                 }
                             }
 
-                            Item {
+                            RowLayout {
                                 id: descriptionRow
                                 Layout.fillWidth: true
                                 visible: root.isTracking
-                                implicitHeight: descriptionEdit.implicitHeight
+                                spacing: Kirigami.Units.smallSpacing
 
-                                Kirigami.ActionTextField {
+                                QQC2.TextField {
                                     id: descriptionEdit
-                                    anchors.fill: parent
-                                    enabled: !root.isBusy && !root.savingDescription
+                                    Layout.fillWidth: true
+                                    enabled: !root.savingDescription
                                     placeholderText: i18n("Description")
+                                    // Enter / Return saves; Escape reverts.
                                     onAccepted: root.saveCurrentDescription()
-                                    Keys.onReturnPressed: function(event) {
-                                        root.saveCurrentDescription()
-                                        event.accepted = true
-                                    }
-                                    Keys.onEnterPressed: function(event) {
-                                        root.saveCurrentDescription()
-                                        event.accepted = true
-                                    }
-                                    Keys.onEscapePressed: function(event) {
-                                        text = root.currentDescription
-                                        event.accepted = true
-                                    }
-
-                                    rightActions: [
-                                        Kirigami.Action {
-                                            id: descriptionSaveAction
-                                            icon.name: root.descriptionSavedFlash
-                                                       ? "dialog-ok-apply"
-                                                       : "document-save"
-                                            text: i18n("Save description")
-                                            visible: root.descriptionSavedFlash
-                                                     || (descriptionEdit.text !== root.currentDescription
-                                                         && !root.savingDescription)
-                                            enabled: !root.descriptionSavedFlash
-                                                     && !root.savingDescription
-                                                     && descriptionEdit.text !== root.currentDescription
-                                            onTriggered: root.saveCurrentDescription()
+                                    Keys.onPressed: function(event) {
+                                        if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                                            root.saveCurrentDescription()
+                                            event.accepted = true
+                                        } else if (event.key === Qt.Key_Escape) {
+                                            text = root.currentDescription
+                                            event.accepted = true
                                         }
-                                    ]
+                                    }
                                 }
 
-                                QQC2.BusyIndicator {
-                                    anchors.right: parent.right
-                                    anchors.rightMargin: Kirigami.Units.smallSpacing
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    width: Kirigami.Units.iconSizes.small
-                                    height: width
-                                    z: 2
-                                    visible: root.savingDescription
-                                    running: visible
+                                PlasmaComponents3.ToolButton {
+                                    id: descriptionSaveButton
+                                    icon.name: root.descriptionSavedFlash
+                                               ? "dialog-ok-apply"
+                                               : (root.savingDescription ? "view-refresh"
+                                                  : "document-save")
+                                    text: i18n("Save description")
+                                    display: QQC2.AbstractButton.IconOnly
+                                    visible: root.descriptionSavedFlash
+                                             || root.savingDescription
+                                             || descriptionEdit.text !== root.currentDescription
+                                    enabled: !root.descriptionSavedFlash
+                                             && !root.savingDescription
+                                             && descriptionEdit.text !== root.currentDescription
+                                    onClicked: root.saveCurrentDescription()
+                                    PlasmaComponents3.ToolTip.text: text
+                                    PlasmaComponents3.ToolTip.visible: hovered
+                                    PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
                                 }
                             }
 
@@ -1547,8 +1884,8 @@ PlasmoidItem {
                                 visible: root.showContinueHere && !root.isTracking && root.lastRecent
                                 enabled: root.isConfigured && !root.isBusy && root.connectionState !== "error"
                                 text: i18n("Continue · %1 · %2",
-                                           KimaiApi.projectName(root.lastRecent),
-                                           KimaiApi.activityName(root.lastRecent))
+                                           KimaiApi.displayProjectName(root.lastRecent, root.projects),
+                                           KimaiApi.displayActivityName(root.lastRecent, root.allActivities, root.activitiesByProject))
                                 icon.name: "media-playback-start"
                                 onClicked: root.continueLastActivity()
                             }
@@ -1583,12 +1920,34 @@ PlasmoidItem {
                             Layout.fillWidth: true
                             customerColor: root.pinnedEntries[index].customerColor || KimaiApi.DEFAULT_CUSTOMER_COLOR
                             titleText: root.pinnedEntries[index].activityName
-                            subtitleText: root.pinnedEntries[index].projectName
+                            subtitleText: {
+                                var entry = root.pinnedEntries[index]
+                                var bits = []
+                                if (entry.customerName) {
+                                    bits.push(entry.customerName)
+                                }
+                                if (entry.projectName) {
+                                    bits.push(entry.projectName)
+                                }
+                                return bits.join(" · ")
+                            }
                             rowEnabled: root.isConfigured && !root.isBusy && root.connectionState !== "error"
                             showPlayIcon: true
                             onClicked: root.startPinned(root.pinnedEntries[index])
-                            tooltipText: root.pinnedEntries[index].projectName
-                                         + " · " + root.pinnedEntries[index].activityName
+                            tooltipText: {
+                                var entry = root.pinnedEntries[index]
+                                var bits = []
+                                if (entry.customerName) {
+                                    bits.push(entry.customerName)
+                                }
+                                if (entry.projectName) {
+                                    bits.push(entry.projectName)
+                                }
+                                if (entry.activityName) {
+                                    bits.push(entry.activityName)
+                                }
+                                return bits.join(" · ")
+                            }
                         }
                     }
                 }
@@ -1659,10 +2018,11 @@ PlasmoidItem {
                         delegate: ActivityListRow {
                             Layout.fillWidth: true
                             customerColor: KimaiApi.customerColorFromTimesheet(root.recentTimesheets[index], root.customersById)
-                            titleText: KimaiApi.activityName(root.recentTimesheets[index])
+                            titleText: KimaiApi.displayActivityName(
+                                root.recentTimesheets[index], root.allActivities, root.activitiesByProject)
                             subtitleText: {
                                 var ts = root.recentTimesheets[index]
-                                var bits = [KimaiApi.projectName(ts)]
+                                var bits = [KimaiApi.displayProjectName(ts, root.projects)]
                                 var secs = KimaiApi.timesheetDurationSeconds(ts)
                                 if (secs > 0) {
                                     bits.push(KimaiApi.formatDurationShort(secs))
@@ -1748,7 +2108,7 @@ PlasmoidItem {
                     visible: root.showNewActivityHere && root.showNewActivityForm
                              && (!root.loadingProjects || root.activityPickerModel.length > 0)
                     enabled: root.isConfigured && !root.isBusy && root.connectionState !== "error"
-                             && root.selectedProjectId > 0
+                             && !!root.selectedProjectId
                     items: root.activityPickerModel
                     placeholderText: i18n("Select activity…")
                     sectionTitleMap: root.activitySectionTitles
@@ -1803,6 +2163,7 @@ PlasmoidItem {
                         onClicked: root.showNewActivityForm = false
                     }
                 }
+                } // main pane
             }
         }
 
@@ -1919,6 +2280,8 @@ PlasmoidItem {
 
         function onDesktopShowNewActivityChanged() { root.syncDisplayStateFromConfig() }
         function onPopupShowNewActivityChanged() { root.syncDisplayStateFromConfig() }
+        function onColorDistinctionEnabledChanged() { root.rebuildColorMaps(true) }
+        function onColorSimilarityPercentChanged() { root.rebuildColorMaps(true) }
     }
 
     Connections {

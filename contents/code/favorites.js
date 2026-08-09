@@ -12,11 +12,16 @@ function parsePinned(pinnedStr) {
         if (pair.length !== 2) {
             continue
         }
-        var projectId = parseInt(pair[0])
-        var activityId = parseInt(pair[1])
-        if (isNaN(projectId) || isNaN(activityId)) {
+        var projectIdRaw = String(pair[0]).trim()
+        var activityIdRaw = String(pair[1]).trim()
+        if (!projectIdRaw || !activityIdRaw) {
             continue
         }
+        var projectIdNum = parseInt(projectIdRaw, 10)
+        var activityIdNum = parseInt(activityIdRaw, 10)
+        // Keep numeric ids as numbers (Kimai); leave UUID/string ids as strings.
+        var projectId = (!isNaN(projectIdNum) && String(projectIdNum) === projectIdRaw) ? projectIdNum : projectIdRaw
+        var activityId = (!isNaN(activityIdNum) && String(activityIdNum) === activityIdRaw) ? activityIdNum : activityIdRaw
         result.push({ projectId: projectId, activityId: activityId })
     }
     return result
@@ -60,34 +65,49 @@ function isPinned(pinnedStr, projectId, activityId) {
     return false
 }
 
-function resolvePinnedEntries(pinnedStr, projects, activitiesByProject, customersById) {
+/**
+ * Resolve pinned rows for the UI.
+ * allActivities (optional) is the full catalog from loadAllActivities — preferred over
+ * per-project caches so favorites show names before those loads finish.
+ */
+function resolvePinnedEntries(pinnedStr, projects, activitiesByProject, customersById, allActivities) {
     var raw = parsePinned(pinnedStr)
     var result = []
     var projectMap = {}
-    for (var p = 0; p < projects.length; p++) {
-        projectMap[projects[p].id] = projects[p]
+    for (var p = 0; p < (projects || []).length; p++) {
+        projectMap[String(projects[p].id)] = projects[p]
     }
+    var activitiesById = KimaiApi.activitiesIndexFromCache(allActivities || [], activitiesByProject || {})
 
     for (var i = 0; i < raw.length; i++) {
         var entry = raw[i]
-        var project = projectMap[entry.projectId]
-        var projectName = project ? project.name : ("#" + entry.projectId)
-        var activityName = "#" + entry.activityId
-        var customerColor = KimaiApi.customerColorOfProject(project, customersById)
-        var acts = activitiesByProject[entry.projectId]
-        if (acts) {
-            for (var a = 0; a < acts.length; a++) {
-                if (acts[a].id === entry.activityId) {
-                    activityName = acts[a].name
-                    break
+        var project = projectMap[String(entry.projectId)]
+        var projectName = project ? (project.name || project.title || ("#" + entry.projectId))
+            : ("#" + entry.projectId)
+        var activity = activitiesById[String(entry.activityId)] || null
+        if (!activity) {
+            var acts = (activitiesByProject || {})[entry.projectId]
+                || (activitiesByProject || {})[String(entry.projectId)]
+            if (acts) {
+                for (var a = 0; a < acts.length; a++) {
+                    if (String(acts[a].id) === String(entry.activityId)) {
+                        activity = acts[a]
+                        break
+                    }
                 }
             }
         }
+        var activityName = activity
+            ? (activity.name || activity.title || ("#" + entry.activityId))
+            : ("#" + entry.activityId)
+        var customerName = KimaiApi.customerNameOfProject(project, customersById)
+        var customerColor = KimaiApi.effectiveColorFromActivity(activity, project, customersById)
         result.push({
             projectId: entry.projectId,
             activityId: entry.activityId,
             projectName: projectName,
             activityName: activityName,
+            customerName: customerName,
             customerColor: customerColor
         })
     }

@@ -13,7 +13,6 @@
 set -eu
 
 SERVICE="com.github.shrippen.plasmai"
-LEGACY_SERVICE="org.arian.kimaitracker"
 PROFILE_ID=${2:-default}
 
 if [ "$PROFILE_ID" = "default" ]; then
@@ -35,16 +34,6 @@ case "${1:-}" in
             printf %s "$TOKEN"
             exit 0
         fi
-        # Fall back to tokens stored by the previous plugin id.
-        if TOKEN=$(secret-tool lookup service "$LEGACY_SERVICE" account "$ACCOUNT" 2>/dev/null); then
-            printf %s "$TOKEN"
-            # Best-effort migrate into the new service name.
-            printf %s "$TOKEN" | secret-tool store \
-                --label="$LABEL" \
-                service "$SERVICE" \
-                account "$ACCOUNT" >/dev/null 2>&1 || true
-            exit 0
-        fi
         exit 1
         ;;
     store)
@@ -59,7 +48,6 @@ case "${1:-}" in
         ;;
     clear)
         secret-tool clear service "$SERVICE" account "$ACCOUNT" >/dev/null 2>&1 || true
-        secret-tool clear service "$LEGACY_SERVICE" account "$ACCOUNT" >/dev/null 2>&1 || true
         exit 0
         ;;
     *)

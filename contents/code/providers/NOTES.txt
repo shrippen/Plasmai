@@ -1,0 +1,12 @@
+Provider modules
+===============
+
+Each file in this folder (except _stub.js / NOTES) implements the Kimai-compatible
+API surface documented in ../timeTracker.js.
+
+Session extras (workspace / org / member / user ids) are set via setSession() from
+the active profile after a successful testConnection or on widget load.
+
+Clockify  — X-Api-Key, default https://api.clockify.me/api/v1
+Toggl     — Basic token:api_token, default https://api.track.toggl.com/api/v9
+SolidTime — Bearer JWT, base URL must point at the instance (…/api/v1 appended)

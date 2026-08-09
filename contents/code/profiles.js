@@ -1,7 +1,7 @@
 .pragma library
 
 function defaultProfiles() {
-    return [{ id: "default", name: "Default", url: "" }]
+    return [{ id: "default", name: "Default", url: "", provider: "kimai" }]
 }
 
 function parseProfiles(jsonStr, legacyUrl) {
@@ -9,13 +9,17 @@ function parseProfiles(jsonStr, legacyUrl) {
         try {
             var parsed = JSON.parse(jsonStr)
             if (Array.isArray(parsed) && parsed.length > 0) {
-                return parsed
+                var out = []
+                for (var i = 0; i < parsed.length; i++) {
+                    out.push(normalizeProfile(parsed[i]))
+                }
+                return out
             }
         } catch (e) {
         }
     }
     if (legacyUrl) {
-        return [{ id: "default", name: "Default", url: legacyUrl }]
+        return [normalizeProfile({ id: "default", name: "Default", url: legacyUrl, provider: "kimai" })]
     }
     return defaultProfiles()
 }
@@ -41,10 +45,16 @@ function newProfileId() {
 }
 
 function normalizeProfile(profile) {
+    var p = profile || {}
     return {
-        id: profile.id || newProfileId(),
-        name: profile.name || "Profile",
-        url: profile.url || ""
+        id: p.id || newProfileId(),
+        name: p.name || "Profile",
+        url: p.url || "",
+        provider: p.provider || "kimai",
+        workspaceId: p.workspaceId || "",
+        userId: p.userId || "",
+        organizationId: p.organizationId || "",
+        memberId: p.memberId || ""
     }
 }
 

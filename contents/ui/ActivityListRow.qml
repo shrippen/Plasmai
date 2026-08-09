@@ -26,7 +26,10 @@ QQC2.ItemDelegate {
 
         CustomerColorDot {
             customerColor: root.customerColor
-            sizeFactor: 0.55
+            sizeFactor: 0.45
+            Layout.preferredWidth: implicitWidth
+            Layout.preferredHeight: implicitHeight
+            Layout.fillHeight: true
             Layout.alignment: Qt.AlignVCenter
         }
 

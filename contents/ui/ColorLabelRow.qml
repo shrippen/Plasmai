@@ -3,9 +3,9 @@ import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
 
 /**
- * Color dot + label with hierarchy.
- * Dots always occupy a fixed left slot and are centered in that slot so large
- * and small dots share one vertical axis. Only the label indent differs.
+ * Color bar + label with hierarchy.
+ * Bars occupy a fixed left slot and are centered in that slot so thick
+ * (customer) and thin (project) markers share one vertical axis.
  */
 Item {
     id: root
@@ -21,8 +21,7 @@ Item {
                                  : Kirigami.Theme.defaultFont.pointSize
 
     readonly property real slotSize: Kirigami.Units.iconSizes.small * 0.85
-    readonly property real dotSize: Kirigami.Units.iconSizes.small * (customerRole ? 0.85 : 0.55)
-    /** Gap after the shared dot slot — larger for projects. */
+    /** Gap after the shared bar slot — larger for projects. */
     readonly property real labelGap: customerRole
                                      ? Kirigami.Units.smallSpacing
                                      : Kirigami.Units.largeSpacing + Kirigami.Units.smallSpacing
@@ -33,11 +32,13 @@ Item {
     height: Math.max(slotSize, labelItem.implicitHeight)
 
     CustomerColorDot {
+        id: colorBar
         anchors.left: parent.left
-        anchors.verticalCenter: parent.verticalCenter
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
         customerColor: root.customerColor
         showDot: root.showDot
-        sizeFactor: root.customerRole ? 0.85 : 0.55
+        sizeFactor: root.customerRole ? 0.9 : 0.45
         slotSizeFactor: 0.85
     }
 

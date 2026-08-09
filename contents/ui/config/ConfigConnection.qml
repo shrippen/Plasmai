@@ -6,6 +6,7 @@ import org.kde.plasma.components as PlasmaComponents3
 import org.kde.plasma.plasma5support as P5Support
 import "../../code/secret.js" as Secret
 import "../../code/kimaiApi.js" as KimaiApi
+import "../../code/timeTracker.js" as TimeTracker
 import "../../code/profiles.js" as Profiles
 import "../../code/sharedConfig.js" as SharedConfig
 import ".."
@@ -30,6 +31,52 @@ Item {
     property bool statusIsError: false
     property bool busy: false
     property bool testingConnection: false
+
+    readonly property var selectedProfile: (profiles.length > 0 && selectedIndex >= 0 && selectedIndex < profiles.length)
+        ? profiles[selectedIndex] : null
+    readonly property string selectedProviderId: selectedProfile && selectedProfile.provider
+        ? selectedProfile.provider : "kimai"
+    readonly property var selectedProviderMeta: TimeTracker.providerMeta(selectedProviderId)
+    readonly property var tracker: TimeTracker.api(selectedProviderId)
+
+    /** i18n UI strings that follow the selected service. */
+    readonly property string providerHintText: {
+        switch (selectedProviderId) {
+        case "clockify":
+            return i18n("Clockify cloud API is prefilled. Change only for a regional endpoint (e.g. euc1).")
+        case "toggl":
+            return i18n("Toggl Track cloud API is prefilled. Use your personal API token from Profile settings.")
+        case "solidtime":
+            return i18n("SolidTime cloud API is prefilled. For self-hosting, replace with your instance base URL.")
+        case "kimai":
+        default:
+            return i18n("Self-hosted Kimai or the official hosted service (kimai.cloud). Paste the instance URL.")
+        }
+    }
+    readonly property string urlFieldLabel: selectedProviderMeta && !selectedProviderMeta.needsUrl
+        ? i18n("API URL:")
+        : i18n("Server URL:")
+    readonly property string urlPlaceholderText: {
+        switch (selectedProviderId) {
+        case "clockify":
+            return "https://api.clockify.me/api/v1"
+        case "toggl":
+            return "https://api.track.toggl.com/api/v9"
+        case "solidtime":
+            return i18n("https://api.solidtime.io or https://time.example.com")
+        case "kimai":
+        default:
+            return i18n("https://kimai.example.com or https://www.kimai.cloud")
+        }
+    }
+    readonly property string authFieldLabel: {
+        switch (selectedProviderId) {
+        case "clockify":
+            return i18n("API key:")
+        default:
+            return i18n("API token:")
+        }
+    }
 
     function showStatus(msg, isError) {
         statusMessage = msg
@@ -82,6 +129,10 @@ Item {
         updatingFields = true
         profileNameField.text = profiles[selectedIndex].name
         kimaiUrlField.text = profiles[selectedIndex].url || ""
+        var pid = profiles[selectedIndex].provider || "kimai"
+        var ids = TimeTracker.providerIds()
+        var pIdx = ids.indexOf(pid)
+        providerCombo.currentIndex = pIdx >= 0 ? pIdx : 0
         updatingFields = false
     }
 
@@ -90,9 +141,39 @@ Item {
             return
         }
         var copy = profiles.slice()
-        copy[selectedIndex][field] = value
+        var row = Object.assign({}, copy[selectedIndex])
+        row[field] = value
+        copy[selectedIndex] = row
         profiles = copy
         syncProfiles()
+    }
+
+    /**
+     * Switch service: clear URL + session ids, then prefill defaults for
+     * Clockify / Toggl / SolidTime. Kimai stays empty with a helpful placeholder.
+     */
+    function applyProviderChange(providerId) {
+        if (updatingFields || syncing || profiles.length === 0 || selectedIndex < 0) {
+            return
+        }
+        var meta = TimeTracker.providerMeta(providerId)
+        var url = meta.defaultUrl || ""
+        var copy = profiles.slice()
+        var row = Object.assign({}, copy[selectedIndex])
+        row.provider = providerId
+        row.url = url
+        row.workspaceId = ""
+        row.userId = ""
+        row.organizationId = ""
+        row.memberId = ""
+        copy[selectedIndex] = row
+        profiles = copy
+        syncProfiles()
+
+        updatingFields = true
+        kimaiUrlField.text = url
+        updatingFields = false
+        showStatus("", false)
     }
 
     function commitUrlField() {
@@ -118,6 +199,29 @@ Item {
         kimaiUrlField.text = profiles[selectedIndex].url || ""
         updatingFields = false
         persistShared()
+    }
+
+    function applyTestConnectionMeta(data) {
+        if (!data || profiles.length === 0 || selectedIndex < 0) {
+            return
+        }
+        var copy = profiles.slice()
+        var p = copy[selectedIndex]
+        if (data.workspaceId) {
+            p.workspaceId = data.workspaceId
+        }
+        if (data.userId) {
+            p.userId = data.userId
+        }
+        if (data.organizationId) {
+            p.organizationId = data.organizationId
+        }
+        if (data.memberId) {
+            p.memberId = data.memberId
+        }
+        copy[selectedIndex] = p
+        profiles = copy
+        syncProfiles()
     }
 
     Component.onCompleted: {
@@ -179,10 +283,11 @@ Item {
                 Layout.rightMargin: page.pageMargin
                 wrapMode: Text.WordWrap
                 opacity: 0.8
-                text: i18n("Configure your Kimai server connection. Add multiple profiles if you use more than one instance.")
+                text: i18n("Configure a time-tracking profile. Choose Kimai, Clockify, Toggl Track, or SolidTime.")
             }
 
             Kirigami.FormLayout {
+                id: connectionForm
                 Layout.fillWidth: true
                 Layout.leftMargin: page.pageMargin
                 Layout.rightMargin: page.pageMargin
@@ -207,14 +312,41 @@ Item {
                     onTextChanged: page.updateSelectedProfile("name", text)
                 }
 
+                QQC2.ComboBox {
+                    id: providerCombo
+                    Kirigami.FormData.label: i18n("Service:")
+                    Layout.fillWidth: true
+                    model: TimeTracker.providerNames()
+                    onActivated: function(index) {
+                        if (page.updatingFields) {
+                            return
+                        }
+                        page.applyProviderChange(TimeTracker.providerIds()[index])
+                    }
+                }
+
+                PlasmaComponents3.Label {
+                    // Constrain width so WordWrap actually kicks in inside FormLayout.
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: Math.max(
+                        Kirigami.Units.gridUnit * 10,
+                        connectionForm.width - (connectionForm.wideMode
+                            ? Kirigami.Units.gridUnit * 10
+                            : 0))
+                    wrapMode: Text.WordWrap
+                    horizontalAlignment: Text.AlignLeft
+                    color: Kirigami.Theme.neutralTextColor
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    text: page.providerHintText
+                }
+
                 QQC2.TextField {
                     id: kimaiUrlField
-                    Kirigami.FormData.label: i18n("Kimai server URL:")
+                    Kirigami.FormData.label: page.urlFieldLabel
                     Layout.fillWidth: true
-                    placeholderText: i18n("https://kimai.example.com")
+                    placeholderText: page.urlPlaceholderText
                     onTextChanged: {
                         if (!page.updatingFields && !page.syncing) {
-                            // Keep raw text while typing; normalize only when leaving the field.
                             page.updateSelectedProfile("url", text)
                         }
                     }
@@ -223,7 +355,7 @@ Item {
 
                 QQC2.TextField {
                     id: tokenField
-                    Kirigami.FormData.label: i18n("API token:")
+                    Kirigami.FormData.label: page.authFieldLabel
                     Layout.fillWidth: true
                     echoMode: TextInput.Password
                     placeholderText: i18n("Paste token to save in KWallet")
@@ -245,7 +377,8 @@ Item {
                         var profile = Profiles.normalizeProfile({
                             id: Profiles.newProfileId(),
                             name: i18n("Profile %1", copy.length + 1),
-                            url: ""
+                            url: "",
+                            provider: "kimai"
                         })
                         copy.push(profile)
                         page.profiles = copy
@@ -349,13 +482,15 @@ Item {
                 PlasmaComponents3.Button {
                     text: i18n("Test connection")
                     icon.name: "network-connect"
-                    enabled: !page.testingConnection && kimaiUrlField.text.length > 0 && !page.busy
+                    enabled: !page.testingConnection && !page.busy && page.profiles.length > 0
                     onClicked: {
                         page.testingConnection = true
                         page.showStatus(i18n("Testing connection…"), false)
                         page.commitUrlField()
-                        var profileId = page.profiles[page.selectedIndex].id
-                        var url = KimaiApi.normalizeUrl(kimaiUrlField.text)
+                        var profile = page.profiles[page.selectedIndex]
+                        var profileId = profile.id
+                        var url = TimeTracker.resolveUrl(profile)
+                        TimeTracker.applySession(profile.provider || "kimai", profile)
                         Secret.load(execSource, page.kwalletScript, profileId, function(token, loadErr) {
                             if (loadErr) {
                                 page.testingConnection = false
@@ -367,12 +502,13 @@ Item {
                                 page.showStatus(i18n("No API token stored. Save a token first."), true)
                                 return
                             }
-                            KimaiApi.testConnection(url, token, function(result) {
+                            page.tracker.testConnection(url, token, function(result) {
                                 page.testingConnection = false
                                 if (result.ok) {
-                                    page.showStatus(
-                                        i18n("Connected! Kimai version: %1", result.data.version || i18n("unknown")),
-                                        false)
+                                    page.applyTestConnectionMeta(result.data)
+                                    var label = TimeTracker.providerDisplayName(profile.provider)
+                                    var ver = (result.data && (result.data.version || result.data.name)) || i18n("ok")
+                                    page.showStatus(i18n("Connected to %1 (%2).", label, ver), false)
                                 } else {
                                     page.showStatus(ApiErrors.text(result.error, true), true)
                                 }
@@ -380,23 +516,6 @@ Item {
                         })
                     }
                 }
-
-                QQC2.BusyIndicator {
-                    running: page.testingConnection
-                    visible: page.testingConnection
-                    Layout.preferredWidth: Kirigami.Units.iconSizes.small
-                    Layout.preferredHeight: Kirigami.Units.iconSizes.small
-                }
-            }
-
-            PlasmaComponents3.Label {
-                Layout.fillWidth: true
-                Layout.leftMargin: page.pageMargin
-                Layout.rightMargin: page.pageMargin
-                visible: page.statusMessage !== ""
-                text: page.statusMessage
-                wrapMode: Text.WordWrap
-                color: page.statusIsError ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.positiveTextColor
             }
 
             PlasmaComponents3.Label {
@@ -405,16 +524,15 @@ Item {
                 Layout.rightMargin: page.pageMargin
                 Layout.bottomMargin: page.pageMargin
                 wrapMode: Text.WordWrap
-                opacity: 0.75
-                font.pointSize: Kirigami.Theme.smallFont.pointSize
-                text: i18n("Generate an API token in Kimai under your user profile → API Access. Tokens are stored securely in KWallet per profile.")
+                visible: page.statusMessage.length > 0
+                color: page.statusIsError ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.positiveTextColor
+                text: page.statusMessage
             }
 
             QQC2.TextField {
                 id: profilesField
                 visible: false
             }
-
             QQC2.TextField {
                 id: activeProfileField
                 visible: false

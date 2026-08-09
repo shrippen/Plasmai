@@ -9,15 +9,15 @@
         ],
         "BugReportUrl": "https://github.com/shrippen/Plasmai/issues",
         "Category": "Utilities",
-        "Description": "Track time on your Kimai instance from the Plasma panel",
-        "Description[de]": "Zeiterfassung für deine Kimai-Instanz direkt aus dem Plasma-Panel",
+        "Description": "Track time with Kimai, Clockify, Toggl Track, or SolidTime from the Plasma panel",
+        "Description[de]": "Zeiterfassung mit Kimai, Clockify, Toggl Track oder SolidTime direkt aus dem Plasma-Panel",
         "EnabledByDefault": true,
         "Icon": "chronometer",
         "Id": "com.github.shrippen.plasmai",
         "License": "GPL-3.0-or-later",
         "Name": "Plasmai",
         "Name[de]": "Plasmai",
-        "Version": "1.0.0",
+        "Version": "1.1.0",
         "Website": "https://github.com/shrippen/Plasmai"
     },
     "X-Plasma-API-Minimum-Version": "6.0"

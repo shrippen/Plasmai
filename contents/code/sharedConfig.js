@@ -33,7 +33,9 @@ var SHARED_KEYS = [
     "notifyOnStart",
     "notifyOnStop",
     "notifyOnIdleStop",
-    "locationName"
+    "locationName",
+    "colorDistinctionEnabled",
+    "colorSimilarityPercent"
 ]
 
 function applyToConfiguration(config, shared) {
