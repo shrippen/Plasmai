@@ -4,6 +4,9 @@ A KDE Plasma 6 panel widget for tracking time on your self-hosted [Kimai](https:
 
 **Plugin ID:** `com.github.shrippen.plasmai`  
 **Repository:** https://github.com/shrippen/Plasmai
+**KDE Store:** https://store.kde.org/p/2368175/
+
+**Note:** This is completely vibe coded from start to finish. This is simply something I wanted for myself but might as well share here.
 
 ## Features
 
