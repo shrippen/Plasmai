@@ -1,0 +1,11 @@
+*.plasmoid
+*.zip
+*.tar.gz
+*.tar.xz
+.DS_Store
+*~
+*.qmlc
+*.jsc
+.idea/
+.vscode/
+*.swp

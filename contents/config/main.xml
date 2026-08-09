@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0
+      http://www.kde.org/standards/kcfg/1.0/kcfg.xsd">
+    <kcfgfile name=""/>
+
+    <group name="General">
+        <entry name="kimaiUrl" type="String">
+            <default></default>
+        </entry>
+        <entry name="profilesJson" type="String">
+            <default></default>
+        </entry>
+        <entry name="activeProfileId" type="String">
+            <default>default</default>
+        </entry>
+        <entry name="refreshInterval" type="Int">
+            <default>30</default>
+            <min>10</min>
+            <max>300</max>
+        </entry>
+        <entry name="recentCount" type="Int">
+            <default>10</default>
+            <min>3</min>
+            <max>25</max>
+        </entry>
+        <entry name="showElapsedInPanel" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="showProjectInPanel" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="confirmBeforeStop" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="pinnedActivities" type="String">
+            <default></default>
+        </entry>
+        <entry name="idleStopEnabled" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="idleStopMinutes" type="Int">
+            <default>15</default>
+            <min>1</min>
+            <max>240</max>
+        </entry>
+        <entry name="notifyOnStart" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="notifyOnStop" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="notifyOnIdleStop" type="Bool">
+            <default>true</default>
+        </entry>
+    </group>
+</kcfg>
