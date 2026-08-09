@@ -10,23 +10,9 @@ set -eu
 CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 DIR="$CONFIG_HOME/com.github.shrippen.plasmai"
 FILE="$DIR/shared.json"
-# Previous plugin id (Kimai Time Tracker) — migrate once if present.
-OLD_DIR="$CONFIG_HOME/org.arian.kimaitracker"
-OLD_FILE="$OLD_DIR/shared.json"
-
-migrate_from_legacy() {
-    if [ -f "$FILE" ]; then
-        return 0
-    fi
-    if [ -f "$OLD_FILE" ]; then
-        mkdir -p "$DIR"
-        cp "$OLD_FILE" "$FILE"
-    fi
-}
 
 case "${1:-}" in
     load)
-        migrate_from_legacy
         if [ ! -f "$FILE" ]; then
             exit 1
         fi

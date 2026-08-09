@@ -23,7 +23,7 @@ Item {
         Profiles.parseProfiles(plasmoid.configuration.profilesJson, plasmoid.configuration.kimaiUrl),
         plasmoid.configuration.activeProfileId || "default"
     )
-    readonly property var Tracker: TimeTracker.api(activeProfile && activeProfile.provider
+    readonly property var tracker: TimeTracker.api(activeProfile && activeProfile.provider
         ? activeProfile.provider : "kimai")
 
     property alias cfg_pinnedActivities: pinnedField.text
@@ -73,9 +73,10 @@ Item {
                 projectsStatus = i18n("Save an API token on the Connection tab first.")
                 return
             }
-            page.Tracker.loadCustomers(page.activeProfile.url, token, function(customersResult) {
+            TimeTracker.applySession(page.activeProfile.provider || "kimai", page.activeProfile)
+            page.tracker.loadCustomers(TimeTracker.resolveUrl(page.activeProfile), token, function(customersResult) {
                 var customers = customersResult.ok ? (customersResult.data || []) : []
-                page.Tracker.loadProjects(page.activeProfile.url, token, function(result) {
+                page.tracker.loadProjects(TimeTracker.resolveUrl(page.activeProfile), token, function(result) {
                     if (result.ok) {
                         availableProjects = result.data || []
                         projectRows = KimaiApi.projectsGroupedByCustomer(availableProjects, customers)
@@ -102,7 +103,7 @@ Item {
                 activitiesStatus = i18n("No API token available.")
                 return
             }
-            page.Tracker.loadActivities(page.activeProfile.url, token, project.id, function(result) {
+            page.tracker.loadActivities(TimeTracker.resolveUrl(page.activeProfile), token, project.id, function(result) {
                 if (result.ok) {
                     var copy = {}
                     var key

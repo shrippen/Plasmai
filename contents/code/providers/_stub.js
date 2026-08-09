@@ -1,21 +1,13 @@
 .pragma library
-
-/**
- * Shared helpers for unfinished time-tracker providers.
- * Each provider module must expose the same surface as kimaiApi.js
- * (see timeTracker.js).
- */
+.import "../providerUtil.js" as Util
 
 function unsupported(op, callback) {
     if (typeof callback === "function") {
-        callback({
-            ok: false,
-            error: {
-                type: "unsupported",
-                status: 0,
-                detail: op + " is not implemented for this provider yet"
-            }
-        })
+        callback(Util.fail({
+            type: Util.ErrorType.Unsupported,
+            status: 0,
+            detail: op + " is not implemented for this provider yet"
+        }))
     }
 }
 
@@ -29,21 +21,10 @@ function notImplementedApi(providerId) {
     }
     return {
         providerId: providerId,
-        ErrorType: {
-            Network: "network",
-            Unauthorized: "unauthorized",
-            Forbidden: "forbidden",
-            NotFound: "not_found",
-            Server: "server",
-            Unknown: "unknown",
-            Unsupported: "unsupported"
-        },
-        normalizeUrl: function(url) {
-            if (!url) {
-                return ""
-            }
-            return String(url).replace(/\/+$/, "")
-        },
+        ErrorType: Util.ErrorType,
+        DEFAULT_CUSTOMER_COLOR: Util.DEFAULT_CUSTOMER_COLOR,
+        normalizeUrl: Util.normalizeUrl,
+        setSession: function(/* session */) {},
         testConnection: wrap("testConnection"),
         fetchActiveTimesheet: wrap("fetchActiveTimesheet"),
         fetchRecentTimesheets: wrap("fetchRecentTimesheets"),
@@ -51,13 +32,15 @@ function notImplementedApi(providerId) {
         stopTracking: wrap("stopTracking"),
         restartTimesheet: wrap("restartTimesheet"),
         patchTimesheet: wrap("patchTimesheet"),
+        createTimesheet: wrap("createTimesheet"),
         loadProjects: wrap("loadProjects"),
         loadActivities: wrap("loadActivities"),
+        loadAllActivities: wrap("loadAllActivities"),
         loadCustomers: wrap("loadCustomers"),
         fetchTimesheetsRange: wrap("fetchTimesheetsRange"),
         fetchCurrentUser: wrap("fetchCurrentUser"),
-        preferenceMap: function() { return ({}) },
-        workDaySecondsFromPrefs: function() { return 0 },
-        workWeekSecondsFromPrefs: function() { return 0 }
+        preferenceMap: function(/* user */) { return ({}) },
+        workDaySecondsFromPrefs: function(/* prefs, date */) { return 0 },
+        workWeekSecondsFromPrefs: function(/* prefs, date */) { return 0 }
     }
 }

@@ -2,100 +2,66 @@
 
 /**
  * Time-tracker provider registry.
- *
- * Plasmai talks to backends through this façade. Kimai is the reference
- * implementation (`kimaiApi.js`). New services should expose the same
- * method names and callback shape: callback({ ok, data } | { ok:false, error }).
- *
- * Required methods (mirror kimaiApi.js):
- *   testConnection(url, token, cb)
- *   fetchActiveTimesheet(url, token, cb)
- *   fetchRecentTimesheets(url, token, size, cb)
- *   startTracking(url, token, projectId, activityId, description, cb)
- *   stopTracking(url, token, timesheetId, cb)
- *   restartTimesheet(url, token, timesheetId, cb)
- *   patchTimesheet(url, token, timesheetId, fields, cb)
- *   loadProjects(url, token, cb)
- *   loadActivities(url, token, projectId, cb)
- *   loadCustomers(url, token, cb)
- *   fetchTimesheetsRange(url, token, beginDate, endDate, cb)
- *   fetchCurrentUser(url, token, cb)
- *   preferenceMap(user) / workDaySecondsFromPrefs / workWeekSecondsFromPrefs
- *
- * Canonical timesheet DTO fields the UI understands (providers may nest
- * Kimai-style project/activity objects; helpers in kimaiApi normalize them):
- *   id, begin, end, duration, description,
- *   project{id,name,customer?}, activity{id,name}
- *
- * Suggested next providers (easy → harder):
- *   1. Clockify  — API key, workspaces, start/stop time entries
- *   2. Toggl Track — API token, similar entry model
- *   3. SolidTime — FOSS, REST, Kimai-like concepts
- *   4. Super Productivity — if HTTP API enabled
- *   5. Local JSON file — offline/demo backend (no server)
+ * Profiles store `provider` (default kimai). Network calls go through api(providerId).
+ * Shared UI helpers (duration formatting, pickers, sparkline) stay in kimaiApi.js.
  */
 
 .import "./kimaiApi.js" as KimaiApi
 .import "./providers/_stub.js" as Stub
+.import "./providers/clockify.js" as ClockifyApi
+.import "./providers/toggl.js" as TogglApi
+.import "./providers/solidtime.js" as SolidTimeApi
 
 var PROVIDER_KIMAI = "kimai"
 var PROVIDER_CLOCKIFY = "clockify"
 var PROVIDER_TOGGL = "toggl"
 var PROVIDER_SOLIDTIME = "solidtime"
 
-/**
- * Registry metadata for UI (connection settings, docs).
- * `implemented: true` means api() returns a working backend.
- */
 var PROVIDERS = [
     {
         id: PROVIDER_KIMAI,
         name: "Kimai",
         implemented: true,
         needsUrl: true,
-        authLabel: "API token",
-        hint: "Self-hosted Kimai — https://www.kimai.org/"
+        defaultUrl: "",
+        urlPlaceholder: "https://kimai.example.com",
+        authLabelKey: "token",
+        hintKey: "kimai"
     },
     {
         id: PROVIDER_CLOCKIFY,
         name: "Clockify",
-        implemented: false,
+        implemented: true,
         needsUrl: false,
         defaultUrl: "https://api.clockify.me/api/v1",
-        authLabel: "API key",
-        hint: "Easy next target: API key auth, projects + time entries start/stop."
+        urlPlaceholder: "https://api.clockify.me/api/v1",
+        authLabelKey: "key",
+        hintKey: "clockify"
     },
     {
         id: PROVIDER_TOGGL,
         name: "Toggl Track",
-        implemented: false,
+        implemented: true,
         needsUrl: false,
         defaultUrl: "https://api.track.toggl.com/api/v9",
-        authLabel: "API token",
-        hint: "Popular SaaS; clear REST docs for running timers."
+        urlPlaceholder: "https://api.track.toggl.com/api/v9",
+        authLabelKey: "token",
+        hintKey: "toggl"
     },
     {
         id: PROVIDER_SOLIDTIME,
         name: "SolidTime",
-        implemented: false,
+        implemented: true,
         needsUrl: true,
-        authLabel: "API token",
-        hint: "Open-source tracker with a REST API; similar domain model to Kimai."
+        defaultUrl: "https://api.solidtime.io",
+        urlPlaceholder: "https://api.solidtime.io",
+        authLabelKey: "token",
+        hintKey: "solidtime"
     }
 ]
 
 function listProviders() {
     return PROVIDERS.slice()
-}
-
-function providerMeta(providerId) {
-    var id = normalizeProviderId(providerId)
-    for (var i = 0; i < PROVIDERS.length; i++) {
-        if (PROVIDERS[i].id === id) {
-            return PROVIDERS[i]
-        }
-    }
-    return PROVIDERS[0]
 }
 
 function normalizeProviderId(providerId) {
@@ -108,26 +74,68 @@ function normalizeProviderId(providerId) {
     return PROVIDER_KIMAI
 }
 
+function providerMeta(providerId) {
+    var id = normalizeProviderId(providerId)
+    for (var i = 0; i < PROVIDERS.length; i++) {
+        if (PROVIDERS[i].id === id) {
+            return PROVIDERS[i]
+        }
+    }
+    return PROVIDERS[0]
+}
+
 function isImplemented(providerId) {
     return !!providerMeta(providerId).implemented
 }
 
-/**
- * Resolve the API module/object for a profile provider id.
- * Call sites: TimeTracker.api(providerId).fetchActiveTimesheet(url, token, cb)
- */
 function api(providerId) {
     var id = normalizeProviderId(providerId)
     if (id === PROVIDER_KIMAI) {
         return KimaiApi
     }
-    // When a provider ships, import it above and return it here.
-    // Example:
-    //   if (id === PROVIDER_CLOCKIFY) return ClockifyApi
+    if (id === PROVIDER_CLOCKIFY) {
+        return ClockifyApi
+    }
+    if (id === PROVIDER_TOGGL) {
+        return TogglApi
+    }
+    if (id === PROVIDER_SOLIDTIME) {
+        return SolidTimeApi
+    }
     return Stub.notImplementedApi(id)
 }
 
-/** Display name for combo boxes. */
+function resolveUrl(profile) {
+    var meta = providerMeta(profile && profile.provider)
+    var url = profile && profile.url ? String(profile.url) : ""
+    url = KimaiApi.normalizeUrl(url)
+    if (!url && meta.defaultUrl) {
+        return meta.defaultUrl
+    }
+    return url
+}
+
+function sessionFromProfile(profile) {
+    var p = profile || {}
+    return {
+        workspaceId: p.workspaceId || "",
+        userId: p.userId || "",
+        organizationId: p.organizationId || "",
+        memberId: p.memberId || "",
+        projectsById: {},
+        clientsById: {},
+        tasksById: {}
+    }
+}
+
+function applySession(providerId, profile) {
+    var a = api(providerId)
+    if (a && typeof a.setSession === "function") {
+        a.setSession(sessionFromProfile(profile))
+    }
+    return a
+}
+
 function providerDisplayName(providerId) {
     return providerMeta(providerId).name
 }
@@ -143,8 +151,42 @@ function providerIds() {
 function providerNames() {
     var names = []
     for (var i = 0; i < PROVIDERS.length; i++) {
-        var p = PROVIDERS[i]
-        names.push(p.implemented ? p.name : (p.name + " (soon)"))
+        names.push(PROVIDERS[i].name)
     }
     return names
+}
+
+/**
+ * Aggregate timesheets by project for the stats view.
+ * Returns [{ name, seconds, color }, ...] sorted by seconds desc.
+ */
+function projectBreakdown(timesheets, customersById, limit) {
+    var map = {}
+    var order = []
+    var i
+    for (i = 0; i < (timesheets || []).length; i++) {
+        var ts = timesheets[i]
+        var pid = KimaiApi.projectId(ts)
+        var key = String(pid || "_none")
+        if (!map[key]) {
+            map[key] = {
+                name: KimaiApi.projectName(ts) || "—",
+                seconds: 0,
+                color: KimaiApi.effectiveColorFromProject(
+                    (ts && typeof ts.project === "object") ? ts.project : null,
+                    customersById || {})
+            }
+            order.push(key)
+        }
+        map[key].seconds += KimaiApi.timesheetDurationSeconds(ts)
+    }
+    order.sort(function(a, b) {
+        return map[b].seconds - map[a].seconds
+    })
+    var max = (typeof limit === "number" && limit > 0) ? limit : order.length
+    var out = []
+    for (i = 0; i < order.length && i < max; i++) {
+        out.push(map[order[i]])
+    }
+    return out
 }

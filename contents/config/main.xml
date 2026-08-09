@@ -123,5 +123,15 @@
         <entry name="locationName" type="String">
             <default></default>
         </entry>
+
+        <!-- Color distinction (within customer / project / activity) -->
+        <entry name="colorDistinctionEnabled" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="colorSimilarityPercent" type="Int">
+            <default>22</default>
+            <min>12</min>
+            <max>80</max>
+        </entry>
     </group>
 </kcfg>

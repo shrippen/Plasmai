@@ -1,4 +1,5 @@
 .pragma library
+.import "./colorDistinct.js" as ColorDistinct
 
 var ErrorType = {
     Network: "network",
@@ -32,10 +33,10 @@ function runRequest(xhr, body, callback) {
         if (xhr.readyState !== XMLHttpRequest.DONE) {
             return
         }
-        callback(xhr.status, xhr.responseText, xhr.statusText)
+        callback(xhr.status, xhr.responseText, xhr.statusText, xhr)
     }
     xhr.onerror = function() {
-        callback(0, "", "Network error")
+        callback(0, "", "Network error", xhr)
     }
     if (body !== undefined) {
         xhr.send(body)
@@ -95,6 +96,84 @@ function normalizeCustomerColor(color) {
     return c
 }
 
+/** True when Kimai provided an explicit color (non-empty). */
+function hasExplicitColor(value) {
+    return String(value || "").trim().length > 0
+}
+
+/**
+ * Kimai display color cascade:
+ *   activity → project → customer → default
+ */
+function activityColor(activity) {
+    if (activity && typeof activity === "object" && hasExplicitColor(activity.color)) {
+        return normalizeCustomerColor(activity.color)
+    }
+    return ""
+}
+
+function projectColor(project) {
+    if (project && typeof project === "object" && hasExplicitColor(project.color)) {
+        return normalizeCustomerColor(project.color)
+    }
+    return ""
+}
+
+function customerColorOnly(project, customersById) {
+    if (!project || typeof project !== "object") {
+        return ""
+    }
+    if (project.customer && typeof project.customer === "object" && hasExplicitColor(project.customer.color)) {
+        return normalizeCustomerColor(project.customer.color)
+    }
+    var cid = customerIdOfProject(project)
+    if (cid && customersById) {
+        var cust = customersById[cid] || customersById[String(cid)]
+        if (cust && hasExplicitColor(cust.color)) {
+            return normalizeCustomerColor(cust.color)
+        }
+    }
+    return ""
+}
+
+function effectiveColorFromProject(project, customersById) {
+    var pc = projectColor(project)
+    if (pc) {
+        return ColorDistinct.adjust("project", project && project.id, pc)
+    }
+    var cc = customerColorOnly(project, customersById)
+    if (cc) {
+        var cid = customerIdOfProject(project)
+        return ColorDistinct.adjust("customer", cid, cc)
+    }
+    return ColorDistinct.adjust("project", project && project.id, DEFAULT_CUSTOMER_COLOR)
+}
+
+function effectiveColorFromActivity(activity, project, customersById) {
+    var ac = activityColor(activity)
+    if (ac) {
+        return ColorDistinct.adjust("activity", activity && activity.id, ac)
+    }
+    return effectiveColorFromProject(project, customersById)
+}
+
+function effectiveColorFromTimesheet(timesheet, customersById) {
+    if (!timesheet) {
+        return DEFAULT_CUSTOMER_COLOR
+    }
+    var activity = (typeof timesheet.activity === "object" && timesheet.activity) ? timesheet.activity : null
+    var project = (typeof timesheet.project === "object" && timesheet.project) ? timesheet.project : null
+    return effectiveColorFromActivity(activity, project, customersById)
+}
+
+function customerColorOfProject(project, customersById) {
+    return effectiveColorFromProject(project, customersById)
+}
+
+function customerColorFromTimesheet(timesheet, customersById) {
+    return effectiveColorFromTimesheet(timesheet, customersById)
+}
+
 function getJson(kimaiUrl, apiToken, endpoint, emptyValue, callback) {
     if (!kimaiUrl || !apiToken) {
         callback(fail({ type: "config", status: 0, detail: "" }))
@@ -110,6 +189,54 @@ function getJson(kimaiUrl, apiToken, endpoint, emptyValue, callback) {
     })
 }
 
+/**
+ * Fetch every page of a Kimai collection (default page size is 50).
+ * endpointBase: path + query without page/size (e.g. "/api/activities?visible=3").
+ */
+function getJsonAllPages(kimaiUrl, apiToken, endpointBase, callback) {
+    if (!kimaiUrl || !apiToken) {
+        callback(fail({ type: "config", status: 0, detail: "" }))
+        return
+    }
+    var page = 1
+    var size = 500
+    var collected = []
+    var sep = String(endpointBase).indexOf("?") >= 0 ? "&" : "?"
+
+    function fetchPage() {
+        var endpoint = endpointBase + sep + "page=" + page + "&size=" + size
+        var xhr = createRequest("GET", kimaiUrl, endpoint, apiToken, false)
+        runRequest(xhr, undefined, function(status, responseText, statusText) {
+            if (status !== 200) {
+                callback(fail(parseApiError(status, statusText, responseText)))
+                return
+            }
+            var batch = parseJson(responseText, [])
+            if (!Array.isArray(batch)) {
+                batch = []
+            }
+            for (var i = 0; i < batch.length; i++) {
+                collected.push(batch[i])
+            }
+            var totalPages = parseInt(xhr.getResponseHeader("X-Total-Pages"), 10)
+            var more = false
+            if (!isNaN(totalPages) && totalPages > 0) {
+                more = page < totalPages
+            } else {
+                more = batch.length >= size
+            }
+            if (more && page < 40) {
+                page++
+                fetchPage()
+            } else {
+                callback(ok(collected))
+            }
+        })
+    }
+
+    fetchPage()
+}
+
 function testConnection(kimaiUrl, apiToken, callback) {
     getJson(kimaiUrl, apiToken, "/api/version", {}, callback)
 }
@@ -123,11 +250,11 @@ function fetchRecentTimesheets(kimaiUrl, apiToken, size, callback) {
 }
 
 function loadProjects(kimaiUrl, apiToken, callback) {
-    getJson(kimaiUrl, apiToken, "/api/projects?visible=3&order=ASC&orderBy=name", [], callback)
+    getJsonAllPages(kimaiUrl, apiToken, "/api/projects?visible=3&order=ASC&orderBy=name", callback)
 }
 
 function loadCustomers(kimaiUrl, apiToken, callback) {
-    getJson(kimaiUrl, apiToken, "/api/customers?visible=3&order=ASC&orderBy=name", [], callback)
+    getJsonAllPages(kimaiUrl, apiToken, "/api/customers?visible=3&order=ASC&orderBy=name", callback)
 }
 
 function loadActivities(kimaiUrl, apiToken, projectId, callback) {
@@ -135,7 +262,13 @@ function loadActivities(kimaiUrl, apiToken, projectId, callback) {
         callback(fail({ type: "config", status: 0, detail: "" }))
         return
     }
-    getJson(kimaiUrl, apiToken, "/api/activities?project=" + projectId + "&visible=3&order=ASC&orderBy=name", [], callback)
+    getJsonAllPages(kimaiUrl, apiToken,
+        "/api/activities?project=" + encodeURIComponent(projectId) + "&visible=3&order=ASC&orderBy=name",
+        callback)
+}
+
+function loadAllActivities(kimaiUrl, apiToken, callback) {
+    getJsonAllPages(kimaiUrl, apiToken, "/api/activities?visible=3&order=ASC&orderBy=name", callback)
 }
 
 function activityProjectId(activity) {
@@ -185,27 +318,6 @@ function customerNameOfProject(project, customersById) {
     return ""
 }
 
-function customerColorOfProject(project, customersById) {
-    if (!project) {
-        return DEFAULT_CUSTOMER_COLOR
-    }
-    if (typeof project.customer === "object" && project.customer && project.customer.color) {
-        return normalizeCustomerColor(project.customer.color)
-    }
-    var cid = customerIdOfProject(project)
-    if (cid && customersById && customersById[cid] && customersById[cid].color) {
-        return normalizeCustomerColor(customersById[cid].color)
-    }
-    return DEFAULT_CUSTOMER_COLOR
-}
-
-function customerColorFromTimesheet(timesheet, customersById) {
-    if (!timesheet || !timesheet.project) {
-        return DEFAULT_CUSTOMER_COLOR
-    }
-    return customerColorOfProject(timesheet.project, customersById)
-}
-
 function customerNameFromTimesheet(timesheet, customersById) {
     if (!timesheet || !timesheet.project) {
         return ""
@@ -222,7 +334,7 @@ function splitActivitiesForProject(activities, projectId) {
         var pid = activityProjectId(activity)
         if (!pid) {
             globalActivities.push(activity)
-        } else if (pid === projectId) {
+        } else if (String(pid) === String(projectId)) {
             projectSpecific.push(activity)
         }
     }
@@ -312,38 +424,63 @@ function projectPickerItems(projects, customers) {
     return items
 }
 
-function activityPickerItems(activities, projectId) {
+function activityPickerItems(activities, projectId, project, customersById) {
     var rows = activitiesListModel(activities, projectId)
     var items = []
     for (var i = 0; i < rows.length; i++) {
         var activity = rows[i].activity
         items.push({
-            label: activity.name,
-            searchText: activity.name,
+            label: activity.name || activity.title || ("#" + activity.id),
+            searchText: (activity.name || activity.title || "") + " " + activity.id,
             section: rows[i].section,
-            color: "",
+            color: effectiveColorFromActivity(activity, project || null, customersById || {}),
             value: activity
         })
     }
     return items
 }
 
+function setSession(/* session */) {
+    // Kimai needs no extra session context (url + token suffice).
+}
+
 function startTracking(kimaiUrl, apiToken, projectId, activityId, description, callback) {
+    createTimesheet(kimaiUrl, apiToken, {
+        begin: localDateTimeString(new Date()),
+        project: projectId,
+        activity: activityId,
+        description: description || ""
+    }, callback)
+}
+
+/**
+ * Create a timesheet (running if end omitted).
+ * fields: { begin, end?, project, activity, description }
+ */
+function createTimesheet(kimaiUrl, apiToken, fields, callback) {
     if (!kimaiUrl || !apiToken) {
         callback(fail({ type: "config", status: 0, detail: "" }))
         return
     }
+    var f = fields || {}
+    if (!f.begin || !f.project || !f.activity) {
+        callback(fail({ type: "config", status: 0, detail: "begin, project and activity are required" }))
+        return
+    }
 
-    var xhr = createRequest("POST", kimaiUrl, "/api/timesheets", apiToken, true)
     var data = {
-        begin: new Date().toISOString().slice(0, 19),
-        project: projectId,
-        activity: activityId,
-        description: description || "",
+        begin: f.begin,
+        project: f.project,
+        activity: f.activity,
+        description: f.description || "",
         exported: false,
         billable: false
     }
+    if (f.end) {
+        data.end = f.end
+    }
 
+    var xhr = createRequest("POST", kimaiUrl, "/api/timesheets", apiToken, true)
     runRequest(xhr, JSON.stringify(data), function(status, responseText, statusText) {
         if (status === 200 || status === 201) {
             callback(ok(parseJson(responseText, null)))
@@ -393,7 +530,7 @@ function patchTimesheet(kimaiUrl, apiToken, timesheetId, fields, callback) {
 
     var xhr = createRequest("PATCH", kimaiUrl, "/api/timesheets/" + timesheetId, apiToken, true)
     runRequest(xhr, JSON.stringify(fields || {}), function(status, responseText, statusText) {
-        if (status === 200) {
+        if (status >= 200 && status < 300) {
             callback(ok(parseJson(responseText, null)))
         } else {
             callback(fail(parseApiError(status, statusText, responseText)))
@@ -579,7 +716,7 @@ function fetchTimesheetsRange(kimaiUrl, apiToken, beginDate, endDate, callback) 
 
     function fetchPage() {
         var endpoint = "/api/timesheets?begin=" + begin + "&end=" + end
-            + "&page=" + page + "&size=" + size + "&orderBy=begin&order=ASC"
+            + "&page=" + page + "&size=" + size + "&orderBy=begin&order=ASC&full=1"
         var xhr = createRequest("GET", kimaiUrl, endpoint, apiToken, false)
         runRequest(xhr, undefined, function(status, responseText, statusText) {
             if (status !== 200) {
@@ -622,32 +759,239 @@ function formatDurationShort(seconds) {
     return minutes + "m"
 }
 
-function projectName(timesheet) {
-    if (!timesheet || !timesheet.project) {
+/**
+ * Kimai collection endpoints often return project/activity as bare IDs;
+ * detail/recent endpoints embed objects. Accept both.
+ */
+function entityId(value) {
+    if (value === null || value === undefined || value === "") {
+        return 0
+    }
+    if (typeof value === "object") {
+        return value.id || 0
+    }
+    return value
+}
+
+function entityName(value) {
+    if (!value || typeof value !== "object") {
         return ""
     }
-    return timesheet.project.name || ""
+    return value.name || value.title || ""
+}
+
+function projectName(timesheet) {
+    if (!timesheet) {
+        return ""
+    }
+    return entityName(timesheet.project)
 }
 
 function activityName(timesheet) {
-    if (!timesheet || !timesheet.activity) {
+    if (!timesheet) {
         return ""
     }
-    return timesheet.activity.name || ""
+    return entityName(timesheet.activity)
+}
+
+/**
+ * Best-effort display name: embedded → catalog → empty (caller may show "#id").
+ */
+function displayActivityName(timesheet, activities, activitiesByProject) {
+    if (!timesheet) {
+        return ""
+    }
+    var n = activityName(timesheet)
+    if (n) {
+        return n
+    }
+    return resolveActivityName(timesheet, activitiesIndexFromCache(activities, activitiesByProject))
+}
+
+function displayProjectName(timesheet, projects) {
+    if (!timesheet) {
+        return ""
+    }
+    var n = projectName(timesheet)
+    if (n) {
+        return n
+    }
+    return resolveProjectName(timesheet, indexById(projects))
+}
+
+/**
+ * Resolve a display name, preferring embedded entity name then an id→entity map.
+ */
+function resolveEntityName(value, byId) {
+    var n = entityName(value)
+    if (n) {
+        return n
+    }
+    var id = entityId(value)
+    if (id && byId) {
+        var hit = byId[id] || byId[String(id)]
+        if (hit) {
+            return entityName(hit) || ""
+        }
+    }
+    return ""
+}
+
+function resolveActivityName(timesheet, activitiesById) {
+    if (!timesheet) {
+        return ""
+    }
+    return resolveEntityName(timesheet.activity, activitiesById)
+}
+
+function resolveProjectName(timesheet, projectsById) {
+    if (!timesheet) {
+        return ""
+    }
+    return resolveEntityName(timesheet.project, projectsById)
 }
 
 function projectId(timesheet) {
-    if (!timesheet || !timesheet.project) {
+    if (!timesheet) {
         return 0
     }
-    return timesheet.project.id || 0
+    return entityId(timesheet.project)
 }
 
 function activityId(timesheet) {
-    if (!timesheet || !timesheet.activity) {
+    if (!timesheet) {
         return 0
     }
-    return timesheet.activity.id || 0
+    return entityId(timesheet.activity)
+}
+
+function indexById(list) {
+    var map = {}
+    for (var i = 0; i < (list || []).length; i++) {
+        var item = list[i]
+        if (!item || item.id === null || item.id === undefined) {
+            continue
+        }
+        map[String(item.id)] = item
+    }
+    return map
+}
+
+function activitiesIndexFromCache(activities, activitiesByProject) {
+    var map = indexById(activities)
+    var byProject = activitiesByProject || {}
+    for (var key in byProject) {
+        if (!byProject.hasOwnProperty(key)) {
+            continue
+        }
+        var list = byProject[key] || []
+        for (var i = 0; i < list.length; i++) {
+            var act = list[i]
+            if (act && act.id !== null && act.id !== undefined) {
+                map[String(act.id)] = act
+            }
+        }
+    }
+    return map
+}
+
+/** Shallow-merge cached entity fields onto a partial API object (names/colors). */
+function mergeEntity(partial, cached) {
+    if (!cached) {
+        return partial
+    }
+    if (!partial) {
+        return cached
+    }
+    var out = {}
+    var k
+    for (k in partial) {
+        if (partial.hasOwnProperty(k)) {
+            out[k] = partial[k]
+        }
+    }
+    for (k in cached) {
+        if (!cached.hasOwnProperty(k)) {
+            continue
+        }
+        if (out[k] === null || out[k] === undefined || out[k] === "") {
+            out[k] = cached[k]
+        }
+    }
+    return out
+}
+
+/**
+ * Expand bare project/activity IDs on timesheets using local caches so
+ * stats grouping and legends get real names/colors.
+ * Never replaces an embedded name with a blank cached name.
+ */
+function hydrateTimesheets(entries, projects, activities, activitiesByProject) {
+    var projectsById = indexById(projects)
+    var activitiesById = activitiesIndexFromCache(activities, activitiesByProject)
+    var out = []
+    for (var i = 0; i < (entries || []).length; i++) {
+        var ts = entries[i]
+        if (!ts) {
+            continue
+        }
+        var pid = projectId(ts)
+        var aid = activityId(ts)
+        var projectObj = (typeof ts.project === "object" && ts.project) ? ts.project : null
+        var activityObj = (typeof ts.activity === "object" && ts.activity) ? ts.activity : null
+
+        if (pid && projectsById[String(pid)]) {
+            var cachedProject = projectsById[String(pid)]
+            if (!projectObj) {
+                projectObj = cachedProject
+            } else {
+                projectObj = mergeEntity(projectObj, cachedProject)
+            }
+        }
+        if (aid && activitiesById[String(aid)]) {
+            var cachedActivity = activitiesById[String(aid)]
+            if (!activityObj) {
+                activityObj = cachedActivity
+            } else {
+                activityObj = mergeEntity(activityObj, cachedActivity)
+            }
+        }
+
+        // Normalize scalar IDs into stub objects so callers always see .name/.id
+        if (!projectObj && pid) {
+            projectObj = { id: pid, name: "" }
+        }
+        if (!activityObj && aid) {
+            activityObj = { id: aid, name: "" }
+        }
+        if (projectObj && !entityName(projectObj) && projectsById[String(pid)]) {
+            projectObj = mergeEntity(projectObj, projectsById[String(pid)])
+        }
+        if (activityObj && !entityName(activityObj) && activitiesById[String(aid)]) {
+            activityObj = mergeEntity(activityObj, activitiesById[String(aid)])
+        }
+
+        var changed = projectObj !== ts.project || activityObj !== ts.activity
+            || (typeof ts.project !== "object") || (typeof ts.activity !== "object")
+        if (changed) {
+            var copy = {}
+            for (var k in ts) {
+                if (ts.hasOwnProperty(k)) {
+                    copy[k] = ts[k]
+                }
+            }
+            if (projectObj) {
+                copy.project = projectObj
+            }
+            if (activityObj) {
+                copy.activity = activityObj
+            }
+            out.push(copy)
+        } else {
+            out.push(ts)
+        }
+    }
+    return out
 }
 
 function deduplicateRecent(entries) {

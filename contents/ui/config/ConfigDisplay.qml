@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
+import org.kde.plasma.components as PlasmaComponents3
 import org.kde.plasma.plasma5support as P5Support
 import "../../code/secret.js" as Secret
 import "../../code/sharedConfig.js" as SharedConfig
@@ -35,6 +36,8 @@ Item {
     property alias cfg_desktopShowFavorites: desktopFavoritesCheck.checked
     property alias cfg_desktopShowRecent: desktopRecentCheck.checked
     property alias cfg_desktopShowNewActivity: desktopNewActivityCheck.checked
+    property alias cfg_colorDistinctionEnabled: colorDistinctionCheck.checked
+    property alias cfg_colorSimilarityPercent: colorSimilaritySpin.value
 
     property bool syncing: false
     property bool ready: false
@@ -130,7 +133,9 @@ Item {
             desktopShowFavorites: desktopFavoritesCheck.checked,
             desktopShowRecent: desktopRecentCheck.checked,
             desktopShowNewActivity: desktopNewActivityCheck.checked,
-            showFavorites: popupFavoritesCheck.checked || desktopFavoritesCheck.checked
+            showFavorites: popupFavoritesCheck.checked || desktopFavoritesCheck.checked,
+            colorDistinctionEnabled: colorDistinctionCheck.checked,
+            colorSimilarityPercent: colorSimilaritySpin.value
         }
     }
 
@@ -163,6 +168,12 @@ Item {
         }
         if (typeof shared.workDayEnd === "string" && shared.workDayEnd.length > 0) {
             workDayEndField.text = shared.workDayEnd
+        }
+        if (typeof shared.colorDistinctionEnabled === "boolean") {
+            colorDistinctionCheck.checked = shared.colorDistinctionEnabled
+        }
+        if (typeof shared.colorSimilarityPercent === "number") {
+            colorSimilaritySpin.value = shared.colorSimilarityPercent
         }
         if (typeof shared.latitude === "number") {
             page.cfg_latitude = shared.latitude
@@ -296,6 +307,33 @@ Item {
                     placeholderText: "18:00"
                     onEditingFinished: page.persistShared()
                 }
+
+                QQC2.CheckBox {
+                    id: colorDistinctionCheck
+                    Kirigami.FormData.label: i18n("Colors:")
+                    text: i18n("Make similar colors distinctive within each category")
+                    onCheckedChanged: page.persistShared()
+                }
+
+                QQC2.SpinBox {
+                    id: colorSimilaritySpin
+                    Kirigami.FormData.label: i18n("Similarity threshold (%):")
+                    from: 12
+                    to: 80
+                    stepSize: 1
+                    enabled: colorDistinctionCheck.checked
+                    onValueChanged: page.persistShared()
+                }
+            }
+
+            PlasmaComponents3.Label {
+                Layout.fillWidth: true
+                Layout.leftMargin: page.pageMargin
+                Layout.rightMargin: page.pageMargin
+                wrapMode: Text.WordWrap
+                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                opacity: 0.75
+                text: i18n("Higher similarity values treat more colors as too close. Clashing items get vivid, well-spaced replacement colors (not washed hue-shifts). If too many items cannot fit, the threshold is lowered automatically down to 12%. See Maintenance for clash groups.")
             }
 
             Kirigami.Heading {

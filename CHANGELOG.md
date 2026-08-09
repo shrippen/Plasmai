@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.1.0
+
+### Multi-provider backends
+- Pluggable tracker API via `timeTracker.js`
+- **Clockify**, **Toggl Track**, and **SolidTime** alongside Kimai
+- Connection settings: choose service per profile; workspace/org ids stored after a successful test
+
+### Manual entries & statistics
+- **+** in the main view opens a compact editor (project/activity pickers + begin/end)
+- Secondary **Statistics** screen (today/week totals, project breakdown) — switchable without replacing the timer
+
+### i18n
+- Added FR, ES, IT, NL, PT (BR), PL, UK, RU, JA, ZH (CN) alongside EN and DE
+- Strings for statistics, manual entry, multi-provider connection, color distinction, and Maintenance
+
+### Colors & maintenance
+- Optional within-category color distinction (vivid replacements for clashes)
+- Maintenance settings page listing clash groups (kept vs shifted)
+
 ## 1.0.0
 
 First stable release of **Plasmai** (`com.github.shrippen.plasmai`).
@@ -28,4 +47,3 @@ First stable release of **Plasmai** (`com.github.shrippen.plasmai`).
 - Optional desktop blur background
 - Notifications on start/stop/idle-stop
 - Idle auto-stop (`xprintidle`, X11/XWayland)
-- Migrate tokens and shared config from `org.arian.kimaitracker`

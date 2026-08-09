@@ -14,12 +14,10 @@ QtObject {
         if (error.type === "config") {
             return configContext
                 ? i18n("URL and API token are required")
-                : i18n("Configure server URL and API token")
+                : i18n("Configure your time tracker URL and API token")
         }
         if (error.type === "unsupported") {
-            return error.detail
-                ? error.detail
-                : i18n("This time-tracking service is not supported yet.")
+            return i18n("This action is not supported for the selected service yet.")
         }
         if (error.type === KimaiApi.ErrorType.Network) {
             return i18n("Cannot reach the server. Check your network, URL, or TLS certificate.")
@@ -28,7 +26,7 @@ QtObject {
             return i18n("Authentication failed. Check your API token.")
         }
         if (error.type === KimaiApi.ErrorType.NotFound) {
-            return i18n("Server not found. Check your server URL.")
+            return i18n("Server not found. Check your URL.")
         }
         if (error.type === KimaiApi.ErrorType.Forbidden) {
             return i18n("Access denied. Your token may lack required permissions.")

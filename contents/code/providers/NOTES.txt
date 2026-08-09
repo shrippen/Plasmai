@@ -1,33 +1,12 @@
-/**
- * Provider implementation notes
- * =============================
- *
- * Add a real backend by:
- * 1. Creating `providers/<id>.js` with the method surface documented in
- *    `../timeTracker.js` (copy call signatures from `../kimaiApi.js`).
- * 2. Registering it in `timeTracker.js` PROVIDERS + api() switch.
- * 3. Mapping foreign JSON → Kimai-like timesheet/project/activity objects
- *    (or extending UI helpers to accept a flat DTO).
- *
- * Easiest additions
- * -----------------
- * Clockify  — https://docs.clockify.me/
- *   Auth: X-Api-Key. Start/stop: POST /workspaces/{id}/timeEntries
- *   Map: workspace (config), project → project, task → activity
- *
- * Toggl Track — https://engineering.toggl.com/docs/
- *   Auth: Basic(apiToken, "api_token"). POST /me/time_entries
- *   Map: workspace_id, project_id, description; tags optional
- *
- * SolidTime — https://docs.solidtime.io/ (self-hosted FOSS)
- *   Closest conceptual match to Kimai; good if you want another OSS option.
- *
- * Local JSON (optional demo)
- *   Store running entry + history under ~/.config/.../local-tracker.json
- *   No network; great for UI development without a server.
- *
- * Harder / different model
- * ------------------------
- * WakaTime — heartbeat/automatic; not a manual start/stop timer.
- * Jira Tempo / YouTrack — issue-centric; needs issue pickers.
- */
+Provider modules
+===============
+
+Each file in this folder (except _stub.js / NOTES) implements the Kimai-compatible
+API surface documented in ../timeTracker.js.
+
+Session extras (workspace / org / member / user ids) are set via setSession() from
+the active profile after a successful testConnection or on widget load.
+
+Clockify  — X-Api-Key, default https://api.clockify.me/api/v1
+Toggl     — Basic token:api_token, default https://api.track.toggl.com/api/v9
+SolidTime — Bearer JWT, base URL must point at the instance (…/api/v1 appended)

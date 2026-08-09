@@ -19,7 +19,7 @@ function parseProfiles(jsonStr, legacyUrl) {
         }
     }
     if (legacyUrl) {
-        return [{ id: "default", name: "Default", url: legacyUrl, provider: "kimai" }]
+        return [normalizeProfile({ id: "default", name: "Default", url: legacyUrl, provider: "kimai" })]
     }
     return defaultProfiles()
 }
@@ -37,12 +37,7 @@ function profileById(profiles, id) {
 }
 
 function serializeProfiles(profiles) {
-    var list = profiles || defaultProfiles()
-    var out = []
-    for (var i = 0; i < list.length; i++) {
-        out.push(normalizeProfile(list[i]))
-    }
-    return JSON.stringify(out)
+    return JSON.stringify(profiles || defaultProfiles())
 }
 
 function newProfileId() {
@@ -55,7 +50,11 @@ function normalizeProfile(profile) {
         id: p.id || newProfileId(),
         name: p.name || "Profile",
         url: p.url || "",
-        provider: p.provider || "kimai"
+        provider: p.provider || "kimai",
+        workspaceId: p.workspaceId || "",
+        userId: p.userId || "",
+        organizationId: p.organizationId || "",
+        memberId: p.memberId || ""
     }
 }
 

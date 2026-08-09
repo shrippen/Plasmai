@@ -9,3 +9,4 @@
 .idea/
 .vscode/
 *.swp
+translate/langs/__pycache__/
