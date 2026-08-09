@@ -1,0 +1,675 @@
+# German translation for Plasmai.
+# Copyright (C) 2026 Plasmai authors
+# This file is distributed under the same license as the Plasmai package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Plasmai 0.5.0\n"
+"Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
+"POT-Creation-Date: 2026-08-09 15:28+0200\n"
+"PO-Revision-Date: 2026-08-09 14:58+0200\n"
+"Last-Translator: Arian\n"
+"Language-Team: German\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: contents/ui/main.qml:130 contents/ui/config/ConfigFavorites.qml:134
+msgid "Project-specific"
+msgstr "Projektspezifisch"
+
+#: contents/ui/main.qml:131 contents/ui/config/ConfigFavorites.qml:137
+msgid "Global activities"
+msgstr "Globale Tätigkeiten"
+
+#: contents/ui/main.qml:179 contents/ui/main.qml:196 contents/ui/main.qml:1167
+msgid "Plasmai"
+msgstr "Plasmai"
+
+#: contents/ui/main.qml:183
+msgid "Toggle Plasmai tracking"
+msgstr "Plasmai-Zeiterfassung umschalten"
+
+#: contents/ui/main.qml:189
+msgid "Stop Plasmai tracking"
+msgstr "Plasmai-Zeiterfassung stoppen"
+
+#: contents/ui/main.qml:200
+msgid "Loading…"
+msgstr "Wird geladen…"
+
+#: contents/ui/main.qml:203
+msgid "Not configured — right-click to configure"
+msgstr "Nicht konfiguriert — Rechtsklick zum Einrichten"
+
+#: contents/ui/main.qml:257
+msgid "just now"
+msgstr "gerade eben"
+
+#: contents/ui/main.qml:261
+msgid "%1 minute ago"
+msgid_plural "%1 minutes ago"
+msgstr[0] "vor %1 Minute"
+msgstr[1] "vor %1 Minuten"
+
+#: contents/ui/main.qml:265
+msgid "%1 hour ago"
+msgid_plural "%1 hours ago"
+msgstr[0] "vor %1 Stunde"
+msgstr[1] "vor %1 Stunden"
+
+#: contents/ui/main.qml:269
+msgid "yesterday"
+msgstr "gestern"
+
+#: contents/ui/main.qml:272
+msgid "%1 day ago"
+msgid_plural "%1 days ago"
+msgstr[0] "vor %1 Tag"
+msgstr[1] "vor %1 Tagen"
+
+#: contents/ui/main.qml:292
+msgid "Not configured"
+msgstr "Nicht konfiguriert"
+
+#: contents/ui/main.qml:295
+msgid "Connecting to %1…"
+msgstr "Verbinde mit %1…"
+
+#: contents/ui/main.qml:298
+msgid "Connection problem"
+msgstr "Verbindungsproblem"
+
+#: contents/ui/main.qml:302
+msgid "Connected to %1 (%2)"
+msgstr "Verbunden mit %1 (%2)"
+
+#: contents/ui/main.qml:303
+msgid "Connected to %1"
+msgstr "Verbunden mit %1"
+
+#: contents/ui/main.qml:515
+msgid "%1 left today"
+msgstr "%1 heute übrig"
+
+#: contents/ui/main.qml:517
+msgid "%1 over today"
+msgstr "%1 heute drüber"
+
+#: contents/ui/main.qml:522
+msgid "%1 left this week"
+msgstr "%1 diese Woche übrig"
+
+#: contents/ui/main.qml:524
+msgid "%1 over this week"
+msgstr "%1 diese Woche drüber"
+
+#: contents/ui/main.qml:529 contents/ui/main.qml:552 contents/ui/main.qml:1347
+msgid "Today %1"
+msgstr "Heute %1"
+
+#: contents/ui/main.qml:530 contents/ui/main.qml:1356
+msgid "Week %1"
+msgstr "Woche %1"
+
+#: contents/ui/main.qml:884 contents/ui/main.qml:1026
+msgid "Tracking started"
+msgstr "Zeiterfassung gestartet"
+
+#: contents/ui/main.qml:924
+msgid "Switched activity"
+msgstr "Tätigkeit gewechselt"
+
+#: contents/ui/main.qml:991
+msgid "Tracking stopped (idle)"
+msgstr "Zeiterfassung gestoppt (Leerlauf)"
+
+#: contents/ui/main.qml:995
+msgid "Tracking stopped"
+msgstr "Zeiterfassung gestoppt"
+
+#: contents/ui/main.qml:1010
+msgid "Stop the current timer before starting another"
+msgstr "Stoppe den aktuellen Timer, bevor du einen neuen startest"
+
+#: contents/ui/main.qml:1113
+msgid "Stop tracking?"
+msgstr "Zeiterfassung stoppen?"
+
+#: contents/ui/main.qml:1119
+msgid "Stop tracking %1 · %2?"
+msgstr "Zeiterfassung für %1 · %2 stoppen?"
+
+#: contents/ui/main.qml:1220
+msgid "Connect your Kimai account"
+msgstr "Verbinde dein Kimai-Konto"
+
+#: contents/ui/main.qml:1221
+msgid ""
+"Add your server URL and API token to start tracking time from the panel."
+msgstr ""
+
+#: contents/ui/main.qml:1223
+msgid "Configure Plasmai"
+msgstr "Plasmai einrichten"
+
+#: contents/ui/main.qml:1236
+msgid "Retry"
+msgstr "Erneut versuchen"
+
+#: contents/ui/main.qml:1241
+msgid "Configure"
+msgstr "Einrichten"
+
+#: contents/ui/main.qml:1332
+msgid "Not tracking"
+msgstr "Keine aktive Erfassung"
+
+#: contents/ui/main.qml:1398
+msgid "Description"
+msgstr "Beschreibung"
+
+#: contents/ui/main.qml:1406
+msgid "Stop"
+msgstr "Stopp"
+
+#: contents/ui/main.qml:1415
+msgid "Continue · %1 · %2"
+msgstr "Fortsetzen · %1 · %2"
+
+#: contents/ui/main.qml:1432 contents/ui/config/ConfigDisplay.qml:228
+#: contents/ui/config/ConfigDisplay.qml:276 contents/config/config.qml:11
+msgid "Favorites"
+msgstr "Favoriten"
+
+#: contents/ui/main.qml:1474
+msgid "No favorites yet"
+msgstr "Noch keine Favoriten"
+
+#: contents/ui/main.qml:1480
+msgid "Pin frequent project/activity pairs in the widget settings."
+msgstr "Häufige Projekt-/Tätigkeitspaare in den Widget-Einstellungen anheften."
+
+#: contents/ui/main.qml:1485
+msgid "Configure favorites"
+msgstr "Favoriten einrichten"
+
+#: contents/ui/main.qml:1501
+msgid "+%1 more in settings"
+msgstr "+%1 weitere in den Einstellungen"
+
+#: contents/ui/main.qml:1512
+msgid "Recent"
+msgstr "Zuletzt"
+
+#: contents/ui/main.qml:1559
+msgid "No recent activities"
+msgstr "Keine kürzlichen Tätigkeiten"
+
+#: contents/ui/main.qml:1560
+msgid "Start tracking to build your recent list."
+msgstr "Starte die Zeiterfassung, um die Liste zu füllen."
+
+#: contents/ui/main.qml:1570
+msgid "Switch to another activity…"
+msgstr "Zu anderer Tätigkeit wechseln…"
+
+#: contents/ui/main.qml:1570
+msgid "Start something else…"
+msgstr "Etwas anderes starten…"
+
+#: contents/ui/main.qml:1581
+msgid "Switch activity"
+msgstr "Tätigkeit wechseln"
+
+#: contents/ui/main.qml:1581
+msgid "New activity"
+msgstr "Neue Tätigkeit"
+
+#: contents/ui/main.qml:1597
+msgid "Select project…"
+msgstr "Projekt wählen…"
+
+#: contents/ui/main.qml:1619
+msgid "Select activity…"
+msgstr "Tätigkeit wählen…"
+
+#: contents/ui/main.qml:1631
+msgid "Description (optional)"
+msgstr "Beschreibung (optional)"
+
+#: contents/ui/main.qml:1643
+msgid "Start"
+msgstr "Start"
+
+#: contents/ui/main.qml:1657
+msgid "Switch"
+msgstr "Wechseln"
+
+#: contents/ui/main.qml:1668
+msgid "Cancel"
+msgstr "Abbrechen"
+
+#: contents/ui/ApiErrors.qml:12
+msgid "Unknown error"
+msgstr "Unbekannter Fehler"
+
+#: contents/ui/ApiErrors.qml:16
+msgid "URL and API token are required"
+msgstr "URL und API-Token sind erforderlich"
+
+#: contents/ui/ApiErrors.qml:17
+msgid "Configure Kimai URL and API token"
+msgstr "Kimai-URL und API-Token einrichten"
+
+#: contents/ui/ApiErrors.qml:20
+msgid "Cannot reach Kimai. Check your network, URL, or TLS certificate."
+msgstr "Kimai ist nicht erreichbar. Prüfe Netzwerk, URL oder TLS-Zertifikat."
+
+#: contents/ui/ApiErrors.qml:23
+msgid "Authentication failed. Check your API token."
+msgstr "Authentifizierung fehlgeschlagen. Prüfe dein API-Token."
+
+#: contents/ui/ApiErrors.qml:26
+msgid "Server not found. Check your Kimai URL."
+msgstr "Server nicht gefunden. Prüfe deine Kimai-URL."
+
+#: contents/ui/ApiErrors.qml:29
+msgid "Access denied. Your token may lack required permissions."
+msgstr "Zugriff verweigert. Deinem Token fehlen möglicherweise Rechte."
+
+#: contents/ui/ApiErrors.qml:32
+msgid "Kimai server error (%1)."
+msgstr "Kimai-Serverfehler (%1)."
+
+#: contents/ui/ApiErrors.qml:35
+msgid "Request failed: %1"
+msgstr "Anfrage fehlgeschlagen: %1"
+
+#: contents/ui/ApiErrors.qml:37
+msgid "Request failed (%1)."
+msgstr "Anfrage fehlgeschlagen (%1)."
+
+#: contents/ui/config/ConfigConnection.qml:169
+msgid ""
+"Configure your Kimai server connection. Add multiple profiles if you use "
+"more than one instance."
+msgstr ""
+
+#: contents/ui/config/ConfigConnection.qml:177
+msgid "Profile:"
+msgstr "Profil:"
+
+#: contents/ui/config/ConfigConnection.qml:189
+msgid "Profile name:"
+msgstr "Profilname:"
+
+#: contents/ui/config/ConfigConnection.qml:196
+msgid "Kimai server URL:"
+msgstr "Kimai-Server-URL:"
+
+#: contents/ui/config/ConfigConnection.qml:198
+msgid "https://kimai.example.com"
+msgstr "https://kimai.example.com"
+
+#: contents/ui/config/ConfigConnection.qml:210
+msgid "API token:"
+msgstr "API-Token:"
+
+#: contents/ui/config/ConfigConnection.qml:213
+msgid "Paste token to save in KWallet"
+msgstr "Token einfügen, um es in KWallet zu speichern"
+
+#: contents/ui/config/ConfigConnection.qml:223
+msgid "Add profile"
+msgstr "Profil hinzufügen"
+
+#: contents/ui/config/ConfigConnection.qml:229
+msgid "Profile %1"
+msgstr "Profil %1"
+
+#: contents/ui/config/ConfigConnection.qml:242
+msgid "Remove"
+msgstr "Entfernen"
+
+#: contents/ui/config/ConfigConnection.qml:264
+msgid "Use this profile"
+msgstr "Dieses Profil verwenden"
+
+#: contents/ui/config/ConfigConnection.qml:278
+msgid "none"
+msgstr "keines"
+
+#: contents/ui/config/ConfigConnection.qml:278
+msgid "Active profile: %1"
+msgstr "Aktives Profil: %1"
+
+#: contents/ui/config/ConfigConnection.qml:287
+msgid "Saving…"
+msgstr "Speichern…"
+
+#: contents/ui/config/ConfigConnection.qml:287
+msgid "Save token"
+msgstr "Token speichern"
+
+#: contents/ui/config/ConfigConnection.qml:300
+msgid "Token saved to KWallet for this profile."
+msgstr "Token für dieses Profil in KWallet gespeichert."
+
+#: contents/ui/config/ConfigConnection.qml:302
+msgid "Failed to save token"
+msgstr "Token konnte nicht gespeichert werden"
+
+#: contents/ui/config/ConfigConnection.qml:309
+msgid "Clear token"
+msgstr "Token löschen"
+
+#: contents/ui/config/ConfigConnection.qml:319
+msgid "Token removed from KWallet."
+msgstr "Token aus KWallet entfernt."
+
+#: contents/ui/config/ConfigConnection.qml:321
+msgid "Failed to clear token"
+msgstr "Token konnte nicht gelöscht werden"
+
+#: contents/ui/config/ConfigConnection.qml:328
+msgid "Test connection"
+msgstr "Verbindung testen"
+
+#: contents/ui/config/ConfigConnection.qml:333
+msgid "Testing connection…"
+msgstr "Verbindung wird getestet…"
+
+#: contents/ui/config/ConfigConnection.qml:345
+msgid "No API token stored. Save a token first."
+msgstr "Kein API-Token gespeichert. Speichere zuerst ein Token."
+
+#: contents/ui/config/ConfigConnection.qml:352
+msgid "unknown"
+msgstr "unbekannt"
+
+#: contents/ui/config/ConfigConnection.qml:352
+msgid "Connected! Kimai version: %1"
+msgstr "Verbunden! Kimai-Version: %1"
+
+#: contents/ui/config/ConfigConnection.qml:383
+msgid ""
+"Generate an API token in Kimai under your user profile → API Access. Tokens "
+"are stored securely in KWallet per profile."
+msgstr ""
+
+#: contents/ui/config/ConfigFavorites.qml:63
+msgid "Configure a Kimai URL on the Connection tab first."
+msgstr "Richte zuerst eine Kimai-URL im Reiter Verbindung ein."
+
+#: contents/ui/config/ConfigFavorites.qml:66
+msgid "Loading projects…"
+msgstr "Projekte werden geladen…"
+
+#: contents/ui/config/ConfigFavorites.qml:69
+msgid "Save an API token on the Connection tab first."
+msgstr "Speichere zuerst ein API-Token im Reiter Verbindung."
+
+#: contents/ui/config/ConfigFavorites.qml:78
+msgid "Loaded %1 projects."
+msgstr "%1 Projekte geladen."
+
+#: contents/ui/config/ConfigFavorites.qml:81
+msgid "Select a project to pin activities."
+msgstr "Wähle ein Projekt, um Tätigkeiten anzuheften."
+
+#: contents/ui/config/ConfigFavorites.qml:83
+msgid "Failed to load projects."
+msgstr "Projekte konnten nicht geladen werden."
+
+#: contents/ui/config/ConfigFavorites.qml:95
+msgid "Loading activities…"
+msgstr "Tätigkeiten werden geladen…"
+
+#: contents/ui/config/ConfigFavorites.qml:98
+msgid "No API token available."
+msgstr "Kein API-Token verfügbar."
+
+#: contents/ui/config/ConfigFavorites.qml:114
+msgid "%1 project-specific, %2 global"
+msgstr "%1 projektspezifisch, %2 global"
+
+#: contents/ui/config/ConfigFavorites.qml:117
+msgid "Failed to load activities."
+msgstr "Tätigkeiten konnten nicht geladen werden."
+
+#: contents/ui/config/ConfigFavorites.qml:165
+msgid "Projects"
+msgstr "Projekte"
+
+#: contents/ui/config/ConfigFavorites.qml:226
+msgid "Reload"
+msgstr "Neu laden"
+
+#: contents/ui/config/ConfigFavorites.qml:244
+msgid "Activities — %1"
+msgstr "Tätigkeiten — %1"
+
+#: contents/ui/config/ConfigFavorites.qml:245
+msgid "Activities"
+msgstr "Tätigkeiten"
+
+#: contents/ui/config/ConfigDisplay.qml:152
+msgid "Refresh interval (seconds):"
+msgstr "Aktualisierungsintervall (Sekunden):"
+
+#: contents/ui/config/ConfigDisplay.qml:161
+msgid "Recent activities shown:"
+msgstr "Angezeigte kürzliche Tätigkeiten:"
+
+#: contents/ui/config/ConfigDisplay.qml:170
+msgid "Appearance:"
+msgstr "Darstellung:"
+
+#: contents/ui/config/ConfigDisplay.qml:171
+msgid "Use desktop blur (translucent background)"
+msgstr "Desktop-Unschärfe nutzen (durchscheinender Hintergrund)"
+
+#: contents/ui/config/ConfigDisplay.qml:181
+msgid "Panel (taskbar)"
+msgstr "Panel (Taskleiste)"
+
+#: contents/ui/config/ConfigDisplay.qml:189
+#: contents/ui/config/ConfigDisplay.qml:220
+#: contents/ui/config/ConfigDisplay.qml:268
+msgid "Show:"
+msgstr "Anzeigen:"
+
+#: contents/ui/config/ConfigDisplay.qml:190
+msgid "Elapsed time"
+msgstr "Vergangene Zeit"
+
+#: contents/ui/config/ConfigDisplay.qml:196
+msgid "Project name"
+msgstr "Projektname"
+
+#: contents/ui/config/ConfigDisplay.qml:202
+msgid "Activity name"
+msgstr "Tätigkeitsname"
+
+#: contents/ui/config/ConfigDisplay.qml:212
+msgid "Panel flyout"
+msgstr "Panel-Flyout"
+
+#: contents/ui/config/ConfigDisplay.qml:221
+#: contents/ui/config/ConfigDisplay.qml:269
+msgid "Work summary (today / week / remaining)"
+msgstr "Arbeitsübersicht (heute / Woche / Rest)"
+
+#: contents/ui/config/ConfigDisplay.qml:235
+#: contents/ui/config/ConfigDisplay.qml:283
+msgid "Recent list"
+msgstr "Liste der letzten Einträge"
+
+#: contents/ui/config/ConfigDisplay.qml:242
+msgid "Continue last activity"
+msgstr "Letzte Tätigkeit fortsetzen"
+
+#: contents/ui/config/ConfigDisplay.qml:249
+msgid "Start / switch activity controls"
+msgstr "Steuerung zum Starten / Wechseln"
+
+#: contents/ui/config/ConfigDisplay.qml:260
+msgid "Desktop widget"
+msgstr "Desktop-Widget"
+
+#: contents/ui/config/ConfigDisplay.qml:290
+msgid "New activity picker"
+msgstr "Auswahl für neue Tätigkeit"
+
+#: contents/ui/config/ConfigBehavior.qml:91
+msgid "Tracking:"
+msgstr "Erfassung:"
+
+#: contents/ui/config/ConfigBehavior.qml:92
+msgid "Confirm before stopping the timer"
+msgstr "Vor dem Stoppen des Timers bestätigen"
+
+#: contents/ui/config/ConfigBehavior.qml:98
+msgid "Idle detection:"
+msgstr "Leerlauferkennung:"
+
+#: contents/ui/config/ConfigBehavior.qml:99
+msgid "Stop timer when idle"
+msgstr "Timer bei Leerlauf stoppen"
+
+#: contents/ui/config/ConfigBehavior.qml:105
+msgid "Idle threshold (minutes):"
+msgstr "Leerlauf-Schwelle (Minuten):"
+
+#: contents/ui/config/ConfigBehavior.qml:115
+msgid "Notifications:"
+msgstr "Benachrichtigungen:"
+
+#: contents/ui/config/ConfigBehavior.qml:116
+msgid "Notify when tracking starts"
+msgstr "Benachrichtigen, wenn die Erfassung startet"
+
+#: contents/ui/config/ConfigBehavior.qml:123
+msgid "Notify when tracking stops"
+msgstr "Benachrichtigen, wenn die Erfassung stoppt"
+
+#: contents/ui/config/ConfigBehavior.qml:130
+msgid "Notify when stopped due to idle"
+msgstr "Benachrichtigen bei Stopp wegen Leerlauf"
+
+#: contents/ui/config/ConfigBehavior.qml:144
+msgid "Global shortcuts"
+msgstr "Globale Tastenkürzel"
+
+#: contents/ui/config/ConfigBehavior.qml:152
+msgid ""
+"Configure shortcuts in System Settings → Keyboard → Shortcuts → Plasma. Look "
+"for “Toggle Plasmai tracking” and “Stop Plasmai tracking”."
+msgstr ""
+
+#: contents/ui/config/ConfigBehavior.qml:160
+msgid ""
+"Idle detection requires xprintidle (X11/XWayland). It may not work on pure "
+"Wayland sessions."
+msgstr ""
+
+#: contents/config/config.qml:6
+msgid "Connection"
+msgstr "Verbindung"
+
+#: contents/config/config.qml:16
+msgid "Display"
+msgstr "Anzeige"
+
+#: contents/config/config.qml:21
+msgid "Behavior"
+msgstr "Verhalten"
+
+#~ msgid "Configure Plasmai…"
+#~ msgstr "Plasmai einrichten…"
+
+#~ msgid "%1 left"
+#~ msgstr "%1 übrig"
+
+#~ msgid "%1 over"
+#~ msgstr "%1 drüber"
+
+#: contents/ui/config/ConfigDisplay.qml
+msgid "Usual work day start:"
+msgstr "Start der üblichen Arbeitszeit:"
+
+#: contents/ui/config/ConfigDisplay.qml
+msgid "Usual work day end:"
+msgstr "Ende der üblichen Arbeitszeit:"
+
+#: contents/ui/DaySparkline.qml
+msgid "Today's tracked time across 24 hours"
+msgstr "Erfasste Zeit heute über 24 Stunden"
+
+#: contents/ui/main.qml
+msgid "Save description"
+msgstr "Beschreibung speichern"
+
+msgid "Toggle tracking:"
+msgstr "Tracking umschalten:"
+
+msgid "Stop tracking:"
+msgstr "Tracking stoppen:"
+
+msgid "These shortcuts work globally and also appear under System Settings → Keyboard → Shortcuts → Plasma."
+msgstr "Diese Tastenkürzel wirken global und erscheinen auch unter Systemeinstellungen → Eingabe → Tastenkürzel → Plasma."
+
+#: contents/ui/config/ConfigShortcuts.qml
+msgid "Toggle and stop shortcuts work globally. They also appear under System Settings → Keyboard → Shortcuts → Plasma."
+msgstr "Die Umschalt- und Stopp-Tastenkürzel wirken global. Sie erscheinen auch unter Systemeinstellungen → Eingabe → Tastenkürzel → Plasma."
+
+msgid "Day sparkline"
+msgstr "Tages-Sparkline"
+
+msgid "Latitude:"
+msgstr "Breitengrad:"
+
+msgid "Longitude:"
+msgstr "Längengrad:"
+
+msgid "Used to color the sparkline for sunrise and sunset at your location."
+msgstr "Wird verwendet, um die Sparkline nach Sonnenauf- und -untergang an deinem Standort einzufärben."
+
+msgid "Find location"
+msgstr "Ort suchen"
+
+msgid "Search for a city or place to set sunrise/sunset coloring. Powered by OpenStreetMap Nominatim."
+msgstr "Suche nach einer Stadt oder einem Ort für die Sonnenauf-/untergangsfärbung. Nutzt OpenStreetMap Nominatim."
+
+msgid "City, region, or address…"
+msgstr "Stadt, Region oder Adresse…"
+
+msgid "Search"
+msgstr "Suchen"
+
+msgid "Custom coordinates"
+msgstr "Eigene Koordinaten"
+
+msgid "Enter a city or place name to search."
+msgstr "Gib einen Stadt- oder Ortsnamen zum Suchen ein."
+
+msgid "Location search failed. Check your network connection."
+msgstr "Ortssuche fehlgeschlagen. Prüfe deine Netzwerkverbindung."
+
+msgid "No places found."
+msgstr "Keine Orte gefunden."
+
+msgid "Current place: %1"
+msgstr "Aktueller Ort: %1"
+
+msgid "Using %1"
+msgstr "Verwende %1"
+
+msgid "%1 place found."
+msgid_plural "%1 places found."
+msgstr[0] "%1 Ort gefunden."
+msgstr[1] "%1 Orte gefunden."
+

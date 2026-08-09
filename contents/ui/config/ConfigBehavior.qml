@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
-import org.kde.plasma.components as PlasmaComponents3
 import org.kde.plasma.plasma5support as P5Support
 import "../../code/secret.js" as Secret
 import "../../code/sharedConfig.js" as SharedConfig
@@ -10,13 +9,8 @@ import "../../code/sharedConfig.js" as SharedConfig
 Item {
     id: page
 
-    readonly property string sharedConfigScript: {
-        var url = Qt.resolvedUrl("../../code/sharedConfig.sh").toString()
-        if (url.indexOf("file://") === 0) {
-            return url.substring(7)
-        }
-        return url
-    }
+    readonly property string sharedConfigScript: Secret.fileUrlToPath(Qt.resolvedUrl("../../code/sharedConfig.sh"))
+    readonly property int pageMargin: Kirigami.Units.gridUnit
 
     property alias cfg_idleStopEnabled: idleStopCheck.checked
     property alias cfg_idleStopMinutes: idleStopSpin.value
@@ -41,19 +35,13 @@ Item {
         if (syncing || !ready) {
             return
         }
-        Secret.loadSharedConfig(execSource, page.sharedConfigScript, function(existing) {
-            var shared = SharedConfig.merge(
-                existing || SharedConfig.fromConfiguration(plasmoid.configuration),
-                {
-                    confirmBeforeStop: confirmBeforeStopCheck.checked,
-                    idleStopEnabled: idleStopCheck.checked,
-                    idleStopMinutes: idleStopSpin.value,
-                    notifyOnStart: notifyStartCheck.checked,
-                    notifyOnStop: notifyStopCheck.checked,
-                    notifyOnIdleStop: notifyIdleStopCheck.checked
-                }
-            )
-            Secret.saveSharedConfig(execSource, page.sharedConfigScript, shared)
+        Secret.persistSharedPatch(execSource, page.sharedConfigScript, plasmoid.configuration, {
+            confirmBeforeStop: confirmBeforeStopCheck.checked,
+            idleStopEnabled: idleStopCheck.checked,
+            idleStopMinutes: idleStopSpin.value,
+            notifyOnStart: notifyStartCheck.checked,
+            notifyOnStop: notifyStopCheck.checked,
+            notifyOnIdleStop: notifyIdleStopCheck.checked
         })
     }
 
@@ -86,90 +74,88 @@ Item {
         })
     }
 
-    ColumnLayout {
-        anchors {
-            left: parent.left
-            right: parent.right
-            top: parent.top
-            margins: Kirigami.Units.largeSpacing
-        }
-        spacing: Kirigami.Units.largeSpacing
+    QQC2.ScrollView {
+        id: scroll
+        anchors.fill: parent
+        clip: true
+        contentWidth: availableWidth
 
-        Kirigami.FormLayout {
-            Layout.fillWidth: true
+        ColumnLayout {
+            width: scroll.availableWidth
+            spacing: Kirigami.Units.largeSpacing
 
-            QQC2.CheckBox {
-                id: confirmBeforeStopCheck
-                Kirigami.FormData.label: i18n("Tracking:")
-                text: i18n("Confirm before stopping the timer")
-                onCheckedChanged: page.persistShared()
+            Kirigami.Heading {
+                Layout.fillWidth: true
+                Layout.leftMargin: page.pageMargin
+                Layout.rightMargin: page.pageMargin
+                Layout.topMargin: page.pageMargin
+                level: 1
+                text: i18n("Behavior")
             }
 
-            QQC2.CheckBox {
-                id: idleStopCheck
-                Kirigami.FormData.label: i18n("Idle detection:")
-                text: i18n("Stop timer when idle")
-                onCheckedChanged: page.persistShared()
+            Kirigami.FormLayout {
+                Layout.fillWidth: true
+                Layout.leftMargin: page.pageMargin
+                Layout.rightMargin: page.pageMargin
+                wideMode: true
+
+                QQC2.CheckBox {
+                    id: confirmBeforeStopCheck
+                    Kirigami.FormData.label: i18n("Tracking:")
+                    text: i18n("Confirm before stopping the timer")
+                    onCheckedChanged: page.persistShared()
+                }
+
+                QQC2.CheckBox {
+                    id: idleStopCheck
+                    Kirigami.FormData.label: i18n("Idle detection:")
+                    text: i18n("Stop timer when idle")
+                    onCheckedChanged: page.persistShared()
+                }
+
+                QQC2.SpinBox {
+                    id: idleStopSpin
+                    Kirigami.FormData.label: i18n("Idle threshold (minutes):")
+                    from: 1
+                    to: 240
+                    stepSize: 1
+                    enabled: idleStopCheck.checked
+                    onValueChanged: page.persistShared()
+                }
+
+                QQC2.CheckBox {
+                    id: notifyStartCheck
+                    Kirigami.FormData.label: i18n("Notifications:")
+                    text: i18n("Notify when tracking starts")
+                    onCheckedChanged: page.persistShared()
+                }
+
+                QQC2.CheckBox {
+                    id: notifyStopCheck
+                    Kirigami.FormData.label: " "
+                    text: i18n("Notify when tracking stops")
+                    onCheckedChanged: page.persistShared()
+                }
+
+                QQC2.CheckBox {
+                    id: notifyIdleStopCheck
+                    Kirigami.FormData.label: " "
+                    text: i18n("Notify when stopped due to idle")
+                    enabled: idleStopCheck.checked
+                    onCheckedChanged: page.persistShared()
+                }
             }
 
-            QQC2.SpinBox {
-                id: idleStopSpin
-                Kirigami.FormData.label: i18n("Idle threshold (minutes):")
-                from: 1
-                to: 240
-                stepSize: 1
-                enabled: idleStopCheck.checked
-                onValueChanged: page.persistShared()
+            QQC2.Label {
+                Layout.fillWidth: true
+                Layout.leftMargin: page.pageMargin
+                Layout.rightMargin: page.pageMargin
+                Layout.bottomMargin: page.pageMargin
+                wrapMode: Text.WordWrap
+                opacity: 0.75
+                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                text: i18n("Idle detection requires xprintidle (X11/XWayland). It may not work on pure Wayland sessions.")
             }
-
-            QQC2.CheckBox {
-                id: notifyStartCheck
-                Kirigami.FormData.label: i18n("Notifications:")
-                text: i18n("Notify when tracking starts")
-                onCheckedChanged: page.persistShared()
-            }
-
-            QQC2.CheckBox {
-                id: notifyStopCheck
-                Kirigami.FormData.label: " "
-                text: i18n("Notify when tracking stops")
-                onCheckedChanged: page.persistShared()
-            }
-
-            QQC2.CheckBox {
-                id: notifyIdleStopCheck
-                Kirigami.FormData.label: " "
-                text: i18n("Notify when stopped due to idle")
-                enabled: idleStopCheck.checked
-                onCheckedChanged: page.persistShared()
-            }
-        }
-
-        Kirigami.Separator {
-            Layout.fillWidth: true
-        }
-
-        PlasmaComponents3.Label {
-            Layout.fillWidth: true
-            wrapMode: Text.WordWrap
-            font.bold: true
-            text: i18n("Global shortcuts")
-        }
-
-        PlasmaComponents3.Label {
-            Layout.fillWidth: true
-            wrapMode: Text.WordWrap
-            opacity: 0.8
-            font.pointSize: Kirigami.Theme.smallFont.pointSize
-            text: i18n("Configure shortcuts in System Settings → Keyboard → Shortcuts → Plasma. Look for “Toggle Plasmai tracking” and “Stop Plasmai tracking”.")
-        }
-
-        PlasmaComponents3.Label {
-            Layout.fillWidth: true
-            wrapMode: Text.WordWrap
-            opacity: 0.75
-            font.pointSize: Kirigami.Theme.smallFont.pointSize
-            text: i18n("Idle detection requires xprintidle (X11/XWayland). It may not work on pure Wayland sessions.")
         }
     }
 }

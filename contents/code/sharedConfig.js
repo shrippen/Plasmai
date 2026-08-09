@@ -7,14 +7,33 @@ var SHARED_KEYS = [
     "pinnedActivities",
     "refreshInterval",
     "recentCount",
+    "useBlurBackground",
+    "workDayBegin",
+    "workDayEnd",
+    "latitude",
+    "longitude",
+    "popupShowSparkline",
+    "desktopShowSparkline",
     "showElapsedInPanel",
     "showProjectInPanel",
+    "showActivityInPanel",
+    "popupShowWorkSummary",
+    "popupShowFavorites",
+    "popupShowRecent",
+    "popupShowContinue",
+    "popupShowNewActivity",
+    "desktopShowWorkSummary",
+    "desktopShowFavorites",
+    "desktopShowRecent",
+    "desktopShowNewActivity",
+    "showFavorites",
     "confirmBeforeStop",
     "idleStopEnabled",
     "idleStopMinutes",
     "notifyOnStart",
     "notifyOnStop",
-    "notifyOnIdleStop"
+    "notifyOnIdleStop",
+    "locationName"
 ]
 
 function applyToConfiguration(config, shared) {
@@ -31,6 +50,13 @@ function applyToConfiguration(config, shared) {
             config[key] = shared[key]
             changed = true
         }
+    }
+    // Migrate legacy showFavorites into the new per-surface flags when missing.
+    if (Object.prototype.hasOwnProperty.call(shared, "showFavorites")
+        && !Object.prototype.hasOwnProperty.call(shared, "popupShowFavorites")) {
+        config.popupShowFavorites = shared.showFavorites
+        config.desktopShowFavorites = shared.showFavorites
+        changed = true
     }
     return changed
 }

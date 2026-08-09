@@ -1,4 +1,5 @@
 .pragma library
+.import "kimaiApi.js" as KimaiApi
 
 function parsePinned(pinnedStr) {
     if (!pinnedStr) {
@@ -72,23 +73,7 @@ function resolvePinnedEntries(pinnedStr, projects, activitiesByProject, customer
         var project = projectMap[entry.projectId]
         var projectName = project ? project.name : ("#" + entry.projectId)
         var activityName = "#" + entry.activityId
-        var customerColor = "#d2d6de"
-        if (project && customersById) {
-            var cid = 0
-            if (project.customer !== null && project.customer !== undefined) {
-                if (typeof project.customer === "object") {
-                    cid = project.customer.id || 0
-                    if (project.customer.color) {
-                        customerColor = project.customer.color
-                    }
-                } else {
-                    cid = project.customer
-                }
-            }
-            if (cid && customersById[cid] && customersById[cid].color) {
-                customerColor = customersById[cid].color
-            }
-        }
+        var customerColor = KimaiApi.customerColorOfProject(project, customersById)
         var acts = activitiesByProject[entry.projectId]
         if (acts) {
             for (var a = 0; a < acts.length; a++) {

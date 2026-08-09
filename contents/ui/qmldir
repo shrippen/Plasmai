@@ -1,0 +1,6 @@
+singleton ApiErrors 1.0 ApiErrors.qml
+ColorLabelRow 1.0 ColorLabelRow.qml
+CustomerColorDot 1.0 CustomerColorDot.qml
+DaySparkline 1.0 DaySparkline.qml
+SearchableCombo 1.0 SearchableCombo.qml
+ActivityListRow 1.0 ActivityListRow.qml

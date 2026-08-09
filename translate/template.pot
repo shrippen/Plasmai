@@ -1,0 +1,591 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the Plasmai package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Plasmai 0.5.0\n"
+"Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
+"POT-Creation-Date: 2026-08-09 15:28+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: contents/ui/main.qml:130 contents/ui/config/ConfigFavorites.qml:134
+msgid "Project-specific"
+msgstr ""
+
+#: contents/ui/main.qml:131 contents/ui/config/ConfigFavorites.qml:137
+msgid "Global activities"
+msgstr ""
+
+#: contents/ui/main.qml:179 contents/ui/main.qml:196 contents/ui/main.qml:1167
+msgid "Plasmai"
+msgstr ""
+
+#: contents/ui/main.qml:183
+msgid "Toggle Plasmai tracking"
+msgstr ""
+
+#: contents/ui/main.qml:189
+msgid "Stop Plasmai tracking"
+msgstr ""
+
+#: contents/ui/main.qml:200
+msgid "Loading…"
+msgstr ""
+
+#: contents/ui/main.qml:203
+msgid "Not configured — right-click to configure"
+msgstr ""
+
+#: contents/ui/main.qml:257
+msgid "just now"
+msgstr ""
+
+#: contents/ui/main.qml:261
+msgid "%1 minute ago"
+msgid_plural "%1 minutes ago"
+msgstr[0] ""
+msgstr[1] ""
+
+#: contents/ui/main.qml:265
+msgid "%1 hour ago"
+msgid_plural "%1 hours ago"
+msgstr[0] ""
+msgstr[1] ""
+
+#: contents/ui/main.qml:269
+msgid "yesterday"
+msgstr ""
+
+#: contents/ui/main.qml:272
+msgid "%1 day ago"
+msgid_plural "%1 days ago"
+msgstr[0] ""
+msgstr[1] ""
+
+#: contents/ui/main.qml:292
+msgid "Not configured"
+msgstr ""
+
+#: contents/ui/main.qml:295
+msgid "Connecting to %1…"
+msgstr ""
+
+#: contents/ui/main.qml:298
+msgid "Connection problem"
+msgstr ""
+
+#: contents/ui/main.qml:302
+msgid "Connected to %1 (%2)"
+msgstr ""
+
+#: contents/ui/main.qml:303
+msgid "Connected to %1"
+msgstr ""
+
+#: contents/ui/main.qml:515
+msgid "%1 left today"
+msgstr ""
+
+#: contents/ui/main.qml:517
+msgid "%1 over today"
+msgstr ""
+
+#: contents/ui/main.qml:522
+msgid "%1 left this week"
+msgstr ""
+
+#: contents/ui/main.qml:524
+msgid "%1 over this week"
+msgstr ""
+
+#: contents/ui/main.qml:529 contents/ui/main.qml:552 contents/ui/main.qml:1347
+msgid "Today %1"
+msgstr ""
+
+#: contents/ui/main.qml:530 contents/ui/main.qml:1356
+msgid "Week %1"
+msgstr ""
+
+#: contents/ui/main.qml:884 contents/ui/main.qml:1026
+msgid "Tracking started"
+msgstr ""
+
+#: contents/ui/main.qml:924
+msgid "Switched activity"
+msgstr ""
+
+#: contents/ui/main.qml:991
+msgid "Tracking stopped (idle)"
+msgstr ""
+
+#: contents/ui/main.qml:995
+msgid "Tracking stopped"
+msgstr ""
+
+#: contents/ui/main.qml:1010
+msgid "Stop the current timer before starting another"
+msgstr ""
+
+#: contents/ui/main.qml:1113
+msgid "Stop tracking?"
+msgstr ""
+
+#: contents/ui/main.qml:1119
+msgid "Stop tracking %1 · %2?"
+msgstr ""
+
+#: contents/ui/main.qml:1220
+msgid "Connect your Kimai account"
+msgstr ""
+
+#: contents/ui/main.qml:1221
+msgid ""
+"Add your server URL and API token to start tracking time from the panel."
+msgstr ""
+
+#: contents/ui/main.qml:1223
+msgid "Configure Plasmai"
+msgstr ""
+
+#: contents/ui/main.qml:1236
+msgid "Retry"
+msgstr ""
+
+#: contents/ui/main.qml:1241
+msgid "Configure"
+msgstr ""
+
+#: contents/ui/main.qml:1332
+msgid "Not tracking"
+msgstr ""
+
+#: contents/ui/main.qml:1398
+msgid "Description"
+msgstr ""
+
+#: contents/ui/main.qml:1406
+msgid "Stop"
+msgstr ""
+
+#: contents/ui/main.qml:1415
+msgid "Continue · %1 · %2"
+msgstr ""
+
+#: contents/ui/main.qml:1432 contents/ui/config/ConfigDisplay.qml:228
+#: contents/ui/config/ConfigDisplay.qml:276 contents/config/config.qml:11
+msgid "Favorites"
+msgstr ""
+
+#: contents/ui/main.qml:1474
+msgid "No favorites yet"
+msgstr ""
+
+#: contents/ui/main.qml:1480
+msgid "Pin frequent project/activity pairs in the widget settings."
+msgstr ""
+
+#: contents/ui/main.qml:1485
+msgid "Configure favorites"
+msgstr ""
+
+#: contents/ui/main.qml:1501
+msgid "+%1 more in settings"
+msgstr ""
+
+#: contents/ui/main.qml:1512
+msgid "Recent"
+msgstr ""
+
+#: contents/ui/main.qml:1559
+msgid "No recent activities"
+msgstr ""
+
+#: contents/ui/main.qml:1560
+msgid "Start tracking to build your recent list."
+msgstr ""
+
+#: contents/ui/main.qml:1570
+msgid "Switch to another activity…"
+msgstr ""
+
+#: contents/ui/main.qml:1570
+msgid "Start something else…"
+msgstr ""
+
+#: contents/ui/main.qml:1581
+msgid "Switch activity"
+msgstr ""
+
+#: contents/ui/main.qml:1581
+msgid "New activity"
+msgstr ""
+
+#: contents/ui/main.qml:1597
+msgid "Select project…"
+msgstr ""
+
+#: contents/ui/main.qml:1619
+msgid "Select activity…"
+msgstr ""
+
+#: contents/ui/main.qml:1631
+msgid "Description (optional)"
+msgstr ""
+
+#: contents/ui/main.qml:1643
+msgid "Start"
+msgstr ""
+
+#: contents/ui/main.qml:1657
+msgid "Switch"
+msgstr ""
+
+#: contents/ui/main.qml:1668
+msgid "Cancel"
+msgstr ""
+
+#: contents/ui/ApiErrors.qml:12
+msgid "Unknown error"
+msgstr ""
+
+#: contents/ui/ApiErrors.qml:16
+msgid "URL and API token are required"
+msgstr ""
+
+#: contents/ui/ApiErrors.qml:17
+msgid "Configure Kimai URL and API token"
+msgstr ""
+
+#: contents/ui/ApiErrors.qml:20
+msgid "Cannot reach Kimai. Check your network, URL, or TLS certificate."
+msgstr ""
+
+#: contents/ui/ApiErrors.qml:23
+msgid "Authentication failed. Check your API token."
+msgstr ""
+
+#: contents/ui/ApiErrors.qml:26
+msgid "Server not found. Check your Kimai URL."
+msgstr ""
+
+#: contents/ui/ApiErrors.qml:29
+msgid "Access denied. Your token may lack required permissions."
+msgstr ""
+
+#: contents/ui/ApiErrors.qml:32
+msgid "Kimai server error (%1)."
+msgstr ""
+
+#: contents/ui/ApiErrors.qml:35
+msgid "Request failed: %1"
+msgstr ""
+
+#: contents/ui/ApiErrors.qml:37
+msgid "Request failed (%1)."
+msgstr ""
+
+#: contents/ui/config/ConfigConnection.qml:169
+msgid ""
+"Configure your Kimai server connection. Add multiple profiles if you use "
+"more than one instance."
+msgstr ""
+
+#: contents/ui/config/ConfigConnection.qml:177
+msgid "Profile:"
+msgstr ""
+
+#: contents/ui/config/ConfigConnection.qml:189
+msgid "Profile name:"
+msgstr ""
+
+#: contents/ui/config/ConfigConnection.qml:196
+msgid "Kimai server URL:"
+msgstr ""
+
+#: contents/ui/config/ConfigConnection.qml:198
+msgid "https://kimai.example.com"
+msgstr ""
+
+#: contents/ui/config/ConfigConnection.qml:210
+msgid "API token:"
+msgstr ""
+
+#: contents/ui/config/ConfigConnection.qml:213
+msgid "Paste token to save in KWallet"
+msgstr ""
+
+#: contents/ui/config/ConfigConnection.qml:223
+msgid "Add profile"
+msgstr ""
+
+#: contents/ui/config/ConfigConnection.qml:229
+msgid "Profile %1"
+msgstr ""
+
+#: contents/ui/config/ConfigConnection.qml:242
+msgid "Remove"
+msgstr ""
+
+#: contents/ui/config/ConfigConnection.qml:264
+msgid "Use this profile"
+msgstr ""
+
+#: contents/ui/config/ConfigConnection.qml:278
+msgid "none"
+msgstr ""
+
+#: contents/ui/config/ConfigConnection.qml:278
+msgid "Active profile: %1"
+msgstr ""
+
+#: contents/ui/config/ConfigConnection.qml:287
+msgid "Saving…"
+msgstr ""
+
+#: contents/ui/config/ConfigConnection.qml:287
+msgid "Save token"
+msgstr ""
+
+#: contents/ui/config/ConfigConnection.qml:300
+msgid "Token saved to KWallet for this profile."
+msgstr ""
+
+#: contents/ui/config/ConfigConnection.qml:302
+msgid "Failed to save token"
+msgstr ""
+
+#: contents/ui/config/ConfigConnection.qml:309
+msgid "Clear token"
+msgstr ""
+
+#: contents/ui/config/ConfigConnection.qml:319
+msgid "Token removed from KWallet."
+msgstr ""
+
+#: contents/ui/config/ConfigConnection.qml:321
+msgid "Failed to clear token"
+msgstr ""
+
+#: contents/ui/config/ConfigConnection.qml:328
+msgid "Test connection"
+msgstr ""
+
+#: contents/ui/config/ConfigConnection.qml:333
+msgid "Testing connection…"
+msgstr ""
+
+#: contents/ui/config/ConfigConnection.qml:345
+msgid "No API token stored. Save a token first."
+msgstr ""
+
+#: contents/ui/config/ConfigConnection.qml:352
+msgid "unknown"
+msgstr ""
+
+#: contents/ui/config/ConfigConnection.qml:352
+msgid "Connected! Kimai version: %1"
+msgstr ""
+
+#: contents/ui/config/ConfigConnection.qml:383
+msgid ""
+"Generate an API token in Kimai under your user profile → API Access. Tokens "
+"are stored securely in KWallet per profile."
+msgstr ""
+
+#: contents/ui/config/ConfigFavorites.qml:63
+msgid "Configure a Kimai URL on the Connection tab first."
+msgstr ""
+
+#: contents/ui/config/ConfigFavorites.qml:66
+msgid "Loading projects…"
+msgstr ""
+
+#: contents/ui/config/ConfigFavorites.qml:69
+msgid "Save an API token on the Connection tab first."
+msgstr ""
+
+#: contents/ui/config/ConfigFavorites.qml:78
+msgid "Loaded %1 projects."
+msgstr ""
+
+#: contents/ui/config/ConfigFavorites.qml:81
+msgid "Select a project to pin activities."
+msgstr ""
+
+#: contents/ui/config/ConfigFavorites.qml:83
+msgid "Failed to load projects."
+msgstr ""
+
+#: contents/ui/config/ConfigFavorites.qml:95
+msgid "Loading activities…"
+msgstr ""
+
+#: contents/ui/config/ConfigFavorites.qml:98
+msgid "No API token available."
+msgstr ""
+
+#: contents/ui/config/ConfigFavorites.qml:114
+msgid "%1 project-specific, %2 global"
+msgstr ""
+
+#: contents/ui/config/ConfigFavorites.qml:117
+msgid "Failed to load activities."
+msgstr ""
+
+#: contents/ui/config/ConfigFavorites.qml:165
+msgid "Projects"
+msgstr ""
+
+#: contents/ui/config/ConfigFavorites.qml:226
+msgid "Reload"
+msgstr ""
+
+#: contents/ui/config/ConfigFavorites.qml:244
+msgid "Activities — %1"
+msgstr ""
+
+#: contents/ui/config/ConfigFavorites.qml:245
+msgid "Activities"
+msgstr ""
+
+#: contents/ui/config/ConfigDisplay.qml:152
+msgid "Refresh interval (seconds):"
+msgstr ""
+
+#: contents/ui/config/ConfigDisplay.qml:161
+msgid "Recent activities shown:"
+msgstr ""
+
+#: contents/ui/config/ConfigDisplay.qml:170
+msgid "Appearance:"
+msgstr ""
+
+#: contents/ui/config/ConfigDisplay.qml:171
+msgid "Use desktop blur (translucent background)"
+msgstr ""
+
+#: contents/ui/config/ConfigDisplay.qml:181
+msgid "Panel (taskbar)"
+msgstr ""
+
+#: contents/ui/config/ConfigDisplay.qml:189
+#: contents/ui/config/ConfigDisplay.qml:220
+#: contents/ui/config/ConfigDisplay.qml:268
+msgid "Show:"
+msgstr ""
+
+#: contents/ui/config/ConfigDisplay.qml:190
+msgid "Elapsed time"
+msgstr ""
+
+#: contents/ui/config/ConfigDisplay.qml:196
+msgid "Project name"
+msgstr ""
+
+#: contents/ui/config/ConfigDisplay.qml:202
+msgid "Activity name"
+msgstr ""
+
+#: contents/ui/config/ConfigDisplay.qml:212
+msgid "Panel flyout"
+msgstr ""
+
+#: contents/ui/config/ConfigDisplay.qml:221
+#: contents/ui/config/ConfigDisplay.qml:269
+msgid "Work summary (today / week / remaining)"
+msgstr ""
+
+#: contents/ui/config/ConfigDisplay.qml:235
+#: contents/ui/config/ConfigDisplay.qml:283
+msgid "Recent list"
+msgstr ""
+
+#: contents/ui/config/ConfigDisplay.qml:242
+msgid "Continue last activity"
+msgstr ""
+
+#: contents/ui/config/ConfigDisplay.qml:249
+msgid "Start / switch activity controls"
+msgstr ""
+
+#: contents/ui/config/ConfigDisplay.qml:260
+msgid "Desktop widget"
+msgstr ""
+
+#: contents/ui/config/ConfigDisplay.qml:290
+msgid "New activity picker"
+msgstr ""
+
+#: contents/ui/config/ConfigBehavior.qml:91
+msgid "Tracking:"
+msgstr ""
+
+#: contents/ui/config/ConfigBehavior.qml:92
+msgid "Confirm before stopping the timer"
+msgstr ""
+
+#: contents/ui/config/ConfigBehavior.qml:98
+msgid "Idle detection:"
+msgstr ""
+
+#: contents/ui/config/ConfigBehavior.qml:99
+msgid "Stop timer when idle"
+msgstr ""
+
+#: contents/ui/config/ConfigBehavior.qml:105
+msgid "Idle threshold (minutes):"
+msgstr ""
+
+#: contents/ui/config/ConfigBehavior.qml:115
+msgid "Notifications:"
+msgstr ""
+
+#: contents/ui/config/ConfigBehavior.qml:116
+msgid "Notify when tracking starts"
+msgstr ""
+
+#: contents/ui/config/ConfigBehavior.qml:123
+msgid "Notify when tracking stops"
+msgstr ""
+
+#: contents/ui/config/ConfigBehavior.qml:130
+msgid "Notify when stopped due to idle"
+msgstr ""
+
+#: contents/ui/config/ConfigBehavior.qml:144
+msgid "Global shortcuts"
+msgstr ""
+
+#: contents/ui/config/ConfigBehavior.qml:152
+msgid ""
+"Configure shortcuts in System Settings → Keyboard → Shortcuts → Plasma. Look "
+"for “Toggle Plasmai tracking” and “Stop Plasmai tracking”."
+msgstr ""
+
+#: contents/ui/config/ConfigBehavior.qml:160
+msgid ""
+"Idle detection requires xprintidle (X11/XWayland). It may not work on pure "
+"Wayland sessions."
+msgstr ""
+
+#: contents/config/config.qml:6
+msgid "Connection"
+msgstr ""
+
+#: contents/config/config.qml:16
+msgid "Display"
+msgstr ""
+
+#: contents/config/config.qml:21
+msgid "Behavior"
+msgstr ""

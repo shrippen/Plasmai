@@ -8,24 +8,14 @@ import "../../code/secret.js" as Secret
 import "../../code/kimaiApi.js" as KimaiApi
 import "../../code/profiles.js" as Profiles
 import "../../code/sharedConfig.js" as SharedConfig
+import ".."
 
 Item {
     id: page
 
-    readonly property string kwalletScript: {
-        var url = Qt.resolvedUrl("../../code/kwallet.sh").toString()
-        if (url.indexOf("file://") === 0) {
-            return url.substring(7)
-        }
-        return url
-    }
-    readonly property string sharedConfigScript: {
-        var url = Qt.resolvedUrl("../../code/sharedConfig.sh").toString()
-        if (url.indexOf("file://") === 0) {
-            return url.substring(7)
-        }
-        return url
-    }
+    readonly property string kwalletScript: Secret.fileUrlToPath(Qt.resolvedUrl("../../code/kwallet.sh"))
+    readonly property string sharedConfigScript: Secret.fileUrlToPath(Qt.resolvedUrl("../../code/sharedConfig.sh"))
+    readonly property int pageMargin: Kirigami.Units.gridUnit
 
     property alias cfg_kimaiUrl: kimaiUrlField.text
     property alias cfg_profilesJson: profilesField.text
@@ -46,25 +36,6 @@ Item {
         statusIsError = !!isError
     }
 
-    function apiErrorText(error) {
-        if (!error) {
-            return i18n("Unknown error")
-        }
-        if (error.type === "config") {
-            return i18n("URL and API token are required")
-        }
-        if (error.type === KimaiApi.ErrorType.Network) {
-            return i18n("Cannot reach Kimai. Check your network, URL, or TLS certificate.")
-        }
-        if (error.type === KimaiApi.ErrorType.Unauthorized) {
-            return i18n("Authentication failed. Check your API token.")
-        }
-        if (error.type === KimaiApi.ErrorType.NotFound) {
-            return i18n("Server not found. Check your Kimai URL.")
-        }
-        return i18n("Request failed (%1).", error.status)
-    }
-
     function syncProfiles() {
         if (syncing) {
             return
@@ -76,16 +47,10 @@ Item {
     }
 
     function persistShared() {
-        Secret.loadSharedConfig(execSource, page.sharedConfigScript, function(existing) {
-            var shared = SharedConfig.merge(
-                existing || SharedConfig.fromConfiguration(plasmoid.configuration),
-                {
-                    kimaiUrl: KimaiApi.normalizeUrl(kimaiUrlField.text),
-                    profilesJson: profilesField.text,
-                    activeProfileId: activeProfileField.text || "default"
-                }
-            )
-            Secret.saveSharedConfig(execSource, page.sharedConfigScript, shared)
+        Secret.persistSharedPatch(execSource, page.sharedConfigScript, plasmoid.configuration, {
+            kimaiUrl: KimaiApi.normalizeUrl(kimaiUrlField.text),
+            profilesJson: profilesField.text,
+            activeProfileId: activeProfileField.text || "default"
         })
     }
 
@@ -189,17 +154,29 @@ Item {
         }
     }
 
-    ColumnLayout {
-        anchors {
-            left: parent.left
-            right: parent.right
-            top: parent.top
-            margins: Kirigami.Units.largeSpacing
-        }
-        spacing: Kirigami.Units.largeSpacing
+    QQC2.ScrollView {
+        id: scroll
+        anchors.fill: parent
+        clip: true
+        contentWidth: availableWidth
+
+        ColumnLayout {
+            width: scroll.availableWidth
+            spacing: Kirigami.Units.largeSpacing
+
+            Kirigami.Heading {
+                Layout.fillWidth: true
+                Layout.leftMargin: page.pageMargin
+                Layout.rightMargin: page.pageMargin
+                Layout.topMargin: page.pageMargin
+                level: 1
+                text: i18n("Connection")
+            }
 
             PlasmaComponents3.Label {
                 Layout.fillWidth: true
+                Layout.leftMargin: page.pageMargin
+                Layout.rightMargin: page.pageMargin
                 wrapMode: Text.WordWrap
                 opacity: 0.8
                 text: i18n("Configure your Kimai server connection. Add multiple profiles if you use more than one instance.")
@@ -207,6 +184,9 @@ Item {
 
             Kirigami.FormLayout {
                 Layout.fillWidth: true
+                Layout.leftMargin: page.pageMargin
+                Layout.rightMargin: page.pageMargin
+                wideMode: true
 
                 QQC2.ComboBox {
                     id: profileCombo
@@ -253,6 +233,8 @@ Item {
 
             RowLayout {
                 Layout.fillWidth: true
+                Layout.leftMargin: page.pageMargin
+                Layout.rightMargin: page.pageMargin
                 spacing: Kirigami.Units.smallSpacing
 
                 PlasmaComponents3.Button {
@@ -306,6 +288,8 @@ Item {
 
             PlasmaComponents3.Label {
                 Layout.fillWidth: true
+                Layout.leftMargin: page.pageMargin
+                Layout.rightMargin: page.pageMargin
                 wrapMode: Text.WordWrap
                 font.pointSize: Kirigami.Theme.smallFont.pointSize
                 opacity: 0.75
@@ -317,6 +301,8 @@ Item {
 
             RowLayout {
                 Layout.fillWidth: true
+                Layout.leftMargin: page.pageMargin
+                Layout.rightMargin: page.pageMargin
                 spacing: Kirigami.Units.smallSpacing
 
                 PlasmaComponents3.Button {
@@ -388,7 +374,7 @@ Item {
                                         i18n("Connected! Kimai version: %1", result.data.version || i18n("unknown")),
                                         false)
                                 } else {
-                                    page.showStatus(page.apiErrorText(result.error), true)
+                                    page.showStatus(ApiErrors.text(result.error, true), true)
                                 }
                             })
                         })
@@ -405,6 +391,8 @@ Item {
 
             PlasmaComponents3.Label {
                 Layout.fillWidth: true
+                Layout.leftMargin: page.pageMargin
+                Layout.rightMargin: page.pageMargin
                 visible: page.statusMessage !== ""
                 text: page.statusMessage
                 wrapMode: Text.WordWrap
@@ -413,6 +401,9 @@ Item {
 
             PlasmaComponents3.Label {
                 Layout.fillWidth: true
+                Layout.leftMargin: page.pageMargin
+                Layout.rightMargin: page.pageMargin
+                Layout.bottomMargin: page.pageMargin
                 wrapMode: Text.WordWrap
                 opacity: 0.75
                 font.pointSize: Kirigami.Theme.smallFont.pointSize
@@ -428,5 +419,6 @@ Item {
                 id: activeProfileField
                 visible: false
             }
+        }
     }
 }

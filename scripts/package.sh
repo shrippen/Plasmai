@@ -11,6 +11,11 @@ if [ -z "$VERSION" ]; then
     exit 1
 fi
 
+# Compile translations into contents/locale/
+if [ -x "$ROOT/translate/build.sh" ]; then
+    "$ROOT/translate/build.sh"
+fi
+
 OUT="Plasmai-${VERSION}.plasmoid"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT

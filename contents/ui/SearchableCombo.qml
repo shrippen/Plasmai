@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import QtQuick.Window
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
+import "../code/kimaiApi.js" as KimaiApi
 
 Item {
     id: root
@@ -323,38 +324,32 @@ Item {
             section.criteria: ViewSection.FullString
             section.delegate: Item {
                 width: ListView.view.width
-                height: Math.max(sectionRow.implicitHeight, Kirigami.Units.iconSizes.small * 0.85) + Kirigami.Units.smallSpacing
+                height: Math.max(sectionRow.implicitHeight, Kirigami.Units.iconSizes.small * 0.85)
+                        + Kirigami.Units.smallSpacing
                 visible: section && section.length > 0
 
-                RowLayout {
+                ColorLabelRow {
                     id: sectionRow
                     anchors.left: parent.left
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.leftMargin: Kirigami.Units.smallSpacing
                     anchors.rightMargin: Kirigami.Units.smallSpacing
-                    spacing: Kirigami.Units.smallSpacing
-
-                    CustomerColorDot {
-                        showDot: root.sectionColor(section).length > 0
-                        customerColor: root.sectionColor(section) || "#d2d6de"
-                        sizeFactor: 0.85
-                        Layout.alignment: Qt.AlignVCenter
-                    }
-
-                    PlasmaComponents3.Label {
-                        Layout.fillWidth: true
-                        text: root.sectionLabel(section)
-                        font.bold: true
-                        font.pointSize: Kirigami.Theme.smallFont.pointSize
-                        opacity: 0.8
-                        elide: Text.ElideRight
-                    }
+                    customerRole: true
+                    showDot: root.sectionColor(section).length > 0
+                    customerColor: root.sectionColor(section) || KimaiApi.DEFAULT_CUSTOMER_COLOR
+                    label: root.sectionLabel(section)
                 }
             }
 
             delegate: QQC2.ItemDelegate {
                 width: ListView.view.width
+                // Match section inset so dots share one vertical axis.
+                leftPadding: Kirigami.Units.smallSpacing
+                rightPadding: Kirigami.Units.smallSpacing
+                topPadding: Kirigami.Units.smallSpacing / 2
+                bottomPadding: Kirigami.Units.smallSpacing / 2
+                spacing: 0
                 highlighted: index === root.highlightedIndex
                 onClicked: root.selectFiltered(index)
                 onHoveredChanged: {
@@ -363,21 +358,13 @@ Item {
                     }
                 }
 
-                contentItem: RowLayout {
-                    spacing: Kirigami.Units.smallSpacing
-
-                    CustomerColorDot {
-                        showDot: modelData.color && String(modelData.color).length > 0
-                        customerColor: modelData.color || "#d2d6de"
-                        sizeFactor: 0.55
-                        Layout.alignment: Qt.AlignVCenter
-                    }
-
-                    PlasmaComponents3.Label {
-                        Layout.fillWidth: true
-                        text: modelData.label
-                        elide: Text.ElideRight
-                    }
+                contentItem: ColorLabelRow {
+                    width: parent ? parent.width : implicitWidth
+                    customerRole: false
+                    showDot: modelData.color && String(modelData.color).length > 0
+                    customerColor: modelData.color || KimaiApi.DEFAULT_CUSTOMER_COLOR
+                    label: modelData.label
+                    labelBold: false
                 }
             }
         }

@@ -1,7 +1,17 @@
 .pragma library
+.import "sharedConfig.js" as SharedConfig
 
 function shQuote(value) {
     return "'" + String(value).replace(/'/g, "'\\''") + "'"
+}
+
+/** Strip file:// from Qt.resolvedUrl() results for shell scripts. */
+function fileUrlToPath(url) {
+    var s = String(url)
+    if (s.indexOf("file://") === 0) {
+        return s.substring(7)
+    }
+    return s
 }
 
 var _pending = {}
@@ -144,5 +154,16 @@ function saveSharedConfig(dataSource, scriptPath, sharedObj, callback) {
                 callback(false, stderr || ("sharedConfig.sh store failed (exit " + exitCode + ")"))
             }
         }
+    })
+}
+
+/** Load shared.json, merge patch, and save. configuration is plasmoid.configuration. */
+function persistSharedPatch(dataSource, scriptPath, configuration, patch, callback) {
+    loadSharedConfig(dataSource, scriptPath, function(existing) {
+        var shared = SharedConfig.merge(
+            existing || SharedConfig.fromConfiguration(configuration),
+            patch || {}
+        )
+        saveSharedConfig(dataSource, scriptPath, shared, callback)
     })
 }

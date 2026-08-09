@@ -25,12 +25,78 @@
             <min>3</min>
             <max>25</max>
         </entry>
+
+        <!-- Global appearance -->
+        <entry name="useBlurBackground" type="Bool">
+            <default>false</default>
+        </entry>
+        <!-- Kimai calendar.businessHours (not exposed via public API) -->
+        <entry name="workDayBegin" type="String">
+            <default>08:00</default>
+        </entry>
+        <entry name="workDayEnd" type="String">
+            <default>18:00</default>
+        </entry>
+        <entry name="latitude" type="Double">
+            <default>52.52</default>
+        </entry>
+        <entry name="longitude" type="Double">
+            <default>13.405</default>
+        </entry>
+        <entry name="popupShowSparkline" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="desktopShowSparkline" type="Bool">
+            <default>true</default>
+        </entry>
+
+        <!-- Panel (taskbar compact representation) -->
         <entry name="showElapsedInPanel" type="Bool">
             <default>true</default>
         </entry>
         <entry name="showProjectInPanel" type="Bool">
             <default>true</default>
         </entry>
+        <entry name="showActivityInPanel" type="Bool">
+            <default>false</default>
+        </entry>
+
+        <!-- Panel flyout -->
+        <entry name="popupShowWorkSummary" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="popupShowFavorites" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="popupShowRecent" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="popupShowContinue" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="popupShowNewActivity" type="Bool">
+            <default>true</default>
+        </entry>
+
+        <!-- Desktop widget -->
+        <entry name="desktopShowWorkSummary" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="desktopShowFavorites" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="desktopShowRecent" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="desktopShowNewActivity" type="Bool">
+            <default>true</default>
+        </entry>
+
+        <!-- Legacy (migrated into popupShowFavorites / desktopShowFavorites) -->
+        <entry name="showFavorites" type="Bool">
+            <default>true</default>
+        </entry>
+
         <entry name="confirmBeforeStop" type="Bool">
             <default>false</default>
         </entry>
@@ -53,6 +119,9 @@
         </entry>
         <entry name="notifyOnIdleStop" type="Bool">
             <default>true</default>
+        </entry>
+        <entry name="locationName" type="String">
+            <default></default>
         </entry>
     </group>
 </kcfg>

@@ -7,17 +7,16 @@ A KDE Plasma 6 panel widget for tracking time on your self-hosted [Kimai](https:
 
 ## Features
 
-- Live timer in the panel (project name + elapsed time)
-- Start and stop tracking from the popup
-- Recent activities as one-click presets (restart)
-- Pinned favorites for frequent project/activity pairs
-- Multiple Kimai profiles (different instances or accounts)
-- Searchable project/activity pickers with customer colors
-- API tokens stored securely in KWallet (via `secret-tool`)
+- Live timer in the panel (project/activity + elapsed time)
+- Start, stop, and switch tracking from the popup or desktop widget
+- Recent activities and pinned favorites (customer colors)
+- Multiple Kimai profiles; API tokens stored in KWallet
+- Searchable project/activity pickers
+- Today/week work summary vs Kimai work contract
+- 24h sparkline with work hours, overtime, and sunrise/sunset coloring
 - Shared settings across all widget instances
-- Global shortcuts (toggle / stop tracking)
-- Desktop notifications on start, stop, and idle-stop
-- Idle auto-stop when away from the desk
+- Desktop notifications; optional idle auto-stop
+- English and German translations
 
 ## Requirements
 
@@ -68,13 +67,6 @@ Profiles, favorites, display, and behavior settings are shared across all Plasma
 
 Settings from the previous plugin id (`org.arian.kimaitracker`) are migrated automatically.
 
-Default shortcuts (change in **System Settings → Keyboard → Shortcuts → Plasma**):
-
-| Action | Default |
-|---|---|
-| Toggle Plasmai tracking | Meta+Shift+K |
-| Stop Plasmai tracking | Meta+Shift+S |
-
 ## Packaging
 
 Build a store-ready `.plasmoid` archive:
@@ -84,6 +76,18 @@ Build a store-ready `.plasmoid` archive:
 ```
 
 See [STORE.md](STORE.md) for publishing to [store.kde.org](https://store.kde.org/).
+
+## Translations
+
+UI strings use Plasma `i18n`. English is the source language; German (`de`) is included.
+
+```bash
+./translate/extract.sh   # refresh translate/template.pot from QML
+# edit translate/de.po (and other languages), then:
+./translate/build.sh     # compile .mo into contents/locale/
+```
+
+Compiled catalogs ship in `contents/locale/<lang>/LC_MESSAGES/plasma_applet_com.github.shrippen.plasmai.mo`.
 
 ## Development
 

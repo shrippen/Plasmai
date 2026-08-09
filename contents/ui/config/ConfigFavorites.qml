@@ -9,24 +9,14 @@ import "../../code/kimaiApi.js" as KimaiApi
 import "../../code/profiles.js" as Profiles
 import "../../code/favorites.js" as Favorites
 import "../../code/sharedConfig.js" as SharedConfig
+import ".."
 
 Item {
     id: page
 
-    readonly property string kwalletScript: {
-        var url = Qt.resolvedUrl("../../code/kwallet.sh").toString()
-        if (url.indexOf("file://") === 0) {
-            return url.substring(7)
-        }
-        return url
-    }
-    readonly property string sharedConfigScript: {
-        var url = Qt.resolvedUrl("../../code/sharedConfig.sh").toString()
-        if (url.indexOf("file://") === 0) {
-            return url.substring(7)
-        }
-        return url
-    }
+    readonly property string kwalletScript: Secret.fileUrlToPath(Qt.resolvedUrl("../../code/kwallet.sh"))
+    readonly property string sharedConfigScript: Secret.fileUrlToPath(Qt.resolvedUrl("../../code/sharedConfig.sh"))
+    readonly property int pageMargin: Kirigami.Units.gridUnit
 
     readonly property var activeProfile: Profiles.profileById(
         Profiles.parseProfiles(plasmoid.configuration.profilesJson, plasmoid.configuration.kimaiUrl),
@@ -64,12 +54,8 @@ Item {
     }
 
     function persistShared() {
-        Secret.loadSharedConfig(execSource, page.sharedConfigScript, function(existing) {
-            var shared = SharedConfig.merge(
-                existing || SharedConfig.fromConfiguration(plasmoid.configuration),
-                { pinnedActivities: pinnedField.text }
-            )
-            Secret.saveSharedConfig(execSource, page.sharedConfigScript, shared)
+        Secret.persistSharedPatch(execSource, page.sharedConfigScript, plasmoid.configuration, {
+            pinnedActivities: pinnedField.text
         })
     }
 
@@ -157,16 +143,16 @@ Item {
     function customerColorForSection(name) {
         for (var i = 0; i < projectRows.length; i++) {
             if (projectRows[i].customerName === name) {
-                return projectRows[i].customerColor || "#d2d6de"
+                return projectRows[i].customerColor || KimaiApi.DEFAULT_CUSTOMER_COLOR
             }
         }
-        return "#d2d6de"
+        return KimaiApi.DEFAULT_CUSTOMER_COLOR
     }
 
     RowLayout {
         anchors {
             fill: parent
-            margins: Kirigami.Units.largeSpacing
+            margins: page.pageMargin
         }
         spacing: Kirigami.Units.largeSpacing
 
@@ -174,6 +160,12 @@ Item {
             Layout.fillHeight: true
             Layout.preferredWidth: parent.width / 2
             spacing: Kirigami.Units.smallSpacing
+
+            Kirigami.Heading {
+                Layout.fillWidth: true
+                level: 1
+                text: i18n("Favorites")
+            }
 
             PlasmaComponents3.Label {
                 Layout.fillWidth: true
@@ -201,53 +193,38 @@ Item {
                     section.criteria: ViewSection.FullString
                     section.delegate: Item {
                         width: ListView.view ? ListView.view.width : parent.width
-                        height: sectionRow.implicitHeight + Kirigami.Units.smallSpacing
+                        height: Math.max(sectionRow.implicitHeight, Kirigami.Units.iconSizes.small * 0.85)
+                                + Kirigami.Units.smallSpacing
 
-                        RowLayout {
+                        ColorLabelRow {
                             id: sectionRow
                             anchors.left: parent.left
                             anchors.right: parent.right
                             anchors.verticalCenter: parent.verticalCenter
                             anchors.leftMargin: Kirigami.Units.smallSpacing
-                            spacing: Kirigami.Units.smallSpacing
-
-                            Item {
-                                Layout.preferredWidth: Kirigami.Units.iconSizes.small * 0.85
-                                Layout.preferredHeight: Kirigami.Units.iconSizes.small * 0.85
-                                Layout.alignment: Qt.AlignVCenter
-
-                                Rectangle {
-                                    anchors.centerIn: parent
-                                    width: Kirigami.Units.iconSizes.small * 0.85
-                                    height: width
-                                    radius: width / 2
-                                    color: {
-                                        var c = String(page.customerColorForSection(section) || "").trim()
-                                        if (!c) {
-                                            return "#d2d6de"
-                                        }
-                                        if (c.charAt(0) !== "#") {
-                                            c = "#" + c
-                                        }
-                                        return c
-                                    }
-                                    border.width: 1
-                                    border.color: Qt.rgba(0, 0, 0, 0.2)
-                                }
-                            }
-
-                            Kirigami.Heading {
-                                Layout.fillWidth: true
-                                level: 5
-                                text: section
-                            }
+                            anchors.rightMargin: Kirigami.Units.smallSpacing
+                            customerRole: true
+                            customerColor: page.customerColorForSection(section)
+                            label: section
                         }
                     }
                     delegate: QQC2.ItemDelegate {
                         width: ListView.view.width
-                        text: modelData.project.name
+                        leftPadding: Kirigami.Units.smallSpacing
+                        rightPadding: Kirigami.Units.smallSpacing
+                        topPadding: Kirigami.Units.smallSpacing / 2
+                        bottomPadding: Kirigami.Units.smallSpacing / 2
+                        spacing: 0
                         highlighted: page.selectedProject && page.selectedProject.id === modelData.project.id
                         onClicked: page.loadActivitiesForProject(modelData.project)
+
+                        contentItem: ColorLabelRow {
+                            width: parent ? parent.width : implicitWidth
+                            customerRole: false
+                            customerColor: modelData.customerColor || KimaiApi.DEFAULT_CUSTOMER_COLOR
+                            label: modelData.project.name
+                            labelBold: false
+                        }
                     }
                 }
             }

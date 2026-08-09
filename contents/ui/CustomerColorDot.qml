@@ -1,5 +1,6 @@
 import QtQuick
 import org.kde.kirigami as Kirigami
+import "../code/kimaiApi.js" as KimaiApi
 
 /**
  * Colored customer marker. Always occupies a fixed slot width so dots and
@@ -8,7 +9,7 @@ import org.kde.kirigami as Kirigami
 Item {
     id: root
 
-    property color customerColor: "#d2d6de"
+    property color customerColor: KimaiApi.DEFAULT_CUSTOMER_COLOR
     property bool showDot: true
     /** Relative to Kirigami.Units.iconSizes.small */
     property real sizeFactor: 0.55
@@ -28,16 +29,7 @@ Item {
         height: width
         radius: width / 2
         visible: root.showDot
-        color: {
-            var c = String(root.customerColor || "").trim()
-            if (!c) {
-                return "#d2d6de"
-            }
-            if (c.charAt(0) !== "#") {
-                c = "#" + c
-            }
-            return c
-        }
+        color: KimaiApi.normalizeCustomerColor(root.customerColor)
         border.width: 1
         border.color: Qt.rgba(0, 0, 0, 0.2)
     }
