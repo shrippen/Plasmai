@@ -10,9 +10,10 @@ A KDE Plasma 6 panel widget for tracking time on your self-hosted [Kimai](https:
 - Live timer in the panel (project/activity + elapsed time)
 - Start, stop, and switch tracking from the popup or desktop widget
 - Recent activities and pinned favorites (customer colors)
-- Multiple Kimai profiles; API tokens stored in KWallet
+- Multiple profiles; API tokens stored in KWallet
+- Pluggable time-tracking backends (Kimai fully supported; more planned)
 - Searchable project/activity pickers
-- Today/week work summary vs Kimai work contract
+- Today/week work summary vs work-contract targets
 - 24h sparkline with work hours, overtime, and sunrise/sunset coloring
 - Shared settings across all widget instances
 - Desktop notifications; optional idle auto-stop
@@ -95,6 +96,23 @@ Compiled catalogs ship in `contents/locale/<lang>/LC_MESSAGES/plasma_applet_com.
 plasmoidviewer -a com.github.shrippen.plasmai -l topedge -f horizontal
 plasmoidviewer -a com.github.shrippen.plasmai
 ```
+
+## Time-tracking backends
+
+Plasmai routes API calls through `contents/code/timeTracker.js`. Profiles store a
+`provider` id (default `kimai`). Kimai is the reference implementation in
+`contents/code/kimaiApi.js`.
+
+**Easy next additions** (see `contents/code/providers/NOTES.txt`):
+
+| Service | Why it’s a good fit |
+|---|---|
+| **Clockify** | API key auth, clear start/stop time-entry endpoints |
+| **Toggl Track** | Popular SaaS, well-documented running-timer API |
+| **SolidTime** | FOSS self-hosted, domain model close to Kimai |
+| **Local JSON** | Offline/demo backend for UI work without a server |
+
+Harder fits: WakaTime (automatic heartbeats), Jira Tempo / YouTrack (issue-centric).
 
 ## Uninstall
 

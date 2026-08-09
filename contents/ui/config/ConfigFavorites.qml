@@ -6,6 +6,7 @@ import org.kde.plasma.components as PlasmaComponents3
 import org.kde.plasma.plasma5support as P5Support
 import "../../code/secret.js" as Secret
 import "../../code/kimaiApi.js" as KimaiApi
+import "../../code/timeTracker.js" as TimeTracker
 import "../../code/profiles.js" as Profiles
 import "../../code/favorites.js" as Favorites
 import "../../code/sharedConfig.js" as SharedConfig
@@ -22,6 +23,8 @@ Item {
         Profiles.parseProfiles(plasmoid.configuration.profilesJson, plasmoid.configuration.kimaiUrl),
         plasmoid.configuration.activeProfileId || "default"
     )
+    readonly property var Tracker: TimeTracker.api(activeProfile && activeProfile.provider
+        ? activeProfile.provider : "kimai")
 
     property alias cfg_pinnedActivities: pinnedField.text
     property var availableProjects: []
@@ -70,9 +73,9 @@ Item {
                 projectsStatus = i18n("Save an API token on the Connection tab first.")
                 return
             }
-            KimaiApi.loadCustomers(page.activeProfile.url, token, function(customersResult) {
+            page.Tracker.loadCustomers(page.activeProfile.url, token, function(customersResult) {
                 var customers = customersResult.ok ? (customersResult.data || []) : []
-                KimaiApi.loadProjects(page.activeProfile.url, token, function(result) {
+                page.Tracker.loadProjects(page.activeProfile.url, token, function(result) {
                     if (result.ok) {
                         availableProjects = result.data || []
                         projectRows = KimaiApi.projectsGroupedByCustomer(availableProjects, customers)
@@ -99,7 +102,7 @@ Item {
                 activitiesStatus = i18n("No API token available.")
                 return
             }
-            KimaiApi.loadActivities(page.activeProfile.url, token, project.id, function(result) {
+            page.Tracker.loadActivities(page.activeProfile.url, token, project.id, function(result) {
                 if (result.ok) {
                     var copy = {}
                     var key

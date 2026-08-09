@@ -35,16 +35,24 @@ Item {
         return Solar.daySolarFractions(new Date(), root.latitude, root.longitude)
     }
 
-    implicitHeight: Math.max(8, Math.round(Kirigami.Units.smallSpacing * 1.5))
+    readonly property int barHeight: Math.max(8, Math.round(Kirigami.Units.smallSpacing * 1.5))
+    /** Extra pixels the “now” needle sticks out above/below the bar. */
+    readonly property int nowOverhang: Math.max(2, Math.round(Kirigami.Units.smallSpacing * 0.6))
+
+    implicitHeight: barHeight + nowOverhang * 2
     implicitWidth: Kirigami.Units.gridUnit * 8
     height: implicitHeight
+    clip: false
 
     Accessible.role: Accessible.Chart
     Accessible.name: i18n("Today's tracked time across 24 hours")
 
     Rectangle {
         id: track
-        anchors.fill: parent
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.verticalCenter: parent.verticalCenter
+        height: root.barHeight
         radius: height / 2
         // Night sky base
         color: Qt.rgba(0.15, 0.22, 0.40,
@@ -106,16 +114,18 @@ Item {
                 opacity: segOvertime ? 0.9 : 0.85
             }
         }
+    }
 
-        // Current time marker
-        Rectangle {
-            x: Math.round(root.model.now * track.width) - 1
-            width: 2
-            height: track.height
-            radius: 1
-            color: Qt.rgba(Kirigami.Theme.textColor.r,
-                           Kirigami.Theme.textColor.g,
-                           Kirigami.Theme.textColor.b, 0.75)
-        }
+    // Current time marker — taller than the bar so it peeks out top and bottom
+    Rectangle {
+        x: Math.round(root.model.now * track.width) - 1
+        width: 2
+        height: track.height + root.nowOverhang * 2
+        anchors.verticalCenter: track.verticalCenter
+        radius: 1
+        z: 2
+        color: Qt.rgba(Kirigami.Theme.textColor.r,
+                       Kirigami.Theme.textColor.g,
+                       Kirigami.Theme.textColor.b, 0.85)
     }
 }

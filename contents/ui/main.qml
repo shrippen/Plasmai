@@ -8,6 +8,7 @@ import org.kde.plasma.extras as PlasmaExtras
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasma5support as P5Support
 import "../code/kimaiApi.js" as KimaiApi
+import "../code/timeTracker.js" as TimeTracker
 import "../code/secret.js" as Secret
 import "../code/profiles.js" as Profiles
 import "../code/favorites.js" as Favorites
@@ -27,6 +28,10 @@ PlasmoidItem {
     property var activeProfile: Profiles.profileById(profiles, plasmoid.configuration.activeProfileId || "default")
     property string kimaiUrl: KimaiApi.normalizeUrl(
         (activeProfile && activeProfile.url) ? activeProfile.url : plasmoid.configuration.kimaiUrl)
+    readonly property string providerId: (activeProfile && activeProfile.provider)
+        ? activeProfile.provider : "kimai"
+    /** Backend API for the active profile (Kimai today; other providers later). */
+    readonly property var Tracker: TimeTracker.api(providerId)
     property string apiToken: ""
     property bool tokenLoaded: false
     property bool isConfigured: kimaiUrl.length > 0 && apiToken.length > 0
@@ -603,7 +608,7 @@ PlasmoidItem {
         }
         savingDescription = true
         descriptionSavedFlash = false
-        KimaiApi.patchTimesheet(kimaiUrl, apiToken, currentTimesheetId, { description: text }, function(result) {
+        root.Tracker.patchTimesheet(kimaiUrl, apiToken, currentTimesheetId, { description: text }, function(result) {
             savingDescription = false
             if (result.ok) {
                 suppressDescHandler = true
@@ -663,7 +668,7 @@ PlasmoidItem {
         }
         projectCombo.currentIndex = idx
         selectedProjectId = projectId
-        KimaiApi.loadActivities(kimaiUrl, apiToken, projectId, function(result) {
+        root.Tracker.loadActivities(kimaiUrl, apiToken, projectId, function(result) {
             applyActivitiesResult(projectId, result, activityIdToSelect)
         })
     }
@@ -701,7 +706,7 @@ PlasmoidItem {
             loadingActive = true
         }
 
-        KimaiApi.fetchActiveTimesheet(kimaiUrl, apiToken, function(result) {
+        root.Tracker.fetchActiveTimesheet(kimaiUrl, apiToken, function(result) {
             loadingActive = false
             if (result.ok) {
                 clearError()
@@ -725,7 +730,7 @@ PlasmoidItem {
         if (!quiet) {
             loadingRecent = true
         }
-        KimaiApi.fetchRecentTimesheets(kimaiUrl, apiToken, plasmoid.configuration.recentCount, function(result) {
+        root.Tracker.fetchRecentTimesheets(kimaiUrl, apiToken, plasmoid.configuration.recentCount, function(result) {
             loadingRecent = false
             if (result.ok) {
                 clearError()
@@ -749,11 +754,11 @@ PlasmoidItem {
         }
 
         var now = new Date()
-        KimaiApi.fetchCurrentUser(kimaiUrl, apiToken, function(userResult) {
+        root.Tracker.fetchCurrentUser(kimaiUrl, apiToken, function(userResult) {
             if (userResult.ok) {
-                workPrefs = KimaiApi.preferenceMap(userResult.data)
-                todayTargetSeconds = KimaiApi.workDaySecondsFromPrefs(workPrefs, now)
-                weekTargetSeconds = KimaiApi.workWeekSecondsFromPrefs(workPrefs, now)
+                workPrefs = root.Tracker.preferenceMap(userResult.data)
+                todayTargetSeconds = root.Tracker.workDaySecondsFromPrefs(workPrefs, now)
+                weekTargetSeconds = root.Tracker.workWeekSecondsFromPrefs(workPrefs, now)
                 hasWorkContract = weekTargetSeconds > 0 || todayTargetSeconds > 0
             } else {
                 workPrefs = ({})
@@ -762,7 +767,7 @@ PlasmoidItem {
                 hasWorkContract = false
             }
 
-            KimaiApi.fetchTimesheetsRange(
+            root.Tracker.fetchTimesheetsRange(
                 kimaiUrl, apiToken,
                 KimaiApi.startOfWeekMonday(now),
                 KimaiApi.endOfWeekSunday(now),
@@ -822,10 +827,10 @@ PlasmoidItem {
         if (!quiet) {
             loadingProjects = true
         }
-        KimaiApi.loadCustomers(kimaiUrl, apiToken, function(customersResult) {
+        root.Tracker.loadCustomers(kimaiUrl, apiToken, function(customersResult) {
             customers = customersResult.ok ? (customersResult.data || []) : []
             customersById = KimaiApi.buildCustomersById(customers)
-            KimaiApi.loadProjects(kimaiUrl, apiToken, function(result) {
+            root.Tracker.loadProjects(kimaiUrl, apiToken, function(result) {
                 loadingProjects = false
                 if (result.ok) {
                     clearError()
@@ -863,7 +868,7 @@ PlasmoidItem {
                 if (activitiesByProject[projectId]) {
                     return
                 }
-                KimaiApi.loadActivities(kimaiUrl, apiToken, projectId, function(result) {
+                root.Tracker.loadActivities(kimaiUrl, apiToken, projectId, function(result) {
                     if (result.ok) {
                         var copy = {}
                         var key
@@ -912,7 +917,7 @@ PlasmoidItem {
             return
         }
 
-        KimaiApi.loadActivities(kimaiUrl, apiToken, projectId, function(result) {
+        root.Tracker.loadActivities(kimaiUrl, apiToken, projectId, function(result) {
             applyActivitiesResult(projectId, result)
         })
     }
@@ -925,7 +930,7 @@ PlasmoidItem {
         isBusy = true
         lastError = null
         userMessage = ""
-        KimaiApi.startTracking(kimaiUrl, apiToken, projectId, activityId, description, function(result) {
+        root.Tracker.startTracking(kimaiUrl, apiToken, projectId, activityId, description, function(result) {
             isBusy = false
             if (result.ok && result.data) {
                 clearError()
@@ -958,14 +963,14 @@ PlasmoidItem {
         isBusy = true
         lastError = null
         userMessage = ""
-        KimaiApi.stopTracking(kimaiUrl, apiToken, currentTimesheetId, function(stopResult) {
+        root.Tracker.stopTracking(kimaiUrl, apiToken, currentTimesheetId, function(stopResult) {
             if (!stopResult.ok) {
                 isBusy = false
                 setError(stopResult.error)
                 return
             }
             resetTrackingState()
-            KimaiApi.startTracking(kimaiUrl, apiToken, projectId, activityId, description, function(startResult) {
+            root.Tracker.startTracking(kimaiUrl, apiToken, projectId, activityId, description, function(startResult) {
                 isBusy = false
                 if (startResult.ok && startResult.data) {
                     clearError()
@@ -1032,7 +1037,7 @@ PlasmoidItem {
         var stoppedActivity = currentActivity
         isBusy = true
         lastError = null
-        KimaiApi.stopTracking(kimaiUrl, apiToken, currentTimesheetId, function(result) {
+        root.Tracker.stopTracking(kimaiUrl, apiToken, currentTimesheetId, function(result) {
             isBusy = false
             if (result.ok) {
                 clearError()
@@ -1067,7 +1072,7 @@ PlasmoidItem {
         isBusy = true
         userMessage = ""
         lastError = null
-        KimaiApi.restartTimesheet(kimaiUrl, apiToken, timesheet.id, function(result) {
+        root.Tracker.restartTimesheet(kimaiUrl, apiToken, timesheet.id, function(result) {
             if (result.ok) {
                 clearError()
                 applyActiveTimesheet(result.data || timesheet)
@@ -1291,7 +1296,7 @@ PlasmoidItem {
                     Layout.preferredHeight: Kirigami.Units.gridUnit * 8
                     visible: root.showSetupState
                     icon.name: "configure"
-                    text: i18n("Connect your Kimai account")
+                    text: i18n("Connect your time tracker")
                     explanation: i18n("Add your server URL and API token to start tracking time from the panel.")
                     helpfulAction: Kirigami.Action {
                         text: i18n("Configure Plasmai")

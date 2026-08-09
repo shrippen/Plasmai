@@ -6,6 +6,7 @@ import org.kde.plasma.components as PlasmaComponents3
 import org.kde.plasma.plasma5support as P5Support
 import "../../code/secret.js" as Secret
 import "../../code/kimaiApi.js" as KimaiApi
+import "../../code/timeTracker.js" as TimeTracker
 import "../../code/profiles.js" as Profiles
 import "../../code/sharedConfig.js" as SharedConfig
 import ".."
@@ -30,6 +31,13 @@ Item {
     property bool statusIsError: false
     property bool busy: false
     property bool testingConnection: false
+
+    readonly property var selectedProfile: (profiles.length > 0 && selectedIndex >= 0)
+        ? profiles[selectedIndex] : null
+    readonly property string selectedProviderId: selectedProfile && selectedProfile.provider
+        ? selectedProfile.provider : "kimai"
+    readonly property var selectedProviderMeta: TimeTracker.providerMeta(selectedProviderId)
+    readonly property var Tracker: TimeTracker.api(selectedProviderId)
 
     function showStatus(msg, isError) {
         statusMessage = msg
@@ -82,6 +90,10 @@ Item {
         updatingFields = true
         profileNameField.text = profiles[selectedIndex].name
         kimaiUrlField.text = profiles[selectedIndex].url || ""
+        var pid = profiles[selectedIndex].provider || "kimai"
+        var ids = TimeTracker.providerIds()
+        var pIdx = ids.indexOf(pid)
+        providerCombo.currentIndex = pIdx >= 0 ? pIdx : 0
         updatingFields = false
     }
 
@@ -179,7 +191,7 @@ Item {
                 Layout.rightMargin: page.pageMargin
                 wrapMode: Text.WordWrap
                 opacity: 0.8
-                text: i18n("Configure your Kimai server connection. Add multiple profiles if you use more than one instance.")
+                text: i18n("Configure a time-tracking profile. Kimai is fully supported; other services can be selected as they are implemented.")
             }
 
             Kirigami.FormLayout {
@@ -207,9 +219,40 @@ Item {
                     onTextChanged: page.updateSelectedProfile("name", text)
                 }
 
+                QQC2.ComboBox {
+                    id: providerCombo
+                    Kirigami.FormData.label: i18n("Service:")
+                    Layout.fillWidth: true
+                    model: TimeTracker.providerNames()
+                    onActivated: function(index) {
+                        if (page.updatingFields) {
+                            return
+                        }
+                        var id = TimeTracker.providerIds()[index]
+                        page.updateSelectedProfile("provider", id)
+                        var meta = TimeTracker.providerMeta(id)
+                        if (meta && meta.defaultUrl && (!kimaiUrlField.text || kimaiUrlField.text.length === 0)) {
+                            kimaiUrlField.text = meta.defaultUrl
+                            page.updateSelectedProfile("url", meta.defaultUrl)
+                        }
+                        if (meta && !meta.implemented) {
+                            page.showStatus(i18n("%1 support is not implemented yet. Choose Kimai for now.", meta.name), true)
+                        }
+                    }
+                }
+
+                QQC2.Label {
+                    Layout.fillWidth: true
+                    visible: page.selectedProviderMeta && !page.selectedProviderMeta.implemented
+                    wrapMode: Text.WordWrap
+                    color: Kirigami.Theme.neutralTextColor
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    text: page.selectedProviderMeta ? page.selectedProviderMeta.hint : ""
+                }
+
                 QQC2.TextField {
                     id: kimaiUrlField
-                    Kirigami.FormData.label: i18n("Kimai server URL:")
+                    Kirigami.FormData.label: i18n("Server URL:")
                     Layout.fillWidth: true
                     placeholderText: i18n("https://kimai.example.com")
                     onTextChanged: {
@@ -223,7 +266,9 @@ Item {
 
                 QQC2.TextField {
                     id: tokenField
-                    Kirigami.FormData.label: i18n("API token:")
+                    Kirigami.FormData.label: page.selectedProviderMeta
+                        ? page.selectedProviderMeta.authLabel + ":"
+                        : i18n("API token:")
                     Layout.fillWidth: true
                     echoMode: TextInput.Password
                     placeholderText: i18n("Paste token to save in KWallet")
@@ -245,7 +290,8 @@ Item {
                         var profile = Profiles.normalizeProfile({
                             id: Profiles.newProfileId(),
                             name: i18n("Profile %1", copy.length + 1),
-                            url: ""
+                            url: "",
+                            provider: "kimai"
                         })
                         copy.push(profile)
                         page.profiles = copy
@@ -367,11 +413,11 @@ Item {
                                 page.showStatus(i18n("No API token stored. Save a token first."), true)
                                 return
                             }
-                            KimaiApi.testConnection(url, token, function(result) {
+                            page.Tracker.testConnection(url, token, function(result) {
                                 page.testingConnection = false
                                 if (result.ok) {
                                     page.showStatus(
-                                        i18n("Connected! Kimai version: %1", result.data.version || i18n("unknown")),
+                                        i18n("Connected! Version: %1", result.data.version || i18n("unknown")),
                                         false)
                                 } else {
                                     page.showStatus(ApiErrors.text(result.error, true), true)
@@ -407,7 +453,7 @@ Item {
                 wrapMode: Text.WordWrap
                 opacity: 0.75
                 font.pointSize: Kirigami.Theme.smallFont.pointSize
-                text: i18n("Generate an API token in Kimai under your user profile → API Access. Tokens are stored securely in KWallet per profile.")
+                text: i18n("Tokens are stored securely in KWallet per profile. For Kimai, create a token under your user profile → API Access.")
             }
 
             QQC2.TextField {

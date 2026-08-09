@@ -673,3 +673,20 @@ msgid_plural "%1 places found."
 msgstr[0] "%1 place found."
 msgstr[1] "%1 places found."
 
+msgid "Service:"
+msgstr "Service:"
+
+msgid "Server URL:"
+msgstr "Server URL:"
+
+msgid "Configure a time-tracking profile. Kimai is fully supported; other services can be selected as they are implemented."
+msgstr "Configure a time-tracking profile. Kimai is fully supported; other services can be selected as they are implemented."
+
+msgid "Connect your time tracker"
+msgstr "Connect your time tracker"
+
+msgid "This time-tracking service is not supported yet."
+msgstr "This time-tracking service is not supported yet."
+
+msgid "%1 support is not implemented yet. Choose Kimai for now."
+msgstr "%1 support is not implemented yet. Choose Kimai for now."
