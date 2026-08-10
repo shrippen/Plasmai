@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.1
+
+### Display settings
+- Compact usual work-hours fields (no longer stretch across the page)
+- Form layouts adapt on narrow config windows so labels and checkbox text stay visible
+- Day-sparkline location search and related controls wrap cleanly when the window is small
+
 ## 1.2.0
 
 ### Edit running entry

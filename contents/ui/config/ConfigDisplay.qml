@@ -15,6 +15,18 @@ Item {
 
     readonly property string sharedConfigScript: Secret.fileUrlToPath(Qt.resolvedUrl("../../code/sharedConfig.sh"))
     readonly property int pageMargin: Kirigami.Units.gridUnit
+    /** Stack FormLayout labels above fields when the config window is narrow. */
+    readonly property bool formWide: scroll.availableWidth >= Kirigami.Units.gridUnit * 28
+    readonly property int compactFieldWidth: Kirigami.Units.gridUnit * 8
+
+    function buddyMaxWidth(form) {
+        var formW = form && form.width > 0 ? form.width : scroll.availableWidth
+        if (!page.formWide) {
+            return Math.max(Kirigami.Units.gridUnit * 10, formW)
+        }
+        // Leave room for the label column + margins.
+        return Math.max(Kirigami.Units.gridUnit * 10, formW - Kirigami.Units.gridUnit * 14)
+    }
 
     readonly property var activeProfile: Profiles.profileById(
         Profiles.parseProfiles(plasmoid.configuration.profilesJson, plasmoid.configuration.kimaiUrl),
@@ -269,20 +281,23 @@ Item {
 
             Kirigami.Heading {
                 Layout.fillWidth: true
+                Layout.maximumWidth: scroll.availableWidth
                 Layout.leftMargin: page.pageMargin
                 Layout.rightMargin: page.pageMargin
                 Layout.topMargin: page.pageMargin
                 level: 1
                 text: i18n("Display")
+                wrapMode: Text.WordWrap
             }
 
             Kirigami.FormLayout {
                 id: generalForm
                 Layout.fillWidth: true
+                Layout.maximumWidth: scroll.availableWidth
                 Layout.leftMargin: page.pageMargin
                 Layout.rightMargin: page.pageMargin
-                wideMode: true
-                twinFormLayouts: [coordsForm]
+                wideMode: page.formWide
+                twinFormLayouts: page.formWide ? [coordsForm] : []
 
                 QQC2.SpinBox {
                     id: refreshIntervalSpin
@@ -305,6 +320,8 @@ Item {
                 QQC2.CheckBox {
                     id: useBlurBackgroundCheck
                     Kirigami.FormData.label: i18n("Appearance:")
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(generalForm)
                     text: i18n("Use desktop blur (translucent background)")
                     onCheckedChanged: page.persistShared()
                 }
@@ -312,6 +329,9 @@ Item {
                 QQC2.TextField {
                     id: workDayBeginField
                     Kirigami.FormData.label: i18n("Usual work day start:")
+                    Layout.fillWidth: false
+                    Layout.preferredWidth: page.compactFieldWidth
+                    Layout.maximumWidth: page.compactFieldWidth
                     placeholderText: "08:00"
                     onEditingFinished: page.persistShared()
                 }
@@ -319,6 +339,9 @@ Item {
                 QQC2.TextField {
                     id: workDayEndField
                     Kirigami.FormData.label: i18n("Usual work day end:")
+                    Layout.fillWidth: false
+                    Layout.preferredWidth: page.compactFieldWidth
+                    Layout.maximumWidth: page.compactFieldWidth
                     placeholderText: "18:00"
                     onEditingFinished: page.persistShared()
                 }
@@ -327,6 +350,8 @@ Item {
                     id: colorDistinctionCheck
                     Kirigami.FormData.label: i18n("Colors:")
                     visible: page.supportsColorDistinction
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(generalForm)
                     text: i18n("Make similar colors distinctive within each category")
                     onCheckedChanged: page.persistShared()
                 }
@@ -345,6 +370,7 @@ Item {
 
             PlasmaComponents3.Label {
                 Layout.fillWidth: true
+                Layout.maximumWidth: scroll.availableWidth
                 Layout.leftMargin: page.pageMargin
                 Layout.rightMargin: page.pageMargin
                 visible: page.supportsColorDistinction
@@ -356,6 +382,7 @@ Item {
 
             PlasmaComponents3.Label {
                 Layout.fillWidth: true
+                Layout.maximumWidth: scroll.availableWidth
                 Layout.leftMargin: page.pageMargin
                 Layout.rightMargin: page.pageMargin
                 visible: !page.supportsColorDistinction
@@ -367,15 +394,18 @@ Item {
 
             Kirigami.Heading {
                 Layout.fillWidth: true
+                Layout.maximumWidth: scroll.availableWidth
                 Layout.leftMargin: page.pageMargin
                 Layout.rightMargin: page.pageMargin
                 level: 2
                 text: i18n("Day sparkline")
+                wrapMode: Text.WordWrap
             }
 
             QQC2.CheckBox {
                 id: sparklineArcsCheck
                 Layout.fillWidth: true
+                Layout.maximumWidth: scroll.availableWidth - page.pageMargin * 2
                 Layout.leftMargin: page.pageMargin
                 Layout.rightMargin: page.pageMargin
                 text: i18n("Show sun, moon, and work arcs")
@@ -385,6 +415,7 @@ Item {
 
             QQC2.Label {
                 Layout.fillWidth: true
+                Layout.maximumWidth: scroll.availableWidth
                 Layout.leftMargin: page.pageMargin
                 Layout.rightMargin: page.pageMargin
                 wrapMode: Text.WordWrap
@@ -395,6 +426,7 @@ Item {
 
             Rectangle {
                 Layout.fillWidth: true
+                Layout.maximumWidth: scroll.availableWidth
                 Layout.leftMargin: page.pageMargin
                 Layout.rightMargin: page.pageMargin
                 radius: 6
@@ -419,6 +451,7 @@ Item {
                         Layout.fillWidth: true
                         text: i18n("Find location")
                         font.bold: true
+                        wrapMode: Text.WordWrap
                     }
 
                     QQC2.Label {
@@ -436,16 +469,24 @@ Item {
                         Kirigami.SearchField {
                             id: locationSearchField
                             Layout.fillWidth: true
+                            Layout.minimumWidth: Kirigami.Units.gridUnit * 6
                             placeholderText: i18n("City, region, or address…")
                             enabled: !page.geoSearching
                             onAccepted: page.searchLocation()
                         }
 
                         QQC2.Button {
+                            Layout.preferredWidth: implicitWidth
                             text: page.geoSearching ? i18n("Searching…") : i18n("Search")
                             icon.name: "edit-find"
+                            display: page.formWide
+                                     ? QQC2.AbstractButton.TextBesideIcon
+                                     : QQC2.AbstractButton.IconOnly
                             enabled: !page.geoSearching && locationSearchField.text.trim().length > 0
                             onClicked: page.searchLocation()
+                            QQC2.ToolTip.visible: hovered && !page.formWide
+                            QQC2.ToolTip.text: i18n("Search")
+                            QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
                         }
                     }
 
@@ -471,10 +512,27 @@ Item {
                         ListView {
                             model: page.geoResults
                             boundsBehavior: Flickable.StopAtBounds
+                            clip: true
                             delegate: QQC2.ItemDelegate {
                                 width: ListView.view.width
                                 text: modelData.displayName
                                 icon.name: "mark-location"
+                                // Keep long place names inside the card.
+                                contentItem: RowLayout {
+                                    spacing: Kirigami.Units.smallSpacing
+                                    Kirigami.Icon {
+                                        source: "mark-location"
+                                        Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                                        Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                                    }
+                                    QQC2.Label {
+                                        Layout.fillWidth: true
+                                        Layout.minimumWidth: 0
+                                        text: modelData.displayName
+                                        elide: Text.ElideRight
+                                        wrapMode: Text.NoWrap
+                                    }
+                                }
                                 onClicked: {
                                     page.applyLocation(modelData.latitude, modelData.longitude, modelData.displayName)
                                     page.geoResults = []
@@ -498,10 +556,11 @@ Item {
             Kirigami.FormLayout {
                 id: coordsForm
                 Layout.fillWidth: true
+                Layout.maximumWidth: scroll.availableWidth
                 Layout.leftMargin: page.pageMargin
                 Layout.rightMargin: page.pageMargin
-                wideMode: true
-                twinFormLayouts: [generalForm]
+                wideMode: page.formWide
+                twinFormLayouts: page.formWide ? [generalForm] : []
 
                 Kirigami.Separator {
                     Kirigami.FormData.label: i18n("Custom coordinates")
@@ -511,6 +570,9 @@ Item {
                 QQC2.TextField {
                     id: latitudeField
                     Kirigami.FormData.label: i18n("Latitude:")
+                    Layout.fillWidth: false
+                    Layout.preferredWidth: page.compactFieldWidth
+                    Layout.maximumWidth: page.compactFieldWidth
                     placeholderText: "52.5200"
                     onEditingFinished: {
                         page.cfg_latitude = page.parseCoord(text, -90, 90, page.cfg_latitude)
@@ -523,6 +585,9 @@ Item {
                 QQC2.TextField {
                     id: longitudeField
                     Kirigami.FormData.label: i18n("Longitude:")
+                    Layout.fillWidth: false
+                    Layout.preferredWidth: page.compactFieldWidth
+                    Layout.maximumWidth: page.compactFieldWidth
                     placeholderText: "13.4050"
                     onEditingFinished: {
                         page.cfg_longitude = page.parseCoord(text, -180, 180, page.cfg_longitude)
@@ -533,8 +598,9 @@ Item {
                 }
 
                 QQC2.Label {
-                    Kirigami.FormData.label: " "
+                    Kirigami.FormData.label: page.formWide ? " " : ""
                     Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(coordsForm)
                     wrapMode: Text.WordWrap
                     opacity: 0.7
                     font.pointSize: Kirigami.Theme.smallFont.pointSize
@@ -549,18 +615,24 @@ Item {
                 QQC2.CheckBox {
                     id: panelElapsedCheck
                     Kirigami.FormData.label: i18n("Show:")
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(coordsForm)
                     text: i18n("Elapsed time")
                     onCheckedChanged: page.persistShared()
                 }
                 QQC2.CheckBox {
                     id: panelProjectCheck
-                    Kirigami.FormData.label: " "
+                    Kirigami.FormData.label: page.formWide ? " " : ""
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(coordsForm)
                     text: i18n("Project name")
                     onCheckedChanged: page.persistShared()
                 }
                 QQC2.CheckBox {
                     id: panelActivityCheck
-                    Kirigami.FormData.label: " "
+                    Kirigami.FormData.label: page.formWide ? " " : ""
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(coordsForm)
                     text: i18n("Activity name")
                     onCheckedChanged: page.persistShared()
                 }
@@ -573,41 +645,53 @@ Item {
                 QQC2.CheckBox {
                     id: popupWorkSummaryCheck
                     Kirigami.FormData.label: i18n("Show:")
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(coordsForm)
                     text: i18n("Work summary (today / week / remaining)")
                     checked: true
                     onCheckedChanged: page.persistShared()
                 }
                 QQC2.CheckBox {
                     id: popupSparklineCheck
-                    Kirigami.FormData.label: " "
+                    Kirigami.FormData.label: page.formWide ? " " : ""
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(coordsForm)
                     text: i18n("Day sparkline (bar and arcs)")
                     checked: true
                     onCheckedChanged: page.persistShared()
                 }
                 QQC2.CheckBox {
                     id: popupFavoritesCheck
-                    Kirigami.FormData.label: " "
+                    Kirigami.FormData.label: page.formWide ? " " : ""
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(coordsForm)
                     text: i18n("Favorites")
                     checked: true
                     onCheckedChanged: page.persistShared()
                 }
                 QQC2.CheckBox {
                     id: popupRecentCheck
-                    Kirigami.FormData.label: " "
+                    Kirigami.FormData.label: page.formWide ? " " : ""
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(coordsForm)
                     text: i18n("Recent list")
                     checked: true
                     onCheckedChanged: page.persistShared()
                 }
                 QQC2.CheckBox {
                     id: popupContinueCheck
-                    Kirigami.FormData.label: " "
+                    Kirigami.FormData.label: page.formWide ? " " : ""
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(coordsForm)
                     text: i18n("Continue last activity")
                     checked: true
                     onCheckedChanged: page.persistShared()
                 }
                 QQC2.CheckBox {
                     id: popupNewActivityCheck
-                    Kirigami.FormData.label: " "
+                    Kirigami.FormData.label: page.formWide ? " " : ""
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(coordsForm)
                     text: i18n("Start / switch activity controls")
                     checked: true
                     onCheckedChanged: page.persistShared()
@@ -621,34 +705,44 @@ Item {
                 QQC2.CheckBox {
                     id: desktopWorkSummaryCheck
                     Kirigami.FormData.label: i18n("Show:")
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(coordsForm)
                     text: i18n("Work summary (today / week / remaining)")
                     checked: true
                     onCheckedChanged: page.persistShared()
                 }
                 QQC2.CheckBox {
                     id: desktopSparklineCheck
-                    Kirigami.FormData.label: " "
+                    Kirigami.FormData.label: page.formWide ? " " : ""
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(coordsForm)
                     text: i18n("Day sparkline (bar and arcs)")
                     checked: true
                     onCheckedChanged: page.persistShared()
                 }
                 QQC2.CheckBox {
                     id: desktopFavoritesCheck
-                    Kirigami.FormData.label: " "
+                    Kirigami.FormData.label: page.formWide ? " " : ""
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(coordsForm)
                     text: i18n("Favorites")
                     checked: true
                     onCheckedChanged: page.persistShared()
                 }
                 QQC2.CheckBox {
                     id: desktopRecentCheck
-                    Kirigami.FormData.label: " "
+                    Kirigami.FormData.label: page.formWide ? " " : ""
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(coordsForm)
                     text: i18n("Recent list")
                     checked: true
                     onCheckedChanged: page.persistShared()
                 }
                 QQC2.CheckBox {
                     id: desktopNewActivityCheck
-                    Kirigami.FormData.label: " "
+                    Kirigami.FormData.label: page.formWide ? " " : ""
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(coordsForm)
                     text: i18n("New activity picker")
                     checked: true
                     onCheckedChanged: page.persistShared()
