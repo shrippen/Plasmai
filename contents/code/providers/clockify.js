@@ -379,7 +379,7 @@ function patchTimesheet(url, token, timesheetId, fields, callback) {
             var interval = existing.timeInterval || {}
             var f = fields || {}
             var payload = {
-                start: f.begin || interval.start || existing.start || Util.isoUtc(new Date()),
+                start: f.begin !== undefined ? toClockifyTime(f.begin) : (interval.start || existing.start || Util.isoUtc(new Date())),
                 description: f.description !== undefined ? f.description : (existing.description || ""),
                 billable: existing.billable || false
             }

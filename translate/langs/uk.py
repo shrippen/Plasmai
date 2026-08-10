@@ -223,6 +223,16 @@ T = {
     'kept': 'збережено',
     'shifted': 'зсунуто',
     'Maintenance': 'Обслуговування',
+    'Edit': 'Редагувати',
+    'Edit start, project, and activity': 'Редагувати початок, проєкт і активність',
+    'Edit start time, project, and activity for the running entry.': 'Редагувати час початку, проєкт і активність поточного запису.',
+    'Elapsed time updates from the new start.': 'Час відліку оновлюється від нового початку.',
+    'Start must be a valid time not in the future.': 'Початок має бути коректним часом і не в майбутньому.',
+    'This provider cannot update the running entry.': 'Цей постачальник не може оновити поточний запис.',
+    'Enter a valid start date/time.': 'Введіть коректну дату/час початку.',
+    'Start must not be in the future.': 'Початок не може бути в майбутньому.',
+    'Save': 'Зберегти',
+
 }
 
 PLURALS = {

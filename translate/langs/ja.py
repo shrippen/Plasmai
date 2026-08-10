@@ -223,6 +223,16 @@ T = {
     'kept': '維持',
     'shifted': 'シフト済み',
     'Maintenance': 'メンテナンス',
+    'Edit': '編集',
+    'Edit start, project, and activity': '開始・プロジェクト・アクティビティを編集',
+    'Edit start time, project, and activity for the running entry.': '実行中エントリの開始時刻、プロジェクト、アクティビティを編集します。',
+    'Elapsed time updates from the new start.': '経過時間は新しい開始時刻から更新されます。',
+    'Start must be a valid time not in the future.': '開始は有効な時刻で、未来であってはなりません。',
+    'This provider cannot update the running entry.': 'このプロバイダーは実行中のエントリを更新できません。',
+    'Enter a valid start date/time.': '有効な開始日時を入力してください。',
+    'Start must not be in the future.': '開始は未来であってはなりません。',
+    'Save': '保存',
+
 }
 
 PLURALS = {

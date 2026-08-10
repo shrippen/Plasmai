@@ -223,6 +223,16 @@ T = {
     'kept': '保留',
     'shifted': '已偏移',
     'Maintenance': '维护',
+    'Edit': '编辑',
+    'Edit start, project, and activity': '编辑开始时间、项目和活动',
+    'Edit start time, project, and activity for the running entry.': '编辑进行中条目的开始时间、项目和活动。',
+    'Elapsed time updates from the new start.': '已用时间会根据新的开始时间更新。',
+    'Start must be a valid time not in the future.': '开始时间必须有效且不能是未来时间。',
+    'This provider cannot update the running entry.': '此服务无法更新进行中的条目。',
+    'Enter a valid start date/time.': '请输入有效的开始日期/时间。',
+    'Start must not be in the future.': '开始时间不能是未来。',
+    'Save': '保存',
+
 }
 
 PLURALS = {

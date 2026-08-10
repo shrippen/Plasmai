@@ -389,7 +389,11 @@ function patchTimesheet(url, token, timesheetId, fields, callback) {
                 billable: existing.billable || false
             }
             if (f.begin !== undefined) {
-                payload.start = f.begin
+                var beginDate = new Date(f.begin)
+                if (isNaN(beginDate.getTime())) {
+                    beginDate = new Date(String(f.begin).replace(" ", "T"))
+                }
+                payload.start = Util.isoUtc(beginDate)
             } else if (existing.start) {
                 payload.start = existing.start
             }

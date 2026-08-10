@@ -7,7 +7,7 @@ cd "$ROOT"
 mkdir -p translate
 
 xgettext --from-code=UTF-8 -L JavaScript \
-  --package-name="Plasmai" --package-version="1.1.0" \
+  --package-name="Plasmai" --package-version="1.2.0" \
   --msgid-bugs-address="https://github.com/shrippen/Plasmai/issues" \
   -ki18n:1 -ki18nc:1c,2 -ki18np:1,2 -ki18ncp:1c,2,3 \
   -o translate/template.pot \
@@ -16,6 +16,7 @@ xgettext --from-code=UTF-8 -L JavaScript \
   contents/ui/SearchableCombo.qml \
   contents/ui/ActivityListRow.qml \
   contents/ui/ManualEntryView.qml \
+  contents/ui/ActiveEditView.qml \
   contents/ui/StatsView.qml \
   contents/ui/BarChart.qml \
   contents/ui/StackedBarChart.qml \

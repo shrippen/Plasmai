@@ -223,6 +223,16 @@ T = {
     'kept': 'kept',
     'shifted': 'shifted',
     'Maintenance': 'Maintenance',
+    'Edit': 'Edit',
+    'Edit start, project, and activity': 'Edit start, project, and activity',
+    'Edit start time, project, and activity for the running entry.': 'Edit start time, project, and activity for the running entry.',
+    'Elapsed time updates from the new start.': 'Elapsed time updates from the new start.',
+    'Start must be a valid time not in the future.': 'Start must be a valid time not in the future.',
+    'This provider cannot update the running entry.': 'This provider cannot update the running entry.',
+    'Enter a valid start date/time.': 'Enter a valid start date/time.',
+    'Start must not be in the future.': 'Start must not be in the future.',
+    'Save': 'Save',
+
 }
 
 PLURALS = {

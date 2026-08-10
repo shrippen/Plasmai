@@ -12,6 +12,7 @@ A KDE Plasma 6 panel widget for time tracking — Kimai, Clockify, Toggl Track, 
 
 - Live timer in the panel (project/activity + elapsed time)
 - Start, stop, and switch tracking from the popup or desktop widget
+- Edit the running entry’s start time, project, and activity
 - Manual time entries (+) and a secondary statistics view with charts
 - Recent activities and pinned favorites (customer colors)
 - Multiple profiles per service; API tokens stored in KWallet
@@ -52,7 +53,7 @@ kpackagetool6 -u . -t Plasma/Applet
 Install a release package (`.plasmoid`):
 
 ```bash
-kpackagetool6 -i Plasmai-1.1.0.plasmoid -t Plasma/Applet
+kpackagetool6 -i Plasmai-1.2.0.plasmoid -t Plasma/Applet
 ```
 
 ## Setup

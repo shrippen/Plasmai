@@ -38,6 +38,8 @@ PlasmoidItem {
     property bool tokenLoaded: false
     property bool isConfigured: apiToken.length > 0 && (!providerMeta.needsUrl || kimaiUrl.length > 0)
     property string mainViewMode: "main"  // main | manual | stats
+    /** Inline editor for the running timesheet (start / project / activity). */
+    property bool editingActiveEntry: false
     property bool credentialsLoading: false
     property var pendingCredentialCallbacks: []
 
@@ -423,6 +425,7 @@ PlasmoidItem {
         if (!isConfigured) {
             return
         }
+        editingActiveEntry = false
         mainViewMode = "manual"
         if (projectPickerModel.length === 0) {
             refreshProjects(false)
@@ -430,6 +433,81 @@ PlasmoidItem {
         if (typeof manualEntryView !== "undefined" && manualEntryView) {
             manualEntryView.resetDefaults()
         }
+    }
+
+    function openActiveEdit() {
+        if (!isConfigured || !isTracking || !activeTimesheet) {
+            return
+        }
+        editingActiveEntry = true
+        if (projectPickerModel.length === 0) {
+            refreshProjects(false)
+        }
+        // Prefill once the editor is visible (also handled by ActiveEditView.onVisibleChanged).
+        Qt.callLater(function() {
+            if (editingActiveEntry && activeEditView) {
+                activeEditView.loadFromTimesheet(root.activeTimesheet)
+            }
+        })
+    }
+
+    function closeActiveEdit() {
+        editingActiveEntry = false
+    }
+
+    function saveActiveEdit(projectId, activityId, beginText) {
+        if (!isTracking || isBusy) {
+            return
+        }
+        if (currentTimesheetId === invalidTimesheetId || currentTimesheetId === undefined
+            || currentTimesheetId === null || currentTimesheetId === "") {
+            return
+        }
+        if (!tracker || typeof tracker.patchTimesheet !== "function") {
+            setError({ type: "config", status: 0, detail: i18n("This provider cannot update the running entry.") })
+            return
+        }
+        function parseLocalStamp(text) {
+            var s = String(text || "").trim().replace(" ", "T")
+            if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(s)) {
+                s += ":00"
+            }
+            return new Date(s)
+        }
+        var beginDate = parseLocalStamp(beginText)
+        if (isNaN(beginDate.getTime())) {
+            userMessage = i18n("Enter a valid start date/time.")
+            return
+        }
+        if (beginDate.getTime() > Date.now() + 60 * 1000) {
+            userMessage = i18n("Start must not be in the future.")
+            return
+        }
+        isBusy = true
+        lastError = null
+        userMessage = ""
+        tracker.patchTimesheet(kimaiUrl, apiToken, currentTimesheetId, {
+            begin: KimaiApi.localDateTimeString(beginDate),
+            project: projectId,
+            activity: activityId
+        }, function(result) {
+            isBusy = false
+            if (result && result.ok) {
+                clearError()
+                editingActiveEntry = false
+                if (result.data) {
+                    var hydrated = KimaiApi.hydrateTimesheets(
+                        [result.data], root.projects, root.activityCatalog(), root.activitiesByProject)
+                    applyActiveTimesheet(hydrated[0] || result.data)
+                } else {
+                    refreshActiveTimesheet(true)
+                }
+                refreshRecentTimesheets(true)
+                refreshWorkTotals()
+            } else {
+                setError(result ? result.error : { type: "network", status: 0, detail: "empty result" })
+            }
+        })
     }
 
     function openStatsView() {
@@ -654,6 +732,7 @@ PlasmoidItem {
 
     function resetTrackingState() {
         isTracking = false
+        editingActiveEntry = false
         currentTimesheetId = invalidTimesheetId
         currentProject = ""
         currentActivity = ""
@@ -1102,6 +1181,13 @@ PlasmoidItem {
             var barInfo = KimaiApi.barColorInfoFromTimesheet(activeTimesheet, customersById)
             currentColorCategory = barInfo.category
             currentColorEntityId = barInfo.id
+            if (editingActiveEntry) {
+                Qt.callLater(function() {
+                    if (editingActiveEntry && typeof activeEditView !== "undefined" && activeEditView) {
+                        activeEditView.loadFromTimesheet(root.activeTimesheet)
+                    }
+                })
+            }
         }
     }
 
@@ -2001,81 +2087,98 @@ PlasmoidItem {
                                 visible: root.isTracking || root.showWorkSummaryHere
                                 spacing: Kirigami.Units.smallSpacing / 2
 
-                                readonly property bool stopBeside: heroColumn.width >= Kirigami.Units.gridUnit * 16
+                                // Beside only when there is clear room for stats + both actions.
+                                readonly property bool actionsBeside: root.isTracking
+                                    && root.showWorkSummaryHere
+                                    && workSummaryBlock.width >= Kirigami.Units.gridUnit * 22
 
+                                // Stats on their own row (full width). Actions sit beside only when wide.
                                 RowLayout {
                                     Layout.fillWidth: true
                                     spacing: Kirigami.Units.smallSpacing
+                                    visible: root.showWorkSummaryHere || workSummaryBlock.actionsBeside
 
                                     ColumnLayout {
-                                        Layout.fillWidth: false
+                                        Layout.fillWidth: true
+                                        Layout.minimumWidth: 0
                                         Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                                        Layout.maximumWidth: workSummaryBlock.stopBeside && root.isTracking
-                                            ? Math.max(0, heroColumn.width - stopBesideButton.implicitWidth - Kirigami.Units.smallSpacing)
-                                            : heroColumn.width
-                                        opacity: root.showWorkSummaryHere ? 1 : 0
                                         visible: root.showWorkSummaryHere
+                                        opacity: root.showWorkSummaryHere ? 1 : 0
                                         spacing: 1
                                         Behavior on opacity { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
 
-                                        Row {
+                                        RowLayout {
+                                            Layout.fillWidth: true
                                             spacing: Kirigami.Units.smallSpacing
                                             PlasmaComponents3.Label {
+                                                Layout.fillWidth: true
+                                                Layout.minimumWidth: 0
                                                 text: i18n("Today %1", KimaiApi.formatDurationShort(root.todayLiveSeconds))
+                                                    + " · "
+                                                    + i18n("Week %1", KimaiApi.formatDurationShort(root.weekLiveSeconds))
                                                 font.pointSize: Kirigami.Theme.smallFont.pointSize
                                                 opacity: 0.8
-                                            }
-                                            PlasmaComponents3.Label {
-                                                text: "·"
-                                                opacity: 0.45
-                                            }
-                                            PlasmaComponents3.Label {
-                                                text: i18n("Week %1", KimaiApi.formatDurationShort(root.weekLiveSeconds))
-                                                font.pointSize: Kirigami.Theme.smallFont.pointSize
-                                                opacity: 0.8
+                                                elide: Text.ElideRight
                                             }
                                         }
 
-                                        Row {
+                                        RowLayout {
+                                            Layout.fillWidth: true
                                             visible: root.hasWorkContract
                                                      && (root.todayTargetSeconds > 0 || root.weekTargetSeconds > 0)
                                             spacing: Kirigami.Units.smallSpacing
 
                                             PlasmaComponents3.Label {
-                                                visible: root.todayTargetSeconds > 0
-                                                text: root.remainingTodayText()
+                                                Layout.fillWidth: true
+                                                Layout.minimumWidth: 0
+                                                visible: root.todayTargetSeconds > 0 || root.weekTargetSeconds > 0
+                                                text: {
+                                                    var bits = []
+                                                    if (root.todayTargetSeconds > 0) {
+                                                        bits.push(root.remainingTodayText())
+                                                    }
+                                                    if (root.weekTargetSeconds > 0) {
+                                                        bits.push(root.remainingWeekText())
+                                                    }
+                                                    return bits.join(" · ")
+                                                }
                                                 font.pointSize: Kirigami.Theme.smallFont.pointSize
                                                 opacity: 0.75
-                                                color: root.remainingTodaySeconds >= 0
-                                                       ? Kirigami.Theme.textColor
-                                                       : Kirigami.Theme.neutralTextColor
-                                            }
-                                            PlasmaComponents3.Label {
-                                                visible: root.todayTargetSeconds > 0 && root.weekTargetSeconds > 0
-                                                text: "·"
-                                                opacity: 0.4
-                                            }
-                                            PlasmaComponents3.Label {
-                                                visible: root.weekTargetSeconds > 0
-                                                text: root.remainingWeekText()
-                                                font.pointSize: Kirigami.Theme.smallFont.pointSize
-                                                opacity: 0.75
-                                                color: root.remainingWeekSeconds >= 0
-                                                       ? Kirigami.Theme.textColor
-                                                       : Kirigami.Theme.neutralTextColor
+                                                elide: Text.ElideRight
+                                                color: (root.remainingTodaySeconds < 0 || root.remainingWeekSeconds < 0)
+                                                       ? Kirigami.Theme.neutralTextColor
+                                                       : Kirigami.Theme.textColor
                                             }
                                         }
                                     }
 
-                                    Item {
-                                        Layout.fillWidth: true
-                                        visible: workSummaryBlock.stopBeside && root.isTracking
+                                    PlasmaComponents3.ToolButton {
+                                        id: editActiveBesideButton
+                                        visible: workSummaryBlock.actionsBeside
+                                        Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                                        Layout.preferredWidth: implicitWidth
+                                        enabled: !root.isBusy
+                                        text: i18n("Edit")
+                                        icon.name: "document-edit"
+                                        display: QQC2.AbstractButton.IconOnly
+                                        down: root.editingActiveEntry
+                                        onClicked: {
+                                            if (root.editingActiveEntry) {
+                                                root.closeActiveEdit()
+                                            } else {
+                                                root.openActiveEdit()
+                                            }
+                                        }
+                                        PlasmaComponents3.ToolTip.text: i18n("Edit start, project, and activity")
+                                        PlasmaComponents3.ToolTip.visible: hovered
+                                        PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
                                     }
 
                                     PlasmaComponents3.Button {
                                         id: stopBesideButton
-                                        visible: root.isTracking && workSummaryBlock.stopBeside
+                                        visible: workSummaryBlock.actionsBeside
                                         Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                                        Layout.preferredWidth: implicitWidth
                                         enabled: !root.isBusy
                                         text: i18n("Stop")
                                         icon.name: "media-playback-stop"
@@ -2083,14 +2186,61 @@ PlasmoidItem {
                                     }
                                 }
 
-                                PlasmaComponents3.Button {
-                                    visible: root.isTracking && !workSummaryBlock.stopBeside
+                                // Narrow / no-summary: Edit + Stop on the line under the stats
+                                RowLayout {
                                     Layout.fillWidth: true
-                                    enabled: !root.isBusy
-                                    text: i18n("Stop")
-                                    icon.name: "media-playback-stop"
-                                    onClicked: root.requestStop()
+                                    visible: root.isTracking && !workSummaryBlock.actionsBeside
+                                    spacing: Kirigami.Units.smallSpacing
+
+                                    PlasmaComponents3.ToolButton {
+                                        enabled: !root.isBusy
+                                        text: i18n("Edit")
+                                        icon.name: "document-edit"
+                                        display: QQC2.AbstractButton.IconOnly
+                                        down: root.editingActiveEntry
+                                        onClicked: {
+                                            if (root.editingActiveEntry) {
+                                                root.closeActiveEdit()
+                                            } else {
+                                                root.openActiveEdit()
+                                            }
+                                        }
+                                        PlasmaComponents3.ToolTip.text: i18n("Edit start, project, and activity")
+                                        PlasmaComponents3.ToolTip.visible: hovered
+                                        PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
+                                    }
+
+                                    PlasmaComponents3.Button {
+                                        Layout.fillWidth: true
+                                        enabled: !root.isBusy
+                                        text: i18n("Stop")
+                                        icon.name: "media-playback-stop"
+                                        onClicked: root.requestStop()
+                                    }
                                 }
+                            }
+
+                            ActiveEditView {
+                                id: activeEditView
+                                Layout.fillWidth: true
+                                visible: root.isTracking && root.editingActiveEntry
+                                timesheet: root.activeTimesheet
+                                elapsedSeconds: root.elapsedSeconds
+                                projectPickerModel: root.projectPickerModel
+                                activityPickerModel: root.activityPickerModel
+                                activitySectionTitles: root.activitySectionTitles
+                                pickerOpenBelow: root.pickerOpenBelow
+                                busy: root.isBusy
+                                configured: root.isConfigured
+                                connectionOk: root.connectionState !== "error"
+                                onAboutToOpenPicker: root.updatePickerOpenDirection()
+                                onProjectChosen: function(projectId) {
+                                    root.loadActivitiesForProject(projectId)
+                                }
+                                onSaveRequested: function(projectId, activityId, beginText) {
+                                    root.saveActiveEdit(projectId, activityId, beginText)
+                                }
+                                onCancelled: root.closeActiveEdit()
                             }
 
                             Item {

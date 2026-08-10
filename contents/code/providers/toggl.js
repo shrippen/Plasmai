@@ -332,10 +332,17 @@ function patchTimesheet(url, token, timesheetId, fields, callback) {
             }
             var existing = entryResult.data || {}
             var f = fields || {}
+            var startVal = existing.start
+            if (f.begin !== undefined) {
+                startVal = Util.isoUtc(new Date(f.begin))
+                if (isNaN(new Date(f.begin).getTime())) {
+                    startVal = Util.isoUtc(new Date(String(f.begin).replace(" ", "T")))
+                }
+            }
             var payload = {
                 created_with: "Plasmai",
                 description: f.description !== undefined ? f.description : (existing.description || ""),
-                start: f.begin || existing.start,
+                start: startVal,
                 workspace_id: _session.workspaceId,
                 billable: existing.billable || false
             }

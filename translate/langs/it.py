@@ -223,6 +223,16 @@ T = {
     'kept': 'mantenuto',
     'shifted': 'spostato',
     'Maintenance': 'Manutenzione',
+    'Edit': 'Modifica',
+    'Edit start, project, and activity': 'Modifica inizio, progetto e attività',
+    'Edit start time, project, and activity for the running entry.': 'Modifica ora di inizio, progetto e attività della voce in corso.',
+    'Elapsed time updates from the new start.': 'Il tempo trascorso viene aggiornato dal nuovo inizio.',
+    'Start must be a valid time not in the future.': 'L’inizio deve essere un orario valido e non nel futuro.',
+    'This provider cannot update the running entry.': 'Questo provider non può aggiornare la voce in corso.',
+    'Enter a valid start date/time.': 'Inserisci una data/ora di inizio valida.',
+    'Start must not be in the future.': 'L’inizio non deve essere nel futuro.',
+    'Save': 'Salva',
+
 }
 
 PLURALS = {

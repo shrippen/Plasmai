@@ -223,6 +223,16 @@ T = {
     'kept': 'сохранён',
     'shifted': 'сдвинут',
     'Maintenance': 'Обслуживание',
+    'Edit': 'Изменить',
+    'Edit start, project, and activity': 'Изменить начало, проект и активность',
+    'Edit start time, project, and activity for the running entry.': 'Изменить время начала, проект и активность текущей записи.',
+    'Elapsed time updates from the new start.': 'Прошедшее время пересчитывается от нового начала.',
+    'Start must be a valid time not in the future.': 'Начало должно быть корректным временем и не в будущем.',
+    'This provider cannot update the running entry.': 'Этот провайдер не может обновить текущую запись.',
+    'Enter a valid start date/time.': 'Введите корректные дату/время начала.',
+    'Start must not be in the future.': 'Начало не должно быть в будущем.',
+    'Save': 'Сохранить',
+
 }
 
 PLURALS = {

@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.2.0
+
+### Edit running entry
+- Edit icon beside **Stop** opens an inline editor for the active timesheet
+- Change **start time**, **project**, and **activity** (same pickers as new activity)
+- Fields prefill from the current entry; Save patches via the provider API
+- On narrow layouts, Edit/Stop move under the today/week work summary instead of overflowing
+
+### i18n
+- Strings for the active-entry editor in all bundled languages
+
 ## 1.1.0
 
 ### Multi-provider backends

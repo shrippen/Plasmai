@@ -223,6 +223,16 @@ T = {
     'kept': 'behouden',
     'shifted': 'verschoven',
     'Maintenance': 'Onderhoud',
+    'Edit': 'Bewerken',
+    'Edit start, project, and activity': 'Start, project en activiteit bewerken',
+    'Edit start time, project, and activity for the running entry.': 'Starttijd, project en activiteit van de lopende invoer bewerken.',
+    'Elapsed time updates from the new start.': 'De verstreken tijd wordt vanaf de nieuwe start herberekend.',
+    'Start must be a valid time not in the future.': 'Start moet een geldige tijd zijn en mag niet in de toekomst liggen.',
+    'This provider cannot update the running entry.': 'Deze provider kan de lopende invoer niet bijwerken.',
+    'Enter a valid start date/time.': 'Voer een geldige startdatum/-tijd in.',
+    'Start must not be in the future.': 'Start mag niet in de toekomst liggen.',
+    'Save': 'Opslaan',
+
 }
 
 PLURALS = {

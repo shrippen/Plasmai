@@ -223,6 +223,16 @@ T = {
     'kept': 'zachowany',
     'shifted': 'przesunięty',
     'Maintenance': 'Konserwacja',
+    'Edit': 'Edytuj',
+    'Edit start, project, and activity': 'Edytuj start, projekt i aktywność',
+    'Edit start time, project, and activity for the running entry.': 'Edytuj czas rozpoczęcia, projekt i aktywność bieżącego wpisu.',
+    'Elapsed time updates from the new start.': 'Czas upływający jest przeliczany od nowego startu.',
+    'Start must be a valid time not in the future.': 'Start musi być poprawną godziną i nie może być w przyszłości.',
+    'This provider cannot update the running entry.': 'Ten dostawca nie może zaktualizować bieżącego wpisu.',
+    'Enter a valid start date/time.': 'Podaj prawidłową datę/godzinę rozpoczęcia.',
+    'Start must not be in the future.': 'Start nie może być w przyszłości.',
+    'Save': 'Zapisz',
+
 }
 
 PLURALS = {
