@@ -20,6 +20,14 @@ Item {
     property real longitude: 13.405
     /** Bump (e.g. elapsedSeconds) so the live edge and sky refresh. */
     property int nowTick: 0
+    property real sunSpinAngle: 0
+    Timer {
+        id: sunSpinTimer
+        interval: 40
+        running: root.showArcs && root.sunPoint.visible
+        repeat: true
+        onTriggered: root.sunSpinAngle = (root.sunSpinAngle + (Math.PI * 2) * 0.040 / 180) % (Math.PI * 2)
+    }
     /** When false, keep the bar + labels but hide sun/moon/work arcs. */
     property bool showArcs: true
     /**
@@ -105,7 +113,6 @@ Item {
     readonly property int nowOverhang: Math.max(3, Math.round(Kirigami.Units.smallSpacing))
     readonly property int nowStemWidth: 3
     readonly property int nowKnobSize: Math.max(6, Math.round(Kirigami.Units.smallSpacing * 1.4))
-    readonly property int skyHeightFull: Math.max(38, Math.round(Kirigami.Units.gridUnit * 2.35))
     readonly property int workIconSize: Math.max(18, Math.round(Kirigami.Units.gridUnit * 1.05))
     /**
      * Work-arc peak depth restored to the earlier visual height (~0.48 of the
@@ -113,14 +120,18 @@ Item {
      * with a 2px pad so the gap to the project line stays column spacing.
      */
     readonly property int workUnderPad: 2
+    readonly property int skyIconPad: 2
     readonly property int peakWork: Math.max(12, Math.round(Kirigami.Units.gridUnit * 1.55 * 0.48))
     readonly property int workUnderHeightFull: Math.ceil(0.5 + peakWork + workIconSize * 0.5 + workUnderPad)
+    // Sky band reserves half the on-path icon above the arc apex (same as work).
+    readonly property int skyHeightFull: Math.max(
+        38,
+        Math.ceil(0.5 + Math.round(Kirigami.Units.gridUnit * 2.35) + workIconSize * 0.5 + skyIconPad))
     readonly property int skyHeight: root.showArcs ? skyHeightFull : 0
     readonly property int workUnderHeight: root.showArcs ? workUnderHeightFull : 0
     readonly property int labelHeight: Math.max(12, Math.round(Kirigami.Theme.smallFont.pixelSize + 2))
-    readonly property int iconSize: Math.max(9, Math.round(Kirigami.Units.smallSpacing * 2))
-    readonly property int peakSun: Math.round(skyHeightFull * 0.88)
-    readonly property int peakMoon: Math.round(skyHeightFull * 0.98)
+    readonly property int peakSun: Math.max(12, skyHeightFull - Math.ceil(0.5 + workIconSize * 0.5 + skyIconPad))
+    readonly property int peakMoon: Math.max(12, Math.round(peakSun * 1.12))
     /** Exact Y of the work stroke apex inside the under-bar band. */
     readonly property real workArcApexY: {
         var base = 0.5
@@ -150,6 +161,11 @@ Item {
     readonly property color workRibbon: Qt.rgba(
         Kirigami.Theme.highlightColor.r, Kirigami.Theme.highlightColor.g,
         Kirigami.Theme.highlightColor.b, lightBg ? 0.2 : 0.26)
+
+    /** Y center of an on-path icon on a sky arc (matches workArcApexY math). */
+    function skyArcIconCenterY(containerHeight, peak, yNorm) {
+        return containerHeight - 0.5 - yNorm * peak
+    }
 
     /** Point on quadratic Bézier at t ∈ [0,1]. */
     function quadPoint(x0, y0, cx, cy, x1, y1, t) {
@@ -212,6 +228,80 @@ Item {
         }
         ctx.stroke()
         ctx.setLineDash([])
+    }
+
+    // Draw sun/moon icons into a given canvas context (used so arc cutouts
+    // can destination-out the icons when they overlap header text).
+    function drawSunIconCanvas(ctx, cx, cy, s) {
+        var spin = root.sunSpinAngle
+        ctx.save()
+        ctx.translate(cx, cy)
+        ctx.rotate(spin)
+
+        // Background disc
+        ctx.beginPath()
+        ctx.arc(0, 0, s * 0.48, 0, Math.PI * 2)
+        ctx.fillStyle = Qt.rgba(
+            Kirigami.Theme.backgroundColor.r,
+            Kirigami.Theme.backgroundColor.g,
+            Kirigami.Theme.backgroundColor.b, 0.94)
+        ctx.fill()
+
+        // Outline stroke
+        ctx.strokeStyle = root.sunStroke
+        ctx.lineWidth = Math.max(1.2, s * 0.06)
+        ctx.lineCap = "round"
+        ctx.stroke()
+
+        // Rays
+        ctx.strokeStyle = root.sunStroke
+        ctx.fillStyle = root.sunStroke
+        ctx.lineWidth = Math.max(1, s * 0.08)
+        ctx.lineCap = "round"
+        var i
+        for (i = 0; i < 8; i++) {
+            var a = i * Math.PI / 4
+            ctx.beginPath()
+            ctx.moveTo(Math.cos(a) * s * 0.22, Math.sin(a) * s * 0.22)
+            ctx.lineTo(Math.cos(a) * s * 0.36, Math.sin(a) * s * 0.36)
+            ctx.stroke()
+        }
+
+        // Inner disc
+        ctx.beginPath()
+        ctx.arc(0, 0, s * 0.16, 0, Math.PI * 2)
+        ctx.fill()
+
+        ctx.restore()
+    }
+
+    function drawMoonIconCanvas(ctx, cx, cy, s) {
+        // Background disc
+        ctx.beginPath()
+        ctx.arc(cx, cy, s * 0.48, 0, Math.PI * 2)
+        ctx.fillStyle = Qt.rgba(
+            Kirigami.Theme.backgroundColor.r,
+            Kirigami.Theme.backgroundColor.g,
+            Kirigami.Theme.backgroundColor.b, 0.94)
+        ctx.fill()
+
+        // Outer ring
+        ctx.strokeStyle = root.moonStroke
+        ctx.lineWidth = Math.max(1.2, s * 0.06)
+        ctx.stroke()
+
+        // Bite disc (draw, then erase)
+        ctx.fillStyle = root.moonStroke
+        var r = s * 0.16
+        ctx.beginPath()
+        ctx.arc(cx, cy, r, 0, Math.PI * 2)
+        ctx.fill()
+
+        ctx.globalCompositeOperation = "destination-out"
+        ctx.beginPath()
+        ctx.arc(cx + r * 0.38, cy - r * 0.08, r * 0.78, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.globalCompositeOperation = "source-over"
     }
 
     /** Soft destination-out holes so arcs vanish under header text. */
@@ -434,6 +524,7 @@ Item {
                 function onWidthChanged() { skyCanvas.repaint() }
                 function onShowArcsChanged() { skyCanvas.repaint() }
                 function onArcCutoutsChanged() { skyCanvas.repaint() }
+                function onSunSpinAngleChanged() { skyCanvas.repaint() }
             }
             onWidthChanged: repaint()
             onHeightChanged: repaint()
@@ -488,6 +579,23 @@ Item {
                     } else {
                         drawSpan(moon.moonrise, moon.moonset, !!moon.wraps, root.peakMoon,
                                  root.moonRibbon, root.moonStroke, [2, 2])
+                    }
+                }
+
+                var sSize = root.workIconSize
+                var arcBase = h - 0.5
+                if (root.sunPoint.visible && root.sunPoint.t > 0) {
+                    var sp = root.sunPoint
+                    if (root.inView(sp.xFrac, 0.02)) {
+                        var sunModel = sun
+                        var sRise = sunModel.polarDay ? 0 : sunModel.sunrise
+                        var sSet  = sunModel.polarDay ? 1 : sunModel.sunset
+                        var sx0 = root.mapX(sRise) * w
+                        var sx1 = root.mapX(sSet) * w
+                        var sMid = (sx0 + sx1) / 2
+                        var sTop = arcBase - root.peakSun
+                        var sP = root.quadPoint(sx0, arcBase, sMid, sTop, sx1, arcBase, sp.t)
+                        root.drawSunIconCanvas(ctx, sP.x, sP.y, sSize)
                     }
                 }
 
@@ -558,13 +666,15 @@ Item {
                     return false
                 }
                 var ix = root.mapX(root.sunPoint.xFrac) * sky.width
+                // Cutout tests expect the icon's visual center in sky-local coords.
                 var iy = sky.height - root.sunPoint.yNorm * root.peakSun
                 return !root.pointInCutouts(ix, iy)
             }
-            width: root.iconSize
-            height: root.iconSize
-            x: Math.round(root.mapX(root.sunPoint.xFrac) * sky.width) - width / 2
-            y: Math.round(sky.height - root.sunPoint.yNorm * root.peakSun - height / 2) - 1
+            width: root.workIconSize
+            height: root.workIconSize
+            x: (root.mapX(root.sunPoint.xFrac) * sky.width) - width / 2
+            y: (sky.height - root.sunPoint.yNorm * root.peakSun) - height / 2
+            opacity: 0
             z: 4
             rotation: 0
 
@@ -586,26 +696,39 @@ Item {
                     var cx = s / 2
                     var cy = s / 2
                     ctx.clearRect(0, 0, s, s)
+
+                    ctx.beginPath()
+                    ctx.arc(cx, cy, s * 0.48, 0, Math.PI * 2)
+                    ctx.fillStyle = Qt.rgba(
+                        Kirigami.Theme.backgroundColor.r,
+                        Kirigami.Theme.backgroundColor.g,
+                        Kirigami.Theme.backgroundColor.b, 0.94)
+                    ctx.fill()
+                    ctx.strokeStyle = root.sunStroke
+                    ctx.lineWidth = Math.max(1.2, s * 0.06)
+                    ctx.stroke()
+
                     ctx.strokeStyle = root.sunStroke
                     ctx.fillStyle = root.sunStroke
-                    ctx.lineWidth = Math.max(1, s * 0.1)
+                    ctx.lineWidth = Math.max(1, s * 0.08)
                     ctx.lineCap = "round"
                     var i
                     for (i = 0; i < 8; i++) {
                         var a = i * Math.PI / 4
                         ctx.beginPath()
-                        ctx.moveTo(cx + Math.cos(a) * s * 0.28, cy + Math.sin(a) * s * 0.28)
-                        ctx.lineTo(cx + Math.cos(a) * s * 0.46, cy + Math.sin(a) * s * 0.46)
+                        ctx.moveTo(cx + Math.cos(a) * s * 0.22, cy + Math.sin(a) * s * 0.22)
+                        ctx.lineTo(cx + Math.cos(a) * s * 0.36, cy + Math.sin(a) * s * 0.36)
                         ctx.stroke()
                     }
                     ctx.beginPath()
-                    ctx.arc(cx, cy, s * 0.2, 0, Math.PI * 2)
+                    ctx.arc(cx, cy, s * 0.16, 0, Math.PI * 2)
                     ctx.fill()
                 }
                 Component.onCompleted: requestPaint()
                 Connections {
                     target: root
                     function onSunStrokeChanged() { sunIconCanvas.requestPaint() }
+                    function onLightBgChanged() { sunIconCanvas.requestPaint() }
                 }
             }
         }
@@ -621,10 +744,11 @@ Item {
                 var iy = sky.height - root.moonPoint.yNorm * root.peakMoon
                 return !root.pointInCutouts(ix, iy)
             }
-            width: root.iconSize
-            height: root.iconSize
-            x: Math.round(root.mapX(root.moonPoint.xFrac) * sky.width) - width / 2
-            y: Math.round(sky.height - root.moonPoint.yNorm * root.peakMoon - height / 2) - 1
+            width: root.workIconSize
+            height: root.workIconSize
+            x: (root.mapX(root.moonPoint.xFrac) * sky.width) - width / 2
+            y: (sky.height - root.moonPoint.yNorm * root.peakMoon) - height / 2
+            opacity: 0
             z: 4
             rotation: 0
 
@@ -645,8 +769,20 @@ Item {
                     var s = width
                     var cx = s / 2
                     var cy = s / 2
-                    var r = s * 0.36
+                    var r = s * 0.16
                     ctx.clearRect(0, 0, s, s)
+
+                    ctx.beginPath()
+                    ctx.arc(cx, cy, s * 0.48, 0, Math.PI * 2)
+                    ctx.fillStyle = Qt.rgba(
+                        Kirigami.Theme.backgroundColor.r,
+                        Kirigami.Theme.backgroundColor.g,
+                        Kirigami.Theme.backgroundColor.b, 0.94)
+                    ctx.fill()
+                    ctx.strokeStyle = root.moonStroke
+                    ctx.lineWidth = Math.max(1.2, s * 0.06)
+                    ctx.stroke()
+
                     ctx.fillStyle = root.moonStroke
                     ctx.beginPath()
                     ctx.arc(cx, cy, r, 0, Math.PI * 2)
@@ -661,6 +797,7 @@ Item {
                 Connections {
                     target: root
                     function onMoonStrokeChanged() { moonIconCanvas.requestPaint() }
+                    function onLightBgChanged() { moonIconCanvas.requestPaint() }
                 }
             }
         }

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.2
+
+### Day Sparkline
+- Sun icon now sits exactly on the arc curve (uses quadratic Bézier point matching)
+- Removed moon icon to avoid overlap clutter — only the sun icon is shown
+- Sun icon rotates smoothly (full revolution every 3 minutes)
+- Fixed animation to run at 25 fps for fluid motion instead of per-second ticks
+
 ## 1.2.1
 
 ### Display settings

@@ -8,9 +8,12 @@ Row {
 
     spacing: Kirigami.Units.smallSpacing
 
-    opacity: pulse.opacity
+    // Stable animated opacity; SequentialAnimation doesn't expose an
+    // `opacity` property, so binding to it yields undefined warnings.
+    opacity: animOpacity
+    property real animOpacity: 0.25
 
-    SequentialAnimation on opacity {
+    SequentialAnimation on animOpacity {
         id: pulse
         loops: Animation.Infinite
         running: true

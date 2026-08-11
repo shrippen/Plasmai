@@ -794,6 +794,20 @@ function formatDuration(seconds) {
            (secs < 10 ? "0" : "") + secs
 }
 
+/** Panel taskbar: MM:SS under 1h, otherwise H:MM:SS with minimum hour digits. */
+function formatDurationPanel(seconds) {
+    var total = Math.max(0, Math.floor(seconds || 0))
+    var hours = Math.floor(total / 3600)
+    var minutes = Math.floor((total % 3600) / 60)
+    var secs = total % 60
+    var mm = (minutes < 10 ? "0" : "") + minutes
+    var ss = (secs < 10 ? "0" : "") + secs
+    if (hours === 0) {
+        return mm + ":" + ss
+    }
+    return hours + ":" + mm + ":" + ss
+}
+
 function formatDurationShort(seconds) {
     var total = Math.max(0, Math.floor(seconds || 0))
     var hours = Math.floor(total / 3600)

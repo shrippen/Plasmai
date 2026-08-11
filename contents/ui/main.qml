@@ -1610,7 +1610,7 @@ PlasmoidItem {
 
             PlasmaComponents3.Label {
                 visible: root.isTracking && plasmoid.configuration.showElapsedInPanel
-                text: KimaiApi.formatDuration(root.elapsedSeconds)
+                text: KimaiApi.formatDurationPanel(root.elapsedSeconds)
                 font.family: "monospace"
                 font.pointSize: Kirigami.Theme.smallFont.pointSize
                 font.bold: true
