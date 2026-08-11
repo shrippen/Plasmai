@@ -233,6 +233,11 @@ T = {
     'Start must not be in the future.': '开始时间不能是未来。',
     'Save': '保存',
 
+    'Current': '当前',
+    'Switch to': '切换到',
+    'Already tracking this activity': '已在跟踪此活动',
+    'Could not resolve project or activity for that entry': '无法解析该条目的项目或活动',
+    'Switch activity?': '切换活动？',
 }
 
 PLURALS = {

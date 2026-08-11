@@ -233,6 +233,11 @@ T = {
     'Start must not be in the future.': 'Початок не може бути в майбутньому.',
     'Save': 'Зберегти',
 
+    'Current': 'Поточна',
+    'Switch to': 'Перейти до',
+    'Already tracking this activity': 'Ця активність уже відстежується',
+    'Could not resolve project or activity for that entry': 'Не вдалося визначити проєкт або активність для цього запису',
+    'Switch activity?': 'Змінити активність?',
 }
 
 PLURALS = {

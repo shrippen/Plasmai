@@ -62,6 +62,9 @@ PlasmoidItem {
     property var activeTimesheet: null
     /** Recent entry waiting for switch confirmation while a timer is running. */
     property var pendingSwitchTimesheet: null
+    /** Dialogs live inside fullRepresentation; keep refs so root JS can open them. */
+    property var stopConfirmDialogRef: null
+    property var switchRecentDialogRef: null
     property int elapsedSeconds: 0
     property var recentTimesheets: []
     property var projects: []
@@ -1433,7 +1436,11 @@ PlasmoidItem {
             return
         }
         if (plasmoid.configuration.confirmBeforeStop) {
-            stopConfirmDialog.open()
+            if (stopConfirmDialogRef) {
+                stopConfirmDialogRef.open()
+            } else {
+                stopTracking(false)
+            }
         } else {
             stopTracking(false)
         }
@@ -1537,7 +1544,11 @@ PlasmoidItem {
         }
 
         pendingSwitchTimesheet = timesheet
-        switchRecentDialog.open()
+        if (switchRecentDialogRef) {
+            switchRecentDialogRef.open()
+        } else {
+            confirmSwitchFromRecent()
+        }
     }
 
     function confirmSwitchFromRecent() {
@@ -1653,6 +1664,13 @@ PlasmoidItem {
             width: Math.min(Kirigami.Units.gridUnit * 18, popupRoot.width * 0.95)
             standardButtons: QQC2.Dialog.Ok | QQC2.Dialog.Cancel
 
+            Component.onCompleted: root.stopConfirmDialogRef = stopConfirmDialog
+            Component.onDestruction: {
+                if (root.stopConfirmDialogRef === stopConfirmDialog) {
+                    root.stopConfirmDialogRef = null
+                }
+            }
+
             contentItem: PlasmaComponents3.Label {
                 text: i18n("Stop tracking %1 · %2?", root.currentProject, root.currentActivity)
                 wrapMode: Text.WordWrap
@@ -1665,11 +1683,22 @@ PlasmoidItem {
             id: switchRecentDialog
             parent: popupRoot
             anchors.centerIn: parent
-            title: i18n("Switch activity?")
+            title: i18n("Switch activity")
             modal: true
-            width: Math.min(Kirigami.Units.gridUnit * 20, popupRoot.width * 0.95)
+            width: Math.min(Kirigami.Units.gridUnit * 22, popupRoot.width * 0.95)
             standardButtons: QQC2.Dialog.NoButton
+            padding: Kirigami.Units.largeSpacing
 
+            Component.onCompleted: root.switchRecentDialogRef = switchRecentDialog
+            Component.onDestruction: {
+                if (root.switchRecentDialogRef === switchRecentDialog) {
+                    root.switchRecentDialogRef = null
+                }
+            }
+
+            readonly property string pendingCustomer: root.pendingSwitchTimesheet
+                ? KimaiApi.customerNameFromTimesheet(root.pendingSwitchTimesheet, root.customersById)
+                : ""
             readonly property string pendingProject: root.pendingSwitchTimesheet
                 ? KimaiApi.displayProjectName(root.pendingSwitchTimesheet, root.projects)
                 : ""
@@ -1677,17 +1706,128 @@ PlasmoidItem {
                 ? KimaiApi.displayActivityName(
                     root.pendingSwitchTimesheet, root.allActivities, root.activitiesByProject)
                 : ""
+            readonly property var pendingBarInfo: root.pendingSwitchTimesheet
+                ? KimaiApi.barColorInfoFromTimesheet(root.pendingSwitchTimesheet, root.customersById)
+                : ({ color: KimaiApi.DEFAULT_CUSTOMER_COLOR, category: "", id: null })
 
-            contentItem: PlasmaComponents3.Label {
-                wrapMode: Text.WordWrap
-                text: i18n("Stop %1 · %2 and start %3 · %4?",
-                           root.currentProject, root.currentActivity,
-                           switchRecentDialog.pendingProject, switchRecentDialog.pendingActivity)
+            component ActivityCard: Rectangle {
+                id: card
+                property string caption: ""
+                property string customerName: ""
+                property string projectName: ""
+                property string activityName: ""
+                property color accentColor: KimaiApi.DEFAULT_CUSTOMER_COLOR
+                property string colorCategory: ""
+                property var entityId: null
+                property bool emphasize: false
+
+                radius: 6
+                color: emphasize
+                       ? Qt.rgba(Kirigami.Theme.highlightColor.r,
+                                 Kirigami.Theme.highlightColor.g,
+                                 Kirigami.Theme.highlightColor.b, 0.12)
+                       : Qt.rgba(Kirigami.Theme.textColor.r,
+                                 Kirigami.Theme.textColor.g,
+                                 Kirigami.Theme.textColor.b, 0.05)
+                border.width: 1
+                border.color: emphasize
+                              ? Qt.rgba(Kirigami.Theme.highlightColor.r,
+                                        Kirigami.Theme.highlightColor.g,
+                                        Kirigami.Theme.highlightColor.b, 0.35)
+                              : Qt.rgba(Kirigami.Theme.textColor.r,
+                                        Kirigami.Theme.textColor.g,
+                                        Kirigami.Theme.textColor.b, 0.14)
+                implicitHeight: cardColumn.implicitHeight + Kirigami.Units.smallSpacing * 2
+
+                ColumnLayout {
+                    id: cardColumn
+                    anchors.fill: parent
+                    anchors.margins: Kirigami.Units.smallSpacing
+                    spacing: Math.round(Kirigami.Units.smallSpacing * 0.5)
+
+                    PlasmaComponents3.Label {
+                        Layout.fillWidth: true
+                        text: card.caption
+                        font.pointSize: Kirigami.Theme.smallFont.pointSize
+                        opacity: 0.65
+                        elide: Text.ElideRight
+                    }
+
+                    ColorLabelRow {
+                        Layout.fillWidth: true
+                        visible: card.customerName.length > 0
+                        customerRole: true
+                        customerColor: card.accentColor
+                        colorCategory: card.colorCategory
+                        entityId: card.entityId
+                        label: card.customerName
+                    }
+
+                    ColorLabelRow {
+                        Layout.fillWidth: true
+                        visible: card.projectName.length > 0
+                        customerRole: false
+                        customerColor: card.accentColor
+                        colorCategory: card.colorCategory
+                        entityId: card.entityId
+                        label: card.projectName
+                    }
+
+                    PlasmaComponents3.Label {
+                        Layout.fillWidth: true
+                        Layout.leftMargin: Kirigami.Units.iconSizes.small * 0.85
+                                           + Kirigami.Units.largeSpacing
+                                           + Kirigami.Units.smallSpacing
+                        text: card.activityName
+                        font.bold: true
+                        wrapMode: Text.WordWrap
+                        elide: Text.ElideRight
+                        maximumLineCount: 2
+                    }
+                }
+            }
+
+            contentItem: ColumnLayout {
+                spacing: Kirigami.Units.smallSpacing
+
+                ActivityCard {
+                    Layout.fillWidth: true
+                    caption: i18n("Current")
+                    customerName: root.currentCustomer
+                    projectName: root.currentProject
+                    activityName: root.currentActivity
+                    accentColor: root.currentCustomerColor
+                    colorCategory: root.currentColorCategory
+                    entityId: root.currentColorEntityId
+                    emphasize: false
+                }
+
+                Kirigami.Icon {
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                    Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                    source: "go-down"
+                    color: Kirigami.Theme.textColor
+                    opacity: 0.55
+                }
+
+                ActivityCard {
+                    Layout.fillWidth: true
+                    caption: i18n("Switch to")
+                    customerName: switchRecentDialog.pendingCustomer
+                    projectName: switchRecentDialog.pendingProject
+                    activityName: switchRecentDialog.pendingActivity
+                    accentColor: switchRecentDialog.pendingBarInfo.color
+                    colorCategory: switchRecentDialog.pendingBarInfo.category || ""
+                    entityId: switchRecentDialog.pendingBarInfo.id
+                    emphasize: true
+                }
             }
 
             footer: QQC2.DialogButtonBox {
                 PlasmaComponents3.Button {
                     text: i18n("Switch")
+                    icon.name: "media-playback-start"
                     QQC2.DialogButtonBox.buttonRole: QQC2.DialogButtonBox.AcceptRole
                 }
                 PlasmaComponents3.Button {

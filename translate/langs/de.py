@@ -233,6 +233,11 @@ T = {
     'Start must not be in the future.': 'Start darf nicht in der Zukunft liegen.',
     'Save': 'Speichern',
 
+    'Current': 'Aktuell',
+    'Switch to': 'Wechseln zu',
+    'Already tracking this activity': 'Diese Tätigkeit läuft bereits',
+    'Could not resolve project or activity for that entry': 'Projekt oder Tätigkeit für diesen Eintrag konnte nicht aufgelöst werden',
+    'Switch activity?': 'Tätigkeit wechseln?',
 }
 
 PLURALS = {

@@ -233,6 +233,11 @@ T = {
     'Start must not be in the future.': 'Start mag niet in de toekomst liggen.',
     'Save': 'Opslaan',
 
+    'Current': 'Huidig',
+    'Switch to': 'Wisselen naar',
+    'Already tracking this activity': 'Deze activiteit loopt al',
+    'Could not resolve project or activity for that entry': 'Project of activiteit voor deze vermelding kon niet worden opgelost',
+    'Switch activity?': 'Activiteit wisselen?',
 }
 
 PLURALS = {

@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.3.0
+
+### Switch from Recent while tracking
+- Clicking a **Recent** entry while a timer is running opens a confirmation dialog
+- Stop the current activity and start the selected one in one step
+- Dialog shows current → target with customer/project/activity styling (color bars) and translations
+
+### Day Sparkline (from 1.2.2)
+- Sun icon aligned on the arc; moon icon removed; smooth 3-minute rotation
+
 ## 1.2.2
 
 ### Day Sparkline

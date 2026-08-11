@@ -233,6 +233,11 @@ T = {
     'Start must not be in the future.': 'Start must not be in the future.',
     'Save': 'Save',
 
+    'Current': 'Current',
+    'Switch to': 'Switch to',
+    'Already tracking this activity': 'Already tracking this activity',
+    'Could not resolve project or activity for that entry': 'Could not resolve project or activity for that entry',
+    'Switch activity?': 'Switch activity?',
 }
 
 PLURALS = {

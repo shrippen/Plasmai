@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-08-10 12:44+0200\n"
+"POT-Creation-Date: 2026-08-11 16:59+0200\n"
 "PO-Revision-Date: 2026-08-09 19:45+0200\n"
 "Last-Translator: Cursor Agent\n"
 "Language-Team: Japanese\n"
@@ -16,320 +16,320 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: contents/ui/main.qml:183 contents/ui/config/ConfigFavorites.qml:157
+#: contents/ui/main.qml:186 contents/ui/config/ConfigFavorites.qml:157
 msgid "Project-specific"
 msgstr "プロジェクト専用"
 
-#: contents/ui/main.qml:184 contents/ui/config/ConfigFavorites.qml:160
+#: contents/ui/main.qml:187 contents/ui/config/ConfigFavorites.qml:160
 msgid "Global activities"
 msgstr "グローバルアクティビティ"
 
-#: contents/ui/main.qml:233 contents/ui/main.qml:248 contents/ui/main.qml:1771
+#: contents/ui/main.qml:236 contents/ui/main.qml:251 contents/ui/main.qml:1911
 msgid "Plasmai"
 msgstr "Plasmai"
 
-#: contents/ui/main.qml:237
+#: contents/ui/main.qml:240
 msgid "Toggle Plasmai tracking"
 msgstr "Plasmai の記録を切り替え"
 
-#: contents/ui/main.qml:242
+#: contents/ui/main.qml:245
 msgid "Stop Plasmai tracking"
 msgstr "Plasmai の記録を停止"
 
-#: contents/ui/main.qml:252
+#: contents/ui/main.qml:255
 msgid "Loading…"
 msgstr "読み込み中…"
 
-#: contents/ui/main.qml:255
+#: contents/ui/main.qml:258
 msgid "Not configured — right-click to configure"
 msgstr "未設定 — 右クリックで設定"
 
-#: contents/ui/main.qml:316
+#: contents/ui/main.qml:319
 msgid "just now"
 msgstr "たった今"
 
-#: contents/ui/main.qml:320
+#: contents/ui/main.qml:323
 msgid "%1 minute ago"
 msgid_plural "%1 minutes ago"
 msgstr[0] "%1 分前"
 
-#: contents/ui/main.qml:324
+#: contents/ui/main.qml:327
 msgid "%1 hour ago"
 msgid_plural "%1 hours ago"
 msgstr[0] "%1 時間前"
 
-#: contents/ui/main.qml:328
+#: contents/ui/main.qml:331
 msgid "yesterday"
 msgstr "昨日"
 
-#: contents/ui/main.qml:331
+#: contents/ui/main.qml:334
 msgid "%1 day ago"
 msgid_plural "%1 days ago"
 msgstr[0] "%1 日前"
 
-#: contents/ui/main.qml:351
+#: contents/ui/main.qml:354
 msgid "Not configured"
 msgstr "未設定"
 
-#: contents/ui/main.qml:354
+#: contents/ui/main.qml:357
 msgid "Connecting to %1…"
 msgstr "%1 に接続中…"
 
-#: contents/ui/main.qml:357
+#: contents/ui/main.qml:360
 msgid "Connection problem"
 msgstr "接続の問題"
 
-#: contents/ui/main.qml:361
+#: contents/ui/main.qml:364
 msgid "Connected to %1 (%2)"
 msgstr "%1 (%2) に接続済み"
 
-#: contents/ui/main.qml:362
+#: contents/ui/main.qml:365
 msgid "Connected to %1"
 msgstr "%1 に接続済み"
 
-#: contents/ui/main.qml:467
+#: contents/ui/main.qml:470
 msgid "This provider cannot update the running entry."
 msgstr "このプロバイダーは実行中のエントリを更新できません。"
 
-#: contents/ui/main.qml:479
+#: contents/ui/main.qml:482
 msgid "Enter a valid start date/time."
 msgstr "有効な開始日時を入力してください。"
 
-#: contents/ui/main.qml:483
+#: contents/ui/main.qml:486
 msgid "Start must not be in the future."
 msgstr "開始は未来であってはなりません。"
 
-#: contents/ui/main.qml:590
+#: contents/ui/main.qml:593
 msgid "Enter valid begin and end date/time."
 msgstr "有効な開始・終了日時を入力してください。"
 
-#: contents/ui/main.qml:594
+#: contents/ui/main.qml:597
 msgid "End must be after begin."
 msgstr "終了は開始より後である必要があります。"
 
-#: contents/ui/main.qml:613
+#: contents/ui/main.qml:616
 msgid "Entry added"
 msgstr "エントリを追加しました"
 
-#: contents/ui/main.qml:613
+#: contents/ui/main.qml:616
 msgid "Manual time entry"
 msgstr "手動時間エントリ"
 
-#: contents/ui/main.qml:821
+#: contents/ui/main.qml:824
 msgid "This provider cannot update descriptions."
 msgstr ""
 
-#: contents/ui/main.qml:844
+#: contents/ui/main.qml:847
 msgid "%1 left today"
 msgstr "今日あと %1"
 
-#: contents/ui/main.qml:846
+#: contents/ui/main.qml:849
 msgid "%1 over today"
 msgstr "今日 %1 超過"
 
-#: contents/ui/main.qml:851
+#: contents/ui/main.qml:854
 msgid "%1 left this week"
 msgstr "今週あと %1"
 
-#: contents/ui/main.qml:853
+#: contents/ui/main.qml:856
 msgid "%1 over this week"
 msgstr "今週 %1 超過"
 
-#: contents/ui/main.qml:858 contents/ui/main.qml:881 contents/ui/main.qml:2120
+#: contents/ui/main.qml:861 contents/ui/main.qml:884 contents/ui/main.qml:2256
 msgid "Today %1"
 msgstr "今日 %1"
 
-#: contents/ui/main.qml:859 contents/ui/main.qml:2129
+#: contents/ui/main.qml:862 contents/ui/main.qml:2258
 msgid "Week %1"
 msgstr "週 %1"
 
-#: contents/ui/main.qml:1353 contents/ui/main.qml:1498
+#: contents/ui/main.qml:1356 contents/ui/main.qml:1505
 msgid "Tracking started"
 msgstr "記録を開始しました"
 
-#: contents/ui/main.qml:1393
+#: contents/ui/main.qml:1396
 msgid "Switched activity"
 msgstr "アクティビティを切り替えました"
 
-#: contents/ui/main.qml:1460
+#: contents/ui/main.qml:1467
 msgid "Tracking stopped (idle)"
 msgstr "記録を停止しました（アイドル）"
 
-#: contents/ui/main.qml:1464
+#: contents/ui/main.qml:1471
 msgid "Tracking stopped"
 msgstr "記録を停止しました"
 
-#: contents/ui/main.qml:1535
+#: contents/ui/main.qml:1542
 msgid "Already tracking this activity"
-msgstr ""
+msgstr "このアクティビティはすでに計測中です"
 
-#: contents/ui/main.qml:1552
+#: contents/ui/main.qml:1563
 msgid "Could not resolve project or activity for that entry"
-msgstr ""
+msgstr "そのエントリのプロジェクトまたはアクティビティを解決できませんでした"
 
-#: contents/ui/main.qml:1651
+#: contents/ui/main.qml:1662
 msgid "Stop tracking?"
 msgstr "記録を停止しますか？"
 
-#: contents/ui/main.qml:1657
+#: contents/ui/main.qml:1675
 msgid "Stop tracking %1 · %2?"
 msgstr "%1 · %2 の記録を停止しますか？"
 
-#: contents/ui/main.qml:1668
-msgid "Switch activity?"
-msgstr ""
+#: contents/ui/main.qml:1686 contents/ui/main.qml:2678
+msgid "Switch activity"
+msgstr "アクティビティを切り替え"
 
-#: contents/ui/main.qml:1683
-msgid "Stop %1 · %2 and start %3 · %4?"
-msgstr ""
+#: contents/ui/main.qml:1795
+msgid "Current"
+msgstr "現在"
 
-#: contents/ui/main.qml:1690 contents/ui/main.qml:2627
+#: contents/ui/main.qml:1816
+msgid "Switch to"
+msgstr "切り替え先"
+
+#: contents/ui/main.qml:1829 contents/ui/main.qml:2754
 msgid "Switch"
 msgstr "切り替え"
 
-#: contents/ui/main.qml:1694 contents/ui/main.qml:2638
+#: contents/ui/main.qml:1834 contents/ui/main.qml:2765
 #: contents/ui/ManualEntryView.qml:221 contents/ui/ActiveEditView.qml:290
 #: contents/ui/TimeField.qml:254
 msgid "Cancel"
 msgstr "キャンセル"
 
-#: contents/ui/main.qml:1770 contents/ui/main.qml:1790
+#: contents/ui/main.qml:1910 contents/ui/main.qml:1930
 msgid "Statistics"
 msgstr "統計"
 
-#: contents/ui/main.qml:1771 contents/ui/main.qml:1777
+#: contents/ui/main.qml:1911 contents/ui/main.qml:1917
 msgid "Add entry"
 msgstr "エントリを追加"
 
-#: contents/ui/main.qml:1781
+#: contents/ui/main.qml:1921
 msgid "Add a manual time entry"
 msgstr "手動時間エントリを追加"
 
-#: contents/ui/main.qml:1794
+#: contents/ui/main.qml:1934
 msgid "Show statistics"
 msgstr "統計を表示"
 
-#: contents/ui/main.qml:1802
+#: contents/ui/main.qml:1942
 msgid "Back"
 msgstr "戻る"
 
-#: contents/ui/main.qml:1805
+#: contents/ui/main.qml:1945
 msgid "Back to timer"
 msgstr "タイマーに戻る"
 
-#: contents/ui/main.qml:1861
+#: contents/ui/main.qml:2001
 msgid "Connect a time tracker"
 msgstr "時間記録サービスを接続"
 
-#: contents/ui/main.qml:1862
+#: contents/ui/main.qml:2002
 msgid "Add your service, server URL (if needed), and API token to start tracking from the panel."
 msgstr "サービス、サーバー URL（必要な場合）、API トークンを追加してパネルから記録を開始します。"
 
-#: contents/ui/main.qml:1864
+#: contents/ui/main.qml:2004
 msgid "Configure Plasmai"
 msgstr "Plasmai を設定"
 
-#: contents/ui/main.qml:1877
+#: contents/ui/main.qml:2017
 msgid "Retry"
 msgstr "再試行"
 
-#: contents/ui/main.qml:1882
+#: contents/ui/main.qml:2022
 msgid "Configure"
 msgstr "設定"
 
-#: contents/ui/main.qml:2016
+#: contents/ui/main.qml:2156
 msgid "Not tracking"
 msgstr "記録していません"
 
-#: contents/ui/main.qml:2176 contents/ui/main.qml:2210
+#: contents/ui/main.qml:2301 contents/ui/main.qml:2337
 msgid "Edit"
 msgstr "編集"
 
-#: contents/ui/main.qml:2187 contents/ui/main.qml:2221
+#: contents/ui/main.qml:2312 contents/ui/main.qml:2348
 msgid "Edit start, project, and activity"
 msgstr "開始・プロジェクト・アクティビティを編集"
 
-#: contents/ui/main.qml:2197 contents/ui/main.qml:2229
+#: contents/ui/main.qml:2323 contents/ui/main.qml:2356
 msgid "Stop"
 msgstr "停止"
 
-#: contents/ui/main.qml:2271
+#: contents/ui/main.qml:2398
 msgid "Description"
 msgstr "説明"
 
-#: contents/ui/main.qml:2337
+#: contents/ui/main.qml:2464
 msgid "Save description"
 msgstr "説明を保存"
 
-#: contents/ui/main.qml:2355
+#: contents/ui/main.qml:2482
 msgid "Continue · %1 · %2"
 msgstr "続行 · %1 · %2"
 
-#: contents/ui/main.qml:2372 contents/ui/config/ConfigFavorites.qml:198
-#: contents/ui/config/ConfigDisplay.qml:590
-#: contents/ui/config/ConfigDisplay.qml:638 contents/config/config.qml:11
+#: contents/ui/main.qml:2499 contents/ui/config/ConfigFavorites.qml:198
+#: contents/ui/config/ConfigDisplay.qml:668
+#: contents/ui/config/ConfigDisplay.qml:728 contents/config/config.qml:11
 msgid "Favorites"
 msgstr "お気に入り"
 
-#: contents/ui/main.qml:2439
+#: contents/ui/main.qml:2566
 msgid "No favorites yet"
 msgstr "お気に入りはまだありません"
 
-#: contents/ui/main.qml:2445
+#: contents/ui/main.qml:2572
 msgid "Pin frequent project/activity pairs in the widget settings."
 msgstr "よく使うプロジェクト/アクティビティの組み合わせをウィジェット設定でピン留めしてください。"
 
-#: contents/ui/main.qml:2450
+#: contents/ui/main.qml:2577
 msgid "Configure favorites"
 msgstr "お気に入りを設定"
 
-#: contents/ui/main.qml:2466
+#: contents/ui/main.qml:2593
 msgid "+%1 more in settings"
 msgstr "設定にあと %1 件"
 
-#: contents/ui/main.qml:2477
+#: contents/ui/main.qml:2604
 msgid "Recent"
 msgstr "最近"
 
-#: contents/ui/main.qml:2529
+#: contents/ui/main.qml:2656
 msgid "No recent activities"
 msgstr "最近のアクティビティはありません"
 
-#: contents/ui/main.qml:2530
+#: contents/ui/main.qml:2657
 msgid "Start tracking to build your recent list."
 msgstr "記録を開始して最近のリストを作成してください。"
 
-#: contents/ui/main.qml:2540
+#: contents/ui/main.qml:2667
 msgid "Switch to another activity…"
 msgstr "別のアクティビティに切り替え…"
 
-#: contents/ui/main.qml:2540
+#: contents/ui/main.qml:2667
 msgid "Start something else…"
 msgstr "別の作業を開始…"
 
-#: contents/ui/main.qml:2551
-msgid "Switch activity"
-msgstr "アクティビティを切り替え"
-
-#: contents/ui/main.qml:2551
+#: contents/ui/main.qml:2678
 msgid "New activity"
 msgstr "新しいアクティビティ"
 
-#: contents/ui/main.qml:2567 contents/ui/ManualEntryView.qml:97
+#: contents/ui/main.qml:2694 contents/ui/ManualEntryView.qml:97
 #: contents/ui/ActiveEditView.qml:208
 msgid "Select project…"
 msgstr "プロジェクトを選択…"
 
-#: contents/ui/main.qml:2589 contents/ui/ManualEntryView.qml:116
+#: contents/ui/main.qml:2716 contents/ui/ManualEntryView.qml:116
 #: contents/ui/ActiveEditView.qml:228
 msgid "Select activity…"
 msgstr "アクティビティを選択…"
 
-#: contents/ui/main.qml:2601 contents/ui/ManualEntryView.qml:194
+#: contents/ui/main.qml:2728 contents/ui/ManualEntryView.qml:194
 msgid "Description (optional)"
 msgstr "説明（任意）"
 
-#: contents/ui/main.qml:2613 contents/ui/ActiveEditView.qml:238
+#: contents/ui/main.qml:2740 contents/ui/ActiveEditView.qml:238
 msgid "Start"
 msgstr "開始"
 
@@ -527,7 +527,7 @@ msgstr "時 : 分"
 msgid "Select"
 msgstr "選択"
 
-#: contents/ui/DaySparkline.qml:409
+#: contents/ui/DaySparkline.qml:499
 msgid "Today's tracked time"
 msgstr ""
 
@@ -726,182 +726,183 @@ msgstr "アクティビティ — %1"
 msgid "Activities"
 msgstr "アクティビティ"
 
-#: contents/ui/config/ConfigDisplay.qml:100
+#: contents/ui/config/ConfigDisplay.qml:112
 msgid "Enter a city or place name to search."
 msgstr "検索する都市または地名を入力してください。"
 
-#: contents/ui/config/ConfigDisplay.qml:105
-#: contents/ui/config/ConfigDisplay.qml:445
+#: contents/ui/config/ConfigDisplay.qml:117
+#: contents/ui/config/ConfigDisplay.qml:480
 msgid "Searching…"
 msgstr "検索中…"
 
-#: contents/ui/config/ConfigDisplay.qml:111
+#: contents/ui/config/ConfigDisplay.qml:123
 msgid "Location search failed. Check your network connection."
 msgstr "場所の検索に失敗しました。ネットワーク接続を確認してください。"
 
-#: contents/ui/config/ConfigDisplay.qml:116
+#: contents/ui/config/ConfigDisplay.qml:128
 msgid "No places found."
 msgstr "場所が見つかりませんでした。"
 
-#: contents/ui/config/ConfigDisplay.qml:118
+#: contents/ui/config/ConfigDisplay.qml:130
 msgid "%1 place found."
 msgid_plural "%1 places found."
 msgstr[0] "%1 件の場所が見つかりました。"
 
-#: contents/ui/config/ConfigDisplay.qml:276 contents/config/config.qml:16
+#: contents/ui/config/ConfigDisplay.qml:289 contents/config/config.qml:16
 msgid "Display"
 msgstr "表示"
 
-#: contents/ui/config/ConfigDisplay.qml:289
+#: contents/ui/config/ConfigDisplay.qml:304
 msgid "Refresh interval (seconds):"
 msgstr "更新間隔（秒）:"
 
-#: contents/ui/config/ConfigDisplay.qml:298
+#: contents/ui/config/ConfigDisplay.qml:313
 msgid "Recent activities shown:"
 msgstr "表示する最近のアクティビティ:"
 
-#: contents/ui/config/ConfigDisplay.qml:307
+#: contents/ui/config/ConfigDisplay.qml:322
 msgid "Appearance:"
 msgstr "外観:"
 
-#: contents/ui/config/ConfigDisplay.qml:308
+#: contents/ui/config/ConfigDisplay.qml:325
 msgid "Use desktop blur (translucent background)"
 msgstr "デスクトップのぼかし（半透明背景）を使用"
 
-#: contents/ui/config/ConfigDisplay.qml:314
+#: contents/ui/config/ConfigDisplay.qml:331
 msgid "Usual work day start:"
 msgstr "通常の勤務開始:"
 
-#: contents/ui/config/ConfigDisplay.qml:321
+#: contents/ui/config/ConfigDisplay.qml:341
 msgid "Usual work day end:"
 msgstr "通常の勤務終了:"
 
-#: contents/ui/config/ConfigDisplay.qml:328
+#: contents/ui/config/ConfigDisplay.qml:351
 msgid "Colors:"
 msgstr "色:"
 
-#: contents/ui/config/ConfigDisplay.qml:330
+#: contents/ui/config/ConfigDisplay.qml:355
 msgid "Make similar colors distinctive within each category"
 msgstr "各カテゴリ内で似た色を区別しやすくする"
 
-#: contents/ui/config/ConfigDisplay.qml:336
+#: contents/ui/config/ConfigDisplay.qml:361
 msgid "Similarity threshold (%):"
 msgstr "類似度のしきい値 (%):"
 
-#: contents/ui/config/ConfigDisplay.qml:354
+#: contents/ui/config/ConfigDisplay.qml:380
 msgid "Higher similarity values treat more colors as too close. Clashing items get vivid, well-spaced replacement colors (not washed hue-shifts). If too many items cannot fit, the threshold is lowered automatically down to 12%. See Maintenance for clash groups."
 msgstr "類似度を高くすると、より多くの色が近すぎるとみなされます。衝突する項目には鮮やかで間隔の開いた代替色が割り当てられます（薄い色相シフトではありません）。収まらない項目が多すぎる場合、しきい値は自動的に12%まで下げられます。衝突グループはメンテナンスを参照してください。"
 
-#: contents/ui/config/ConfigDisplay.qml:365
+#: contents/ui/config/ConfigDisplay.qml:392
 msgid "Color distinction is available for Kimai profiles (per-customer / project / activity colors)."
 msgstr ""
 
-#: contents/ui/config/ConfigDisplay.qml:373
+#: contents/ui/config/ConfigDisplay.qml:401
 msgid "Day sparkline"
 msgstr "日次スパークライン"
 
-#: contents/ui/config/ConfigDisplay.qml:381
+#: contents/ui/config/ConfigDisplay.qml:411
 msgid "Show sun, moon, and work arcs"
 msgstr ""
 
-#: contents/ui/config/ConfigDisplay.qml:393
+#: contents/ui/config/ConfigDisplay.qml:424
 msgid "Uncheck “Day sparkline” under Panel flyout or Desktop widget to hide the sparkline entirely."
 msgstr ""
 
-#: contents/ui/config/ConfigDisplay.qml:420
+#: contents/ui/config/ConfigDisplay.qml:452
 msgid "Find location"
 msgstr "場所を検索"
 
-#: contents/ui/config/ConfigDisplay.qml:429
+#: contents/ui/config/ConfigDisplay.qml:462
 msgid "Search for a city or place to set sunrise/sunset coloring. Powered by OpenStreetMap Nominatim."
 msgstr "日の出/日の入りの色付けのために都市または場所を検索します。OpenStreetMap Nominatim を使用。"
 
-#: contents/ui/config/ConfigDisplay.qml:439
+#: contents/ui/config/ConfigDisplay.qml:473
 msgid "City, region, or address…"
 msgstr "都市、地域、または住所…"
 
-#: contents/ui/config/ConfigDisplay.qml:445
+#: contents/ui/config/ConfigDisplay.qml:480
+#: contents/ui/config/ConfigDisplay.qml:488
 msgid "Search"
 msgstr "検索"
 
-#: contents/ui/config/ConfigDisplay.qml:481
+#: contents/ui/config/ConfigDisplay.qml:539
 msgid "Using %1"
 msgstr "%1 を使用中"
 
-#: contents/ui/config/ConfigDisplay.qml:493
+#: contents/ui/config/ConfigDisplay.qml:551
 msgid "Current place: %1"
 msgstr "現在の場所: %1"
 
-#: contents/ui/config/ConfigDisplay.qml:507
+#: contents/ui/config/ConfigDisplay.qml:566
 msgid "Custom coordinates"
 msgstr "カスタム座標"
 
-#: contents/ui/config/ConfigDisplay.qml:513
+#: contents/ui/config/ConfigDisplay.qml:572
 msgid "Latitude:"
 msgstr "緯度:"
 
-#: contents/ui/config/ConfigDisplay.qml:525
+#: contents/ui/config/ConfigDisplay.qml:587
 msgid "Longitude:"
 msgstr "経度:"
 
-#: contents/ui/config/ConfigDisplay.qml:541
+#: contents/ui/config/ConfigDisplay.qml:607
 msgid "Used to color the sparkline for sunrise and sunset at your location."
 msgstr "お住まいの地域の日の出と日の入りに応じてスパークラインを色付けするために使用します。"
 
-#: contents/ui/config/ConfigDisplay.qml:545
+#: contents/ui/config/ConfigDisplay.qml:611
 msgid "Panel (taskbar)"
 msgstr "パネル（タスクバー）"
 
-#: contents/ui/config/ConfigDisplay.qml:551
-#: contents/ui/config/ConfigDisplay.qml:575
-#: contents/ui/config/ConfigDisplay.qml:623
+#: contents/ui/config/ConfigDisplay.qml:617
+#: contents/ui/config/ConfigDisplay.qml:647
+#: contents/ui/config/ConfigDisplay.qml:707
 msgid "Show:"
 msgstr "表示:"
 
-#: contents/ui/config/ConfigDisplay.qml:552
+#: contents/ui/config/ConfigDisplay.qml:620
 msgid "Elapsed time"
 msgstr "経過時間"
 
-#: contents/ui/config/ConfigDisplay.qml:558
+#: contents/ui/config/ConfigDisplay.qml:628
 msgid "Project name"
 msgstr "プロジェクト名"
 
-#: contents/ui/config/ConfigDisplay.qml:564
+#: contents/ui/config/ConfigDisplay.qml:636
 msgid "Activity name"
 msgstr "アクティビティ名"
 
-#: contents/ui/config/ConfigDisplay.qml:569
+#: contents/ui/config/ConfigDisplay.qml:641
 msgid "Panel flyout"
 msgstr "パネルのフライアウト"
 
-#: contents/ui/config/ConfigDisplay.qml:576
-#: contents/ui/config/ConfigDisplay.qml:624
+#: contents/ui/config/ConfigDisplay.qml:650
+#: contents/ui/config/ConfigDisplay.qml:710
 msgid "Work summary (today / week / remaining)"
 msgstr "作業概要（今日 / 週 / 残り）"
 
-#: contents/ui/config/ConfigDisplay.qml:583
-#: contents/ui/config/ConfigDisplay.qml:631
+#: contents/ui/config/ConfigDisplay.qml:659
+#: contents/ui/config/ConfigDisplay.qml:719
 msgid "Day sparkline (bar and arcs)"
 msgstr ""
 
-#: contents/ui/config/ConfigDisplay.qml:597
-#: contents/ui/config/ConfigDisplay.qml:645
+#: contents/ui/config/ConfigDisplay.qml:677
+#: contents/ui/config/ConfigDisplay.qml:737
 msgid "Recent list"
 msgstr "最近のリスト"
 
-#: contents/ui/config/ConfigDisplay.qml:604
+#: contents/ui/config/ConfigDisplay.qml:686
 msgid "Continue last activity"
 msgstr "前回のアクティビティを続行"
 
-#: contents/ui/config/ConfigDisplay.qml:611
+#: contents/ui/config/ConfigDisplay.qml:695
 msgid "Start / switch activity controls"
 msgstr "開始 / アクティビティ切り替えコントロール"
 
-#: contents/ui/config/ConfigDisplay.qml:617
+#: contents/ui/config/ConfigDisplay.qml:701
 msgid "Desktop widget"
 msgstr "デスクトップウィジェット"
 
-#: contents/ui/config/ConfigDisplay.qml:652
+#: contents/ui/config/ConfigDisplay.qml:746
 msgid "New activity picker"
 msgstr "新しいアクティビティ選択"
 
