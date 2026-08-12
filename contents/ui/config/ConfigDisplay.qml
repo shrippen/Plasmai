@@ -61,6 +61,7 @@ Item {
     property alias cfg_desktopShowNewActivity: desktopNewActivityCheck.checked
     property alias cfg_colorDistinctionEnabled: colorDistinctionCheck.checked
     property alias cfg_colorSimilarityPercent: colorSimilaritySpin.value
+    property int cfg_touchMode
 
     property bool syncing: false
     property bool ready: false
@@ -159,7 +160,8 @@ Item {
             desktopShowNewActivity: desktopNewActivityCheck.checked,
             showFavorites: popupFavoritesCheck.checked || desktopFavoritesCheck.checked,
             colorDistinctionEnabled: colorDistinctionCheck.checked,
-            colorSimilarityPercent: colorSimilaritySpin.value
+            colorSimilarityPercent: colorSimilaritySpin.value,
+            touchMode: page.cfg_touchMode
         }
     }
 
@@ -198,6 +200,10 @@ Item {
         }
         if (typeof shared.colorSimilarityPercent === "number") {
             colorSimilaritySpin.value = shared.colorSimilarityPercent
+        }
+        if (typeof shared.touchMode === "number") {
+            page.cfg_touchMode = Math.max(0, Math.min(2, shared.touchMode))
+            touchModeCombo.currentIndex = page.cfg_touchMode
         }
         if (typeof shared.latitude === "number") {
             page.cfg_latitude = shared.latitude
@@ -324,6 +330,32 @@ Item {
                     Layout.maximumWidth: page.buddyMaxWidth(generalForm)
                     text: i18n("Use desktop blur (translucent background)")
                     onCheckedChanged: page.persistShared()
+                }
+
+                QQC2.ComboBox {
+                    id: touchModeCombo
+                    Kirigami.FormData.label: i18n("Touch optimization:")
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(generalForm)
+                    model: [
+                        i18n("Automatic (follow Plasma tablet mode)"),
+                        i18n("On"),
+                        i18n("Off")
+                    ]
+                    currentIndex: Math.max(0, Math.min(2, page.cfg_touchMode))
+                    onActivated: function(index) {
+                        page.cfg_touchMode = index
+                        page.persistShared()
+                    }
+                }
+
+                PlasmaComponents3.Label {
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(generalForm)
+                    wrapMode: Text.WordWrap
+                    opacity: 0.7
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    text: i18n("Larger tap targets for buttons, lists, pickers, and date/time controls.")
                 }
 
                 QQC2.TextField {

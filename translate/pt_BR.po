@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-08-12 11:38+0200\n"
+"POT-Creation-Date: 2026-08-12 12:58+0200\n"
 "PO-Revision-Date: 2026-08-09 19:45+0200\n"
 "Last-Translator: Cursor Agent\n"
 "Language-Team: Brazilian Portuguese\n"
@@ -16,15 +16,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: contents/ui/main.qml:189 contents/ui/config/ConfigFavorites.qml:157
+#: contents/ui/main.qml:195 contents/ui/config/ConfigFavorites.qml:157
 msgid "Project-specific"
 msgstr "Específico do projeto"
 
-#: contents/ui/main.qml:190 contents/ui/config/ConfigFavorites.qml:160
+#: contents/ui/main.qml:196 contents/ui/config/ConfigFavorites.qml:160
 msgid "Global activities"
 msgstr "Atividades globais"
 
-#: contents/ui/main.qml:259 contents/ui/main.qml:274 contents/ui/main.qml:1950
+#: contents/ui/main.qml:259 contents/ui/main.qml:274 contents/ui/main.qml:1941
 msgid "Plasmai"
 msgstr "Plasmai"
 
@@ -138,11 +138,11 @@ msgstr "%1 restantes nesta semana"
 msgid "%1 over this week"
 msgstr "%1 a mais nesta semana"
 
-#: contents/ui/main.qml:891 contents/ui/main.qml:914 contents/ui/main.qml:2298
+#: contents/ui/main.qml:891 contents/ui/main.qml:914 contents/ui/main.qml:2295
 msgid "Today %1"
 msgstr "Hoje %1"
 
-#: contents/ui/main.qml:892 contents/ui/main.qml:2300
+#: contents/ui/main.qml:892 contents/ui/main.qml:2297
 msgid "Week %1"
 msgstr "Semana %1"
 
@@ -174,7 +174,7 @@ msgstr "Parar registro?"
 msgid "Stop tracking %1 · %2?"
 msgstr "Parar registro de %1 · %2?"
 
-#: contents/ui/main.qml:1726 contents/ui/main.qml:2729
+#: contents/ui/main.qml:1726 contents/ui/main.qml:2736
 msgid "Switch activity"
 msgstr "Mudar atividade"
 
@@ -186,143 +186,143 @@ msgstr "Atual"
 msgid "Switch to"
 msgstr "Mudar para"
 
-#: contents/ui/main.qml:1869 contents/ui/main.qml:2798
+#: contents/ui/main.qml:1869 contents/ui/main.qml:2805
 msgid "Switch"
 msgstr "Mudar"
 
-#: contents/ui/main.qml:1874 contents/ui/main.qml:2809
+#: contents/ui/main.qml:1874 contents/ui/main.qml:2816
 #: contents/ui/ManualEntryView.qml:220 contents/ui/ActiveEditView.qml:289
-#: contents/ui/TimeField.qml:254
+#: contents/ui/TimeField.qml:256
 msgid "Cancel"
 msgstr "Cancelar"
 
-#: contents/ui/main.qml:1948 contents/ui/main.qml:1969
+#: contents/ui/main.qml:1939 contents/ui/main.qml:1962
 msgid "Statistics"
 msgstr "Estatísticas"
 
-#: contents/ui/main.qml:1949 contents/ui/main.qml:1956
+#: contents/ui/main.qml:1940 contents/ui/main.qml:1947
 msgid "Add entry"
 msgstr "Adicionar registro"
 
-#: contents/ui/main.qml:1960
+#: contents/ui/main.qml:1953
 msgid "Add a manual time entry"
 msgstr "Adicionar registro manual de tempo"
 
-#: contents/ui/main.qml:1973
+#: contents/ui/main.qml:1968
 msgid "Show statistics"
 msgstr "Mostrar estatísticas"
 
-#: contents/ui/main.qml:1981
+#: contents/ui/main.qml:1976
 msgid "Back"
 msgstr "Voltar"
 
-#: contents/ui/main.qml:1984
+#: contents/ui/main.qml:1981
 msgid "Back to timer"
 msgstr "Voltar ao cronômetro"
 
-#: contents/ui/main.qml:2040
+#: contents/ui/main.qml:2037
 msgid "Connect a time tracker"
 msgstr "Conectar um serviço de registro de tempo"
 
-#: contents/ui/main.qml:2041
+#: contents/ui/main.qml:2038
 msgid "Add your service, server URL (if needed), and API token to start tracking from the panel."
 msgstr "Adicione seu serviço, URL do servidor (se necessário) e token de API para iniciar o registro pelo painel."
 
-#: contents/ui/main.qml:2043
+#: contents/ui/main.qml:2040
 msgid "Configure Plasmai"
 msgstr "Configurar Plasmai"
 
-#: contents/ui/main.qml:2056
+#: contents/ui/main.qml:2053
 msgid "Retry"
 msgstr "Tentar novamente"
 
-#: contents/ui/main.qml:2061
+#: contents/ui/main.qml:2058
 msgid "Configure"
 msgstr "Configurar"
 
-#: contents/ui/main.qml:2198
+#: contents/ui/main.qml:2195
 msgid "Not tracking"
 msgstr "Sem registro ativo"
 
-#: contents/ui/main.qml:2343 contents/ui/main.qml:2379
+#: contents/ui/main.qml:2341 contents/ui/main.qml:2379
 msgid "Edit"
 msgstr "Editar"
 
-#: contents/ui/main.qml:2354 contents/ui/main.qml:2390
+#: contents/ui/main.qml:2353 contents/ui/main.qml:2392
 msgid "Edit start, project, and activity"
 msgstr "Editar início, projeto e atividade"
 
-#: contents/ui/main.qml:2365 contents/ui/main.qml:2398
+#: contents/ui/main.qml:2365 contents/ui/main.qml:2401
 msgid "Stop"
 msgstr "Parar"
 
-#: contents/ui/main.qml:2443
+#: contents/ui/main.qml:2446
 msgid "Description"
 msgstr "Descrição"
 
-#: contents/ui/main.qml:2509
+#: contents/ui/main.qml:2512
 msgid "Save description"
 msgstr "Salvar descrição"
 
-#: contents/ui/main.qml:2527
+#: contents/ui/main.qml:2531
 msgid "Continue · %1 · %2"
 msgstr "Continuar · %1 · %2"
 
-#: contents/ui/main.qml:2544 contents/ui/config/ConfigFavorites.qml:198
-#: contents/ui/config/ConfigDisplay.qml:668
-#: contents/ui/config/ConfigDisplay.qml:728 contents/config/config.qml:11
+#: contents/ui/main.qml:2548 contents/ui/config/ConfigFavorites.qml:198
+#: contents/ui/config/ConfigDisplay.qml:700
+#: contents/ui/config/ConfigDisplay.qml:760 contents/config/config.qml:11
 msgid "Favorites"
 msgstr "Favoritos"
 
-#: contents/ui/main.qml:2611
+#: contents/ui/main.qml:2615
 msgid "No favorites yet"
 msgstr "Nenhum favorito ainda"
 
-#: contents/ui/main.qml:2617
+#: contents/ui/main.qml:2621
 msgid "Pin frequent project/activity pairs in the widget settings."
 msgstr "Fixe pares frequentes de projeto/atividade nas configurações do widget."
 
-#: contents/ui/main.qml:2622
+#: contents/ui/main.qml:2626
 msgid "Configure favorites"
 msgstr "Configurar favoritos"
 
-#: contents/ui/main.qml:2638
+#: contents/ui/main.qml:2642
 msgid "+%1 more in settings"
 msgstr "+%1 a mais nas configurações"
 
-#: contents/ui/main.qml:2649
+#: contents/ui/main.qml:2653
 msgid "Recent"
 msgstr "Recentes"
 
-#: contents/ui/main.qml:2687
+#: contents/ui/main.qml:2691
 msgid "Läuft bereits."
 msgstr ""
 
-#: contents/ui/main.qml:2707
+#: contents/ui/main.qml:2714
 msgid "No recent activities"
 msgstr "Nenhuma atividade recente"
 
-#: contents/ui/main.qml:2708
+#: contents/ui/main.qml:2715
 msgid "Start tracking to build your recent list."
 msgstr "Inicie o registro para montar sua lista de recentes."
 
-#: contents/ui/main.qml:2718
+#: contents/ui/main.qml:2725
 msgid "Switch to another activity…"
 msgstr "Mudar para outra atividade…"
 
-#: contents/ui/main.qml:2718
+#: contents/ui/main.qml:2725
 msgid "Start something else…"
 msgstr "Iniciar outra coisa…"
 
-#: contents/ui/main.qml:2729
+#: contents/ui/main.qml:2736
 msgid "New activity"
 msgstr "Nova atividade"
 
-#: contents/ui/main.qml:2770 contents/ui/ManualEntryView.qml:193
+#: contents/ui/main.qml:2777 contents/ui/ManualEntryView.qml:193
 msgid "Description (optional)"
 msgstr "Descrição (opcional)"
 
-#: contents/ui/main.qml:2783 contents/ui/ActiveEditView.qml:237
+#: contents/ui/main.qml:2790 contents/ui/ActiveEditView.qml:237
 msgid "Start"
 msgstr "Iniciar"
 
@@ -510,23 +510,23 @@ msgstr "Nenhuma atividade hoje"
 msgid "No activities this week"
 msgstr "Nenhuma atividade nesta semana"
 
-#: contents/ui/BarChart.qml:49 contents/ui/StackedBarChart.qml:48
+#: contents/ui/BarChart.qml:49 contents/ui/StackedBarChart.qml:49
 msgid "Time"
 msgstr "Tempo"
 
-#: contents/ui/DateField.qml:200
+#: contents/ui/DateField.qml:202
 msgid "Pick date"
 msgstr "Escolher data"
 
-#: contents/ui/TimeField.qml:175
+#: contents/ui/TimeField.qml:177
 msgid "Pick time"
 msgstr "Escolher hora"
 
-#: contents/ui/TimeField.qml:205
+#: contents/ui/TimeField.qml:207
 msgid "Hours : Minutes"
 msgstr "Horas : Minutos"
 
-#: contents/ui/TimeField.qml:259
+#: contents/ui/TimeField.qml:261
 msgid "Select"
 msgstr "Selecionar"
 
@@ -729,184 +729,204 @@ msgstr "Atividades — %1"
 msgid "Activities"
 msgstr "Atividades"
 
-#: contents/ui/config/ConfigDisplay.qml:112
+#: contents/ui/config/ConfigDisplay.qml:113
 msgid "Enter a city or place name to search."
 msgstr "Digite o nome de uma cidade ou local para buscar."
 
-#: contents/ui/config/ConfigDisplay.qml:117
-#: contents/ui/config/ConfigDisplay.qml:480
+#: contents/ui/config/ConfigDisplay.qml:118
+#: contents/ui/config/ConfigDisplay.qml:512
 msgid "Searching…"
 msgstr "Buscando…"
 
-#: contents/ui/config/ConfigDisplay.qml:123
+#: contents/ui/config/ConfigDisplay.qml:124
 msgid "Location search failed. Check your network connection."
 msgstr "Falha na busca de localização. Verifique sua conexão de rede."
 
-#: contents/ui/config/ConfigDisplay.qml:128
+#: contents/ui/config/ConfigDisplay.qml:129
 msgid "No places found."
 msgstr "Nenhum local encontrado."
 
-#: contents/ui/config/ConfigDisplay.qml:130
+#: contents/ui/config/ConfigDisplay.qml:131
 msgid "%1 place found."
 msgid_plural "%1 places found."
 msgstr[0] "%1 local encontrado."
 msgstr[1] "%1 locais encontrados."
 
-#: contents/ui/config/ConfigDisplay.qml:289 contents/config/config.qml:16
+#: contents/ui/config/ConfigDisplay.qml:295 contents/config/config.qml:16
 msgid "Display"
 msgstr "Exibição"
 
-#: contents/ui/config/ConfigDisplay.qml:304
+#: contents/ui/config/ConfigDisplay.qml:310
 msgid "Refresh interval (seconds):"
 msgstr "Intervalo de atualização (segundos):"
 
-#: contents/ui/config/ConfigDisplay.qml:313
+#: contents/ui/config/ConfigDisplay.qml:319
 msgid "Recent activities shown:"
 msgstr "Atividades recentes exibidas:"
 
-#: contents/ui/config/ConfigDisplay.qml:322
+#: contents/ui/config/ConfigDisplay.qml:328
 msgid "Appearance:"
 msgstr "Aparência:"
 
-#: contents/ui/config/ConfigDisplay.qml:325
+#: contents/ui/config/ConfigDisplay.qml:331
 msgid "Use desktop blur (translucent background)"
 msgstr "Usar desfoque da área de trabalho (fundo translúcido)"
 
-#: contents/ui/config/ConfigDisplay.qml:331
+#: contents/ui/config/ConfigDisplay.qml:337
+msgid "Touch optimization:"
+msgstr "Otimização para toque:"
+
+#: contents/ui/config/ConfigDisplay.qml:341
+msgid "Automatic (follow Plasma tablet mode)"
+msgstr "Automático (seguir o modo tablet do Plasma)"
+
+#: contents/ui/config/ConfigDisplay.qml:342
+msgid "On"
+msgstr "Ativado"
+
+#: contents/ui/config/ConfigDisplay.qml:343
+msgid "Off"
+msgstr "Desativado"
+
+#: contents/ui/config/ConfigDisplay.qml:358
+msgid "Larger tap targets for buttons, lists, pickers, and date/time controls."
+msgstr "Alvos de toque maiores para botões, listas, seletores e data/hora."
+
+#: contents/ui/config/ConfigDisplay.qml:363
 msgid "Usual work day start:"
 msgstr "Início do dia de trabalho habitual:"
 
-#: contents/ui/config/ConfigDisplay.qml:341
+#: contents/ui/config/ConfigDisplay.qml:373
 msgid "Usual work day end:"
 msgstr "Fim do dia de trabalho habitual:"
 
-#: contents/ui/config/ConfigDisplay.qml:351
+#: contents/ui/config/ConfigDisplay.qml:383
 msgid "Colors:"
 msgstr "Cores:"
 
-#: contents/ui/config/ConfigDisplay.qml:355
+#: contents/ui/config/ConfigDisplay.qml:387
 msgid "Make similar colors distinctive within each category"
 msgstr "Tornar cores semelhantes distintivas em cada categoria"
 
-#: contents/ui/config/ConfigDisplay.qml:361
+#: contents/ui/config/ConfigDisplay.qml:393
 msgid "Similarity threshold (%):"
 msgstr "Limite de similaridade (%):"
 
-#: contents/ui/config/ConfigDisplay.qml:380
+#: contents/ui/config/ConfigDisplay.qml:412
 msgid "Higher similarity values treat more colors as too close. Clashing items get vivid, well-spaced replacement colors (not washed hue-shifts). If too many items cannot fit, the threshold is lowered automatically down to 12%. See Maintenance for clash groups."
 msgstr "Valores de similaridade mais altos tratam mais cores como próximas demais. Itens em conflito recebem cores substitutas vivas e bem espaçadas (não leves mudanças de matiz). Se muitos itens não cabem, o limite cai automaticamente até 12%. Veja Manutenção para grupos de conflito."
 
-#: contents/ui/config/ConfigDisplay.qml:392
+#: contents/ui/config/ConfigDisplay.qml:424
 msgid "Color distinction is available for Kimai profiles (per-customer / project / activity colors)."
 msgstr ""
 
-#: contents/ui/config/ConfigDisplay.qml:401
+#: contents/ui/config/ConfigDisplay.qml:433
 msgid "Day sparkline"
 msgstr "Minigráfico do dia"
 
-#: contents/ui/config/ConfigDisplay.qml:411
+#: contents/ui/config/ConfigDisplay.qml:443
 msgid "Show sun, moon, and work arcs"
 msgstr ""
 
-#: contents/ui/config/ConfigDisplay.qml:424
+#: contents/ui/config/ConfigDisplay.qml:456
 msgid "Uncheck “Day sparkline” under Panel flyout or Desktop widget to hide the sparkline entirely."
 msgstr ""
 
-#: contents/ui/config/ConfigDisplay.qml:452
+#: contents/ui/config/ConfigDisplay.qml:484
 msgid "Find location"
 msgstr "Encontrar localização"
 
-#: contents/ui/config/ConfigDisplay.qml:462
+#: contents/ui/config/ConfigDisplay.qml:494
 msgid "Search for a city or place to set sunrise/sunset coloring. Powered by OpenStreetMap Nominatim."
 msgstr "Busque uma cidade ou local para definir a coloração do nascer/pôr do sol. Fornecido por OpenStreetMap Nominatim."
 
-#: contents/ui/config/ConfigDisplay.qml:473
+#: contents/ui/config/ConfigDisplay.qml:505
 msgid "City, region, or address…"
 msgstr "Cidade, região ou endereço…"
 
-#: contents/ui/config/ConfigDisplay.qml:480
-#: contents/ui/config/ConfigDisplay.qml:488
+#: contents/ui/config/ConfigDisplay.qml:512
+#: contents/ui/config/ConfigDisplay.qml:520
 msgid "Search"
 msgstr "Buscar"
 
-#: contents/ui/config/ConfigDisplay.qml:539
+#: contents/ui/config/ConfigDisplay.qml:571
 msgid "Using %1"
 msgstr "Usando %1"
 
-#: contents/ui/config/ConfigDisplay.qml:551
+#: contents/ui/config/ConfigDisplay.qml:583
 msgid "Current place: %1"
 msgstr "Local atual: %1"
 
-#: contents/ui/config/ConfigDisplay.qml:566
+#: contents/ui/config/ConfigDisplay.qml:598
 msgid "Custom coordinates"
 msgstr "Coordenadas personalizadas"
 
-#: contents/ui/config/ConfigDisplay.qml:572
+#: contents/ui/config/ConfigDisplay.qml:604
 msgid "Latitude:"
 msgstr "Latitude:"
 
-#: contents/ui/config/ConfigDisplay.qml:587
+#: contents/ui/config/ConfigDisplay.qml:619
 msgid "Longitude:"
 msgstr "Longitude:"
 
-#: contents/ui/config/ConfigDisplay.qml:607
+#: contents/ui/config/ConfigDisplay.qml:639
 msgid "Used to color the sparkline for sunrise and sunset at your location."
 msgstr "Usado para colorir o minigráfico conforme o nascer e o pôr do sol na sua localização."
 
-#: contents/ui/config/ConfigDisplay.qml:611
+#: contents/ui/config/ConfigDisplay.qml:643
 msgid "Panel (taskbar)"
 msgstr "Painel (barra de tarefas)"
 
-#: contents/ui/config/ConfigDisplay.qml:617
-#: contents/ui/config/ConfigDisplay.qml:647
-#: contents/ui/config/ConfigDisplay.qml:707
+#: contents/ui/config/ConfigDisplay.qml:649
+#: contents/ui/config/ConfigDisplay.qml:679
+#: contents/ui/config/ConfigDisplay.qml:739
 msgid "Show:"
 msgstr "Mostrar:"
 
-#: contents/ui/config/ConfigDisplay.qml:620
+#: contents/ui/config/ConfigDisplay.qml:652
 msgid "Elapsed time"
 msgstr "Tempo decorrido"
 
-#: contents/ui/config/ConfigDisplay.qml:628
+#: contents/ui/config/ConfigDisplay.qml:660
 msgid "Project name"
 msgstr "Nome do projeto"
 
-#: contents/ui/config/ConfigDisplay.qml:636
+#: contents/ui/config/ConfigDisplay.qml:668
 msgid "Activity name"
 msgstr "Nome da atividade"
 
-#: contents/ui/config/ConfigDisplay.qml:641
+#: contents/ui/config/ConfigDisplay.qml:673
 msgid "Panel flyout"
 msgstr "Menu do painel"
 
-#: contents/ui/config/ConfigDisplay.qml:650
-#: contents/ui/config/ConfigDisplay.qml:710
+#: contents/ui/config/ConfigDisplay.qml:682
+#: contents/ui/config/ConfigDisplay.qml:742
 msgid "Work summary (today / week / remaining)"
 msgstr "Resumo de trabalho (hoje / semana / restante)"
 
-#: contents/ui/config/ConfigDisplay.qml:659
-#: contents/ui/config/ConfigDisplay.qml:719
+#: contents/ui/config/ConfigDisplay.qml:691
+#: contents/ui/config/ConfigDisplay.qml:751
 msgid "Day sparkline (bar and arcs)"
 msgstr ""
 
-#: contents/ui/config/ConfigDisplay.qml:677
-#: contents/ui/config/ConfigDisplay.qml:737
+#: contents/ui/config/ConfigDisplay.qml:709
+#: contents/ui/config/ConfigDisplay.qml:769
 msgid "Recent list"
 msgstr "Lista de recentes"
 
-#: contents/ui/config/ConfigDisplay.qml:686
+#: contents/ui/config/ConfigDisplay.qml:718
 msgid "Continue last activity"
 msgstr "Continuar última atividade"
 
-#: contents/ui/config/ConfigDisplay.qml:695
+#: contents/ui/config/ConfigDisplay.qml:727
 msgid "Start / switch activity controls"
 msgstr "Controles para iniciar / mudar atividade"
 
-#: contents/ui/config/ConfigDisplay.qml:701
+#: contents/ui/config/ConfigDisplay.qml:733
 msgid "Desktop widget"
 msgstr "Widget da área de trabalho"
 
-#: contents/ui/config/ConfigDisplay.qml:746
+#: contents/ui/config/ConfigDisplay.qml:778
 msgid "New activity picker"
 msgstr "Seletor de nova atividade"
 

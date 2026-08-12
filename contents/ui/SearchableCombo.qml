@@ -5,6 +5,7 @@ import QtQuick.Window
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
 import "../code/kimaiApi.js" as KimaiApi
+import "."
 
 Item {
     id: root
@@ -25,9 +26,9 @@ Item {
 
     readonly property var currentItem: (currentIndex >= 0 && currentIndex < items.length) ? items[currentIndex] : null
     readonly property string currentLabel: currentItem ? currentItem.label : ""
-    readonly property int minVisibleEntries: 15
+    readonly property int minVisibleEntries: TouchUi.pickerMinVisibleEntries
     /** Rows worth of space required before preferring that open direction. */
-    readonly property int directionVisibleEntries: 10
+    readonly property int directionVisibleEntries: TouchUi.pickerDirectionEntries
     readonly property bool popupOpen: popup.opened
 
     /** Scroll view for measuring visible space inside panel flyouts. */
@@ -127,17 +128,17 @@ Item {
     }
 
     function listEntryHeight() {
-        return Kirigami.Units.gridUnit + Kirigami.Units.smallSpacing
+        return TouchUi.pickerEntryHeight
     }
 
     function listSectionHeight() {
-        return Math.max(Kirigami.Units.iconSizes.small * 0.85, Kirigami.Units.gridUnit)
-               + Kirigami.Units.smallSpacing
+        return TouchUi.pickerSectionHeight
     }
 
-    implicitHeight: field.implicitHeight
+    implicitHeight: Math.max(field.implicitHeight, TouchUi.controlMinHeight)
     implicitWidth: Kirigami.Units.gridUnit * 12
     Layout.fillWidth: true
+    Layout.preferredHeight: implicitHeight
 
     function filterItems(query) {
         var q = String(query || "").trim().toLowerCase()
@@ -385,8 +386,7 @@ Item {
             section.criteria: ViewSection.FullString
             section.delegate: Item {
                 width: ListView.view.width
-                height: Math.max(sectionRow.implicitHeight, Kirigami.Units.iconSizes.small * 0.85)
-                        + Kirigami.Units.smallSpacing
+                height: Math.max(sectionRow.implicitHeight, TouchUi.pickerSectionHeight)
                 visible: section && section.length > 0
 
                 ColorLabelRow {
@@ -407,10 +407,11 @@ Item {
 
             delegate: QQC2.ItemDelegate {
                 width: ListView.view.width
+                height: Math.max(implicitHeight, TouchUi.pickerEntryHeight)
                 leftPadding: Kirigami.Units.smallSpacing
                 rightPadding: Kirigami.Units.smallSpacing
-                topPadding: Kirigami.Units.smallSpacing / 2
-                bottomPadding: Kirigami.Units.smallSpacing / 2
+                topPadding: TouchUi.listRowPadding / 2
+                bottomPadding: TouchUi.listRowPadding / 2
                 spacing: 0
                 highlighted: index === root.highlightedIndex
                 onClicked: root.selectFiltered(index)

@@ -4,6 +4,7 @@ import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
 import "../code/dateTimeFormat.js" as DTF
+import "."
 
 /**
  * Locale-formatted time field with click-to-select segments (hour/minute)
@@ -114,6 +115,7 @@ RowLayout {
     QQC2.TextField {
         id: timeField
         Layout.fillWidth: true
+        Layout.preferredHeight: Math.max(implicitHeight, TouchUi.controlMinHeight)
         placeholderText: DTF.timePlaceholder()
         inputMethodHints: Qt.ImhTime | Qt.ImhPreferNumbers
         selectByMouse: true
@@ -190,7 +192,7 @@ RowLayout {
         parent: root
         x: Math.max(0, root.width - width)
         y: timeField.height + Kirigami.Units.smallSpacing
-        width: Kirigami.Units.gridUnit * 10
+        width: Kirigami.Units.gridUnit * (TouchUi.active ? 12 : 10)
         padding: Kirigami.Units.smallSpacing
         closePolicy: QQC2.Popup.CloseOnEscape | QQC2.Popup.CloseOnPressOutside
 
@@ -212,8 +214,8 @@ RowLayout {
 
                 QQC2.Tumbler {
                     id: hourTumbler
-                    Layout.preferredWidth: Kirigami.Units.gridUnit * 3
-                    Layout.preferredHeight: Kirigami.Units.gridUnit * 6
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * TouchUi.tumblerWidthGu
+                    Layout.preferredHeight: Kirigami.Units.gridUnit * TouchUi.tumblerHeightGu
                     model: 24
                     visibleItemCount: 5
                     delegate: PlasmaComponents3.Label {
@@ -233,8 +235,8 @@ RowLayout {
 
                 QQC2.Tumbler {
                     id: minuteTumbler
-                    Layout.preferredWidth: Kirigami.Units.gridUnit * 3
-                    Layout.preferredHeight: Kirigami.Units.gridUnit * 6
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * TouchUi.tumblerWidthGu
+                    Layout.preferredHeight: Kirigami.Units.gridUnit * TouchUi.tumblerHeightGu
                     model: 60
                     visibleItemCount: 5
                     delegate: PlasmaComponents3.Label {

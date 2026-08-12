@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
+import "."
 
 QQC2.ItemDelegate {
     id: root
@@ -22,6 +23,10 @@ QQC2.ItemDelegate {
 
     enabled: rowEnabled
     hoverEnabled: true
+    implicitHeight: Math.max(contentItem.implicitHeight + topPadding + bottomPadding,
+                             TouchUi.rowMinHeight)
+    topPadding: TouchUi.listRowPadding
+    bottomPadding: TouchUi.listRowPadding
 
     QQC2.ToolTip.visible: root.hovered && root.tooltipText.length > 0
     QQC2.ToolTip.text: root.tooltipText
@@ -34,7 +39,7 @@ QQC2.ItemDelegate {
             customerColor: root.customerColor
             colorCategory: root.colorCategory
             entityId: root.entityId
-            sizeFactor: 0.45
+            sizeFactor: TouchUi.active ? 0.55 : 0.45
             Layout.preferredWidth: implicitWidth
             Layout.preferredHeight: implicitHeight
             Layout.fillHeight: true
@@ -43,8 +48,8 @@ QQC2.ItemDelegate {
 
         Kirigami.Icon {
             visible: root.showPlayIcon
-            Layout.preferredWidth: Kirigami.Units.iconSizes.small
-            Layout.preferredHeight: Kirigami.Units.iconSizes.small
+            Layout.preferredWidth: TouchUi.iconSize
+            Layout.preferredHeight: TouchUi.iconSize
             source: "media-playback-start"
             opacity: root.enabled ? 1 : 0.5
         }

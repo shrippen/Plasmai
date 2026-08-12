@@ -1,4 +1,5 @@
 singleton ApiErrors 1.0 ApiErrors.qml
+singleton TouchUi 1.0 TouchUi.qml
 ColorLabelRow 1.0 ColorLabelRow.qml
 CustomerColorDot 1.0 CustomerColorDot.qml
 DaySparkline 1.0 DaySparkline.qml

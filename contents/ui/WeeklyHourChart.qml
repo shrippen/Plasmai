@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
 import "../code/kimaiApi.js" as KimaiApi
+import "."
 
 /**
  * Weekly hour timeline — one horizontal row per day.
@@ -151,9 +152,13 @@ ColumnLayout {
 
                         MouseArea {
                             anchors.fill: parent
+                            anchors.margins: -TouchUi.chartHitSlop
                             hoverEnabled: true
-                            acceptedButtons: Qt.NoButton
-                            PlasmaComponents3.ToolTip.visible: containsMouse
+                            acceptedButtons: TouchUi.active ? Qt.LeftButton : Qt.NoButton
+                            property bool tipPinned: false
+                            onClicked: tipPinned = !tipPinned
+                            onExited: tipPinned = false
+                            PlasmaComponents3.ToolTip.visible: containsMouse || tipPinned
                             PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
                             PlasmaComponents3.ToolTip.text: segItem.seg
                                 ? (segItem.seg.name + " · "

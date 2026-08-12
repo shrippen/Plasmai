@@ -5,6 +5,7 @@ import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
 import "../code/dateTimeFormat.js" as DTF
+import "."
 
 /**
  * Locale-formatted date field with click-to-select segments (day/month/year)
@@ -132,6 +133,7 @@ RowLayout {
     QQC2.TextField {
         id: dateField
         Layout.fillWidth: true
+        Layout.preferredHeight: Math.max(implicitHeight, TouchUi.controlMinHeight)
         placeholderText: DTF.datePlaceholder()
         inputMethodHints: Qt.ImhDate | Qt.ImhPreferNumbers
         // Keep selection look when clicking segments
@@ -270,8 +272,8 @@ RowLayout {
 
                 delegate: QQC2.ItemDelegate {
                     required property var model
-                    implicitWidth: Kirigami.Units.gridUnit * 1.6
-                    implicitHeight: Kirigami.Units.gridUnit * 1.6
+                    implicitWidth: Kirigami.Units.gridUnit * TouchUi.calendarCellGu
+                    implicitHeight: Kirigami.Units.gridUnit * TouchUi.calendarCellGu
                     enabled: model.month === monthGrid.month
                     highlighted: {
                         var sel = DTF.coerceDate(root.selectedDate)

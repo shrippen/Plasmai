@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Touch optimization
+- Display setting: Automatic (Plasma tablet mode) / On / Off
+- Larger tap targets for buttons, list rows, favorites, pickers, date/time controls
+- Bigger panel icon and flyout size when touch mode is active
+- Chart segments show tooltips on tap (not only hover)
+
 ## 1.3.1
 
 ### Pickers & layout
