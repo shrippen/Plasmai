@@ -8,13 +8,13 @@
 
 This creates `Plasmai-<version>.plasmoid` (a ZIP with `metadata.json` and `contents/` at the root).
 
-Current release artifact: **`Plasmai-1.3.1.plasmoid`**
+Current release artifact: **`Plasmai-1.4.0.plasmoid`**
 
 ## 2. Test the package locally
 
 ```bash
 kpackagetool6 -r com.github.shrippen.plasmai -t Plasma/Applet 2>/dev/null || true
-kpackagetool6 -i ./Plasmai-1.3.1.plasmoid -t Plasma/Applet
+kpackagetool6 -i ./Plasmai-1.4.0.plasmoid -t Plasma/Applet
 ```
 
 Add the widget to a panel and verify start/stop, pickers, sparkline, stats, and configuration.
@@ -28,7 +28,7 @@ Add the widget to a panel and verify start/stop, pickers, sparkline, stats, and 
 | Field | Value |
 |---|---|
 | **Name** | Plasmai |
-| **Version** | 1.3.1 |
+| **Version** | 1.4.0 |
 | **License** | GPL-3.0-or-later |
 | **Homepage / Source** | https://github.com/shrippen/Plasmai |
 | **Bug tracker** | https://github.com/shrippen/Plasmai/issues |
@@ -40,7 +40,7 @@ Add the widget to a panel and verify start/stop, pickers, sparkline, stats, and 
 > Plasmai is a KDE Plasma 6 widget for time tracking. Start and stop timers from the panel, edit the running entry, switch from Recent while tracking, add manual entries, browse statistics, pin favorites, and see today/week totals against your work contract. A zoomed day sparkline shows work hours, overtime, and sun arcs for your location. Supports Kimai, Clockify, Toggl Track, and SolidTime. API tokens stay in KWallet; settings are shared across widget instances. Translations: EN, DE, FR, ES, IT, NL, PT (BR), PL, UK, RU, JA, ZH (CN).
 
 4. Upload screenshots from `screenshots/` (`01-panel.jpg`, `02-popup.jpg`).
-5. Upload **`Plasmai-1.3.1.plasmoid`** as the downloadable content.
+5. Upload **`Plasmai-1.4.0.plasmoid`** as the downloadable content.
 
 ## 4. Metadata checklist
 
@@ -58,7 +58,7 @@ Add the widget to a panel and verify start/stop, pickers, sparkline, stats, and 
 Tag the release on GitHub to match the store version:
 
 ```bash
-git tag -a v1.3.1 -m "Plasmai 1.3.1"
+git tag -a v1.4.0 -m "Plasmai 1.4.0"
 git push origin main --tags
 ```
 

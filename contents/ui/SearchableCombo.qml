@@ -384,6 +384,22 @@ Item {
             boundsBehavior: Flickable.StopAtBounds
             section.property: "section"
             section.criteria: ViewSection.FullString
+
+            QQC2.ScrollBar.vertical: QQC2.ScrollBar {
+                id: pickerScrollBar
+                policy: QQC2.ScrollBar.AsNeeded
+                width: 4
+                padding: 0
+                contentItem: Rectangle {
+                    implicitWidth: 4
+                    radius: 2
+                    color: Kirigami.Theme.textColor
+                    opacity: pickerScrollBar.pressed ? 0.55
+                             : (pickerScrollBar.hovered ? 0.4 : 0.28)
+                }
+                background: Item {}
+            }
+
             section.delegate: Item {
                 width: ListView.view.width
                 height: Math.max(sectionRow.implicitHeight, TouchUi.pickerSectionHeight)

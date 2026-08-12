@@ -6,6 +6,7 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
 import org.kde.plasma.extras as PlasmaExtras
+import "."
 
 /**
  * Statistics pane — hourly bars, weekly project stacks, week hour timeline,
@@ -13,6 +14,8 @@ import org.kde.plasma.extras as PlasmaExtras
  */
 ColumnLayout {
     id: root
+
+    width: parent ? parent.width : implicitWidth
 
     property var timesheets: []
     property var customersById: ({
@@ -43,8 +46,6 @@ ColumnLayout {
     readonly property string filterAllLabel: i18n("All")
     readonly property string filterBillableLabel: i18n("Billable")
     readonly property string filterNonBillableLabel: i18n("Non-billable")
-    //* Shared width for all three filters = longest label (+ padding).
-    readonly property real filterButtonWidth: Math.max(filterAllMetrics.advanceWidth, filterBillableMetrics.advanceWidth, filterNonBillableMetrics.advanceWidth) + Kirigami.Units.largeSpacing * 2
     readonly property var hourlyModel: {
         var buckets = StatsData.hourlyBreakdown(filteredTimesheets, selectedDay, Date.now());
         var out = [];
@@ -148,54 +149,24 @@ ColumnLayout {
 
     Component.onCompleted: ensureRangeForOffsets()
 
-    TextMetrics {
-        id: filterAllMetrics
-
-        font: Kirigami.Theme.defaultFont
-        text: root.filterAllLabel
-    }
-
-    TextMetrics {
-        id: filterBillableMetrics
-
-        font: Kirigami.Theme.defaultFont
-        text: root.filterBillableLabel
-    }
-
-    TextMetrics {
-        id: filterNonBillableMetrics
-
-        font: Kirigami.Theme.defaultFont
-        text: root.filterNonBillableLabel
-    }
-
     // —— Billable filter (equal-width segmented toggle) ——
-    // Centered Row with equal widths from the longest label. Cap to available
-    // width (with a small inset) so checked borders are not clipped at the edges,
-    // without inflating the scroll content width.
     Item {
         id: filterBar
         Layout.fillWidth: true
-        Layout.preferredHeight: filterButtonRow.implicitHeight
+        Layout.preferredHeight: TouchUi.active
+                                ? Math.max(filterButtonRow.implicitHeight, TouchUi.buttonMinHeight)
+                                : filterButtonRow.implicitHeight
         visible: root.supportsBillableFilter
 
-        readonly property real sideInset: Kirigami.Units.smallSpacing
-        readonly property real buttonWidth: {
-            var avail = Math.max(0, width - sideInset * 2)
-            var natural = root.filterButtonWidth
-            if (natural * 3 <= avail) {
-                return natural
-            }
-            return avail / 3
-        }
-
-        Row {
+        RowLayout {
             id: filterButtonRow
-            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.fill: parent
             spacing: 0
 
             PlasmaComponents3.ToolButton {
-                width: filterBar.buttonWidth
+                Layout.fillWidth: true
+                Layout.preferredWidth: 1
+                height: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                 checkable: true
                 autoExclusive: true
                 checked: root.billableFilter === StatsData.BILLABLE_ALL
@@ -203,7 +174,9 @@ ColumnLayout {
                 onClicked: root.billableFilter = StatsData.BILLABLE_ALL
             }
             PlasmaComponents3.ToolButton {
-                width: filterBar.buttonWidth
+                Layout.fillWidth: true
+                Layout.preferredWidth: 1
+                height: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                 checkable: true
                 autoExclusive: true
                 checked: root.billableFilter === StatsData.BILLABLE_ONLY
@@ -211,7 +184,9 @@ ColumnLayout {
                 onClicked: root.billableFilter = StatsData.BILLABLE_ONLY
             }
             PlasmaComponents3.ToolButton {
-                width: filterBar.buttonWidth
+                Layout.fillWidth: true
+                Layout.preferredWidth: 1
+                height: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                 checkable: true
                 autoExclusive: true
                 checked: root.billableFilter === StatsData.BILLABLE_NONE
@@ -269,10 +244,12 @@ ColumnLayout {
         Layout.fillWidth: true
 
         PlasmaComponents3.ToolButton {
+            Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
+            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             icon.name: "go-previous"
             onClicked: root.shiftDay(-1)
             PlasmaComponents3.ToolTip.text: i18n("Previous day")
-            PlasmaComponents3.ToolTip.visible: hovered
+            PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
         }
 
         PlasmaComponents3.Label {
@@ -291,11 +268,13 @@ ColumnLayout {
         }
 
         PlasmaComponents3.ToolButton {
+            Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
+            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             icon.name: "go-next"
             enabled: root.dayOffset < 0
             onClicked: root.shiftDay(1)
             PlasmaComponents3.ToolTip.text: i18n("Next day")
-            PlasmaComponents3.ToolTip.visible: hovered
+            PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
         }
 
     }
@@ -322,10 +301,12 @@ ColumnLayout {
         Layout.fillWidth: true
 
         PlasmaComponents3.ToolButton {
+            Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
+            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             icon.name: "go-previous"
             onClicked: root.shiftWeek(-1)
             PlasmaComponents3.ToolTip.text: i18n("Previous week")
-            PlasmaComponents3.ToolTip.visible: hovered
+            PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
         }
 
         PlasmaComponents3.Label {
@@ -341,11 +322,13 @@ ColumnLayout {
         }
 
         PlasmaComponents3.ToolButton {
+            Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
+            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             icon.name: "go-next"
             enabled: root.weekOffset < 0
             onClicked: root.shiftWeek(1)
             PlasmaComponents3.ToolTip.text: i18n("Next week")
-            PlasmaComponents3.ToolTip.visible: hovered
+            PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
         }
 
     }
@@ -529,10 +512,12 @@ ColumnLayout {
                 Layout.fillWidth: true
 
                 PlasmaComponents3.ToolButton {
+                    Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
+                    Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     icon.name: "go-previous"
                     onClicked: root.shiftPieWeek(-1)
                     PlasmaComponents3.ToolTip.text: i18n("Previous week")
-                    PlasmaComponents3.ToolTip.visible: hovered
+                    PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
                 }
 
                 PlasmaComponents3.Label {
@@ -548,11 +533,13 @@ ColumnLayout {
                 }
 
                 PlasmaComponents3.ToolButton {
+                    Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
+                    Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     icon.name: "go-next"
                     enabled: root.pieWeekOffset < 0
                     onClicked: root.shiftPieWeek(1)
                     PlasmaComponents3.ToolTip.text: i18n("Next week")
-                    PlasmaComponents3.ToolTip.visible: hovered
+                    PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
                 }
             }
 

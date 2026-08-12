@@ -36,7 +36,8 @@ var SHARED_KEYS = [
     "notifyOnIdleStop",
     "locationName",
     "colorDistinctionEnabled",
-    "colorSimilarityPercent"
+    "colorSimilarityPercent",
+    "touchMode"
 ]
 
 function applyToConfiguration(config, shared) {

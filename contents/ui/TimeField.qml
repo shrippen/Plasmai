@@ -173,6 +173,8 @@ RowLayout {
     }
 
     PlasmaComponents3.ToolButton {
+        Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
+        Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
         icon.name: "clock-symbolic"
         text: i18n("Pick time")
         display: QQC2.AbstractButton.IconOnly
@@ -183,7 +185,7 @@ RowLayout {
             timePopup.open()
         }
         PlasmaComponents3.ToolTip.text: text
-        PlasmaComponents3.ToolTip.visible: hovered
+        PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
         PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
     }
 
@@ -253,11 +255,13 @@ RowLayout {
                 Layout.fillWidth: true
                 PlasmaComponents3.Button {
                     Layout.fillWidth: true
+                    Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     text: i18n("Cancel")
                     onClicked: timePopup.close()
                 }
                 PlasmaComponents3.Button {
                     Layout.fillWidth: true
+                    Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     text: i18n("Select")
                     icon.name: "dialog-ok-apply"
                     onClicked: {

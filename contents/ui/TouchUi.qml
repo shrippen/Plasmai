@@ -17,7 +17,13 @@ QtObject {
     readonly property bool active: preference === 1
                                    || (preference === 0 && systemSuggestsTouch)
 
+    /**
+     * Multiplier for layout gaps (favorites grid, etc.).
+     * Reserved for overall denser/looser spacing without changing each control size.
+     */
     readonly property real spacingScale: active ? 1.25 : 1.0
+
+    readonly property int smallSpacing: Math.round(Kirigami.Units.smallSpacing * spacingScale)
 
     readonly property int iconSize: active
                                     ? Kirigami.Units.iconSizes.medium
@@ -29,15 +35,16 @@ QtObject {
 
     readonly property int rowMinHeight: active
                                         ? Math.round(Kirigami.Units.gridUnit * 2.75)
-                                        : Math.round(Kirigami.Units.gridUnit * 2)
+                                        : 0
 
     readonly property int controlMinHeight: active
                                             ? Math.round(Kirigami.Units.gridUnit * 2.5)
                                             : 0
 
+    /** Minimum action-button height; only applied when touch mode is active. */
     readonly property int buttonMinHeight: active
                                            ? Math.round(Kirigami.Units.gridUnit * 2.5)
-                                           : Math.round(Kirigami.Units.gridUnit * 1.8)
+                                           : 0
 
     readonly property int pickerEntryHeight: active
                                              ? Math.round(Kirigami.Units.gridUnit * 2.25)

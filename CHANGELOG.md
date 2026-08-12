@@ -1,12 +1,17 @@
 # Changelog
 
-## Unreleased
+## 1.4.0
 
 ### Touch optimization
 - Display setting: Automatic (Plasma tablet mode) / On / Off
-- Larger tap targets for buttons, list rows, favorites, pickers, date/time controls
-- Bigger panel icon and flyout size when touch mode is active
-- Chart segments show tooltips on tap (not only hover)
+- Larger tap targets for buttons, list rows, favorites, pickers, and date/time controls when touch mode is active
+- Bigger panel icon and flyout size in touch mode; chart segments show tooltips on tap
+
+### Layout & pickers
+- Compact header: title and connection status in one block; action icons vertically centered
+- Flyout uses full width when no main scrollbar is needed
+- Project/activity popup shows a scrollbar when the list exceeds the available height
+- Statistics billable filter stretches to full width
 
 ## 1.3.1
 

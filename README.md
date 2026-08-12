@@ -54,7 +54,7 @@ kpackagetool6 -u . -t Plasma/Applet
 Install a release package (`.plasmoid`):
 
 ```bash
-kpackagetool6 -i Plasmai-1.3.1.plasmoid -t Plasma/Applet
+kpackagetool6 -i Plasmai-1.4.0.plasmoid -t Plasma/Applet
 ```
 
 ## Setup

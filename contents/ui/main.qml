@@ -1868,10 +1868,12 @@ PlasmoidItem {
                 PlasmaComponents3.Button {
                     text: i18n("Switch")
                     icon.name: "media-playback-start"
+                    Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     QQC2.DialogButtonBox.buttonRole: QQC2.DialogButtonBox.AcceptRole
                 }
                 PlasmaComponents3.Button {
                     text: i18n("Cancel")
+                    Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     QQC2.DialogButtonBox.buttonRole: QQC2.DialogButtonBox.RejectRole
                 }
             }
@@ -1888,9 +1890,13 @@ PlasmoidItem {
                 margins: Kirigami.Units.smallSpacing
             }
             clip: true
-            // Always reserve space for the overlay scrollbar so right-aligned
-            // labels and wide filter rows are not clipped underneath it.
-            readonly property int scrollGutter: slimScrollBar.width + Kirigami.Units.smallSpacing * 2
+            readonly property bool vScrollNeeded: contentItem
+                                                  ? contentItem.contentHeight > contentItem.height + 1
+                                                  : false
+            // Reserve scrollbar lane only while vertical scrolling is needed.
+            readonly property int scrollGutter: vScrollNeeded
+                                               ? (slimScrollBar.width + Kirigami.Units.smallSpacing * 2)
+                                               : 0
             contentWidth: Math.max(0, width - scrollGutter)
             rightPadding: 0
             leftPadding: 0
@@ -1930,57 +1936,94 @@ PlasmoidItem {
                 spacing: Kirigami.Units.smallSpacing
 
                 RowLayout {
+                    id: headerBlock
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
 
-                    PlasmaExtras.Heading {
+                    ColumnLayout {
+                        id: headerTextColumn
                         Layout.fillWidth: true
-                        level: 3
-                        text: root.mainViewMode === "stats" ? i18n("Statistics")
-                              : (root.mainViewMode === "manual" ? i18n("Add entry")
-                                  : (BuildInfo.BUILD > 0 ? (i18n("Plasmai") + " #" + BuildInfo.BUILD) : i18n("Plasmai")))
+                        spacing: 0
+
+                        PlasmaExtras.Heading {
+                            Layout.fillWidth: true
+                            level: 3
+                            text: root.mainViewMode === "stats" ? i18n("Statistics")
+                                  : (root.mainViewMode === "manual" ? i18n("Add entry")
+                                      : (BuildInfo.BUILD > 0 ? (i18n("Plasmai") + " #" + BuildInfo.BUILD) : i18n("Plasmai")))
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: Kirigami.Units.smallSpacing / 2
+
+                            Kirigami.Icon {
+                                Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                                Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                                source: root.connectionIcon()
+                            }
+
+                            PlasmaComponents3.Label {
+                                Layout.fillWidth: true
+                                elide: Text.ElideRight
+                                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                                text: root.connectionLabel()
+                            }
+
+                            QQC2.BusyIndicator {
+                                running: root.isBusy || root.connectionState === "connecting" || root.credentialsLoading
+                                visible: running
+                                Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                                Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                            }
+                        }
                     }
 
-                    PlasmaComponents3.ToolButton {
-                        visible: root.isConfigured && root.mainViewMode === "main"
-                        icon.name: "list-add"
-                        text: i18n("Add entry")
-                        Layout.preferredHeight: TouchUi.buttonMinHeight
-                        display: TouchUi.active ? QQC2.AbstractButton.TextBesideIcon
-                                                : QQC2.AbstractButton.IconOnly
-                        enabled: !root.isBusy && root.connectionState !== "error"
-                        onClicked: root.openManualEntry()
-                        PlasmaComponents3.ToolTip.text: i18n("Add a manual time entry")
-                        PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
-                        PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
-                    }
+                    RowLayout {
+                        Layout.alignment: Qt.AlignVCenter
+                        spacing: 0
 
-                    PlasmaComponents3.ToolButton {
-                        visible: root.isConfigured && root.mainViewMode === "main"
-                                 && root.providerCapabilities.statistics
-                        icon.name: "view-statistics"
-                        text: i18n("Statistics")
-                        Layout.preferredHeight: TouchUi.buttonMinHeight
-                        display: TouchUi.active ? QQC2.AbstractButton.TextBesideIcon
-                                                : QQC2.AbstractButton.IconOnly
-                        enabled: !root.isBusy
-                        onClicked: root.openStatsView()
-                        PlasmaComponents3.ToolTip.text: i18n("Show statistics")
-                        PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
-                        PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
-                    }
+                        PlasmaComponents3.ToolButton {
+                            visible: root.isConfigured && root.mainViewMode === "main"
+                            icon.name: "list-add"
+                            text: i18n("Add entry")
+                            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+                            display: TouchUi.active ? QQC2.AbstractButton.TextBesideIcon
+                                                    : QQC2.AbstractButton.IconOnly
+                            enabled: !root.isBusy && root.connectionState !== "error"
+                            onClicked: root.openManualEntry()
+                            PlasmaComponents3.ToolTip.text: i18n("Add a manual time entry")
+                            PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
+                            PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
+                        }
 
-                    PlasmaComponents3.ToolButton {
-                        visible: root.mainViewMode === "manual" || root.mainViewMode === "stats"
-                        icon.name: "go-previous"
-                        text: i18n("Back")
-                        Layout.preferredHeight: TouchUi.buttonMinHeight
-                        display: TouchUi.active ? QQC2.AbstractButton.TextBesideIcon
-                                                : QQC2.AbstractButton.IconOnly
-                        onClicked: root.returnToMainView()
-                        PlasmaComponents3.ToolTip.text: i18n("Back to timer")
-                        PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
-                        PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
+                        PlasmaComponents3.ToolButton {
+                            visible: root.isConfigured && root.mainViewMode === "main"
+                                     && root.providerCapabilities.statistics
+                            icon.name: "view-statistics"
+                            text: i18n("Statistics")
+                            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+                            display: TouchUi.active ? QQC2.AbstractButton.TextBesideIcon
+                                                    : QQC2.AbstractButton.IconOnly
+                            enabled: !root.isBusy
+                            onClicked: root.openStatsView()
+                            PlasmaComponents3.ToolTip.text: i18n("Show statistics")
+                            PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
+                            PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
+                        }
+
+                        PlasmaComponents3.ToolButton {
+                            visible: root.mainViewMode === "manual" || root.mainViewMode === "stats"
+                            icon.name: "go-previous"
+                            text: i18n("Back")
+                            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+                            display: TouchUi.active ? QQC2.AbstractButton.TextBesideIcon
+                                                    : QQC2.AbstractButton.IconOnly
+                            onClicked: root.returnToMainView()
+                            PlasmaComponents3.ToolTip.text: i18n("Back to timer")
+                            PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
+                            PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
+                        }
                     }
                 }
 
@@ -2001,31 +2044,6 @@ PlasmoidItem {
                         if (index >= 0 && index < root.profiles.length) {
                             root.switchProfile(root.profiles[index].id)
                         }
-                    }
-                }
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: Kirigami.Units.smallSpacing
-
-                    Kirigami.Icon {
-                        Layout.preferredWidth: Kirigami.Units.iconSizes.small
-                        Layout.preferredHeight: Kirigami.Units.iconSizes.small
-                        source: root.connectionIcon()
-                    }
-
-                    PlasmaComponents3.Label {
-                        Layout.fillWidth: true
-                        elide: Text.ElideRight
-                        font.pointSize: Kirigami.Theme.smallFont.pointSize
-                        text: root.connectionLabel()
-                    }
-
-                    QQC2.BusyIndicator {
-                        running: root.isBusy || root.connectionState === "connecting" || root.credentialsLoading
-                        visible: running
-                        Layout.preferredWidth: Kirigami.Units.iconSizes.small
-                        Layout.preferredHeight: Kirigami.Units.iconSizes.small
                     }
                 }
 
@@ -2336,7 +2354,7 @@ PlasmoidItem {
                                         visible: workSummaryBlock.actionsBeside
                                         Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                                         Layout.preferredWidth: implicitWidth
-                                        Layout.preferredHeight: TouchUi.buttonMinHeight
+                                        Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                                         enabled: !root.isBusy
                                         text: i18n("Edit")
                                         icon.name: "document-edit"
@@ -2360,7 +2378,7 @@ PlasmoidItem {
                                         visible: workSummaryBlock.actionsBeside
                                         Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                                         Layout.preferredWidth: implicitWidth
-                                        Layout.preferredHeight: TouchUi.buttonMinHeight
+                                        Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                                         enabled: !root.isBusy
                                         text: i18n("Stop")
                                         icon.name: "media-playback-stop"
@@ -2378,7 +2396,7 @@ PlasmoidItem {
                                         enabled: !root.isBusy
                                         text: i18n("Edit")
                                         icon.name: "document-edit"
-                                        Layout.preferredHeight: TouchUi.buttonMinHeight
+                                        Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                                         display: TouchUi.active ? QQC2.AbstractButton.TextBesideIcon
                                                                 : QQC2.AbstractButton.IconOnly
                                         down: root.editingActiveEntry
@@ -2396,7 +2414,7 @@ PlasmoidItem {
 
                                     PlasmaComponents3.Button {
                                         Layout.fillWidth: true
-                                        Layout.preferredHeight: TouchUi.buttonMinHeight
+                                        Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                                         enabled: !root.isBusy
                                         text: i18n("Stop")
                                         icon.name: "media-playback-stop"
@@ -2525,7 +2543,7 @@ PlasmoidItem {
 
                             PlasmaComponents3.Button {
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: TouchUi.buttonMinHeight
+                                Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                                 visible: root.showContinueHere && !root.isTracking && root.lastRecent
                                 enabled: root.isConfigured && !root.isBusy && root.connectionState !== "error"
                                 text: i18n("Continue · %1 · %2",
@@ -2555,8 +2573,8 @@ PlasmoidItem {
                     opacity: root.showFavoritesHere && !root.loadingPinned && root.pinnedEntries.length > 0 ? 1 : 0
                     visible: opacity > 0
                     columns: Math.max(1, Math.floor(width / (Kirigami.Units.gridUnit * TouchUi.favoriteCellGu)))
-                    rowSpacing: Kirigami.Units.smallSpacing
-                    columnSpacing: Kirigami.Units.smallSpacing
+                    rowSpacing: TouchUi.smallSpacing
+                    columnSpacing: TouchUi.smallSpacing
                     Behavior on opacity { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
 
                     Repeater {
@@ -2623,6 +2641,7 @@ PlasmoidItem {
                         font.pointSize: Kirigami.Theme.smallFont.pointSize
                     }
                     PlasmaComponents3.Button {
+                        Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                         text: i18n("Configure favorites")
                         icon.name: "configure"
                         onClicked: root.openConfigure()
@@ -2719,6 +2738,7 @@ PlasmoidItem {
                 // —— New / switch ——
                 PlasmaComponents3.Button {
                     Layout.fillWidth: true
+                    Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     opacity: root.showNewActivityHere && root.isConfigured
                              && root.compactPopupLayout && !root.showNewActivityForm ? 1 : 0
                     visible: opacity > 0
@@ -2784,6 +2804,7 @@ PlasmoidItem {
 
                     PlasmaComponents3.Button {
                         Layout.fillWidth: true
+                        Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                         enabled: root.isConfigured && !root.isBusy && !root.isTracking && root.connectionState !== "error"
                                  && switchPickers.projectCombo.currentIndex >= 0
                                  && switchPickers.activityCombo.currentIndex >= 0
@@ -2798,6 +2819,7 @@ PlasmoidItem {
 
                     PlasmaComponents3.Button {
                         Layout.fillWidth: true
+                        Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                         visible: root.isTracking
                         enabled: root.isConfigured && !root.isBusy && root.connectionState !== "error"
                                  && switchPickers.projectCombo.currentIndex >= 0
@@ -2813,6 +2835,7 @@ PlasmoidItem {
 
                     PlasmaComponents3.Button {
                         visible: root.compactPopupLayout
+                        Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                         text: i18n("Cancel")
                         onClicked: root.showNewActivityForm = false
                     }

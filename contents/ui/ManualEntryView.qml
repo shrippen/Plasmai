@@ -5,6 +5,7 @@ import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
 import "../code/kimaiApi.js" as KimaiApi
 import "../code/dateTimeFormat.js" as DTF
+import "."
 
 /**
  * Manual timesheet editor — project/activity pickers plus date/time fields
@@ -12,6 +13,8 @@ import "../code/dateTimeFormat.js" as DTF
  */
 ColumnLayout {
     id: root
+
+    width: parent ? parent.width : implicitWidth
 
     property var projectPickerModel: []
     property var activityPickerModel: []
@@ -199,6 +202,7 @@ ColumnLayout {
 
         PlasmaComponents3.Button {
             Layout.fillWidth: true
+            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             enabled: root.configured && !root.busy && root.connectionOk
                      && projectCombo.currentIndex >= 0 && activityCombo.currentIndex >= 0
                      && root.rangeValid
@@ -217,6 +221,7 @@ ColumnLayout {
         }
 
         PlasmaComponents3.Button {
+            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             text: i18n("Cancel")
             onClicked: root.cancelled()
         }

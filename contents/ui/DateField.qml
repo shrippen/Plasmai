@@ -198,6 +198,8 @@ RowLayout {
     }
 
     PlasmaComponents3.ToolButton {
+        Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
+        Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
         icon.name: "view-calendar"
         text: i18n("Pick date")
         display: QQC2.AbstractButton.IconOnly
@@ -209,7 +211,7 @@ RowLayout {
             calendarPopup.open()
         }
         PlasmaComponents3.ToolTip.text: text
-        PlasmaComponents3.ToolTip.visible: hovered
+        PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
         PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
     }
 
@@ -228,6 +230,8 @@ RowLayout {
             RowLayout {
                 Layout.fillWidth: true
                 PlasmaComponents3.ToolButton {
+                    Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
+                    Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     icon.name: "go-previous"
                     onClicked: {
                         if (root.calendarMonth === 0) {
@@ -245,6 +249,8 @@ RowLayout {
                     text: Qt.locale().standaloneMonthName(root.calendarMonth) + " " + root.calendarYear
                 }
                 PlasmaComponents3.ToolButton {
+                    Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
+                    Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     icon.name: "go-next"
                     onClicked: {
                         if (root.calendarMonth === 11) {

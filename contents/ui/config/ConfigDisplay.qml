@@ -275,6 +275,16 @@ Item {
         })
     }
 
+    Connections {
+        target: page
+        function onCfg_touchModeChanged() {
+            var idx = Math.max(0, Math.min(2, page.cfg_touchMode))
+            if (touchModeCombo.currentIndex !== idx) {
+                touchModeCombo.currentIndex = idx
+            }
+        }
+    }
+
     QQC2.ScrollView {
         id: scroll
         anchors.fill: parent
@@ -342,9 +352,13 @@ Item {
                         i18n("On"),
                         i18n("Off")
                     ]
-                    currentIndex: Math.max(0, Math.min(2, page.cfg_touchMode))
+                    // Avoid binding currentIndex to cfg_* — that fights user selection
+                    // and can prevent Plasma from marking the config page dirty.
+                    Component.onCompleted: currentIndex = Math.max(0, Math.min(2, page.cfg_touchMode))
                     onActivated: function(index) {
-                        page.cfg_touchMode = index
+                        if (page.cfg_touchMode !== index) {
+                            page.cfg_touchMode = index
+                        }
                         page.persistShared()
                     }
                 }
