@@ -25,8 +25,13 @@ Item {
 
     readonly property var currentItem: (currentIndex >= 0 && currentIndex < items.length) ? items[currentIndex] : null
     readonly property string currentLabel: currentItem ? currentItem.label : ""
-    readonly property int minVisibleEntries: 10
+    readonly property int minVisibleEntries: 15
+    /** Rows worth of space required before preferring that open direction. */
+    readonly property int directionVisibleEntries: 10
     readonly property bool popupOpen: popup.opened
+
+    /** Scroll view for measuring visible space inside panel flyouts. */
+    property Item viewportItem: null
 
     signal activated(int index)
     signal aboutToOpen()
@@ -78,26 +83,56 @@ Item {
         }
     }
 
-    function spaceBelow() {
+    /**
+     * Visible area used for open-direction decisions.
+     * Prefer the ScrollView viewport (panel flyout); fall back to the window.
+     * Never use Flickable.contentItem — that is the full scrollable content height.
+     */
+    function spaceBoundsItem() {
+        if (viewportItem) {
+            return viewportItem
+        }
         var win = Window.window
-        if (!win || !win.contentItem) {
+        return (win && win.contentItem) ? win.contentItem : null
+    }
+
+    function spaceBelow() {
+        var spacing = Kirigami.Units.smallSpacing / 2
+        var bounds = spaceBoundsItem()
+        if (!bounds) {
             return Number.MAX_VALUE
         }
-        var origin = root.mapToItem(win.contentItem, 0, 0)
-        return win.contentItem.height - (origin.y + root.height) - Kirigami.Units.smallSpacing / 2
+        var origin = root.mapToItem(bounds, 0, 0)
+        var bottomPad = bounds.bottomPadding !== undefined ? bounds.bottomPadding : 0
+        return Math.max(0, bounds.height - bottomPad - (origin.y + root.height) - spacing)
     }
 
     function spaceAbove() {
-        var win = Window.window
-        if (!win || !win.contentItem) {
+        var spacing = Kirigami.Units.smallSpacing / 2
+        var bounds = spaceBoundsItem()
+        if (!bounds) {
             return Number.MAX_VALUE
         }
-        var origin = root.mapToItem(win.contentItem, 0, 0)
-        return origin.y - Kirigami.Units.smallSpacing / 2
+        var origin = root.mapToItem(bounds, 0, 0)
+        var topPad = bounds.topPadding !== undefined ? bounds.topPadding : 0
+        return Math.max(0, origin.y - topPad - spacing)
     }
 
     function idealPopupHeight() {
-        return estimatePopupHeight()
+        return estimatePopupHeight(root.minVisibleEntries)
+    }
+
+    function directionThresholdHeight() {
+        return estimatePopupHeight(root.directionVisibleEntries)
+    }
+
+    function listEntryHeight() {
+        return Kirigami.Units.gridUnit + Kirigami.Units.smallSpacing
+    }
+
+    function listSectionHeight() {
+        return Math.max(Kirigami.Units.iconSizes.small * 0.85, Kirigami.Units.gridUnit)
+               + Kirigami.Units.smallSpacing
     }
 
     implicitHeight: field.implicitHeight
@@ -127,16 +162,17 @@ Item {
         return result
     }
 
-    function estimatePopupHeight() {
-        var entryH = Math.max(field.height, Kirigami.Units.gridUnit * 2)
-        var sectionH = Kirigami.Units.gridUnit + Kirigami.Units.smallSpacing
+    function estimatePopupHeight(visibleEntryLimit) {
+        var entryH = listEntryHeight()
+        var sectionH = listSectionHeight()
         var padding = popup.topPadding + popup.bottomPadding + Kirigami.Units.smallSpacing
         var count = filteredModel.length
         if (count === 0) {
             return entryH + padding
         }
 
-        var visible = Math.min(count, root.minVisibleEntries)
+        var limit = visibleEntryLimit !== undefined ? visibleEntryLimit : root.minVisibleEntries
+        var visible = Math.min(count, limit)
         var visibleSections = 0
         var seenVisible = ({})
         for (var j = 0; j < visible; j++) {
@@ -148,7 +184,7 @@ Item {
         }
 
         var estimated = visible * entryH + visibleSections * sectionH + padding
-        if (listView.contentHeight > 0) {
+        if (listView.contentHeight > 0 && limit >= root.minVisibleEntries) {
             var full = listView.contentHeight + padding
             if (count <= root.minVisibleEntries) {
                 return full
@@ -167,10 +203,11 @@ Item {
         if (!root.useSharedDirection) {
             var below = root.spaceBelow()
             var above = root.spaceAbove()
-            if (below >= idealHeight) {
+            var threshold = root.directionThresholdHeight()
+            if (below >= threshold) {
                 openBelow = true
                 available = below
-            } else if (above >= idealHeight) {
+            } else if (above >= threshold) {
                 openBelow = false
                 available = above
             } else {
@@ -337,6 +374,7 @@ Item {
         closePolicy: QQC2.Popup.CloseOnEscape | QQC2.Popup.CloseOnPressOutsideParent
 
         onAboutToShow: root.placePopup()
+        onOpened: Qt.callLater(root.placePopup)
 
         contentItem: ListView {
             id: listView
@@ -369,7 +407,6 @@ Item {
 
             delegate: QQC2.ItemDelegate {
                 width: ListView.view.width
-                // Match section inset so dots share one vertical axis.
                 leftPadding: Kirigami.Units.smallSpacing
                 rightPadding: Kirigami.Units.smallSpacing
                 topPadding: Kirigami.Units.smallSpacing / 2

@@ -15,6 +15,7 @@ import "../code/favorites.js" as Favorites
 import "../code/sharedConfig.js" as SharedConfig
 import "../code/colorDistinct.js" as ColorDistinct
 import "../code/maintenanceCache.js" as CatalogCache
+import "../code/buildInfo.js" as BuildInfo
 import "."
 
 PlasmoidItem {
@@ -52,6 +53,8 @@ PlasmoidItem {
     property bool loadingProjects: false
     property bool loadingPinned: false
     property string userMessage: ""
+    /** Transient hint key for "already tracking" feedback on Recent rows. */
+    property string alreadyRunningHintKey: ""
 
     property var currentTimesheetId: invalidTimesheetId
     property string currentProject: ""
@@ -192,32 +195,46 @@ PlasmoidItem {
     readonly property bool showErrorState: errorMessage.length > 0 && connectionState === "error"
 
     function dismissPickerPopups() {
-        if (typeof projectCombo !== "undefined" && projectCombo) {
-            projectCombo.closePopup()
+        if (typeof switchPickers !== "undefined" && switchPickers) {
+            switchPickers.closePickers()
         }
-        if (typeof activityCombo !== "undefined" && activityCombo) {
-            activityCombo.closePopup()
+        if (typeof manualEntryView !== "undefined" && manualEntryView) {
+            manualEntryView.closePickers()
+        }
+        if (typeof activeEditView !== "undefined" && activeEditView) {
+            activeEditView.closePickers()
         }
     }
 
-    function updatePickerOpenDirection() {
-        var fallbackIdeal = Kirigami.Units.gridUnit * 2 * 10
-        var ideal = fallbackIdeal
-        if (typeof projectCombo !== "undefined" && projectCombo) {
-            ideal = Math.max(ideal, projectCombo.idealPopupHeight())
+    function updatePickerOpenDirection(projectField, activityField) {
+        var projectPicker = projectField
+            || (typeof switchPickers !== "undefined" && switchPickers ? switchPickers.projectCombo : null)
+        var activityPicker = activityField
+            || (typeof switchPickers !== "undefined" && switchPickers ? switchPickers.activityCombo : null)
+        if (!projectPicker || !activityPicker) {
+            return
         }
-        if (typeof activityCombo !== "undefined" && activityCombo) {
-            ideal = Math.max(ideal, activityCombo.idealPopupHeight())
-        }
-        var minBelow = Math.min(projectCombo.spaceBelow(), activityCombo.spaceBelow())
-        var minAbove = Math.min(projectCombo.spaceAbove(), activityCombo.spaceAbove())
-        if (minBelow >= ideal) {
-            pickerOpenBelow = true
-        } else if (minAbove >= ideal) {
-            pickerOpenBelow = false
+
+        var fallbackIdeal = (Kirigami.Units.gridUnit + Kirigami.Units.smallSpacing) * 10
+        var ideal = Math.max(fallbackIdeal,
+                             projectPicker.directionThresholdHeight(),
+                             activityPicker.directionThresholdHeight())
+        var spaceBelow = activityPicker.spaceBelow()
+        // Upward opening is limited by the lower field; don't use the upper field's
+        // (often much larger) space-above measurement.
+        var spaceAbove = Math.min(projectPicker.spaceAbove(), activityPicker.spaceAbove())
+
+        // Prefer below when it fits; open above only when below is too tight.
+        var decidedOpenBelow
+        if (spaceBelow >= ideal) {
+            decidedOpenBelow = true
+        } else if (spaceAbove >= ideal) {
+            decidedOpenBelow = false
         } else {
-            pickerOpenBelow = minBelow >= minAbove
+            decidedOpenBelow = spaceBelow >= spaceAbove
         }
+
+        pickerOpenBelow = decidedOpenBelow
     }
 
     // Panel: compact icon; desktop: full widget (so display settings apply in-place).
@@ -304,6 +321,13 @@ PlasmoidItem {
         interval: 900
         repeat: false
         onTriggered: root.descriptionSavedFlash = false
+    }
+
+    Timer {
+        id: alreadyRunningHintTimer
+        interval: 1400
+        repeat: false
+        onTriggered: root.alreadyRunningHintKey = ""
     }
 
     function formatRelativeTime(isoDate) {
@@ -928,18 +952,18 @@ PlasmoidItem {
                 for (var a = 0; a < activityPickerModel.length; a++) {
                     if (activityPickerModel[a].value
                         && String(activityPickerModel[a].value.id) === String(activityIdToSelect)) {
-                        activityCombo.currentIndex = a
+                        switchPickers.activityCombo.currentIndex = a
                         return
                     }
                 }
             }
-            activityCombo.currentIndex = -1
+            switchPickers.activityCombo.currentIndex = -1
             return
         }
         setError(result.error)
         activities = []
         activityPickerModel = []
-        activityCombo.currentIndex = -1
+        switchPickers.activityCombo.currentIndex = -1
     }
 
     function selectProjectById(projectId, activityIdToSelect) {
@@ -957,7 +981,7 @@ PlasmoidItem {
         if (idx < 0) {
             return
         }
-        projectCombo.currentIndex = idx
+        switchPickers.projectCombo.currentIndex = idx
         selectedProjectId = projectId
         tracker.loadActivities(kimaiUrl, apiToken, projectId, function(result) {
             applyActivitiesResult(projectId, result, activityIdToSelect)
@@ -1327,7 +1351,7 @@ PlasmoidItem {
         if (!isConfigured || !projectId) {
             activities = []
             activityPickerModel = []
-            activityCombo.currentIndex = -1
+            switchPickers.activityCombo.currentIndex = -1
             return
         }
 
@@ -1534,12 +1558,22 @@ PlasmoidItem {
             return
         }
 
+        function switchKeyForTimesheet(ts) {
+            var pid = KimaiApi.projectId(ts)
+            var aid = KimaiApi.activityId(ts)
+            var idPart = (ts && ts.id !== undefined && ts.id !== null) ? ts.id : ""
+            return String(pid) + "|" + String(aid) + "|" + String(idPart)
+        }
+
         var pid = KimaiApi.projectId(timesheet)
         var aid = KimaiApi.activityId(timesheet)
         if (activeTimesheet
                 && String(KimaiApi.projectId(activeTimesheet)) === String(pid)
                 && String(KimaiApi.activityId(activeTimesheet)) === String(aid)) {
-            userMessage = i18n("Already tracking this activity")
+            // Same project/activity is already running. Provide a visible per-row hint.
+            alreadyRunningHintKey = switchKeyForTimesheet(timesheet)
+            alreadyRunningHintTimer.restart()
+            userMessage = ""
             return
         }
 
@@ -1841,22 +1875,6 @@ PlasmoidItem {
             onDiscarded: root.pendingSwitchTimesheet = null
         }
 
-        Connections {
-            target: popupScroll.contentItem
-            ignoreUnknownSignals: true
-            function onContentYChanged() {
-                if (projectCombo.popupOpen || activityCombo.popupOpen) {
-                    root.dismissPickerPopups()
-                }
-            }
-            function onMovementStarted() {
-                root.dismissPickerPopups()
-            }
-            function onFlickStarted() {
-                root.dismissPickerPopups()
-            }
-        }
-
         PlasmaComponents3.ScrollView {
             id: popupScroll
             anchors {
@@ -1870,6 +1888,11 @@ PlasmoidItem {
             contentWidth: Math.max(0, width - scrollGutter)
             rightPadding: 0
             leftPadding: 0
+
+            // Track scroll position so pickers close even if Connections to
+            // contentItem was established before the Flickable existed.
+            readonly property real scrollPos: contentItem ? contentItem.contentY : 0
+            onScrollPosChanged: root.dismissPickerPopups()
 
             // Custom slim scrollbar — Plasma theme bars stay wide via SVG hints.
             QQC2.ScrollBar.vertical: QQC2.ScrollBar {
@@ -1908,7 +1931,8 @@ PlasmoidItem {
                         Layout.fillWidth: true
                         level: 3
                         text: root.mainViewMode === "stats" ? i18n("Statistics")
-                              : (root.mainViewMode === "manual" ? i18n("Add entry") : i18n("Plasmai"))
+                              : (root.mainViewMode === "manual" ? i18n("Add entry")
+                                  : (BuildInfo.BUILD > 0 ? (i18n("Plasmai") + " #" + BuildInfo.BUILD) : i18n("Plasmai")))
                     }
 
                     PlasmaComponents3.ToolButton {
@@ -2034,10 +2058,13 @@ PlasmoidItem {
                     activityPickerModel: root.activityPickerModel
                     activitySectionTitles: root.activitySectionTitles
                     pickerOpenBelow: root.pickerOpenBelow
+                    pickerViewport: popupScroll
                     busy: root.isBusy
                     configured: root.isConfigured
                     connectionOk: root.connectionState !== "error"
-                    onAboutToOpenPicker: root.updatePickerOpenDirection()
+                    onAboutToOpenPicker: function(projectField, activityField) {
+                        root.updatePickerOpenDirection(projectField, activityField)
+                    }
                     onProjectChosen: function(projectId) {
                         root.loadActivitiesForProject(projectId)
                     }
@@ -2370,10 +2397,13 @@ PlasmoidItem {
                                 activityPickerModel: root.activityPickerModel
                                 activitySectionTitles: root.activitySectionTitles
                                 pickerOpenBelow: root.pickerOpenBelow
+                                pickerViewport: popupScroll
                                 busy: root.isBusy
                                 configured: root.isConfigured
                                 connectionOk: root.connectionState !== "error"
-                                onAboutToOpenPicker: root.updatePickerOpenDirection()
+                                onAboutToOpenPicker: function(projectField, activityField) {
+                                    root.updatePickerOpenDirection(projectField, activityField)
+                                }
                                 onProjectChosen: function(projectId) {
                                     root.loadActivitiesForProject(projectId)
                                 }
@@ -2615,6 +2645,10 @@ PlasmoidItem {
                     Repeater {
                         model: root.loadingRecent && root.recentTimesheets.length === 0 ? 0 : root.recentVisibleCount
                         delegate: ActivityListRow {
+                            readonly property var ts: root.recentTimesheets[index]
+                            readonly property string tsKey: String(KimaiApi.projectId(ts))
+                                                             + "|" + String(KimaiApi.activityId(ts))
+                                                             + "|" + String((ts && ts.id !== undefined && ts.id !== null) ? ts.id : "")
                             Layout.fillWidth: true
                             readonly property var barInfo: KimaiApi.barColorInfoFromTimesheet(
                                 root.recentTimesheets[index], root.customersById)
@@ -2634,6 +2668,11 @@ PlasmoidItem {
                                 return bits.join(" · ")
                             }
                             rowEnabled: root.isConfigured && !root.isBusy && root.connectionState !== "error"
+                            runningHintVisible: root.alreadyRunningHintKey === tsKey
+                            runningHintText: i18n("Läuft bereits.")
+                            runningHintCounterText: root.isTracking
+                                                    ? KimaiApi.formatDurationPanel(root.elapsedSeconds)
+                                                    : ""
                             onClicked: root.requestRestartFromRecent(root.recentTimesheets[index])
                         }
                     }
@@ -2685,39 +2724,30 @@ PlasmoidItem {
                              && root.projectPickerModel.length === 0
                 }
 
-                SearchableCombo {
-                    id: projectCombo
+                ProjectActivityPickers {
+                    id: switchPickers
                     Layout.fillWidth: true
                     visible: root.showNewActivityHere && root.showNewActivityForm && !root.loadingProjects
-                    enabled: root.isConfigured && !root.isBusy && root.connectionState !== "error"
-                    items: root.projectPickerModel
-                    placeholderText: i18n("Select project…")
-                    useSharedDirection: true
-                    openBelow: root.pickerOpenBelow
-                    onAboutToOpen: root.updatePickerOpenDirection()
-                    onActivated: function(index) {
-                        if (index < 0 || index >= items.length) {
+                    projectPickerModel: root.projectPickerModel
+                    activityPickerModel: root.activityPickerModel
+                    activitySectionTitles: root.activitySectionTitles
+                    pickerOpenBelow: root.pickerOpenBelow
+                    pickerViewport: popupScroll
+                    projectEnabled: root.isConfigured && !root.isBusy && root.connectionState !== "error"
+                    activityEnabled: root.isConfigured && !root.isBusy && root.connectionState !== "error"
+                                 && !!root.selectedProjectId
+                    projectVisible: !root.loadingProjects
+                    activityVisible: !root.loadingProjects || root.activityPickerModel.length > 0
+                    onAboutToOpenPicker: function(projectField, activityField) {
+                        root.updatePickerOpenDirection(projectField, activityField)
+                    }
+                    onProjectActivated: function(index) {
+                        if (index < 0 || index >= switchPickers.projectPickerModel.length) {
                             root.loadActivitiesForProject(0)
                             return
                         }
-                        var project = items[index].value
-                        root.loadActivitiesForProject(project.id)
+                        root.loadActivitiesForProject(switchPickers.projectPickerModel[index].value.id)
                     }
-                }
-
-                SearchableCombo {
-                    id: activityCombo
-                    Layout.fillWidth: true
-                    visible: root.showNewActivityHere && root.showNewActivityForm
-                             && (!root.loadingProjects || root.activityPickerModel.length > 0)
-                    enabled: root.isConfigured && !root.isBusy && root.connectionState !== "error"
-                             && !!root.selectedProjectId
-                    items: root.activityPickerModel
-                    placeholderText: i18n("Select activity…")
-                    sectionTitleMap: root.activitySectionTitles
-                    useSharedDirection: true
-                    openBelow: root.pickerOpenBelow
-                    onAboutToOpen: root.updatePickerOpenDirection()
                 }
 
                 QQC2.TextField {
@@ -2736,12 +2766,13 @@ PlasmoidItem {
                     PlasmaComponents3.Button {
                         Layout.fillWidth: true
                         enabled: root.isConfigured && !root.isBusy && !root.isTracking && root.connectionState !== "error"
-                                 && projectCombo.currentIndex >= 0 && activityCombo.currentIndex >= 0
+                                 && switchPickers.projectCombo.currentIndex >= 0
+                                 && switchPickers.activityCombo.currentIndex >= 0
                         text: i18n("Start")
                         icon.name: "media-playback-start"
                         onClicked: {
-                            var project = projectCombo.currentItem.value
-                            var activity = activityCombo.currentItem.value
+                            var project = switchPickers.projectCombo.currentItem.value
+                            var activity = switchPickers.activityCombo.currentItem.value
                             root.startTracking(project.id, activity.id, project.name, activity.name, descriptionField.text)
                         }
                     }
@@ -2750,12 +2781,13 @@ PlasmoidItem {
                         Layout.fillWidth: true
                         visible: root.isTracking
                         enabled: root.isConfigured && !root.isBusy && root.connectionState !== "error"
-                                 && projectCombo.currentIndex >= 0 && activityCombo.currentIndex >= 0
+                                 && switchPickers.projectCombo.currentIndex >= 0
+                                 && switchPickers.activityCombo.currentIndex >= 0
                         text: i18n("Switch")
                         icon.name: "media-skip-forward"
                         onClicked: {
-                            var project = projectCombo.currentItem.value
-                            var activity = activityCombo.currentItem.value
+                            var project = switchPickers.projectCombo.currentItem.value
+                            var activity = switchPickers.activityCombo.currentItem.value
                             root.switchToActivity(project.id, activity.id, project.name, activity.name, descriptionField.text)
                         }
                     }

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-08-11 16:59+0200\n"
+"POT-Creation-Date: 2026-08-12 11:38+0200\n"
 "PO-Revision-Date: 2026-08-09 19:45+0200\n"
 "Last-Translator: Cursor Agent\n"
 "Language-Team: Polish\n"
@@ -16,326 +16,316 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#: contents/ui/main.qml:186 contents/ui/config/ConfigFavorites.qml:157
+#: contents/ui/main.qml:189 contents/ui/config/ConfigFavorites.qml:157
 msgid "Project-specific"
 msgstr "Specyficzne dla projektu"
 
-#: contents/ui/main.qml:187 contents/ui/config/ConfigFavorites.qml:160
+#: contents/ui/main.qml:190 contents/ui/config/ConfigFavorites.qml:160
 msgid "Global activities"
 msgstr "Globalne aktywności"
 
-#: contents/ui/main.qml:236 contents/ui/main.qml:251 contents/ui/main.qml:1911
+#: contents/ui/main.qml:259 contents/ui/main.qml:274 contents/ui/main.qml:1950
 msgid "Plasmai"
 msgstr "Plasmai"
 
-#: contents/ui/main.qml:240
+#: contents/ui/main.qml:263
 msgid "Toggle Plasmai tracking"
 msgstr "Przełącz rejestrowanie Plasmai"
 
-#: contents/ui/main.qml:245
+#: contents/ui/main.qml:268
 msgid "Stop Plasmai tracking"
 msgstr "Zatrzymaj rejestrowanie Plasmai"
 
-#: contents/ui/main.qml:255
+#: contents/ui/main.qml:278
 msgid "Loading…"
 msgstr "Ładowanie…"
 
-#: contents/ui/main.qml:258
+#: contents/ui/main.qml:281
 msgid "Not configured — right-click to configure"
 msgstr "Nie skonfigurowano — kliknij prawym przyciskiem, aby skonfigurować"
 
-#: contents/ui/main.qml:319
+#: contents/ui/main.qml:349
 msgid "just now"
 msgstr "przed chwilą"
 
-#: contents/ui/main.qml:323
+#: contents/ui/main.qml:353
 msgid "%1 minute ago"
 msgid_plural "%1 minutes ago"
 msgstr[0] "%1 minutę temu"
 msgstr[1] "%1 minuty temu"
 msgstr[2] "%1 minut temu"
 
-#: contents/ui/main.qml:327
+#: contents/ui/main.qml:357
 msgid "%1 hour ago"
 msgid_plural "%1 hours ago"
 msgstr[0] "%1 godzinę temu"
 msgstr[1] "%1 godziny temu"
 msgstr[2] "%1 godzin temu"
 
-#: contents/ui/main.qml:331
+#: contents/ui/main.qml:361
 msgid "yesterday"
 msgstr "wczoraj"
 
-#: contents/ui/main.qml:334
+#: contents/ui/main.qml:364
 msgid "%1 day ago"
 msgid_plural "%1 days ago"
 msgstr[0] "%1 dzień temu"
 msgstr[1] "%1 dni temu"
 msgstr[2] "%1 dni temu"
 
-#: contents/ui/main.qml:354
+#: contents/ui/main.qml:384
 msgid "Not configured"
 msgstr "Nie skonfigurowano"
 
-#: contents/ui/main.qml:357
+#: contents/ui/main.qml:387
 msgid "Connecting to %1…"
 msgstr "Łączenie z %1…"
 
-#: contents/ui/main.qml:360
+#: contents/ui/main.qml:390
 msgid "Connection problem"
 msgstr "Problem z połączeniem"
 
-#: contents/ui/main.qml:364
+#: contents/ui/main.qml:394
 msgid "Connected to %1 (%2)"
 msgstr "Połączono z %1 (%2)"
 
-#: contents/ui/main.qml:365
+#: contents/ui/main.qml:395
 msgid "Connected to %1"
 msgstr "Połączono z %1"
 
-#: contents/ui/main.qml:470
+#: contents/ui/main.qml:500
 msgid "This provider cannot update the running entry."
 msgstr "Ten dostawca nie może zaktualizować bieżącego wpisu."
 
-#: contents/ui/main.qml:482
+#: contents/ui/main.qml:512
 msgid "Enter a valid start date/time."
 msgstr "Podaj prawidłową datę/godzinę rozpoczęcia."
 
-#: contents/ui/main.qml:486
+#: contents/ui/main.qml:516
 msgid "Start must not be in the future."
 msgstr "Start nie może być w przyszłości."
 
-#: contents/ui/main.qml:593
+#: contents/ui/main.qml:623
 msgid "Enter valid begin and end date/time."
 msgstr "Wprowadź prawidłową datę i godzinę rozpoczęcia oraz zakończenia."
 
-#: contents/ui/main.qml:597
+#: contents/ui/main.qml:627
 msgid "End must be after begin."
 msgstr "Koniec musi być po rozpoczęciu."
 
-#: contents/ui/main.qml:616
+#: contents/ui/main.qml:646
 msgid "Entry added"
 msgstr "Wpis dodany"
 
-#: contents/ui/main.qml:616
+#: contents/ui/main.qml:646
 msgid "Manual time entry"
 msgstr "Ręczny wpis czasu"
 
-#: contents/ui/main.qml:824
+#: contents/ui/main.qml:854
 msgid "This provider cannot update descriptions."
 msgstr ""
 
-#: contents/ui/main.qml:847
+#: contents/ui/main.qml:877
 msgid "%1 left today"
 msgstr "Pozostało dziś: %1"
 
-#: contents/ui/main.qml:849
+#: contents/ui/main.qml:879
 msgid "%1 over today"
 msgstr "Przekroczono dziś o %1"
 
-#: contents/ui/main.qml:854
+#: contents/ui/main.qml:884
 msgid "%1 left this week"
 msgstr "Pozostało w tym tygodniu: %1"
 
-#: contents/ui/main.qml:856
+#: contents/ui/main.qml:886
 msgid "%1 over this week"
 msgstr "Przekroczono w tym tygodniu o %1"
 
-#: contents/ui/main.qml:861 contents/ui/main.qml:884 contents/ui/main.qml:2256
+#: contents/ui/main.qml:891 contents/ui/main.qml:914 contents/ui/main.qml:2298
 msgid "Today %1"
 msgstr "Dziś %1"
 
-#: contents/ui/main.qml:862 contents/ui/main.qml:2258
+#: contents/ui/main.qml:892 contents/ui/main.qml:2300
 msgid "Week %1"
 msgstr "Tydzień %1"
 
-#: contents/ui/main.qml:1356 contents/ui/main.qml:1505
+#: contents/ui/main.qml:1386 contents/ui/main.qml:1535
 msgid "Tracking started"
 msgstr "Rozpoczęto rejestrowanie"
 
-#: contents/ui/main.qml:1396
+#: contents/ui/main.qml:1426
 msgid "Switched activity"
 msgstr "Zmieniono aktywność"
 
-#: contents/ui/main.qml:1467
+#: contents/ui/main.qml:1497
 msgid "Tracking stopped (idle)"
 msgstr "Rejestrowanie zatrzymane (bezczynność)"
 
-#: contents/ui/main.qml:1471
+#: contents/ui/main.qml:1501
 msgid "Tracking stopped"
 msgstr "Rejestrowanie zatrzymane"
 
-#: contents/ui/main.qml:1542
-msgid "Already tracking this activity"
-msgstr "Ta aktywność jest już śledzona"
-
-#: contents/ui/main.qml:1563
+#: contents/ui/main.qml:1603
 msgid "Could not resolve project or activity for that entry"
 msgstr "Nie udało się rozpoznać projektu lub aktywności dla tego wpisu"
 
-#: contents/ui/main.qml:1662
+#: contents/ui/main.qml:1702
 msgid "Stop tracking?"
 msgstr "Zatrzymać rejestrowanie?"
 
-#: contents/ui/main.qml:1675
+#: contents/ui/main.qml:1715
 msgid "Stop tracking %1 · %2?"
 msgstr "Zatrzymać rejestrowanie %1 · %2?"
 
-#: contents/ui/main.qml:1686 contents/ui/main.qml:2678
+#: contents/ui/main.qml:1726 contents/ui/main.qml:2729
 msgid "Switch activity"
 msgstr "Zmień aktywność"
 
-#: contents/ui/main.qml:1795
+#: contents/ui/main.qml:1835
 msgid "Current"
 msgstr "Bieżąca"
 
-#: contents/ui/main.qml:1816
+#: contents/ui/main.qml:1856
 msgid "Switch to"
 msgstr "Przełącz na"
 
-#: contents/ui/main.qml:1829 contents/ui/main.qml:2754
+#: contents/ui/main.qml:1869 contents/ui/main.qml:2798
 msgid "Switch"
 msgstr "Zmień"
 
-#: contents/ui/main.qml:1834 contents/ui/main.qml:2765
-#: contents/ui/ManualEntryView.qml:221 contents/ui/ActiveEditView.qml:290
+#: contents/ui/main.qml:1874 contents/ui/main.qml:2809
+#: contents/ui/ManualEntryView.qml:220 contents/ui/ActiveEditView.qml:289
 #: contents/ui/TimeField.qml:254
 msgid "Cancel"
 msgstr "Anuluj"
 
-#: contents/ui/main.qml:1910 contents/ui/main.qml:1930
+#: contents/ui/main.qml:1948 contents/ui/main.qml:1969
 msgid "Statistics"
 msgstr "Statystyki"
 
-#: contents/ui/main.qml:1911 contents/ui/main.qml:1917
+#: contents/ui/main.qml:1949 contents/ui/main.qml:1956
 msgid "Add entry"
 msgstr "Dodaj wpis"
 
-#: contents/ui/main.qml:1921
+#: contents/ui/main.qml:1960
 msgid "Add a manual time entry"
 msgstr "Dodaj ręczny wpis czasu"
 
-#: contents/ui/main.qml:1934
+#: contents/ui/main.qml:1973
 msgid "Show statistics"
 msgstr "Pokaż statystyki"
 
-#: contents/ui/main.qml:1942
+#: contents/ui/main.qml:1981
 msgid "Back"
 msgstr "Wstecz"
 
-#: contents/ui/main.qml:1945
+#: contents/ui/main.qml:1984
 msgid "Back to timer"
 msgstr "Wróć do licznika"
 
-#: contents/ui/main.qml:2001
+#: contents/ui/main.qml:2040
 msgid "Connect a time tracker"
 msgstr "Połącz usługę rejestrowania czasu"
 
-#: contents/ui/main.qml:2002
+#: contents/ui/main.qml:2041
 msgid "Add your service, server URL (if needed), and API token to start tracking from the panel."
 msgstr "Dodaj usługę, adres URL serwera (jeśli potrzebny) i token API, aby rozpocząć rejestrowanie z panelu."
 
-#: contents/ui/main.qml:2004
+#: contents/ui/main.qml:2043
 msgid "Configure Plasmai"
 msgstr "Skonfiguruj Plasmai"
 
-#: contents/ui/main.qml:2017
+#: contents/ui/main.qml:2056
 msgid "Retry"
 msgstr "Spróbuj ponownie"
 
-#: contents/ui/main.qml:2022
+#: contents/ui/main.qml:2061
 msgid "Configure"
 msgstr "Konfiguruj"
 
-#: contents/ui/main.qml:2156
+#: contents/ui/main.qml:2198
 msgid "Not tracking"
 msgstr "Brak rejestrowania"
 
-#: contents/ui/main.qml:2301 contents/ui/main.qml:2337
+#: contents/ui/main.qml:2343 contents/ui/main.qml:2379
 msgid "Edit"
 msgstr "Edytuj"
 
-#: contents/ui/main.qml:2312 contents/ui/main.qml:2348
+#: contents/ui/main.qml:2354 contents/ui/main.qml:2390
 msgid "Edit start, project, and activity"
 msgstr "Edytuj start, projekt i aktywność"
 
-#: contents/ui/main.qml:2323 contents/ui/main.qml:2356
+#: contents/ui/main.qml:2365 contents/ui/main.qml:2398
 msgid "Stop"
 msgstr "Stop"
 
-#: contents/ui/main.qml:2398
+#: contents/ui/main.qml:2443
 msgid "Description"
 msgstr "Opis"
 
-#: contents/ui/main.qml:2464
+#: contents/ui/main.qml:2509
 msgid "Save description"
 msgstr "Zapisz opis"
 
-#: contents/ui/main.qml:2482
+#: contents/ui/main.qml:2527
 msgid "Continue · %1 · %2"
 msgstr "Kontynuuj · %1 · %2"
 
-#: contents/ui/main.qml:2499 contents/ui/config/ConfigFavorites.qml:198
+#: contents/ui/main.qml:2544 contents/ui/config/ConfigFavorites.qml:198
 #: contents/ui/config/ConfigDisplay.qml:668
 #: contents/ui/config/ConfigDisplay.qml:728 contents/config/config.qml:11
 msgid "Favorites"
 msgstr "Ulubione"
 
-#: contents/ui/main.qml:2566
+#: contents/ui/main.qml:2611
 msgid "No favorites yet"
 msgstr "Brak ulubionych"
 
-#: contents/ui/main.qml:2572
+#: contents/ui/main.qml:2617
 msgid "Pin frequent project/activity pairs in the widget settings."
 msgstr "Przypnij często używane pary projekt/aktywność w ustawieniach widgetu."
 
-#: contents/ui/main.qml:2577
+#: contents/ui/main.qml:2622
 msgid "Configure favorites"
 msgstr "Skonfiguruj ulubione"
 
-#: contents/ui/main.qml:2593
+#: contents/ui/main.qml:2638
 msgid "+%1 more in settings"
 msgstr "+%1 więcej w ustawieniach"
 
-#: contents/ui/main.qml:2604
+#: contents/ui/main.qml:2649
 msgid "Recent"
 msgstr "Ostatnie"
 
-#: contents/ui/main.qml:2656
+#: contents/ui/main.qml:2687
+msgid "Läuft bereits."
+msgstr ""
+
+#: contents/ui/main.qml:2707
 msgid "No recent activities"
 msgstr "Brak ostatnich aktywności"
 
-#: contents/ui/main.qml:2657
+#: contents/ui/main.qml:2708
 msgid "Start tracking to build your recent list."
 msgstr "Rozpocznij rejestrowanie, aby utworzyć listę ostatnich."
 
-#: contents/ui/main.qml:2667
+#: contents/ui/main.qml:2718
 msgid "Switch to another activity…"
 msgstr "Przełącz na inną aktywność…"
 
-#: contents/ui/main.qml:2667
+#: contents/ui/main.qml:2718
 msgid "Start something else…"
 msgstr "Rozpocznij coś innego…"
 
-#: contents/ui/main.qml:2678
+#: contents/ui/main.qml:2729
 msgid "New activity"
 msgstr "Nowa aktywność"
 
-#: contents/ui/main.qml:2694 contents/ui/ManualEntryView.qml:97
-#: contents/ui/ActiveEditView.qml:208
-msgid "Select project…"
-msgstr "Wybierz projekt…"
-
-#: contents/ui/main.qml:2716 contents/ui/ManualEntryView.qml:116
-#: contents/ui/ActiveEditView.qml:228
-msgid "Select activity…"
-msgstr "Wybierz aktywność…"
-
-#: contents/ui/main.qml:2728 contents/ui/ManualEntryView.qml:194
+#: contents/ui/main.qml:2770 contents/ui/ManualEntryView.qml:193
 msgid "Description (optional)"
 msgstr "Opis (opcjonalnie)"
 
-#: contents/ui/main.qml:2740 contents/ui/ActiveEditView.qml:238
+#: contents/ui/main.qml:2783 contents/ui/ActiveEditView.qml:237
 msgid "Start"
 msgstr "Start"
 
@@ -383,133 +373,143 @@ msgstr "Żądanie nie powiodło się: %1"
 msgid "Request failed (%1)."
 msgstr "Żądanie nie powiodło się (%1)."
 
-#: contents/ui/ManualEntryView.qml:89
+#: contents/ui/ProjectActivityPickers.qml:42
+msgid "Select project…"
+msgstr "Wybierz projekt…"
+
+#: contents/ui/ProjectActivityPickers.qml:59
+msgid "Select activity…"
+msgstr "Wybierz aktywność…"
+
+#: contents/ui/ManualEntryView.qml:97
 msgid "Create a finished entry with project, activity, and time range."
 msgstr "Utwórz zakończony wpis z projektem, aktywnością i zakresem czasu."
 
-#: contents/ui/ManualEntryView.qml:126
+#: contents/ui/ManualEntryView.qml:125
 msgid "Begin"
 msgstr "Początek"
 
-#: contents/ui/ManualEntryView.qml:150
+#: contents/ui/ManualEntryView.qml:149
 msgid "End"
 msgstr "Koniec"
 
-#: contents/ui/ManualEntryView.qml:180
+#: contents/ui/ManualEntryView.qml:179
 msgid "Duration: %1"
 msgstr "Czas trwania: %1"
 
-#: contents/ui/ManualEntryView.qml:184
+#: contents/ui/ManualEntryView.qml:183
 msgid "Duration: —"
 msgstr "Czas trwania: —"
 
-#: contents/ui/ManualEntryView.qml:186
+#: contents/ui/ManualEntryView.qml:185
 msgid "Duration: invalid range"
 msgstr "Czas trwania: nieprawidłowy zakres"
 
-#: contents/ui/ManualEntryView.qml:206
+#: contents/ui/ManualEntryView.qml:205
 msgid "Save entry"
 msgstr "Zapisz wpis"
 
-#: contents/ui/ActiveEditView.qml:200
+#: contents/ui/ActiveEditView.qml:208
 msgid "Edit start time, project, and activity for the running entry."
 msgstr "Edytuj czas rozpoczęcia, projekt i aktywność bieżącego wpisu."
 
-#: contents/ui/ActiveEditView.qml:267
+#: contents/ui/ActiveEditView.qml:266
 msgid "Elapsed time updates from the new start."
 msgstr "Czas upływający jest przeliczany od nowego startu."
 
-#: contents/ui/ActiveEditView.qml:268
+#: contents/ui/ActiveEditView.qml:267
 msgid "Start must be a valid time not in the future."
 msgstr "Start musi być poprawną godziną i nie może być w przyszłości."
 
-#: contents/ui/ActiveEditView.qml:280
+#: contents/ui/ActiveEditView.qml:279
 msgid "Save"
 msgstr "Zapisz"
 
-#: contents/ui/StatsView.qml:40
+#: contents/ui/StatsView.qml:43
 msgid "All"
 msgstr "Wszystkie"
 
-#: contents/ui/StatsView.qml:41
+#: contents/ui/StatsView.qml:44
 msgid "Billable"
 msgstr "Płatne"
 
-#: contents/ui/StatsView.qml:42
+#: contents/ui/StatsView.qml:45
 msgid "Non-billable"
 msgstr "Niepłatne"
 
-#: contents/ui/StatsView.qml:217 contents/ui/StatsView.qml:269
-#: contents/ui/StatsView.qml:503
+#: contents/ui/StatsView.qml:232 contents/ui/StatsView.qml:284
+#: contents/ui/StatsView.qml:518
 msgid "Today"
 msgstr "Dziś"
 
-#: contents/ui/StatsView.qml:229 contents/ui/StatsView.qml:322
-#: contents/ui/StatsView.qml:403 contents/ui/StatsView.qml:512
+#: contents/ui/StatsView.qml:244 contents/ui/StatsView.qml:337
+#: contents/ui/StatsView.qml:418 contents/ui/StatsView.qml:544
 msgid "This week"
 msgstr "Ten tydzień"
 
-#: contents/ui/StatsView.qml:250
+#: contents/ui/StatsView.qml:265
 msgid "Time by hour"
 msgstr "Czas według godzin"
 
-#: contents/ui/StatsView.qml:259
+#: contents/ui/StatsView.qml:274
 msgid "Previous day"
 msgstr "Poprzedni dzień"
 
-#: contents/ui/StatsView.qml:272
+#: contents/ui/StatsView.qml:287
 msgid "Yesterday"
 msgstr "Wczoraj"
 
-#: contents/ui/StatsView.qml:282
+#: contents/ui/StatsView.qml:297
 msgid "Next day"
 msgstr "Następny dzień"
 
-#: contents/ui/StatsView.qml:292
+#: contents/ui/StatsView.qml:307
 msgid "No time logged this day"
 msgstr "Brak zalogowanego czasu w tym dniu"
 
-#: contents/ui/StatsView.qml:303
+#: contents/ui/StatsView.qml:318
 msgid "Projects by day"
 msgstr "Projekty według dni"
 
-#: contents/ui/StatsView.qml:312 contents/ui/StatsView.qml:393
+#: contents/ui/StatsView.qml:327 contents/ui/StatsView.qml:408
+#: contents/ui/StatsView.qml:534
 msgid "Previous week"
 msgstr "Poprzedni tydzień"
 
-#: contents/ui/StatsView.qml:332 contents/ui/StatsView.qml:413
+#: contents/ui/StatsView.qml:347 contents/ui/StatsView.qml:428
+#: contents/ui/StatsView.qml:554
 msgid "Next week"
 msgstr "Następny tydzień"
 
-#: contents/ui/StatsView.qml:342 contents/ui/StatsView.qml:440
+#: contents/ui/StatsView.qml:357 contents/ui/StatsView.qml:455
 msgid "No time logged this week"
 msgstr "Brak zalogowanego czasu w tym tygodniu"
 
-#: contents/ui/StatsView.qml:384
+#: contents/ui/StatsView.qml:399
 msgid "Projects by hour"
 msgstr "Projekty według godzin"
 
-#: contents/ui/StatsView.qml:427
+#: contents/ui/StatsView.qml:442
 msgid "Weekdays and weekend — segments placed by clock time."
 msgstr "Dni robocze i weekend — segmenty według godziny."
 
-#: contents/ui/StatsView.qml:429
+#: contents/ui/StatsView.qml:444
 msgid "Weekdays — segments placed by clock time. Weekend appears when tracked."
 msgstr "Dni robocze — segmenty według godziny. Weekend pojawia się przy śledzeniu."
 
-#: contents/ui/StatsView.qml:430
+#: contents/ui/StatsView.qml:445
 msgid "Axis shows business hours (%1–%2); expands if work falls outside."
 msgstr "Oś pokazuje godziny pracy (%1–%2); rozszerza się, gdy praca wypada poza."
 
-#: contents/ui/StatsView.qml:491
+#: contents/ui/StatsView.qml:506
 msgid "Activity distribution"
 msgstr "Rozkład aktywności"
 
-#: contents/ui/StatsView.qml:506
+#: contents/ui/StatsView.qml:521
 msgid "No activities today"
 msgstr "Brak aktywności dziś"
 
-#: contents/ui/StatsView.qml:515
+#: contents/ui/StatsView.qml:565
 msgid "No activities this week"
 msgstr "Brak aktywności w tym tygodniu"
 

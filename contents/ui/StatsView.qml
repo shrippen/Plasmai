@@ -30,12 +30,15 @@ ColumnLayout {
     property int weekOffset: 0
     //* 0 = current week; negative = past weeks — Projects by hour
     property int hourWeekOffset: 0
+    //* 0 = current week; negative = past weeks — Activity distribution
+    property int pieWeekOffset: 0
     /** Hide billable segmented control when the provider has no billable flag. */
     property bool supportsBillableFilter: true
     readonly property var nowDate: new Date()
     readonly property var selectedDay: StatsData.addDays(StatsData.startOfDay(nowDate), dayOffset)
     readonly property var selectedWeekStart: StatsData.addDays(StatsData.startOfWeek(nowDate), weekOffset * 7)
     readonly property var selectedHourWeekStart: StatsData.addDays(StatsData.startOfWeek(nowDate), hourWeekOffset * 7)
+    readonly property var selectedPieWeekStart: StatsData.addDays(StatsData.startOfWeek(nowDate), pieWeekOffset * 7)
     readonly property var filteredTimesheets: StatsData.filterBillable(timesheets, billableFilter)
     readonly property string filterAllLabel: i18n("All")
     readonly property string filterBillableLabel: i18n("Billable")
@@ -67,7 +70,7 @@ ColumnLayout {
         return StatsData.activityBreakdown(filteredTimesheets, day, StatsData.endOfDay(day), Date.now(), 6, customersById);
     }
     readonly property var weekPie: {
-        var ws = StatsData.startOfWeek(nowDate);
+        var ws = root.selectedPieWeekStart;
         return StatsData.activityBreakdown(filteredTimesheets, ws, StatsData.endOfWeek(ws), Date.now(), 6, customersById);
     }
     readonly property var todayPieRows: (todayPie && todayPie.rows) ? todayPie.rows : []
@@ -95,9 +98,15 @@ ColumnLayout {
         requestRangeForOffsets();
     }
 
-    function requestRangeFor(day, weekBegin, hourWeekBegin) {
+    function shiftPieWeek(delta) {
+        pieWeekOffset += delta;
+        requestRangeForOffsets();
+    }
+
+    function requestRangeFor(day, weekBegin, hourWeekBegin, pieWeekBegin) {
         var weekEnd = StatsData.endOfWeek(weekBegin);
         var hourWeekEnd = StatsData.endOfWeek(hourWeekBegin);
+        var pieWeekEnd = StatsData.endOfWeek(pieWeekBegin);
         var begin = StatsData.startOfDay(day);
         var end = StatsData.endOfDay(day);
         if (weekBegin < begin)
@@ -112,6 +121,12 @@ ColumnLayout {
         if (hourWeekEnd > end)
             end = hourWeekEnd;
 
+        if (pieWeekBegin < begin)
+            begin = pieWeekBegin;
+
+        if (pieWeekEnd > end)
+            end = pieWeekEnd;
+
         var todayWeekBegin = StatsData.startOfWeek(new Date());
         var todayWeekEnd = StatsData.endOfWeek(todayWeekBegin);
         if (todayWeekBegin < begin)
@@ -124,7 +139,7 @@ ColumnLayout {
     }
 
     function requestRangeForOffsets() {
-        requestRangeFor(selectedDay, selectedWeekStart, selectedHourWeekStart);
+        requestRangeFor(selectedDay, selectedWeekStart, selectedHourWeekStart, selectedPieWeekStart);
     }
 
     function ensureRangeForOffsets() {
@@ -506,13 +521,49 @@ ColumnLayout {
             emptyText: i18n("No activities today")
         }
 
-        PieChart {
+        ColumnLayout {
             Layout.fillWidth: true
-            Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
-            title: i18n("This week")
-            rows: root.weekPieRows
-            totalSeconds: root.weekPieTotal
-            emptyText: i18n("No activities this week")
+            spacing: Kirigami.Units.smallSpacing
+
+            RowLayout {
+                Layout.fillWidth: true
+
+                PlasmaComponents3.ToolButton {
+                    icon.name: "go-previous"
+                    onClicked: root.shiftPieWeek(-1)
+                    PlasmaComponents3.ToolTip.text: i18n("Previous week")
+                    PlasmaComponents3.ToolTip.visible: hovered
+                }
+
+                PlasmaComponents3.Label {
+                    Layout.fillWidth: true
+                    horizontalAlignment: Text.AlignHCenter
+                    font.bold: true
+                    text: {
+                        if (root.pieWeekOffset === 0)
+                            return i18n("This week");
+
+                        return StatsData.formatWeekLabel(root.selectedPieWeekStart);
+                    }
+                }
+
+                PlasmaComponents3.ToolButton {
+                    icon.name: "go-next"
+                    enabled: root.pieWeekOffset < 0
+                    onClicked: root.shiftPieWeek(1)
+                    PlasmaComponents3.ToolTip.text: i18n("Next week")
+                    PlasmaComponents3.ToolTip.visible: hovered
+                }
+            }
+
+            PieChart {
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
+                title: ""
+                rows: root.weekPieRows
+                totalSeconds: root.weekPieTotal
+                emptyText: i18n("No activities this week")
+            }
         }
 
     }

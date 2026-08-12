@@ -15,6 +15,10 @@ QQC2.ItemDelegate {
     property string tooltipText: ""
     property bool showPlayIcon: true
     property bool rowEnabled: true
+    /** Short transient right-side hint (e.g. when clicking an already-running activity). */
+    property bool runningHintVisible: false
+    property string runningHintText: ""
+    property string runningHintCounterText: ""
 
     enabled: rowEnabled
     hoverEnabled: true
@@ -63,6 +67,42 @@ QQC2.ItemDelegate {
                 opacity: 0.7
                 elide: Text.ElideRight
             }
+        }
+
+        ColumnLayout {
+            id: runningHintBox
+            Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
+            spacing: 0
+
+            PlasmaComponents3.Label {
+                id: runningHintTop
+                Layout.preferredWidth: Kirigami.Units.gridUnit * 6
+                horizontalAlignment: Text.AlignRight
+                wrapMode: Text.NoWrap
+                text: runningHintText
+                font.bold: true
+                font.pointSize: Kirigami.Theme.smallFont.pointSize + 2
+                color: Kirigami.Theme.positiveTextColor
+                elide: Text.ElideRight
+            }
+
+            PlasmaComponents3.Label {
+                id: runningHintBottom
+                Layout.preferredWidth: Kirigami.Units.gridUnit * 6
+                horizontalAlignment: Text.AlignRight
+                wrapMode: Text.NoWrap
+                text: runningHintCounterText
+                font.family: "monospace"
+                font.bold: true
+                font.pointSize: Kirigami.Theme.smallFont.pointSize + 2
+                color: Kirigami.Theme.positiveTextColor
+                elide: Text.ElideRight
+            }
+
+            // Fade-in/out without changing layout metrics.
+            opacity: runningHintVisible ? 1 : 0
+            Behavior on opacity { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+            visible: runningHintText.length > 0 || runningHintCounterText.length > 0
         }
     }
 }

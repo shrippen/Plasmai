@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.3.1
+
+### Pickers & layout
+- Shared project/activity pickers across main view, manual entry, and active-entry editor
+- Popup open direction uses the visible flyout viewport (opens above only when space below is tight)
+- Pickers close when the main view is scrolled
+
+### Recent list
+- Tapping an already-running activity shows a short “already running” hint with the panel-style elapsed counter (green, monospace)
+
+### Stats
+- Week navigation for statistics charts
+
+### Development
+- Optional build number in the main header for local `install-dev` builds (`BUILD=0` in store releases)
+
 ## 1.3.0
 
 ### Switch from Recent while tracking

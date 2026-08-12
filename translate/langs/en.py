@@ -238,6 +238,7 @@ T = {
     'Already tracking this activity': 'Already tracking this activity',
     'Could not resolve project or activity for that entry': 'Could not resolve project or activity for that entry',
     'Switch activity?': 'Switch activity?',
+    'Läuft bereits.': 'Already running.',
 }
 
 PLURALS = {

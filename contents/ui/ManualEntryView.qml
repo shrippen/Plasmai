@@ -17,14 +17,22 @@ ColumnLayout {
     property var activityPickerModel: []
     property var activitySectionTitles: ({})
     property bool pickerOpenBelow: true
+    property Item pickerViewport: null
     property bool busy: false
     property bool configured: true
     property bool connectionOk: true
 
-    signal aboutToOpenPicker()
+    readonly property alias projectCombo: pickers.projectCombo
+    readonly property alias activityCombo: pickers.activityCombo
+
+    signal aboutToOpenPicker(var projectField, var activityField)
     signal projectChosen(var projectId)
     signal saveRequested(var projectId, var activityId, string beginText, string endText, string description)
     signal cancelled()
+
+    function closePickers() {
+        pickers.closePickers()
+    }
 
     function pad2(n) {
         return (n < 10 ? "0" : "") + n
@@ -89,35 +97,26 @@ ColumnLayout {
         text: i18n("Create a finished entry with project, activity, and time range.")
     }
 
-    SearchableCombo {
-        id: projectCombo
+    ProjectActivityPickers {
+        id: pickers
         Layout.fillWidth: true
-        enabled: root.configured && !root.busy && root.connectionOk
-        items: root.projectPickerModel
-        placeholderText: i18n("Select project…")
-        useSharedDirection: true
-        openBelow: root.pickerOpenBelow
-        onAboutToOpen: root.aboutToOpenPicker()
-        onActivated: function(index) {
-            if (index < 0 || index >= items.length) {
+        projectPickerModel: root.projectPickerModel
+        activityPickerModel: root.activityPickerModel
+        activitySectionTitles: root.activitySectionTitles
+        pickerOpenBelow: root.pickerOpenBelow
+        pickerViewport: root.pickerViewport
+        projectEnabled: root.configured && !root.busy && root.connectionOk
+        activityEnabled: root.configured && !root.busy && root.connectionOk
+        onAboutToOpenPicker: function(projectField, activityField) {
+            root.aboutToOpenPicker(projectField, activityField)
+        }
+        onProjectActivated: function(index) {
+            if (index < 0 || index >= pickers.projectPickerModel.length) {
                 root.projectChosen(null)
                 return
             }
-            root.projectChosen(items[index].value.id)
+            root.projectChosen(pickers.projectPickerModel[index].value.id)
         }
-    }
-
-    SearchableCombo {
-        id: activityCombo
-        Layout.fillWidth: true
-        enabled: root.configured && !root.busy && root.connectionOk
-                 && projectCombo.currentIndex >= 0
-        items: root.activityPickerModel
-        placeholderText: i18n("Select activity…")
-        sectionTitleMap: root.activitySectionTitles
-        useSharedDirection: true
-        openBelow: root.pickerOpenBelow
-        onAboutToOpen: root.aboutToOpenPicker()
     }
 
     PlasmaComponents3.Label {
