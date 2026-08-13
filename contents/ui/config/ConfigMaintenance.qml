@@ -12,12 +12,15 @@ import "../../code/sharedConfig.js" as SharedConfig
 import "../../code/colorDistinct.js" as ColorDistinct
 import "../../code/maintenanceCache.js" as MaintenanceCache
 
-Item {
+ConfigPage {
     id: page
 
     readonly property string kwalletScript: Secret.fileUrlToPath(Qt.resolvedUrl("../../code/kwallet.sh"))
     readonly property string sharedConfigScript: Secret.fileUrlToPath(Qt.resolvedUrl("../../code/sharedConfig.sh"))
+    readonly property string catalogCacheScript: Secret.fileUrlToPath(Qt.resolvedUrl("../../code/catalogCache.sh"))
     readonly property int pageMargin: Kirigami.Units.gridUnit
+    /** Extra space so list text does not sit against the scrollbar. */
+    readonly property int scrollGutter: Kirigami.Units.gridUnit
 
     readonly property var activeProfile: Profiles.profileById(
         Profiles.parseProfiles(plasmoid.configuration.profilesJson, plasmoid.configuration.kimaiUrl),
@@ -38,6 +41,9 @@ Item {
     property var activityGroups: []
     property int shiftedCount: 0
     property int groupCount: 0
+    property int effectiveCustomerPct: 22
+    property int effectiveProjectPct: 22
+    property int effectiveActivityPct: 22
 
     P5Support.DataSource {
         id: execSource
@@ -66,16 +72,47 @@ Item {
         ].join("|")
     }
 
+    /** Distinction only — theme colors differ between plasmoid and settings dialog. */
+    function distinctionKey() {
+        return (plasmoid.configuration.colorDistinctionEnabled !== false ? "1" : "0")
+            + "|" + String(plasmoid.configuration.colorSimilarityPercent || 22)
+    }
+
+    function distinctionKeyOf(settingsKey) {
+        var parts = String(settingsKey || "").split("|")
+        if (parts.length < 2) {
+            return ""
+        }
+        return parts[0] + "|" + parts[1]
+    }
+
+    function themePaletteFromSettingsKey(settingsKey) {
+        var parts = String(settingsKey || "").split("|")
+        // enabled|percent|highlight|positive|neutral|negative|link|active|visited
+        if (parts.length < 9) {
+            return null
+        }
+        return [parts[2], parts[3], parts[4], parts[5], parts[6], parts[7], parts[8]]
+    }
+
     function applyColorOptions() {
-        ColorDistinct.setThemePalette([
-            Kirigami.Theme.highlightColor,
-            Kirigami.Theme.positiveTextColor,
-            Kirigami.Theme.neutralTextColor,
-            Kirigami.Theme.negativeTextColor,
-            Kirigami.Theme.linkColor,
-            Kirigami.Theme.activeTextColor,
-            Kirigami.Theme.visitedLinkColor
-        ])
+        // Prefer the palette that produced the cached groups (widget), not the
+        // settings-dialog theme — otherwise “Reload from server” reshuffles colors.
+        var cached = MaintenanceCache.load()
+        var fromCache = page.themePaletteFromSettingsKey(cached.settingsKey)
+        if (fromCache) {
+            ColorDistinct.setThemePalette(fromCache)
+        } else {
+            ColorDistinct.setThemePalette([
+                Kirigami.Theme.highlightColor,
+                Kirigami.Theme.positiveTextColor,
+                Kirigami.Theme.neutralTextColor,
+                Kirigami.Theme.negativeTextColor,
+                Kirigami.Theme.linkColor,
+                Kirigami.Theme.activeTextColor,
+                Kirigami.Theme.visitedLinkColor
+            ])
+        }
         ColorDistinct.configure(
             page.supportsColorDistinction
                 && plasmoid.configuration.colorDistinctionEnabled !== false,
@@ -107,12 +144,9 @@ Item {
         page.shiftedCount = page.countShifted(page.customerGroups)
             + page.countShifted(page.projectGroups)
             + page.countShifted(page.activityGroups)
-    }
-
-    /** Ensure ColorDistinct maps exist without rebuilding clash-group rows. */
-    function syncColorMapsOnly() {
-        page.applyColorOptions()
-        ColorDistinct.rebuild(page.customers, page.projects, page.activities, false)
+        page.effectiveCustomerPct = ColorDistinct.effectiveSimilarityPercent("customer")
+        page.effectiveProjectPct = ColorDistinct.effectiveSimilarityPercent("project")
+        page.effectiveActivityPct = ColorDistinct.effectiveSimilarityPercent("activity")
     }
 
     function applyStatusAfterLoad() {
@@ -138,6 +172,16 @@ Item {
         page.activityGroups = cached.activityGroups
         page.shiftedCount = cached.shiftedCount
         page.groupCount = cached.groupCount
+        var eff = cached.effectiveSimilarity || {}
+        if (typeof eff.customer === "number") {
+            page.effectiveCustomerPct = eff.customer
+        }
+        if (typeof eff.project === "number") {
+            page.effectiveProjectPct = eff.project
+        }
+        if (typeof eff.activity === "number") {
+            page.effectiveActivityPct = eff.activity
+        }
         page.statusText = cached.statusText
             || i18n("Loaded %1 customers, %2 projects, %3 activities. %4 clash group(s), %5 color(s) shifted.",
                     page.customers.length, page.projects.length, page.activities.length,
@@ -145,6 +189,16 @@ Item {
     }
 
     function persistCache() {
+        var prev = MaintenanceCache.load()
+        var settingsKey = page.settingsFingerprint()
+        // Never replace the theme half from the settings process — it differs
+        // from plasmashell and would reshuffle colors on the next rebuild.
+        if (prev.settingsKey) {
+            var oldParts = String(prev.settingsKey).split("|")
+            if (oldParts.length >= 9) {
+                settingsKey = page.distinctionKey() + "|" + oldParts.slice(2).join("|")
+            }
+        }
         MaintenanceCache.store(page.activeProfile ? page.activeProfile.id : "", {
             customers: page.customers,
             projects: page.projects,
@@ -156,15 +210,22 @@ Item {
             activityGroups: page.activityGroups,
             shiftedCount: page.shiftedCount,
             groupCount: page.groupCount,
-            settingsKey: page.settingsFingerprint(),
-            statusText: page.statusText
+            settingsKey: settingsKey,
+            statusText: page.statusText,
+            effectiveSimilarity: {
+                customer: page.effectiveCustomerPct,
+                project: page.effectiveProjectPct,
+                activity: page.effectiveActivityPct
+            }
         })
+        Secret.saveCatalogCache(execSource, page.catalogCacheScript, MaintenanceCache.exportPayload())
     }
 
     /**
-     * Apply any in-process catalog immediately. Recompute clash groups only when
-     * distinction settings / theme changed. Hit the API only when forced, missing,
-     * or older than FRESH_MS (stale-while-revalidate).
+     * Show disk/memory catalog immediately. Do not recompute clash groups on open
+     * unless distinction settings changed or groups are missing — theme fingerprints
+     * differ between plasmashell and the settings process and used to force a full
+     * ColorDistinct.rebuild every visit.
      */
     function loadCatalog(forceRefresh) {
         if (!page.supportsColorDistinction) {
@@ -176,30 +237,49 @@ Item {
             return
         }
         var profileId = page.activeProfile.id
-        var settingsKey = page.settingsFingerprint()
-        var hadCache = MaintenanceCache.hasCatalog(profileId)
 
-        if (hadCache) {
-            page.applyCachedCatalog()
-            if (!MaintenanceCache.groupsMatch(settingsKey)) {
-                page.rebuildRows()
-                page.applyStatusAfterLoad()
-                page.persistCache()
-            } else {
-                page.syncColorMapsOnly()
-            }
-            if (!forceRefresh && MaintenanceCache.isFresh(profileId)) {
+        function continueAfterLocal() {
+            if (MaintenanceCache.hasCatalog(profileId)) {
+                page.applyCachedCatalog()
+                var cached = MaintenanceCache.load()
+                var hasGroups = (cached.customerGroups && cached.customerGroups.length)
+                    || (cached.projectGroups && cached.projectGroups.length)
+                    || (cached.activityGroups && cached.activityGroups.length)
+                var distinctionChanged = page.distinctionKeyOf(cached.settingsKey) !== page.distinctionKey()
+                if (distinctionChanged || (!hasGroups && (page.customers.length || page.projects.length || page.activities.length))) {
+                    page.rebuildRows()
+                    page.applyStatusAfterLoad()
+                    page.persistCache()
+                }
+                if (!forceRefresh && MaintenanceCache.isFresh(profileId)) {
+                    return
+                }
+                if (!forceRefresh && MaintenanceCache.isFetching()) {
+                    return
+                }
+                // Background refresh — keep cached status, do not flash “Updating…”.
+                page.fetchCatalogFromApi(forceRefresh, profileId, true)
                 return
             }
-            if (!forceRefresh && MaintenanceCache.isFetching()) {
-                return
-            }
+            page.fetchCatalogFromApi(forceRefresh, profileId, false)
         }
 
+        if (MaintenanceCache.hasCatalog(profileId)) {
+            continueAfterLocal()
+            return
+        }
+
+        Secret.loadCatalogCache(execSource, page.catalogCacheScript, function(payload) {
+            if (payload && String(payload.profileId || "") === String(profileId)) {
+                MaintenanceCache.hydrate(payload)
+            }
+            continueAfterLocal()
+        })
+    }
+
+    function fetchCatalogFromApi(forceRefresh, profileId, hadCache) {
         if (!hadCache || forceRefresh) {
             statusText = i18n("Loading customers, projects, and activities…")
-        } else {
-            statusText = i18n("Updating catalog…")
         }
 
         MaintenanceCache.setFetching(true)
@@ -208,8 +288,6 @@ Item {
                 MaintenanceCache.setFetching(false)
                 if (!hadCache) {
                     statusText = i18n("Save an API token on the Connection tab first.")
-                } else {
-                    page.applyStatusAfterLoad()
                 }
                 return
             }
@@ -230,16 +308,19 @@ Item {
                 var nextCustomers = (customersResult && customersResult.ok) ? (customersResult.data || []) : []
                 var nextProjects = (projectsResult && projectsResult.ok) ? (projectsResult.data || []) : []
                 var nextActivities = (activitiesResult && activitiesResult.ok) ? (activitiesResult.data || []) : []
-                var nextFp = MaintenanceCache.entityFingerprint(nextCustomers, nextProjects, nextActivities)
                 var prev = MaintenanceCache.load()
-                var entitiesChanged = nextFp !== prev.entityFingerprint
+                var distinctionChanged = page.distinctionKeyOf(prev.settingsKey) !== page.distinctionKey()
+                var hadGroups = page.groupCount > 0
+                    || (prev.customerGroups && prev.customerGroups.length)
+                    || (prev.projectGroups && prev.projectGroups.length)
+                    || (prev.activityGroups && prev.activityGroups.length)
                 page.customers = nextCustomers
                 page.projects = nextProjects
                 page.activities = nextActivities
-                if (entitiesChanged || !MaintenanceCache.groupsMatch(settingsKey)) {
+                // Server reload must not reshuffle colors. Rebuild only when
+                // distinction settings changed or we have no groups yet.
+                if (distinctionChanged || !hadGroups) {
                     page.rebuildRows()
-                } else {
-                    page.syncColorMapsOnly()
                 }
                 page.applyStatusAfterLoad()
                 page.persistCache()
@@ -269,13 +350,8 @@ Item {
         })
     }
 
-    onThemePaletteKeyChanged: {
-        if (page.customers.length || page.projects.length || page.activities.length) {
-            page.rebuildRows()
-            page.applyStatusAfterLoad()
-            page.persistCache()
-        }
-    }
+    // Theme accents differ in the settings process; cached group colors stay valid.
+    // Rebuild only when the user changes distinction settings (Connections below).
 
     Connections {
         target: plasmoid.configuration
@@ -298,18 +374,24 @@ Item {
         }
     }
 
-    Component.onCompleted: {
+    Component.onDestruction: Secret.cancelAll(execSource)
+
+    onPageEntered: {
+        // Show catalog immediately — do not wait for shared.json.
+        page.loadCatalog(false)
         Secret.loadSharedConfig(execSource, page.sharedConfigScript, function(shared) {
             if (shared) {
                 SharedConfig.applyToConfiguration(plasmoid.configuration, shared)
             }
-            page.loadCatalog(false)
         })
     }
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: page.pageMargin
+        anchors.leftMargin: page.pageMargin
+        anchors.rightMargin: page.pageMargin
+        anchors.topMargin: page.pageMargin
+        anchors.bottomMargin: page.pageMargin
         spacing: Kirigami.Units.smallSpacing
 
         Kirigami.PlaceholderMessage {
@@ -353,9 +435,9 @@ Item {
             text: plasmoid.configuration.colorDistinctionEnabled !== false
                   ? i18n("Distinction on · configured %1% · effective customers %2% / projects %3% / activities %4%",
                          plasmoid.configuration.colorSimilarityPercent || 22,
-                         ColorDistinct.effectiveSimilarityPercent("customer"),
-                         ColorDistinct.effectiveSimilarityPercent("project"),
-                         ColorDistinct.effectiveSimilarityPercent("activity"))
+                         page.effectiveCustomerPct,
+                         page.effectiveProjectPct,
+                         page.effectiveActivityPct)
                   : i18n("Distinction off — enable it in Display settings.")
         }
 
@@ -367,7 +449,7 @@ Item {
             clip: true
 
             ColumnLayout {
-                width: scroll.availableWidth
+                width: Math.max(1, scroll.availableWidth - page.scrollGutter)
                 spacing: Kirigami.Units.largeSpacing
 
                 // Customers

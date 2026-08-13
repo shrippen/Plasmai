@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.4.1
+
+### Performance
+- Day sparkline no longer repaints the canvas for sun rotation; the now-marker updates every 30s instead of every second
+- Loading-row pulse runs only while the row is visible
+
+### Settings
+- Display, Connection, Behavior, and Maintenance layouts regrouped so forms wrap instead of clipping
+- Maintenance and Favorites read the shared catalog cache so clash groups and project lists appear immediately
+- Reloading the catalog from the server no longer reshuffles distinction colors
+- Favorites “Reload” sits on the right of the project header; the list uses the full column height
+- Config pages declare all `cfg_*` keys and use `Kirigami.Page` so Plasma stops flooding the journal on our tabs
+
 ## 1.4.0
 
 ### Touch optimization

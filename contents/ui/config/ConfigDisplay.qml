@@ -10,7 +10,7 @@ import "../../code/geocode.js" as Geocode
 import "../../code/profiles.js" as Profiles
 import "../../code/timeTracker.js" as TimeTracker
 
-Item {
+ConfigPage {
     id: page
 
     readonly property string sharedConfigScript: Secret.fileUrlToPath(Qt.resolvedUrl("../../code/sharedConfig.sh"))
@@ -22,7 +22,7 @@ Item {
     function buddyMaxWidth(form) {
         var formW = form && form.width > 0 ? form.width : scroll.availableWidth
         if (!page.formWide) {
-            return Math.max(Kirigami.Units.gridUnit * 10, formW)
+            return Math.max(Kirigami.Units.gridUnit * 10, formW - page.pageMargin * 2)
         }
         // Leave room for the label column + margins.
         return Math.max(Kirigami.Units.gridUnit * 10, formW - Kirigami.Units.gridUnit * 14)
@@ -35,33 +35,6 @@ Item {
     readonly property var providerCapabilities: TimeTracker.providerCapabilities(
         activeProfile && activeProfile.provider ? activeProfile.provider : "kimai")
     readonly property bool supportsColorDistinction: providerCapabilities.colorDistinction
-
-    property alias cfg_refreshInterval: refreshIntervalSpin.value
-    property alias cfg_recentCount: recentCountSpin.value
-    property alias cfg_useBlurBackground: useBlurBackgroundCheck.checked
-    property alias cfg_workDayBegin: workDayBeginField.text
-    property alias cfg_workDayEnd: workDayEndField.text
-    property double cfg_latitude
-    property double cfg_longitude
-    property string cfg_locationName
-    property alias cfg_popupShowSparkline: popupSparklineCheck.checked
-    property alias cfg_desktopShowSparkline: desktopSparklineCheck.checked
-    property alias cfg_showSparklineArcs: sparklineArcsCheck.checked
-    property alias cfg_showElapsedInPanel: panelElapsedCheck.checked
-    property alias cfg_showProjectInPanel: panelProjectCheck.checked
-    property alias cfg_showActivityInPanel: panelActivityCheck.checked
-    property alias cfg_popupShowWorkSummary: popupWorkSummaryCheck.checked
-    property alias cfg_popupShowFavorites: popupFavoritesCheck.checked
-    property alias cfg_popupShowRecent: popupRecentCheck.checked
-    property alias cfg_popupShowContinue: popupContinueCheck.checked
-    property alias cfg_popupShowNewActivity: popupNewActivityCheck.checked
-    property alias cfg_desktopShowWorkSummary: desktopWorkSummaryCheck.checked
-    property alias cfg_desktopShowFavorites: desktopFavoritesCheck.checked
-    property alias cfg_desktopShowRecent: desktopRecentCheck.checked
-    property alias cfg_desktopShowNewActivity: desktopNewActivityCheck.checked
-    property alias cfg_colorDistinctionEnabled: colorDistinctionCheck.checked
-    property alias cfg_colorSimilarityPercent: colorSimilaritySpin.value
-    property int cfg_touchMode
 
     property bool syncing: false
     property bool ready: false
@@ -165,10 +138,78 @@ Item {
         }
     }
 
+    function syncControlsToCfg() {
+        page.cfg_refreshInterval = refreshIntervalSpin.value
+        page.cfg_recentCount = recentCountSpin.value
+        page.cfg_useBlurBackground = useBlurBackgroundCheck.checked
+        page.cfg_workDayBegin = workDayBeginField.text
+        page.cfg_workDayEnd = workDayEndField.text
+        page.cfg_popupShowSparkline = popupSparklineCheck.checked
+        page.cfg_desktopShowSparkline = desktopSparklineCheck.checked
+        page.cfg_showSparklineArcs = sparklineArcsCheck.checked
+        page.cfg_showElapsedInPanel = panelElapsedCheck.checked
+        page.cfg_showProjectInPanel = panelProjectCheck.checked
+        page.cfg_showActivityInPanel = panelActivityCheck.checked
+        page.cfg_popupShowWorkSummary = popupWorkSummaryCheck.checked
+        page.cfg_popupShowFavorites = popupFavoritesCheck.checked
+        page.cfg_popupShowRecent = popupRecentCheck.checked
+        page.cfg_popupShowContinue = popupContinueCheck.checked
+        page.cfg_popupShowNewActivity = popupNewActivityCheck.checked
+        page.cfg_desktopShowWorkSummary = desktopWorkSummaryCheck.checked
+        page.cfg_desktopShowFavorites = desktopFavoritesCheck.checked
+        page.cfg_desktopShowRecent = desktopRecentCheck.checked
+        page.cfg_desktopShowNewActivity = desktopNewActivityCheck.checked
+        page.cfg_showFavorites = popupFavoritesCheck.checked || desktopFavoritesCheck.checked
+        page.cfg_colorDistinctionEnabled = colorDistinctionCheck.checked
+        page.cfg_colorSimilarityPercent = colorSimilaritySpin.value
+        page.cfg_touchMode = touchModeCombo.currentIndex
+    }
+
+    function applyCfgToControls() {
+        if (typeof page.cfg_refreshInterval === "number") {
+            refreshIntervalSpin.value = page.cfg_refreshInterval
+        }
+        if (typeof page.cfg_recentCount === "number") {
+            recentCountSpin.value = page.cfg_recentCount
+        }
+        useBlurBackgroundCheck.checked = !!page.cfg_useBlurBackground
+        if (page.cfg_workDayBegin) {
+            workDayBeginField.text = page.cfg_workDayBegin
+        }
+        if (page.cfg_workDayEnd) {
+            workDayEndField.text = page.cfg_workDayEnd
+        }
+        popupSparklineCheck.checked = page.cfg_popupShowSparkline !== false
+        desktopSparklineCheck.checked = page.cfg_desktopShowSparkline !== false
+        sparklineArcsCheck.checked = page.cfg_showSparklineArcs !== false
+        panelElapsedCheck.checked = page.cfg_showElapsedInPanel !== false
+        panelProjectCheck.checked = page.cfg_showProjectInPanel !== false
+        panelActivityCheck.checked = !!page.cfg_showActivityInPanel
+        popupWorkSummaryCheck.checked = page.cfg_popupShowWorkSummary !== false
+        popupFavoritesCheck.checked = page.cfg_popupShowFavorites !== false
+        popupRecentCheck.checked = page.cfg_popupShowRecent !== false
+        popupContinueCheck.checked = page.cfg_popupShowContinue !== false
+        popupNewActivityCheck.checked = page.cfg_popupShowNewActivity !== false
+        desktopWorkSummaryCheck.checked = page.cfg_desktopShowWorkSummary !== false
+        desktopSparklineCheck.checked = page.cfg_desktopShowSparkline !== false
+        desktopFavoritesCheck.checked = page.cfg_desktopShowFavorites !== false
+        desktopRecentCheck.checked = page.cfg_desktopShowRecent !== false
+        desktopNewActivityCheck.checked = page.cfg_desktopShowNewActivity !== false
+        colorDistinctionCheck.checked = page.cfg_colorDistinctionEnabled !== false
+        if (typeof page.cfg_colorSimilarityPercent === "number") {
+            colorSimilaritySpin.value = page.cfg_colorSimilarityPercent
+        }
+        if (typeof page.cfg_touchMode === "number") {
+            touchModeCombo.currentIndex = Math.max(0, Math.min(2, page.cfg_touchMode))
+        }
+        page.syncLocationFields()
+    }
+
     function persistShared() {
         if (syncing || !ready) {
             return
         }
+        page.syncControlsToCfg()
         Secret.persistSharedPatch(
             execSource, page.sharedConfigScript, plasmoid.configuration, page.displayPatch()
         )
@@ -264,10 +305,14 @@ Item {
             desktopNewActivityCheck.checked = shared.desktopShowNewActivity
         }
         page.syncLocationFields()
+        page.syncControlsToCfg()
         syncing = false
     }
 
-    Component.onCompleted: {
+    Component.onDestruction: Secret.cancelAll(execSource)
+
+    onPageEntered: {
+        page.applyCfgToControls()
         Secret.loadSharedConfig(execSource, page.sharedConfigScript, function(shared) {
             page.applyShared(shared)
             page.syncLocationFields()
@@ -297,7 +342,6 @@ Item {
 
             Kirigami.Heading {
                 Layout.fillWidth: true
-                Layout.maximumWidth: scroll.availableWidth
                 Layout.leftMargin: page.pageMargin
                 Layout.rightMargin: page.pageMargin
                 Layout.topMargin: page.pageMargin
@@ -307,37 +351,24 @@ Item {
             }
 
             Kirigami.FormLayout {
-                id: generalForm
+                id: displayForm
                 Layout.fillWidth: true
-                Layout.maximumWidth: scroll.availableWidth
                 Layout.leftMargin: page.pageMargin
                 Layout.rightMargin: page.pageMargin
+                Layout.bottomMargin: page.pageMargin
                 wideMode: page.formWide
-                twinFormLayouts: page.formWide ? [coordsForm] : []
 
-                QQC2.SpinBox {
-                    id: refreshIntervalSpin
-                    Kirigami.FormData.label: i18n("Refresh interval (seconds):")
-                    from: 10
-                    to: 300
-                    stepSize: 5
-                    onValueChanged: page.persistShared()
-                }
-
-                QQC2.SpinBox {
-                    id: recentCountSpin
-                    Kirigami.FormData.label: i18n("Recent activities shown:")
-                    from: 3
-                    to: 25
-                    stepSize: 1
-                    onValueChanged: page.persistShared()
+                // —— Appearance ——
+                Kirigami.Separator {
+                    Kirigami.FormData.label: i18n("Appearance")
+                    Kirigami.FormData.isSection: true
                 }
 
                 QQC2.CheckBox {
                     id: useBlurBackgroundCheck
-                    Kirigami.FormData.label: i18n("Appearance:")
+                    Kirigami.FormData.label: i18n("Background:")
                     Layout.fillWidth: true
-                    Layout.maximumWidth: page.buddyMaxWidth(generalForm)
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     text: i18n("Use desktop blur (translucent background)")
                     onCheckedChanged: page.persistShared()
                 }
@@ -346,14 +377,12 @@ Item {
                     id: touchModeCombo
                     Kirigami.FormData.label: i18n("Touch optimization:")
                     Layout.fillWidth: true
-                    Layout.maximumWidth: page.buddyMaxWidth(generalForm)
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     model: [
                         i18n("Automatic (follow Plasma tablet mode)"),
                         i18n("On"),
                         i18n("Off")
                     ]
-                    // Avoid binding currentIndex to cfg_* — that fights user selection
-                    // and can prevent Plasma from marking the config page dirty.
                     Component.onCompleted: currentIndex = Math.max(0, Math.min(2, page.cfg_touchMode))
                     onActivated: function(index) {
                         if (page.cfg_touchMode !== index) {
@@ -364,40 +393,43 @@ Item {
                 }
 
                 PlasmaComponents3.Label {
+                    Kirigami.FormData.label: page.formWide ? " " : ""
                     Layout.fillWidth: true
-                    Layout.maximumWidth: page.buddyMaxWidth(generalForm)
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     wrapMode: Text.WordWrap
                     opacity: 0.7
                     font.pointSize: Kirigami.Theme.smallFont.pointSize
                     text: i18n("Larger tap targets for buttons, lists, pickers, and date/time controls.")
                 }
 
-                QQC2.TextField {
-                    id: workDayBeginField
-                    Kirigami.FormData.label: i18n("Usual work day start:")
-                    Layout.fillWidth: false
-                    Layout.preferredWidth: page.compactFieldWidth
-                    Layout.maximumWidth: page.compactFieldWidth
-                    placeholderText: "08:00"
-                    onEditingFinished: page.persistShared()
+                // —— Updates ——
+                Kirigami.Separator {
+                    Kirigami.FormData.label: i18n("Updates")
+                    Kirigami.FormData.isSection: true
                 }
 
-                QQC2.TextField {
-                    id: workDayEndField
-                    Kirigami.FormData.label: i18n("Usual work day end:")
-                    Layout.fillWidth: false
-                    Layout.preferredWidth: page.compactFieldWidth
-                    Layout.maximumWidth: page.compactFieldWidth
-                    placeholderText: "18:00"
-                    onEditingFinished: page.persistShared()
+                QQC2.SpinBox {
+                    id: refreshIntervalSpin
+                    Kirigami.FormData.label: i18n("Refresh interval (seconds):")
+                    from: 10
+                    to: 300
+                    stepSize: 5
+                    onValueChanged: page.persistShared()
+                }
+
+                // —— Colors ——
+                Kirigami.Separator {
+                    visible: page.supportsColorDistinction
+                    Kirigami.FormData.label: i18n("Colors")
+                    Kirigami.FormData.isSection: true
                 }
 
                 QQC2.CheckBox {
                     id: colorDistinctionCheck
-                    Kirigami.FormData.label: i18n("Colors:")
+                    Kirigami.FormData.label: i18n("Distinction:")
                     visible: page.supportsColorDistinction
                     Layout.fillWidth: true
-                    Layout.maximumWidth: page.buddyMaxWidth(generalForm)
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     text: i18n("Make similar colors distinctive within each category")
                     onCheckedChanged: page.persistShared()
                 }
@@ -412,205 +444,187 @@ Item {
                     enabled: colorDistinctionCheck.checked
                     onValueChanged: page.persistShared()
                 }
-            }
 
-            PlasmaComponents3.Label {
-                Layout.fillWidth: true
-                Layout.maximumWidth: scroll.availableWidth
-                Layout.leftMargin: page.pageMargin
-                Layout.rightMargin: page.pageMargin
-                visible: page.supportsColorDistinction
-                wrapMode: Text.WordWrap
-                font.pointSize: Kirigami.Theme.smallFont.pointSize
-                opacity: 0.75
-                text: i18n("Higher similarity values treat more colors as too close. Clashing items get vivid, well-spaced replacement colors (not washed hue-shifts). If too many items cannot fit, the threshold is lowered automatically down to 12%. See Maintenance for clash groups.")
-            }
+                PlasmaComponents3.Label {
+                    Kirigami.FormData.label: page.formWide ? " " : ""
+                    visible: page.supportsColorDistinction
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
+                    wrapMode: Text.WordWrap
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    opacity: 0.75
+                    text: i18n("Higher similarity values treat more colors as too close. Clashing items get vivid, well-spaced replacement colors. See Maintenance for clash groups.")
+                }
 
-            PlasmaComponents3.Label {
-                Layout.fillWidth: true
-                Layout.maximumWidth: scroll.availableWidth
-                Layout.leftMargin: page.pageMargin
-                Layout.rightMargin: page.pageMargin
-                visible: !page.supportsColorDistinction
-                wrapMode: Text.WordWrap
-                font.pointSize: Kirigami.Theme.smallFont.pointSize
-                opacity: 0.75
-                text: i18n("Color distinction is available for Kimai profiles (per-customer / project / activity colors).")
-            }
+                PlasmaComponents3.Label {
+                    Kirigami.FormData.label: page.formWide ? " " : ""
+                    visible: !page.supportsColorDistinction
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
+                    wrapMode: Text.WordWrap
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    opacity: 0.75
+                    text: i18n("Color distinction is available for Kimai profiles (per-customer / project / activity colors).")
+                }
 
-            Kirigami.Heading {
-                Layout.fillWidth: true
-                Layout.maximumWidth: scroll.availableWidth
-                Layout.leftMargin: page.pageMargin
-                Layout.rightMargin: page.pageMargin
-                level: 2
-                text: i18n("Day sparkline")
-                wrapMode: Text.WordWrap
-            }
+                // —— Work hours ——
+                Kirigami.Separator {
+                    Kirigami.FormData.label: i18n("Work hours")
+                    Kirigami.FormData.isSection: true
+                }
 
-            QQC2.CheckBox {
-                id: sparklineArcsCheck
-                Layout.fillWidth: true
-                Layout.maximumWidth: scroll.availableWidth - page.pageMargin * 2
-                Layout.leftMargin: page.pageMargin
-                Layout.rightMargin: page.pageMargin
-                text: i18n("Show sun, moon, and work arcs")
-                checked: true
-                onCheckedChanged: page.persistShared()
-            }
+                QQC2.TextField {
+                    id: workDayBeginField
+                    Kirigami.FormData.label: i18n("Usual work day start:")
+                    Layout.fillWidth: false
+                    Layout.preferredWidth: page.compactFieldWidth
+                    Layout.maximumWidth: page.compactFieldWidth
+                    placeholderText: "08:00"
+                    onTextChanged: page.cfg_workDayBegin = text
+                    onEditingFinished: page.persistShared()
+                }
 
-            QQC2.Label {
-                Layout.fillWidth: true
-                Layout.maximumWidth: scroll.availableWidth
-                Layout.leftMargin: page.pageMargin
-                Layout.rightMargin: page.pageMargin
-                wrapMode: Text.WordWrap
-                font.pointSize: Kirigami.Theme.smallFont.pointSize
-                opacity: 0.75
-                text: i18n("Uncheck “Day sparkline” under Panel flyout or Desktop widget to hide the sparkline entirely.")
-            }
+                QQC2.TextField {
+                    id: workDayEndField
+                    Kirigami.FormData.label: i18n("Usual work day end:")
+                    Layout.fillWidth: false
+                    Layout.preferredWidth: page.compactFieldWidth
+                    Layout.maximumWidth: page.compactFieldWidth
+                    placeholderText: "18:00"
+                    onTextChanged: page.cfg_workDayEnd = text
+                    onEditingFinished: page.persistShared()
+                }
 
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.maximumWidth: scroll.availableWidth
-                Layout.leftMargin: page.pageMargin
-                Layout.rightMargin: page.pageMargin
-                radius: 6
-                color: Qt.rgba(Kirigami.Theme.textColor.r,
-                               Kirigami.Theme.textColor.g,
-                               Kirigami.Theme.textColor.b, 0.04)
-                border.width: 1
-                border.color: Qt.rgba(Kirigami.Theme.textColor.r,
-                                      Kirigami.Theme.textColor.g,
-                                      Kirigami.Theme.textColor.b, 0.12)
-                implicitHeight: geoColumn.implicitHeight + Kirigami.Units.largeSpacing * 2
+                PlasmaComponents3.Label {
+                    Kirigami.FormData.label: page.formWide ? " " : ""
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
+                    wrapMode: Text.WordWrap
+                    opacity: 0.7
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    text: i18n("Used for the sparkline zoom and remaining-time in the work summary.")
+                }
 
-                ColumnLayout {
-                    id: geoColumn
-                    anchors {
-                        fill: parent
-                        margins: Kirigami.Units.largeSpacing
-                    }
+                // —— Day sparkline (arcs + location) ——
+                Kirigami.Separator {
+                    Kirigami.FormData.label: i18n("Day sparkline")
+                    Kirigami.FormData.isSection: true
+                }
+
+                QQC2.CheckBox {
+                    id: sparklineArcsCheck
+                    Kirigami.FormData.label: i18n("Arcs:")
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
+                    text: i18n("Show sun, moon, and work arcs")
+                    checked: true
+                    onCheckedChanged: page.persistShared()
+                }
+
+                PlasmaComponents3.Label {
+                    Kirigami.FormData.label: page.formWide ? " " : ""
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
+                    wrapMode: Text.WordWrap
+                    opacity: 0.7
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    text: i18n("Hide the whole sparkline under Panel flyout or Desktop widget below.")
+                }
+
+                RowLayout {
+                    Kirigami.FormData.label: i18n("Find location:")
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     spacing: Kirigami.Units.smallSpacing
 
-                    QQC2.Label {
+                    Kirigami.SearchField {
+                        id: locationSearchField
                         Layout.fillWidth: true
-                        text: i18n("Find location")
-                        font.bold: true
-                        wrapMode: Text.WordWrap
+                        Layout.minimumWidth: Kirigami.Units.gridUnit * 6
+                        placeholderText: i18n("City, region, or address…")
+                        enabled: !page.geoSearching
+                        onAccepted: page.searchLocation()
                     }
 
-                    QQC2.Label {
-                        Layout.fillWidth: true
-                        wrapMode: Text.WordWrap
-                        opacity: 0.75
-                        font.pointSize: Kirigami.Theme.smallFont.pointSize
-                        text: i18n("Search for a city or place to set sunrise/sunset coloring. Powered by OpenStreetMap Nominatim.")
+                    QQC2.Button {
+                        Layout.preferredWidth: implicitWidth
+                        text: page.geoSearching ? i18n("Searching…") : i18n("Search")
+                        icon.name: "edit-find"
+                        display: page.formWide
+                                 ? QQC2.AbstractButton.TextBesideIcon
+                                 : QQC2.AbstractButton.IconOnly
+                        enabled: !page.geoSearching && locationSearchField.text.trim().length > 0
+                        onClicked: page.searchLocation()
+                        QQC2.ToolTip.visible: hovered && !page.formWide
+                        QQC2.ToolTip.text: i18n("Search")
+                        QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
                     }
+                }
 
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: Kirigami.Units.smallSpacing
+                PlasmaComponents3.Label {
+                    Kirigami.FormData.label: page.formWide ? " " : ""
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
+                    visible: page.geoStatus.length > 0
+                    wrapMode: Text.WordWrap
+                    opacity: 0.8
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    text: page.geoStatus
+                }
 
-                        Kirigami.SearchField {
-                            id: locationSearchField
-                            Layout.fillWidth: true
-                            Layout.minimumWidth: Kirigami.Units.gridUnit * 6
-                            placeholderText: i18n("City, region, or address…")
-                            enabled: !page.geoSearching
-                            onAccepted: page.searchLocation()
-                        }
+                QQC2.ScrollView {
+                    Kirigami.FormData.label: page.formWide ? " " : ""
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
+                    Layout.preferredHeight: page.geoResults.length > 0
+                        ? Math.min(Kirigami.Units.gridUnit * 8,
+                                   Math.max(Kirigami.Units.gridUnit * 2.5,
+                                            page.geoResults.length * Kirigami.Units.gridUnit * 2.2))
+                        : 0
+                    visible: page.geoResults.length > 0
+                    clip: true
 
-                        QQC2.Button {
-                            Layout.preferredWidth: implicitWidth
-                            text: page.geoSearching ? i18n("Searching…") : i18n("Search")
-                            icon.name: "edit-find"
-                            display: page.formWide
-                                     ? QQC2.AbstractButton.TextBesideIcon
-                                     : QQC2.AbstractButton.IconOnly
-                            enabled: !page.geoSearching && locationSearchField.text.trim().length > 0
-                            onClicked: page.searchLocation()
-                            QQC2.ToolTip.visible: hovered && !page.formWide
-                            QQC2.ToolTip.text: i18n("Search")
-                            QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
-                        }
-                    }
-
-                    QQC2.Label {
-                        Layout.fillWidth: true
-                        visible: page.geoStatus.length > 0
-                        wrapMode: Text.WordWrap
-                        opacity: 0.8
-                        font.pointSize: Kirigami.Theme.smallFont.pointSize
-                        text: page.geoStatus
-                    }
-
-                    QQC2.ScrollView {
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: page.geoResults.length > 0
-                            ? Math.min(Kirigami.Units.gridUnit * 8,
-                                       Math.max(Kirigami.Units.gridUnit * 2.5,
-                                                page.geoResults.length * Kirigami.Units.gridUnit * 2.2))
-                            : 0
-                        visible: page.geoResults.length > 0
+                    ListView {
+                        model: page.geoResults
+                        boundsBehavior: Flickable.StopAtBounds
                         clip: true
-
-                        ListView {
-                            model: page.geoResults
-                            boundsBehavior: Flickable.StopAtBounds
-                            clip: true
-                            delegate: QQC2.ItemDelegate {
-                                width: ListView.view.width
-                                text: modelData.displayName
-                                icon.name: "mark-location"
-                                // Keep long place names inside the card.
-                                contentItem: RowLayout {
-                                    spacing: Kirigami.Units.smallSpacing
-                                    Kirigami.Icon {
-                                        source: "mark-location"
-                                        Layout.preferredWidth: Kirigami.Units.iconSizes.small
-                                        Layout.preferredHeight: Kirigami.Units.iconSizes.small
-                                    }
-                                    QQC2.Label {
-                                        Layout.fillWidth: true
-                                        Layout.minimumWidth: 0
-                                        text: modelData.displayName
-                                        elide: Text.ElideRight
-                                        wrapMode: Text.NoWrap
-                                    }
+                        delegate: QQC2.ItemDelegate {
+                            width: ListView.view.width
+                            text: modelData.displayName
+                            icon.name: "mark-location"
+                            contentItem: RowLayout {
+                                spacing: Kirigami.Units.smallSpacing
+                                Kirigami.Icon {
+                                    source: "mark-location"
+                                    Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                                    Layout.preferredHeight: Kirigami.Units.iconSizes.small
                                 }
-                                onClicked: {
-                                    page.applyLocation(modelData.latitude, modelData.longitude, modelData.displayName)
-                                    page.geoResults = []
-                                    page.geoStatus = i18n("Using %1", modelData.displayName)
-                                    locationSearchField.text = modelData.displayName
+                                QQC2.Label {
+                                    Layout.fillWidth: true
+                                    Layout.minimumWidth: 0
+                                    text: modelData.displayName
+                                    elide: Text.ElideRight
+                                    wrapMode: Text.NoWrap
                                 }
+                            }
+                            onClicked: {
+                                page.applyLocation(modelData.latitude, modelData.longitude, modelData.displayName)
+                                page.geoResults = []
+                                page.geoStatus = i18n("Using %1", modelData.displayName)
+                                locationSearchField.text = modelData.displayName
                             }
                         }
                     }
-
-                    QQC2.Label {
-                        Layout.fillWidth: true
-                        visible: page.cfg_locationName.length > 0
-                        wrapMode: Text.WordWrap
-                        opacity: 0.85
-                        text: i18n("Current place: %1", page.cfg_locationName)
-                    }
                 }
-            }
 
-            Kirigami.FormLayout {
-                id: coordsForm
-                Layout.fillWidth: true
-                Layout.maximumWidth: scroll.availableWidth
-                Layout.leftMargin: page.pageMargin
-                Layout.rightMargin: page.pageMargin
-                wideMode: page.formWide
-                twinFormLayouts: page.formWide ? [generalForm] : []
-
-                Kirigami.Separator {
-                    Kirigami.FormData.label: i18n("Custom coordinates")
-                    Kirigami.FormData.isSection: true
+                PlasmaComponents3.Label {
+                    Kirigami.FormData.label: page.formWide ? " " : ""
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
+                    visible: String(page.cfg_locationName || "").length > 0
+                    wrapMode: Text.WordWrap
+                    opacity: 0.85
+                    text: i18n("Current place: %1", page.cfg_locationName)
                 }
 
                 QQC2.TextField {
@@ -643,16 +657,17 @@ Item {
                     }
                 }
 
-                QQC2.Label {
+                PlasmaComponents3.Label {
                     Kirigami.FormData.label: page.formWide ? " " : ""
                     Layout.fillWidth: true
-                    Layout.maximumWidth: page.buddyMaxWidth(coordsForm)
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     wrapMode: Text.WordWrap
                     opacity: 0.7
                     font.pointSize: Kirigami.Theme.smallFont.pointSize
-                    text: i18n("Used to color the sparkline for sunrise and sunset at your location.")
+                    text: i18n("Search a place or enter coordinates for sunrise/sunset coloring. Powered by OpenStreetMap Nominatim.")
                 }
 
+                // —— Panel ——
                 Kirigami.Separator {
                     Kirigami.FormData.label: i18n("Panel (taskbar)")
                     Kirigami.FormData.isSection: true
@@ -662,7 +677,7 @@ Item {
                     id: panelElapsedCheck
                     Kirigami.FormData.label: i18n("Show:")
                     Layout.fillWidth: true
-                    Layout.maximumWidth: page.buddyMaxWidth(coordsForm)
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     text: i18n("Elapsed time")
                     onCheckedChanged: page.persistShared()
                 }
@@ -670,7 +685,7 @@ Item {
                     id: panelProjectCheck
                     Kirigami.FormData.label: page.formWide ? " " : ""
                     Layout.fillWidth: true
-                    Layout.maximumWidth: page.buddyMaxWidth(coordsForm)
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     text: i18n("Project name")
                     onCheckedChanged: page.persistShared()
                 }
@@ -678,11 +693,12 @@ Item {
                     id: panelActivityCheck
                     Kirigami.FormData.label: page.formWide ? " " : ""
                     Layout.fillWidth: true
-                    Layout.maximumWidth: page.buddyMaxWidth(coordsForm)
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     text: i18n("Activity name")
                     onCheckedChanged: page.persistShared()
                 }
 
+                // —— Panel flyout ——
                 Kirigami.Separator {
                     Kirigami.FormData.label: i18n("Panel flyout")
                     Kirigami.FormData.isSection: true
@@ -692,7 +708,7 @@ Item {
                     id: popupWorkSummaryCheck
                     Kirigami.FormData.label: i18n("Show:")
                     Layout.fillWidth: true
-                    Layout.maximumWidth: page.buddyMaxWidth(coordsForm)
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     text: i18n("Work summary (today / week / remaining)")
                     checked: true
                     onCheckedChanged: page.persistShared()
@@ -701,8 +717,8 @@ Item {
                     id: popupSparklineCheck
                     Kirigami.FormData.label: page.formWide ? " " : ""
                     Layout.fillWidth: true
-                    Layout.maximumWidth: page.buddyMaxWidth(coordsForm)
-                    text: i18n("Day sparkline (bar and arcs)")
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
+                    text: i18n("Day sparkline")
                     checked: true
                     onCheckedChanged: page.persistShared()
                 }
@@ -710,7 +726,7 @@ Item {
                     id: popupFavoritesCheck
                     Kirigami.FormData.label: page.formWide ? " " : ""
                     Layout.fillWidth: true
-                    Layout.maximumWidth: page.buddyMaxWidth(coordsForm)
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     text: i18n("Favorites")
                     checked: true
                     onCheckedChanged: page.persistShared()
@@ -719,7 +735,7 @@ Item {
                     id: popupRecentCheck
                     Kirigami.FormData.label: page.formWide ? " " : ""
                     Layout.fillWidth: true
-                    Layout.maximumWidth: page.buddyMaxWidth(coordsForm)
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     text: i18n("Recent list")
                     checked: true
                     onCheckedChanged: page.persistShared()
@@ -728,7 +744,7 @@ Item {
                     id: popupContinueCheck
                     Kirigami.FormData.label: page.formWide ? " " : ""
                     Layout.fillWidth: true
-                    Layout.maximumWidth: page.buddyMaxWidth(coordsForm)
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     text: i18n("Continue last activity")
                     checked: true
                     onCheckedChanged: page.persistShared()
@@ -737,12 +753,13 @@ Item {
                     id: popupNewActivityCheck
                     Kirigami.FormData.label: page.formWide ? " " : ""
                     Layout.fillWidth: true
-                    Layout.maximumWidth: page.buddyMaxWidth(coordsForm)
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     text: i18n("Start / switch activity controls")
                     checked: true
                     onCheckedChanged: page.persistShared()
                 }
 
+                // —— Desktop widget ——
                 Kirigami.Separator {
                     Kirigami.FormData.label: i18n("Desktop widget")
                     Kirigami.FormData.isSection: true
@@ -752,7 +769,7 @@ Item {
                     id: desktopWorkSummaryCheck
                     Kirigami.FormData.label: i18n("Show:")
                     Layout.fillWidth: true
-                    Layout.maximumWidth: page.buddyMaxWidth(coordsForm)
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     text: i18n("Work summary (today / week / remaining)")
                     checked: true
                     onCheckedChanged: page.persistShared()
@@ -761,8 +778,8 @@ Item {
                     id: desktopSparklineCheck
                     Kirigami.FormData.label: page.formWide ? " " : ""
                     Layout.fillWidth: true
-                    Layout.maximumWidth: page.buddyMaxWidth(coordsForm)
-                    text: i18n("Day sparkline (bar and arcs)")
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
+                    text: i18n("Day sparkline")
                     checked: true
                     onCheckedChanged: page.persistShared()
                 }
@@ -770,7 +787,7 @@ Item {
                     id: desktopFavoritesCheck
                     Kirigami.FormData.label: page.formWide ? " " : ""
                     Layout.fillWidth: true
-                    Layout.maximumWidth: page.buddyMaxWidth(coordsForm)
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     text: i18n("Favorites")
                     checked: true
                     onCheckedChanged: page.persistShared()
@@ -779,7 +796,7 @@ Item {
                     id: desktopRecentCheck
                     Kirigami.FormData.label: page.formWide ? " " : ""
                     Layout.fillWidth: true
-                    Layout.maximumWidth: page.buddyMaxWidth(coordsForm)
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     text: i18n("Recent list")
                     checked: true
                     onCheckedChanged: page.persistShared()
@@ -788,16 +805,36 @@ Item {
                     id: desktopNewActivityCheck
                     Kirigami.FormData.label: page.formWide ? " " : ""
                     Layout.fillWidth: true
-                    Layout.maximumWidth: page.buddyMaxWidth(coordsForm)
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     text: i18n("New activity picker")
                     checked: true
                     onCheckedChanged: page.persistShared()
                 }
-            }
 
-            Item {
-                Layout.fillWidth: true
-                Layout.preferredHeight: page.pageMargin
+                // —— Recent list size (shared) ——
+                Kirigami.Separator {
+                    Kirigami.FormData.label: i18n("Recent list")
+                    Kirigami.FormData.isSection: true
+                }
+
+                QQC2.SpinBox {
+                    id: recentCountSpin
+                    Kirigami.FormData.label: i18n("Activities shown:")
+                    from: 3
+                    to: 25
+                    stepSize: 1
+                    onValueChanged: page.persistShared()
+                }
+
+                PlasmaComponents3.Label {
+                    Kirigami.FormData.label: page.formWide ? " " : ""
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
+                    wrapMode: Text.WordWrap
+                    opacity: 0.7
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    text: i18n("Applies to both the panel flyout and the desktop widget.")
+                }
             }
         }
     }

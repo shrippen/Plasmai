@@ -32,6 +32,7 @@ PlasmoidItem {
     readonly property string idleScript: Secret.fileUrlToPath(Qt.resolvedUrl("../code/idle.sh"))
     readonly property string notifyScript: Secret.fileUrlToPath(Qt.resolvedUrl("../code/notify.sh"))
     readonly property string sharedConfigScript: Secret.fileUrlToPath(Qt.resolvedUrl("../code/sharedConfig.sh"))
+    readonly property string catalogCacheScript: Secret.fileUrlToPath(Qt.resolvedUrl("../code/catalogCache.sh"))
 
     property var profiles: Profiles.parseProfiles(plasmoid.configuration.profilesJson, plasmoid.configuration.kimaiUrl)
     property var activeProfile: Profiles.profileById(profiles, plasmoid.configuration.activeProfileId || "default")
@@ -75,6 +76,8 @@ PlasmoidItem {
     property var stopConfirmDialogRef: null
     property var switchRecentDialogRef: null
     property int elapsedSeconds: 0
+    /** Bumps DaySparkline live edge; kept coarse to avoid per-second canvas work. */
+    property int sparklineNowTick: 0
     property var recentTimesheets: []
     property var projects: []
     property var customers: []
@@ -154,7 +157,8 @@ PlasmoidItem {
         String(Kirigami.Theme.neutralTextColor),
         String(Kirigami.Theme.negativeTextColor),
         String(Kirigami.Theme.linkColor),
-        String(Kirigami.Theme.activeTextColor)
+        String(Kirigami.Theme.activeTextColor),
+        String(Kirigami.Theme.visitedLinkColor)
     ].join("|")
     onThemePaletteKeyChanged: root.rebuildColorMaps(true)
 
@@ -301,6 +305,14 @@ PlasmoidItem {
         running: root.isTracking
         repeat: true
         onTriggered: root.elapsedSeconds++
+    }
+
+    Timer {
+        id: sparklineRefreshTimer
+        interval: 30000
+        running: root.expanded && root.isConfigured && root.showSparklineHere
+        repeat: true
+        onTriggered: root.sparklineNowTick++
     }
 
     Timer {
@@ -1182,6 +1194,38 @@ PlasmoidItem {
         }
         var acts = ColorDistinct.flattenActivitiesByProject(activitiesByProject, extra)
         ColorDistinct.rebuild(customers, projects, acts, !!force)
+        var storeGroups = providerCapabilities.colorDistinction
+            && (customers.length || projects.length || acts.length)
+        var cg = storeGroups ? ColorDistinct.maintenanceGroups("customer", customers) : []
+        var pg = storeGroups ? ColorDistinct.maintenanceGroups("project", projects) : []
+        var ag = storeGroups ? ColorDistinct.maintenanceGroups("activity", acts) : []
+        if (customers.length || projects.length || (allActivities || []).length) {
+            CatalogCache.store(activeProfile ? activeProfile.id : "", {
+                customers: customers,
+                projects: projects,
+                activities: allActivities,
+                customerGroups: cg,
+                projectGroups: pg,
+                activityGroups: ag,
+                shiftedCount: storeGroups
+                    ? (CatalogCache.countShifted(cg)
+                        + CatalogCache.countShifted(pg)
+                        + CatalogCache.countShifted(ag))
+                    : 0,
+                groupCount: cg.length + pg.length + ag.length,
+                settingsKey: [
+                    plasmoid.configuration.colorDistinctionEnabled !== false ? "1" : "0",
+                    String(plasmoid.configuration.colorSimilarityPercent || 22),
+                    root.themePaletteKey
+                ].join("|"),
+                effectiveSimilarity: {
+                    customer: ColorDistinct.effectiveSimilarityPercent("customer"),
+                    project: ColorDistinct.effectiveSimilarityPercent("project"),
+                    activity: ColorDistinct.effectiveSimilarityPercent("activity")
+                }
+            })
+            Secret.saveCatalogCache(execSource, root.catalogCacheScript, CatalogCache.exportPayload())
+        }
         if (projects && projects.length) {
             projectPickerModel = KimaiApi.projectPickerItems(projects, customers)
         }
@@ -2235,8 +2279,9 @@ PlasmoidItem {
                                 workDayEnd: root.workDayEnd
                                 latitude: plasmoid.configuration.latitude
                                 longitude: plasmoid.configuration.longitude
-                                nowTick: root.elapsedSeconds
+                                nowTick: root.sparklineNowTick
                                 showArcs: plasmoid.configuration.showSparklineArcs
+                                flyoutOpen: root.expanded
                                 headerMaskItems: [elapsedLabel, customerLabel]
                                 Component.onCompleted: {
                                     popupRoot.sparklineItem = daySparkline
@@ -2956,6 +3001,7 @@ PlasmoidItem {
             if (!root.expanded) {
                 return
             }
+            root.sparklineNowTick++
             if (root.isConfigured && root.connectionState === "online") {
                 root.refreshAll(true)
             } else {

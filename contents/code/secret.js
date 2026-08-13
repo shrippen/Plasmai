@@ -15,6 +15,7 @@ function fileUrlToPath(url) {
 }
 
 var _pending = {}
+var _job = 0
 
 function handleData(dataSource, sourceName, data) {
     var entry = _pending[sourceName]
@@ -37,8 +38,27 @@ function cancelAll(dataSource) {
 }
 
 function _run(dataSource, command, callback) {
-    _pending[command] = { callback: callback }
-    dataSource.connectSource(command)
+    // Unique source names: settings pages share this pragma-library pending map.
+    // Append a shell comment so identical commands do not collide; avoid wrapping
+    // in `env` (QProcess then shows as /usr/bin/env and can be destroyed early).
+    _job += 1
+    var source = command + " #plasmai-job-" + _job
+    _pending[source] = { callback: callback }
+    dataSource.connectSource(source)
+}
+
+function parseJsonPayload(text) {
+    var s = String(text || "")
+    var start = s.indexOf("{")
+    var end = s.lastIndexOf("}")
+    if (start < 0 || end <= start) {
+        return null
+    }
+    try {
+        return JSON.parse(s.substring(start, end + 1))
+    } catch (e) {
+        return null
+    }
 }
 
 function load(dataSource, scriptPath, profileId, callback) {
@@ -152,6 +172,46 @@ function saveSharedConfig(dataSource, scriptPath, sharedObj, callback) {
             } else {
                 var stderr = (data["stderr"] || "").toString().trim()
                 callback(false, stderr || ("sharedConfig.sh store failed (exit " + exitCode + ")"))
+            }
+        }
+    })
+}
+
+function loadCatalogCache(dataSource, scriptPath, callback) {
+    var cmd = "sh " + shQuote(scriptPath) + " load"
+    _run(dataSource, cmd, function(data) {
+        var stdout = (data["stdout"] || "").toString()
+        if (stdout.length && stdout.charAt(stdout.length - 1) === "\n") {
+            stdout = stdout.substring(0, stdout.length - 1)
+        }
+        var exitCode = data["exit code"]
+        if (exitCode === 0 && stdout.length > 0) {
+            var parsed = parseJsonPayload(stdout)
+            if (parsed) {
+                callback(parsed, null)
+            } else {
+                callback(null, "Invalid catalog cache JSON")
+            }
+        } else if (exitCode === 1) {
+            callback(null, null)
+        } else {
+            var stderr = (data["stderr"] || "").toString().trim()
+            callback(null, stderr || ("catalogCache.sh load failed (exit " + exitCode + ")"))
+        }
+    })
+}
+
+function saveCatalogCache(dataSource, scriptPath, payload, callback) {
+    var json = JSON.stringify(payload || {})
+    var cmd = "env PLASMAI_CATALOG_JSON=" + shQuote(json) + " sh " + shQuote(scriptPath) + " store"
+    _run(dataSource, cmd, function(data) {
+        var exitCode = data["exit code"]
+        if (callback) {
+            if (exitCode === 0) {
+                callback(true, null)
+            } else {
+                var stderr = (data["stderr"] || "").toString().trim()
+                callback(false, stderr || ("catalogCache.sh store failed (exit " + exitCode + ")"))
             }
         }
     })

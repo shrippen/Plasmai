@@ -20,6 +20,7 @@ var _settingsKey = ""
 var _loadedAt = 0
 var _statusText = ""
 var _fetching = false
+var _effectiveSimilarity = { customer: 22, project: 22, activity: 22 }
 
 /**
  * Skip the API when the catalog is younger than this.
@@ -27,7 +28,33 @@ var _fetching = false
  */
 var FRESH_MS = 10 * 60 * 1000
 
+function countShifted(groups) {
+    var n = 0
+    for (var g = 0; g < (groups || []).length; g++) {
+        var entries = groups[g].entries || []
+        for (var i = 0; i < entries.length; i++) {
+            if (entries[i].shifted) {
+                n++
+            }
+        }
+    }
+    return n
+}
+
 function entityFingerprint(customers, projects, activities) {
+    function normColor(value) {
+        var c = String(value || "").replace(/\s+/g, "").toLowerCase()
+        if (!c || c === "null" || c === "undefined") {
+            return ""
+        }
+        if (c.charAt(0) !== "#" && c.length === 6) {
+            c = "#" + c
+        }
+        if (c.length >= 7 && c.charAt(0) === "#") {
+            return c.slice(0, 7)
+        }
+        return c
+    }
     function pack(list) {
         var parts = []
         for (var i = 0; i < (list || []).length; i++) {
@@ -35,8 +62,7 @@ function entityFingerprint(customers, projects, activities) {
             if (!item || item.id === null || item.id === undefined) {
                 continue
             }
-            var color = item.color || ""
-            parts.push(String(item.id) + "=" + String(color).toLowerCase())
+            parts.push(String(item.id) + "=" + normColor(item.color))
         }
         parts.sort()
         return parts.join(";")
@@ -105,8 +131,40 @@ function store(profileId, payload) {
     _groupCount = payload.groupCount || 0
     _settingsKey = payload.settingsKey || ""
     _statusText = payload.statusText || ""
-    _loadedAt = Date.now()
+    _effectiveSimilarity = payload.effectiveSimilarity || _effectiveSimilarity
+    _loadedAt = payload.loadedAt || Date.now()
     _fetching = false
+}
+
+/** Restore from disk / another process. Preserves original loadedAt for TTL. */
+function hydrate(payload) {
+    if (!payload) {
+        return false
+    }
+    store(payload.profileId, payload)
+    if (payload.loadedAt) {
+        _loadedAt = payload.loadedAt
+    }
+    return hasCatalog(_profileId)
+}
+
+function exportPayload() {
+    return {
+        profileId: _profileId,
+        customers: _customers,
+        projects: _projects,
+        activities: _activities,
+        entityFingerprint: _entityFingerprint,
+        customerGroups: _customerGroups,
+        projectGroups: _projectGroups,
+        activityGroups: _activityGroups,
+        shiftedCount: _shiftedCount,
+        groupCount: _groupCount,
+        settingsKey: _settingsKey,
+        statusText: _statusText,
+        effectiveSimilarity: _effectiveSimilarity,
+        loadedAt: _loadedAt
+    }
 }
 
 /** Store catalog entities only (widget); keep existing groups if fingerprint unchanged. */
@@ -146,6 +204,7 @@ function load() {
         groupCount: _groupCount,
         settingsKey: _settingsKey,
         statusText: _statusText,
+        effectiveSimilarity: _effectiveSimilarity,
         loadedAt: _loadedAt
     }
 }
@@ -164,5 +223,6 @@ function clear() {
     _settingsKey = ""
     _loadedAt = 0
     _statusText = ""
+    _effectiveSimilarity = { customer: 22, project: 22, activity: 22 }
     _fetching = false
 }

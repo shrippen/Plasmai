@@ -16,7 +16,8 @@ Row {
     SequentialAnimation on animOpacity {
         id: pulse
         loops: Animation.Infinite
-        running: true
+        // Must not run while hidden — keeps the animation driver awake in plasmashell.
+        running: root.visible
         NumberAnimation { from: 0.25; to: 0.55; duration: 900 }
         NumberAnimation { from: 0.55; to: 0.25; duration: 900 }
     }

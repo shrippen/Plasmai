@@ -11,13 +11,15 @@ import "../../code/profiles.js" as Profiles
 import "../../code/favorites.js" as Favorites
 import "../../code/sharedConfig.js" as SharedConfig
 import "../../code/colorDistinct.js" as ColorDistinct
+import "../../code/maintenanceCache.js" as CatalogCache
 import ".."
 
-Item {
+ConfigPage {
     id: page
 
     readonly property string kwalletScript: Secret.fileUrlToPath(Qt.resolvedUrl("../../code/kwallet.sh"))
     readonly property string sharedConfigScript: Secret.fileUrlToPath(Qt.resolvedUrl("../../code/sharedConfig.sh"))
+    readonly property string catalogCacheScript: Secret.fileUrlToPath(Qt.resolvedUrl("../../code/catalogCache.sh"))
     readonly property int pageMargin: Kirigami.Units.gridUnit
 
     readonly property var activeProfile: Profiles.profileById(
@@ -29,8 +31,9 @@ Item {
     readonly property var providerCapabilities: TimeTracker.providerCapabilities(
         activeProfile && activeProfile.provider ? activeProfile.provider : "kimai")
 
-    property alias cfg_pinnedActivities: pinnedField.text
+    property var customers: []
     property var availableProjects: []
+    property var allActivities: []
     property var projectRows: []
     property var projectActivities: ({})
     property var selectedProject: null
@@ -47,7 +50,18 @@ Item {
         }
     }
 
-    Component.onCompleted: {
+    Component.onDestruction: Secret.cancelAll(execSource)
+
+    onPageEntered: {
+        if (page.cfg_pinnedActivities) {
+            pinnedField.text = page.cfg_pinnedActivities
+        }
+        // Catalog first — do not share the executable DataSource with shared.json
+        // or the cache read is dropped and this page falls back to a full API load.
+        page.loadProjects(false)
+    }
+
+    function loadSharedPinned() {
         Secret.loadSharedConfig(execSource, page.sharedConfigScript, function(shared) {
             if (shared) {
                 SharedConfig.applyToConfiguration(plasmoid.configuration, shared)
@@ -55,7 +69,6 @@ Item {
                     pinnedField.text = shared.pinnedActivities
                 }
             }
-            loadProjects()
         })
     }
 
@@ -65,62 +78,208 @@ Item {
         })
     }
 
-    function loadProjects() {
-        if (!page.activeProfile || !page.activeProfile.url) {
-            projectsStatus = i18n("Configure a Kimai URL on the Connection tab first.")
-            return
+    function themePaletteFromSettingsKey(settingsKey) {
+        var parts = String(settingsKey || "").split("|")
+        if (parts.length < 9) {
+            return null
         }
-        projectsStatus = i18n("Loading projects…")
+        return [parts[2], parts[3], parts[4], parts[5], parts[6], parts[7], parts[8]]
+    }
+
+    function applyColorOptions() {
+        var cached = CatalogCache.load()
+        var fromCache = page.themePaletteFromSettingsKey(cached.settingsKey)
+        if (fromCache) {
+            ColorDistinct.setThemePalette(fromCache)
+        } else {
+            ColorDistinct.setThemePalette([
+                Kirigami.Theme.highlightColor,
+                Kirigami.Theme.positiveTextColor,
+                Kirigami.Theme.neutralTextColor,
+                Kirigami.Theme.negativeTextColor,
+                Kirigami.Theme.linkColor,
+                Kirigami.Theme.activeTextColor,
+                Kirigami.Theme.visitedLinkColor
+            ])
+        }
+        ColorDistinct.configure(
+            page.providerCapabilities.colorDistinction
+                && plasmoid.configuration.colorDistinctionEnabled !== false,
+            plasmoid.configuration.colorSimilarityPercent || 22
+        )
+    }
+
+    function applyCatalogEntities(customers, projects, activities, deferColors) {
+        page.customers = customers || []
+        page.availableProjects = projects || []
+        page.allActivities = activities || []
+        // Paint the list immediately — ColorDistinct.rebuild can wait a tick.
+        page.projectRows = KimaiApi.projectsGroupedByCustomer(page.availableProjects, page.customers)
+        page.projectsStatus = i18n("Loaded %1 projects.", page.availableProjects.length)
+        if (page.selectedProject) {
+            var keepId = page.selectedProject.id
+            var stillThere = null
+            for (var i = 0; i < page.availableProjects.length; i++) {
+                if (String(page.availableProjects[i].id) === String(keepId)) {
+                    stillThere = page.availableProjects[i]
+                    break
+                }
+            }
+            if (stillThere) {
+                page.showActivitiesForProject(stillThere)
+            } else {
+                page.selectedProject = null
+                page.activityRowModel = []
+                page.activitiesStatus = i18n("Select a project to pin activities.")
+            }
+        } else if (!page.selectedProject) {
+            page.activityRowModel = []
+            page.activitiesStatus = i18n("Select a project to pin activities.")
+        }
+        function applyColors() {
+            page.applyColorOptions()
+            ColorDistinct.rebuild(page.customers, page.availableProjects, page.allActivities, false)
+            page.projectRows = KimaiApi.projectsGroupedByCustomer(page.availableProjects, page.customers)
+        }
+        if (deferColors) {
+            Qt.callLater(applyColors)
+        } else {
+            applyColors()
+        }
+    }
+
+    function applyPayloadIfUsable(payload) {
+        if (!payload || !(payload.projects || []).length) {
+            return false
+        }
+        CatalogCache.hydrate(payload)
+        page.applyCatalogEntities(payload.customers, payload.projects, payload.activities, true)
+        return true
+    }
+
+    function loadProjects(forceRefresh) {
+        var profileId = page.activeProfile ? page.activeProfile.id : "default"
+
+        function afterCache(fromCache) {
+            // Shared config only after catalog — one executable job at a time.
+            page.loadSharedPinned()
+            if (fromCache && !forceRefresh) {
+                return
+            }
+            if (!page.activeProfile || !page.activeProfile.url) {
+                if (!fromCache) {
+                    projectsStatus = i18n("Configure a Kimai URL on the Connection tab first.")
+                }
+                return
+            }
+            page.fetchProjectsFromApi(fromCache)
+        }
+
+        if (!forceRefresh && CatalogCache.hasCatalog(profileId)) {
+            var cached = CatalogCache.load()
+            if (page.applyPayloadIfUsable(cached)) {
+                afterCache(true)
+                return
+            }
+        }
+
+        if (!forceRefresh) {
+            projectsStatus = i18n("Loading projects…")
+        }
+
+        // Disk cache via shell (Qt blocks XMLHttpRequest on file://).
+        Secret.loadCatalogCache(execSource, page.catalogCacheScript, function(payload) {
+            afterCache(page.applyPayloadIfUsable(payload))
+        })
+    }
+
+    function fetchProjectsFromApi(hadCache) {
+        if (!hadCache) {
+            projectsStatus = i18n("Loading projects…")
+        }
         Secret.load(execSource, page.kwalletScript, page.activeProfile.id, function(token, err) {
             if (err || !token) {
-                projectsStatus = i18n("Save an API token on the Connection tab first.")
+                if (!hadCache) {
+                    projectsStatus = i18n("Save an API token on the Connection tab first.")
+                }
                 return
             }
             TimeTracker.applySession(page.activeProfile.provider || "kimai", page.activeProfile)
-            page.tracker.loadCustomers(TimeTracker.resolveUrl(page.activeProfile), token, function(customersResult) {
+            var url = TimeTracker.resolveUrl(page.activeProfile)
+            page.tracker.loadCustomers(url, token, function(customersResult) {
                 var customers = customersResult.ok ? (customersResult.data || []) : []
-                page.tracker.loadProjects(TimeTracker.resolveUrl(page.activeProfile), token, function(result) {
-                    if (result.ok) {
-                        availableProjects = result.data || []
-                        ColorDistinct.setThemePalette([
-                            Kirigami.Theme.highlightColor,
-                            Kirigami.Theme.positiveTextColor,
-                            Kirigami.Theme.neutralTextColor,
-                            Kirigami.Theme.negativeTextColor,
-                            Kirigami.Theme.linkColor,
-                            Kirigami.Theme.activeTextColor,
-                            Kirigami.Theme.visitedLinkColor
-                        ])
-                        ColorDistinct.configure(
-                            page.providerCapabilities.colorDistinction
-                                && plasmoid.configuration.colorDistinctionEnabled !== false,
-                            plasmoid.configuration.colorSimilarityPercent || 22
-                        )
-                        ColorDistinct.rebuild(customers, availableProjects, [], true)
-                        projectRows = KimaiApi.projectsGroupedByCustomer(availableProjects, customers)
-                        projectsStatus = i18n("Loaded %1 projects.", availableProjects.length)
-                        selectedProject = null
-                        activityRowModel = []
-                        activitiesStatus = i18n("Select a project to pin activities.")
+                page.tracker.loadProjects(url, token, function(result) {
+                    if (!result.ok) {
+                        if (!hadCache) {
+                            projectsStatus = i18n("Failed to load projects.")
+                        }
+                        return
+                    }
+                    var projects = result.data || []
+                    // Show the project list as soon as it arrives (flyout already has this).
+                    page.applyCatalogEntities(customers, projects, page.allActivities, true)
+                    function persist(activities) {
+                        page.applyCatalogEntities(customers, projects, activities, true)
+                        var prev = CatalogCache.load()
+                        CatalogCache.store(page.activeProfile.id, {
+                            customers: customers,
+                            projects: projects,
+                            activities: activities,
+                            entityFingerprint: CatalogCache.entityFingerprint(
+                                customers, projects, activities),
+                            customerGroups: prev.customerGroups,
+                            projectGroups: prev.projectGroups,
+                            activityGroups: prev.activityGroups,
+                            shiftedCount: prev.shiftedCount,
+                            groupCount: prev.groupCount,
+                            settingsKey: prev.settingsKey,
+                            statusText: prev.statusText,
+                            effectiveSimilarity: prev.effectiveSimilarity
+                        })
+                        Secret.saveCatalogCache(execSource, page.catalogCacheScript, CatalogCache.exportPayload())
+                    }
+                    if (typeof page.tracker.loadAllActivities === "function") {
+                        page.tracker.loadAllActivities(url, token, function(actResult) {
+                            persist(actResult.ok ? (actResult.data || []) : [])
+                        })
                     } else {
-                        projectsStatus = i18n("Failed to load projects.")
+                        persist(page.allActivities || [])
                     }
                 })
             })
         })
     }
 
-    function loadActivitiesForProject(project) {
+    function showActivitiesForProject(project) {
         if (!project) {
             return
         }
         selectedProject = project
+        var cachedForProject = page.projectActivities[project.id]
+            || page.projectActivities[String(project.id)]
+        var source = cachedForProject || page.allActivities
+        if (source && source.length) {
+            page.activityRowModel = KimaiApi.activitiesListModel(source, project.id)
+            var split = KimaiApi.splitActivitiesForProject(source, project.id)
+            activitiesStatus = i18n("%1 project-specific, %2 global",
+                                   split.projectSpecific.length, split.global.length)
+            return
+        }
+        page.fetchActivitiesForProject(project)
+    }
+
+    function loadActivitiesForProject(project) {
+        page.showActivitiesForProject(project)
+    }
+
+    function fetchActivitiesForProject(project) {
         activitiesStatus = i18n("Loading activities…")
         Secret.load(execSource, page.kwalletScript, page.activeProfile.id, function(token) {
             if (!token) {
                 activitiesStatus = i18n("No API token available.")
                 return
             }
+            TimeTracker.applySession(page.activeProfile.provider || "kimai", page.activeProfile)
             page.tracker.loadActivities(TimeTracker.resolveUrl(page.activeProfile), token, project.id, function(result) {
                 if (result.ok) {
                     var copy = {}
@@ -198,10 +357,21 @@ Item {
                 text: i18n("Favorites")
             }
 
-            PlasmaComponents3.Label {
+            RowLayout {
                 Layout.fillWidth: true
-                text: i18n("Projects")
-                font.bold: true
+                spacing: Kirigami.Units.smallSpacing
+
+                PlasmaComponents3.Label {
+                    Layout.fillWidth: true
+                    text: i18n("Projects")
+                    font.bold: true
+                }
+
+                PlasmaComponents3.Button {
+                    text: i18n("Reload")
+                    icon.name: "view-refresh"
+                    onClicked: page.loadProjects(true)
+                }
             }
 
             PlasmaComponents3.Label {
@@ -262,12 +432,6 @@ Item {
                         }
                     }
                 }
-            }
-
-            PlasmaComponents3.Button {
-                text: i18n("Reload")
-                icon.name: "view-refresh"
-                onClicked: page.loadProjects()
             }
         }
 
@@ -333,6 +497,7 @@ Item {
         QQC2.TextField {
             id: pinnedField
             visible: false
+            onTextChanged: page.cfg_pinnedActivities = text
         }
     }
 }

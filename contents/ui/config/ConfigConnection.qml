@@ -11,16 +11,21 @@ import "../../code/profiles.js" as Profiles
 import "../../code/sharedConfig.js" as SharedConfig
 import ".."
 
-Item {
+ConfigPage {
     id: page
 
     readonly property string kwalletScript: Secret.fileUrlToPath(Qt.resolvedUrl("../../code/kwallet.sh"))
     readonly property string sharedConfigScript: Secret.fileUrlToPath(Qt.resolvedUrl("../../code/sharedConfig.sh"))
     readonly property int pageMargin: Kirigami.Units.gridUnit
+    readonly property bool formWide: scroll.availableWidth >= Kirigami.Units.gridUnit * 28
 
-    property alias cfg_kimaiUrl: kimaiUrlField.text
-    property alias cfg_profilesJson: profilesField.text
-    property alias cfg_activeProfileId: activeProfileField.text
+    function buddyMaxWidth(form) {
+        var formW = form && form.width > 0 ? form.width : scroll.availableWidth
+        if (!page.formWide) {
+            return Math.max(Kirigami.Units.gridUnit * 10, formW - page.pageMargin * 2)
+        }
+        return Math.max(Kirigami.Units.gridUnit * 10, formW - Kirigami.Units.gridUnit * 14)
+    }
 
     property var profiles: Profiles.parseProfiles(profilesField.text, kimaiUrlField.text)
     property int selectedIndex: 0
@@ -224,7 +229,20 @@ Item {
         syncProfiles()
     }
 
-    Component.onCompleted: {
+    Component.onDestruction: Secret.cancelAll(execSource)
+
+    onPageEntered: {
+        page.syncing = true
+        if (page.cfg_kimaiUrl) {
+            kimaiUrlField.text = page.cfg_kimaiUrl
+        }
+        if (page.cfg_profilesJson) {
+            profilesField.text = page.cfg_profilesJson
+        }
+        if (page.cfg_activeProfileId) {
+            activeProfileField.text = page.cfg_activeProfileId
+        }
+        page.syncing = false
         Secret.loadSharedConfig(execSource, page.sharedConfigScript, function(shared) {
             if (shared) {
                 SharedConfig.applyToConfiguration(plasmoid.configuration, shared)
@@ -279,6 +297,7 @@ Item {
 
             PlasmaComponents3.Label {
                 Layout.fillWidth: true
+                Layout.maximumWidth: page.buddyMaxWidth(connectionForm)
                 Layout.leftMargin: page.pageMargin
                 Layout.rightMargin: page.pageMargin
                 wrapMode: Text.WordWrap
@@ -291,12 +310,13 @@ Item {
                 Layout.fillWidth: true
                 Layout.leftMargin: page.pageMargin
                 Layout.rightMargin: page.pageMargin
-                wideMode: true
+                wideMode: page.formWide
 
                 QQC2.ComboBox {
                     id: profileCombo
                     Kirigami.FormData.label: i18n("Profile:")
                     Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(connectionForm)
                     model: page.profiles.map(function(p) { return p.name })
                     currentIndex: page.selectedIndex
                     onActivated: function(index) {
@@ -309,6 +329,7 @@ Item {
                     id: profileNameField
                     Kirigami.FormData.label: i18n("Profile name:")
                     Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(connectionForm)
                     onTextChanged: page.updateSelectedProfile("name", text)
                 }
 
@@ -316,6 +337,7 @@ Item {
                     id: providerCombo
                     Kirigami.FormData.label: i18n("Service:")
                     Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(connectionForm)
                     model: TimeTracker.providerNames()
                     onActivated: function(index) {
                         if (page.updatingFields) {
@@ -326,13 +348,9 @@ Item {
                 }
 
                 PlasmaComponents3.Label {
-                    // Constrain width so WordWrap actually kicks in inside FormLayout.
+                    Kirigami.FormData.label: page.formWide ? " " : ""
                     Layout.fillWidth: true
-                    Layout.maximumWidth: Math.max(
-                        Kirigami.Units.gridUnit * 10,
-                        connectionForm.width - (connectionForm.wideMode
-                            ? Kirigami.Units.gridUnit * 10
-                            : 0))
+                    Layout.maximumWidth: page.buddyMaxWidth(connectionForm)
                     wrapMode: Text.WordWrap
                     horizontalAlignment: Text.AlignLeft
                     color: Kirigami.Theme.neutralTextColor
@@ -344,8 +362,10 @@ Item {
                     id: kimaiUrlField
                     Kirigami.FormData.label: page.urlFieldLabel
                     Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(connectionForm)
                     placeholderText: page.urlPlaceholderText
                     onTextChanged: {
+                        page.cfg_kimaiUrl = text
                         if (!page.updatingFields && !page.syncing) {
                             page.updateSelectedProfile("url", text)
                         }
@@ -357,185 +377,188 @@ Item {
                     id: tokenField
                     Kirigami.FormData.label: page.authFieldLabel
                     Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(connectionForm)
                     echoMode: TextInput.Password
                     placeholderText: i18n("Paste token to save in KWallet")
                     enabled: !page.busy
                 }
-            }
 
-            RowLayout {
-                Layout.fillWidth: true
-                Layout.leftMargin: page.pageMargin
-                Layout.rightMargin: page.pageMargin
-                spacing: Kirigami.Units.smallSpacing
+                Flow {
+                    id: profileActionsFlow
+                    Kirigami.FormData.label: page.formWide ? " " : ""
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(connectionForm)
+                    Layout.preferredHeight: implicitHeight
+                    spacing: Kirigami.Units.smallSpacing
 
-                PlasmaComponents3.Button {
-                    text: i18n("Add profile")
-                    icon.name: "list-add"
-                    onClicked: {
-                        var copy = page.profiles.slice()
-                        var profile = Profiles.normalizeProfile({
-                            id: Profiles.newProfileId(),
-                            name: i18n("Profile %1", copy.length + 1),
-                            url: "",
-                            provider: "kimai"
-                        })
-                        copy.push(profile)
-                        page.profiles = copy
-                        page.syncProfiles()
-                        page.selectedIndex = copy.length - 1
-                        profileCombo.currentIndex = page.selectedIndex
-                        page.updateFieldsForSelection()
+                    PlasmaComponents3.Button {
+                        text: i18n("Add profile")
+                        icon.name: "list-add"
+                        onClicked: {
+                            var copy = page.profiles.slice()
+                            var profile = Profiles.normalizeProfile({
+                                id: Profiles.newProfileId(),
+                                name: i18n("Profile %1", copy.length + 1),
+                                url: "",
+                                provider: "kimai"
+                            })
+                            copy.push(profile)
+                            page.profiles = copy
+                            page.syncProfiles()
+                            page.selectedIndex = copy.length - 1
+                            profileCombo.currentIndex = page.selectedIndex
+                            page.updateFieldsForSelection()
+                        }
+                    }
+                    PlasmaComponents3.Button {
+                        text: i18n("Remove")
+                        icon.name: "list-remove"
+                        enabled: page.profiles.length > 1
+                        onClicked: {
+                            if (page.profiles.length <= 1) {
+                                return
+                            }
+                            var removedId = page.profiles[page.selectedIndex].id
+                            var copy = page.profiles.slice()
+                            copy.splice(page.selectedIndex, 1)
+                            page.profiles = copy
+                            page.syncProfiles()
+                            page.selectedIndex = Math.max(0, page.selectedIndex - 1)
+                            profileCombo.currentIndex = page.selectedIndex
+                            page.updateFieldsForSelection()
+                            if (activeProfileField.text === removedId) {
+                                page.setActiveProfile()
+                            }
+                        }
+                    }
+                    PlasmaComponents3.Button {
+                        text: i18n("Use this profile")
+                        icon.name: "emblem-default"
+                        enabled: page.profiles.length > 0
+                        onClicked: page.setActiveProfile()
                     }
                 }
 
-                PlasmaComponents3.Button {
-                    text: i18n("Remove")
-                    icon.name: "list-remove"
-                    enabled: page.profiles.length > 1
-                    onClicked: {
-                        if (page.profiles.length <= 1) {
-                            return
-                        }
-                        var removedId = page.profiles[page.selectedIndex].id
-                        var copy = page.profiles.slice()
-                        copy.splice(page.selectedIndex, 1)
-                        page.profiles = copy
-                        page.syncProfiles()
-                        page.selectedIndex = Math.max(0, page.selectedIndex - 1)
-                        profileCombo.currentIndex = page.selectedIndex
-                        page.updateFieldsForSelection()
-                        if (activeProfileField.text === removedId) {
+                PlasmaComponents3.Label {
+                    Kirigami.FormData.label: page.formWide ? " " : ""
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(connectionForm)
+                    wrapMode: Text.WordWrap
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    opacity: 0.75
+                    text: {
+                        var active = Profiles.profileById(page.profiles, activeProfileField.text || "default")
+                        return i18n("Active profile: %1", active ? active.name : i18n("none"))
+                    }
+                }
+
+                Flow {
+                    id: tokenActionsFlow
+                    Kirigami.FormData.label: page.formWide ? " " : ""
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(connectionForm)
+                    Layout.preferredHeight: implicitHeight
+                    spacing: Kirigami.Units.smallSpacing
+
+                    PlasmaComponents3.Button {
+                        text: page.busy ? i18n("Saving…") : i18n("Save token")
+                        icon.name: "document-save"
+                        enabled: !page.busy && tokenField.text.length > 0 && page.profiles.length > 0
+                        onClicked: {
+                            page.busy = true
+                            page.showStatus("", false)
+                            page.commitUrlField()
                             page.setActiveProfile()
-                        }
-                    }
-                }
-
-                PlasmaComponents3.Button {
-                    text: i18n("Use this profile")
-                    icon.name: "emblem-default"
-                    enabled: page.profiles.length > 0
-                    onClicked: page.setActiveProfile()
-                }
-            }
-
-            PlasmaComponents3.Label {
-                Layout.fillWidth: true
-                Layout.leftMargin: page.pageMargin
-                Layout.rightMargin: page.pageMargin
-                wrapMode: Text.WordWrap
-                font.pointSize: Kirigami.Theme.smallFont.pointSize
-                opacity: 0.75
-                text: {
-                    var active = Profiles.profileById(page.profiles, activeProfileField.text || "default")
-                    return i18n("Active profile: %1", active ? active.name : i18n("none"))
-                }
-            }
-
-            RowLayout {
-                Layout.fillWidth: true
-                Layout.leftMargin: page.pageMargin
-                Layout.rightMargin: page.pageMargin
-                spacing: Kirigami.Units.smallSpacing
-
-                PlasmaComponents3.Button {
-                    text: page.busy ? i18n("Saving…") : i18n("Save token")
-                    icon.name: "document-save"
-                    enabled: !page.busy && tokenField.text.length > 0 && page.profiles.length > 0
-                    onClicked: {
-                        page.busy = true
-                        page.showStatus("", false)
-                        page.commitUrlField()
-                        page.setActiveProfile()
-                        var profileId = page.profiles[page.selectedIndex].id
-                        Secret.save(execSource, page.kwalletScript, profileId, tokenField.text, function(ok, err) {
-                            page.busy = false
-                            if (ok) {
-                                tokenField.text = ""
-                                page.showStatus(i18n("Token saved to KWallet for this profile."), false)
-                            } else {
-                                page.showStatus(err || i18n("Failed to save token"), true)
-                            }
-                        })
-                    }
-                }
-
-                PlasmaComponents3.Button {
-                    text: i18n("Clear token")
-                    icon.name: "edit-delete"
-                    enabled: !page.busy && page.profiles.length > 0
-                    onClicked: {
-                        page.busy = true
-                        page.showStatus("", false)
-                        var profileId = page.profiles[page.selectedIndex].id
-                        Secret.clear(execSource, page.kwalletScript, profileId, function(ok, err) {
-                            page.busy = false
-                            if (ok) {
-                                page.showStatus(i18n("Token removed from KWallet."), false)
-                            } else {
-                                page.showStatus(err || i18n("Failed to clear token"), true)
-                            }
-                        })
-                    }
-                }
-
-                PlasmaComponents3.Button {
-                    text: i18n("Test connection")
-                    icon.name: "network-connect"
-                    enabled: !page.testingConnection && !page.busy && page.profiles.length > 0
-                    onClicked: {
-                        page.testingConnection = true
-                        page.showStatus(i18n("Testing connection…"), false)
-                        page.commitUrlField()
-                        var profile = page.profiles[page.selectedIndex]
-                        var profileId = profile.id
-                        var url = TimeTracker.resolveUrl(profile)
-                        TimeTracker.applySession(profile.provider || "kimai", profile)
-                        Secret.load(execSource, page.kwalletScript, profileId, function(token, loadErr) {
-                            if (loadErr) {
-                                page.testingConnection = false
-                                page.showStatus(loadErr, true)
-                                return
-                            }
-                            if (!token) {
-                                page.testingConnection = false
-                                page.showStatus(i18n("No API token stored. Save a token first."), true)
-                                return
-                            }
-                            page.tracker.testConnection(url, token, function(result) {
-                                page.testingConnection = false
-                                if (result.ok) {
-                                    page.applyTestConnectionMeta(result.data)
-                                    var label = TimeTracker.providerDisplayName(profile.provider)
-                                    var ver = (result.data && (result.data.version || result.data.name)) || i18n("ok")
-                                    page.showStatus(i18n("Connected to %1 (%2).", label, ver), false)
+                            var profileId = page.profiles[page.selectedIndex].id
+                            Secret.save(execSource, page.kwalletScript, profileId, tokenField.text, function(ok, err) {
+                                page.busy = false
+                                if (ok) {
+                                    tokenField.text = ""
+                                    page.showStatus(i18n("Token saved to KWallet for this profile."), false)
                                 } else {
-                                    page.showStatus(ApiErrors.text(result.error, true), true)
+                                    page.showStatus(err || i18n("Failed to save token"), true)
                                 }
                             })
-                        })
+                        }
+                    }
+                    PlasmaComponents3.Button {
+                        text: i18n("Clear token")
+                        icon.name: "edit-delete"
+                        enabled: !page.busy && page.profiles.length > 0
+                        onClicked: {
+                            page.busy = true
+                            page.showStatus("", false)
+                            var profileId = page.profiles[page.selectedIndex].id
+                            Secret.clear(execSource, page.kwalletScript, profileId, function(ok, err) {
+                                page.busy = false
+                                if (ok) {
+                                    page.showStatus(i18n("Token removed from KWallet."), false)
+                                } else {
+                                    page.showStatus(err || i18n("Failed to clear token"), true)
+                                }
+                            })
+                        }
+                    }
+                    PlasmaComponents3.Button {
+                        text: i18n("Test connection")
+                        icon.name: "network-connect"
+                        enabled: !page.testingConnection && !page.busy && page.profiles.length > 0
+                        onClicked: {
+                            page.testingConnection = true
+                            page.showStatus(i18n("Testing connection…"), false)
+                            page.commitUrlField()
+                            var profile = page.profiles[page.selectedIndex]
+                            var profileId = profile.id
+                            var url = TimeTracker.resolveUrl(profile)
+                            TimeTracker.applySession(profile.provider || "kimai", profile)
+                            Secret.load(execSource, page.kwalletScript, profileId, function(token, loadErr) {
+                                if (loadErr) {
+                                    page.testingConnection = false
+                                    page.showStatus(loadErr, true)
+                                    return
+                                }
+                                if (!token) {
+                                    page.testingConnection = false
+                                    page.showStatus(i18n("No API token stored. Save a token first."), true)
+                                    return
+                                }
+                                page.tracker.testConnection(url, token, function(result) {
+                                    page.testingConnection = false
+                                    if (result.ok) {
+                                        page.applyTestConnectionMeta(result.data)
+                                        var label = TimeTracker.providerDisplayName(profile.provider)
+                                        var ver = (result.data && (result.data.version || result.data.name)) || i18n("ok")
+                                        page.showStatus(i18n("Connected to %1 (%2).", label, ver), false)
+                                    } else {
+                                        page.showStatus(ApiErrors.text(result.error, true), true)
+                                    }
+                                })
+                            })
+                        }
                     }
                 }
-            }
 
-            PlasmaComponents3.Label {
-                Layout.fillWidth: true
-                Layout.leftMargin: page.pageMargin
-                Layout.rightMargin: page.pageMargin
-                Layout.bottomMargin: page.pageMargin
-                wrapMode: Text.WordWrap
-                visible: page.statusMessage.length > 0
-                color: page.statusIsError ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.positiveTextColor
-                text: page.statusMessage
+                PlasmaComponents3.Label {
+                    Kirigami.FormData.label: page.formWide ? " " : ""
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(connectionForm)
+                    Layout.bottomMargin: page.pageMargin
+                    wrapMode: Text.WordWrap
+                    visible: page.statusMessage.length > 0
+                    color: page.statusIsError ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.positiveTextColor
+                    text: page.statusMessage
+                }
             }
 
             QQC2.TextField {
                 id: profilesField
                 visible: false
+                onTextChanged: page.cfg_profilesJson = text
             }
             QQC2.TextField {
                 id: activeProfileField
                 visible: false
+                onTextChanged: page.cfg_activeProfileId = text
             }
         }
     }

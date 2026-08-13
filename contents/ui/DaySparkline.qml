@@ -18,18 +18,12 @@ Item {
     property string workDayEnd: KimaiApi.DEFAULT_WORK_DAY_END
     property real latitude: 52.52
     property real longitude: 13.405
-    /** Bump (e.g. elapsedSeconds) so the live edge and sky refresh. */
+    /** Bump so the live edge and sky refresh (driven at ~30s from main). */
     property int nowTick: 0
-    property real sunSpinAngle: 0
-    Timer {
-        id: sunSpinTimer
-        interval: 40
-        running: root.showArcs && root.sunPoint.visible
-        repeat: true
-        onTriggered: root.sunSpinAngle = (root.sunSpinAngle + (Math.PI * 2) * 0.040 / 180) % (Math.PI * 2)
-    }
     /** When false, keep the bar + labels but hide sun/moon/work arcs. */
     property bool showArcs: true
+    /** Parent flyout open — arc icon animators must not run while collapsed. */
+    property bool flyoutOpen: true
     /**
      * Header labels that should punch soft holes in the sky arcs (e.g. timer,
      * customer). Mapped into sky-local coordinates on refresh.
@@ -233,10 +227,8 @@ Item {
     // Draw sun/moon icons into a given canvas context (used so arc cutouts
     // can destination-out the icons when they overlap header text).
     function drawSunIconCanvas(ctx, cx, cy, s) {
-        var spin = root.sunSpinAngle
         ctx.save()
         ctx.translate(cx, cy)
-        ctx.rotate(spin)
 
         // Background disc
         ctx.beginPath()
@@ -524,7 +516,6 @@ Item {
                 function onWidthChanged() { skyCanvas.repaint() }
                 function onShowArcsChanged() { skyCanvas.repaint() }
                 function onArcCutoutsChanged() { skyCanvas.repaint() }
-                function onSunSpinAngleChanged() { skyCanvas.repaint() }
             }
             onWidthChanged: repaint()
             onHeightChanged: repaint()
@@ -579,23 +570,6 @@ Item {
                     } else {
                         drawSpan(moon.moonrise, moon.moonset, !!moon.wraps, root.peakMoon,
                                  root.moonRibbon, root.moonStroke, [2, 2])
-                    }
-                }
-
-                var sSize = root.workIconSize
-                var arcBase = h - 0.5
-                if (root.sunPoint.visible && root.sunPoint.t > 0) {
-                    var sp = root.sunPoint
-                    if (root.inView(sp.xFrac, 0.02)) {
-                        var sunModel = sun
-                        var sRise = sunModel.polarDay ? 0 : sunModel.sunrise
-                        var sSet  = sunModel.polarDay ? 1 : sunModel.sunset
-                        var sx0 = root.mapX(sRise) * w
-                        var sx1 = root.mapX(sSet) * w
-                        var sMid = (sx0 + sx1) / 2
-                        var sTop = arcBase - root.peakSun
-                        var sP = root.quadPoint(sx0, arcBase, sMid, sTop, sx1, arcBase, sp.t)
-                        root.drawSunIconCanvas(ctx, sP.x, sP.y, sSize)
                     }
                 }
 
@@ -658,82 +632,121 @@ Item {
             }
         }
 
-        // Sun icon on path
+        // Sun icon on the arc. Rotation is a scene-graph transform (no skyCanvas
+        // repaint). Header cutouts are applied with a mask in sky space so the
+        // holes stay fixed while the glyph spins.
         Item {
-            id: sunIcon
-            visible: {
-                if (!root.sunPoint.visible || !root.inView(root.sunPoint.xFrac, 0.02)) {
-                    return false
+            id: sunSlot
+            readonly property var pos: {
+                var sp = root.sunPoint
+                if (!sp.visible || !(sp.t > 0) || !root.inView(sp.xFrac, 0.02)) {
+                    return { visible: false, x: 0, y: 0 }
                 }
-                var ix = root.mapX(root.sunPoint.xFrac) * sky.width
-                // Cutout tests expect the icon's visual center in sky-local coords.
-                var iy = sky.height - root.sunPoint.yNorm * root.peakSun
-                return !root.pointInCutouts(ix, iy)
+                var sunModel = (root.sky && root.sky.sun) ? root.sky.sun : {}
+                var sRise = sunModel.polarDay ? 0 : sunModel.sunrise
+                var sSet = sunModel.polarDay ? 1 : sunModel.sunset
+                var w = sky.width
+                var h = sky.height
+                if (w < 2 || h < 2) {
+                    return { visible: false, x: 0, y: 0 }
+                }
+                var sx0 = root.mapX(sRise) * w
+                var sx1 = root.mapX(sSet) * w
+                var sMid = (sx0 + sx1) / 2
+                var arcBase = h - 0.5
+                var sTop = arcBase - root.peakSun
+                var sP = root.quadPoint(sx0, arcBase, sMid, sTop, sx1, arcBase, sp.t)
+                return { visible: true, x: sP.x, y: sP.y }
             }
+            visible: pos.visible
             width: root.workIconSize
             height: root.workIconSize
-            x: (root.mapX(root.sunPoint.xFrac) * sky.width) - width / 2
-            y: (sky.height - root.sunPoint.yNorm * root.peakSun) - height / 2
-            opacity: 0
+            x: pos.x - width / 2
+            y: pos.y - height / 2
             z: 4
-            rotation: 0
+            onXChanged: sunMask.requestPaint()
+            onYChanged: sunMask.requestPaint()
 
-            NumberAnimation on rotation {
-                from: 0
-                to: 360
-                duration: 48000
-                loops: Animation.Infinite
-                running: sunIcon.visible && root.visible
+            Item {
+                id: sunSpin
+                anchors.fill: parent
+                visible: false
+                transformOrigin: Item.Center
+
+                RotationAnimator on rotation {
+                    from: 0
+                    to: 360
+                    duration: 48000
+                    loops: Animation.Infinite
+                    running: sunSlot.visible && root.visible && root.showArcs && root.flyoutOpen
+                }
+
+                Canvas {
+                    id: sunIconCanvas
+                    anchors.fill: parent
+                    antialiasing: true
+                    onPaint: {
+                        var ctx = getContext("2d")
+                        ctx.clearRect(0, 0, width, height)
+                        root.drawSunIconCanvas(ctx, width / 2, height / 2, width)
+                    }
+                    Component.onCompleted: requestPaint()
+                    onWidthChanged: requestPaint()
+                    onHeightChanged: requestPaint()
+                    Connections {
+                        target: root
+                        function onSunStrokeChanged() { sunIconCanvas.requestPaint() }
+                        function onLightBgChanged() { sunIconCanvas.requestPaint() }
+                    }
+                }
             }
 
             Canvas {
-                id: sunIconCanvas
+                id: sunMask
                 anchors.fill: parent
-                antialiasing: true
+                visible: false
                 onPaint: {
                     var ctx = getContext("2d")
-                    var s = width
-                    var cx = s / 2
-                    var cy = s / 2
-                    ctx.clearRect(0, 0, s, s)
-
-                    ctx.beginPath()
-                    ctx.arc(cx, cy, s * 0.48, 0, Math.PI * 2)
-                    ctx.fillStyle = Qt.rgba(
-                        Kirigami.Theme.backgroundColor.r,
-                        Kirigami.Theme.backgroundColor.g,
-                        Kirigami.Theme.backgroundColor.b, 0.94)
-                    ctx.fill()
-                    ctx.strokeStyle = root.sunStroke
-                    ctx.lineWidth = Math.max(1.2, s * 0.06)
-                    ctx.stroke()
-
-                    ctx.strokeStyle = root.sunStroke
-                    ctx.fillStyle = root.sunStroke
-                    ctx.lineWidth = Math.max(1, s * 0.08)
-                    ctx.lineCap = "round"
-                    var i
-                    for (i = 0; i < 8; i++) {
-                        var a = i * Math.PI / 4
-                        ctx.beginPath()
-                        ctx.moveTo(cx + Math.cos(a) * s * 0.22, cy + Math.sin(a) * s * 0.22)
-                        ctx.lineTo(cx + Math.cos(a) * s * 0.36, cy + Math.sin(a) * s * 0.36)
-                        ctx.stroke()
+                    var w = width
+                    var h = height
+                    if (w < 2 || h < 2) {
+                        return
                     }
-                    ctx.beginPath()
-                    ctx.arc(cx, cy, s * 0.16, 0, Math.PI * 2)
-                    ctx.fill()
+                    ctx.clearRect(0, 0, w, h)
+                    ctx.fillStyle = "#ffffff"
+                    ctx.fillRect(0, 0, w, h)
+                    var cuts = root.arcCutouts || []
+                    var locals = []
+                    var i
+                    for (i = 0; i < cuts.length; i++) {
+                        var c = cuts[i]
+                        if (!c) {
+                            continue
+                        }
+                        locals.push({
+                            x: c.x - sunSlot.x,
+                            y: c.y - sunSlot.y,
+                            w: c.w,
+                            h: c.h
+                        })
+                    }
+                    root.punchArcCutouts(ctx, locals)
                 }
                 Component.onCompleted: requestPaint()
                 Connections {
                     target: root
-                    function onSunStrokeChanged() { sunIconCanvas.requestPaint() }
-                    function onLightBgChanged() { sunIconCanvas.requestPaint() }
+                    function onArcCutoutsChanged() { sunMask.requestPaint() }
                 }
+            }
+
+            GE.OpacityMask {
+                anchors.fill: parent
+                source: sunSpin
+                maskSource: sunMask
             }
         }
 
-        // Moon icon on path
+        // Moon icon on path (same glyph as before; not composited into skyCanvas)
         Item {
             id: moonIcon
             visible: {
@@ -750,15 +763,6 @@ Item {
             y: (sky.height - root.moonPoint.yNorm * root.peakMoon) - height / 2
             opacity: 0
             z: 4
-            rotation: 0
-
-            NumberAnimation on rotation {
-                from: 0
-                to: 360
-                duration: 72000
-                loops: Animation.Infinite
-                running: moonIcon.visible && root.visible
-            }
 
             Canvas {
                 id: moonIconCanvas
