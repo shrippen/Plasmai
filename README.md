@@ -54,7 +54,7 @@ kpackagetool6 -u . -t Plasma/Applet
 Install a release package (`.plasmoid`):
 
 ```bash
-kpackagetool6 -i Plasmai-1.4.1.plasmoid -t Plasma/Applet
+kpackagetool6 -i Plasmai-1.4.2.plasmoid -t Plasma/Applet
 ```
 
 ## Setup
@@ -98,10 +98,22 @@ Compiled catalogs ship in `contents/locale/<lang>/LC_MESSAGES/plasma_applet_com.
 
 ## Development
 
+Design decisions and UI principles: [DESIGN.md](DESIGN.md).
+
 ```bash
 plasmoidviewer -a com.github.shrippen.plasmai -l topedge -f horizontal
 plasmoidviewer -a com.github.shrippen.plasmai
 ```
+
+## Testing
+
+```bash
+./tests/run.sh
+```
+
+QML unit tests cover the `.js` libraries. pytest launches `plasmoidviewer`,
+clicks applet chrome (not live Start/Stop/Continue/favorites), and fails if
+plasmoidviewer or plasmashell logs QML errors. See [tests/README.md](tests/README.md).
 
 
 ## Time-tracking backends

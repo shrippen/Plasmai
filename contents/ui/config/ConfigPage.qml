@@ -1,21 +1,12 @@
 import QtQuick
-import QtQuick.Window
-import org.kde.kirigami as Kirigami
 
 /**
- * Root for every settings page. Must be a Kirigami.Page so Plasma's PageRow
- * can attach globalHeader/globalFooter (plain Item logs TypeErrors on insert).
- *
+ * Root for settings pages that do not alias controls to cfg_*.
  * Plasma injects every main.xml key as cfg_* (plus cfg_*Default and title).
  * Declaring them here stops journal spam; unused keys are written back as
  * the values Plasma just loaded.
  */
-Kirigami.Page {
-    id: root
-
-    padding: 0
-    globalToolBarStyle: Kirigami.ApplicationHeaderStyle.None
-
+ConfigPageBase {
     property var cfg_kimaiUrl
     property var cfg_kimaiUrlDefault
     property var cfg_profilesJson
@@ -48,6 +39,10 @@ Kirigami.Page {
     property var cfg_showProjectInPanelDefault
     property var cfg_showActivityInPanel
     property var cfg_showActivityInPanelDefault
+    property var cfg_showCustomerColorInPanel
+    property var cfg_showCustomerColorInPanelDefault
+    property var cfg_showProjectColorInPanel
+    property var cfg_showProjectColorInPanelDefault
     property var cfg_popupShowWorkSummary
     property var cfg_popupShowWorkSummaryDefault
     property var cfg_popupShowFavorites
@@ -90,23 +85,4 @@ Kirigami.Page {
     property var cfg_colorSimilarityPercentDefault
     property var cfg_touchMode
     property var cfg_touchModeDefault
-
-    readonly property bool inWindow: Window.window !== null
-    property bool pageReady: false
-
-    signal pageEntered
-
-    onInWindowChanged: {
-        if (inWindow && !pageReady) {
-            pageReady = true
-            pageEntered()
-        }
-    }
-
-    Component.onCompleted: {
-        if (inWindow && !pageReady) {
-            pageReady = true
-            pageEntered()
-        }
-    }
 }

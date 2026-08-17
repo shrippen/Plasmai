@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.4.2
+
+### Settings
+- Checking Display options (panel labels, flyout, desktop widget) enables Apply/OK again
+- Optional customer and project color pills on the panel chip (off by default)
+
+### Panel
+- Stronger, longer description-save checkmark
+- Accessible name on the compact panel chip
+
+### Development
+- QML unit tests and plasmoidviewer click tests, including Display Apply with isolated config
+- `install-dev.sh` restarts a `plasmashell --replace` session instead of the unused systemd unit
+
 ## 1.4.1
 
 ### Performance

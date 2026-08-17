@@ -5,13 +5,94 @@ import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
 import org.kde.plasma.plasma5support as P5Support
 import "../../code/secret.js" as Secret
-import "../../code/sharedConfig.js" as SharedConfig
 import "../../code/geocode.js" as Geocode
 import "../../code/profiles.js" as Profiles
 import "../../code/timeTracker.js" as TimeTracker
 
-ConfigPage {
+ConfigPageBase {
     id: page
+
+    // Keys this page does not bind with aliases (Plasma still injects them).
+    property var cfg_kimaiUrl
+    property var cfg_kimaiUrlDefault
+    property var cfg_profilesJson
+    property var cfg_profilesJsonDefault
+    property var cfg_activeProfileId
+    property var cfg_activeProfileIdDefault
+    property var cfg_refreshIntervalDefault
+    property var cfg_recentCountDefault
+    property var cfg_useBlurBackgroundDefault
+    property var cfg_workDayBeginDefault
+    property var cfg_workDayEndDefault
+    property var cfg_latitude
+    property var cfg_latitudeDefault
+    property var cfg_longitude
+    property var cfg_longitudeDefault
+    property var cfg_popupShowSparklineDefault
+    property var cfg_desktopShowSparklineDefault
+    property var cfg_showSparklineArcsDefault
+    property var cfg_showElapsedInPanelDefault
+    property var cfg_showProjectInPanelDefault
+    property var cfg_showActivityInPanelDefault
+    property var cfg_showCustomerColorInPanelDefault
+    property var cfg_showProjectColorInPanelDefault
+    property var cfg_popupShowWorkSummaryDefault
+    property var cfg_popupShowFavoritesDefault
+    property var cfg_popupShowRecentDefault
+    property var cfg_popupShowContinueDefault
+    property var cfg_popupShowNewActivityDefault
+    property var cfg_desktopShowWorkSummaryDefault
+    property var cfg_desktopShowFavoritesDefault
+    property var cfg_desktopShowRecentDefault
+    property var cfg_desktopShowNewActivityDefault
+    property var cfg_showFavorites
+    property var cfg_showFavoritesDefault
+    property var cfg_confirmBeforeStop
+    property var cfg_confirmBeforeStopDefault
+    property var cfg_pinnedActivities
+    property var cfg_pinnedActivitiesDefault
+    property var cfg_idleStopEnabled
+    property var cfg_idleStopEnabledDefault
+    property var cfg_idleStopMinutes
+    property var cfg_idleStopMinutesDefault
+    property var cfg_notifyOnStart
+    property var cfg_notifyOnStartDefault
+    property var cfg_notifyOnStop
+    property var cfg_notifyOnStopDefault
+    property var cfg_notifyOnIdleStop
+    property var cfg_notifyOnIdleStopDefault
+    property var cfg_locationName
+    property var cfg_locationNameDefault
+    property var cfg_colorDistinctionEnabledDefault
+    property var cfg_colorSimilarityPercentDefault
+    property var cfg_touchModeDefault
+
+    // Aliases so Plasma's isConfigurationChanged / cfg_*Changed see toggles.
+    property alias cfg_refreshInterval: refreshIntervalSpin.value
+    property alias cfg_recentCount: recentCountSpin.value
+    property alias cfg_useBlurBackground: useBlurBackgroundCheck.checked
+    property alias cfg_workDayBegin: workDayBeginField.text
+    property alias cfg_workDayEnd: workDayEndField.text
+    property alias cfg_popupShowSparkline: popupSparklineCheck.checked
+    property alias cfg_desktopShowSparkline: desktopSparklineCheck.checked
+    property alias cfg_showSparklineArcs: sparklineArcsCheck.checked
+    property alias cfg_showElapsedInPanel: panelElapsedCheck.checked
+    property alias cfg_showProjectInPanel: panelProjectCheck.checked
+    property alias cfg_showActivityInPanel: panelActivityCheck.checked
+    property alias cfg_showCustomerColorInPanel: panelCustomerColorCheck.checked
+    property alias cfg_showProjectColorInPanel: panelProjectColorCheck.checked
+    property alias cfg_popupShowWorkSummary: popupWorkSummaryCheck.checked
+    property alias cfg_popupShowFavorites: popupFavoritesCheck.checked
+    property alias cfg_popupShowRecent: popupRecentCheck.checked
+    property alias cfg_popupShowContinue: popupContinueCheck.checked
+    property alias cfg_popupShowNewActivity: popupNewActivityCheck.checked
+    property alias cfg_desktopShowWorkSummary: desktopWorkSummaryCheck.checked
+    property alias cfg_desktopShowFavorites: desktopFavoritesCheck.checked
+    property alias cfg_desktopShowRecent: desktopRecentCheck.checked
+    property alias cfg_desktopShowNewActivity: desktopNewActivityCheck.checked
+    property alias cfg_colorDistinctionEnabled: colorDistinctionCheck.checked
+    property alias cfg_colorSimilarityPercent: colorSimilaritySpin.value
+    property alias cfg_touchMode: touchModeCombo.currentIndex
 
     readonly property string sharedConfigScript: Secret.fileUrlToPath(Qt.resolvedUrl("../../code/sharedConfig.sh"))
     readonly property int pageMargin: Kirigami.Units.gridUnit
@@ -38,6 +119,8 @@ ConfigPage {
 
     property bool syncing: false
     property bool ready: false
+    /** Block notifyEdited while controls are loaded from cfg / shared.json. */
+    property bool suppressNotify: false
     property bool geoSearching: false
     property var geoResults: []
     property string geoStatus: ""
@@ -77,7 +160,7 @@ ConfigPage {
         page.cfg_longitude = lon
         page.cfg_locationName = name || ""
         page.syncLocationFields()
-        page.persistShared()
+        page.notifyEdited()
     }
 
     function searchLocation() {
@@ -122,6 +205,8 @@ ConfigPage {
             showElapsedInPanel: panelElapsedCheck.checked,
             showProjectInPanel: panelProjectCheck.checked,
             showActivityInPanel: panelActivityCheck.checked,
+            showCustomerColorInPanel: panelCustomerColorCheck.checked,
+            showProjectColorInPanel: panelProjectColorCheck.checked,
             popupShowWorkSummary: popupWorkSummaryCheck.checked,
             popupShowFavorites: popupFavoritesCheck.checked,
             popupShowRecent: popupRecentCheck.checked,
@@ -150,6 +235,8 @@ ConfigPage {
         page.cfg_showElapsedInPanel = panelElapsedCheck.checked
         page.cfg_showProjectInPanel = panelProjectCheck.checked
         page.cfg_showActivityInPanel = panelActivityCheck.checked
+        page.cfg_showCustomerColorInPanel = panelCustomerColorCheck.checked
+        page.cfg_showProjectColorInPanel = panelProjectColorCheck.checked
         page.cfg_popupShowWorkSummary = popupWorkSummaryCheck.checked
         page.cfg_popupShowFavorites = popupFavoritesCheck.checked
         page.cfg_popupShowRecent = popupRecentCheck.checked
@@ -166,6 +253,7 @@ ConfigPage {
     }
 
     function applyCfgToControls() {
+        suppressNotify = true
         if (typeof page.cfg_refreshInterval === "number") {
             refreshIntervalSpin.value = page.cfg_refreshInterval
         }
@@ -185,6 +273,8 @@ ConfigPage {
         panelElapsedCheck.checked = page.cfg_showElapsedInPanel !== false
         panelProjectCheck.checked = page.cfg_showProjectInPanel !== false
         panelActivityCheck.checked = !!page.cfg_showActivityInPanel
+        panelCustomerColorCheck.checked = !!page.cfg_showCustomerColorInPanel
+        panelProjectColorCheck.checked = !!page.cfg_showProjectColorInPanel
         popupWorkSummaryCheck.checked = page.cfg_popupShowWorkSummary !== false
         popupFavoritesCheck.checked = page.cfg_popupShowFavorites !== false
         popupRecentCheck.checked = page.cfg_popupShowRecent !== false
@@ -203,24 +293,43 @@ ConfigPage {
             touchModeCombo.currentIndex = Math.max(0, Math.min(2, page.cfg_touchMode))
         }
         page.syncLocationFields()
+        syncControlsToCfg()
+        suppressNotify = false
     }
 
-    function persistShared() {
-        if (syncing || !ready) {
+    function notifyEdited() {
+        // Never gate on async shared.json load — that left Apply stuck disabled.
+        if (suppressNotify) {
             return
         }
-        page.syncControlsToCfg()
+        syncControlsToCfg()
+        unsavedChanges = true
+        configurationChanged()
+    }
+
+    function persistDisplayConfig() {
+        syncControlsToCfg()
         Secret.persistSharedPatch(
             execSource, page.sharedConfigScript, plasmoid.configuration, page.displayPatch()
         )
+        unsavedChanges = false
     }
+    // property var so plasmoidviewer’s hasOwnProperty("saveConfig") finds it;
+    // Plasma desktop uses if (currentItem.saveConfig).
+    property var saveConfig: persistDisplayConfig
 
     function applyShared(shared) {
+        suppressNotify = true
+        syncing = true
         if (!shared) {
+            syncControlsToCfg()
+            syncing = false
+            suppressNotify = false
             return
         }
-        syncing = true
-        SharedConfig.applyToConfiguration(plasmoid.configuration, shared)
+        // Do not write plasmoid.configuration here. Plasma copies cfg_* on Apply;
+        // applying shared.json early makes isConfigurationChanged() false and
+        // hides the user's checks before they can click Apply.
         if (typeof shared.refreshInterval === "number") {
             refreshIntervalSpin.value = shared.refreshInterval
         }
@@ -273,6 +382,12 @@ ConfigPage {
         if (typeof shared.showActivityInPanel === "boolean") {
             panelActivityCheck.checked = shared.showActivityInPanel
         }
+        if (typeof shared.showCustomerColorInPanel === "boolean") {
+            panelCustomerColorCheck.checked = shared.showCustomerColorInPanel
+        }
+        if (typeof shared.showProjectColorInPanel === "boolean") {
+            panelProjectColorCheck.checked = shared.showProjectColorInPanel
+        }
         if (typeof shared.popupShowWorkSummary === "boolean") {
             popupWorkSummaryCheck.checked = shared.popupShowWorkSummary
         }
@@ -305,29 +420,27 @@ ConfigPage {
             desktopNewActivityCheck.checked = shared.desktopShowNewActivity
         }
         page.syncLocationFields()
-        page.syncControlsToCfg()
+        syncControlsToCfg()
         syncing = false
+        suppressNotify = false
     }
 
     Component.onDestruction: Secret.cancelAll(execSource)
 
     onPageEntered: {
+        suppressNotify = true
         page.applyCfgToControls()
+        suppressNotify = false
         Secret.loadSharedConfig(execSource, page.sharedConfigScript, function(shared) {
+            if (page.unsavedChanges) {
+                ready = true
+                return
+            }
             page.applyShared(shared)
             page.syncLocationFields()
             ready = true
+            unsavedChanges = false
         })
-    }
-
-    Connections {
-        target: page
-        function onCfg_touchModeChanged() {
-            var idx = Math.max(0, Math.min(2, page.cfg_touchMode))
-            if (touchModeCombo.currentIndex !== idx) {
-                touchModeCombo.currentIndex = idx
-            }
-        }
     }
 
     QQC2.ScrollView {
@@ -370,7 +483,7 @@ ConfigPage {
                     Layout.fillWidth: true
                     Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     text: i18n("Use desktop blur (translucent background)")
-                    onCheckedChanged: page.persistShared()
+                    onToggled: page.notifyEdited()
                 }
 
                 QQC2.ComboBox {
@@ -383,13 +496,7 @@ ConfigPage {
                         i18n("On"),
                         i18n("Off")
                     ]
-                    Component.onCompleted: currentIndex = Math.max(0, Math.min(2, page.cfg_touchMode))
-                    onActivated: function(index) {
-                        if (page.cfg_touchMode !== index) {
-                            page.cfg_touchMode = index
-                        }
-                        page.persistShared()
-                    }
+                    onActivated: page.notifyEdited()
                 }
 
                 PlasmaComponents3.Label {
@@ -414,7 +521,7 @@ ConfigPage {
                     from: 10
                     to: 300
                     stepSize: 5
-                    onValueChanged: page.persistShared()
+                    onValueChanged: page.notifyEdited()
                 }
 
                 // —— Colors ——
@@ -431,7 +538,7 @@ ConfigPage {
                     Layout.fillWidth: true
                     Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     text: i18n("Make similar colors distinctive within each category")
-                    onCheckedChanged: page.persistShared()
+                    onToggled: page.notifyEdited()
                 }
 
                 QQC2.SpinBox {
@@ -442,7 +549,7 @@ ConfigPage {
                     to: 80
                     stepSize: 1
                     enabled: colorDistinctionCheck.checked
-                    onValueChanged: page.persistShared()
+                    onValueChanged: page.notifyEdited()
                 }
 
                 PlasmaComponents3.Label {
@@ -480,8 +587,7 @@ ConfigPage {
                     Layout.preferredWidth: page.compactFieldWidth
                     Layout.maximumWidth: page.compactFieldWidth
                     placeholderText: "08:00"
-                    onTextChanged: page.cfg_workDayBegin = text
-                    onEditingFinished: page.persistShared()
+                    onEditingFinished: page.notifyEdited()
                 }
 
                 QQC2.TextField {
@@ -491,8 +597,7 @@ ConfigPage {
                     Layout.preferredWidth: page.compactFieldWidth
                     Layout.maximumWidth: page.compactFieldWidth
                     placeholderText: "18:00"
-                    onTextChanged: page.cfg_workDayEnd = text
-                    onEditingFinished: page.persistShared()
+                    onEditingFinished: page.notifyEdited()
                 }
 
                 PlasmaComponents3.Label {
@@ -517,8 +622,7 @@ ConfigPage {
                     Layout.fillWidth: true
                     Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     text: i18n("Show sun, moon, and work arcs")
-                    checked: true
-                    onCheckedChanged: page.persistShared()
+                    onToggled: page.notifyEdited()
                 }
 
                 PlasmaComponents3.Label {
@@ -638,7 +742,7 @@ ConfigPage {
                         page.cfg_latitude = page.parseCoord(text, -90, 90, page.cfg_latitude)
                         text = page.formatCoord(page.cfg_latitude, 4)
                         page.cfg_locationName = ""
-                        page.persistShared()
+                        page.notifyEdited()
                     }
                 }
 
@@ -653,7 +757,7 @@ ConfigPage {
                         page.cfg_longitude = page.parseCoord(text, -180, 180, page.cfg_longitude)
                         text = page.formatCoord(page.cfg_longitude, 4)
                         page.cfg_locationName = ""
-                        page.persistShared()
+                        page.notifyEdited()
                     }
                 }
 
@@ -679,7 +783,7 @@ ConfigPage {
                     Layout.fillWidth: true
                     Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     text: i18n("Elapsed time")
-                    onCheckedChanged: page.persistShared()
+                    onToggled: page.notifyEdited()
                 }
                 QQC2.CheckBox {
                     id: panelProjectCheck
@@ -687,7 +791,7 @@ ConfigPage {
                     Layout.fillWidth: true
                     Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     text: i18n("Project name")
-                    onCheckedChanged: page.persistShared()
+                    onToggled: page.notifyEdited()
                 }
                 QQC2.CheckBox {
                     id: panelActivityCheck
@@ -695,7 +799,23 @@ ConfigPage {
                     Layout.fillWidth: true
                     Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     text: i18n("Activity name")
-                    onCheckedChanged: page.persistShared()
+                    onToggled: page.notifyEdited()
+                }
+                QQC2.CheckBox {
+                    id: panelCustomerColorCheck
+                    Kirigami.FormData.label: page.formWide ? " " : ""
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
+                    text: i18n("Customer color pill")
+                    onToggled: page.notifyEdited()
+                }
+                QQC2.CheckBox {
+                    id: panelProjectColorCheck
+                    Kirigami.FormData.label: page.formWide ? " " : ""
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
+                    text: i18n("Project color pill")
+                    onToggled: page.notifyEdited()
                 }
 
                 // —— Panel flyout ——
@@ -710,8 +830,7 @@ ConfigPage {
                     Layout.fillWidth: true
                     Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     text: i18n("Work summary (today / week / remaining)")
-                    checked: true
-                    onCheckedChanged: page.persistShared()
+                    onToggled: page.notifyEdited()
                 }
                 QQC2.CheckBox {
                     id: popupSparklineCheck
@@ -719,8 +838,7 @@ ConfigPage {
                     Layout.fillWidth: true
                     Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     text: i18n("Day sparkline")
-                    checked: true
-                    onCheckedChanged: page.persistShared()
+                    onToggled: page.notifyEdited()
                 }
                 QQC2.CheckBox {
                     id: popupFavoritesCheck
@@ -728,8 +846,7 @@ ConfigPage {
                     Layout.fillWidth: true
                     Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     text: i18n("Favorites")
-                    checked: true
-                    onCheckedChanged: page.persistShared()
+                    onToggled: page.notifyEdited()
                 }
                 QQC2.CheckBox {
                     id: popupRecentCheck
@@ -737,8 +854,7 @@ ConfigPage {
                     Layout.fillWidth: true
                     Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     text: i18n("Recent list")
-                    checked: true
-                    onCheckedChanged: page.persistShared()
+                    onToggled: page.notifyEdited()
                 }
                 QQC2.CheckBox {
                     id: popupContinueCheck
@@ -746,8 +862,7 @@ ConfigPage {
                     Layout.fillWidth: true
                     Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     text: i18n("Continue last activity")
-                    checked: true
-                    onCheckedChanged: page.persistShared()
+                    onToggled: page.notifyEdited()
                 }
                 QQC2.CheckBox {
                     id: popupNewActivityCheck
@@ -755,8 +870,7 @@ ConfigPage {
                     Layout.fillWidth: true
                     Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     text: i18n("Start / switch activity controls")
-                    checked: true
-                    onCheckedChanged: page.persistShared()
+                    onToggled: page.notifyEdited()
                 }
 
                 // —— Desktop widget ——
@@ -771,8 +885,7 @@ ConfigPage {
                     Layout.fillWidth: true
                     Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     text: i18n("Work summary (today / week / remaining)")
-                    checked: true
-                    onCheckedChanged: page.persistShared()
+                    onToggled: page.notifyEdited()
                 }
                 QQC2.CheckBox {
                     id: desktopSparklineCheck
@@ -780,8 +893,7 @@ ConfigPage {
                     Layout.fillWidth: true
                     Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     text: i18n("Day sparkline")
-                    checked: true
-                    onCheckedChanged: page.persistShared()
+                    onToggled: page.notifyEdited()
                 }
                 QQC2.CheckBox {
                     id: desktopFavoritesCheck
@@ -789,8 +901,7 @@ ConfigPage {
                     Layout.fillWidth: true
                     Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     text: i18n("Favorites")
-                    checked: true
-                    onCheckedChanged: page.persistShared()
+                    onToggled: page.notifyEdited()
                 }
                 QQC2.CheckBox {
                     id: desktopRecentCheck
@@ -798,8 +909,7 @@ ConfigPage {
                     Layout.fillWidth: true
                     Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     text: i18n("Recent list")
-                    checked: true
-                    onCheckedChanged: page.persistShared()
+                    onToggled: page.notifyEdited()
                 }
                 QQC2.CheckBox {
                     id: desktopNewActivityCheck
@@ -807,8 +917,7 @@ ConfigPage {
                     Layout.fillWidth: true
                     Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     text: i18n("New activity picker")
-                    checked: true
-                    onCheckedChanged: page.persistShared()
+                    onToggled: page.notifyEdited()
                 }
 
                 // —— Recent list size (shared) ——
@@ -823,7 +932,7 @@ ConfigPage {
                     from: 3
                     to: 25
                     stepSize: 1
-                    onValueChanged: page.persistShared()
+                    onValueChanged: page.notifyEdited()
                 }
 
                 PlasmaComponents3.Label {

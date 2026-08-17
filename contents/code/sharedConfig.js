@@ -18,6 +18,8 @@ var SHARED_KEYS = [
     "showElapsedInPanel",
     "showProjectInPanel",
     "showActivityInPanel",
+    "showCustomerColorInPanel",
+    "showProjectColorInPanel",
     "popupShowWorkSummary",
     "popupShowFavorites",
     "popupShowRecent",

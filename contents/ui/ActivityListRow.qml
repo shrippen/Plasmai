@@ -23,6 +23,9 @@ QQC2.ItemDelegate {
 
     enabled: rowEnabled
     hoverEnabled: true
+    Accessible.role: Accessible.ListItem
+    Accessible.name: titleText
+    Accessible.description: i18n("Starts or switches this activity")
     implicitHeight: Math.max(contentItem.implicitHeight + topPadding + bottomPadding,
                              TouchUi.rowMinHeight)
     topPadding: TouchUi.listRowPadding

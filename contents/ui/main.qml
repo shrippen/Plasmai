@@ -95,12 +95,21 @@ PlasmoidItem {
     property bool savingDescription: false
     property bool suppressDescHandler: false
     property bool descriptionSavedFlash: false
+    /** 1 while the success check is held, then animated to 0. */
+    property real descriptionSaveFlashOpacity: 1
     /** True when the description field differs from the last saved/server value. */
     property bool descriptionDirty: false
     /** Draft text from the description field (avoids fragile id lookups from root). */
     property string descriptionDraft: ""
     /** Focus tracked from the field itself (root cannot read descriptionEdit.id). */
     property bool descriptionFieldFocused: false
+    /** High-chroma positive for the description-save check (theme hue, boosted sat). */
+    readonly property color descriptionSaveSuccessColor: {
+        var base = Kirigami.Theme.positiveTextColor
+        var hue = (base.hslHue >= 0 && !isNaN(base.hslHue)) ? base.hslHue : 0.33
+        var lightBg = Kirigami.Theme.backgroundColor.hslLightness > 0.5
+        return Qt.hsla(hue, 0.95, lightBg ? 0.34 : 0.62, 1)
+    }
 
     property int todaySeconds: 0
     property int weekSeconds: 0
@@ -179,6 +188,9 @@ PlasmoidItem {
         }
         return ""
     }
+
+    readonly property var panelPills: KimaiApi.panelPillInfo(
+        activeTimesheet, projects, customersById)
 
     readonly property int todayLiveSeconds:
         todaySeconds + (isTracking ? Math.max(0, elapsedSeconds - totalsElapsedAnchor) : 0)
@@ -336,9 +348,24 @@ PlasmoidItem {
 
     Timer {
         id: descriptionSavedFlashTimer
-        interval: 900
+        interval: 2200
         repeat: false
-        onTriggered: root.descriptionSavedFlash = false
+        onTriggered: descriptionSavedFade.start()
+    }
+
+    NumberAnimation {
+        id: descriptionSavedFade
+        target: root
+        property: "descriptionSaveFlashOpacity"
+        to: 0
+        duration: 700
+        easing.type: Easing.InCubic
+        onFinished: {
+            if (root.descriptionSaveFlashOpacity <= 0.05) {
+                root.descriptionSavedFlash = false
+                root.descriptionSaveFlashOpacity = 1
+            }
+        }
     }
 
     Timer {
@@ -490,7 +517,7 @@ PlasmoidItem {
         }
         // Prefill once the editor is visible (also handled by ActiveEditView.onVisibleChanged).
         Qt.callLater(function() {
-            if (editingActiveEntry && activeEditView) {
+            if (editingActiveEntry && typeof activeEditView !== "undefined" && activeEditView) {
                 activeEditView.loadFromTimesheet(root.activeTimesheet)
             }
         })
@@ -788,8 +815,7 @@ PlasmoidItem {
         currentColorCategory = ""
         currentColorEntityId = null
         elapsedSeconds = 0
-        descriptionSavedFlash = false
-        descriptionSavedFlashTimer.stop()
+        cancelDescriptionSavedFlash()
         descriptionDirty = false
         descriptionDraft = ""
         descriptionFieldFocused = false
@@ -844,6 +870,20 @@ PlasmoidItem {
         }
     }
 
+    function cancelDescriptionSavedFlash() {
+        descriptionSavedFlashTimer.stop()
+        descriptionSavedFade.stop()
+        descriptionSavedFlash = false
+        descriptionSaveFlashOpacity = 1
+    }
+
+    function startDescriptionSavedFlash() {
+        descriptionSavedFade.stop()
+        descriptionSaveFlashOpacity = 1
+        descriptionSavedFlash = true
+        descriptionSavedFlashTimer.restart()
+    }
+
     function saveCurrentDescription() {
         if (!isTracking) {
             return
@@ -868,7 +908,7 @@ PlasmoidItem {
         }
 
         savingDescription = true
-        descriptionSavedFlash = false
+        cancelDescriptionSavedFlash()
         lastError = null
         userMessage = ""
         tracker.patchTimesheet(kimaiUrl, apiToken, currentTimesheetId, { description: text }, function(result) {
@@ -876,8 +916,7 @@ PlasmoidItem {
             if (result && result.ok) {
                 syncDescriptionField(text)
                 clearError()
-                descriptionSavedFlash = true
-                descriptionSavedFlashTimer.restart()
+                root.startDescriptionSavedFlash()
             } else {
                 setError(result ? result.error : { type: "network", status: 0, detail: "empty result" })
             }
@@ -1659,6 +1698,10 @@ PlasmoidItem {
         id: compactRoot
         hoverEnabled: true
         acceptedButtons: Qt.LeftButton
+        Accessible.role: Accessible.Button
+        Accessible.name: i18n("Plasmai")
+        Accessible.description: i18n("Open or close the Plasmai popup")
+        Accessible.onPressAction: root.expanded = !root.expanded
 
         Layout.minimumWidth: compactRow.implicitWidth + Kirigami.Units.smallSpacing * 2
         Layout.minimumHeight: TouchUi.compactIconSize
@@ -1692,6 +1735,38 @@ PlasmoidItem {
                         : root.isTracking ? "media-record" : "chronometer"
                 active: compactRoot.containsMouse
                 color: root.isTracking ? Kirigami.Theme.positiveTextColor : Kirigami.Theme.textColor
+            }
+
+            RowLayout {
+                id: panelColorPills
+                spacing: 1
+                visible: root.isTracking
+                         && (plasmoid.configuration.showCustomerColorInPanel
+                             || plasmoid.configuration.showProjectColorInPanel)
+                Layout.preferredHeight: TouchUi.compactIconSize
+                Layout.alignment: Qt.AlignVCenter
+
+                CustomerColorDot {
+                    visible: plasmoid.configuration.showCustomerColorInPanel
+                    Layout.fillHeight: true
+                    Layout.preferredWidth: implicitWidth
+                    customerColor: root.panelPills.customerColor
+                    colorCategory: "customer"
+                    entityId: root.panelPills.customerId
+                    sizeFactor: 0.9
+                    slotSizeFactor: 0.7
+                }
+
+                CustomerColorDot {
+                    visible: plasmoid.configuration.showProjectColorInPanel
+                    Layout.fillHeight: true
+                    Layout.preferredWidth: implicitWidth
+                    customerColor: root.panelPills.projectColor
+                    colorCategory: "project"
+                    entityId: root.panelPills.projectId
+                    sizeFactor: 0.45
+                    slotSizeFactor: 0.7
+                }
             }
 
             PlasmaComponents3.Label {
@@ -2544,6 +2619,9 @@ PlasmoidItem {
                                         }
                                         root.descriptionDraft = text
                                         root.descriptionDirty = (text !== root.currentDescription)
+                                        if (root.descriptionDirty && root.descriptionSavedFlash) {
+                                            root.cancelDescriptionSavedFlash()
+                                        }
                                     }
 
                                     onAccepted: root.saveCurrentDescription()
@@ -2564,15 +2642,18 @@ PlasmoidItem {
                                     anchors.right: parent.right
                                     anchors.rightMargin: Kirigami.Units.smallSpacing / 2
                                     anchors.verticalCenter: descriptionEdit.verticalCenter
-                                    width: Math.round(Kirigami.Units.iconSizes.small * 1.4)
+                                    width: Math.round(Kirigami.Units.iconSizes.small * 1.55)
                                     height: width
                                     padding: 0
                                     display: QQC2.AbstractButton.IconOnly
                                     icon.name: root.descriptionSavedFlash
-                                               ? "dialog-ok-apply"
+                                               ? ""
                                                : (root.savingDescription ? "view-refresh"
                                                   : "document-save")
                                     text: i18n("Save description")
+                                    opacity: root.descriptionSavedFlash
+                                             ? root.descriptionSaveFlashOpacity
+                                             : 1
                                     visible: root.descriptionSavedFlash
                                              || root.savingDescription
                                              || root.descriptionDirty
@@ -2583,6 +2664,29 @@ PlasmoidItem {
                                     PlasmaComponents3.ToolTip.text: text
                                     PlasmaComponents3.ToolTip.visible: hovered
                                     PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
+
+                                    Rectangle {
+                                        visible: root.descriptionSavedFlash
+                                        anchors.centerIn: parent
+                                        width: parent.width - 1
+                                        height: width
+                                        radius: width / 2
+                                        color: Qt.rgba(root.descriptionSaveSuccessColor.r,
+                                                       root.descriptionSaveSuccessColor.g,
+                                                       root.descriptionSaveSuccessColor.b, 0.28)
+                                        border.width: 1.5
+                                        border.color: root.descriptionSaveSuccessColor
+                                    }
+
+                                    Kirigami.Icon {
+                                        visible: root.descriptionSavedFlash
+                                        anchors.centerIn: parent
+                                        width: Math.round(parent.width * 0.72)
+                                        height: width
+                                        source: "dialog-ok-apply"
+                                        isMask: true
+                                        color: root.descriptionSaveSuccessColor
+                                    }
                                 }
                             }
 

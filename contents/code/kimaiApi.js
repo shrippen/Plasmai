@@ -182,6 +182,39 @@ function barColorInfoFromTimesheet(timesheet, customersById) {
     return barColorInfo(activity, project, customersById)
 }
 
+/**
+ * Customer / project colors for compact panel pills.
+ * Project falls back to the customer color when Kimai has no project color.
+ */
+function panelPillInfo(timesheet, projects, customersById) {
+    var empty = {
+        customerColor: DEFAULT_CUSTOMER_COLOR,
+        customerId: null,
+        projectColor: DEFAULT_CUSTOMER_COLOR,
+        projectId: null
+    }
+    if (!timesheet) {
+        return empty
+    }
+    var project = (typeof timesheet.project === "object" && timesheet.project)
+        ? timesheet.project
+        : null
+    if (!project) {
+        var pid = projectId(timesheet)
+        var byId = indexById(projects)
+        project = byId[pid] || byId[String(pid)] || null
+    }
+    var cid = customerIdOfProject(project)
+    var cc = customerColorOnly(project, customersById) || DEFAULT_CUSTOMER_COLOR
+    var pc = projectColor(project) || cc
+    return {
+        customerColor: cc,
+        customerId: cid || null,
+        projectColor: pc,
+        projectId: projectId(timesheet) || null
+    }
+}
+
 function effectiveColorFromProject(project, customersById) {
     return barColorInfo(null, project, customersById).color
 }
