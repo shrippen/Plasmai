@@ -64,7 +64,7 @@ PlasmoidItem {
     property bool loadingProjects: false
     property bool loadingPinned: false
     property string userMessage: ""
-    /** Transient hint key for "already tracking" feedback on Recent rows. */
+    /** Transient hint key for "already tracking" feedback on Recent and Favorite rows. */
     property string alreadyRunningHintKey: ""
 
     property var currentTimesheetId: invalidTimesheetId
@@ -1881,10 +1881,10 @@ PlasmoidItem {
             return
         }
         if (isTracking) {
-            switchToActivity(entry.projectId, entry.activityId, entry.projectName, entry.activityName, "")
-        } else {
-            startTracking(entry.projectId, entry.activityId, entry.projectName, entry.activityName, "")
+            requestRestartFromRecent(Favorites.asTimesheet(entry))
+            return
         }
+        startTracking(entry.projectId, entry.activityId, entry.projectName, entry.activityName, "")
     }
 
     function requestStop() {
@@ -1981,6 +1981,13 @@ PlasmoidItem {
         })
     }
 
+    function switchHintKey(timesheet) {
+        var pid = KimaiApi.projectId(timesheet)
+        var aid = KimaiApi.activityId(timesheet)
+        var idPart = (timesheet && timesheet.id !== undefined && timesheet.id !== null) ? timesheet.id : ""
+        return String(pid) + "|" + String(aid) + "|" + String(idPart)
+    }
+
     function requestRestartFromRecent(timesheet) {
         if (!isConfigured || isBusy || !timesheet) {
             return
@@ -1990,20 +1997,12 @@ PlasmoidItem {
             return
         }
 
-        function switchKeyForTimesheet(ts) {
-            var pid = KimaiApi.projectId(ts)
-            var aid = KimaiApi.activityId(ts)
-            var idPart = (ts && ts.id !== undefined && ts.id !== null) ? ts.id : ""
-            return String(pid) + "|" + String(aid) + "|" + String(idPart)
-        }
-
         var pid = KimaiApi.projectId(timesheet)
         var aid = KimaiApi.activityId(timesheet)
         if (activeTimesheet
                 && String(KimaiApi.projectId(activeTimesheet)) === String(pid)
                 && String(KimaiApi.activityId(activeTimesheet)) === String(aid)) {
-            // Same project/activity is already running. Provide a visible per-row hint.
-            alreadyRunningHintKey = switchKeyForTimesheet(timesheet)
+            alreadyRunningHintKey = switchHintKey(timesheet)
             alreadyRunningHintTimer.restart()
             userMessage = ""
             return
@@ -3450,6 +3449,8 @@ PlasmoidItem {
                     Repeater {
                         model: root.favoritesVisibleCount
                         delegate: ActivityListRow {
+                            readonly property var pinSheet: Favorites.asTimesheet(root.pinnedEntries[index])
+                            readonly property string pinKey: root.switchHintKey(pinSheet)
                             Layout.fillWidth: true
                             customerColor: root.pinnedEntries[index].customerColor || KimaiApi.DEFAULT_CUSTOMER_COLOR
                             colorCategory: root.pinnedEntries[index].colorCategory || ""
@@ -3469,6 +3470,11 @@ PlasmoidItem {
                             }
                             rowEnabled: root.isConfigured && !root.isBusy && root.connectionState !== "error"
                             showPlayIcon: true
+                            runningHintVisible: root.alreadyRunningHintKey === pinKey
+                            runningHintText: i18n("Already running.")
+                            runningHintCounterText: root.isTracking
+                                                    ? KimaiApi.formatDurationPanel(root.elapsedSeconds)
+                                                    : ""
                             onRowActivated: root.startPinned(root.pinnedEntries[index])
                             tooltipText: {
                                 var entry = root.pinnedEntries[index]
@@ -3554,9 +3560,7 @@ PlasmoidItem {
                         model: root.loadingRecent && root.recentTimesheets.length === 0 ? 0 : root.recentVisibleCount
                         delegate: ActivityListRow {
                             readonly property var ts: root.recentTimesheets[index]
-                            readonly property string tsKey: String(KimaiApi.projectId(ts))
-                                                             + "|" + String(KimaiApi.activityId(ts))
-                                                             + "|" + String((ts && ts.id !== undefined && ts.id !== null) ? ts.id : "")
+                            readonly property string tsKey: root.switchHintKey(ts)
                             Layout.fillWidth: true
                             readonly property var barInfo: KimaiApi.barColorInfoFromTimesheet(
                                 root.recentTimesheets[index], root.customersById)

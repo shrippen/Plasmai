@@ -1,8 +1,8 @@
 # Plasmai roadmap
 
-Where the widget is going after **1.6.1**. [DESIGN.md](DESIGN.md) is *how* Plasmai should look and behave; this file is *what* is worth building next. [CHANGELOG.md](CHANGELOG.md) stays the history of what already shipped.
+Where the widget is going after **1.6.2**. [DESIGN.md](DESIGN.md) is *how* Plasmai should look and behave; this file is *what* is worth building next. [CHANGELOG.md](CHANGELOG.md) stays the history of what already shipped.
 
-Current release: **1.6.1** — 1.6.0 WorkContract remaining hours and already-running notification, without the logind shutdown hold (removed: Kickoff reboot kills plasmashell first). 1.5.0 remains the timesheet-completeness baseline.
+Current release: **1.6.2** — Favorite clicks match Recents (switch dialog and already-running hint). 1.6.1 dropped the logind shutdown hold; 1.6.0 remains WorkContract remaining hours and the already-running notification. 1.5.0 remains the timesheet-completeness baseline.
 
 ---
 

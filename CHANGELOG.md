@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.2
+
+### Desktop
+- Favorite clicks while tracking use the same switch dialog and already-running hint as Recents (same activity is not stopped)
+
 ## 1.6.1
 
 ### Desktop

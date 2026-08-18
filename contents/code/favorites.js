@@ -115,3 +115,23 @@ function resolvePinnedEntries(pinnedStr, projects, activitiesByProject, customer
     }
     return result
 }
+
+/**
+ * Kimai-shaped timesheet so Favorite clicks reuse Recent switch/hint helpers.
+ */
+function asTimesheet(entry) {
+    if (!entry) {
+        return null
+    }
+    return {
+        project: {
+            id: entry.projectId,
+            name: entry.projectName,
+            customer: entry.customerName ? { name: entry.customerName } : null
+        },
+        activity: {
+            id: entry.activityId,
+            name: entry.activityName
+        }
+    }
+}

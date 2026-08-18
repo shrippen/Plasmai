@@ -243,13 +243,15 @@ Stack: KDE Plasma 6, QML, JavaScript (`.pragma library`). No compiled binaries
   (too easy to misclick). Explicit Start / Stop / Continue / row click do
   that.
 - **Stop** may confirm (`confirmBeforeStop`). Switching away from a running
-  activity via Recent shows the switch dialog (current vs target cards), not
-  a silent stop+start.
+  activity via Recent or Favorites shows the switch dialog (current vs target
+  cards), not a silent stop+start. Clicking the same project/activity that is
+  already running shows the already-running hint; it must not stop the timer.
 - **Continue** is “last recent”, not a generic Start. Favorites and Recent
   are one-tap presets. If Recents are empty, **Start · last used** uses the
-  last started project/activity pair from shared.json. Recent **row click**
-  still starts or switches; it does not open an editor. A stopped Recent row
-  shows a permanent overflow icon when edit/delete/split is available; edit,
+  last started project/activity pair from shared.json. Favorite and Recent
+  **row click** start or switch with the same dialog and hint; they do not
+  open an editor. A stopped Recent row shows a permanent overflow icon
+  when edit/delete/split is available; edit,
   delete, and split are menu items (never on Favorites). Delete always confirms.
   Split asks for a time strictly between begin and end, then patches the
   original `end` and creates the second half with the same project, activity,

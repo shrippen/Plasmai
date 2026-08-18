@@ -44,4 +44,20 @@ TestCase {
         compare(rows[0].activityName, "Coding")
         compare(rows[0].projectId, 4)
     }
+
+    function test_asTimesheetShape() {
+        var ts = Favorites.asTimesheet({
+            projectId: 4,
+            activityId: 35,
+            projectName: "P",
+            activityName: "Coding",
+            customerName: "C"
+        })
+        compare(ts.project.id, 4)
+        compare(ts.activity.id, 35)
+        compare(ts.project.name, "P")
+        compare(ts.activity.name, "Coding")
+        compare(ts.project.customer.name, "C")
+        compare(Favorites.asTimesheet(null), null)
+    }
 }
