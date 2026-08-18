@@ -4,7 +4,9 @@ Plasmai has two layers of automated tests:
 
 1. **QML unit tests** (`tests/unit/tst_*.qml`) — `QtTest` cases against the
    `.js` libraries (`kimaiApi`, `profiles`, `timesheetFields`, …). No network,
-   no Plasma shell.
+   no Plasma shell. WorkContractBundle remaining-hours coverage uses the
+   documented `/api/absences` JSON shape as fixtures — not a live Kimai
+   plugin (the official bundle is paid).
 2. **plasmoidviewer click sweeps** (`tests/viewer/`) — launch the applet in
    `plasmoidviewer`, click every safe control, and fail if **plasmoidviewer
    stderr** or the **plasmashell / plasmoidviewer journal** contains QML
@@ -45,6 +47,7 @@ or switch live tracking on your Kimai/Clockify/Toggl/SolidTime account:
 - Recent overflow: **Entry actions** (permanent icon) / Edit entry / Delete entry / Split entry
 - Create project / Create activity / Create customer
 - Idle Keep time / Discard idle / Discard and continue
+- Shutdown Stop timer / Shut down anyway
 - plasmoidviewer SDK chrome (FormFactors, Location, refresh-which-removes)
 
 Safe chrome **is** clicked: Add entry, Statistics, Back, Configure, stats

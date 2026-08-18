@@ -33,6 +33,7 @@ PlasmoidItem {
     readonly property string kwalletScript: Secret.fileUrlToPath(Qt.resolvedUrl("../code/kwallet.sh"))
     readonly property string idleScript: Secret.fileUrlToPath(Qt.resolvedUrl("../code/idle.sh"))
     readonly property string notifyScript: Secret.fileUrlToPath(Qt.resolvedUrl("../code/notify.sh"))
+    readonly property string inhibitScript: Secret.fileUrlToPath(Qt.resolvedUrl("../code/inhibit.sh"))
     readonly property string sharedConfigScript: Secret.fileUrlToPath(Qt.resolvedUrl("../code/sharedConfig.sh"))
     readonly property string catalogCacheScript: Secret.fileUrlToPath(Qt.resolvedUrl("../code/catalogCache.sh"))
 
@@ -84,7 +85,10 @@ PlasmoidItem {
     property var deleteConfirmDialogRef: null
     property var splitEntryDialogRef: null
     property var idleDialogRef: null
+    property var shutdownDialogRef: null
     property var createEntityDialogRef: null
+    property bool allowShutdownDespiteTimer: false
+    property bool shutdownPrepareInFlight: false
     property int pendingIdleMs: 0
     property bool idleIgnoreUntilActive: false
     property var pendingIdleSnapshot: null
@@ -136,10 +140,13 @@ PlasmoidItem {
     property int weekSeconds: 0
     property int todayTargetSeconds: 0
     property int weekTargetSeconds: 0
-    /** Contract week target minus approved vacation/public holidays (holiday bundle). */
+    /** Contract week target minus approved vacation/public holidays. */
     property int weekEffectiveTargetSeconds: 0
     property var weekAbsences: []
     property var weekPublicHolidays: []
+    property var weekTimesheetsForCredit: []
+    property int weekAbsenceCreditSeconds: 0
+    property int todayAbsenceCreditSeconds: 0
     property bool hasWorkContract: false
     property int totalsElapsedAnchor: 0
     property string currentCustomerColor: KimaiApi.DEFAULT_CUSTOMER_COLOR
@@ -159,6 +166,14 @@ PlasmoidItem {
     readonly property string workDayEnd: {
         var v = plasmoid.configuration.workDayEnd
         return (v && String(v).length > 0) ? String(v) : KimaiApi.DEFAULT_WORK_DAY_END
+    }
+
+    readonly property string shutdownInhibitCommand: {
+        if (!isTracking || !isConfigured || allowShutdownDespiteTimer) {
+            return ""
+        }
+        return "sh " + Secret.shQuote(inhibitScript) + " hold "
+            + Secret.shQuote(i18n("A timer is still running"))
     }
 
     readonly property bool compactPopupLayout:
@@ -221,8 +236,12 @@ PlasmoidItem {
         todaySeconds + (isTracking ? Math.max(0, elapsedSeconds - totalsElapsedAnchor) : 0)
     readonly property int weekLiveSeconds:
         weekSeconds + (isTracking ? Math.max(0, elapsedSeconds - totalsElapsedAnchor) : 0)
-    readonly property int remainingWeekSeconds: hasWorkContract ? (weekEffectiveTargetSeconds - weekLiveSeconds) : 0
-    readonly property int remainingTodaySeconds: hasWorkContract ? (todayTargetSeconds - todayLiveSeconds) : 0
+    readonly property int remainingWeekSeconds: hasWorkContract
+        ? (weekEffectiveTargetSeconds - weekLiveSeconds + weekAbsenceCreditSeconds)
+        : 0
+    readonly property int remainingTodaySeconds: hasWorkContract
+        ? (todayTargetSeconds - todayLiveSeconds + todayAbsenceCreditSeconds)
+        : 0
 
     readonly property var lastRecent: recentTimesheets.length > 0 ? recentTimesheets[0] : null
     readonly property bool hasLastUsed: {
@@ -324,6 +343,12 @@ PlasmoidItem {
         }
     }
 
+    P5Support.DataSource {
+        id: shutdownInhibitSource
+        engine: "executable"
+        connectedSources: root.shutdownInhibitCommand.length > 0 ? [root.shutdownInhibitCommand] : []
+    }
+
     Timer {
         id: elapsedTimer
         interval: 1000
@@ -382,6 +407,14 @@ PlasmoidItem {
         running: root.isTracking && plasmoid.configuration.idleStopEnabled && root.isConfigured
         repeat: true
         onTriggered: root.checkIdle()
+    }
+
+    Timer {
+        id: shutdownPrepareTimer
+        interval: 5000
+        running: root.isTracking && root.isConfigured
+        repeat: true
+        onTriggered: root.checkShutdownPrepare()
     }
 
     Timer {
@@ -517,6 +550,59 @@ PlasmoidItem {
 
     function sendNotification(summary, body) {
         Secret.notify(execSource, notifyScript, summary, body || "")
+    }
+
+    function checkShutdownPrepare() {
+        if (!isTracking || !isConfigured) {
+            return
+        }
+        if (shutdownDialogRef && shutdownDialogRef.visible) {
+            return
+        }
+        if (shutdownPrepareInFlight) {
+            return
+        }
+        shutdownPrepareInFlight = true
+        Secret.runInhibitPreparing(execSource, inhibitScript, function(preparing) {
+            shutdownPrepareInFlight = false
+            if (!preparing) {
+                allowShutdownDespiteTimer = false
+                return
+            }
+            if (allowShutdownDespiteTimer) {
+                return
+            }
+            root.promptShutdown()
+        })
+    }
+
+    function promptShutdown() {
+        if (allowShutdownDespiteTimer) {
+            return
+        }
+        if (shutdownDialogRef && shutdownDialogRef.visible) {
+            return
+        }
+        expanded = true
+        if (shutdownDialogRef) {
+            shutdownDialogRef.open()
+        }
+    }
+
+    function stopTimerForShutdown() {
+        if (shutdownDialogRef) {
+            shutdownDialogRef.close()
+        }
+        if (isTracking) {
+            stopTracking(false)
+        }
+    }
+
+    function shutDownAnyway() {
+        allowShutdownDespiteTimer = true
+        if (shutdownDialogRef) {
+            shutdownDialogRef.close()
+        }
     }
 
     function checkIdle() {
@@ -1100,6 +1186,8 @@ PlasmoidItem {
 
     function resetTrackingState() {
         isTracking = false
+        allowShutdownDespiteTimer = false
+        shutdownPrepareInFlight = false
         editingActiveEntry = false
         editingStoppedTimesheet = null
         currentTimesheetId = invalidTimesheetId
@@ -1132,7 +1220,7 @@ PlasmoidItem {
         })
     }
 
-    function applyActiveTimesheet(timesheet) {
+    function applyActiveTimesheet(timesheet, fromLocalStart) {
         if (!timesheet) {
             if (isTracking) {
                 resetTrackingState()
@@ -1140,6 +1228,7 @@ PlasmoidItem {
             return
         }
 
+        var wasTracking = isTracking
         isTracking = true
         activeTimesheet = timesheet
         currentTimesheetId = timesheet.id
@@ -1164,6 +1253,13 @@ PlasmoidItem {
             || (descriptionDraft.length > 0 && descriptionDraft !== currentDescription)
         if (!editing) {
             syncDescriptionField(serverDescription)
+        }
+
+        if (!wasTracking && !fromLocalStart) {
+            var label = currentProject + " · " + currentActivity
+            sendNotification(
+                i18n("Tracking in progress"),
+                label + " · " + KimaiApi.formatDurationShort(elapsedSeconds))
         }
     }
 
@@ -1427,6 +1523,9 @@ PlasmoidItem {
             weekEffectiveTargetSeconds = 0
             weekAbsences = []
             weekPublicHolidays = []
+            weekTimesheetsForCredit = []
+            weekAbsenceCreditSeconds = 0
+            todayAbsenceCreditSeconds = 0
             hasWorkContract = false
             todayTimesheets = []
             statsTimesheets = []
@@ -1449,31 +1548,36 @@ PlasmoidItem {
                 hasWorkContract = false
             }
 
+            function applyAbsenceCredit() {
+                if (!providerCapabilities.holidayBundle || !hasWorkContract || !workPrefs) {
+                    weekAbsenceCreditSeconds = 0
+                    todayAbsenceCreditSeconds = 0
+                    return
+                }
+                var nowMs = Date.now()
+                weekAbsenceCreditSeconds = KimaiApi.absenceCreditSeconds(
+                    workPrefs, now, weekAbsences, weekPublicHolidays, weekTimesheetsForCredit, nowMs)
+                todayAbsenceCreditSeconds = KimaiApi.dayAbsenceCreditSeconds(
+                    workPrefs, now, weekAbsences, weekPublicHolidays, todayTimesheets, nowMs)
+            }
+
             function applyEffectiveWeekTarget() {
                 weekEffectiveTargetSeconds = weekTargetSeconds
                 if (providerCapabilities.holidayBundle && hasWorkContract && workPrefs) {
                     weekEffectiveTargetSeconds = KimaiApi.effectiveWeekTargetSeconds(
                         workPrefs, now, weekAbsences, weekPublicHolidays)
+                    todayTargetSeconds = KimaiApi.effectiveDayTargetSeconds(
+                        workPrefs, now, weekAbsences, weekPublicHolidays)
                 }
+                applyAbsenceCredit()
             }
 
             if (providerCapabilities.holidayBundle && hasWorkContract) {
-                var year = now.getFullYear()
-                var absencesLoaded = false
-                var holidaysLoaded = false
-                KimaiApi.fetchHolidayAbsences(kimaiUrl, apiToken, year, function(absResult) {
-                    weekAbsences = (absResult && absResult.ok && absResult.data) ? absResult.data : []
-                    absencesLoaded = true
-                    if (holidaysLoaded) {
-                        applyEffectiveWeekTarget()
-                    }
-                })
-                KimaiApi.fetchHolidayPublicHolidays(kimaiUrl, apiToken, year, function(holResult) {
-                    weekPublicHolidays = (holResult && holResult.ok && holResult.data) ? holResult.data : []
-                    holidaysLoaded = true
-                    if (absencesLoaded) {
-                        applyEffectiveWeekTarget()
-                    }
+                KimaiApi.fetchContractAdjustments(kimaiUrl, apiToken, now, workPrefs, function(adjResult) {
+                    var data = (adjResult && adjResult.ok && adjResult.data) ? adjResult.data : null
+                    weekAbsences = data && data.absences ? data.absences : []
+                    weekPublicHolidays = data && data.publicHolidays ? data.publicHolidays : []
+                    applyEffectiveWeekTarget()
                 })
             } else {
                 weekAbsences = []
@@ -1491,6 +1595,7 @@ PlasmoidItem {
                     }
                     var nowMs = Date.now()
                     var weekEntries = weekResult.data || []
+                    weekTimesheetsForCredit = weekEntries
                     weekSeconds = KimaiApi.sumTimesheetDurations(weekEntries, nowMs)
 
                     var dayStart = KimaiApi.startOfLocalDay(now).getTime()
@@ -1533,6 +1638,7 @@ PlasmoidItem {
                         todaySeconds += dayIntervals[j].endSec - dayIntervals[j].startSec
                     }
                     totalsElapsedAnchor = elapsedSeconds
+                    applyAbsenceCredit()
                 }
             )
         })
@@ -1794,7 +1900,7 @@ PlasmoidItem {
             isBusy = false
             if (result.ok && result.data) {
                 clearError()
-                applyActiveTimesheet(result.data)
+                applyActiveTimesheet(result.data, true)
                 rememberLastUsed(projectId, activityId, projectLabel, activityLabel)
                 refreshRecentTimesheets()
                 refreshWorkTotals()
@@ -1835,7 +1941,7 @@ PlasmoidItem {
                 isBusy = false
                 if (startResult.ok && startResult.data) {
                     clearError()
-                    applyActiveTimesheet(startResult.data)
+                    applyActiveTimesheet(startResult.data, true)
                     refreshRecentTimesheets()
                     refreshWorkTotals()
                     if (plasmoid.configuration.notifyOnStart) {
@@ -1927,7 +2033,7 @@ PlasmoidItem {
                 applyActiveTimesheet(
                     (KimaiApi.hydrateTimesheets(
                         [result.data || timesheet], root.projects, root.activityCatalog(), root.activitiesByProject)[0])
-                    || result.data || timesheet)
+                    || result.data || timesheet, true)
                 refreshRecentTimesheets()
                 refreshWorkTotals()
                 isBusy = false
@@ -2574,6 +2680,56 @@ PlasmoidItem {
 
             onAccepted: root.confirmSplitStopped()
             onRejected: root.pendingSplitTimesheet = null
+        }
+
+        QQC2.Dialog {
+            id: shutdownDialog
+            parent: popupRoot
+            anchors.centerIn: parent
+            title: i18n("Timer still running")
+            modal: true
+            width: Math.min(Kirigami.Units.gridUnit * 22, popupRoot.width * 0.95)
+            standardButtons: QQC2.Dialog.NoButton
+            padding: Kirigami.Units.largeSpacing
+
+            Component.onCompleted: root.shutdownDialogRef = shutdownDialog
+            Component.onDestruction: {
+                if (root.shutdownDialogRef === shutdownDialog) {
+                    root.shutdownDialogRef = null
+                }
+            }
+
+            contentItem: ColumnLayout {
+                spacing: Kirigami.Units.smallSpacing
+                PlasmaComponents3.Label {
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
+                    text: i18n("Stop the timer before shutdown, or shut down anyway and leave it running on the server.")
+                }
+                PlasmaComponents3.Label {
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
+                    opacity: 0.85
+                    text: root.currentProject + " · " + root.currentActivity
+                }
+            }
+
+            footer: RowLayout {
+                Layout.fillWidth: true
+                spacing: Kirigami.Units.smallSpacing
+                PlasmaComponents3.Button {
+                    Layout.fillWidth: true
+                    text: i18n("Stop timer")
+                    Accessible.name: text
+                    onClicked: root.stopTimerForShutdown()
+                }
+                PlasmaComponents3.Button {
+                    Layout.fillWidth: true
+                    text: i18n("Shut down anyway")
+                    Accessible.name: text
+                    onClicked: root.shutDownAnyway()
+                }
+            }
         }
 
         QQC2.Dialog {
@@ -3552,7 +3708,7 @@ PlasmoidItem {
                             }
                             rowEnabled: root.isConfigured && !root.isBusy && root.connectionState !== "error"
                             runningHintVisible: root.alreadyRunningHintKey === tsKey
-                            runningHintText: i18n("Läuft bereits.")
+                            runningHintText: i18n("Already running.")
                             runningHintCounterText: root.isTracking
                                                     ? KimaiApi.formatDurationPanel(root.elapsedSeconds)
                                                     : ""

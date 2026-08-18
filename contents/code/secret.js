@@ -138,6 +138,18 @@ function notify(dataSource, scriptPath, summary, body, callback) {
     })
 }
 
+function parsePreparingShutdown(stdout) {
+    return String(stdout || "").trim() === "1"
+}
+
+function runInhibitPreparing(dataSource, scriptPath, callback) {
+    var cmd = "sh " + shQuote(scriptPath) + " preparing"
+    _run(dataSource, cmd, function(data) {
+        var stdout = (data["stdout"] || "").toString()
+        callback(parsePreparingShutdown(stdout))
+    })
+}
+
 function loadSharedConfig(dataSource, scriptPath, callback) {
     var cmd = "sh " + shQuote(scriptPath) + " load"
     _run(dataSource, cmd, function(data) {

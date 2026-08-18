@@ -86,6 +86,10 @@ HISTORY_PREFIX = (
     "zeit behalten",
     "leerlauf verwerfen",
     "verwerfen und fortsetzen",
+    "stop timer",
+    "shut down anyway",
+    "timer stoppen",
+    "trotzdem herunterfahren",
 )
 
 DENY_PREFIX = (

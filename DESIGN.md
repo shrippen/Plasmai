@@ -17,7 +17,7 @@ Stack: KDE Plasma 6, QML, JavaScript (`.pragma library`). No compiled binaries
   popup, standard Configure / context menu, KWallet for secrets.
 - Capability target: Kemai-like time tracking from the panel, with one-click
   recents/favorites and deeper Plasma integration (notifications, idle stop,
-  blur, translations).
+  shutdown inhibit, blur, translations).
 - Kimai is the reference backend and the only one treated as production-tested.
   Clockify, Toggl Track, and SolidTime are real implementations against public
   APIs but experimental until verified with live accounts.
@@ -260,6 +260,16 @@ Stack: KDE Plasma 6, QML, JavaScript (`.pragma library`). No compiled binaries
   threshold, ask Keep / Discard idle / Discard and continue. Do not silently
   stop if the dialog can open. Expand the flyout so the dialog is visible.
   Idle checks must not run while `plasmoid.userConfiguring`.
+- **Shutdown:** while tracking, hold a logind inhibitor with
+  `--what=shutdown --mode=block` only (never `sleep` or `handle-lid-switch`).
+  That is the unsaved-file wait: poweroff/reboot lists Plasmai until the
+  timer is stopped or the user chooses Shut down anyway (releases the
+  inhibitor, timer stays on the server). Closing the lid must still sleep.
+  On `PreparingForShutdown`, open a flyout dialog like idle. Do not prompt
+  for suspend.
+- **Already running:** the first `applyActiveTimesheet` after load that was
+  not a local Start/Switch/Continue sends one “Tracking in progress”
+  notification. Poll refreshes must not repeat it.
 - **Forgot-to-start** is one notification per local day during configured
   work hours, opt-in on Behavior. The notification daemon handles Do Not
   Disturb.
@@ -276,7 +286,7 @@ Stack: KDE Plasma 6, QML, JavaScript (`.pragma library`). No compiled binaries
 - Do not click-test live Start/Stop/Continue/favorite/recent in default CI
   (`tests/README.md`). Those mutate the user’s tracker. Also skip Recent
   overflow, Create project/activity/customer, and idle Keep/Discard even
-  with `PLASMAI_TEST_LIVE`.
+  with `PLASMAI_TEST_LIVE`. Also skip shutdown Stop timer / Shut down anyway.
 
 ---
 
@@ -289,14 +299,23 @@ Stack: KDE Plasma 6, QML, JavaScript (`.pragma library`). No compiled binaries
   `plasmoid.userConfiguring` (config dialog open) — that fights the editor
   and rewrites shared.json.
 - Polling: `refreshInterval` (seconds), idle check once a minute when
-  enabled, forgot-to-start every five minutes when enabled. No busy-loops,
-  no per-keystroke API calls (description save is explicit: Enter or the
-  save button).
+  enabled, forgot-to-start every five minutes when enabled, shutdown
+  prepare every five seconds while tracking (skip while the dialog is
+  open or a probe is in flight). No busy-loops, no per-keystroke API
+  calls (description save is explicit: Enter or the save button).
 - Kimai **week remaining** (`remainingWeekSeconds`) subtracts tracked time
   from an effective week target: contracted hours minus approved vacation /
-  sickness / other absences and public holidays for the current Mon–Sun
-  (`kimai-holiday-bundle`, capability `holidayBundle`). Fall back to the
-  plain contract total when the bundle is unavailable.
+  sickness / other absences and public holidays for the current Mon–Sun.
+  Detect **one** Kimai plugin per server (they are not installed together):
+  `GET /api/holiday/absences/types` → kimai-holiday-bundle;
+  else `GET /api/absences/types` → official WorkContractBundle
+  (`controlling.html`). Re-probe at most once per hour per server URL so a
+  later plugin swap is picked up without hammering 404s every poll.
+  Normalize both JSON shapes into the same absence/
+  holiday records. WorkContractBundle may auto-book those hours as
+  timesheets; remaining adds an **absence credit** so target reduce and
+  bookings do not double-count. Fall back to the plain contract total when
+  neither plugin answers.
 - Failures set `connectionState` / `errorMessage` and offer Retry +
   Configure. Do not toast every poll failure.
 
@@ -314,7 +333,9 @@ Stack: KDE Plasma 6, QML, JavaScript (`.pragma library`). No compiled binaries
   Favorites/Display/Behavior) is covered by
   `tests/viewer/test_kcm_tab_persistence.py`. Favorites loading indicator
   and KCM responsiveness are covered by
-  `tests/viewer/test_favorites_loading.py`.
+  `tests/viewer/test_favorites_loading.py`. WorkContractBundle remaining-
+  hours math is fixture-tested from the public Absence/PublicHoliday JSON
+  shape; there is no live paid-plugin call.
 - Dev install: `./scripts/install-dev.sh` (build number bump, `kpackagetool6
   -u`, plasmashell restart). Store packages keep `Build: 0`.
 - Release: `./scripts/package.sh`, version in `metadata.json` + changelog

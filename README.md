@@ -22,11 +22,11 @@ A KDE Plasma 6 panel widget for time tracking — Kimai, Clockify, Toggl Track, 
 - Multiple profiles per service; API tokens stored in KWallet
 - Backends: **Kimai**, **Clockify**, **Toggl Track**, **SolidTime**
 - Searchable project/activity pickers
-- Today/week work summary (Kimai work contract; remaining hours skip vacation/holidays when the holiday bundle is installed)
+- Today/week work summary (Kimai work contract; remaining hours skip vacation/holidays when kimai-holiday-bundle or the official WorkContract plugin is installed)
 - Day sparkline: zoomed work-hours bar, sun/moon/work arcs, overtime segments, hour ticks
 - Optional color distinction when customer/project colors clash
 - Shared settings across all widget instances
-- Desktop notifications; optional idle auto-stop
+- Desktop notifications; optional idle auto-stop; shutdown/reboot wait while a timer is running (lid/sleep are not blocked)
 - Translations: EN, DE, FR, ES, IT, NL, PT (BR), PL, UK, RU, JA, ZH (CN)
 
 ## Requirements
@@ -57,7 +57,7 @@ kpackagetool6 -u . -t Plasma/Applet
 Install a release package (`.plasmoid`):
 
 ```bash
-kpackagetool6 -i Plasmai-1.5.0.plasmoid -t Plasma/Applet
+kpackagetool6 -i Plasmai-1.6.0.plasmoid -t Plasma/Applet
 ```
 
 ## Setup

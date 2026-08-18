@@ -848,8 +848,194 @@ function fetchHolidayPublicHolidays(kimaiUrl, apiToken, year, callback) {
     getJson(kimaiUrl, apiToken, "/api/holiday/public-holidays?year=" + encodeURIComponent(String(y)), [], callback)
 }
 
+function localDateString(date) {
+    return WorkAdjust.dateKey(date)
+}
+
+function probeGet(kimaiUrl, apiToken, endpoint, callback) {
+    getJson(kimaiUrl, apiToken, endpoint, [], function(result) {
+        if (result.ok) {
+            callback({ status: 200, ok: true })
+            return
+        }
+        var status = result.error && result.error.status
+        callback({ status: status || 0, ok: false })
+    })
+}
+
+function probeTransient(status) {
+    return status === 0 || status >= 500
+}
+
+var holidayPluginByUrl = {}
+
+function resetHolidayPluginCache() {
+    holidayPluginByUrl = {}
+}
+
+function rememberHolidayPlugin(kimaiUrl, source, atMs) {
+    holidayPluginByUrl[normalizeUrl(kimaiUrl)] = WorkAdjust.holidayPluginCacheEntry(source, atMs)
+}
+
+function holidaySourceFromProbes(holidayTypesStatus, workContractTypesStatus) {
+    return WorkAdjust.holidaySourceFromProbes(holidayTypesStatus, workContractTypesStatus)
+}
+
+function cachedHolidayPlugin(kimaiUrl, nowMs) {
+    return WorkAdjust.holidayPluginCacheSource(holidayPluginByUrl[normalizeUrl(kimaiUrl)], nowMs)
+}
+
+function storeHolidayPlugin(kimaiUrl, source) {
+    rememberHolidayPlugin(kimaiUrl, source, Date.now())
+}
+
+/** Detect kimai-holiday-bundle vs WorkContractBundle. Cached per server URL for one hour. */
+function detectHolidayPlugin(kimaiUrl, apiToken, callback) {
+    var key = normalizeUrl(kimaiUrl)
+    var cached = cachedHolidayPlugin(key)
+    if (cached) {
+        callback(cached)
+        return
+    }
+    probeGet(kimaiUrl, apiToken, "/api/holiday/absences/types", function(holidayProbe) {
+        if (probeTransient(holidayProbe.status)) {
+            callback(WorkAdjust.SOURCE_NONE)
+            return
+        }
+        if (WorkAdjust.pluginPresentFromStatus(holidayProbe.status)) {
+            storeHolidayPlugin(key, WorkAdjust.SOURCE_HOLIDAY_BUNDLE)
+            callback(WorkAdjust.SOURCE_HOLIDAY_BUNDLE)
+            return
+        }
+        var year = new Date().getFullYear()
+        probeGet(kimaiUrl, apiToken, "/api/holiday/absences?year=" + encodeURIComponent(String(year)), function(holidayList) {
+            if (probeTransient(holidayList.status)) {
+                callback(WorkAdjust.SOURCE_NONE)
+                return
+            }
+            if (WorkAdjust.pluginPresentFromStatus(holidayList.status)) {
+                storeHolidayPlugin(key, WorkAdjust.SOURCE_HOLIDAY_BUNDLE)
+                callback(WorkAdjust.SOURCE_HOLIDAY_BUNDLE)
+                return
+            }
+            probeGet(kimaiUrl, apiToken, "/api/absences/types", function(wcProbe) {
+                if (probeTransient(wcProbe.status)) {
+                    callback(WorkAdjust.SOURCE_NONE)
+                    return
+                }
+                if (WorkAdjust.pluginPresentFromStatus(wcProbe.status)) {
+                    storeHolidayPlugin(key, WorkAdjust.SOURCE_WORK_CONTRACT)
+                    callback(WorkAdjust.SOURCE_WORK_CONTRACT)
+                    return
+                }
+                probeGet(kimaiUrl, apiToken, "/api/absences", function(wcList) {
+                    if (probeTransient(wcList.status)) {
+                        callback(WorkAdjust.SOURCE_NONE)
+                        return
+                    }
+                    var source = WorkAdjust.holidaySourceFromProbes(404, wcList.status)
+                    storeHolidayPlugin(key, source)
+                    callback(source)
+                })
+            })
+        })
+    })
+}
+
+function fetchWorkContractAbsences(kimaiUrl, apiToken, beginDate, endDate, callback) {
+    var begin = encodeURIComponent(localDateString(beginDate))
+    var end = encodeURIComponent(localDateString(endDate))
+    getJson(kimaiUrl, apiToken, "/api/absences?begin=" + begin + "&end=" + end, [], callback)
+}
+
+function fetchWorkContractPublicHolidays(kimaiUrl, apiToken, beginDate, endDate, prefs, callback) {
+    var begin = encodeURIComponent(localDateString(beginDate))
+    var end = encodeURIComponent(localDateString(endDate))
+    var endpoint = "/api/public-holidays?begin=" + begin + "&end=" + end
+    var group = prefs && prefs.public_holiday_group
+    if (group !== undefined && group !== null && String(group).length > 0) {
+        endpoint += "&group=" + encodeURIComponent(String(group))
+    }
+    getJson(kimaiUrl, apiToken, endpoint, [], callback)
+}
+
+function emptyContractAdjustments(source) {
+    return {
+        source: source || WorkAdjust.SOURCE_NONE,
+        absences: [],
+        publicHolidays: []
+    }
+}
+
+/**
+ * Absences + public holidays for the current week, from whichever Kimai
+ * plugin is installed. Callback receives ok({ source, absences, publicHolidays }).
+ */
+function fetchContractAdjustments(kimaiUrl, apiToken, now, prefs, callback) {
+    var when = now || new Date()
+    detectHolidayPlugin(kimaiUrl, apiToken, function(source) {
+        if (source === WorkAdjust.SOURCE_NONE) {
+            callback(ok(emptyContractAdjustments(source)))
+            return
+        }
+        var absencesLoaded = false
+        var holidaysLoaded = false
+        var absencesRaw = []
+        var holidaysRaw = []
+
+        function finish() {
+            if (!absencesLoaded || !holidaysLoaded) {
+                return
+            }
+            callback(ok({
+                source: source,
+                absences: absencesRaw,
+                publicHolidays: holidaysRaw
+            }))
+        }
+
+        function takeAbsences(result) {
+            absencesRaw = (result && result.ok) ? result.data : []
+            absencesLoaded = true
+            finish()
+        }
+
+        function takeHolidays(result) {
+            holidaysRaw = (result && result.ok) ? result.data : []
+            holidaysLoaded = true
+            finish()
+        }
+
+        if (source === WorkAdjust.SOURCE_WORK_CONTRACT) {
+            var weekBegin = startOfWeekMonday(when)
+            var weekEnd = endOfWeekSunday(when)
+            fetchWorkContractAbsences(kimaiUrl, apiToken, weekBegin, weekEnd, takeAbsences)
+            fetchWorkContractPublicHolidays(kimaiUrl, apiToken, weekBegin, weekEnd, prefs, takeHolidays)
+            return
+        }
+
+        var year = when.getFullYear()
+        fetchHolidayAbsences(kimaiUrl, apiToken, year, takeAbsences)
+        fetchHolidayPublicHolidays(kimaiUrl, apiToken, year, takeHolidays)
+    })
+}
+
 function effectiveWeekTargetSeconds(prefs, date, absences, publicHolidays) {
     return WorkAdjust.effectiveWeekTargetSeconds(prefs, date || new Date(), absences, publicHolidays, workDaySecondsFromPrefs)
+}
+
+function effectiveDayTargetSeconds(prefs, date, absences, publicHolidays) {
+    return WorkAdjust.effectiveDayTargetSeconds(prefs, date || new Date(), absences, publicHolidays, workDaySecondsFromPrefs)
+}
+
+function absenceCreditSeconds(prefs, date, absences, publicHolidays, entries, nowMs) {
+    return WorkAdjust.absenceCreditSeconds(
+        prefs, date || new Date(), absences, publicHolidays, entries, nowMs, workDaySecondsFromPrefs)
+}
+
+function dayAbsenceCreditSeconds(prefs, date, absences, publicHolidays, entries, nowMs) {
+    return WorkAdjust.dayAbsenceCreditSeconds(
+        prefs, date || new Date(), absences, publicHolidays, entries, nowMs, workDaySecondsFromPrefs)
 }
 
 /** Kimai tag catalog for autocomplete (/api/tags/find). Requires `name` query param. */
@@ -921,11 +1107,9 @@ function loadTags(kimaiUrl, apiToken, term, callback) {
 }
 
 function localDateTimeString(date) {
-    function pad(n) {
-        return (n < 10 ? "0" : "") + n
-    }
-    return date.getFullYear() + "-" + pad(date.getMonth() + 1) + "-" + pad(date.getDate())
-        + "T" + pad(date.getHours()) + ":" + pad(date.getMinutes()) + ":" + pad(date.getSeconds())
+    return WorkAdjust.dateKey(date)
+        + "T" + WorkAdjust.pad2(date.getHours()) + ":" + WorkAdjust.pad2(date.getMinutes())
+        + ":" + WorkAdjust.pad2(date.getSeconds())
 }
 
 function startOfLocalDay(date) {
@@ -937,11 +1121,7 @@ function endOfLocalDay(date) {
 }
 
 function startOfWeekMonday(date) {
-    var d = startOfLocalDay(date)
-    var day = d.getDay()
-    var offset = day === 0 ? 6 : day - 1
-    d.setDate(d.getDate() - offset)
-    return d
+    return WorkAdjust.mondayOfWeek(date)
 }
 
 function endOfWeekSunday(date) {

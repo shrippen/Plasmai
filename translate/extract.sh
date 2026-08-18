@@ -6,32 +6,12 @@ cd "$ROOT"
 
 mkdir -p translate
 
+# All QML sources so new files with i18n() are not missed.
+find contents -name '*.qml' -print0 | sort -z | xargs -0 \
 xgettext --from-code=UTF-8 -L JavaScript \
-  --package-name="Plasmai" --package-version="1.4.0" \
+  --package-name="Plasmai" --package-version="1.6.0" \
   --msgid-bugs-address="https://github.com/shrippen/Plasmai/issues" \
   -ki18n:1 -ki18nc:1c,2 -ki18np:1,2 -ki18ncp:1c,2,3 \
-  -o translate/template.pot \
-  contents/ui/main.qml \
-  contents/ui/ApiErrors.qml \
-  contents/ui/ProjectActivityPickers.qml \
-  contents/ui/SearchableCombo.qml \
-  contents/ui/ActivityListRow.qml \
-  contents/ui/TagPicker.qml \
-  contents/ui/TimesheetMetaFields.qml \
-  contents/ui/ManualEntryView.qml \
-  contents/ui/ActiveEditView.qml \
-  contents/ui/StatsView.qml \
-  contents/ui/BarChart.qml \
-  contents/ui/StackedBarChart.qml \
-  contents/ui/PieChart.qml \
-  contents/ui/DateField.qml \
-  contents/ui/TimeField.qml \
-  contents/ui/DaySparkline.qml \
-  contents/ui/config/ConfigConnection.qml \
-  contents/ui/config/ConfigFavorites.qml \
-  contents/ui/config/ConfigDisplay.qml \
-  contents/ui/config/ConfigBehavior.qml \
-  contents/ui/config/ConfigMaintenance.qml \
-  contents/config/config.qml
+  -o translate/template.pot
 
 echo "Wrote translate/template.pot"

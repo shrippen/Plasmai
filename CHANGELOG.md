@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.6.0
+
+### Timesheet
+- Week remaining detects kimai-holiday-bundle or the official WorkContractBundle (re-probed hourly) and subtracts approved absences/public holidays for either plugin (WorkContract auto-bookings are not counted twice)
+
+### Desktop
+- While tracking, shutdown and reboot wait like an unsaved file (lid close and sleep are not blocked)
+- Opening the widget when a timer is already running sends one “Tracking in progress” notification
+
+### i18n
+- All 12 bundled languages cover the current UI strings (tags, Recents overflow, create entities, idle/shutdown, Display options); unused leftover keys were dropped
+- KDE Store description is localized for every bundled language
+
 ## 1.5.0
 
 ### Timesheet
