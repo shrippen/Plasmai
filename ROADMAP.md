@@ -1,8 +1,8 @@
 # Plasmai roadmap
 
-Where the widget is going after **1.6.0**. [DESIGN.md](DESIGN.md) is *how* Plasmai should look and behave; this file is *what* is worth building next. [CHANGELOG.md](CHANGELOG.md) stays the history of what already shipped.
+Where the widget is going after **1.6.1**. [DESIGN.md](DESIGN.md) is *how* Plasmai should look and behave; this file is *what* is worth building next. [CHANGELOG.md](CHANGELOG.md) stays the history of what already shipped.
 
-Current release: **1.6.0** — official WorkContractBundle remaining hours, shutdown/reboot wait while tracking, already-running notification, and complete translations. 1.5.0 remains the timesheet-completeness baseline.
+Current release: **1.6.1** — 1.6.0 WorkContract remaining hours and already-running notification, without the logind shutdown hold (removed: Kickoff reboot kills plasmashell first). 1.5.0 remains the timesheet-completeness baseline.
 
 ---
 
@@ -55,10 +55,12 @@ flowchart LR
 
 **Tried and dropped in 1.5:** Plasma global shortcuts and script/IPC control. Do not re-add without a new DESIGN.md decision.
 
+**Tried and dropped in 1.6:** logind shutdown/reboot inhibit inside the plasmoid. Kickoff teardown drops the lock; a Kate-like logout prompt needs a session-managed app, not a panel widget.
+
 ### Shipped in 1.6.0
 
 - Official WorkContractBundle remaining hours (auto-detect vs kimai-holiday-bundle; absence credit so auto-timesheets are not double-counted).
-- Shutdown/reboot wait like an unsaved file while tracking; lid close and sleep are not blocked. One “Tracking in progress” notification if a timer is already running when the widget starts.
+- One “Tracking in progress” notification if a timer is already running when the widget starts.
 - All 12 bundled languages cover the current UI; KDE Store description localized.
 
 ---
@@ -117,7 +119,7 @@ Clockify, Toggl Track, and SolidTime are implemented against public APIs but sti
 ### 3. Plasma extras (optional, not blocking 2.0)
 
 - **KRunner** as a *separate* package if ever; the Store QML applet cannot ship binaries.
-- Shutdown inhibit shipped in **1.6.0** (poweroff/reboot only). Do **not** restore global shortcuts or D-Bus IPC unless DESIGN.md is rewritten.
+- Do **not** restore global shortcuts, D-Bus IPC, or a logind shutdown hold unless DESIGN.md is rewritten.
 
 Constraint: panel click still must not start/stop. No standalone tray app.
 
@@ -144,6 +146,7 @@ Not required to call it 2.0.
 - **Compiled binaries** in the Store plasmoid.
 - Per-provider color/Maintenance UI. Color distinction stays Kimai-only.
 - Global shortcuts / script control as they shipped-and-reverted in 1.5.
+- logind shutdown inhibit from the plasmoid as it shipped-and-reverted in 1.6.
 
 ---
 

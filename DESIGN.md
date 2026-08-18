@@ -17,7 +17,7 @@ Stack: KDE Plasma 6, QML, JavaScript (`.pragma library`). No compiled binaries
   popup, standard Configure / context menu, KWallet for secrets.
 - Capability target: Kemai-like time tracking from the panel, with one-click
   recents/favorites and deeper Plasma integration (notifications, idle stop,
-  shutdown inhibit, blur, translations).
+  blur, translations).
 - Kimai is the reference backend and the only one treated as production-tested.
   Clockify, Toggl Track, and SolidTime are real implementations against public
   APIs but experimental until verified with live accounts.
@@ -260,13 +260,10 @@ Stack: KDE Plasma 6, QML, JavaScript (`.pragma library`). No compiled binaries
   threshold, ask Keep / Discard idle / Discard and continue. Do not silently
   stop if the dialog can open. Expand the flyout so the dialog is visible.
   Idle checks must not run while `plasmoid.userConfiguring`.
-- **Shutdown:** while tracking, hold a logind inhibitor with
-  `--what=shutdown --mode=block` only (never `sleep` or `handle-lid-switch`).
-  That is the unsaved-file wait: poweroff/reboot lists Plasmai until the
-  timer is stopped or the user chooses Shut down anyway (releases the
-  inhibitor, timer stays on the server). Closing the lid must still sleep.
-  On `PreparingForShutdown`, open a flyout dialog like idle. Do not prompt
-  for suspend.
+- **Logout/reboot:** a plasmoid cannot join ksmserver like Kate’s unsaved-file
+  dialog. logind `systemd-inhibit` from inside plasmashell does not delay
+  Kickoff reboot (the session dies first and drops the lock). Do not restore
+  that hold.
 - **Already running:** the first `applyActiveTimesheet` after load that was
   not a local Start/Switch/Continue sends one “Tracking in progress”
   notification. Poll refreshes must not repeat it.
@@ -286,7 +283,7 @@ Stack: KDE Plasma 6, QML, JavaScript (`.pragma library`). No compiled binaries
 - Do not click-test live Start/Stop/Continue/favorite/recent in default CI
   (`tests/README.md`). Those mutate the user’s tracker. Also skip Recent
   overflow, Create project/activity/customer, and idle Keep/Discard even
-  with `PLASMAI_TEST_LIVE`. Also skip shutdown Stop timer / Shut down anyway.
+  with `PLASMAI_TEST_LIVE`.
 
 ---
 
@@ -299,10 +296,9 @@ Stack: KDE Plasma 6, QML, JavaScript (`.pragma library`). No compiled binaries
   `plasmoid.userConfiguring` (config dialog open) — that fights the editor
   and rewrites shared.json.
 - Polling: `refreshInterval` (seconds), idle check once a minute when
-  enabled, forgot-to-start every five minutes when enabled, shutdown
-  prepare every five seconds while tracking (skip while the dialog is
-  open or a probe is in flight). No busy-loops, no per-keystroke API
-  calls (description save is explicit: Enter or the save button).
+  enabled, forgot-to-start every five minutes when enabled. No busy-loops,
+  no per-keystroke API calls (description save is explicit: Enter or the
+  save button).
 - Kimai **week remaining** (`remainingWeekSeconds`) subtracts tracked time
   from an effective week target: contracted hours minus approved vacation /
   sickness / other absences and public holidays for the current Mon–Sun.

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.1
+
+### Desktop
+- Removed the logind shutdown/reboot inhibitor. Kickoff restart tears down plasmashell first, so the lock never delayed reboot the way Kate’s unsaved-file dialog does.
+
 ## 1.6.0
 
 ### Timesheet
@@ -10,7 +15,7 @@
 - Opening the widget when a timer is already running sends one “Tracking in progress” notification
 
 ### i18n
-- All 12 bundled languages cover the current UI strings (tags, Recents overflow, create entities, idle/shutdown, Display options); unused leftover keys were dropped
+- All 12 bundled languages cover the current UI strings (tags, Recents overflow, create entities, idle, Display options); unused leftover keys were dropped
 - KDE Store description is localized for every bundled language
 
 ## 1.5.0

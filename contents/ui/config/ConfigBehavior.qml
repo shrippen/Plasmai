@@ -281,16 +281,6 @@ ConfigPage {
                     text: i18n("Idle detection uses the session idle hint on Wayland (loginctl / ScreenSaver) and xprintidle on X11.")
                 }
 
-                QQC2.Label {
-                    Kirigami.FormData.label: page.formWide ? " " : ""
-                    Layout.fillWidth: true
-                    Layout.maximumWidth: page.buddyMaxWidth(behaviorForm)
-                    wrapMode: Text.WordWrap
-                    opacity: 0.75
-                    font.pointSize: Kirigami.Theme.smallFont.pointSize
-                    text: i18n("While tracking, shutdown and reboot wait like an unsaved file. Closing the lid or sleep is not blocked.")
-                }
-
                 QQC2.CheckBox {
                     id: notifyStartCheck
                     Kirigami.FormData.label: i18n("Notifications:")

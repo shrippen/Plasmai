@@ -39,8 +39,6 @@ def test_skips_recent_history_actions_even_when_live():
     assert should_skip("Create project", "push button", "", live=True)
     assert should_skip("Keep time", "push button", "", live=True)
     assert should_skip("Discard idle", "push button", "", live=False)
-    assert should_skip("Stop timer", "push button", "", live=True)
-    assert should_skip("Shut down anyway", "push button", "", live=False)
 
 
 def test_live_flag_allows_start():

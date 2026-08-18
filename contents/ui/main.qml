@@ -33,7 +33,6 @@ PlasmoidItem {
     readonly property string kwalletScript: Secret.fileUrlToPath(Qt.resolvedUrl("../code/kwallet.sh"))
     readonly property string idleScript: Secret.fileUrlToPath(Qt.resolvedUrl("../code/idle.sh"))
     readonly property string notifyScript: Secret.fileUrlToPath(Qt.resolvedUrl("../code/notify.sh"))
-    readonly property string inhibitScript: Secret.fileUrlToPath(Qt.resolvedUrl("../code/inhibit.sh"))
     readonly property string sharedConfigScript: Secret.fileUrlToPath(Qt.resolvedUrl("../code/sharedConfig.sh"))
     readonly property string catalogCacheScript: Secret.fileUrlToPath(Qt.resolvedUrl("../code/catalogCache.sh"))
 
@@ -85,10 +84,7 @@ PlasmoidItem {
     property var deleteConfirmDialogRef: null
     property var splitEntryDialogRef: null
     property var idleDialogRef: null
-    property var shutdownDialogRef: null
     property var createEntityDialogRef: null
-    property bool allowShutdownDespiteTimer: false
-    property bool shutdownPrepareInFlight: false
     property int pendingIdleMs: 0
     property bool idleIgnoreUntilActive: false
     property var pendingIdleSnapshot: null
@@ -166,14 +162,6 @@ PlasmoidItem {
     readonly property string workDayEnd: {
         var v = plasmoid.configuration.workDayEnd
         return (v && String(v).length > 0) ? String(v) : KimaiApi.DEFAULT_WORK_DAY_END
-    }
-
-    readonly property string shutdownInhibitCommand: {
-        if (!isTracking || !isConfigured || allowShutdownDespiteTimer) {
-            return ""
-        }
-        return "sh " + Secret.shQuote(inhibitScript) + " hold "
-            + Secret.shQuote(i18n("A timer is still running"))
     }
 
     readonly property bool compactPopupLayout:
@@ -343,12 +331,6 @@ PlasmoidItem {
         }
     }
 
-    P5Support.DataSource {
-        id: shutdownInhibitSource
-        engine: "executable"
-        connectedSources: root.shutdownInhibitCommand.length > 0 ? [root.shutdownInhibitCommand] : []
-    }
-
     Timer {
         id: elapsedTimer
         interval: 1000
@@ -407,14 +389,6 @@ PlasmoidItem {
         running: root.isTracking && plasmoid.configuration.idleStopEnabled && root.isConfigured
         repeat: true
         onTriggered: root.checkIdle()
-    }
-
-    Timer {
-        id: shutdownPrepareTimer
-        interval: 5000
-        running: root.isTracking && root.isConfigured
-        repeat: true
-        onTriggered: root.checkShutdownPrepare()
     }
 
     Timer {
@@ -550,59 +524,6 @@ PlasmoidItem {
 
     function sendNotification(summary, body) {
         Secret.notify(execSource, notifyScript, summary, body || "")
-    }
-
-    function checkShutdownPrepare() {
-        if (!isTracking || !isConfigured) {
-            return
-        }
-        if (shutdownDialogRef && shutdownDialogRef.visible) {
-            return
-        }
-        if (shutdownPrepareInFlight) {
-            return
-        }
-        shutdownPrepareInFlight = true
-        Secret.runInhibitPreparing(execSource, inhibitScript, function(preparing) {
-            shutdownPrepareInFlight = false
-            if (!preparing) {
-                allowShutdownDespiteTimer = false
-                return
-            }
-            if (allowShutdownDespiteTimer) {
-                return
-            }
-            root.promptShutdown()
-        })
-    }
-
-    function promptShutdown() {
-        if (allowShutdownDespiteTimer) {
-            return
-        }
-        if (shutdownDialogRef && shutdownDialogRef.visible) {
-            return
-        }
-        expanded = true
-        if (shutdownDialogRef) {
-            shutdownDialogRef.open()
-        }
-    }
-
-    function stopTimerForShutdown() {
-        if (shutdownDialogRef) {
-            shutdownDialogRef.close()
-        }
-        if (isTracking) {
-            stopTracking(false)
-        }
-    }
-
-    function shutDownAnyway() {
-        allowShutdownDespiteTimer = true
-        if (shutdownDialogRef) {
-            shutdownDialogRef.close()
-        }
     }
 
     function checkIdle() {
@@ -1186,8 +1107,6 @@ PlasmoidItem {
 
     function resetTrackingState() {
         isTracking = false
-        allowShutdownDespiteTimer = false
-        shutdownPrepareInFlight = false
         editingActiveEntry = false
         editingStoppedTimesheet = null
         currentTimesheetId = invalidTimesheetId
@@ -2680,56 +2599,6 @@ PlasmoidItem {
 
             onAccepted: root.confirmSplitStopped()
             onRejected: root.pendingSplitTimesheet = null
-        }
-
-        QQC2.Dialog {
-            id: shutdownDialog
-            parent: popupRoot
-            anchors.centerIn: parent
-            title: i18n("Timer still running")
-            modal: true
-            width: Math.min(Kirigami.Units.gridUnit * 22, popupRoot.width * 0.95)
-            standardButtons: QQC2.Dialog.NoButton
-            padding: Kirigami.Units.largeSpacing
-
-            Component.onCompleted: root.shutdownDialogRef = shutdownDialog
-            Component.onDestruction: {
-                if (root.shutdownDialogRef === shutdownDialog) {
-                    root.shutdownDialogRef = null
-                }
-            }
-
-            contentItem: ColumnLayout {
-                spacing: Kirigami.Units.smallSpacing
-                PlasmaComponents3.Label {
-                    Layout.fillWidth: true
-                    wrapMode: Text.WordWrap
-                    text: i18n("Stop the timer before shutdown, or shut down anyway and leave it running on the server.")
-                }
-                PlasmaComponents3.Label {
-                    Layout.fillWidth: true
-                    wrapMode: Text.WordWrap
-                    opacity: 0.85
-                    text: root.currentProject + " · " + root.currentActivity
-                }
-            }
-
-            footer: RowLayout {
-                Layout.fillWidth: true
-                spacing: Kirigami.Units.smallSpacing
-                PlasmaComponents3.Button {
-                    Layout.fillWidth: true
-                    text: i18n("Stop timer")
-                    Accessible.name: text
-                    onClicked: root.stopTimerForShutdown()
-                }
-                PlasmaComponents3.Button {
-                    Layout.fillWidth: true
-                    text: i18n("Shut down anyway")
-                    Accessible.name: text
-                    onClicked: root.shutDownAnyway()
-                }
-            }
         }
 
         QQC2.Dialog {
