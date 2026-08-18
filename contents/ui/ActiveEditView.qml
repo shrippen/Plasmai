@@ -31,13 +31,21 @@ ColumnLayout {
     property var pendingActivityId: null
     property bool suppressProjectSignal: false
 
+    property bool supportsBillableEdit: true
+    property bool supportsTags: true
+    property bool showCreateActions: false
+    property string tagLookupUrl: ""
+    property string tagLookupToken: ""
+
     readonly property alias projectCombo: pickers.projectCombo
     readonly property alias activityCombo: pickers.activityCombo
 
     signal aboutToOpenPicker(var projectField, var activityField)
     signal projectChosen(var projectId)
-    signal saveRequested(var projectId, var activityId, string beginText)
+    signal saveRequested(var projectId, var activityId, string beginText, bool billable, var tags)
     signal cancelled()
+    signal createProjectRequested()
+    signal createActivityRequested()
 
     function closePickers() {
         pickers.closePickers()
@@ -168,6 +176,7 @@ ColumnLayout {
             root.projectChosen(pid)
         }
         Qt.callLater(trySelectPendingActivity)
+        metaFields.loadFromTimesheet(sheet)
     }
 
     onTimesheetChanged: {
@@ -208,7 +217,7 @@ ColumnLayout {
         wrapMode: Text.WordWrap
         font.pointSize: Kirigami.Theme.smallFont.pointSize
         opacity: 0.8
-        text: i18n("Edit start time, project, and activity for the running entry.")
+        text: i18n("Edit start, project, activity, billable, and tags for the running entry.")
     }
 
     ProjectActivityPickers {
@@ -221,6 +230,7 @@ ColumnLayout {
         pickerViewport: root.pickerViewport
         projectEnabled: root.configured && !root.busy && root.connectionOk
         activityEnabled: root.configured && !root.busy && root.connectionOk
+        showCreateActions: root.showCreateActions
         onAboutToOpenPicker: function(projectField, activityField) {
             root.aboutToOpenPicker(projectField, activityField)
         }
@@ -232,6 +242,8 @@ ColumnLayout {
             }
             root.projectChosen(pickers.projectPickerModel[index].value.id)
         }
+        onCreateProjectRequested: root.createProjectRequested()
+        onCreateActivityRequested: root.createActivityRequested()
     }
 
     PlasmaComponents3.Label {
@@ -270,6 +282,17 @@ ColumnLayout {
               : i18n("Start must be a valid time not in the future.")
     }
 
+    TimesheetMetaFields {
+        id: metaFields
+        Layout.fillWidth: true
+        showBillable: root.supportsBillableEdit
+        showTags: root.supportsTags
+        tagLookupUrl: root.tagLookupUrl
+        tagLookupToken: root.tagLookupToken
+        pickerViewport: root.pickerViewport
+        enabled: root.configured && !root.busy
+    }
+
     RowLayout {
         Layout.fillWidth: true
         spacing: Kirigami.Units.smallSpacing
@@ -285,7 +308,8 @@ ColumnLayout {
             onClicked: {
                 var project = projectCombo.currentItem.value
                 var activity = activityCombo.currentItem.value
-                root.saveRequested(project.id, activity.id, root.stampText(beginDate, beginTime))
+                root.saveRequested(project.id, activity.id, root.stampText(beginDate, beginTime),
+                                   metaFields.billable, metaFields.tags)
             }
         }
 

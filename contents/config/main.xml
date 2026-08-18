@@ -26,10 +26,7 @@
             <max>25</max>
         </entry>
 
-        <!-- Global appearance -->
-        <entry name="useBlurBackground" type="Bool">
-            <default>false</default>
-        </entry>
+
         <!-- Kimai calendar.businessHours (not exposed via public API) -->
         <entry name="workDayBegin" type="String">
             <default>08:00</default>
@@ -128,6 +125,21 @@
         </entry>
         <entry name="notifyOnIdleStop" type="Bool">
             <default>true</default>
+        </entry>
+        <entry name="notifyForgotToStart" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="lastUsedProjectId" type="String">
+            <default></default>
+        </entry>
+        <entry name="lastUsedActivityId" type="String">
+            <default></default>
+        </entry>
+        <entry name="lastUsedProjectName" type="String">
+            <default></default>
+        </entry>
+        <entry name="lastUsedActivityName" type="String">
+            <default></default>
         </entry>
         <entry name="locationName" type="String">
             <default></default>

@@ -1,5 +1,32 @@
 # Changelog
 
+## 1.5.0
+
+### Timesheet
+- Tags on Add entry and Edit running (Kimai searchable picker with color pills and create-new; Toggl when the API allows names)
+- Billable on Add entry and Edit running (default on for new entries)
+- Edit, delete, and split stopped Recents from a permanent overflow menu
+- Create customer, project, or activity from the picker overflow
+- Week remaining subtracts approved absences and public holidays (`kimai-holiday-bundle`)
+- Editing a stopped Recent pre-fills project and activity
+
+### Profiles and settings
+- Connection Apply saves profile add/edit; duplicate names are rejected; profile numbers reuse after delete
+- Clear token is disabled when none is stored
+- Switching KCM tabs no longer resets Connection to the Default profile
+- Favorites shows a loading indicator and stays responsive; color pills match Maintenance via the catalog cache
+- Profile switcher stays on the main and statistics views, not on Add/Edit screens
+- Desktop widget uses the theme `StandardBackground` so KWin blur matches other widgets
+
+### Idle and reminders
+- Idle dialog: keep time, discard idle, or discard and continue
+- Wayland idle prefers session IdleHint / ScreenSaver over `xprintidle`
+- Optional forgot-to-start reminder during work hours (one per day)
+
+### Development
+- KCM tab-persistence and Favorites-loading viewer tests
+- Unit tests for timesheet fields, holiday week targets, and shared-config merge
+
 ## 1.4.2
 
 ### Settings
@@ -144,6 +171,5 @@ First stable release of **Plasmai** (`com.github.shrippen.plasmai`).
 - English and German translations
 
 ### Other
-- Optional desktop blur background
 - Notifications on start/stop/idle-stop
 - Idle auto-stop (`xprintidle`, X11/XWayland)

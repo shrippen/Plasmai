@@ -16,6 +16,8 @@ xgettext --from-code=UTF-8 -L JavaScript \
   contents/ui/ProjectActivityPickers.qml \
   contents/ui/SearchableCombo.qml \
   contents/ui/ActivityListRow.qml \
+  contents/ui/TagPicker.qml \
+  contents/ui/TimesheetMetaFields.qml \
   contents/ui/ManualEntryView.qml \
   contents/ui/ActiveEditView.qml \
   contents/ui/StatsView.qml \

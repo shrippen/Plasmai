@@ -25,13 +25,26 @@ ColumnLayout {
     property bool configured: true
     property bool connectionOk: true
 
+    property bool supportsBillableEdit: true
+    property bool supportsTags: true
+    property bool showCreateActions: false
+    property string tagLookupUrl: ""
+    property string tagLookupToken: ""
+    /** True when editing a stopped Recent entry (same form as Add entry). */
+    property bool editingExisting: false
+    property var pendingProjectId: null
+    property var pendingActivityId: null
+    property bool suppressProjectSignal: false
+
     readonly property alias projectCombo: pickers.projectCombo
     readonly property alias activityCombo: pickers.activityCombo
 
     signal aboutToOpenPicker(var projectField, var activityField)
     signal projectChosen(var projectId)
-    signal saveRequested(var projectId, var activityId, string beginText, string endText, string description)
+    signal saveRequested(var projectId, var activityId, string beginText, string endText, string description, bool billable, var tags)
     signal cancelled()
+    signal createProjectRequested()
+    signal createActivityRequested()
 
     function closePickers() {
         pickers.closePickers()
@@ -88,16 +101,147 @@ ColumnLayout {
         descriptionField.text = ""
         projectCombo.currentIndex = -1
         activityCombo.currentIndex = -1
+        pendingProjectId = null
+        pendingActivityId = null
+        metaFields.resetDefaults()
+    }
+
+    function hasId(value) {
+        return value !== null && value !== undefined && value !== ""
+    }
+
+    function parseStampDate(raw, fallback) {
+        if (raw) {
+            var d = new Date(String(raw))
+            if (isNaN(d.getTime())) {
+                d = new Date(String(raw).replace(" ", "T"))
+            }
+            if (!isNaN(d.getTime())) {
+                return d
+            }
+        }
+        return fallback || new Date()
+    }
+
+    function selectProjectId(projectId) {
+        if (!hasId(projectId)) {
+            projectCombo.currentIndex = -1
+            return false
+        }
+        for (var i = 0; i < projectCombo.items.length; i++) {
+            var item = projectCombo.items[i]
+            if (item && item.value && String(item.value.id) === String(projectId)) {
+                if (projectCombo.currentIndex === i) {
+                    projectCombo.currentIndex = -1
+                }
+                projectCombo.currentIndex = i
+                return true
+            }
+        }
+        projectCombo.currentIndex = -1
+        return false
+    }
+
+    function trySelectPendingActivity() {
+        if (!hasId(pendingActivityId)) {
+            return
+        }
+        for (var i = 0; i < activityCombo.items.length; i++) {
+            var item = activityCombo.items[i]
+            if (item && item.value && String(item.value.id) === String(pendingActivityId)) {
+                if (activityCombo.currentIndex === i) {
+                    activityCombo.currentIndex = -1
+                }
+                activityCombo.currentIndex = i
+                pendingActivityId = null
+                return
+            }
+        }
+    }
+
+    function trySelectPendingProject() {
+        if (!hasId(pendingProjectId)) {
+            return
+        }
+        if (!selectProjectId(pendingProjectId)) {
+            return
+        }
+        var pid = pendingProjectId
+        pendingProjectId = null
+        if (!suppressProjectSignal) {
+            root.projectChosen(pid)
+        }
+    }
+
+    function loadFromTimesheet(ts) {
+        if (!ts) {
+            return
+        }
+        var begin = parseStampDate(ts.begin, new Date(Date.now() - 60 * 60 * 1000))
+        var end = parseStampDate(ts.end, new Date())
+        beginDate.setDate(begin)
+        beginTime.setTime(begin.getHours(), begin.getMinutes())
+        endDate.setDate(end)
+        endTime.setTime(end.getHours(), end.getMinutes())
+        descriptionField.text = ts.description || ""
+
+        pendingActivityId = KimaiApi.activityId(ts)
+        pendingProjectId = KimaiApi.projectId(ts)
+        if (!hasId(pendingProjectId)) {
+            pendingProjectId = null
+        }
+        if (!hasId(pendingActivityId)) {
+            pendingActivityId = null
+        }
+
+        suppressProjectSignal = false
+        if (hasId(pendingProjectId) && selectProjectId(pendingProjectId)) {
+            var pid = pendingProjectId
+            pendingProjectId = null
+            root.projectChosen(pid)
+        }
+        Qt.callLater(trySelectPendingActivity)
+        metaFields.loadFromTimesheet(ts)
     }
 
     Component.onCompleted: resetDefaults()
+
+    onVisibleChanged: {
+        if (visible && editingExisting && hasId(pendingProjectId)) {
+            Qt.callLater(function() {
+                if (root.visible && root.editingExisting) {
+                    root.trySelectPendingProject()
+                    root.trySelectPendingActivity()
+                }
+            })
+        }
+    }
+
+    onProjectPickerModelChanged: {
+        if (!visible || !editingExisting) {
+            return
+        }
+        Qt.callLater(function() {
+            trySelectPendingProject()
+            trySelectPendingActivity()
+        })
+    }
+
+    onActivityPickerModelChanged: {
+        if (!visible || !editingExisting) {
+            return
+        }
+        Qt.callLater(trySelectPendingActivity)
+    }
 
     PlasmaComponents3.Label {
         Layout.fillWidth: true
         wrapMode: Text.WordWrap
         font.pointSize: Kirigami.Theme.smallFont.pointSize
         opacity: 0.8
-        text: i18n("Create a finished entry with project, activity, and time range.")
+        text: root.editingExisting
+              ? i18n("Change project, activity, range, billable, and tags for this finished entry.")
+              : i18n("Create a finished entry with project, activity, and time range.")
     }
 
     ProjectActivityPickers {
@@ -110,16 +254,20 @@ ColumnLayout {
         pickerViewport: root.pickerViewport
         projectEnabled: root.configured && !root.busy && root.connectionOk
         activityEnabled: root.configured && !root.busy && root.connectionOk
+        showCreateActions: root.showCreateActions
         onAboutToOpenPicker: function(projectField, activityField) {
             root.aboutToOpenPicker(projectField, activityField)
         }
         onProjectActivated: function(index) {
+            pendingProjectId = null
             if (index < 0 || index >= pickers.projectPickerModel.length) {
                 root.projectChosen(null)
                 return
             }
             root.projectChosen(pickers.projectPickerModel[index].value.id)
         }
+        onCreateProjectRequested: root.createProjectRequested()
+        onCreateActivityRequested: root.createActivityRequested()
     }
 
     PlasmaComponents3.Label {
@@ -196,6 +344,17 @@ ColumnLayout {
         placeholderText: i18n("Description (optional)")
     }
 
+    TimesheetMetaFields {
+        id: metaFields
+        Layout.fillWidth: true
+        showBillable: root.supportsBillableEdit
+        showTags: root.supportsTags
+        tagLookupUrl: root.tagLookupUrl
+        tagLookupToken: root.tagLookupToken
+        pickerViewport: root.pickerViewport
+        enabled: root.configured && !root.busy
+    }
+
     RowLayout {
         Layout.fillWidth: true
         spacing: Kirigami.Units.smallSpacing
@@ -206,7 +365,7 @@ ColumnLayout {
             enabled: root.configured && !root.busy && root.connectionOk
                      && projectCombo.currentIndex >= 0 && activityCombo.currentIndex >= 0
                      && root.rangeValid
-            text: i18n("Save entry")
+            text: root.editingExisting ? i18n("Save changes") : i18n("Save entry")
             icon.name: "document-save"
             onClicked: {
                 var project = projectCombo.currentItem.value
@@ -216,7 +375,9 @@ ColumnLayout {
                     activity.id,
                     root.stampText(beginDate, beginTime),
                     root.stampText(endDate, endTime),
-                    descriptionField.text)
+                    descriptionField.text,
+                    metaFields.billable,
+                    metaFields.tags)
             }
         }
 

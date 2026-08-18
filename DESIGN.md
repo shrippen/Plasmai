@@ -47,7 +47,23 @@ Stack: KDE Plasma 6, QML, JavaScript (`.pragma library`). No compiled binaries
   `contents/code/providers/*.js`.
 - Do not fork the UI per provider. Gate features with
   `TimeTracker.providerCapabilities(providerId)` (`statistics`,
-  `colorDistinction`, `billableFilter`, `workContract`).
+  `colorDistinction`, `billableFilter`, `billableEdit`, `tags`,
+  `workContract`, `holidayBundle`, `deleteEntry`, `editStopped`, `createEntities`).
+  Entry tags and billable use one `TimesheetMetaFields` block on Add
+  entry and Edit running; hide a field when the capability is false
+  (Clockify has no name-based tags yet). Kimai tags use a searchable
+  `TagPicker`: inline color pills (Kimai `color` / `color-safe`) inside
+  the Add-tags field, searchable popup sized to the result count, and
+  “Create tag …” when the search has no match.
+  New entries default **billable** to true because Kimai’s API treats
+  omitted booleans as false. Kimai writes (`POST`/`PATCH`) send tags as
+  a comma-separated **string**; a JSON array is rejected as Validation
+  Failed. Other providers keep tag arrays. Stopped Recents use the same
+  use the same Add-entry form for edit; delete
+  and split are overflow-menu actions gated by `deleteEntry` /
+  `editStopped`. Creating a customer, project, or activity is an
+  overflow on the pickers (`Create project` / `Create activity`), not a
+  settings tab.
 - Color distinction, customer colors, and Maintenance clash groups are
   **Kimai-only**. Other providers must not grow a parallel color UI.
 
@@ -67,7 +83,9 @@ Stack: KDE Plasma 6, QML, JavaScript (`.pragma library`). No compiled binaries
   distinction inputs actually change.
 - Shell helpers are small executable scripts next to the JS that invokes them
   (`kwallet.sh`, `idle.sh`, `notify.sh`, `sharedConfig.sh`, `catalogCache.sh`).
-  Keep them POSIX `sh`, quote arguments with `secret.js` `shQuote`.
+  Keep them POSIX `sh`, quote arguments with `secret.js` `shQuote`. Idle
+  prefers the session idle hint on Wayland (`loginctl` /
+  `org.freedesktop.ScreenSaver`) and `xprintidle` on X11.
 
 ### Configuration UI
 
@@ -79,15 +97,50 @@ Stack: KDE Plasma 6, QML, JavaScript (`.pragma library`). No compiled binaries
   labels above fields when the window is narrow (`formWide` pattern in
   Display).
 - Display binds each control with `property alias cfg_*` (Plasma’s documented
-  Apply path). Dummy `property var cfg_*` does not show up in
-  `hasOwnProperty`, so toggling never enables Apply. Use `onToggled` (not
-  `onCheckedChanged`) for user edits. Do **not** call
-  `applyToConfiguration(plasmoid.configuration, shared)` while the dialog is
-  open — that writes the live applet before Apply. Persist `shared.json` only
-  in `saveConfig()` (Apply/OK). Other tabs keep dummy `cfg_*` on `ConfigPage`
-  so Plasma’s key injection does not TypeError.
+  Apply path). Connection, Favorites, and Behavior sync `cfg_*` in
+  `saveConfig()` (Apply/OK) and persist the same patch to `shared.json`.
+  Dummy `property var cfg_*` on `ConfigPage` stops Plasma key injection
+  TypeErrors on tabs that do not alias every key. Use `onToggled` (not
+  `onCheckedChanged`) for Display checkboxes so Apply detects edits. Do **not**
+  call `applyToConfiguration(plasmoid.configuration, shared)` from Display
+  while the dialog is open — that writes the live applet before Apply. Load
+  `shared.json` on tab enter, then overlay onto controls; use
+  `SharedConfig.coerceInt()` for SpinBox values because KConfig may inject
+  strings. Block `notifyEdited` / `persistShared` while controls are being
+  populated (`suppressNotify`).
+- Plasma **replaces** the current settings page on each tab switch and
+  re-injects `cfg_*` from `main.xml` defaults. Apply can already have
+  written the real profiles to `shared.json` while Connection still
+  receives `cfg_activeProfileId: "default"` and an empty or
+  **default-only** `cfg_profilesJson`. Those placeholders are non-empty
+  strings, so a “prefer cfg if present” merge will hide `shared.json`.
+  `pageEntered` fires once; Connection must reload whenever the tab
+  becomes `visible`, run `resolveConnectionState` (shared over
+  placeholders) **before** `ensureSelection` / `syncProfiles`, and never
+  persist an empty `profilesJson` patch. Favorites, Display, Behavior,
+  and Maintenance persist on enter; Shortcuts and About do not — that is
+  why only the first group used to reset Connection to Default. Other
+  tabs persist **only their own keys**. `sanitizeProfilesForPersistence`
+  must restore `profilesJson` / `activeProfileId` when the shared base
+  has those keys missing **or** empty and the live configuration still
+  has profiles.
+- Favorites project rows need an accessible name so AT-SPI can select
+  them. Activity `CheckDelegate`s must handle `Accessible.onToggleAction`
+  (AT-SPI Toggle does not fire `onToggled`).
 - Tabs: Connection, Favorites, Display, Maintenance, Behavior — keep that
-  split. Do not dump tracking actions into Display.
+  split. Do not dump tracking actions into Display. Last-used
+  project/activity ids are shared.json keys, not Display checkboxes.
+  Forgot-to-start lives on Behavior. Favorites and Maintenance load
+  `shared.json` first, then the catalog cache, only when their tab is
+  visible — do not hit the API on every settings dialog open.
+  Favorites must show a running `BusyIndicator` **before** catalog I/O.
+  Parse `catalog-cache.json` off the UI thread (`WorkerScript`); never
+  `JSON.parse` a large catalog on the same frame as becoming visible.
+  Favorites color pills use the same `ColorDistinct` maps as Maintenance.
+  Hydrate them from the catalog-cache clash groups Maintenance already
+  stored — do not recompute hues on Favorites open. Rebuild only when
+  those groups are missing. Apply the maps after the project list paints
+  so the KCM stays switchable.
 
 ---
 
@@ -105,8 +158,9 @@ Stack: KDE Plasma 6, QML, JavaScript (`.pragma library`). No compiled binaries
   `list-add`, `view-statistics`, `document-edit`, `configure`, …). Tint with
   `Kirigami.Icon.color` / `icon.color` when status must read at a glance
   (tracking = positive; error = disconnect icon).
-- Optional translucent background (`useBlurBackground`) uses Plasma’s
-  `TranslucentBackground` so KWin blur applies. Do not fake blur in QML.
+- Desktop-widget blur is handled by the Plasma containment via
+  `StandardBackground` (the default). Do not set `TranslucentBackground` —
+  it bypasses the containment’s blur pipeline.
 
 ### Hierarchy and color bars
 
@@ -136,9 +190,11 @@ Stack: KDE Plasma 6, QML, JavaScript (`.pragma library`). No compiled binaries
   (sparkline sun spin and canvas repaints are gated on flyout open; sparkline
   `nowTick` is ~30s, not per-frame).
 - Success on the running-entry description: a **high-chroma** positive
-  checkmark, held fully opaque, then faded out. A theme-tinted symbolic icon
-  at default contrast is not enough — boost saturation and contrast against
-  the field. Transient hints (already-running row) stay short (~1.4s).
+  checkmark at the same `iconSizes.small` as the save glyph (not a larger
+  overlay), held fully opaque, then faded out. Paint the glyph (do not use
+  a themed `dialog-ok` icon — those ignore tint). The circle outline uses a
+  desaturated sibling of the same hue, not `positiveTextColor` (already loud).
+  Transient hints (already-running row) stay short (~1.4s).
 - Busy state: small `BusyIndicator` in the header, disable mutating actions
   (`isBusy`, connection error). `LoadingRow` placeholders only while a list
   is empty and loading — do not flash them over existing data.
@@ -170,8 +226,14 @@ Stack: KDE Plasma 6, QML, JavaScript (`.pragma library`). No compiled binaries
   independent panel flags, off by default. They appear only while tracking.
 - Favorite/recent rows: `Accessible.role: ListItem`, description makes clear
   that activating **starts or switches** tracking (tests also use this to
-  avoid live API clicks).
+  avoid live API clicks). Stopped Recent rows show a permanent **Entry
+  actions** overflow icon (`view-more`); edit, delete, and split live in
+  that menu when the provider allows. Those exact names let tests skip
+  history mutations without blocking Add entry. Create overflow and idle
+  dialog actions (`Create project`, `Keep time`, `Discard idle`, …) are
+  also skipped — they mutate the tracker.
 - Icon-only buttons keep a `text` and `ToolTip`.
+- Panel click expands/collapses the flyout only (see Interaction principles).
 
 ---
 
@@ -184,16 +246,37 @@ Stack: KDE Plasma 6, QML, JavaScript (`.pragma library`). No compiled binaries
   activity via Recent shows the switch dialog (current vs target cards), not
   a silent stop+start.
 - **Continue** is “last recent”, not a generic Start. Favorites and Recent
-  are one-tap presets.
+  are one-tap presets. If Recents are empty, **Start · last used** uses the
+  last started project/activity pair from shared.json. Recent **row click**
+  still starts or switches; it does not open an editor. A stopped Recent row
+  shows a permanent overflow icon when edit/delete/split is available; edit,
+  delete, and split are menu items (never on Favorites). Delete always confirms.
+  Split asks for a time strictly between begin and end, then patches the
+  original `end` and creates the second half with the same project, activity,
+  tags, and billable. The running timesheet is edited in-place
+  (`ActiveEditView`), not from Recent. Create-project picks the customer with
+  the same customer color pills as project pickers (`ColorLabelRow`).
+- **Idle:** when idle stop is enabled and the session is idle past the
+  threshold, ask Keep / Discard idle / Discard and continue. Do not silently
+  stop if the dialog can open. Expand the flyout so the dialog is visible.
+  Idle checks must not run while `plasmoid.userConfiguring`.
+- **Forgot-to-start** is one notification per local day during configured
+  work hours, opt-in on Behavior. The notification daemon handles Do Not
+  Disturb.
 - **Edit** (running entry) is in-place (`ActiveEditView`), not a settings
-  page. Manual **Add entry** is a separate `mainViewMode`.
+  page. It can also set billable and tags when the provider allows.
+  Manual **Add entry** is a separate `mainViewMode` and uses the same
+  `TimesheetMetaFields` extras. Editing a stopped Recent reuses that
+  form (`editingStoppedTimesheet`); Save patches instead of creating.
 - **Configure** is the only path to tokens, profiles, and display flags.
   Placeholder “Connect a time tracker” when unconfigured; don’t hide the
   widget.
 - Right-click anywhere on the full UI opens the standard applet menu
   (a capturing `MouseArea` is required because labels steal RMB).
 - Do not click-test live Start/Stop/Continue/favorite/recent in default CI
-  (`tests/README.md`). Those mutate the user’s tracker.
+  (`tests/README.md`). Those mutate the user’s tracker. Also skip Recent
+  overflow, Create project/activity/customer, and idle Keep/Discard even
+  with `PLASMAI_TEST_LIVE`.
 
 ---
 
@@ -206,8 +289,14 @@ Stack: KDE Plasma 6, QML, JavaScript (`.pragma library`). No compiled binaries
   `plasmoid.userConfiguring` (config dialog open) — that fights the editor
   and rewrites shared.json.
 - Polling: `refreshInterval` (seconds), idle check once a minute when
-  enabled. No busy-loops, no per-keystroke API calls (description save is
-  explicit: Enter or the save button).
+  enabled, forgot-to-start every five minutes when enabled. No busy-loops,
+  no per-keystroke API calls (description save is explicit: Enter or the
+  save button).
+- Kimai **week remaining** (`remainingWeekSeconds`) subtracts tracked time
+  from an effective week target: contracted hours minus approved vacation /
+  sickness / other absences and public holidays for the current Mon–Sun
+  (`kimai-holiday-bundle`, capability `holidayBundle`). Fall back to the
+  plain contract total when the bundle is unavailable.
 - Failures set `connectionState` / `errorMessage` and offer Retry +
   Configure. Do not toast every poll failure.
 
@@ -221,7 +310,11 @@ Stack: KDE Plasma 6, QML, JavaScript (`.pragma library`). No compiled binaries
   or journal lines that mention Plasmai. Ignore Plasma desktop / containment
   / digitalclock / Shortcuts `cfg_*` noise. Display Apply is covered by
   `tests/viewer/test_display_options.py` (isolated `XDG_*`, no user
-  `shared.json`).
+  `shared.json`). Connection tab re-entry (profiles survive
+  Favorites/Display/Behavior) is covered by
+  `tests/viewer/test_kcm_tab_persistence.py`. Favorites loading indicator
+  and KCM responsiveness are covered by
+  `tests/viewer/test_favorites_loading.py`.
 - Dev install: `./scripts/install-dev.sh` (build number bump, `kpackagetool6
   -u`, plasmashell restart). Store packages keep `Build: 0`.
 - Release: `./scripts/package.sh`, version in `metadata.json` + changelog

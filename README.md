@@ -16,10 +16,13 @@ A KDE Plasma 6 panel widget for time tracking — Kimai, Clockify, Toggl Track, 
 - Edit the running entry’s start time, project, and activity
 - Manual time entries (+) and a secondary statistics view with charts
 - Recent activities and pinned favorites (customer colors)
+- Tags and billable on new and running entries (Kimai/Toggl tags; all providers for billable)
+- Edit, delete, and split stopped Recents from the overflow menu
+- Create customer, project, or activity from the pickers
 - Multiple profiles per service; API tokens stored in KWallet
 - Backends: **Kimai**, **Clockify**, **Toggl Track**, **SolidTime**
 - Searchable project/activity pickers
-- Today/week work summary (Kimai work contract when available)
+- Today/week work summary (Kimai work contract; remaining hours skip vacation/holidays when the holiday bundle is installed)
 - Day sparkline: zoomed work-hours bar, sun/moon/work arcs, overtime segments, hour ticks
 - Optional color distinction when customer/project colors clash
 - Shared settings across all widget instances
@@ -31,7 +34,7 @@ A KDE Plasma 6 panel widget for time tracking — Kimai, Clockify, Toggl Track, 
 - KDE Plasma 6
 - `secret-tool` (libsecret / libsecret-tools)
 - `notify-send` (libnotify) for desktop notifications
-- `xprintidle` for idle auto-stop (X11/XWayland; optional)
+- `xprintidle` (X11) or `loginctl` / ScreenSaver (Wayland) for idle detection; optional
 - A supported time tracker with API access
 
 ## Installation (from source)
@@ -54,7 +57,7 @@ kpackagetool6 -u . -t Plasma/Applet
 Install a release package (`.plasmoid`):
 
 ```bash
-kpackagetool6 -i Plasmai-1.4.2.plasmoid -t Plasma/Applet
+kpackagetool6 -i Plasmai-1.5.0.plasmoid -t Plasma/Applet
 ```
 
 ## Setup
@@ -98,7 +101,8 @@ Compiled catalogs ship in `contents/locale/<lang>/LC_MESSAGES/plasma_applet_com.
 
 ## Development
 
-Design decisions and UI principles: [DESIGN.md](DESIGN.md).
+Design decisions and UI principles: [DESIGN.md](DESIGN.md).  
+Product direction: [ROADMAP.md](ROADMAP.md).
 
 ```bash
 plasmoidviewer -a com.github.shrippen.plasmai -l topedge -f horizontal

@@ -17,8 +17,6 @@ ConfigPageBase {
     property var cfg_refreshIntervalDefault
     property var cfg_recentCount
     property var cfg_recentCountDefault
-    property var cfg_useBlurBackground
-    property var cfg_useBlurBackgroundDefault
     property var cfg_workDayBegin
     property var cfg_workDayBeginDefault
     property var cfg_workDayEnd
@@ -77,6 +75,16 @@ ConfigPageBase {
     property var cfg_notifyOnStopDefault
     property var cfg_notifyOnIdleStop
     property var cfg_notifyOnIdleStopDefault
+    property var cfg_notifyForgotToStart
+    property var cfg_notifyForgotToStartDefault
+    property var cfg_lastUsedProjectId
+    property var cfg_lastUsedProjectIdDefault
+    property var cfg_lastUsedActivityId
+    property var cfg_lastUsedActivityIdDefault
+    property var cfg_lastUsedProjectName
+    property var cfg_lastUsedProjectNameDefault
+    property var cfg_lastUsedActivityName
+    property var cfg_lastUsedActivityNameDefault
     property var cfg_locationName
     property var cfg_locationNameDefault
     property var cfg_colorDistinctionEnabled

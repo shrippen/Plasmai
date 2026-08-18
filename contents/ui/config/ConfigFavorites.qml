@@ -40,6 +40,10 @@ ConfigPage {
     property var activityRowModel: []
     property string projectsStatus: ""
     property string activitiesStatus: ""
+    // Keep the loading indicator independent from the exact ellipsis character used
+    // in translated status strings (e.g. "…"/"..."/"… ").
+    property bool loadingProjects: false
+    property bool loadingActivities: false
 
     P5Support.DataSource {
         id: execSource
@@ -52,14 +56,105 @@ ConfigPage {
 
     Component.onDestruction: Secret.cancelAll(execSource)
 
-    onPageEntered: {
-        if (page.cfg_pinnedActivities) {
+    property bool loadScheduled: false
+    property var pendingCatalogPayload: null
+    property bool sharedLoadDone: false
+    property bool catalogLoadDone: false
+
+    WorkerScript {
+        id: catalogParseWorker
+        source: Qt.resolvedUrl("catalogParseWorker.js")
+        onMessage: function(msg) {
+            page.pendingCatalogPayload = msg.payload
+            page.catalogLoadDone = true
+            page.tryFinishCatalogLoad()
+        }
+    }
+
+    Timer {
+        id: contentLoadTimer
+        interval: 16
+        repeat: false
+        onTriggered: {
+            page.loadScheduled = false
+            page.loadPageContent()
+        }
+    }
+
+    function beginLoadingUi() {
+        page.loadingProjects = true
+        page.projectsStatus = i18n("Loading projects…")
+    }
+
+    function scheduleContentLoad() {
+        page.beginLoadingUi()
+        if (loadScheduled) {
+            return
+        }
+        loadScheduled = true
+        // Let the BusyIndicator paint before shell I/O / JSON work.
+        contentLoadTimer.restart()
+    }
+
+    function tryFinishCatalogLoad() {
+        if (!page.sharedLoadDone || !page.catalogLoadDone) {
+            return
+        }
+        if (page.applyPayloadIfUsable(page.pendingCatalogPayload)) {
+            return
+        }
+        if (!page.activeProfile || !page.activeProfile.url) {
+            page.projectsStatus = i18n("Configure a Kimai URL on the Connection tab first.")
+            page.loadingProjects = false
+            return
+        }
+        page.fetchProjectsFromApi(false)
+    }
+
+    function loadPageContent() {
+        if (!page.visible) {
+            return
+        }
+        if (page.cfg_pinnedActivities && !pinnedField.text) {
             pinnedField.text = page.cfg_pinnedActivities
         }
-        // Catalog first — do not share the executable DataSource with shared.json
-        // or the cache read is dropped and this page falls back to a full API load.
-        page.loadProjects(false)
+        page.sharedLoadDone = false
+        page.catalogLoadDone = false
+        page.pendingCatalogPayload = null
+        page.beginLoadingUi()
+
+        Secret.loadSharedConfig(execSource, page.sharedConfigScript, function(shared) {
+            if (shared) {
+                SharedConfig.applyToConfiguration(plasmoid.configuration, shared)
+                if (typeof shared.pinnedActivities === "string") {
+                    pinnedField.text = shared.pinnedActivities
+                    page.syncPinnedToCfg()
+                }
+            }
+            page.sharedLoadDone = true
+            page.tryFinishCatalogLoad()
+        })
+
+        var profileId = page.activeProfile ? page.activeProfile.id : "default"
+        if (CatalogCache.hasCatalog(profileId)) {
+            page.pendingCatalogPayload = CatalogCache.load()
+            page.catalogLoadDone = true
+            page.tryFinishCatalogLoad()
+        } else {
+            Secret.loadCatalogCacheText(execSource, page.catalogCacheScript, function(text, err) {
+                if (err || !text) {
+                    page.pendingCatalogPayload = null
+                    page.catalogLoadDone = true
+                    page.tryFinishCatalogLoad()
+                    return
+                }
+                catalogParseWorker.sendMessage({ text: text })
+            })
+        }
     }
+
+    onVisibleChanged: if (visible) scheduleContentLoad()
+    onPageEntered: scheduleContentLoad()
 
     function loadSharedPinned() {
         Secret.loadSharedConfig(execSource, page.sharedConfigScript, function(shared) {
@@ -67,6 +162,7 @@ ConfigPage {
                 SharedConfig.applyToConfiguration(plasmoid.configuration, shared)
                 if (typeof shared.pinnedActivities === "string") {
                     pinnedField.text = shared.pinnedActivities
+                    page.syncPinnedToCfg()
                 }
             }
         })
@@ -76,6 +172,21 @@ ConfigPage {
         Secret.persistSharedPatch(execSource, page.sharedConfigScript, plasmoid.configuration, {
             pinnedActivities: pinnedField.text
         })
+    }
+
+    function persistFavoritesConfig() {
+        syncPinnedToCfg()
+        page.persistShared()
+        unsavedChanges = false
+    }
+
+    property var saveConfig: persistFavoritesConfig
+
+    Timer {
+        id: colorRebuildTimer
+        interval: 32
+        repeat: false
+        onTriggered: page.applySharedColors()
     }
 
     function themePaletteFromSettingsKey(settingsKey) {
@@ -109,13 +220,31 @@ ConfigPage {
         )
     }
 
-    function applyCatalogEntities(customers, projects, activities, deferColors) {
+    function applySharedColors() {
+        page.applyColorOptions()
+        var cached = CatalogCache.load()
+        var hasGroups = (cached.customerGroups && cached.customerGroups.length)
+            || (cached.projectGroups && cached.projectGroups.length)
+            || (cached.activityGroups && cached.activityGroups.length)
+        if (hasGroups) {
+            ColorDistinct.hydrateMapsFromGroups(
+                page.customers, page.availableProjects, page.allActivities,
+                cached.customerGroups, cached.projectGroups, cached.activityGroups)
+        } else {
+            ColorDistinct.rebuild(page.customers, page.availableProjects, page.allActivities, false)
+        }
+        page.projectRows = KimaiApi.projectsGroupedByCustomer(page.availableProjects, page.customers)
+    }
+
+    function applyCatalogEntities(customers, projects, activities) {
         page.customers = customers || []
         page.availableProjects = projects || []
         page.allActivities = activities || []
         // Paint the list immediately — ColorDistinct.rebuild can wait a tick.
         page.projectRows = KimaiApi.projectsGroupedByCustomer(page.availableProjects, page.customers)
         page.projectsStatus = i18n("Loaded %1 projects.", page.availableProjects.length)
+        page.loadingProjects = false
+        page.loadingActivities = false
         if (page.selectedProject) {
             var keepId = page.selectedProject.id
             var stillThere = null
@@ -136,16 +265,8 @@ ConfigPage {
             page.activityRowModel = []
             page.activitiesStatus = i18n("Select a project to pin activities.")
         }
-        function applyColors() {
-            page.applyColorOptions()
-            ColorDistinct.rebuild(page.customers, page.availableProjects, page.allActivities, false)
-            page.projectRows = KimaiApi.projectsGroupedByCustomer(page.availableProjects, page.customers)
-        }
-        if (deferColors) {
-            Qt.callLater(applyColors)
-        } else {
-            applyColors()
-        }
+        // Same display colors as Maintenance, from the catalog cache groups.
+        colorRebuildTimer.restart()
     }
 
     function applyPayloadIfUsable(payload) {
@@ -153,7 +274,7 @@ ConfigPage {
             return false
         }
         CatalogCache.hydrate(payload)
-        page.applyCatalogEntities(payload.customers, payload.projects, payload.activities, true)
+        page.applyCatalogEntities(payload.customers, payload.projects, payload.activities)
         return true
     }
 
@@ -170,6 +291,7 @@ ConfigPage {
                 if (!fromCache) {
                     projectsStatus = i18n("Configure a Kimai URL on the Connection tab first.")
                 }
+                page.loadingProjects = false
                 return
             }
             page.fetchProjectsFromApi(fromCache)
@@ -185,6 +307,7 @@ ConfigPage {
 
         if (!forceRefresh) {
             projectsStatus = i18n("Loading projects…")
+            page.loadingProjects = true
         }
 
         // Disk cache via shell (Qt blocks XMLHttpRequest on file://).
@@ -196,12 +319,14 @@ ConfigPage {
     function fetchProjectsFromApi(hadCache) {
         if (!hadCache) {
             projectsStatus = i18n("Loading projects…")
+            page.loadingProjects = true
         }
         Secret.load(execSource, page.kwalletScript, page.activeProfile.id, function(token, err) {
             if (err || !token) {
                 if (!hadCache) {
                     projectsStatus = i18n("Save an API token on the Connection tab first.")
                 }
+                page.loadingProjects = false
                 return
             }
             TimeTracker.applySession(page.activeProfile.provider || "kimai", page.activeProfile)
@@ -213,13 +338,14 @@ ConfigPage {
                         if (!hadCache) {
                             projectsStatus = i18n("Failed to load projects.")
                         }
+                        page.loadingProjects = false
                         return
                     }
                     var projects = result.data || []
                     // Show the project list as soon as it arrives (flyout already has this).
-                    page.applyCatalogEntities(customers, projects, page.allActivities, true)
+                    page.applyCatalogEntities(customers, projects, page.allActivities)
                     function persist(activities) {
-                        page.applyCatalogEntities(customers, projects, activities, true)
+                        page.applyCatalogEntities(customers, projects, activities)
                         var prev = CatalogCache.load()
                         CatalogCache.store(page.activeProfile.id, {
                             customers: customers,
@@ -239,6 +365,11 @@ ConfigPage {
                         Secret.saveCatalogCache(execSource, page.catalogCacheScript, CatalogCache.exportPayload())
                     }
                     if (typeof page.tracker.loadAllActivities === "function") {
+                        // Prominent indicator in the empty activities pane:
+                        // loadAllActivities fills page.allActivities for later "pinning",
+                        // but we still need an explicit loading flag + status.
+                        page.loadingActivities = true
+                        page.activitiesStatus = i18n("Loading activities…")
                         page.tracker.loadAllActivities(url, token, function(actResult) {
                             persist(actResult.ok ? (actResult.data || []) : [])
                         })
@@ -254,6 +385,7 @@ ConfigPage {
         if (!project) {
             return
         }
+        page.loadingActivities = false
         selectedProject = project
         var cachedForProject = page.projectActivities[project.id]
             || page.projectActivities[String(project.id)]
@@ -273,10 +405,12 @@ ConfigPage {
     }
 
     function fetchActivitiesForProject(project) {
+        page.loadingActivities = true
         activitiesStatus = i18n("Loading activities…")
         Secret.load(execSource, page.kwalletScript, page.activeProfile.id, function(token) {
             if (!token) {
                 activitiesStatus = i18n("No API token available.")
+                page.loadingActivities = false
                 return
             }
             TimeTracker.applySession(page.activeProfile.provider || "kimai", page.activeProfile)
@@ -295,17 +429,33 @@ ConfigPage {
                     var split = KimaiApi.splitActivitiesForProject(result.data || [], project.id)
                     activitiesStatus = i18n("%1 project-specific, %2 global",
                                            split.projectSpecific.length, split.global.length)
+                    page.loadingActivities = false
                 } else {
                     activitiesStatus = i18n("Failed to load activities.")
+                    page.loadingActivities = false
                 }
             })
         })
     }
 
-    function toggleActivity(projectId, activityId) {
-        pinnedField.text = Favorites.togglePinned(pinnedField.text, projectId, activityId)
-        persistShared()
+    function syncPinnedToCfg() {
+        page.cfg_pinnedActivities = pinnedField.text
     }
+
+    function toggleActivity(projectId, activityId) {
+        var key = String(projectId) + ":" + String(activityId)
+        var stamp = Date.now()
+        if (page.lastToggleStamp[key] && stamp - page.lastToggleStamp[key] < 400) {
+            return
+        }
+        page.lastToggleStamp[key] = stamp
+        pinnedField.text = Favorites.togglePinned(pinnedField.text, projectId, activityId)
+        syncPinnedToCfg()
+        unsavedChanges = true
+        configurationChanged()
+    }
+
+    property var lastToggleStamp: ({})
 
     function isSelected(projectId, activityId) {
         return Favorites.isPinned(pinnedField.text, projectId, activityId)
@@ -370,22 +520,43 @@ ConfigPage {
                 PlasmaComponents3.Button {
                     text: i18n("Reload")
                     icon.name: "view-refresh"
-                    onClicked: page.loadProjects(true)
+                    onClicked: {
+                        page.beginLoadingUi()
+                        page.loadProjects(true)
+                    }
                 }
             }
 
-            PlasmaComponents3.Label {
+            RowLayout {
                 Layout.fillWidth: true
-                wrapMode: Text.WordWrap
-                font.pointSize: Kirigami.Theme.smallFont.pointSize
-                opacity: 0.75
-                text: page.projectsStatus
+                spacing: Kirigami.Units.smallSpacing
+
+                PlasmaComponents3.BusyIndicator {
+                    visible: page.loadingProjects
+                    running: page.loadingProjects
+                    Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                    Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                    Accessible.name: i18n("Loading projects")
+                    Accessible.role: Accessible.Animation
+                }
+
+                PlasmaComponents3.Label {
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    opacity: 0.75
+                    text: page.projectsStatus
+                }
             }
 
-            QQC2.ScrollView {
+            Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                clip: true
+
+                QQC2.ScrollView {
+                    anchors.fill: parent
+                    clip: true
+                    visible: page.projectRows.length > 0 || !page.loadingProjects
 
                 ListView {
                     id: projectsList
@@ -421,6 +592,10 @@ ConfigPage {
                         highlighted: page.selectedProject && page.selectedProject.id === modelData.project.id
                         onClicked: page.loadActivitiesForProject(modelData.project)
 
+                        Accessible.name: modelData.project.name
+                        Accessible.role: Accessible.ListItem
+                        Accessible.onPressAction: page.loadActivitiesForProject(modelData.project)
+
                         contentItem: ColorLabelRow {
                             width: parent ? parent.width : implicitWidth
                             customerRole: false
@@ -431,6 +606,17 @@ ConfigPage {
                             labelBold: false
                         }
                     }
+                }
+                }
+
+                PlasmaComponents3.BusyIndicator {
+                    anchors.centerIn: parent
+                    visible: page.loadingProjects && page.projectRows.length === 0
+                    running: visible
+                    implicitWidth: Kirigami.Units.gridUnit * 2
+                    implicitHeight: Kirigami.Units.gridUnit * 2
+                    Accessible.name: i18n("Loading projects")
+                    Accessible.role: Accessible.Animation
                 }
             }
         }
@@ -452,12 +638,24 @@ ConfigPage {
                 font.bold: true
             }
 
-            PlasmaComponents3.Label {
+            RowLayout {
                 Layout.fillWidth: true
-                wrapMode: Text.WordWrap
-                font.pointSize: Kirigami.Theme.smallFont.pointSize
-                opacity: 0.75
-                text: page.activitiesStatus
+                spacing: Kirigami.Units.smallSpacing
+
+                PlasmaComponents3.BusyIndicator {
+                    visible: page.loadingActivities
+                    running: page.loadingActivities
+                    Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                    Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                }
+
+                PlasmaComponents3.Label {
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    opacity: 0.75
+                    text: page.activitiesStatus
+                }
             }
 
             QQC2.ScrollView {
@@ -484,11 +682,14 @@ ConfigPage {
                         checked: page.selectedProject
                                    ? page.isSelected(page.selectedProject.id, modelData.activity.id)
                                    : false
-                        onToggled: {
+                        function activateToggle() {
                             if (page.selectedProject) {
                                 page.toggleActivity(page.selectedProject.id, modelData.activity.id)
                             }
                         }
+                        onToggled: activateToggle()
+                        Accessible.onPressAction: activateToggle()
+                        Accessible.onToggleAction: activateToggle()
                     }
                 }
             }
@@ -497,7 +698,6 @@ ConfigPage {
         QQC2.TextField {
             id: pinnedField
             visible: false
-            onTextChanged: page.cfg_pinnedActivities = text
         }
     }
 }

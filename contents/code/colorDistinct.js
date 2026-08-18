@@ -612,6 +612,48 @@ function adjust(category, id, hex) {
     return c
 }
 
+/**
+ * Restore ColorDistinct maps from Maintenance catalog-cache groups.
+ * Unlisted entities keep their Kimai hex (same as rebuild for non-clashing colors).
+ * Does not recompute hues — that work already happened when groups were stored.
+ */
+function hydrateMapsFromGroups(customers, projects, activities, customerGroups, projectGroups, activityGroups) {
+    function fill(entities, groups) {
+        var map = {}
+        var orig = {}
+        var i
+        for (i = 0; i < (entities || []).length; i++) {
+            var e = entities[i]
+            if (!e || e.id === null || e.id === undefined) {
+                continue
+            }
+            var id = String(e.id)
+            var hex = normalizeHex(e.color || DEFAULT_COLOR)
+            orig[id] = hex
+            map[id] = hex
+        }
+        for (i = 0; i < (groups || []).length; i++) {
+            var entries = (groups[i] && groups[i].entries) || []
+            for (var j = 0; j < entries.length; j++) {
+                var row = entries[j]
+                if (!row || row.id === null || row.id === undefined || !row.display) {
+                    continue
+                }
+                map[String(row.id)] = normalizeHex(row.display)
+            }
+        }
+        return { map: map, orig: orig }
+    }
+
+    var c = fill(customers, customerGroups)
+    var p = fill(projects, projectGroups)
+    var a = fill(activities, activityGroups)
+    _maps = { customer: c.map, project: p.map, activity: a.map }
+    _originals = { customer: c.orig, project: p.orig, activity: a.orig }
+    _cacheKey = ""
+    return true
+}
+
 function originalOf(category, id) {
     var map = _originals[category]
     if (map && map[String(id)]) {

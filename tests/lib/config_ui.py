@@ -6,6 +6,13 @@ from __future__ import annotations
 APPLY = ["Apply", "Anwenden"]
 OK = ["OK"]
 DISPLAY_TAB = ["Display", "Anzeige"]
+FAVORITES_TAB = ["Favorites", "Favoriten"]
+CONNECTION_TAB = ["Connection", "Verbindung"]
+LOADING_PROJECTS = [
+    "Loading projects",
+    "Loading projects…",
+    "Projekte werden geladen…",
+]
 CONFIGURE = [
     "Configure Plasmai",
     "Plasmai einrichten",
@@ -47,3 +54,8 @@ DISPLAY_OPTIONS: dict[str, list[str]] = {
         "Neue-Tätigkeit-Auswahl",
     ],
 }
+
+# Manual entry / running-edit extras (EN + DE).
+BILLABLE = ["Billable", "Abrechenbar"]
+TAGS = ["Add tags…", "Add tag…", "Tags", "Tags (comma-separated)", "Tags (kommagetrennt)"]
+ADD_ENTRY = ["Add entry", "Eintrag hinzufügen"]

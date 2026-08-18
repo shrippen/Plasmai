@@ -322,6 +322,19 @@ msgstr "Neue Tätigkeit"
 msgid "Description (optional)"
 msgstr "Beschreibung (optional)"
 
+#: contents/ui/TimesheetMetaFields.qml
+#: contents/ui/StatsView.qml:44
+msgid "Billable"
+msgstr "Abrechenbar"
+
+#: contents/ui/TimesheetMetaFields.qml
+msgid "Tags (comma-separated)"
+msgstr "Tags (kommagetrennt)"
+
+#: contents/ui/TimesheetMetaFields.qml
+msgid "Tags"
+msgstr "Tags"
+
 #: contents/ui/main.qml:2790 contents/ui/ActiveEditView.qml:237
 msgid "Start"
 msgstr "Start"
@@ -402,9 +415,193 @@ msgstr "Dauer: —"
 msgid "Duration: invalid range"
 msgstr "Dauer: ungültiger Zeitraum"
 
-#: contents/ui/ManualEntryView.qml:205
+#: contents/ui/ManualEntryView.qml
 msgid "Save entry"
 msgstr "Eintrag speichern"
+
+#: contents/ui/ManualEntryView.qml
+msgid "Save changes"
+msgstr "Änderungen speichern"
+
+#: contents/ui/ManualEntryView.qml
+msgid "Change project, activity, range, billable, and tags for this finished entry."
+msgstr "Projekt, Tätigkeit, Zeitraum, Abrechenbarkeit und Tags für diesen abgeschlossenen Eintrag ändern."
+
+#: contents/ui/ActivityListRow.qml
+msgid "Entry actions"
+msgstr "Eintragsaktionen"
+
+#: contents/ui/ActivityListRow.qml contents/ui/main.qml
+msgid "Edit entry"
+msgstr "Eintrag bearbeiten"
+
+#: contents/ui/ActivityListRow.qml contents/ui/main.qml
+msgid "Split entry"
+msgstr "Eintrag teilen"
+
+#: contents/ui/ActivityListRow.qml
+msgid "Delete entry"
+msgstr "Eintrag löschen"
+
+#: contents/ui/main.qml
+msgid "Delete entry?"
+msgstr "Eintrag löschen?"
+
+#: contents/ui/main.qml
+msgid "Delete this finished entry? This cannot be undone."
+msgstr "Diesen abgeschlossenen Eintrag löschen? Das kann nicht rückgängig gemacht werden."
+
+#: contents/ui/main.qml
+msgid "Delete \"%1 · %2\"? This cannot be undone."
+msgstr "\"%1 · %2\" löschen? Das kann nicht rückgängig gemacht werden."
+
+#: contents/ui/main.qml
+msgid "The first half keeps the original start. The second half starts at the split time."
+msgstr "Die erste Hälfte behält den ursprünglichen Start. Die zweite Hälfte beginnt zur Teilungszeit."
+
+#: contents/ui/main.qml
+msgid "Split at"
+msgstr "Teilen bei"
+
+#: contents/ui/main.qml
+msgid "Both halves will have a positive duration."
+msgstr "Beide Hälften haben eine positive Dauer."
+
+#: contents/ui/main.qml
+msgid "Split time must be between begin and end."
+msgstr "Die Teilungszeit muss zwischen Beginn und Ende liegen."
+
+#: contents/ui/main.qml
+msgid "Entry updated"
+msgstr "Eintrag aktualisiert"
+
+#: contents/ui/main.qml
+msgid "Timesheet updated"
+msgstr "Zeiteintrag aktualisiert"
+
+#: contents/ui/main.qml
+msgid "Entry deleted"
+msgstr "Eintrag gelöscht"
+
+#: contents/ui/main.qml
+msgid "Entry split"
+msgstr "Eintrag geteilt"
+
+#: contents/ui/main.qml
+msgid "This provider cannot update stopped entries."
+msgstr "Dieser Dienst kann abgeschlossene Einträge nicht aktualisieren."
+
+#: contents/ui/main.qml
+msgid "This provider cannot delete entries."
+msgstr "Dieser Dienst kann Einträge nicht löschen."
+
+#: contents/ui/main.qml
+msgid "This provider cannot split entries."
+msgstr "Dieser Dienst kann Einträge nicht teilen."
+
+#: contents/ui/main.qml
+msgid "The first half was saved, but the second half could not be created."
+msgstr "Die erste Hälfte wurde gespeichert, die zweite Hälfte konnte aber nicht erstellt werden."
+
+#: contents/ui/CreateEntityDialog.qml
+msgid "Create customer"
+msgstr "Kunde anlegen"
+
+#: contents/ui/CreateEntityDialog.qml contents/ui/ProjectActivityPickers.qml
+msgid "Create project"
+msgstr "Projekt anlegen"
+
+#: contents/ui/ProjectActivityPickers.qml
+msgid "Create activity"
+msgstr "Tätigkeit anlegen"
+
+#: contents/ui/CreateEntityDialog.qml
+msgid "Name"
+msgstr "Name"
+
+#: contents/ui/CreateEntityDialog.qml
+msgid "Customer"
+msgstr "Kunde"
+
+#: contents/ui/CreateEntityDialog.qml
+msgid "Activity will be added to %1."
+msgstr "Die Tätigkeit wird zu %1 hinzugefügt."
+
+#: contents/ui/main.qml
+msgid "You were idle"
+msgstr "Du warst im Leerlauf"
+
+#: contents/ui/main.qml
+msgid "Keep the time, discard the idle gap, or discard and continue the same activity."
+msgstr "Zeit behalten, die Leerlauf-Lücke verwerfen, oder verwerfen und dieselbe Tätigkeit fortsetzen."
+
+#: contents/ui/main.qml
+msgid "Keep time"
+msgstr "Zeit behalten"
+
+#: contents/ui/main.qml
+msgid "Discard idle"
+msgstr "Leerlauf verwerfen"
+
+#: contents/ui/main.qml
+msgid "Discard and continue"
+msgstr "Verwerfen und fortsetzen"
+
+#: contents/ui/main.qml
+msgid "Idle time discarded"
+msgstr "Leerlaufzeit verworfen"
+
+#: contents/ui/main.qml
+msgid "Nothing is tracking"
+msgstr "Nichts läuft"
+
+#: contents/ui/main.qml
+msgid "Work hours have started. Start a timer when you begin."
+msgstr "Die Arbeitszeit hat begonnen. Starte den Timer, wenn du anfängst."
+
+#: contents/ui/main.qml
+msgid "Start last Plasmai activity"
+msgstr "Letzte Plasmai-Tätigkeit starten"
+
+#: contents/ui/main.qml
+msgid "Continue last Plasmai activity"
+msgstr "Letzte Plasmai-Tätigkeit fortsetzen"
+
+#: contents/ui/main.qml
+msgid "Customer created"
+msgstr "Kunde angelegt"
+
+#: contents/ui/main.qml
+msgid "Project created"
+msgstr "Projekt angelegt"
+
+#: contents/ui/main.qml
+msgid "Activity created"
+msgstr "Tätigkeit angelegt"
+
+#: contents/ui/main.qml
+msgid "Start · %1 · %2"
+msgstr "Start · %1 · %2"
+
+#: contents/ui/config/ConfigBehavior.qml
+msgid "Remind me once if nothing is tracking during work hours"
+msgstr "Einmal erinnern, wenn während der Arbeitszeit nichts erfasst wird"
+
+#: contents/ui/config/ConfigBehavior.qml
+msgid "Allow scripts to query and control Plasmai"
+msgstr "Skripten erlauben, Plasmai abzufragen und zu steuern"
+
+#: contents/ui/config/ConfigBehavior.qml
+msgid "Scripts:"
+msgstr "Skripte:"
+
+#: contents/ui/config/ConfigBehavior.qml
+msgid "Idle detection uses the session idle hint on Wayland (loginctl / ScreenSaver) and xprintidle on X11."
+msgstr "Leerlauferkennung nutzt den Sitzungs-Idle-Hinweis unter Wayland (loginctl / ScreenSaver) und xprintidle unter X11."
+
+#: contents/ui/config/ConfigBehavior.qml
+msgid "Shortcut actions (Start last / Continue / Stop / Toggle) can be bound in System Settings. Optional script control uses plasmai-ctl.sh and a cache command file — it does not write shared.json."
+msgstr "Tastaturkürzel (Start zuletzt / Fortsetzen / Stopp / Umschalten) kannst du in den Systemeinstellungen binden. Optionale Skriptsteuerung nutzt plasmai-ctl.sh und eine Cache-Befehlsdatei — sie schreibt nicht in shared.json."
 
 #: contents/ui/ActiveEditView.qml:208
 msgid "Edit start time, project, and activity for the running entry."
@@ -425,10 +622,6 @@ msgstr "Speichern"
 #: contents/ui/StatsView.qml:43
 msgid "All"
 msgstr "Alle"
-
-#: contents/ui/StatsView.qml:44
-msgid "Billable"
-msgstr "Abrechenbar"
 
 #: contents/ui/StatsView.qml:45
 msgid "Non-billable"

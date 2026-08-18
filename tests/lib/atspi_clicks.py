@@ -34,6 +34,8 @@ TRACKING_EXACT = {
     "wechseln",
     "toggle plasmai tracking",
     "stop plasmai tracking",
+    "start last plasmai activity",
+    "continue last plasmai activity",
 }
 
 # Viewer SDK / destructive settings — never click.
@@ -62,6 +64,30 @@ SDK_EXACT = {
     "entfernen",
 }
 
+# History mutations from Recent overflow — never click (even PLASMAI_TEST_LIVE).
+HISTORY_PREFIX = (
+    "delete entry",
+    "edit entry",
+    "split entry",
+    "entry actions",
+    "eintrag löschen",
+    "eintrag bearbeiten",
+    "eintrag teilen",
+    "eintragsaktionen",
+    "create project",
+    "create activity",
+    "create customer",
+    "projekt anlegen",
+    "tätigkeit anlegen",
+    "kunde anlegen",
+    "keep time",
+    "discard idle",
+    "discard and continue",
+    "zeit behalten",
+    "leerlauf verwerfen",
+    "verwerfen und fortsetzen",
+)
+
 DENY_PREFIX = (
     "continue ·",
     "continue · ",
@@ -69,6 +95,8 @@ DENY_PREFIX = (
     "continue last",
     "switch to ",
     "switch to another",
+    "start ·",
+    "start last",
 )
 
 DENY_CONTAINS = (
@@ -102,6 +130,8 @@ def should_skip(name: str, role: str, description: str, *, live: bool | None = N
         return "activity row"
     if n in SDK_EXACT:
         return f"deny-list name {name!r}"
+    if any(n.startswith(p) for p in HISTORY_PREFIX):
+        return "history mutation"
     if not live and n in TRACKING_EXACT:
         return f"deny-list name {name!r}"
     if not live and any(n.startswith(p) for p in DENY_PREFIX):

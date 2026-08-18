@@ -177,7 +177,8 @@ function saveSharedConfig(dataSource, scriptPath, sharedObj, callback) {
     })
 }
 
-function loadCatalogCache(dataSource, scriptPath, callback) {
+/** Raw catalog JSON text. Parse off the UI thread (WorkerScript) so the KCM stays responsive. */
+function loadCatalogCacheText(dataSource, scriptPath, callback) {
     var cmd = "sh " + shQuote(scriptPath) + " load"
     _run(dataSource, cmd, function(data) {
         var stdout = (data["stdout"] || "").toString()
@@ -186,17 +187,31 @@ function loadCatalogCache(dataSource, scriptPath, callback) {
         }
         var exitCode = data["exit code"]
         if (exitCode === 0 && stdout.length > 0) {
-            var parsed = parseJsonPayload(stdout)
-            if (parsed) {
-                callback(parsed, null)
-            } else {
-                callback(null, "Invalid catalog cache JSON")
-            }
+            callback(stdout, null)
         } else if (exitCode === 1) {
-            callback(null, null)
+            callback("", null)
         } else {
             var stderr = (data["stderr"] || "").toString().trim()
-            callback(null, stderr || ("catalogCache.sh load failed (exit " + exitCode + ")"))
+            callback("", stderr || ("catalogCache.sh load failed (exit " + exitCode + ")"))
+        }
+    })
+}
+
+function loadCatalogCache(dataSource, scriptPath, callback) {
+    loadCatalogCacheText(dataSource, scriptPath, function(text, err) {
+        if (err) {
+            callback(null, err)
+            return
+        }
+        if (!text) {
+            callback(null, null)
+            return
+        }
+        var parsed = parseJsonPayload(text)
+        if (parsed) {
+            callback(parsed, null)
+        } else {
+            callback(null, "Invalid catalog cache JSON")
         }
     })
 }
@@ -220,8 +235,10 @@ function saveCatalogCache(dataSource, scriptPath, payload, callback) {
 /** Load shared.json, merge patch, and save. configuration is plasmoid.configuration. */
 function persistSharedPatch(dataSource, scriptPath, configuration, patch, callback) {
     loadSharedConfig(dataSource, scriptPath, function(existing) {
+        var base = existing || SharedConfig.fromConfiguration(configuration)
+        base = SharedConfig.sanitizeProfilesForPersistence(base, configuration)
         var shared = SharedConfig.merge(
-            existing || SharedConfig.fromConfiguration(configuration),
+            base,
             patch || {}
         )
         saveSharedConfig(dataSource, scriptPath, shared, callback)

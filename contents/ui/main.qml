@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as QQC2
+import QtQuick.Shapes
 import org.kde.plasma.plasmoid
 import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.components as PlasmaComponents3
@@ -16,6 +17,7 @@ import "../code/sharedConfig.js" as SharedConfig
 import "../code/colorDistinct.js" as ColorDistinct
 import "../code/maintenanceCache.js" as CatalogCache
 import "../code/buildInfo.js" as BuildInfo
+import "../code/timesheetFields.js" as TimesheetFields
 import "."
 
 PlasmoidItem {
@@ -48,6 +50,8 @@ PlasmoidItem {
     property string mainViewMode: "main"  // main | manual | stats
     /** Inline editor for the running timesheet (start / project / activity). */
     property bool editingActiveEntry: false
+    /** Stopped Recent timesheet currently in the Add-entry form (null = new entry). */
+    property var editingStoppedTimesheet: null
     property bool credentialsLoading: false
     property var pendingCredentialCallbacks: []
 
@@ -72,9 +76,19 @@ PlasmoidItem {
     property var activeTimesheet: null
     /** Recent entry waiting for switch confirmation while a timer is running. */
     property var pendingSwitchTimesheet: null
+    property var pendingDeleteTimesheet: null
+    property var pendingSplitTimesheet: null
     /** Dialogs live inside fullRepresentation; keep refs so root JS can open them. */
     property var stopConfirmDialogRef: null
     property var switchRecentDialogRef: null
+    property var deleteConfirmDialogRef: null
+    property var splitEntryDialogRef: null
+    property var idleDialogRef: null
+    property var createEntityDialogRef: null
+    property int pendingIdleMs: 0
+    property bool idleIgnoreUntilActive: false
+    property var pendingIdleSnapshot: null
+    property string forgotReminderDay: ""
     property int elapsedSeconds: 0
     /** Bumps DaySparkline live edge; kept coarse to avoid per-second canvas work. */
     property int sparklineNowTick: 0
@@ -110,11 +124,22 @@ PlasmoidItem {
         var lightBg = Kirigami.Theme.backgroundColor.hslLightness > 0.5
         return Qt.hsla(hue, 0.95, lightBg ? 0.34 : 0.62, 1)
     }
+    /** Theme positive is already loud; the circle uses a desaturated sibling. */
+    readonly property color descriptionSaveMutedColor: {
+        var base = Kirigami.Theme.positiveTextColor
+        var hue = (base.hslHue >= 0 && !isNaN(base.hslHue)) ? base.hslHue : 0.33
+        var lightBg = Kirigami.Theme.backgroundColor.hslLightness > 0.5
+        return Qt.hsla(hue, 0.38, lightBg ? 0.36 : 0.46, 1)
+    }
 
     property int todaySeconds: 0
     property int weekSeconds: 0
     property int todayTargetSeconds: 0
     property int weekTargetSeconds: 0
+    /** Contract week target minus approved vacation/public holidays (holiday bundle). */
+    property int weekEffectiveTargetSeconds: 0
+    property var weekAbsences: []
+    property var weekPublicHolidays: []
     property bool hasWorkContract: false
     property int totalsElapsedAnchor: 0
     property string currentCustomerColor: KimaiApi.DEFAULT_CUSTOMER_COLOR
@@ -196,10 +221,15 @@ PlasmoidItem {
         todaySeconds + (isTracking ? Math.max(0, elapsedSeconds - totalsElapsedAnchor) : 0)
     readonly property int weekLiveSeconds:
         weekSeconds + (isTracking ? Math.max(0, elapsedSeconds - totalsElapsedAnchor) : 0)
-    readonly property int remainingWeekSeconds: hasWorkContract ? (weekTargetSeconds - weekLiveSeconds) : 0
+    readonly property int remainingWeekSeconds: hasWorkContract ? (weekEffectiveTargetSeconds - weekLiveSeconds) : 0
     readonly property int remainingTodaySeconds: hasWorkContract ? (todayTargetSeconds - todayLiveSeconds) : 0
 
     readonly property var lastRecent: recentTimesheets.length > 0 ? recentTimesheets[0] : null
+    readonly property bool hasLastUsed: {
+        var pid = String(plasmoid.configuration.lastUsedProjectId || "")
+        var aid = String(plasmoid.configuration.lastUsedActivityId || "")
+        return pid.length > 0 && aid.length > 0
+    }
     readonly property int recentVisibleCount: Math.min(
         Math.max(1, plasmoid.configuration.recentCount),
         recentTimesheets.length)
@@ -264,28 +294,11 @@ PlasmoidItem {
     switchWidth: Kirigami.Units.gridUnit * 14
     switchHeight: Kirigami.Units.gridUnit * 14
 
-    // Translucent background uses the theme assets that participate in KWin blur.
-    Plasmoid.backgroundHints: plasmoid.configuration.useBlurBackground
-        ? PlasmaCore.Types.TranslucentBackground
-        : PlasmaCore.Types.DefaultBackground
 
     Plasmoid.icon: connectionState === "error" ? "network-disconnect"
                      : isTracking ? "media-record" : "chronometer"
     // Keep stable: Plasma's config dialog title is "Settings for %1" / Plasmoid.title.
     Plasmoid.title: i18n("Plasmai")
-
-    Plasmoid.contextualActions: [
-        PlasmaCore.Action {
-            text: i18n("Toggle Plasmai tracking")
-            icon.name: "chronometer"
-            onTriggered: root.toggleTracking()
-        },
-        PlasmaCore.Action {
-            text: i18n("Stop Plasmai tracking")
-            icon.name: "media-playback-stop"
-            onTriggered: root.requestStop()
-        }
-    ]
 
     toolTipMainText: isTracking ? currentProject + " · " + currentActivity : i18n("Plasmai")
     toolTipTextFormat: Text.PlainText
@@ -339,11 +352,44 @@ PlasmoidItem {
     }
 
     Timer {
+        id: sharedConfigPollTimer
+        interval: 5000
+        running: !root.credentialsLoading && root.tokenLoaded
+        repeat: true
+        onTriggered: {
+            Secret.loadSharedConfig(execSource, sharedConfigScript, function(shared) {
+                if (!shared) return
+                var newProfileId = shared.activeProfileId || "default"
+                var newProfilesJson = shared.profilesJson || ""
+                var changed = false
+                if (newProfileId !== (plasmoid.configuration.activeProfileId || "default")) {
+                    changed = true
+                }
+                if (newProfilesJson !== (plasmoid.configuration.profilesJson || "")) {
+                    changed = true
+                }
+                if (changed) {
+                    SharedConfig.applyToConfiguration(plasmoid.configuration, shared)
+                    root.softReload()
+                }
+            })
+        }
+    }
+
+    Timer {
         id: idleTimer
         interval: 60000
         running: root.isTracking && plasmoid.configuration.idleStopEnabled && root.isConfigured
         repeat: true
         onTriggered: root.checkIdle()
+    }
+
+    Timer {
+        id: forgotReminderTimer
+        interval: 5 * 60 * 1000
+        running: root.isConfigured && !root.isTracking && plasmoid.configuration.notifyForgotToStart
+        repeat: true
+        onTriggered: root.checkForgotToStart()
     }
 
     Timer {
@@ -464,7 +510,6 @@ PlasmoidItem {
 
     /** Build and show the same applet context menu Plasma would (custom + system actions). */
     function openPlasmoidContextMenu(visualParent, x, y) {
-        root.prepareContextualActions()
         plasmoidContextMenu.visualParent = visualParent
         plasmoidContextMenu.rebuild()
         plasmoidContextMenu.open(x, y)
@@ -475,18 +520,218 @@ PlasmoidItem {
     }
 
     function checkIdle() {
-        if (!isTracking || !plasmoid.configuration.idleStopEnabled) {
+        if (!isTracking || !plasmoid.configuration.idleStopEnabled || plasmoid.userConfiguring) {
+            return
+        }
+        if (idleDialogRef && idleDialogRef.visible) {
             return
         }
         Secret.runIdle(execSource, idleScript, function(idleMs, err) {
             if (idleMs < 0) {
                 return
             }
-            var thresholdMs = plasmoid.configuration.idleStopMinutes * 60 * 1000
+            if (root.idleIgnoreUntilActive) {
+                if (idleMs < 30000) {
+                    root.idleIgnoreUntilActive = false
+                }
+                return
+            }
+            var idleMinutes = parseInt(plasmoid.configuration.idleStopMinutes, 10)
+            if (isNaN(idleMinutes) || idleMinutes < 1) {
+                idleMinutes = 1
+            }
+            var thresholdMs = idleMinutes * 60 * 1000
             if (idleMs >= thresholdMs) {
-                stopTracking(true)
+                root.promptIdle(idleMs)
             }
         })
+    }
+
+    function promptIdle(idleMs) {
+        pendingIdleMs = idleMs
+        pendingIdleSnapshot = {
+            timesheetId: currentTimesheetId,
+            projectId: activeTimesheet ? KimaiApi.projectId(activeTimesheet) : null,
+            activityId: activeTimesheet ? KimaiApi.activityId(activeTimesheet) : null,
+            projectName: currentProject,
+            activityName: currentActivity,
+            description: currentDescription
+        }
+        expanded = true
+        if (idleDialogRef) {
+            idleDialogRef.open()
+        } else {
+            stopTracking(true)
+        }
+    }
+
+    function keepIdleTime() {
+        idleIgnoreUntilActive = true
+        pendingIdleSnapshot = null
+        pendingIdleMs = 0
+    }
+
+    function discardIdleTime(andContinue) {
+        var snap = pendingIdleSnapshot
+        var idleMs = pendingIdleMs
+        pendingIdleSnapshot = null
+        pendingIdleMs = 0
+        if (!snap || !snap.timesheetId) {
+            stopTracking(true)
+            return
+        }
+        var endDate = new Date(Date.now() - Math.max(0, idleMs))
+        if (!tracker || typeof tracker.patchTimesheet !== "function") {
+            stopTracking(true)
+            return
+        }
+        isBusy = true
+        lastError = null
+        tracker.patchTimesheet(kimaiUrl, apiToken, snap.timesheetId, {
+            end: KimaiApi.localDateTimeString(endDate)
+        }, function(result) {
+            isBusy = false
+            if (!result || !result.ok) {
+                setError(result ? result.error : { type: "network", status: 0, detail: "empty result" })
+                return
+            }
+            clearError()
+            resetTrackingState()
+            refreshRecentTimesheets()
+            refreshWorkTotals()
+            if (plasmoid.configuration.notifyOnIdleStop) {
+                sendNotification(
+                    i18n("Idle time discarded"),
+                    snap.projectName + " · " + snap.activityName)
+            }
+            if (andContinue && snap.projectId && snap.activityId) {
+                startTracking(snap.projectId, snap.activityId, snap.projectName, snap.activityName, snap.description || "")
+            }
+        })
+    }
+
+    function checkForgotToStart() {
+        if (!isConfigured || isTracking || plasmoid.userConfiguring) {
+            return
+        }
+        if (!plasmoid.configuration.notifyForgotToStart) {
+            return
+        }
+        if (!KimaiApi.isWithinWorkHours(plasmoid.configuration.workDayBegin, plasmoid.configuration.workDayEnd, new Date())) {
+            return
+        }
+        var dayKey = Qt.formatDate(new Date(), "yyyy-MM-dd")
+        if (forgotReminderDay === dayKey) {
+            return
+        }
+        forgotReminderDay = dayKey
+        sendNotification(
+            i18n("Nothing is tracking"),
+            i18n("Work hours have started. Start a timer when you begin."))
+    }
+
+    function rememberLastUsed(projectId, activityId, projectName, activityName) {
+        if (plasmoid.userConfiguring || !projectId || !activityId) {
+            return
+        }
+        plasmoid.configuration.lastUsedProjectId = String(projectId)
+        plasmoid.configuration.lastUsedActivityId = String(activityId)
+        plasmoid.configuration.lastUsedProjectName = String(projectName || "")
+        plasmoid.configuration.lastUsedActivityName = String(activityName || "")
+        Secret.persistSharedPatch(execSource, sharedConfigScript, plasmoid.configuration, {
+            lastUsedProjectId: plasmoid.configuration.lastUsedProjectId,
+            lastUsedActivityId: plasmoid.configuration.lastUsedActivityId,
+            lastUsedProjectName: plasmoid.configuration.lastUsedProjectName,
+            lastUsedActivityName: plasmoid.configuration.lastUsedActivityName
+        })
+    }
+
+    function startLastUsed() {
+        if (!hasLastUsed || isTracking || isBusy) {
+            return
+        }
+        startTracking(
+            plasmoid.configuration.lastUsedProjectId,
+            plasmoid.configuration.lastUsedActivityId,
+            plasmoid.configuration.lastUsedProjectName || "",
+            plasmoid.configuration.lastUsedActivityName || "",
+            "")
+    }
+
+    function openCreateEntity(mode) {
+        if (!providerCapabilities.createEntities || !createEntityDialogRef) {
+            return
+        }
+        var projectName = ""
+        if (typeof switchPickers !== "undefined" && switchPickers && switchPickers.projectCombo.currentItem) {
+            projectName = switchPickers.projectCombo.currentItem.label || ""
+        }
+        createEntityDialogRef.selectedProjectId = selectedProjectId
+        createEntityDialogRef.selectedProjectName = projectName
+        createEntityDialogRef.customers = customers
+        createEntityDialogRef.resetForMode(mode)
+        expanded = true
+        createEntityDialogRef.open()
+    }
+
+    function submitCreateEntity(mode, payload) {
+        if (!tracker || !payload) {
+            return
+        }
+        isBusy = true
+        lastError = null
+        userMessage = ""
+        var fields = payload
+        if (mode === "customer" && typeof tracker.createCustomer === "function") {
+            fields.customers = customers
+            tracker.createCustomer(kimaiUrl, apiToken, fields, function(result) {
+                isBusy = false
+                if (result && result.ok) {
+                    clearError()
+                    refreshProjects(false, true)
+                    sendNotification(i18n("Customer created"), payload.name)
+                } else {
+                    setError(result ? result.error : { type: "network", status: 0, detail: "empty result" })
+                }
+            })
+            return
+        }
+        if (mode === "project" && typeof tracker.createProject === "function") {
+            tracker.createProject(kimaiUrl, apiToken, fields, function(result) {
+                isBusy = false
+                if (result && result.ok && result.data) {
+                    clearError()
+                    var newId = result.data.id
+                    refreshProjects(false, true)
+                    Qt.callLater(function() {
+                        selectProjectById(newId, null)
+                    })
+                    sendNotification(i18n("Project created"), payload.name)
+                } else {
+                    setError(result ? result.error : { type: "network", status: 0, detail: "empty result" })
+                }
+            })
+            return
+        }
+        if (mode === "activity" && typeof tracker.createActivity === "function") {
+            tracker.createActivity(kimaiUrl, apiToken, fields, function(result) {
+                isBusy = false
+                if (result && result.ok && result.data) {
+                    clearError()
+                    var aid = result.data.id
+                    var pid = fields.project
+                    refreshProjects(false, true)
+                    Qt.callLater(function() {
+                        selectProjectById(pid, aid)
+                    })
+                    sendNotification(i18n("Activity created"), payload.name)
+                } else {
+                    setError(result ? result.error : { type: "network", status: 0, detail: "empty result" })
+                }
+            })
+            return
+        }
+        isBusy = false
     }
 
     function syncTrackerSession() {
@@ -498,6 +743,7 @@ PlasmoidItem {
             return
         }
         editingActiveEntry = false
+        editingStoppedTimesheet = null
         mainViewMode = "manual"
         if (projectPickerModel.length === 0) {
             refreshProjects(false)
@@ -505,6 +751,32 @@ PlasmoidItem {
         if (typeof manualEntryView !== "undefined" && manualEntryView) {
             manualEntryView.resetDefaults()
         }
+    }
+
+    function openStoppedEdit(timesheet) {
+        if (!isConfigured || !timesheet) {
+            return
+        }
+        if (isTracking && timesheet.id !== undefined && timesheet.id !== null
+                && String(timesheet.id) === String(currentTimesheetId)) {
+            openActiveEdit()
+            return
+        }
+        if (!providerCapabilities.editStopped) {
+            return
+        }
+        editingActiveEntry = false
+        editingStoppedTimesheet = timesheet
+        mainViewMode = "manual"
+        if (projectPickerModel.length === 0) {
+            refreshProjects(false)
+        }
+        Qt.callLater(function() {
+            if (typeof manualEntryView !== "undefined" && manualEntryView
+                    && root.editingStoppedTimesheet) {
+                manualEntryView.loadFromTimesheet(root.editingStoppedTimesheet)
+            }
+        })
     }
 
     function openActiveEdit() {
@@ -527,7 +799,7 @@ PlasmoidItem {
         editingActiveEntry = false
     }
 
-    function saveActiveEdit(projectId, activityId, beginText) {
+    function saveActiveEdit(projectId, activityId, beginText, billable, tags) {
         if (!isTracking || isBusy) {
             return
         }
@@ -561,7 +833,9 @@ PlasmoidItem {
         tracker.patchTimesheet(kimaiUrl, apiToken, currentTimesheetId, {
             begin: KimaiApi.localDateTimeString(beginDate),
             project: projectId,
-            activity: activityId
+            activity: activityId,
+            billable: billable,
+            tags: tags || []
         }, function(result) {
             isBusy = false
             if (result && result.ok) {
@@ -641,10 +915,11 @@ PlasmoidItem {
 
     function returnToMainView() {
         mainViewMode = "main"
+        editingStoppedTimesheet = null
         dismissPickerPopups()
     }
 
-    function createManualEntry(projectId, activityId, beginText, endText, description) {
+    function createManualEntry(projectId, activityId, beginText, endText, description, billable, tags) {
         if (!isConfigured || isBusy) {
             return
         }
@@ -669,23 +944,44 @@ PlasmoidItem {
         isBusy = true
         lastError = null
         userMessage = ""
-        tracker.createTimesheet(kimaiUrl, apiToken, {
+        var fields = {
             begin: KimaiApi.localDateTimeString(beginDate),
             end: KimaiApi.localDateTimeString(endDate),
             project: projectId,
             activity: activityId,
-            description: description || ""
-        }, function(result) {
+            description: description || "",
+            billable: typeof billable === "boolean" ? billable : true,
+            tags: tags || []
+        }
+        var editing = editingStoppedTimesheet
+        var editingId = editing && editing.id
+        function finishSave(result, added) {
             isBusy = false
             if (result.ok) {
                 clearError()
                 returnToMainView()
                 refreshRecentTimesheets()
                 refreshWorkTotals()
-                sendNotification(i18n("Entry added"), description || i18n("Manual time entry"))
+                sendNotification(
+                    added ? i18n("Entry added") : i18n("Entry updated"),
+                    description || (added ? i18n("Manual time entry") : i18n("Timesheet updated")))
             } else {
                 setError(result.error)
             }
+        }
+        if (editingId !== undefined && editingId !== null && editingId !== "") {
+            if (!tracker || typeof tracker.patchTimesheet !== "function") {
+                isBusy = false
+                setError({ type: "config", status: 0, detail: i18n("This provider cannot update stopped entries.") })
+                return
+            }
+            tracker.patchTimesheet(kimaiUrl, apiToken, editingId, fields, function(result) {
+                finishSave(result, false)
+            })
+            return
+        }
+        tracker.createTimesheet(kimaiUrl, apiToken, fields, function(result) {
+            finishSave(result, true)
         })
     }
 
@@ -805,6 +1101,7 @@ PlasmoidItem {
     function resetTrackingState() {
         isTracking = false
         editingActiveEntry = false
+        editingStoppedTimesheet = null
         currentTimesheetId = invalidTimesheetId
         currentProject = ""
         currentActivity = ""
@@ -1046,11 +1343,11 @@ PlasmoidItem {
     }
 
     function preloadLastActivity() {
-        if (isTracking || !lastRecent || !isConfigured) {
+        if (isTracking || !isConfigured) {
             return
         }
-        var pid = KimaiApi.projectId(lastRecent)
-        var aid = KimaiApi.activityId(lastRecent)
+        var pid = lastRecent ? KimaiApi.projectId(lastRecent) : plasmoid.configuration.lastUsedProjectId
+        var aid = lastRecent ? KimaiApi.activityId(lastRecent) : plasmoid.configuration.lastUsedActivityId
         if (!pid || !aid) {
             return
         }
@@ -1058,16 +1355,17 @@ PlasmoidItem {
             return
         }
         selectProjectById(pid, aid)
-        if (typeof descriptionField !== "undefined" && descriptionField) {
+        if (typeof descriptionField !== "undefined" && descriptionField && lastRecent) {
             descriptionField.text = lastRecent.description || ""
         }
     }
 
     function continueLastActivity() {
-        if (!lastRecent) {
+        if (lastRecent) {
+            restartFromRecent(lastRecent)
             return
         }
-        restartFromRecent(lastRecent)
+        startLastUsed()
     }
 
     function refreshActiveTimesheet(quiet) {
@@ -1126,6 +1424,9 @@ PlasmoidItem {
             weekSeconds = 0
             todayTargetSeconds = 0
             weekTargetSeconds = 0
+            weekEffectiveTargetSeconds = 0
+            weekAbsences = []
+            weekPublicHolidays = []
             hasWorkContract = false
             todayTimesheets = []
             statsTimesheets = []
@@ -1146,6 +1447,38 @@ PlasmoidItem {
                 todayTargetSeconds = 0
                 weekTargetSeconds = 0
                 hasWorkContract = false
+            }
+
+            function applyEffectiveWeekTarget() {
+                weekEffectiveTargetSeconds = weekTargetSeconds
+                if (providerCapabilities.holidayBundle && hasWorkContract && workPrefs) {
+                    weekEffectiveTargetSeconds = KimaiApi.effectiveWeekTargetSeconds(
+                        workPrefs, now, weekAbsences, weekPublicHolidays)
+                }
+            }
+
+            if (providerCapabilities.holidayBundle && hasWorkContract) {
+                var year = now.getFullYear()
+                var absencesLoaded = false
+                var holidaysLoaded = false
+                KimaiApi.fetchHolidayAbsences(kimaiUrl, apiToken, year, function(absResult) {
+                    weekAbsences = (absResult && absResult.ok && absResult.data) ? absResult.data : []
+                    absencesLoaded = true
+                    if (holidaysLoaded) {
+                        applyEffectiveWeekTarget()
+                    }
+                })
+                KimaiApi.fetchHolidayPublicHolidays(kimaiUrl, apiToken, year, function(holResult) {
+                    weekPublicHolidays = (holResult && holResult.ok && holResult.data) ? holResult.data : []
+                    holidaysLoaded = true
+                    if (absencesLoaded) {
+                        applyEffectiveWeekTarget()
+                    }
+                })
+            } else {
+                weekAbsences = []
+                weekPublicHolidays = []
+                applyEffectiveWeekTarget()
             }
 
             tracker.fetchTimesheetsRange(
@@ -1462,6 +1795,7 @@ PlasmoidItem {
             if (result.ok && result.data) {
                 clearError()
                 applyActiveTimesheet(result.data)
+                rememberLastUsed(projectId, activityId, projectLabel, activityLabel)
                 refreshRecentTimesheets()
                 refreshWorkTotals()
                 if (plasmoid.configuration.notifyOnStart) {
@@ -1525,22 +1859,6 @@ PlasmoidItem {
             switchToActivity(entry.projectId, entry.activityId, entry.projectName, entry.activityName, "")
         } else {
             startTracking(entry.projectId, entry.activityId, entry.projectName, entry.activityName, "")
-        }
-    }
-
-    function toggleTracking() {
-        if (!isConfigured) {
-            openConfigure()
-            return
-        }
-        if (isTracking) {
-            requestStop()
-        } else if (recentTimesheets.length > 0) {
-            restartFromRecent(recentTimesheets[0])
-        } else if (pinnedEntries.length > 0) {
-            startPinned(pinnedEntries[0])
-        } else {
-            expanded = !expanded
         }
     }
 
@@ -1692,6 +2010,123 @@ PlasmoidItem {
             KimaiApi.displayProjectName(timesheet, root.projects),
             KimaiApi.displayActivityName(timesheet, root.allActivities, root.activitiesByProject),
             timesheet.description || "")
+    }
+
+    function timesheetIsRunning(timesheet) {
+        return !!(isTracking && timesheet && timesheet.id !== undefined && timesheet.id !== null
+                  && String(timesheet.id) === String(currentTimesheetId))
+    }
+
+    function requestDeleteStopped(timesheet) {
+        if (!isConfigured || isBusy || !timesheet || !providerCapabilities.deleteEntry) {
+            return
+        }
+        if (timesheetIsRunning(timesheet) || !timesheet.end) {
+            return
+        }
+        if (timesheet.id === undefined || timesheet.id === null || timesheet.id === "") {
+            return
+        }
+        pendingDeleteTimesheet = timesheet
+        if (deleteConfirmDialogRef) {
+            deleteConfirmDialogRef.open()
+        }
+    }
+
+    function confirmDeleteStopped() {
+        var timesheet = pendingDeleteTimesheet
+        pendingDeleteTimesheet = null
+        if (!timesheet || timesheet.id === undefined || timesheet.id === null || timesheet.id === "") {
+            return
+        }
+        if (!tracker || typeof tracker.deleteTimesheet !== "function") {
+            setError({ type: "config", status: 0, detail: i18n("This provider cannot delete entries.") })
+            return
+        }
+        isBusy = true
+        lastError = null
+        userMessage = ""
+        tracker.deleteTimesheet(kimaiUrl, apiToken, timesheet.id, function(result) {
+            isBusy = false
+            if (result && result.ok) {
+                clearError()
+                refreshRecentTimesheets()
+                refreshWorkTotals()
+                sendNotification(
+                    i18n("Entry deleted"),
+                    KimaiApi.displayActivityName(timesheet, root.allActivities, root.activitiesByProject))
+            } else {
+                setError(result ? result.error : { type: "network", status: 0, detail: "empty result" })
+            }
+        })
+    }
+
+    function requestSplitStopped(timesheet) {
+        if (!isConfigured || isBusy || !timesheet || !providerCapabilities.editStopped) {
+            return
+        }
+        if (timesheetIsRunning(timesheet) || !timesheet.end) {
+            return
+        }
+        pendingSplitTimesheet = timesheet
+        if (splitEntryDialogRef) {
+            splitEntryDialogRef.open()
+        }
+    }
+
+    function confirmSplitStopped() {
+        var timesheet = pendingSplitTimesheet
+        pendingSplitTimesheet = null
+        if (!timesheet) {
+            return
+        }
+        var at = splitEntryDialogRef && typeof splitEntryDialogRef.splitInstant === "function"
+                 ? splitEntryDialogRef.splitInstant()
+                 : null
+        var split = TimesheetFields.splitStoppedEntry(timesheet, at)
+        if (!split.ok) {
+            userMessage = i18n("Split time must be between begin and end.")
+            return
+        }
+        if (!tracker || typeof tracker.patchTimesheet !== "function"
+                || typeof tracker.createTimesheet !== "function") {
+            setError({ type: "config", status: 0, detail: i18n("This provider cannot split entries.") })
+            return
+        }
+        isBusy = true
+        lastError = null
+        userMessage = ""
+        tracker.patchTimesheet(kimaiUrl, apiToken, timesheet.id, {
+            end: KimaiApi.localDateTimeString(split.firstEnd)
+        }, function(patchResult) {
+            if (!patchResult || !patchResult.ok) {
+                isBusy = false
+                setError(patchResult ? patchResult.error : { type: "network", status: 0, detail: "empty result" })
+                return
+            }
+            tracker.createTimesheet(kimaiUrl, apiToken, {
+                begin: KimaiApi.localDateTimeString(split.secondBegin),
+                end: KimaiApi.localDateTimeString(split.secondEnd),
+                project: KimaiApi.projectId(timesheet),
+                activity: KimaiApi.activityId(timesheet),
+                description: timesheet.description || "",
+                billable: TimesheetFields.billableFromTimesheet(timesheet, true),
+                tags: TimesheetFields.tagsFromTimesheet(timesheet)
+            }, function(createResult) {
+                isBusy = false
+                if (createResult && createResult.ok) {
+                    clearError()
+                    refreshRecentTimesheets()
+                    refreshWorkTotals()
+                    sendNotification(
+                        i18n("Entry split"),
+                        KimaiApi.displayActivityName(timesheet, root.allActivities, root.activitiesByProject))
+                } else {
+                    setError(createResult ? createResult.error : { type: "network", status: 0, detail: "empty result" })
+                    userMessage = i18n("The first half was saved, but the second half could not be created.")
+                }
+            })
+        })
     }
 
     compactRepresentation: MouseArea {
@@ -2002,6 +2437,222 @@ PlasmoidItem {
             onDiscarded: root.pendingSwitchTimesheet = null
         }
 
+        QQC2.Dialog {
+            id: deleteConfirmDialog
+            parent: popupRoot
+            anchors.centerIn: parent
+            title: i18n("Delete entry?")
+            modal: true
+            width: Math.min(Kirigami.Units.gridUnit * 18, popupRoot.width * 0.95)
+            standardButtons: QQC2.Dialog.Ok | QQC2.Dialog.Cancel
+
+            Component.onCompleted: root.deleteConfirmDialogRef = deleteConfirmDialog
+            Component.onDestruction: {
+                if (root.deleteConfirmDialogRef === deleteConfirmDialog) {
+                    root.deleteConfirmDialogRef = null
+                }
+            }
+
+            contentItem: PlasmaComponents3.Label {
+                wrapMode: Text.WordWrap
+                text: {
+                    var ts = root.pendingDeleteTimesheet
+                    if (!ts) {
+                        return i18n("Delete this finished entry? This cannot be undone.")
+                    }
+                    return i18n("Delete \"%1 · %2\"? This cannot be undone.",
+                                KimaiApi.displayProjectName(ts, root.projects),
+                                KimaiApi.displayActivityName(ts, root.allActivities, root.activitiesByProject))
+                }
+            }
+
+            onAccepted: root.confirmDeleteStopped()
+            onRejected: root.pendingDeleteTimesheet = null
+        }
+
+        QQC2.Dialog {
+            id: splitEntryDialog
+            parent: popupRoot
+            anchors.centerIn: parent
+            title: i18n("Split entry")
+            modal: true
+            width: Math.min(Kirigami.Units.gridUnit * 22, popupRoot.width * 0.95)
+            standardButtons: QQC2.Dialog.Ok | QQC2.Dialog.Cancel
+            padding: Kirigami.Units.largeSpacing
+
+            Component.onCompleted: root.splitEntryDialogRef = splitEntryDialog
+            Component.onDestruction: {
+                if (root.splitEntryDialogRef === splitEntryDialog) {
+                    root.splitEntryDialogRef = null
+                }
+            }
+
+            function splitInstant() {
+                var d = splitDate.selectedDate
+                if (!d || typeof d.getFullYear !== "function") {
+                    d = new Date(splitDate.selectedDateMs)
+                }
+                if (!d || isNaN(d.getTime())) {
+                    return null
+                }
+                return new Date(d.getFullYear(), d.getMonth(), d.getDate(),
+                                splitTime.hours, splitTime.minutes, 0, 0)
+            }
+
+            function refreshOkButton() {
+                var btn = standardButton(QQC2.Dialog.Ok)
+                if (!btn) {
+                    return
+                }
+                var split = TimesheetFields.splitStoppedEntry(
+                    root.pendingSplitTimesheet, splitInstant())
+                btn.enabled = split.ok
+            }
+
+            onAboutToShow: {
+                var mid = TimesheetFields.midpointInstant(root.pendingSplitTimesheet)
+                if (!mid) {
+                    mid = new Date()
+                }
+                splitDate.setDate(mid)
+                splitTime.setTime(mid.getHours(), mid.getMinutes())
+                refreshOkButton()
+            }
+
+            contentItem: ColumnLayout {
+                spacing: Kirigami.Units.smallSpacing
+
+                PlasmaComponents3.Label {
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
+                    text: i18n("The first half keeps the original start. The second half starts at the split time.")
+                }
+
+                PlasmaComponents3.Label {
+                    Layout.fillWidth: true
+                    text: i18n("Split at")
+                    font.bold: true
+                    opacity: 0.85
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Kirigami.Units.smallSpacing
+                    DateField {
+                        id: splitDate
+                        Layout.fillWidth: true
+                        Layout.preferredWidth: 1
+                        onDateEdited: splitEntryDialog.refreshOkButton()
+                    }
+                    TimeField {
+                        id: splitTime
+                        Layout.fillWidth: true
+                        Layout.preferredWidth: 1
+                        onTimeEdited: splitEntryDialog.refreshOkButton()
+                    }
+                }
+
+                PlasmaComponents3.Label {
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
+                    opacity: 0.8
+                    color: {
+                        var split = TimesheetFields.splitStoppedEntry(
+                            root.pendingSplitTimesheet, splitEntryDialog.splitInstant())
+                        return split.ok ? Kirigami.Theme.textColor : Kirigami.Theme.neutralTextColor
+                    }
+                    text: {
+                        var _tick = splitDate.selectedDateMs + splitTime.hours * 60 + splitTime.minutes
+                        var split = TimesheetFields.splitStoppedEntry(
+                            root.pendingSplitTimesheet, splitEntryDialog.splitInstant())
+                        return split.ok
+                               ? i18n("Both halves will have a positive duration.")
+                               : i18n("Split time must be between begin and end.")
+                    }
+                }
+            }
+
+            onAccepted: root.confirmSplitStopped()
+            onRejected: root.pendingSplitTimesheet = null
+        }
+
+        QQC2.Dialog {
+            id: idleDialog
+            parent: popupRoot
+            anchors.centerIn: parent
+            title: i18n("You were idle")
+            modal: true
+            width: Math.min(Kirigami.Units.gridUnit * 22, popupRoot.width * 0.95)
+            standardButtons: QQC2.Dialog.NoButton
+            padding: Kirigami.Units.largeSpacing
+
+            Component.onCompleted: root.idleDialogRef = idleDialog
+            Component.onDestruction: {
+                if (root.idleDialogRef === idleDialog) {
+                    root.idleDialogRef = null
+                }
+            }
+
+            contentItem: ColumnLayout {
+                spacing: Kirigami.Units.smallSpacing
+                PlasmaComponents3.Label {
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
+                    text: i18n("Keep the time, discard the idle gap, or discard and continue the same activity.")
+                }
+            }
+
+            footer: RowLayout {
+                Layout.fillWidth: true
+                spacing: Kirigami.Units.smallSpacing
+                PlasmaComponents3.Button {
+                    Layout.fillWidth: true
+                    text: i18n("Keep time")
+                    Accessible.name: text
+                    onClicked: {
+                        root.keepIdleTime()
+                        idleDialog.close()
+                    }
+                }
+                PlasmaComponents3.Button {
+                    Layout.fillWidth: true
+                    text: i18n("Discard idle")
+                    Accessible.name: text
+                    onClicked: {
+                        root.discardIdleTime(false)
+                        idleDialog.close()
+                    }
+                }
+                PlasmaComponents3.Button {
+                    Layout.fillWidth: true
+                    text: i18n("Discard and continue")
+                    Accessible.name: text
+                    onClicked: {
+                        root.discardIdleTime(true)
+                        idleDialog.close()
+                    }
+                }
+            }
+        }
+
+        CreateEntityDialog {
+            id: createEntityDialog
+            parent: popupRoot
+            anchors.centerIn: parent
+            width: Math.min(Kirigami.Units.gridUnit * 22, popupRoot.width * 0.95)
+            customers: root.customers
+            selectedProjectId: root.selectedProjectId
+            Component.onCompleted: root.createEntityDialogRef = createEntityDialog
+            Component.onDestruction: {
+                if (root.createEntityDialogRef === createEntityDialog) {
+                    root.createEntityDialogRef = null
+                }
+            }
+            onSubmitted: function(mode, payload) {
+                root.submitCreateEntity(mode, payload)
+            }
+        }
+
         PlasmaComponents3.ScrollView {
             id: popupScroll
             anchors {
@@ -2068,7 +2719,8 @@ PlasmoidItem {
                             Layout.fillWidth: true
                             level: 3
                             text: root.mainViewMode === "stats" ? i18n("Statistics")
-                                  : (root.mainViewMode === "manual" ? i18n("Add entry")
+                                  : (root.mainViewMode === "manual"
+                                     ? (root.editingStoppedTimesheet ? i18n("Edit entry") : i18n("Add entry"))
                                       : (BuildInfo.BUILD > 0 ? (i18n("Plasmai") + " #" + BuildInfo.BUILD) : i18n("Plasmai")))
                         }
 
@@ -2150,6 +2802,11 @@ PlasmoidItem {
                     id: profileSwitcher
                     Layout.fillWidth: true
                     visible: root.profiles.length > 1
+                             && (root.mainViewMode === "main"
+                                 || root.mainViewMode === "stats")
+                             && !root.editingActiveEntry
+                             && !root.editingStoppedTimesheet
+                             && !(root.showNewActivityForm && root.compactPopupLayout)
                     model: root.profiles.map(function(p) { return p.name })
                     currentIndex: {
                         for (var i = 0; i < root.profiles.length; i++) {
@@ -2182,7 +2839,7 @@ PlasmoidItem {
 
                 Kirigami.InlineMessage {
                     Layout.fillWidth: true
-                    visible: root.showErrorState
+                    visible: root.showErrorState && !root.showSetupState
                     type: Kirigami.MessageType.Error
                     text: root.errorMessage
                     actions: [
@@ -2211,16 +2868,24 @@ PlasmoidItem {
                     busy: root.isBusy
                     configured: root.isConfigured
                     connectionOk: root.connectionState !== "error"
+                    supportsBillableEdit: root.providerCapabilities.billableEdit
+                    supportsTags: root.providerCapabilities.tags
+                    tagLookupUrl: root.kimaiUrl
+                    tagLookupToken: root.apiToken
+                    showCreateActions: root.providerCapabilities.createEntities
+                    editingExisting: root.editingStoppedTimesheet !== null && root.editingStoppedTimesheet !== undefined
                     onAboutToOpenPicker: function(projectField, activityField) {
                         root.updatePickerOpenDirection(projectField, activityField)
                     }
                     onProjectChosen: function(projectId) {
                         root.loadActivitiesForProject(projectId)
                     }
-                    onSaveRequested: function(projectId, activityId, beginText, endText, description) {
-                        root.createManualEntry(projectId, activityId, beginText, endText, description)
+                    onSaveRequested: function(projectId, activityId, beginText, endText, description, billable, tags) {
+                        root.createManualEntry(projectId, activityId, beginText, endText, description, billable, tags)
                     }
                     onCancelled: root.returnToMainView()
+                    onCreateProjectRequested: root.openCreateEntity("project")
+                    onCreateActivityRequested: root.openCreateEntity("activity")
                 }
 
                 StatsView {
@@ -2245,7 +2910,7 @@ PlasmoidItem {
                 ColumnLayout {
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
-                    visible: root.mainViewMode === "main"
+                    visible: root.mainViewMode === "main" && !root.showSetupState
 
                 // —— Hero ——
                 Rectangle {
@@ -2557,16 +3222,23 @@ PlasmoidItem {
                                 busy: root.isBusy
                                 configured: root.isConfigured
                                 connectionOk: root.connectionState !== "error"
-                                onAboutToOpenPicker: function(projectField, activityField) {
-                                    root.updatePickerOpenDirection(projectField, activityField)
-                                }
-                                onProjectChosen: function(projectId) {
-                                    root.loadActivitiesForProject(projectId)
-                                }
-                                onSaveRequested: function(projectId, activityId, beginText) {
-                                    root.saveActiveEdit(projectId, activityId, beginText)
-                                }
+                                supportsBillableEdit: root.providerCapabilities.billableEdit
+                    supportsTags: root.providerCapabilities.tags
+                    tagLookupUrl: root.kimaiUrl
+                    tagLookupToken: root.apiToken
+                    showCreateActions: root.providerCapabilities.createEntities
+                    onAboutToOpenPicker: function(projectField, activityField) {
+                        root.updatePickerOpenDirection(projectField, activityField)
+                    }
+                    onProjectChosen: function(projectId) {
+                        root.loadActivitiesForProject(projectId)
+                    }
+                    onSaveRequested: function(projectId, activityId, beginText, billable, tags) {
+                        root.saveActiveEdit(projectId, activityId, beginText, billable, tags)
+                    }
                                 onCancelled: root.closeActiveEdit()
+                                onCreateProjectRequested: root.openCreateEntity("project")
+                                onCreateActivityRequested: root.openCreateEntity("activity")
                             }
 
                             Item {
@@ -2646,6 +3318,8 @@ PlasmoidItem {
                                     height: width
                                     padding: 0
                                     display: QQC2.AbstractButton.IconOnly
+                                    icon.width: Kirigami.Units.iconSizes.small
+                                    icon.height: Kirigami.Units.iconSizes.small
                                     icon.name: root.descriptionSavedFlash
                                                ? ""
                                                : (root.savingDescription ? "view-refresh"
@@ -2668,24 +3342,34 @@ PlasmoidItem {
                                     Rectangle {
                                         visible: root.descriptionSavedFlash
                                         anchors.centerIn: parent
-                                        width: parent.width - 1
+                                        width: Kirigami.Units.iconSizes.small
                                         height: width
                                         radius: width / 2
-                                        color: Qt.rgba(root.descriptionSaveSuccessColor.r,
-                                                       root.descriptionSaveSuccessColor.g,
-                                                       root.descriptionSaveSuccessColor.b, 0.28)
-                                        border.width: 1.5
-                                        border.color: root.descriptionSaveSuccessColor
+                                        color: Qt.rgba(root.descriptionSaveMutedColor.r,
+                                                       root.descriptionSaveMutedColor.g,
+                                                       root.descriptionSaveMutedColor.b, 0.18)
+                                        border.width: 1
+                                        border.color: root.descriptionSaveMutedColor
                                     }
 
-                                    Kirigami.Icon {
+                                    // Theme icons ignore Kirigami.Icon.color; paint the check ourselves.
+                                    Shape {
+                                        id: descriptionSaveCheck
                                         visible: root.descriptionSavedFlash
                                         anchors.centerIn: parent
-                                        width: Math.round(parent.width * 0.72)
+                                        width: Kirigami.Units.iconSizes.small
                                         height: width
-                                        source: "dialog-ok-apply"
-                                        isMask: true
-                                        color: root.descriptionSaveSuccessColor
+                                        preferredRendererType: Shape.CurveRenderer
+
+                                        ShapePath {
+                                            fillColor: root.descriptionSaveSuccessColor
+                                            strokeWidth: 0
+                                            scale: Qt.size(descriptionSaveCheck.width / 16,
+                                                           descriptionSaveCheck.height / 16)
+                                            PathSvg {
+                                                path: "M13.273 3.5 5.637 11.061 2.727 8.18 2 8.9l2.908 2.879.729.721 1.09-1.08L14 4.221z"
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -2700,6 +3384,18 @@ PlasmoidItem {
                                            KimaiApi.displayActivityName(root.lastRecent, root.allActivities, root.activitiesByProject))
                                 icon.name: "media-playback-start"
                                 onClicked: root.continueLastActivity()
+                            }
+
+                            PlasmaComponents3.Button {
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+                                visible: root.showContinueHere && !root.isTracking && !root.lastRecent && root.hasLastUsed
+                                enabled: root.isConfigured && !root.isBusy && root.connectionState !== "error"
+                                text: i18n("Start · %1 · %2",
+                                           plasmoid.configuration.lastUsedProjectName || "",
+                                           plasmoid.configuration.lastUsedActivityName || "")
+                                icon.name: "media-playback-start"
+                                onClicked: root.startLastUsed()
                             }
                         }
                     }
@@ -2748,7 +3444,7 @@ PlasmoidItem {
                             }
                             rowEnabled: root.isConfigured && !root.isBusy && root.connectionState !== "error"
                             showPlayIcon: true
-                            onClicked: root.startPinned(root.pinnedEntries[index])
+                            onRowActivated: root.startPinned(root.pinnedEntries[index])
                             tooltipText: {
                                 var entry = root.pinnedEntries[index]
                                 var bits = []
@@ -2860,7 +3556,22 @@ PlasmoidItem {
                             runningHintCounterText: root.isTracking
                                                     ? KimaiApi.formatDurationPanel(root.elapsedSeconds)
                                                     : ""
-                            onClicked: root.requestRestartFromRecent(root.recentTimesheets[index])
+                            showHistoryActions: {
+                                var sheet = root.recentTimesheets[index]
+                                if (!sheet || !sheet.end || root.timesheetIsRunning(sheet)) {
+                                    return false
+                                }
+                                return root.providerCapabilities.deleteEntry
+                                       || root.providerCapabilities.editStopped
+                            }
+                            canEditStopped: root.providerCapabilities.editStopped
+                            canDeleteEntry: root.providerCapabilities.deleteEntry
+                            canSplitEntry: root.providerCapabilities.editStopped
+                                           && !!(root.recentTimesheets[index] && root.recentTimesheets[index].end)
+                            onRowActivated: root.requestRestartFromRecent(root.recentTimesheets[index])
+                            onEditRequested: root.openStoppedEdit(root.recentTimesheets[index])
+                            onDeleteRequested: root.requestDeleteStopped(root.recentTimesheets[index])
+                            onSplitRequested: root.requestSplitStopped(root.recentTimesheets[index])
                         }
                     }
 
@@ -2926,6 +3637,7 @@ PlasmoidItem {
                                  && !!root.selectedProjectId
                     projectVisible: !root.loadingProjects
                     activityVisible: !root.loadingProjects || root.activityPickerModel.length > 0
+                    showCreateActions: root.providerCapabilities.createEntities
                     onAboutToOpenPicker: function(projectField, activityField) {
                         root.updatePickerOpenDirection(projectField, activityField)
                     }
@@ -2936,6 +3648,8 @@ PlasmoidItem {
                         }
                         root.loadActivitiesForProject(switchPickers.projectPickerModel[index].value.id)
                     }
+                    onCreateProjectRequested: root.openCreateEntity("project")
+                    onCreateActivityRequested: root.openCreateEntity("activity")
                 }
 
                 QQC2.TextField {

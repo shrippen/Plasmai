@@ -19,6 +19,17 @@ TestCase {
         compare(TimeTracker.providerMeta("kimai").needsUrl, true)
         compare(TimeTracker.providerMeta("clockify").needsUrl, false)
         verify(TimeTracker.providerCapabilities("kimai").colorDistinction)
+        verify(TimeTracker.providerCapabilities("kimai").tags)
+        verify(TimeTracker.providerCapabilities("kimai").billableEdit)
+        verify(TimeTracker.providerCapabilities("toggl").tags)
+        verify(!TimeTracker.providerCapabilities("clockify").tags)
+        verify(TimeTracker.providerCapabilities("clockify").billableEdit)
+        verify(TimeTracker.providerCapabilities("kimai").deleteEntry)
+        verify(TimeTracker.providerCapabilities("kimai").editStopped)
+        verify(TimeTracker.providerCapabilities("clockify").deleteEntry)
+        verify(TimeTracker.providerCapabilities("toggl").editStopped)
+        verify(TimeTracker.providerCapabilities("kimai").createEntities)
+        verify(TimeTracker.providerCapabilities("clockify").createEntities)
         verify(TimeTracker.isImplemented("kimai"))
     }
 
@@ -33,8 +44,13 @@ TestCase {
         var api = TimeTracker.api("kimai")
         compare(typeof api.loadProjects, "function")
         compare(typeof api.startTracking, "function")
+        compare(typeof api.deleteTimesheet, "function")
+        compare(typeof api.createCustomer, "function")
+        compare(typeof api.createProject, "function")
+        compare(typeof api.createActivity, "function")
         var clockify = TimeTracker.api("clockify")
         compare(typeof clockify.loadProjects, "function")
+        compare(typeof clockify.deleteTimesheet, "function")
     }
 
     function test_displayNames() {

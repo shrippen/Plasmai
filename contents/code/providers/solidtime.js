@@ -1,5 +1,6 @@
 .pragma library
 .import "../providerUtil.js" as Util
+.import "../timesheetFields.js" as Fields
 
 var ErrorType = Util.ErrorType
 var DEFAULT_CUSTOMER_COLOR = Util.DEFAULT_CUSTOMER_COLOR
@@ -185,6 +186,7 @@ function normalizeTimesheet(entry) {
         duration: duration,
         description: entry.description || "",
         billable: !!entry.billable,
+        tags: Fields.tagsFromTimesheet(entry),
         project: projectFromIds(entry.project_id, entry.project && entry.project.name),
         activity: activityFromIds(entry.task_id, entry.task && entry.task.name)
     }
@@ -289,18 +291,19 @@ function fetchRecentTimesheets(url, token, size, callback) {
     })
 }
 
-function startTracking(url, token, projectId, activityId, description, callback) {
+function startTracking(url, token, projectId, activityId, description, callback, extras) {
     withSession(url, token, function(sessionResult) {
         if (!sessionResult.ok) {
             callback(sessionResult)
             return
         }
+        var extra = extras || {}
         var data = {
             member_id: _session.memberId,
             start: Util.isoUtc(new Date()),
             end: null,
             description: description || "",
-            billable: false
+            billable: Fields.resolveBillable(extra)
         }
         if (projectId) {
             data.project_id = projectId
@@ -361,7 +364,8 @@ function restartTimesheet(url, token, timesheetId, callback) {
                 entry.project_id || "",
                 entry.task_id || "",
                 entry.description || "",
-                callback
+                callback,
+                { billable: !!entry.billable }
             )
         })
     })
@@ -386,7 +390,7 @@ function patchTimesheet(url, token, timesheetId, fields, callback) {
             var f = fields || {}
             var payload = {
                 description: f.description !== undefined ? f.description : (existing.description || ""),
-                billable: existing.billable || false
+                billable: Fields.resolveBillable(f, existing)
             }
             if (f.begin !== undefined) {
                 var beginDate = new Date(f.begin)
@@ -398,7 +402,13 @@ function patchTimesheet(url, token, timesheetId, fields, callback) {
                 payload.start = existing.start
             }
             if (f.end !== undefined) {
-                payload.end = f.end
+                if (f.end) {
+                    var endDate = new Date(f.end)
+                    if (isNaN(endDate.getTime())) {
+                        endDate = new Date(String(f.end).replace(" ", "T"))
+                    }
+                    payload.end = Util.isoUtc(endDate)
+                }
             } else if (existing.end) {
                 payload.end = existing.end
             }
@@ -442,7 +452,7 @@ function createTimesheet(url, token, fields, callback) {
             member_id: _session.memberId,
             start: Util.isoUtc(beginDate),
             description: f.description || "",
-            billable: false
+            billable: Fields.resolveBillable(f)
         }
         if (f.end) {
             var endDate = new Date(f.end)
@@ -463,6 +473,115 @@ function createTimesheet(url, token, fields, callback) {
             } else {
                 callback(result)
             }
+        })
+    })
+}
+
+function deleteTimesheet(url, token, timesheetId, callback) {
+    if (!timesheetId) {
+        callback(Util.fail({ type: "config", status: 0, detail: "" }))
+        return
+    }
+    withSession(url, token, function(sessionResult) {
+        if (!sessionResult.ok) {
+            callback(sessionResult)
+            return
+        }
+        request("DELETE", url, token, orgPath("/time-entries/" + timesheetId), "", false, function(result) {
+            callback(result)
+        })
+    })
+}
+
+function createCustomer(url, token, fields, callback) {
+    var name = String((fields && fields.name) || "").trim()
+    if (!name) {
+        callback(Util.fail({ type: "config", status: 0, detail: "name is required" }))
+        return
+    }
+    withSession(url, token, function(sessionResult) {
+        if (!sessionResult.ok) {
+            callback(sessionResult)
+            return
+        }
+        request("POST", url, token, orgPath("/clients"), JSON.stringify({ name: name }), true, function(result) {
+            if (!result.ok) {
+                callback(result)
+                return
+            }
+            var c = Util.unwrapData(result.data) || {}
+            _session.clientsById[c.id] = c
+            callback(Util.ok({
+                id: c.id,
+                name: c.name || name,
+                color: DEFAULT_CUSTOMER_COLOR
+            }))
+        })
+    })
+}
+
+function createProject(url, token, fields, callback) {
+    var f = fields || {}
+    var name = String(f.name || "").trim()
+    if (!name || !f.customer) {
+        callback(Util.fail({ type: "config", status: 0, detail: "name and customer are required" }))
+        return
+    }
+    withSession(url, token, function(sessionResult) {
+        if (!sessionResult.ok) {
+            callback(sessionResult)
+            return
+        }
+        var payload = {
+            name: name,
+            client_id: f.customer,
+            billable: Fields.resolveBillable(f)
+        }
+        request("POST", url, token, orgPath("/projects"), JSON.stringify(payload), true, function(result) {
+            if (!result.ok) {
+                callback(result)
+                return
+            }
+            var p = Util.unwrapData(result.data) || {}
+            _session.projectsById[p.id] = p
+            callback(Util.ok({
+                id: p.id,
+                name: p.name || name,
+                customer: f.customer,
+                color: DEFAULT_CUSTOMER_COLOR
+            }))
+        })
+    })
+}
+
+function createActivity(url, token, fields, callback) {
+    var f = fields || {}
+    var name = String(f.name || "").trim()
+    if (!name || !f.project) {
+        callback(Util.fail({ type: "config", status: 0, detail: "name and project are required" }))
+        return
+    }
+    withSession(url, token, function(sessionResult) {
+        if (!sessionResult.ok) {
+            callback(sessionResult)
+            return
+        }
+        var payload = {
+            name: name,
+            project_id: f.project
+        }
+        request("POST", url, token, orgPath("/tasks"), JSON.stringify(payload), true, function(result) {
+            if (!result.ok) {
+                callback(result)
+                return
+            }
+            var t = Util.unwrapData(result.data) || {}
+            _session.tasksById[t.id] = t
+            callback(Util.ok({
+                id: t.id,
+                name: t.name || name,
+                project: f.project
+            }))
         })
     })
 }

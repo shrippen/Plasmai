@@ -374,17 +374,36 @@ ConfigPage {
         }
     }
 
-    Component.onDestruction: Secret.cancelAll(execSource)
+    property bool loadScheduled: false
 
-    onPageEntered: {
-        // Show catalog immediately — do not wait for shared.json.
-        page.loadCatalog(false)
+    function scheduleContentLoad() {
+        if (loadScheduled) {
+            return
+        }
+        loadScheduled = true
+        Qt.callLater(function() {
+            loadScheduled = false
+            page.loadPageContent()
+        })
+    }
+
+    function loadPageContent() {
+        if (!page.visible) {
+            return
+        }
         Secret.loadSharedConfig(execSource, page.sharedConfigScript, function(shared) {
             if (shared) {
                 SharedConfig.applyToConfiguration(plasmoid.configuration, shared)
             }
+            page.loadCatalog(false)
         })
     }
+
+    onVisibleChanged: if (visible) scheduleContentLoad()
+
+    Component.onDestruction: Secret.cancelAll(execSource)
+
+    onPageEntered: scheduleContentLoad()
 
     ColumnLayout {
         anchors.fill: parent

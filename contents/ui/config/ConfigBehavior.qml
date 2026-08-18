@@ -23,6 +23,133 @@ ConfigPage {
 
     property bool syncing: false
     property bool ready: false
+    property bool suppressNotify: false
+    property string loadedBehaviorState: ""
+
+    function coerceIdleMinutes(value, fallback) {
+        return SharedConfig.coerceInt(value, fallback, 1, 240)
+    }
+
+    function behaviorPatch() {
+        return {
+            confirmBeforeStop: confirmBeforeStopCheck.checked,
+            idleStopEnabled: idleStopCheck.checked,
+            idleStopMinutes: idleStopSpin.value,
+            notifyOnStart: notifyStartCheck.checked,
+            notifyOnStop: notifyStopCheck.checked,
+            notifyOnIdleStop: notifyIdleStopCheck.checked,
+            notifyForgotToStart: notifyForgotCheck.checked
+        }
+    }
+
+    function behaviorState() {
+        return JSON.stringify(behaviorPatch())
+    }
+
+    function syncBehaviorToCfg() {
+        page.cfg_confirmBeforeStop = confirmBeforeStopCheck.checked
+        page.cfg_idleStopEnabled = idleStopCheck.checked
+        page.cfg_idleStopMinutes = idleStopSpin.value
+        page.cfg_notifyOnStart = notifyStartCheck.checked
+        page.cfg_notifyOnStop = notifyStopCheck.checked
+        page.cfg_notifyOnIdleStop = notifyIdleStopCheck.checked
+        page.cfg_notifyForgotToStart = notifyForgotCheck.checked
+    }
+
+    function applyCfgToControls() {
+        suppressNotify = true
+        confirmBeforeStopCheck.checked = page.boolFrom(
+            page.cfg_confirmBeforeStop, plasmoid.configuration.confirmBeforeStop, false)
+        idleStopCheck.checked = page.boolFrom(
+            page.cfg_idleStopEnabled, plasmoid.configuration.idleStopEnabled, false)
+        idleStopSpin.value = page.coerceIdleMinutes(
+            plasmoid.configuration.idleStopMinutes !== undefined
+                ? plasmoid.configuration.idleStopMinutes
+                : page.cfg_idleStopMinutes,
+            page.cfg_idleStopMinutesDefault || 15)
+        notifyStartCheck.checked = page.boolFrom(
+            page.cfg_notifyOnStart, plasmoid.configuration.notifyOnStart, true)
+        notifyStopCheck.checked = page.boolFrom(
+            page.cfg_notifyOnStop, plasmoid.configuration.notifyOnStop, true)
+        notifyIdleStopCheck.checked = page.boolFrom(
+            page.cfg_notifyOnIdleStop, plasmoid.configuration.notifyOnIdleStop, true)
+        notifyForgotCheck.checked = page.boolFrom(
+            page.cfg_notifyForgotToStart, plasmoid.configuration.notifyForgotToStart, false)
+        syncBehaviorToCfg()
+    }
+
+    function boolFrom(cfg, live, fallback) {
+        function coerce(value, ifMissing) {
+            if (typeof value === "boolean") {
+                return value
+            }
+            if (value === "true" || value === 1 || value === "1") {
+                return true
+            }
+            if (value === "false" || value === 0 || value === "0") {
+                return false
+            }
+            return ifMissing
+        }
+        var fromLive = coerce(live, undefined)
+        if (typeof fromLive === "boolean") {
+            return fromLive
+        }
+        var fromCfg = coerce(cfg, undefined)
+        if (typeof fromCfg === "boolean") {
+            return fromCfg
+        }
+        return fallback
+    }
+
+    function applySharedToControls(shared) {
+        if (!shared) {
+            return
+        }
+        suppressNotify = true
+        if (typeof shared.confirmBeforeStop === "boolean") {
+            confirmBeforeStopCheck.checked = shared.confirmBeforeStop
+        }
+        if (typeof shared.idleStopEnabled === "boolean") {
+            idleStopCheck.checked = shared.idleStopEnabled
+        }
+        if (shared.idleStopMinutes !== undefined && shared.idleStopMinutes !== null) {
+            idleStopSpin.value = page.coerceIdleMinutes(
+                shared.idleStopMinutes, idleStopSpin.value)
+        }
+        if (typeof shared.notifyOnStart === "boolean") {
+            notifyStartCheck.checked = shared.notifyOnStart
+        }
+        if (typeof shared.notifyOnStop === "boolean") {
+            notifyStopCheck.checked = shared.notifyOnStop
+        }
+        if (typeof shared.notifyOnIdleStop === "boolean") {
+            notifyIdleStopCheck.checked = shared.notifyOnIdleStop
+        }
+        if (typeof shared.notifyForgotToStart === "boolean") {
+            notifyForgotCheck.checked = shared.notifyForgotToStart
+        }
+        syncBehaviorToCfg()
+    }
+
+    function notifyEdited() {
+        if (suppressNotify || syncing || !ready) {
+            return
+        }
+        syncBehaviorToCfg()
+        var currentState = behaviorState()
+        if (currentState === loadedBehaviorState) {
+            if (unsavedChanges) {
+                unsavedChanges = false
+                configurationChanged()
+                persistShared()
+            }
+            return
+        }
+        unsavedChanges = true
+        configurationChanged()
+        persistShared()
+    }
 
     P5Support.DataSource {
         id: execSource
@@ -37,54 +164,57 @@ ConfigPage {
         if (syncing || !ready) {
             return
         }
-        Secret.persistSharedPatch(execSource, page.sharedConfigScript, plasmoid.configuration, {
-            confirmBeforeStop: confirmBeforeStopCheck.checked,
-            idleStopEnabled: idleStopCheck.checked,
-            idleStopMinutes: idleStopSpin.value,
-            notifyOnStart: notifyStartCheck.checked,
-            notifyOnStop: notifyStopCheck.checked,
-            notifyOnIdleStop: notifyIdleStopCheck.checked
-        })
+        Secret.persistSharedPatch(execSource, page.sharedConfigScript, plasmoid.configuration, page.behaviorPatch())
     }
+
+    function persistBehaviorConfig() {
+        syncBehaviorToCfg()
+        var patch = page.behaviorPatch()
+        Secret.persistSharedPatch(execSource, page.sharedConfigScript, plasmoid.configuration, patch)
+        loadedBehaviorState = JSON.stringify(patch)
+        unsavedChanges = false
+    }
+
+    property var saveConfig: persistBehaviorConfig
 
     Component.onDestruction: Secret.cancelAll(execSource)
 
-    onPageEntered: {
-        confirmBeforeStopCheck.checked = !!page.cfg_confirmBeforeStop
-        idleStopCheck.checked = !!page.cfg_idleStopEnabled
-        if (typeof page.cfg_idleStopMinutes === "number") {
-            idleStopSpin.value = page.cfg_idleStopMinutes
+    property bool reloadScheduled: false
+
+    function scheduleBehaviorReload() {
+        if (reloadScheduled) {
+            return
         }
-        notifyStartCheck.checked = page.cfg_notifyOnStart !== false
-        notifyStopCheck.checked = page.cfg_notifyOnStop !== false
-        notifyIdleStopCheck.checked = page.cfg_notifyOnIdleStop !== false
-        Secret.loadSharedConfig(execSource, page.sharedConfigScript, function(shared) {
-            if (shared) {
-                syncing = true
-                SharedConfig.applyToConfiguration(plasmoid.configuration, shared)
-                if (typeof shared.confirmBeforeStop === "boolean") {
-                    confirmBeforeStopCheck.checked = shared.confirmBeforeStop
-                }
-                if (typeof shared.idleStopEnabled === "boolean") {
-                    idleStopCheck.checked = shared.idleStopEnabled
-                }
-                if (typeof shared.idleStopMinutes === "number") {
-                    idleStopSpin.value = shared.idleStopMinutes
-                }
-                if (typeof shared.notifyOnStart === "boolean") {
-                    notifyStartCheck.checked = shared.notifyOnStart
-                }
-                if (typeof shared.notifyOnStop === "boolean") {
-                    notifyStopCheck.checked = shared.notifyOnStop
-                }
-                if (typeof shared.notifyOnIdleStop === "boolean") {
-                    notifyIdleStopCheck.checked = shared.notifyOnIdleStop
-                }
-                syncing = false
+        reloadScheduled = true
+        Qt.callLater(function() {
+            reloadScheduled = false
+            if (!page.visible) {
+                return
             }
-            ready = true
+            ready = false
+            Secret.loadSharedConfig(execSource, page.sharedConfigScript, function(shared) {
+                syncing = true
+                suppressNotify = true
+                applyCfgToControls()
+                if (shared) {
+                    SharedConfig.applyToConfiguration(plasmoid.configuration, shared)
+                    applySharedToControls(shared)
+                }
+                loadedBehaviorState = behaviorState()
+                unsavedChanges = false
+                Qt.callLater(function() {
+                    suppressNotify = false
+                    syncing = false
+                    loadedBehaviorState = behaviorState()
+                    unsavedChanges = false
+                    ready = true
+                })
+            })
         })
     }
+
+    onVisibleChanged: if (visible) scheduleBehaviorReload()
+    onPageEntered: scheduleBehaviorReload()
 
     QQC2.ScrollView {
         id: scroll
@@ -119,10 +249,7 @@ ConfigPage {
                     Layout.fillWidth: true
                     Layout.maximumWidth: page.buddyMaxWidth(behaviorForm)
                     text: i18n("Confirm before stopping the timer")
-                    onCheckedChanged: {
-                        page.cfg_confirmBeforeStop = checked
-                        page.persistShared()
-                    }
+                    onCheckedChanged: page.notifyEdited()
                 }
 
                 QQC2.CheckBox {
@@ -131,10 +258,7 @@ ConfigPage {
                     Layout.fillWidth: true
                     Layout.maximumWidth: page.buddyMaxWidth(behaviorForm)
                     text: i18n("Stop timer when idle")
-                    onCheckedChanged: {
-                        page.cfg_idleStopEnabled = checked
-                        page.persistShared()
-                    }
+                    onCheckedChanged: page.notifyEdited()
                 }
 
                 QQC2.SpinBox {
@@ -144,10 +268,7 @@ ConfigPage {
                     to: 240
                     stepSize: 1
                     enabled: idleStopCheck.checked
-                    onValueChanged: {
-                        page.cfg_idleStopMinutes = value
-                        page.persistShared()
-                    }
+                    onValueChanged: page.notifyEdited()
                 }
 
                 QQC2.Label {
@@ -157,7 +278,7 @@ ConfigPage {
                     wrapMode: Text.WordWrap
                     opacity: 0.75
                     font.pointSize: Kirigami.Theme.smallFont.pointSize
-                    text: i18n("Idle detection requires xprintidle (X11/XWayland). It may not work on pure Wayland sessions.")
+                    text: i18n("Idle detection uses the session idle hint on Wayland (loginctl / ScreenSaver) and xprintidle on X11.")
                 }
 
                 QQC2.CheckBox {
@@ -166,10 +287,7 @@ ConfigPage {
                     Layout.fillWidth: true
                     Layout.maximumWidth: page.buddyMaxWidth(behaviorForm)
                     text: i18n("Notify when tracking starts")
-                    onCheckedChanged: {
-                        page.cfg_notifyOnStart = checked
-                        page.persistShared()
-                    }
+                    onCheckedChanged: page.notifyEdited()
                 }
 
                 QQC2.CheckBox {
@@ -178,10 +296,7 @@ ConfigPage {
                     Layout.fillWidth: true
                     Layout.maximumWidth: page.buddyMaxWidth(behaviorForm)
                     text: i18n("Notify when tracking stops")
-                    onCheckedChanged: {
-                        page.cfg_notifyOnStop = checked
-                        page.persistShared()
-                    }
+                    onCheckedChanged: page.notifyEdited()
                 }
 
                 QQC2.CheckBox {
@@ -191,10 +306,16 @@ ConfigPage {
                     Layout.maximumWidth: page.buddyMaxWidth(behaviorForm)
                     text: i18n("Notify when stopped due to idle")
                     enabled: idleStopCheck.checked
-                    onCheckedChanged: {
-                        page.cfg_notifyOnIdleStop = checked
-                        page.persistShared()
-                    }
+                    onCheckedChanged: page.notifyEdited()
+                }
+
+                QQC2.CheckBox {
+                    id: notifyForgotCheck
+                    Kirigami.FormData.label: page.formWide ? " " : ""
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(behaviorForm)
+                    text: i18n("Remind me once if nothing is tracking during work hours")
+                    onCheckedChanged: page.notifyEdited()
                 }
             }
         }

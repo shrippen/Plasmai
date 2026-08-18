@@ -1,5 +1,7 @@
 .pragma library
 .import "./colorDistinct.js" as ColorDistinct
+.import "./timesheetFields.js" as Fields
+.import "./workContractAdjust.js" as WorkAdjust
 
 var ErrorType = {
     Network: "network",
@@ -53,9 +55,38 @@ function parseJson(responseText, fallback) {
     }
 }
 
+function collectFormErrors(errors, prefix) {
+    var out = []
+    if (!errors) {
+        return out
+    }
+    var i
+    if (errors.errors && errors.errors.length) {
+        for (i = 0; i < errors.errors.length; i++) {
+            out.push(prefix ? (prefix + ": " + errors.errors[i]) : String(errors.errors[i]))
+        }
+    }
+    var children = errors.children
+    if (children) {
+        for (var key in children) {
+            if (!children.hasOwnProperty(key)) {
+                continue
+            }
+            var nested = collectFormErrors(children[key], key)
+            for (i = 0; i < nested.length; i++) {
+                out.push(nested[i])
+            }
+        }
+    }
+    return out
+}
+
 function parseApiError(status, statusText, responseText) {
     var body = parseJson(responseText, {})
-    var detail = body.title || body.detail || body.message || body["hydra:description"] || ""
+    var formBits = collectFormErrors(body.errors)
+    var detail = formBits.length
+        ? formBits.join("; ")
+        : (body.title || body.detail || body.message || body["hydra:description"] || "")
 
     if (status === 0) {
         return { type: ErrorType.Network, status: 0, detail: detail }
@@ -73,6 +104,20 @@ function parseApiError(status, statusText, responseText) {
         return { type: ErrorType.Server, status: status, detail: detail }
     }
     return { type: ErrorType.Unknown, status: status, detail: detail || statusText }
+}
+
+/** Kimai PATCH may return HTTP 200 with a form-error body instead of 400. */
+function isFormErrorBody(body) {
+    if (!body || typeof body !== "object") {
+        return false
+    }
+    if (body.message === "Validation Failed" || body.code === 400) {
+        return true
+    }
+    if (body.errors && (body.errors.children || body.errors.errors) && body.id === undefined) {
+        return true
+    }
+    return false
 }
 
 function ok(data) {
@@ -332,6 +377,108 @@ function loadAllActivities(kimaiUrl, apiToken, callback) {
     getJsonAllPages(kimaiUrl, apiToken, "/api/activities?visible=3&order=ASC&orderBy=name", callback)
 }
 
+function customerCreateDefaults(customers) {
+    var list = customers || []
+    var i
+    for (i = 0; i < list.length; i++) {
+        var c = list[i] || {}
+        if (c.country && c.currency && c.timezone) {
+            return {
+                country: c.country,
+                currency: c.currency,
+                timezone: c.timezone
+            }
+        }
+    }
+    return { country: "DE", currency: "EUR", timezone: "UTC" }
+}
+
+function createCustomer(kimaiUrl, apiToken, fields, callback) {
+    if (!kimaiUrl || !apiToken) {
+        callback(fail({ type: "config", status: 0, detail: "" }))
+        return
+    }
+    var f = fields || {}
+    var name = String(f.name || "").trim()
+    if (!name) {
+        callback(fail({ type: "config", status: 0, detail: "name is required" }))
+        return
+    }
+    var defaults = customerCreateDefaults(f.customers)
+    var data = {
+        name: name,
+        visible: true,
+        billable: true,
+        country: f.country || defaults.country,
+        currency: f.currency || defaults.currency,
+        timezone: f.timezone || defaults.timezone
+    }
+    var xhr = createRequest("POST", kimaiUrl, "/api/customers", apiToken, true)
+    runRequest(xhr, JSON.stringify(data), function(status, responseText, statusText) {
+        if (status === 200 || status === 201) {
+            callback(ok(parseJson(responseText, null)))
+        } else {
+            callback(fail(parseApiError(status, statusText, responseText)))
+        }
+    })
+}
+
+function createProject(kimaiUrl, apiToken, fields, callback) {
+    if (!kimaiUrl || !apiToken) {
+        callback(fail({ type: "config", status: 0, detail: "" }))
+        return
+    }
+    var f = fields || {}
+    var name = String(f.name || "").trim()
+    if (!name || !f.customer) {
+        callback(fail({ type: "config", status: 0, detail: "name and customer are required" }))
+        return
+    }
+    var data = {
+        name: name,
+        customer: f.customer,
+        visible: true,
+        billable: true
+    }
+    var xhr = createRequest("POST", kimaiUrl, "/api/projects", apiToken, true)
+    runRequest(xhr, JSON.stringify(data), function(status, responseText, statusText) {
+        if (status === 200 || status === 201) {
+            callback(ok(parseJson(responseText, null)))
+        } else {
+            callback(fail(parseApiError(status, statusText, responseText)))
+        }
+    })
+}
+
+function createActivity(kimaiUrl, apiToken, fields, callback) {
+    if (!kimaiUrl || !apiToken) {
+        callback(fail({ type: "config", status: 0, detail: "" }))
+        return
+    }
+    var f = fields || {}
+    var name = String(f.name || "").trim()
+    if (!name) {
+        callback(fail({ type: "config", status: 0, detail: "name is required" }))
+        return
+    }
+    var data = {
+        name: name,
+        visible: true,
+        billable: true
+    }
+    if (f.project) {
+        data.project = f.project
+    }
+    var xhr = createRequest("POST", kimaiUrl, "/api/activities", apiToken, true)
+    runRequest(xhr, JSON.stringify(data), function(status, responseText, statusText) {
+        if (status === 200 || status === 201) {
+            callback(ok(parseJson(responseText, null)))
+        } else {
+            callback(fail(parseApiError(status, statusText, responseText)))
+        }
+    })
+}
+
 function activityProjectId(activity) {
     if (!activity || activity.project === null || activity.project === undefined || activity.project === "") {
         return 0
@@ -522,18 +669,79 @@ function setSession(/* session */) {
     // Kimai needs no extra session context (url + token suffice).
 }
 
-function startTracking(kimaiUrl, apiToken, projectId, activityId, description, callback) {
+function startTracking(kimaiUrl, apiToken, projectId, activityId, description, callback, extras) {
+    var extra = extras || {}
     createTimesheet(kimaiUrl, apiToken, {
         begin: localDateTimeString(new Date()),
         project: projectId,
         activity: activityId,
-        description: description || ""
+        description: description || "",
+        billable: Fields.resolveBillable(extra),
+        tags: Fields.resolveTags(extra)
     }, callback)
+}
+
+function writeEntityId(value) {
+    if (value === null || value === undefined || value === "") {
+        return undefined
+    }
+    if (typeof value === "object") {
+        return writeEntityId(value.id)
+    }
+    var n = Number(value)
+    return isNaN(n) ? value : n
+}
+
+/**
+ * Kimai TimesheetApiEditForm: tags is a text field (comma-separated),
+ * billable is a boolean, project/activity are integers. Sending a JSON
+ * array for tags yields "Validation Failed".
+ * fields: { begin, end?, project, activity, description?, billable?, tags?, exported? }
+ */
+function serializeTimesheetWrite(fields) {
+    var f = fields || {}
+    var data = {}
+    if (f.begin) {
+        data.begin = String(f.begin)
+    }
+    if (f.end) {
+        data.end = String(f.end)
+    }
+    var pid = writeEntityId(f.project)
+    if (pid !== undefined) {
+        data.project = pid
+    }
+    var aid = writeEntityId(f.activity)
+    if (aid !== undefined) {
+        data.activity = aid
+    }
+    if (f.description !== undefined) {
+        data.description = String(f.description || "")
+    }
+    if (f.billable !== undefined && f.billable !== null) {
+        data.billable = Fields.resolveBillable(f)
+    }
+    if (f.tags !== undefined) {
+        data.tags = Fields.formatTagString(f.tags)
+    }
+    if (f.exported !== undefined && f.exported !== null) {
+        data.exported = !!f.exported
+    }
+    return data
+}
+
+function finishTimesheetWrite(status, responseText, statusText, callback) {
+    var body = parseJson(responseText, null)
+    if (status >= 200 && status < 300 && !isFormErrorBody(body)) {
+        callback(ok(body))
+        return
+    }
+    callback(fail(parseApiError(status >= 200 && status < 300 ? 400 : status, statusText, responseText)))
 }
 
 /**
  * Create a timesheet (running if end omitted).
- * fields: { begin, end?, project, activity, description }
+ * fields: { begin, end?, project, activity, description, billable?, tags? }
  */
 function createTimesheet(kimaiUrl, apiToken, fields, callback) {
     if (!kimaiUrl || !apiToken) {
@@ -546,25 +754,20 @@ function createTimesheet(kimaiUrl, apiToken, fields, callback) {
         return
     }
 
-    var data = {
+    var data = serializeTimesheetWrite({
         begin: f.begin,
+        end: f.end,
         project: f.project,
         activity: f.activity,
         description: f.description || "",
         exported: false,
-        billable: false
-    }
-    if (f.end) {
-        data.end = f.end
-    }
+        billable: Fields.resolveBillable(f),
+        tags: Fields.resolveTags(f)
+    })
 
     var xhr = createRequest("POST", kimaiUrl, "/api/timesheets", apiToken, true)
     runRequest(xhr, JSON.stringify(data), function(status, responseText, statusText) {
-        if (status === 200 || status === 201) {
-            callback(ok(parseJson(responseText, null)))
-        } else {
-            callback(fail(parseApiError(status, statusText, responseText)))
-        }
+        finishTimesheetWrite(status, responseText, statusText, callback)
     })
 }
 
@@ -606,10 +809,23 @@ function patchTimesheet(kimaiUrl, apiToken, timesheetId, fields, callback) {
         return
     }
 
+    var data = serializeTimesheetWrite(fields)
     var xhr = createRequest("PATCH", kimaiUrl, "/api/timesheets/" + timesheetId, apiToken, true)
-    runRequest(xhr, JSON.stringify(fields || {}), function(status, responseText, statusText) {
+    runRequest(xhr, JSON.stringify(data), function(status, responseText, statusText) {
+        finishTimesheetWrite(status, responseText, statusText, callback)
+    })
+}
+
+function deleteTimesheet(kimaiUrl, apiToken, timesheetId, callback) {
+    if (!kimaiUrl || !apiToken || !timesheetId) {
+        callback(fail({ type: "config", status: 0, detail: "" }))
+        return
+    }
+
+    var xhr = createRequest("DELETE", kimaiUrl, "/api/timesheets/" + timesheetId, apiToken, false)
+    runRequest(xhr, "", function(status, responseText, statusText) {
         if (status >= 200 && status < 300) {
-            callback(ok(parseJson(responseText, null)))
+            callback(ok(null))
         } else {
             callback(fail(parseApiError(status, statusText, responseText)))
         }
@@ -618,6 +834,90 @@ function patchTimesheet(kimaiUrl, apiToken, timesheetId, fields, callback) {
 
 function fetchCurrentUser(kimaiUrl, apiToken, callback) {
     getJson(kimaiUrl, apiToken, "/api/users/me", {}, callback)
+}
+
+/** kimai-holiday-bundle: approved absences for a calendar year. */
+function fetchHolidayAbsences(kimaiUrl, apiToken, year, callback) {
+    var y = year || new Date().getFullYear()
+    getJson(kimaiUrl, apiToken, "/api/holiday/absences?year=" + encodeURIComponent(String(y)), [], callback)
+}
+
+/** kimai-holiday-bundle: public holidays for the user's assigned group. */
+function fetchHolidayPublicHolidays(kimaiUrl, apiToken, year, callback) {
+    var y = year || new Date().getFullYear()
+    getJson(kimaiUrl, apiToken, "/api/holiday/public-holidays?year=" + encodeURIComponent(String(y)), [], callback)
+}
+
+function effectiveWeekTargetSeconds(prefs, date, absences, publicHolidays) {
+    return WorkAdjust.effectiveWeekTargetSeconds(prefs, date || new Date(), absences, publicHolidays, workDaySecondsFromPrefs)
+}
+
+/** Kimai tag catalog for autocomplete (/api/tags/find). Requires `name` query param. */
+function tagsFindEndpoint(term) {
+    return "/api/tags/find?name=" + encodeURIComponent(String(term || "").trim())
+}
+
+function tagEntityName(item) {
+    if (typeof item === "string") {
+        return String(item).trim()
+    }
+    return String(item && (item.name || item.tag || item.title) || "").trim()
+}
+
+/** Resolved display color from Kimai TagEntity (`color-safe` when explicit color is absent). */
+function tagEntityColor(item) {
+    if (!item || typeof item !== "object") {
+        return DEFAULT_CUSTOMER_COLOR
+    }
+    var raw = item["color-safe"] || item.color || ""
+    if (raw === null || raw === undefined || String(raw).trim().length === 0) {
+        var name = tagEntityName(item)
+        return name ? colorFromTagName(name) : DEFAULT_CUSTOMER_COLOR
+    }
+    return normalizeCustomerColor(raw)
+}
+
+/** Deterministic accent when Kimai has not assigned an explicit tag color yet. */
+function colorFromTagName(name) {
+    var s = String(name || "")
+    var hash = 0
+    for (var i = 0; i < s.length; i++) {
+        hash = ((hash << 5) - hash + s.charCodeAt(i)) | 0
+    }
+    var hue = Math.abs(hash) % 360
+    var sNorm = 0.52
+    var lNorm = 0.54
+    var c = (1 - Math.abs(2 * lNorm - 1)) * sNorm
+    var x = c * (1 - Math.abs((hue / 60) % 2 - 1))
+    var m = lNorm - c / 2
+    var r = 0
+    var g = 0
+    var b = 0
+    if (hue < 60) {
+        r = c; g = x; b = 0
+    } else if (hue < 120) {
+        r = x; g = c; b = 0
+    } else if (hue < 180) {
+        r = 0; g = c; b = x
+    } else if (hue < 240) {
+        r = 0; g = x; b = c
+    } else if (hue < 300) {
+        r = x; g = 0; b = c
+    } else {
+        r = c; g = 0; b = x
+    }
+    function hex(n) {
+        var v = Math.round((n + m) * 255)
+        if (v < 0) v = 0
+        if (v > 255) v = 255
+        var h = v.toString(16)
+        return h.length === 1 ? "0" + h : h
+    }
+    return "#" + hex(r) + hex(g) + hex(b)
+}
+
+function loadTags(kimaiUrl, apiToken, term, callback) {
+    getJson(kimaiUrl, apiToken, tagsFindEndpoint(term), [], callback)
 }
 
 function localDateTimeString(date) {
@@ -1078,8 +1378,10 @@ function hydrateTimesheets(entries, projects, activities, activitiesByProject) {
             if (activityObj) {
                 copy.activity = activityObj
             }
+            Fields.attachKimaiShape(copy, ts)
             out.push(copy)
         } else {
+            Fields.attachKimaiShape(ts, ts)
             out.push(ts)
         }
     }
@@ -1123,6 +1425,21 @@ function parseTimeToMinutes(value, fallbackMinutes) {
     hours = Math.max(0, Math.min(23, hours))
     minutes = Math.max(0, Math.min(59, minutes))
     return hours * 60 + minutes
+}
+
+/** True when `date` (or now) is inside configured work hours. Overnight ranges wrap. */
+function isWithinWorkHours(beginText, endText, date) {
+    var d = date && !isNaN(date.getTime()) ? date : new Date()
+    var nowMin = d.getHours() * 60 + d.getMinutes()
+    var beginMin = parseTimeToMinutes(beginText, 8 * 60)
+    var endMin = parseTimeToMinutes(endText, 18 * 60)
+    if (beginMin === endMin) {
+        return true
+    }
+    if (beginMin < endMin) {
+        return nowMin >= beginMin && nowMin < endMin
+    }
+    return nowMin >= beginMin || nowMin < endMin
 }
 
 function secondsOfLocalDay(date) {

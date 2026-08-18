@@ -1,5 +1,6 @@
 .pragma library
 .import "../providerUtil.js" as Util
+.import "../timesheetFields.js" as Fields
 
 var ErrorType = Util.ErrorType
 var DEFAULT_CUSTOMER_COLOR = Util.DEFAULT_CUSTOMER_COLOR
@@ -174,6 +175,7 @@ function normalizeTimesheet(entry) {
         duration: duration,
         description: entry.description || "",
         billable: !!entry.billable,
+        tags: Fields.tagsFromTimesheet(entry),
         project: projectFromEntry(entry),
         activity: activityFromEntry(entry)
     }
@@ -241,19 +243,24 @@ function fetchRecentTimesheets(url, token, size, callback) {
     })
 }
 
-function startTracking(url, token, projectId, activityId, description, callback) {
+function startTracking(url, token, projectId, activityId, description, callback, extras) {
     withSession(url, token, function(sessionResult) {
         if (!sessionResult.ok) {
             callback(sessionResult)
             return
         }
+        var extra = extras || {}
         var data = {
             created_with: "Plasmai",
             description: description || "",
             start: Util.isoUtc(new Date()),
             duration: -1,
             workspace_id: _session.workspaceId,
-            billable: false
+            billable: Fields.resolveBillable(extra)
+        }
+        var tags = Fields.resolveTags(extra)
+        if (tags.length) {
+            data.tags = tags
         }
         var pid = intId(projectId)
         if (pid) {
@@ -310,7 +317,8 @@ function restartTimesheet(url, token, timesheetId, callback) {
             entry.project_id || entry.pid || 0,
             entry.task_id || entry.tid || 0,
             entry.description || "",
-            callback
+            callback,
+            { billable: !!entry.billable, tags: Fields.tagsFromTimesheet(entry) }
         )
     })
 }
@@ -344,10 +352,16 @@ function patchTimesheet(url, token, timesheetId, fields, callback) {
                 description: f.description !== undefined ? f.description : (existing.description || ""),
                 start: startVal,
                 workspace_id: _session.workspaceId,
-                billable: existing.billable || false
+                billable: Fields.resolveBillable(f, existing)
             }
             if (f.end !== undefined) {
-                payload.stop = f.end
+                if (f.end) {
+                    var endDate = new Date(f.end)
+                    if (isNaN(endDate.getTime())) {
+                        endDate = new Date(String(f.end).replace(" ", "T"))
+                    }
+                    payload.stop = Util.isoUtc(endDate)
+                }
             } else if (existing.stop) {
                 payload.stop = existing.stop
             }
@@ -370,6 +384,7 @@ function patchTimesheet(url, token, timesheetId, fields, callback) {
             } else if (existing.duration !== undefined && existing.duration !== null) {
                 payload.duration = existing.duration
             }
+            payload.tags = Fields.resolveTags(f, existing)
             request("PUT", url, token, "/workspaces/" + _session.workspaceId + "/time_entries/" + timesheetId, JSON.stringify(payload), true, function(result) {
                 if (result.ok) {
                     callback(Util.ok(normalizeTimesheet(result.data)))
@@ -401,7 +416,11 @@ function createTimesheet(url, token, fields, callback) {
             description: f.description || "",
             start: beginIso,
             workspace_id: _session.workspaceId,
-            billable: false
+            billable: Fields.resolveBillable(f)
+        }
+        var tags = Fields.resolveTags(f)
+        if (tags.length) {
+            data.tags = tags
         }
         if (f.end) {
             var endDate = new Date(f.end)
@@ -427,6 +446,120 @@ function createTimesheet(url, token, fields, callback) {
             } else {
                 callback(result)
             }
+        })
+    })
+}
+
+function deleteTimesheet(url, token, timesheetId, callback) {
+    if (!timesheetId) {
+        callback(Util.fail({ type: "config", status: 0, detail: "" }))
+        return
+    }
+    withSession(url, token, function(sessionResult) {
+        if (!sessionResult.ok) {
+            callback(sessionResult)
+            return
+        }
+        request("DELETE", url, token, "/workspaces/" + _session.workspaceId + "/time_entries/" + timesheetId, "", false, function(result) {
+            callback(result)
+        })
+    })
+}
+
+function createCustomer(url, token, fields, callback) {
+    var name = String((fields && fields.name) || "").trim()
+    if (!name) {
+        callback(Util.fail({ type: "config", status: 0, detail: "name is required" }))
+        return
+    }
+    withSession(url, token, function(sessionResult) {
+        if (!sessionResult.ok) {
+            callback(sessionResult)
+            return
+        }
+        request("POST", url, token, "/workspaces/" + _session.workspaceId + "/clients", JSON.stringify({ name: name }), true, function(result) {
+            if (!result.ok) {
+                callback(result)
+                return
+            }
+            var c = result.data || {}
+            _session.clientsById[c.id] = c
+            callback(Util.ok({
+                id: c.id,
+                name: c.name || name,
+                color: DEFAULT_CUSTOMER_COLOR
+            }))
+        })
+    })
+}
+
+function createProject(url, token, fields, callback) {
+    var f = fields || {}
+    var name = String(f.name || "").trim()
+    if (!name) {
+        callback(Util.fail({ type: "config", status: 0, detail: "name is required" }))
+        return
+    }
+    withSession(url, token, function(sessionResult) {
+        if (!sessionResult.ok) {
+            callback(sessionResult)
+            return
+        }
+        var payload = {
+            name: name,
+            active: true,
+            is_private: true,
+            billable: Fields.resolveBillable(f)
+        }
+        if (f.customer) {
+            payload.client_id = intId(f.customer)
+        }
+        request("POST", url, token, "/workspaces/" + _session.workspaceId + "/projects", JSON.stringify(payload), true, function(result) {
+            if (!result.ok) {
+                callback(result)
+                return
+            }
+            var p = result.data || {}
+            _session.projectsById[p.id] = p
+            callback(Util.ok({
+                id: p.id,
+                name: p.name || name,
+                customer: f.customer || "",
+                color: DEFAULT_CUSTOMER_COLOR
+            }))
+        })
+    })
+}
+
+function createActivity(url, token, fields, callback) {
+    var f = fields || {}
+    var name = String(f.name || "").trim()
+    var pid = intId(f.project)
+    if (!name || !pid) {
+        callback(Util.fail({ type: "config", status: 0, detail: "name and project are required" }))
+        return
+    }
+    withSession(url, token, function(sessionResult) {
+        if (!sessionResult.ok) {
+            callback(sessionResult)
+            return
+        }
+        var payload = {
+            name: name,
+            workspace_id: _session.workspaceId
+        }
+        request("POST", url, token, "/workspaces/" + _session.workspaceId + "/projects/" + pid + "/tasks", JSON.stringify(payload), true, function(result) {
+            if (!result.ok) {
+                callback(result)
+                return
+            }
+            var t = result.data || {}
+            _session.tasksById[t.id] = t
+            callback(Util.ok({
+                id: t.id,
+                name: t.name || name,
+                project: pid
+            }))
         })
     })
 }

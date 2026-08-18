@@ -3,7 +3,7 @@
 Plasmai has two layers of automated tests:
 
 1. **QML unit tests** (`tests/unit/tst_*.qml`) — `QtTest` cases against the
-   `.js` libraries (`kimaiApi`, `profiles`, `colorDistinct`, …). No network,
+   `.js` libraries (`kimaiApi`, `profiles`, `timesheetFields`, …). No network,
    no Plasma shell.
 2. **plasmoidviewer click sweeps** (`tests/viewer/`) — launch the applet in
    `plasmoidviewer`, click every safe control, and fail if **plasmoidviewer
@@ -42,6 +42,9 @@ or switch live tracking on your Kimai/Clockify/Toggl/SolidTime account:
 
 - Stop / Start / Continue / Switch
 - Favorite and recent rows (`Accessible.role: ListItem`)
+- Recent overflow: **Entry actions** (permanent icon) / Edit entry / Delete entry / Split entry
+- Create project / Create activity / Create customer
+- Idle Keep time / Discard idle / Discard and continue
 - plasmoidviewer SDK chrome (FormFactors, Location, refresh-which-removes)
 
 Safe chrome **is** clicked: Add entry, Statistics, Back, Configure, stats

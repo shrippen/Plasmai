@@ -26,6 +26,30 @@ TestCase {
         compare(KimaiApi.parseTimeToMinutes("", 8 * 60), 8 * 60)
     }
 
+    function test_isWithinWorkHours() {
+        var noon = new Date(2026, 2, 10, 12, 0, 0)
+        var early = new Date(2026, 2, 10, 7, 0, 0)
+        var late = new Date(2026, 2, 10, 19, 0, 0)
+        var night = new Date(2026, 2, 10, 23, 0, 0)
+        var wee = new Date(2026, 2, 10, 3, 0, 0)
+        verify(KimaiApi.isWithinWorkHours("08:00", "18:00", noon))
+        verify(!KimaiApi.isWithinWorkHours("08:00", "18:00", early))
+        verify(!KimaiApi.isWithinWorkHours("08:00", "18:00", late))
+        verify(KimaiApi.isWithinWorkHours("22:00", "06:00", night))
+        verify(KimaiApi.isWithinWorkHours("22:00", "06:00", wee))
+        verify(!KimaiApi.isWithinWorkHours("22:00", "06:00", noon))
+    }
+
+    function test_customerCreateDefaults() {
+        var d = KimaiApi.customerCreateDefaults([])
+        compare(d.currency, "EUR")
+        var fromList = KimaiApi.customerCreateDefaults([
+            { country: "AT", currency: "EUR", timezone: "Europe/Vienna" }
+        ])
+        compare(fromList.timezone, "Europe/Vienna")
+        compare(fromList.country, "AT")
+    }
+
     function test_splitActivities() {
         var acts = [
             { id: 1, name: "Global", project: null },
@@ -60,11 +84,13 @@ TestCase {
     function test_hydrateTimesheetNames() {
         var projects = [{ id: 4, name: "Proj", customer: 1 }]
         var activities = [{ id: 35, name: "Act" }]
-        var entries = [{ id: 99, project: 4, activity: 35, duration: 60 }]
+        var entries = [{ id: 99, project: 4, activity: 35, duration: 60, tags: ["ops"], billable: true }]
         var out = KimaiApi.hydrateTimesheets(entries, projects, activities, {})
         compare(out.length, 1)
         compare(KimaiApi.projectId(out[0]), 4)
         compare(KimaiApi.activityId(out[0]), 35)
+        compare(out[0].tags[0], "ops")
+        verify(out[0].billable)
     }
 
     function test_weekBoundsMonday() {
@@ -107,5 +133,52 @@ TestCase {
             { project: { id: 11, customer: 1 } }, [], byId)
         compare(noProjectColor.customerColor, KimaiApi.normalizeCustomerColor("#ff0000"))
         compare(noProjectColor.projectColor, noProjectColor.customerColor)
+    }
+
+    function test_serializeTimesheetWrite_tagsAreString() {
+        var data = KimaiApi.serializeTimesheetWrite({
+            begin: "2026-08-17T23:15:00",
+            project: "4",
+            activity: { id: 35 },
+            billable: false,
+            tags: ["ops", "night"]
+        })
+        compare(data.tags, "ops, night")
+        compare(data.billable, false)
+        compare(data.project, 4)
+        compare(data.activity, 35)
+        compare(KimaiApi.serializeTimesheetWrite({ tags: [] }).tags, "")
+        compare(KimaiApi.serializeTimesheetWrite({ description: "hello" }).description, "hello")
+        verify(!("billable" in KimaiApi.serializeTimesheetWrite({ description: "hello" })))
+    }
+
+    function test_parseApiError_flattensForm() {
+        var payload = JSON.stringify({
+            code: 400,
+            message: "Validation Failed",
+            errors: {
+                errors: ["This form should not contain extra fields."],
+                children: {
+                    tags: { errors: ["This value should be of type string."] }
+                }
+            }
+        })
+        var err = KimaiApi.parseApiError(400, "Bad Request", payload)
+        verify(err.detail.indexOf("extra fields") >= 0)
+        verify(err.detail.indexOf("tags") >= 0)
+        verify(KimaiApi.isFormErrorBody(JSON.parse(payload)))
+        verify(!KimaiApi.isFormErrorBody({ id: 12, billable: true }))
+    }
+
+    function test_tagsFindEndpoint() {
+        compare(KimaiApi.tagsFindEndpoint(""), "/api/tags/find?name=")
+        compare(KimaiApi.tagsFindEndpoint("ops"), "/api/tags/find?name=ops")
+        compare(KimaiApi.tagsFindEndpoint("a b"), "/api/tags/find?name=a%20b")
+    }
+
+    function test_tagEntityColor() {
+        compare(KimaiApi.tagEntityColor({ name: "ops", "color-safe": "#336699" }), "#336699")
+        verify(KimaiApi.tagEntityColor({ name: "generated" }).length > 0)
+        compare(KimaiApi.tagEntityName({ name: "review" }), "review")
     }
 }

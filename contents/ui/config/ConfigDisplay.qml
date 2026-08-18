@@ -8,6 +8,7 @@ import "../../code/secret.js" as Secret
 import "../../code/geocode.js" as Geocode
 import "../../code/profiles.js" as Profiles
 import "../../code/timeTracker.js" as TimeTracker
+import "../../code/sharedConfig.js" as SharedConfig
 
 ConfigPageBase {
     id: page
@@ -21,7 +22,6 @@ ConfigPageBase {
     property var cfg_activeProfileIdDefault
     property var cfg_refreshIntervalDefault
     property var cfg_recentCountDefault
-    property var cfg_useBlurBackgroundDefault
     property var cfg_workDayBeginDefault
     property var cfg_workDayEndDefault
     property var cfg_latitude
@@ -61,6 +61,16 @@ ConfigPageBase {
     property var cfg_notifyOnStopDefault
     property var cfg_notifyOnIdleStop
     property var cfg_notifyOnIdleStopDefault
+    property var cfg_notifyForgotToStart
+    property var cfg_notifyForgotToStartDefault
+    property var cfg_lastUsedProjectId
+    property var cfg_lastUsedProjectIdDefault
+    property var cfg_lastUsedActivityId
+    property var cfg_lastUsedActivityIdDefault
+    property var cfg_lastUsedProjectName
+    property var cfg_lastUsedProjectNameDefault
+    property var cfg_lastUsedActivityName
+    property var cfg_lastUsedActivityNameDefault
     property var cfg_locationName
     property var cfg_locationNameDefault
     property var cfg_colorDistinctionEnabledDefault
@@ -70,7 +80,6 @@ ConfigPageBase {
     // Aliases so Plasma's isConfigurationChanged / cfg_*Changed see toggles.
     property alias cfg_refreshInterval: refreshIntervalSpin.value
     property alias cfg_recentCount: recentCountSpin.value
-    property alias cfg_useBlurBackground: useBlurBackgroundCheck.checked
     property alias cfg_workDayBegin: workDayBeginField.text
     property alias cfg_workDayEnd: workDayEndField.text
     property alias cfg_popupShowSparkline: popupSparklineCheck.checked
@@ -193,7 +202,6 @@ ConfigPageBase {
         return {
             refreshInterval: refreshIntervalSpin.value,
             recentCount: recentCountSpin.value,
-            useBlurBackground: useBlurBackgroundCheck.checked,
             workDayBegin: workDayBeginField.text,
             workDayEnd: workDayEndField.text,
             latitude: page.cfg_latitude,
@@ -226,7 +234,6 @@ ConfigPageBase {
     function syncControlsToCfg() {
         page.cfg_refreshInterval = refreshIntervalSpin.value
         page.cfg_recentCount = recentCountSpin.value
-        page.cfg_useBlurBackground = useBlurBackgroundCheck.checked
         page.cfg_workDayBegin = workDayBeginField.text
         page.cfg_workDayEnd = workDayEndField.text
         page.cfg_popupShowSparkline = popupSparklineCheck.checked
@@ -254,13 +261,10 @@ ConfigPageBase {
 
     function applyCfgToControls() {
         suppressNotify = true
-        if (typeof page.cfg_refreshInterval === "number") {
-            refreshIntervalSpin.value = page.cfg_refreshInterval
-        }
-        if (typeof page.cfg_recentCount === "number") {
-            recentCountSpin.value = page.cfg_recentCount
-        }
-        useBlurBackgroundCheck.checked = !!page.cfg_useBlurBackground
+        refreshIntervalSpin.value = SharedConfig.coerceInt(
+            page.cfg_refreshInterval, page.cfg_refreshIntervalDefault || 30, 10, 300)
+        recentCountSpin.value = SharedConfig.coerceInt(
+            page.cfg_recentCount, page.cfg_recentCountDefault || 10, 3, 25)
         if (page.cfg_workDayBegin) {
             workDayBeginField.text = page.cfg_workDayBegin
         }
@@ -286,12 +290,10 @@ ConfigPageBase {
         desktopRecentCheck.checked = page.cfg_desktopShowRecent !== false
         desktopNewActivityCheck.checked = page.cfg_desktopShowNewActivity !== false
         colorDistinctionCheck.checked = page.cfg_colorDistinctionEnabled !== false
-        if (typeof page.cfg_colorSimilarityPercent === "number") {
-            colorSimilaritySpin.value = page.cfg_colorSimilarityPercent
-        }
-        if (typeof page.cfg_touchMode === "number") {
-            touchModeCombo.currentIndex = Math.max(0, Math.min(2, page.cfg_touchMode))
-        }
+        colorSimilaritySpin.value = SharedConfig.coerceInt(
+            page.cfg_colorSimilarityPercent, page.cfg_colorSimilarityPercentDefault || 22, 12, 80)
+        touchModeCombo.currentIndex = SharedConfig.coerceInt(
+            page.cfg_touchMode, page.cfg_touchModeDefault || 0, 0, 2)
         page.syncLocationFields()
         syncControlsToCfg()
         suppressNotify = false
@@ -330,14 +332,13 @@ ConfigPageBase {
         // Do not write plasmoid.configuration here. Plasma copies cfg_* on Apply;
         // applying shared.json early makes isConfigurationChanged() false and
         // hides the user's checks before they can click Apply.
-        if (typeof shared.refreshInterval === "number") {
-            refreshIntervalSpin.value = shared.refreshInterval
+        if (typeof shared.refreshInterval !== "undefined") {
+            refreshIntervalSpin.value = SharedConfig.coerceInt(
+                shared.refreshInterval, refreshIntervalSpin.value, 10, 300)
         }
-        if (typeof shared.recentCount === "number") {
-            recentCountSpin.value = shared.recentCount
-        }
-        if (typeof shared.useBlurBackground === "boolean") {
-            useBlurBackgroundCheck.checked = shared.useBlurBackground
+        if (typeof shared.recentCount !== "undefined") {
+            recentCountSpin.value = SharedConfig.coerceInt(
+                shared.recentCount, recentCountSpin.value, 3, 25)
         }
         if (typeof shared.workDayBegin === "string" && shared.workDayBegin.length > 0) {
             workDayBeginField.text = shared.workDayBegin
@@ -348,18 +349,20 @@ ConfigPageBase {
         if (typeof shared.colorDistinctionEnabled === "boolean") {
             colorDistinctionCheck.checked = shared.colorDistinctionEnabled
         }
-        if (typeof shared.colorSimilarityPercent === "number") {
-            colorSimilaritySpin.value = shared.colorSimilarityPercent
+        if (typeof shared.colorSimilarityPercent !== "undefined") {
+            colorSimilaritySpin.value = SharedConfig.coerceInt(
+                shared.colorSimilarityPercent, colorSimilaritySpin.value, 12, 80)
         }
-        if (typeof shared.touchMode === "number") {
-            page.cfg_touchMode = Math.max(0, Math.min(2, shared.touchMode))
+        if (typeof shared.touchMode !== "undefined") {
+            page.cfg_touchMode = SharedConfig.coerceInt(
+                shared.touchMode, touchModeCombo.currentIndex, 0, 2)
             touchModeCombo.currentIndex = page.cfg_touchMode
         }
-        if (typeof shared.latitude === "number") {
-            page.cfg_latitude = shared.latitude
+        if (typeof shared.latitude !== "undefined") {
+            page.cfg_latitude = Number(shared.latitude)
         }
-        if (typeof shared.longitude === "number") {
-            page.cfg_longitude = shared.longitude
+        if (typeof shared.longitude !== "undefined") {
+            page.cfg_longitude = Number(shared.longitude)
         }
         if (typeof shared.locationName === "string") {
             page.cfg_locationName = shared.locationName
@@ -477,14 +480,6 @@ ConfigPageBase {
                     Kirigami.FormData.isSection: true
                 }
 
-                QQC2.CheckBox {
-                    id: useBlurBackgroundCheck
-                    Kirigami.FormData.label: i18n("Background:")
-                    Layout.fillWidth: true
-                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
-                    text: i18n("Use desktop blur (translucent background)")
-                    onToggled: page.notifyEdited()
-                }
 
                 QQC2.ComboBox {
                     id: touchModeCombo

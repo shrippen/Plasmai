@@ -31,7 +31,13 @@ var PROVIDERS = [
             statistics: true,
             colorDistinction: true,
             billableFilter: true,
-            workContract: true
+            billableEdit: true,
+            tags: true,
+            workContract: true,
+            holidayBundle: true,
+            deleteEntry: true,
+            editStopped: true,
+            createEntities: true
         }
     },
     {
@@ -49,7 +55,12 @@ var PROVIDERS = [
             statistics: true,
             colorDistinction: false,
             billableFilter: true,
-            workContract: false
+            billableEdit: true,
+            tags: false,
+            workContract: false,
+            deleteEntry: true,
+            editStopped: true,
+            createEntities: true
         }
     },
     {
@@ -65,7 +76,12 @@ var PROVIDERS = [
             statistics: true,
             colorDistinction: false,
             billableFilter: true,
-            workContract: false
+            billableEdit: true,
+            tags: true,
+            workContract: false,
+            deleteEntry: true,
+            editStopped: true,
+            createEntities: true
         }
     },
     {
@@ -82,7 +98,12 @@ var PROVIDERS = [
             statistics: true,
             colorDistinction: false,
             billableFilter: true,
-            workContract: false
+            billableEdit: true,
+            tags: false,
+            workContract: false,
+            deleteEntry: true,
+            editStopped: true,
+            createEntities: true
         }
     }
 ]
@@ -119,7 +140,13 @@ function providerCapabilities(providerId) {
         statistics: caps.statistics === true,
         colorDistinction: caps.colorDistinction === true,
         billableFilter: caps.billableFilter === true,
-        workContract: caps.workContract === true
+        billableEdit: caps.billableEdit === true,
+        tags: caps.tags === true,
+        workContract: caps.workContract === true,
+        holidayBundle: caps.holidayBundle === true,
+        deleteEntry: caps.deleteEntry === true,
+        editStopped: caps.editStopped === true,
+        createEntities: caps.createEntities === true
     }
 }
 

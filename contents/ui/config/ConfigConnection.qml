@@ -36,6 +36,18 @@ ConfigPage {
     property bool statusIsError: false
     property bool busy: false
     property bool testingConnection: false
+    property bool hasStoredToken: false
+
+    function checkStoredToken() {
+        if (profiles.length === 0 || selectedIndex < 0) {
+            hasStoredToken = false
+            return
+        }
+        var profileId = profiles[selectedIndex].id
+        Secret.load(execSource, page.kwalletScript, profileId, function(token) {
+            hasStoredToken = !!(token && token.length > 0)
+        })
+    }
 
     readonly property var selectedProfile: (profiles.length > 0 && selectedIndex >= 0 && selectedIndex < profiles.length)
         ? profiles[selectedIndex] : null
@@ -99,11 +111,41 @@ ConfigPage {
     }
 
     function persistShared() {
-        Secret.persistSharedPatch(execSource, page.sharedConfigScript, plasmoid.configuration, {
+        Secret.persistSharedPatch(execSource, page.sharedConfigScript, plasmoid.configuration, page.connectionPatch())
+    }
+
+    function connectionPatch() {
+        var patch = {
             kimaiUrl: KimaiApi.normalizeUrl(kimaiUrlField.text),
-            profilesJson: profilesField.text,
             activeProfileId: activeProfileField.text || "default"
-        })
+        }
+        // Avoid persisting an empty profilesJson while reloading between KCM pages;
+        // otherwise it can overwrite shared.json and force a default-only profile list.
+        if (typeof profilesField.text === "string" && profilesField.text.length > 0) {
+            patch.profilesJson = profilesField.text
+        }
+        return patch
+    }
+
+    function syncConnectionToCfg() {
+        page.cfg_kimaiUrl = KimaiApi.normalizeUrl(kimaiUrlField.text)
+        page.cfg_profilesJson = profilesField.text
+        page.cfg_activeProfileId = activeProfileField.text || "default"
+    }
+
+    function persistConnectionConfig() {
+        page.commitUrlField()
+        page.syncConnectionToCfg()
+        page.persistShared()
+        unsavedChanges = false
+    }
+
+    property var saveConfig: persistConnectionConfig
+
+    function notifyEdited() {
+        if (syncing) return
+        unsavedChanges = true
+        configurationChanged()
     }
 
     function ensureSelection() {
@@ -227,45 +269,75 @@ ConfigPage {
         copy[selectedIndex] = p
         profiles = copy
         syncProfiles()
+        notifyEdited()
     }
 
-    Component.onDestruction: Secret.cancelAll(execSource)
-
-    onPageEntered: {
-        page.syncing = true
-        if (page.cfg_kimaiUrl) {
-            kimaiUrlField.text = page.cfg_kimaiUrl
-        }
-        if (page.cfg_profilesJson) {
-            profilesField.text = page.cfg_profilesJson
-        }
-        if (page.cfg_activeProfileId) {
-            activeProfileField.text = page.cfg_activeProfileId
-        }
-        page.syncing = false
+    function reloadConnectionState() {
         Secret.loadSharedConfig(execSource, page.sharedConfigScript, function(shared) {
+            page.syncing = true
             if (shared) {
                 SharedConfig.applyToConfiguration(plasmoid.configuration, shared)
+            }
+            // KCM cfg_* may be stale placeholders after visiting other tabs.
+            // Seed resolve input from shared.json before ensureSelection/syncProfiles.
+            var cfgConnection = {
+                kimaiUrl: page.cfg_kimaiUrl,
+                profilesJson: page.cfg_profilesJson,
+                activeProfileId: page.cfg_activeProfileId
+            }
+            if (shared) {
                 if (typeof shared.profilesJson === "string" && shared.profilesJson.length > 0) {
-                    profilesField.text = shared.profilesJson
+                    cfgConnection.profilesJson = shared.profilesJson
                 }
                 if (typeof shared.activeProfileId === "string" && shared.activeProfileId.length > 0) {
-                    activeProfileField.text = shared.activeProfileId
+                    cfgConnection.activeProfileId = shared.activeProfileId
                 }
                 if (typeof shared.kimaiUrl === "string" && shared.kimaiUrl.length > 0) {
-                    kimaiUrlField.text = shared.kimaiUrl
+                    cfgConnection.kimaiUrl = shared.kimaiUrl
                 }
             }
+            var resolved = SharedConfig.resolveConnectionState(
+                cfgConnection, shared, plasmoid.configuration)
+            kimaiUrlField.text = resolved.kimaiUrl
+            profilesField.text = resolved.profilesJson
+            activeProfileField.text = resolved.activeProfileId
+            page.syncing = false
             if (!profilesField.text && kimaiUrlField.text) {
                 profiles = Profiles.parseProfiles("", kimaiUrlField.text)
                 syncProfiles()
+            } else {
+                profiles = Profiles.parseProfiles(profilesField.text, kimaiUrlField.text)
             }
             if (!activeProfileField.text) {
                 activeProfileField.text = "default"
             }
+            syncConnectionToCfg()
             ensureSelection()
+            checkStoredToken()
+            unsavedChanges = false
         })
     }
+
+    property bool reloadScheduled: false
+
+    function scheduleConnectionReload() {
+        if (reloadScheduled) {
+            return
+        }
+        reloadScheduled = true
+        Qt.callLater(function() {
+            reloadScheduled = false
+            if (!page.visible) {
+                return
+            }
+            page.reloadConnectionState()
+        })
+    }
+
+    Component.onDestruction: Secret.cancelAll(execSource)
+
+    onVisibleChanged: if (visible) scheduleConnectionReload()
+    onPageEntered: scheduleConnectionReload()
 
     P5Support.DataSource {
         id: execSource
@@ -322,6 +394,7 @@ ConfigPage {
                     onActivated: function(index) {
                         page.selectedIndex = index
                         page.updateFieldsForSelection()
+                        page.checkStoredToken()
                     }
                 }
 
@@ -330,7 +403,19 @@ ConfigPage {
                     Kirigami.FormData.label: i18n("Profile name:")
                     Layout.fillWidth: true
                     Layout.maximumWidth: page.buddyMaxWidth(connectionForm)
-                    onTextChanged: page.updateSelectedProfile("name", text)
+                    onTextChanged: {
+                        if (page.updatingFields) return
+                        var trimmed = text.trim()
+                        for (var i = 0; i < page.profiles.length; i++) {
+                            if (i !== page.selectedIndex && page.profiles[i].name === trimmed) {
+                                page.showStatus(i18n("A profile named \"%1\" already exists.", trimmed), true)
+                                return
+                            }
+                        }
+                        page.showStatus("", false)
+                        page.updateSelectedProfile("name", text)
+                        page.notifyEdited()
+                    }
                 }
 
                 QQC2.ComboBox {
@@ -344,6 +429,7 @@ ConfigPage {
                             return
                         }
                         page.applyProviderChange(TimeTracker.providerIds()[index])
+                        page.notifyEdited()
                     }
                 }
 
@@ -368,6 +454,7 @@ ConfigPage {
                         page.cfg_kimaiUrl = text
                         if (!page.updatingFields && !page.syncing) {
                             page.updateSelectedProfile("url", text)
+                            page.notifyEdited()
                         }
                     }
                     onEditingFinished: page.commitUrlField()
@@ -396,9 +483,17 @@ ConfigPage {
                         icon.name: "list-add"
                         onClicked: {
                             var copy = page.profiles.slice()
+                            var existingNames = {}
+                            for (var n = 0; n < copy.length; n++) {
+                                existingNames[copy[n].name] = true
+                            }
+                            var num = copy.length + 1
+                            while (existingNames[i18n("Profile %1", num)]) {
+                                num++
+                            }
                             var profile = Profiles.normalizeProfile({
                                 id: Profiles.newProfileId(),
-                                name: i18n("Profile %1", copy.length + 1),
+                                name: i18n("Profile %1", num),
                                 url: "",
                                 provider: "kimai"
                             })
@@ -408,6 +503,7 @@ ConfigPage {
                             page.selectedIndex = copy.length - 1
                             profileCombo.currentIndex = page.selectedIndex
                             page.updateFieldsForSelection()
+                            page.notifyEdited()
                         }
                     }
                     PlasmaComponents3.Button {
@@ -429,13 +525,14 @@ ConfigPage {
                             if (activeProfileField.text === removedId) {
                                 page.setActiveProfile()
                             }
+                            page.notifyEdited()
                         }
                     }
                     PlasmaComponents3.Button {
                         text: i18n("Use this profile")
                         icon.name: "emblem-default"
                         enabled: page.profiles.length > 0
-                        onClicked: page.setActiveProfile()
+                        onClicked: { page.setActiveProfile(); page.notifyEdited() }
                     }
                 }
 
@@ -474,6 +571,7 @@ ConfigPage {
                                 page.busy = false
                                 if (ok) {
                                     tokenField.text = ""
+                                    page.hasStoredToken = true
                                     page.showStatus(i18n("Token saved to KWallet for this profile."), false)
                                 } else {
                                     page.showStatus(err || i18n("Failed to save token"), true)
@@ -484,7 +582,7 @@ ConfigPage {
                     PlasmaComponents3.Button {
                         text: i18n("Clear token")
                         icon.name: "edit-delete"
-                        enabled: !page.busy && page.profiles.length > 0
+                        enabled: !page.busy && page.profiles.length > 0 && page.hasStoredToken
                         onClicked: {
                             page.busy = true
                             page.showStatus("", false)
@@ -492,6 +590,7 @@ ConfigPage {
                             Secret.clear(execSource, page.kwalletScript, profileId, function(ok, err) {
                                 page.busy = false
                                 if (ok) {
+                                    page.hasStoredToken = false
                                     page.showStatus(i18n("Token removed from KWallet."), false)
                                 } else {
                                     page.showStatus(err || i18n("Failed to clear token"), true)

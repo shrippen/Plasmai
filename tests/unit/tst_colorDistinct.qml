@@ -41,6 +41,24 @@ TestCase {
         verify(shifted >= 1)
     }
 
+    function test_hydrateMapsFromGroupsMatchesRebuildDisplay() {
+        var customers = [
+            { id: 1, name: "A", color: "#3584e4" },
+            { id: 2, name: "B", color: "#3584e4" },
+            { id: 3, name: "C", color: "#33d17a" }
+        ]
+        ColorDistinct.rebuild(customers, [], [], true)
+        var display1 = ColorDistinct.adjust("customer", 1, "#3584e4")
+        var display2 = ColorDistinct.adjust("customer", 2, "#3584e4")
+        var display3 = ColorDistinct.adjust("customer", 3, "#33d17a")
+        var groups = ColorDistinct.maintenanceGroups("customer", customers)
+        ColorDistinct.invalidateCache()
+        ColorDistinct.hydrateMapsFromGroups(customers, [], [], groups, [], [])
+        compare(ColorDistinct.adjust("customer", 1, "#3584e4"), display1)
+        compare(ColorDistinct.adjust("customer", 2, "#3584e4"), display2)
+        compare(ColorDistinct.adjust("customer", 3, "#33d17a"), display3)
+    }
+
     function test_rebuildCacheSkip() {
         var customers = [{ id: 1, color: "#3584e4" }]
         verify(ColorDistinct.rebuild(customers, [], [], true))
