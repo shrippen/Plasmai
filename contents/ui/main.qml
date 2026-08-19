@@ -3238,6 +3238,10 @@ PlasmoidItem {
                                 visible: root.isTracking && root.editingActiveEntry
                                 timesheet: root.activeTimesheet
                                 elapsedSeconds: root.elapsedSeconds
+                                previousTimesheet: TimesheetFields.previousStoppedTimesheet(
+                                    root.recentTimesheets, root.todayTimesheets, root.activeTimesheet)
+                                overlapGuardEnabled: plasmoid.configuration.confirmStartBeforePreviousEnd
+                                dialogParent: popupRoot
                                 projectPickerModel: root.projectPickerModel
                                 activityPickerModel: root.activityPickerModel
                                 activitySectionTitles: root.activitySectionTitles

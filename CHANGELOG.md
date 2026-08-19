@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.3
+
+### Settings
+- Display location search waits briefly after typing instead of querying Nominatim on every keystroke
+- Behavior option (on by default) asks before saving a running-entry start that falls inside the previous timesheet; the editor shows that previous end time
+
 ## 1.6.2
 
 ### Desktop

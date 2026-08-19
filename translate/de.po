@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-08-18 15:29+0200\n"
+"POT-Creation-Date: 2026-08-18 18:54+0200\n"
 "PO-Revision-Date: 2026-08-09 19:45+0200\n"
 "Last-Translator: Cursor Agent\n"
 "Language-Team: German\n"
@@ -20,13 +20,13 @@ msgstr ""
 msgid "Connection"
 msgstr "Verbindung"
 
-#: contents/config/config.qml:11 contents/ui/config/ConfigDisplay.qml:843
-#: contents/ui/config/ConfigDisplay.qml:898
-#: contents/ui/config/ConfigFavorites.qml:507 contents/ui/main.qml:3436
+#: contents/config/config.qml:11 contents/ui/config/ConfigDisplay.qml:869
+#: contents/ui/config/ConfigDisplay.qml:924
+#: contents/ui/config/ConfigFavorites.qml:507 contents/ui/main.qml:3439
 msgid "Favorites"
 msgstr "Favoriten"
 
-#: contents/config/config.qml:16 contents/ui/config/ConfigDisplay.qml:465
+#: contents/config/config.qml:16 contents/ui/config/ConfigDisplay.qml:482
 msgid "Display"
 msgstr "Anzeige"
 
@@ -34,35 +34,51 @@ msgstr "Anzeige"
 msgid "Maintenance"
 msgstr "Wartung"
 
-#: contents/config/config.qml:26 contents/ui/config/ConfigBehavior.qml:235
+#: contents/config/config.qml:26 contents/ui/config/ConfigBehavior.qml:243
 msgid "Behavior"
 msgstr "Verhalten"
 
-#: contents/ui/ActiveEditView.qml:220
+#: contents/ui/ActiveEditView.qml:250
 msgid "Edit start, project, activity, billable, and tags for the running entry."
 msgstr "Start, Projekt, Tätigkeit, Abrechenbarkeit und Tags des laufenden Eintrags bearbeiten."
 
-#: contents/ui/ActiveEditView.qml:252 contents/ui/main.qml:3699
+#: contents/ui/ActiveEditView.qml:282 contents/ui/main.qml:3707
 msgid "Start"
 msgstr "Start"
 
-#: contents/ui/ActiveEditView.qml:281
+#: contents/ui/ActiveEditView.qml:310
+msgid "Previous entry ended at %1"
+msgstr "Vorheriger Eintrag endete um %1"
+
+#: contents/ui/ActiveEditView.qml:320
 msgid "Elapsed time updates from the new start."
 msgstr "Die Laufzeit wird anhand der neuen Startzeit berechnet."
 
-#: contents/ui/ActiveEditView.qml:282
+#: contents/ui/ActiveEditView.qml:321
 msgid "Start must be a valid time not in the future."
 msgstr "Start muss eine gültige Zeit sein und darf nicht in der Zukunft liegen."
 
-#: contents/ui/ActiveEditView.qml:306
+#: contents/ui/ActiveEditView.qml:345
 msgid "Save"
 msgstr "Speichern"
 
-#: contents/ui/ActiveEditView.qml:318 contents/ui/main.qml:2454
-#: contents/ui/main.qml:3727 contents/ui/ManualEntryView.qml:386
-#: contents/ui/TimeField.qml:259
+#: contents/ui/ActiveEditView.qml:358 contents/ui/ActiveEditView.qml:387
+#: contents/ui/main.qml:2453 contents/ui/main.qml:3735
+#: contents/ui/ManualEntryView.qml:386 contents/ui/TimeField.qml:259
 msgid "Cancel"
 msgstr "Abbrechen"
+
+#: contents/ui/ActiveEditView.qml:367
+msgid "Overlapping start"
+msgstr "Start überschneidet sich"
+
+#: contents/ui/ActiveEditView.qml:375
+msgid "The new start is before the previous entry ended (%1). Set it anyway?"
+msgstr "Der neue Start liegt vor dem Ende des vorherigen Eintrags (%1). Trotzdem setzen?"
+
+#: contents/ui/ActiveEditView.qml:381
+msgid "Set anyway"
+msgstr "Trotzdem setzen"
 
 #: contents/ui/ActivityListRow.qml:40
 msgid "Starts or switches this activity"
@@ -72,11 +88,11 @@ msgstr "Startet oder wechselt zu dieser Tätigkeit"
 msgid "Entry actions"
 msgstr "Eintragsaktionen"
 
-#: contents/ui/ActivityListRow.qml:210 contents/ui/main.qml:2748
+#: contents/ui/ActivityListRow.qml:210 contents/ui/main.qml:2747
 msgid "Edit entry"
 msgstr "Eintrag bearbeiten"
 
-#: contents/ui/ActivityListRow.qml:217 contents/ui/main.qml:2502
+#: contents/ui/ActivityListRow.qml:217 contents/ui/main.qml:2501
 msgid "Split entry"
 msgstr "Eintrag teilen"
 
@@ -132,47 +148,55 @@ msgstr "Anfrage fehlgeschlagen (%1)."
 msgid "Time"
 msgstr "Zeit"
 
-#: contents/ui/config/ConfigBehavior.qml:248
+#: contents/ui/config/ConfigBehavior.qml:256
 msgid "Tracking:"
 msgstr "Erfassung:"
 
-#: contents/ui/config/ConfigBehavior.qml:251
+#: contents/ui/config/ConfigBehavior.qml:259
 msgid "Confirm before stopping the timer"
 msgstr "Vor dem Stoppen des Timers bestätigen"
 
-#: contents/ui/config/ConfigBehavior.qml:257
+#: contents/ui/config/ConfigBehavior.qml:268
+msgid "Ask before a start that overlaps the previous entry"
+msgstr "Nachfragen, wenn die Startzeit in der vorherigen Tätigkeit liegt"
+
+#: contents/ui/config/ConfigBehavior.qml:279
+msgid "When editing the running timer, the previous entry’s end is shown. Saving an earlier start asks for confirmation."
+msgstr "Beim Bearbeiten des laufenden Timers wird das Ende des letzten gestoppten Eintrags angezeigt. Ein früherer Start muss bestätigt werden."
+
+#: contents/ui/config/ConfigBehavior.qml:284
 msgid "Idle detection:"
 msgstr "Leerlauferkennung:"
 
-#: contents/ui/config/ConfigBehavior.qml:260
+#: contents/ui/config/ConfigBehavior.qml:287
 msgid "Stop timer when idle"
 msgstr "Timer bei Leerlauf stoppen"
 
-#: contents/ui/config/ConfigBehavior.qml:266
+#: contents/ui/config/ConfigBehavior.qml:293
 msgid "Idle threshold (minutes):"
 msgstr "Leerlauf-Schwelle (Minuten):"
 
-#: contents/ui/config/ConfigBehavior.qml:281
+#: contents/ui/config/ConfigBehavior.qml:308
 msgid "Idle detection uses the session idle hint on Wayland (loginctl / ScreenSaver) and xprintidle on X11."
 msgstr "Leerlauferkennung nutzt den Sitzungs-Idle-Hinweis unter Wayland (loginctl / ScreenSaver) und xprintidle unter X11."
 
-#: contents/ui/config/ConfigBehavior.qml:286
+#: contents/ui/config/ConfigBehavior.qml:313
 msgid "Notifications:"
 msgstr "Benachrichtigungen:"
 
-#: contents/ui/config/ConfigBehavior.qml:289
+#: contents/ui/config/ConfigBehavior.qml:316
 msgid "Notify when tracking starts"
 msgstr "Benachrichtigen, wenn die Erfassung startet"
 
-#: contents/ui/config/ConfigBehavior.qml:298
+#: contents/ui/config/ConfigBehavior.qml:325
 msgid "Notify when tracking stops"
 msgstr "Benachrichtigen, wenn die Erfassung stoppt"
 
-#: contents/ui/config/ConfigBehavior.qml:307
+#: contents/ui/config/ConfigBehavior.qml:334
 msgid "Notify when stopped due to idle"
 msgstr "Benachrichtigen bei Stopp wegen Leerlauf"
 
-#: contents/ui/config/ConfigBehavior.qml:317
+#: contents/ui/config/ConfigBehavior.qml:344
 msgid "Remind me once if nothing is tracking during work hours"
 msgstr "Einmal erinnern, wenn während der Arbeitszeit nichts erfasst wird"
 
@@ -313,218 +337,218 @@ msgstr "ok"
 msgid "Connected to %1 (%2)."
 msgstr "Verbunden mit %1 (%2)."
 
-#: contents/ui/config/ConfigDisplay.qml:178
+#: contents/ui/config/ConfigDisplay.qml:193
 msgid "Enter a city or place name to search."
 msgstr "Gib einen Stadt- oder Ortsnamen zum Suchen ein."
 
-#: contents/ui/config/ConfigDisplay.qml:183
-#: contents/ui/config/ConfigDisplay.qml:650
+#: contents/ui/config/ConfigDisplay.qml:197
+#: contents/ui/config/ConfigDisplay.qml:673
 msgid "Searching…"
 msgstr "Suche…"
 
-#: contents/ui/config/ConfigDisplay.qml:189
+#: contents/ui/config/ConfigDisplay.qml:206
 msgid "Location search failed. Check your network connection."
 msgstr "Ortssuche fehlgeschlagen. Prüfe deine Netzwerkverbindung."
 
-#: contents/ui/config/ConfigDisplay.qml:194
+#: contents/ui/config/ConfigDisplay.qml:211
 msgid "No places found."
 msgstr "Keine Orte gefunden."
 
-#: contents/ui/config/ConfigDisplay.qml:196
+#: contents/ui/config/ConfigDisplay.qml:213
 msgid "%1 place found."
 msgid_plural "%1 places found."
 msgstr[0] "%1 Ort gefunden."
 msgstr[1] "%1 Orte gefunden."
 
-#: contents/ui/config/ConfigDisplay.qml:479
+#: contents/ui/config/ConfigDisplay.qml:496
 msgid "Appearance"
 msgstr "Darstellung"
 
-#: contents/ui/config/ConfigDisplay.qml:486
+#: contents/ui/config/ConfigDisplay.qml:503
 msgid "Touch optimization:"
 msgstr "Touch-Optimierung:"
 
-#: contents/ui/config/ConfigDisplay.qml:490
+#: contents/ui/config/ConfigDisplay.qml:507
 msgid "Automatic (follow Plasma tablet mode)"
 msgstr "Automatisch (Plasma-Tablet-Modus folgen)"
 
-#: contents/ui/config/ConfigDisplay.qml:491
+#: contents/ui/config/ConfigDisplay.qml:508
 msgid "On"
 msgstr "An"
 
-#: contents/ui/config/ConfigDisplay.qml:492
+#: contents/ui/config/ConfigDisplay.qml:509
 msgid "Off"
 msgstr "Aus"
 
-#: contents/ui/config/ConfigDisplay.qml:504
+#: contents/ui/config/ConfigDisplay.qml:521
 msgid "Larger tap targets for buttons, lists, pickers, and date/time controls."
 msgstr "Größere Tipziele für Buttons, Listen, Auswahlmenüs und Datums-/Zeitfelder."
 
-#: contents/ui/config/ConfigDisplay.qml:509
+#: contents/ui/config/ConfigDisplay.qml:526
 msgid "Updates"
 msgstr "Aktualisierung"
 
-#: contents/ui/config/ConfigDisplay.qml:515
+#: contents/ui/config/ConfigDisplay.qml:532
 msgid "Refresh interval (seconds):"
 msgstr "Aktualisierungsintervall (Sekunden):"
 
-#: contents/ui/config/ConfigDisplay.qml:525
+#: contents/ui/config/ConfigDisplay.qml:542
 msgid "Colors"
 msgstr "Farben"
 
-#: contents/ui/config/ConfigDisplay.qml:531
+#: contents/ui/config/ConfigDisplay.qml:548
 msgid "Distinction:"
 msgstr "Unterscheidung:"
 
-#: contents/ui/config/ConfigDisplay.qml:535
+#: contents/ui/config/ConfigDisplay.qml:552
 msgid "Make similar colors distinctive within each category"
 msgstr "Ähnliche Farben innerhalb jeder Kategorie unterscheidbar machen"
 
-#: contents/ui/config/ConfigDisplay.qml:541
+#: contents/ui/config/ConfigDisplay.qml:558
 msgid "Similarity threshold (%):"
 msgstr "Ähnlichkeitsschwelle (%):"
 
-#: contents/ui/config/ConfigDisplay.qml:558
+#: contents/ui/config/ConfigDisplay.qml:575
 msgid "Higher similarity values treat more colors as too close. Clashing items get vivid, well-spaced replacement colors. See Maintenance for clash groups."
 msgstr "Höhere Ähnlichkeitswerte behandeln mehr Farben als zu nah. Kollidierende Einträge erhalten kräftige, gut verteilte Ersatzfarben. Siehe Wartung für Konfliktgruppen."
 
-#: contents/ui/config/ConfigDisplay.qml:569
+#: contents/ui/config/ConfigDisplay.qml:586
 msgid "Color distinction is available for Kimai profiles (per-customer / project / activity colors)."
 msgstr "Farbunterscheidung ist für Kimai-Profile verfügbar (Farben je Kunde / Projekt / Tätigkeit)."
 
-#: contents/ui/config/ConfigDisplay.qml:574
+#: contents/ui/config/ConfigDisplay.qml:591
 msgid "Work hours"
 msgstr "Arbeitszeiten"
 
-#: contents/ui/config/ConfigDisplay.qml:580
+#: contents/ui/config/ConfigDisplay.qml:597
 msgid "Usual work day start:"
 msgstr "Start der üblichen Arbeitszeit:"
 
-#: contents/ui/config/ConfigDisplay.qml:590
+#: contents/ui/config/ConfigDisplay.qml:607
 msgid "Usual work day end:"
 msgstr "Ende der üblichen Arbeitszeit:"
 
-#: contents/ui/config/ConfigDisplay.qml:605
+#: contents/ui/config/ConfigDisplay.qml:622
 msgid "Used for the sparkline zoom and remaining-time in the work summary."
 msgstr "Wird für den Sparkline-Zoom und die Restzeit in der Arbeitsübersicht verwendet."
 
-#: contents/ui/config/ConfigDisplay.qml:610
-#: contents/ui/config/ConfigDisplay.qml:835
-#: contents/ui/config/ConfigDisplay.qml:890
+#: contents/ui/config/ConfigDisplay.qml:627
+#: contents/ui/config/ConfigDisplay.qml:861
+#: contents/ui/config/ConfigDisplay.qml:916
 msgid "Day sparkline"
 msgstr "Tages-Sparkline"
 
-#: contents/ui/config/ConfigDisplay.qml:616
+#: contents/ui/config/ConfigDisplay.qml:633
 msgid "Arcs:"
 msgstr "Bögen:"
 
-#: contents/ui/config/ConfigDisplay.qml:619
+#: contents/ui/config/ConfigDisplay.qml:636
 msgid "Show sun, moon, and work arcs"
 msgstr "Sonnen-, Mond- und Arbeitsbögen anzeigen"
 
-#: contents/ui/config/ConfigDisplay.qml:630
+#: contents/ui/config/ConfigDisplay.qml:647
 msgid "Hide the whole sparkline under Panel flyout or Desktop widget below."
 msgstr "Die gesamte Sparkline unter Panel-Flyout oder Desktop-Widget unten ausblenden."
 
-#: contents/ui/config/ConfigDisplay.qml:634
+#: contents/ui/config/ConfigDisplay.qml:651
 msgid "Find location:"
 msgstr "Ort suchen:"
 
-#: contents/ui/config/ConfigDisplay.qml:643
+#: contents/ui/config/ConfigDisplay.qml:660
 msgid "City, region, or address…"
 msgstr "Stadt, Region oder Adresse…"
 
-#: contents/ui/config/ConfigDisplay.qml:650
-#: contents/ui/config/ConfigDisplay.qml:658
+#: contents/ui/config/ConfigDisplay.qml:673
+#: contents/ui/config/ConfigDisplay.qml:681
 msgid "Search"
 msgstr "Suchen"
 
-#: contents/ui/config/ConfigDisplay.qml:712
+#: contents/ui/config/ConfigDisplay.qml:735
 msgid "Using %1"
 msgstr "Verwende %1"
 
-#: contents/ui/config/ConfigDisplay.qml:726
+#: contents/ui/config/ConfigDisplay.qml:752
 msgid "Current place: %1"
 msgstr "Aktueller Ort: %1"
 
-#: contents/ui/config/ConfigDisplay.qml:731
+#: contents/ui/config/ConfigDisplay.qml:757
 msgid "Latitude:"
 msgstr "Breitengrad:"
 
-#: contents/ui/config/ConfigDisplay.qml:746
+#: contents/ui/config/ConfigDisplay.qml:772
 msgid "Longitude:"
 msgstr "Längengrad:"
 
-#: contents/ui/config/ConfigDisplay.qml:766
+#: contents/ui/config/ConfigDisplay.qml:792
 msgid "Search a place or enter coordinates for sunrise/sunset coloring. Powered by OpenStreetMap Nominatim."
 msgstr "Suche einen Ort oder gib Koordinaten für die Sonnenauf-/untergangsfärbung ein. Nutzt OpenStreetMap Nominatim."
 
-#: contents/ui/config/ConfigDisplay.qml:771
+#: contents/ui/config/ConfigDisplay.qml:797
 msgid "Panel (taskbar)"
 msgstr "Panel (Taskleiste)"
 
-#: contents/ui/config/ConfigDisplay.qml:777
-#: contents/ui/config/ConfigDisplay.qml:824
-#: contents/ui/config/ConfigDisplay.qml:879
+#: contents/ui/config/ConfigDisplay.qml:803
+#: contents/ui/config/ConfigDisplay.qml:850
+#: contents/ui/config/ConfigDisplay.qml:905
 msgid "Show:"
 msgstr "Anzeigen:"
 
-#: contents/ui/config/ConfigDisplay.qml:780
+#: contents/ui/config/ConfigDisplay.qml:806
 msgid "Elapsed time"
 msgstr "Vergangene Zeit"
 
-#: contents/ui/config/ConfigDisplay.qml:788
+#: contents/ui/config/ConfigDisplay.qml:814
 msgid "Project name"
 msgstr "Projektname"
 
-#: contents/ui/config/ConfigDisplay.qml:796
+#: contents/ui/config/ConfigDisplay.qml:822
 msgid "Activity name"
 msgstr "Tätigkeitsname"
 
-#: contents/ui/config/ConfigDisplay.qml:804
+#: contents/ui/config/ConfigDisplay.qml:830
 msgid "Customer color pill"
 msgstr "Kundenfarbpunkt"
 
-#: contents/ui/config/ConfigDisplay.qml:812
+#: contents/ui/config/ConfigDisplay.qml:838
 msgid "Project color pill"
 msgstr "Projektfarbpunkt"
 
-#: contents/ui/config/ConfigDisplay.qml:818
+#: contents/ui/config/ConfigDisplay.qml:844
 msgid "Panel flyout"
 msgstr "Panel-Flyout"
 
-#: contents/ui/config/ConfigDisplay.qml:827
-#: contents/ui/config/ConfigDisplay.qml:882
+#: contents/ui/config/ConfigDisplay.qml:853
+#: contents/ui/config/ConfigDisplay.qml:908
 msgid "Work summary (today / week / remaining)"
 msgstr "Arbeitsübersicht (heute / Woche / Rest)"
 
-#: contents/ui/config/ConfigDisplay.qml:851
-#: contents/ui/config/ConfigDisplay.qml:906
-#: contents/ui/config/ConfigDisplay.qml:920
+#: contents/ui/config/ConfigDisplay.qml:877
+#: contents/ui/config/ConfigDisplay.qml:932
+#: contents/ui/config/ConfigDisplay.qml:946
 msgid "Recent list"
 msgstr "Liste der letzten Einträge"
 
-#: contents/ui/config/ConfigDisplay.qml:859
+#: contents/ui/config/ConfigDisplay.qml:885
 msgid "Continue last activity"
 msgstr "Letzte Tätigkeit fortsetzen"
 
-#: contents/ui/config/ConfigDisplay.qml:867
+#: contents/ui/config/ConfigDisplay.qml:893
 msgid "Start / switch activity controls"
 msgstr "Steuerung zum Starten / Wechseln"
 
-#: contents/ui/config/ConfigDisplay.qml:873
+#: contents/ui/config/ConfigDisplay.qml:899
 msgid "Desktop widget"
 msgstr "Desktop-Widget"
 
-#: contents/ui/config/ConfigDisplay.qml:914
+#: contents/ui/config/ConfigDisplay.qml:940
 msgid "New activity picker"
 msgstr "Auswahl für neue Tätigkeit"
 
-#: contents/ui/config/ConfigDisplay.qml:926
+#: contents/ui/config/ConfigDisplay.qml:952
 msgid "Activities shown:"
 msgstr "Angezeigte Tätigkeiten:"
 
-#: contents/ui/config/ConfigDisplay.qml:940
+#: contents/ui/config/ConfigDisplay.qml:966
 msgid "Applies to both the panel flyout and the desktop widget."
 msgstr "Gilt für das Panel-Flyout und das Desktop-Widget."
 
@@ -716,8 +740,8 @@ msgstr "Datum wählen"
 msgid "Today's tracked time"
 msgstr "Heute erfasste Zeit"
 
-#: contents/ui/main.qml:308 contents/ui/main.qml:310 contents/ui/main.qml:2162
-#: contents/ui/main.qml:2749
+#: contents/ui/main.qml:308 contents/ui/main.qml:310 contents/ui/main.qml:2161
+#: contents/ui/main.qml:2748
 msgid "Plasmai"
 msgstr "Plasmai"
 
@@ -864,11 +888,11 @@ msgid "%1 over this week"
 msgstr "%1 diese Woche drüber"
 
 #: contents/ui/main.qml:1254 contents/ui/main.qml:1277
-#: contents/ui/main.qml:3123
+#: contents/ui/main.qml:3122
 msgid "Today %1"
 msgstr "Heute %1"
 
-#: contents/ui/main.qml:1255 contents/ui/main.qml:3125
+#: contents/ui/main.qml:1255 contents/ui/main.qml:3124
 msgid "Week %1"
 msgstr "Woche %1"
 
@@ -888,227 +912,227 @@ msgstr "Zeiterfassung gestoppt (Leerlauf)"
 msgid "Tracking stopped"
 msgstr "Zeiterfassung gestoppt"
 
-#: contents/ui/main.qml:2029
+#: contents/ui/main.qml:2028
 msgid "Could not resolve project or activity for that entry"
 msgstr "Projekt oder Tätigkeit für diesen Eintrag konnte nicht aufgelöst werden"
 
-#: contents/ui/main.qml:2068
+#: contents/ui/main.qml:2067
 msgid "This provider cannot delete entries."
 msgstr "Dieser Dienst kann Einträge nicht löschen."
 
-#: contents/ui/main.qml:2081
+#: contents/ui/main.qml:2080
 msgid "Entry deleted"
 msgstr "Eintrag gelöscht"
 
-#: contents/ui/main.qml:2113 contents/ui/main.qml:2595
+#: contents/ui/main.qml:2112 contents/ui/main.qml:2594
 msgid "Split time must be between begin and end."
 msgstr "Die Teilungszeit muss zwischen Beginn und Ende liegen."
 
-#: contents/ui/main.qml:2118
+#: contents/ui/main.qml:2117
 msgid "This provider cannot split entries."
 msgstr "Dieser Dienst kann Einträge nicht teilen."
 
-#: contents/ui/main.qml:2147
+#: contents/ui/main.qml:2146
 msgid "Entry split"
 msgstr "Eintrag geteilt"
 
-#: contents/ui/main.qml:2151
+#: contents/ui/main.qml:2150
 msgid "The first half was saved, but the second half could not be created."
 msgstr "Die erste Hälfte wurde gespeichert, die zweite Hälfte konnte aber nicht erstellt werden."
 
-#: contents/ui/main.qml:2163
+#: contents/ui/main.qml:2162
 msgid "Open or close the Plasmai popup"
 msgstr "Plasmai-Popup öffnen oder schließen"
 
-#: contents/ui/main.qml:2281
+#: contents/ui/main.qml:2280
 msgid "Stop tracking?"
 msgstr "Zeiterfassung stoppen?"
 
-#: contents/ui/main.qml:2294
+#: contents/ui/main.qml:2293
 msgid "Stop tracking %1 · %2?"
 msgstr "Zeiterfassung für %1 · %2 stoppen?"
 
-#: contents/ui/main.qml:2305 contents/ui/main.qml:3641
+#: contents/ui/main.qml:2304 contents/ui/main.qml:3649
 msgid "Switch activity"
 msgstr "Tätigkeit wechseln"
 
-#: contents/ui/main.qml:2414
+#: contents/ui/main.qml:2413
 msgid "Current"
 msgstr "Aktuell"
 
-#: contents/ui/main.qml:2435
+#: contents/ui/main.qml:2434
 msgid "Switch to"
 msgstr "Wechseln zu"
 
-#: contents/ui/main.qml:2448 contents/ui/main.qml:3715
+#: contents/ui/main.qml:2447 contents/ui/main.qml:3723
 msgid "Switch"
 msgstr "Wechseln"
 
-#: contents/ui/main.qml:2469
+#: contents/ui/main.qml:2468
 msgid "Delete entry?"
 msgstr "Eintrag löschen?"
 
-#: contents/ui/main.qml:2486
+#: contents/ui/main.qml:2485
 msgid "Delete this finished entry? This cannot be undone."
 msgstr "Diesen abgeschlossenen Eintrag löschen? Das kann nicht rückgängig gemacht werden."
 
-#: contents/ui/main.qml:2488
+#: contents/ui/main.qml:2487
 msgid "Delete \"%1 · %2\"? This cannot be undone."
 msgstr "\"%1 · %2\" löschen? Das kann nicht rückgängig gemacht werden."
 
-#: contents/ui/main.qml:2553
+#: contents/ui/main.qml:2552
 msgid "The first half keeps the original start. The second half starts at the split time."
 msgstr "Die erste Hälfte behält den ursprünglichen Start. Die zweite Hälfte beginnt zur Teilungszeit."
 
-#: contents/ui/main.qml:2558
+#: contents/ui/main.qml:2557
 msgid "Split at"
 msgstr "Teilen bei"
 
-#: contents/ui/main.qml:2594
+#: contents/ui/main.qml:2593
 msgid "Both halves will have a positive duration."
 msgstr "Beide Hälften haben eine positive Dauer."
 
-#: contents/ui/main.qml:2608
+#: contents/ui/main.qml:2607
 msgid "You were idle"
 msgstr "Du warst im Leerlauf"
 
-#: contents/ui/main.qml:2626
+#: contents/ui/main.qml:2625
 msgid "Keep the time, discard the idle gap, or discard and continue the same activity."
 msgstr "Zeit behalten, die Leerlauf-Lücke verwerfen, oder verwerfen und dieselbe Tätigkeit fortsetzen."
 
-#: contents/ui/main.qml:2635
+#: contents/ui/main.qml:2634
 msgid "Keep time"
 msgstr "Zeit behalten"
 
-#: contents/ui/main.qml:2644
+#: contents/ui/main.qml:2643
 msgid "Discard idle"
 msgstr "Leerlauf verwerfen"
 
-#: contents/ui/main.qml:2653
+#: contents/ui/main.qml:2652
 msgid "Discard and continue"
 msgstr "Verwerfen und fortsetzen"
 
-#: contents/ui/main.qml:2746 contents/ui/main.qml:2800
+#: contents/ui/main.qml:2745 contents/ui/main.qml:2799
 msgid "Statistics"
 msgstr "Statistik"
 
-#: contents/ui/main.qml:2748 contents/ui/main.qml:2785
+#: contents/ui/main.qml:2747 contents/ui/main.qml:2784
 msgid "Add entry"
 msgstr "Eintrag hinzufügen"
 
-#: contents/ui/main.qml:2791
+#: contents/ui/main.qml:2790
 msgid "Add a manual time entry"
 msgstr "Manuellen Zeiteintrag hinzufügen"
 
-#: contents/ui/main.qml:2806
+#: contents/ui/main.qml:2805
 msgid "Show statistics"
 msgstr "Statistik anzeigen"
 
-#: contents/ui/main.qml:2814
+#: contents/ui/main.qml:2813
 msgid "Back"
 msgstr "Zurück"
 
-#: contents/ui/main.qml:2819
+#: contents/ui/main.qml:2818
 msgid "Back to timer"
 msgstr "Zurück zum Timer"
 
-#: contents/ui/main.qml:2856
+#: contents/ui/main.qml:2855
 msgid "Connect a time tracker"
 msgstr "Zeiterfassungsdienst verbinden"
 
-#: contents/ui/main.qml:2857
+#: contents/ui/main.qml:2856
 msgid "Add your service, server URL (if needed), and API token to start tracking from the panel."
 msgstr "Füge deinen Dienst, die Server-URL (falls nötig) und das API-Token hinzu, um die Zeiterfassung vom Panel aus zu starten."
 
-#: contents/ui/main.qml:2859
+#: contents/ui/main.qml:2858
 msgid "Configure Plasmai"
 msgstr "Plasmai einrichten"
 
-#: contents/ui/main.qml:2872
+#: contents/ui/main.qml:2871
 msgid "Retry"
 msgstr "Erneut versuchen"
 
-#: contents/ui/main.qml:2877
+#: contents/ui/main.qml:2876
 msgid "Configure"
 msgstr "Einrichten"
 
-#: contents/ui/main.qml:3022
+#: contents/ui/main.qml:3021
 msgid "Not tracking"
 msgstr "Keine aktive Erfassung"
 
-#: contents/ui/main.qml:3169 contents/ui/main.qml:3207
+#: contents/ui/main.qml:3168 contents/ui/main.qml:3206
 msgid "Edit"
 msgstr "Bearbeiten"
 
-#: contents/ui/main.qml:3181 contents/ui/main.qml:3220
+#: contents/ui/main.qml:3180 contents/ui/main.qml:3219
 msgid "Edit start, project, and activity"
 msgstr "Start, Projekt und Tätigkeit bearbeiten"
 
-#: contents/ui/main.qml:3193 contents/ui/main.qml:3229
+#: contents/ui/main.qml:3192 contents/ui/main.qml:3228
 msgid "Stop"
 msgstr "Stopp"
 
-#: contents/ui/main.qml:3281
+#: contents/ui/main.qml:3284
 msgid "Description"
 msgstr "Beschreibung"
 
-#: contents/ui/main.qml:3352
+#: contents/ui/main.qml:3355
 msgid "Save description"
 msgstr "Beschreibung speichern"
 
-#: contents/ui/main.qml:3407
+#: contents/ui/main.qml:3410
 msgid "Continue · %1 · %2"
 msgstr "Fortsetzen · %1 · %2"
 
-#: contents/ui/main.qml:3419
+#: contents/ui/main.qml:3422
 msgid "Start · %1 · %2"
 msgstr "Start · %1 · %2"
 
-#: contents/ui/main.qml:3503
-msgid "No favorites yet"
-msgstr "Noch keine Favoriten"
-
-#: contents/ui/main.qml:3509
-msgid "Pin frequent project/activity pairs in the widget settings."
-msgstr "Häufige Projekt-/Tätigkeitspaare in den Widget-Einstellungen anheften."
-
-#: contents/ui/main.qml:3515
-msgid "Configure favorites"
-msgstr "Favoriten einrichten"
-
-#: contents/ui/main.qml:3531
-msgid "+%1 more in settings"
-msgstr "+%1 weitere in den Einstellungen"
-
-#: contents/ui/main.qml:3542
-msgid "Recent"
-msgstr "Zuletzt"
-
-#: contents/ui/main.qml:3580
+#: contents/ui/main.qml:3478 contents/ui/main.qml:3588
 msgid "Already running."
 msgstr "Läuft bereits."
 
-#: contents/ui/main.qml:3618
+#: contents/ui/main.qml:3513
+msgid "No favorites yet"
+msgstr "Noch keine Favoriten"
+
+#: contents/ui/main.qml:3519
+msgid "Pin frequent project/activity pairs in the widget settings."
+msgstr "Häufige Projekt-/Tätigkeitspaare in den Widget-Einstellungen anheften."
+
+#: contents/ui/main.qml:3525
+msgid "Configure favorites"
+msgstr "Favoriten einrichten"
+
+#: contents/ui/main.qml:3541
+msgid "+%1 more in settings"
+msgstr "+%1 weitere in den Einstellungen"
+
+#: contents/ui/main.qml:3552
+msgid "Recent"
+msgstr "Zuletzt"
+
+#: contents/ui/main.qml:3626
 msgid "No recent activities"
 msgstr "Keine kürzlichen Tätigkeiten"
 
-#: contents/ui/main.qml:3619
+#: contents/ui/main.qml:3627
 msgid "Start tracking to build your recent list."
 msgstr "Starte die Zeiterfassung, um die Liste zu füllen."
 
-#: contents/ui/main.qml:3630
+#: contents/ui/main.qml:3638
 msgid "Switch to another activity…"
 msgstr "Zu anderer Tätigkeit wechseln…"
 
-#: contents/ui/main.qml:3630
+#: contents/ui/main.qml:3638
 msgid "Start something else…"
 msgstr "Etwas anderes starten…"
 
-#: contents/ui/main.qml:3641
+#: contents/ui/main.qml:3649
 msgid "New activity"
 msgstr "Neue Tätigkeit"
 
-#: contents/ui/main.qml:3685 contents/ui/ManualEntryView.qml:344
+#: contents/ui/main.qml:3693 contents/ui/ManualEntryView.qml:344
 msgid "Description (optional)"
 msgstr "Beschreibung (optional)"
 

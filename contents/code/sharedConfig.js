@@ -30,6 +30,7 @@ var SHARED_KEYS = [
     "desktopShowNewActivity",
     "showFavorites",
     "confirmBeforeStop",
+    "confirmStartBeforePreviousEnd",
     "idleStopEnabled",
     "idleStopMinutes",
     "notifyOnStart",

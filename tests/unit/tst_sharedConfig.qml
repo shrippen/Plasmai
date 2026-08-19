@@ -189,6 +189,7 @@ TestCase {
         verify(SharedConfig.SHARED_KEYS.indexOf("showProjectColorInPanel") >= 0)
         verify(SharedConfig.SHARED_KEYS.indexOf("lastUsedProjectId") >= 0)
         verify(SharedConfig.SHARED_KEYS.indexOf("notifyForgotToStart") >= 0)
+        verify(SharedConfig.SHARED_KEYS.indexOf("confirmStartBeforePreviousEnd") >= 0)
     }
 
     function test_coerceInt() {

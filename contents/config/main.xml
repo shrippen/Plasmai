@@ -106,6 +106,9 @@
         <entry name="confirmBeforeStop" type="Bool">
             <default>false</default>
         </entry>
+        <entry name="confirmStartBeforePreviousEnd" type="Bool">
+            <default>true</default>
+        </entry>
         <entry name="pinnedActivities" type="String">
             <default></default>
         </entry>

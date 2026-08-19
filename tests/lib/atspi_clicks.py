@@ -86,6 +86,8 @@ HISTORY_PREFIX = (
     "zeit behalten",
     "leerlauf verwerfen",
     "verwerfen und fortsetzen",
+    "set anyway",
+    "trotzdem setzen",
 )
 
 DENY_PREFIX = (

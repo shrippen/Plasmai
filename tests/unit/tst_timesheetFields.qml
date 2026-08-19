@@ -118,4 +118,33 @@ TestCase {
         verify(!Fields.splitStoppedEntry(ts, "2026-03-10T08:00:00").ok)
         verify(!Fields.splitStoppedEntry({ begin: "2026-03-10T09:00:00" }, "2026-03-10T10:00:00").ok)
     }
+
+    function test_previousStoppedTimesheetPicksLatestEnd() {
+        var current = { id: 3, begin: "2026-03-10T12:00:00" }
+        var recents = [
+            current,
+            { id: 1, begin: "2026-03-10T08:00:00", end: "2026-03-10T09:00:00" },
+            { id: 2, begin: "2026-03-10T09:00:00", end: "2026-03-10T11:00:00" }
+        ]
+        var prev = Fields.previousStoppedTimesheet(recents, [], current)
+        compare(prev.id, 2)
+        compare(Fields.previousStoppedTimesheet([], [], current), null)
+    }
+
+    function test_previousStoppedTimesheetUsesTodayWhenRecentsDedupe() {
+        var current = { id: 9, begin: "2026-03-10T14:00:00" }
+        var recents = [current]
+        var today = [
+            { id: 8, begin: "2026-03-10T09:00:00", end: "2026-03-10T13:30:00" }
+        ]
+        compare(Fields.previousStoppedTimesheet(recents, today, current).id, 8)
+    }
+
+    function test_beginIsBeforePreviousEnd() {
+        var prev = { end: "2026-03-10T11:00:00" }
+        verify(Fields.beginIsBeforePreviousEnd("2026-03-10T10:59:00", prev))
+        verify(!Fields.beginIsBeforePreviousEnd("2026-03-10T11:00:00", prev))
+        verify(!Fields.beginIsBeforePreviousEnd("2026-03-10T11:01:00", prev))
+        verify(!Fields.beginIsBeforePreviousEnd("2026-03-10T10:00:00", null))
+    }
 }

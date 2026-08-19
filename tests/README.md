@@ -47,6 +47,7 @@ or switch live tracking on your Kimai/Clockify/Toggl/SolidTime account:
 - Recent overflow: **Entry actions** (permanent icon) / Edit entry / Delete entry / Split entry
 - Create project / Create activity / Create customer
 - Idle Keep time / Discard idle / Discard and continue
+- Overlap confirmation Set anyway
 - plasmoidviewer SDK chrome (FormFactors, Location, refresh-which-removes)
 
 Safe chrome **is** clicked: Add entry, Statistics, Back, Configure, stats

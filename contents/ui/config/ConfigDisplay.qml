@@ -49,6 +49,8 @@ ConfigPageBase {
     property var cfg_showFavoritesDefault
     property var cfg_confirmBeforeStop
     property var cfg_confirmBeforeStopDefault
+    property var cfg_confirmStartBeforePreviousEnd
+    property var cfg_confirmStartBeforePreviousEndDefault
     property var cfg_pinnedActivities
     property var cfg_pinnedActivitiesDefault
     property var cfg_idleStopEnabled
@@ -133,6 +135,8 @@ ConfigPageBase {
     property bool geoSearching: false
     property var geoResults: []
     property string geoStatus: ""
+    property int geoSearchSeq: 0
+    property bool suppressLocationSearch: false
 
     P5Support.DataSource {
         id: execSource
@@ -141,6 +145,13 @@ ConfigPageBase {
         onNewData: function(sourceName, data) {
             Secret.handleData(execSource, sourceName, data)
         }
+    }
+
+    Timer {
+        id: locationSearchTimer
+        interval: 400
+        repeat: false
+        onTriggered: page.searchLocation()
     }
 
     function formatCoord(value, digits) {
@@ -173,16 +184,22 @@ ConfigPageBase {
     }
 
     function searchLocation() {
-        var q = locationSearchField.text
-        if (!String(q).trim()) {
-            geoStatus = i18n("Enter a city or place name to search.")
+        locationSearchTimer.stop()
+        var q = String(locationSearchField.text).trim()
+        if (!q) {
+            geoSearchSeq += 1
+            geoSearching = false
             geoResults = []
+            geoStatus = i18n("Enter a city or place name to search.")
             return
         }
         geoSearching = true
         geoStatus = i18n("Searching…")
-        geoResults = []
+        var seq = ++geoSearchSeq
         Geocode.search(q, function(result) {
+            if (seq !== page.geoSearchSeq) {
+                return
+            }
             geoSearching = false
             if (!result.ok) {
                 geoResults = []
@@ -641,8 +658,14 @@ ConfigPageBase {
                         Layout.fillWidth: true
                         Layout.minimumWidth: Kirigami.Units.gridUnit * 6
                         placeholderText: i18n("City, region, or address…")
-                        enabled: !page.geoSearching
+                        autoAccept: false
                         onAccepted: page.searchLocation()
+                        onTextChanged: {
+                            if (page.suppressLocationSearch) {
+                                return
+                            }
+                            locationSearchTimer.restart()
+                        }
                     }
 
                     QQC2.Button {
@@ -652,7 +675,7 @@ ConfigPageBase {
                         display: page.formWide
                                  ? QQC2.AbstractButton.TextBesideIcon
                                  : QQC2.AbstractButton.IconOnly
-                        enabled: !page.geoSearching && locationSearchField.text.trim().length > 0
+                        enabled: locationSearchField.text.trim().length > 0
                         onClicked: page.searchLocation()
                         QQC2.ToolTip.visible: hovered && !page.formWide
                         QQC2.ToolTip.text: i18n("Search")
@@ -710,7 +733,10 @@ ConfigPageBase {
                                 page.applyLocation(modelData.latitude, modelData.longitude, modelData.displayName)
                                 page.geoResults = []
                                 page.geoStatus = i18n("Using %1", modelData.displayName)
+                                page.suppressLocationSearch = true
                                 locationSearchField.text = modelData.displayName
+                                page.suppressLocationSearch = false
+                                locationSearchTimer.stop()
                             }
                         }
                     }

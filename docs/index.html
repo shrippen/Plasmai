@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plasmai — Time Tracking for KDE Plasma</title>
+  <meta name="description" content="A KDE Plasma 6 panel widget for time tracking with Kimai, Clockify, Toggl Track, or SolidTime.">
+  <style>
+    :root {
+      --bg: #0a0e14;
+      --bg-card: #131920;
+      --bg-card-hover: #1a2230;
+      --border: #1e2a38;
+      --text: #e0e6ed;
+      --text-dim: #7a8a9e;
+      --accent: #4fc08d;
+      --accent-dim: rgba(79, 192, 141, 0.15);
+      --accent2: #42a5f5;
+      --radius: 16px;
+      --radius-sm: 10px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(16px);
+      background: rgba(10, 14, 20, 0.82);
+      border-bottom: 1px solid var(--border);
+    }
+    nav .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+    }
+    nav .logo {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    nav .logo span { color: var(--accent); }
+    nav .links { display: flex; gap: 24px; }
+    nav .links a {
+      color: var(--text-dim);
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    nav .links a:hover { color: var(--text); text-decoration: none; }
+
+    /* ── Hero ── */
+    .hero {
+      text-align: center;
+      padding: 100px 0 60px;
+    }
+    .hero h1 {
+      font-size: clamp(2.2rem, 5vw, 3.6rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      margin-bottom: 20px;
+    }
+    .hero h1 .hl { color: var(--accent); }
+    .hero p {
+      font-size: 1.15rem;
+      color: var(--text-dim);
+      max-width: 580px;
+      margin: 0 auto 36px;
+    }
+    .hero-buttons {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      border-radius: 50px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.2s;
+    }
+    .btn:hover { transform: translateY(-1px); text-decoration: none; }
+    .btn-primary {
+      background: var(--accent);
+      color: #0a0e14;
+      box-shadow: 0 0 24px rgba(79, 192, 141, 0.3);
+    }
+    .btn-secondary {
+      background: var(--bg-card);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .badge-row {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 28px;
+      flex-wrap: wrap;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 50px;
+      background: var(--accent-dim);
+      color: var(--accent);
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    /* ── Screenshots ── */
+    .screenshots {
+      padding: 40px 0 80px;
+    }
+    .screenshot-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .screenshot-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .screenshot-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent);
+    }
+    .screenshot-card img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .screenshot-card .caption {
+      padding: 14px 18px;
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      text-align: center;
+    }
+
+    /* ── Features ── */
+    .features {
+      padding: 80px 0;
+    }
+    .features h2 {
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 48px;
+    }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .feature-card:hover {
+      border-color: var(--accent);
+      background: var(--bg-card-hover);
+    }
+    .feature-icon {
+      font-size: 1.6rem;
+      margin-bottom: 12px;
+    }
+    .feature-card h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .feature-card p {
+      font-size: 0.9rem;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+
+    /* ── Providers ── */
+    .providers {
+      padding: 80px 0;
+    }
+    .providers h2 {
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    .providers .subtitle {
+      text-align: center;
+      color: var(--text-dim);
+      margin-bottom: 48px;
+    }
+    .provider-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+    .provider-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 20px;
+      text-align: center;
+      transition: border-color 0.2s;
+    }
+    .provider-card:hover { border-color: var(--accent); }
+    .provider-card .name {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .provider-card .status {
+      font-size: 0.78rem;
+      padding: 3px 10px;
+      border-radius: 50px;
+      display: inline-block;
+    }
+    .status-tested { background: var(--accent-dim); color: var(--accent); }
+    .status-experimental { background: rgba(66, 165, 245, 0.12); color: var(--accent2); }
+
+    /* ── Install ── */
+    .install {
+      padding: 80px 0;
+    }
+    .install h2 {
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 48px;
+    }
+    .install-steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .step {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+    }
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #0a0e14;
+      font-weight: 700;
+      font-size: 0.9rem;
+      margin-bottom: 14px;
+    }
+    .step h3 {
+      font-size: 1rem;
+      margin-bottom: 10px;
+    }
+    .step code {
+      display: block;
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      font-size: 0.82rem;
+      color: var(--accent);
+      overflow-x: auto;
+      white-space: pre;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      margin-top: 10px;
+    }
+    .step p {
+      font-size: 0.9rem;
+      color: var(--text-dim);
+    }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 0;
+      text-align: center;
+    }
+    footer p {
+      color: var(--text-dim);
+      font-size: 0.85rem;
+    }
+    footer .footer-links {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin-bottom: 14px;
+    }
+    footer .footer-links a {
+      color: var(--text-dim);
+      font-size: 0.85rem;
+    }
+    footer .footer-links a:hover { color: var(--text); }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .screenshot-grid { grid-template-columns: 1fr; max-width: 360px; margin: 0 auto; }
+      .provider-grid { grid-template-columns: repeat(2, 1fr); }
+      .hero { padding: 60px 0 40px; }
+      nav .links { gap: 16px; }
+    }
+    @media (max-width: 480px) {
+      .provider-grid { grid-template-columns: 1fr 1fr; }
+      nav .links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <div class="logo">Plas<span>mai</span></div>
+    <div class="links">
+      <a href="#features">Features</a>
+      <a href="#providers">Backends</a>
+      <a href="#install">Install</a>
+      <a href="https://github.com/shrippen/Plasmai">GitHub</a>
+      <a href="https://store.kde.org/p/2368175/">KDE Store</a>
+    </div>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="container">
+    <h1>Time tracking from<br>your <span class="hl">Plasma panel</span></h1>
+    <p>A native KDE Plasma 6 widget for Kimai, Clockify, Toggl Track, and SolidTime. Start, stop, and switch — without leaving the desktop.</p>
+    <div class="hero-buttons">
+      <a class="btn btn-primary" href="https://store.kde.org/p/2368175/">Get from KDE Store</a>
+      <a class="btn btn-secondary" href="https://github.com/shrippen/Plasmai">View on GitHub</a>
+    </div>
+    <div class="badge-row">
+      <span class="badge">KDE Plasma 6</span>
+      <span class="badge">QML</span>
+      <span class="badge">GPL-3.0</span>
+      <span class="badge">12 Languages</span>
+    </div>
+  </div>
+</section>
+
+<section class="screenshots">
+  <div class="container">
+    <div class="screenshot-grid">
+      <div class="screenshot-card">
+        <img src="01-panel.jpg" alt="Plasmai panel widget with active timer, sparkline, favorites and recents" loading="lazy">
+        <div class="caption">Live timer, sparkline, favorites &amp; recents</div>
+      </div>
+      <div class="screenshot-card">
+        <img src="02-add-screen.jpg" alt="Manual time entry form with project, activity, and time pickers" loading="lazy">
+        <div class="caption">Manual time entry</div>
+      </div>
+      <div class="screenshot-card">
+        <img src="03-statistics.jpg" alt="Statistics view with hourly bar chart, project gantt, and donut charts" loading="lazy">
+        <div class="caption">Statistics &amp; charts</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="features" id="features">
+  <div class="container">
+    <h2>Features</h2>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon">⏱</div>
+        <h3>Live Panel Timer</h3>
+        <p>See your running project, activity, and elapsed time right in the Plasma panel. No extra windows needed.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⭐</div>
+        <h3>Favorites &amp; Recents</h3>
+        <p>Pin frequently used project/activity pairs. Switch between tasks with a single click and a confirmation dialog.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Statistics View</h3>
+        <p>Hourly bar charts, project gantt view, activity donut charts. Today and week summaries at a glance.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🌅</div>
+        <h3>Day Sparkline</h3>
+        <p>Zoomed work-hours bar with sun/moon arcs, overtime segments, and hour ticks — all in the popup header.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🏷</div>
+        <h3>Tags &amp; Billable</h3>
+        <p>Tag entries and mark them billable on new and running entries. Kimai and Toggl tags; all providers for billable.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔐</div>
+        <h3>KWallet Integration</h3>
+        <p>API tokens are stored securely in KWallet. Multiple profiles per service with shared settings across instances.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">✏️</div>
+        <h3>Edit Running &amp; Stopped</h3>
+        <p>Edit the active entry's start time, project, and activity. Edit, delete, or split stopped recents from the overflow menu.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💤</div>
+        <h3>Idle Auto-Stop</h3>
+        <p>Optionally stop tracking after idle time. Works on both X11 and Wayland with automatic detection.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🌍</div>
+        <h3>12 Languages</h3>
+        <p>EN, DE, FR, ES, IT, NL, PT&nbsp;(BR), PL, UK, RU, JA, ZH&nbsp;(CN). Community translations welcome.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="providers" id="providers">
+  <div class="container">
+    <h2>Supported Backends</h2>
+    <p class="subtitle">Connect to your favorite time-tracking service</p>
+    <div class="provider-grid">
+      <div class="provider-card">
+        <div class="name">Kimai</div>
+        <p style="font-size:0.82rem;color:var(--text-dim);margin:6px 0 10px">Bearer token + server URL</p>
+        <span class="status status-tested">Tested</span>
+      </div>
+      <div class="provider-card">
+        <div class="name">Clockify</div>
+        <p style="font-size:0.82rem;color:var(--text-dim);margin:6px 0 10px">API key; optional regional URL</p>
+        <span class="status status-experimental">Experimental</span>
+      </div>
+      <div class="provider-card">
+        <div class="name">Toggl Track</div>
+        <p style="font-size:0.82rem;color:var(--text-dim);margin:6px 0 10px">API token (Basic auth)</p>
+        <span class="status status-experimental">Experimental</span>
+      </div>
+      <div class="provider-card">
+        <div class="name">SolidTime</div>
+        <p style="font-size:0.82rem;color:var(--text-dim);margin:6px 0 10px">Bearer JWT + instance URL</p>
+        <span class="status status-experimental">Experimental</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="install" id="install">
+  <div class="container">
+    <h2>Installation</h2>
+    <div class="install-steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>KDE Store (recommended)</h3>
+        <p>Search for <strong>Plasmai</strong> in Add Widgets, or install via the store:</p>
+        <code>kpackagetool6 -i Plasmai-1.6.2.plasmoid -t Plasma/Applet</code>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>From source</h3>
+        <p>Clone the repository and install directly:</p>
+        <code>git clone https://github.com/shrippen/Plasmai.git
+cd Plasmai
+kpackagetool6 -i . -t Plasma/Applet</code>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Configure</h3>
+        <p>Right-click the widget → <strong>Configure Plasmai</strong>. Set your service, API token, and favorites in the connection tab.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-links">
+      <a href="https://github.com/shrippen/Plasmai">GitHub</a>
+      <a href="https://store.kde.org/p/2368175/">KDE Store</a>
+      <a href="https://github.com/shrippen/Plasmai/issues">Issues</a>
+      <a href="https://github.com/shrippen/Plasmai/blob/main/CHANGELOG.md">Changelog</a>
+    </div>
+    <p>Plasmai is free software under GPL-3.0-or-later. Made by <a href="https://github.com/shrippen">shrippen</a>.</p>
+  </div>
+</footer>
+
+</body>
+</html>

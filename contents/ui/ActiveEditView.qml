@@ -5,6 +5,7 @@ import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
 import "../code/kimaiApi.js" as KimaiApi
 import "../code/dateTimeFormat.js" as DTF
+import "../code/timesheetFields.js" as TimesheetFields
 import "."
 
 /**
@@ -36,6 +37,10 @@ ColumnLayout {
     property bool showCreateActions: false
     property string tagLookupUrl: ""
     property string tagLookupToken: ""
+    /** Last stopped timesheet (not the running one). */
+    property var previousTimesheet: null
+    property bool overlapGuardEnabled: true
+    property Item dialogParent: null
 
     readonly property alias projectCombo: pickers.projectCombo
     readonly property alias activityCombo: pickers.activityCombo
@@ -80,6 +85,31 @@ ColumnLayout {
         var _d = beginDate.selectedDateMs + beginTime.hours * 60 + beginTime.minutes
         var begin = combineStamp(beginDate, beginTime)
         return !!(begin && !isNaN(begin.getTime()) && begin.getTime() <= Date.now() + 60 * 1000)
+    }
+
+    readonly property var previousEndDate: TimesheetFields.parseInstant(
+        root.previousTimesheet && root.previousTimesheet.end)
+    readonly property string previousEndText: {
+        var d = root.previousEndDate
+        if (!d) {
+            return ""
+        }
+        return Qt.locale().toString(d, Locale.ShortFormat)
+    }
+    readonly property bool beginOverlapsPrevious: {
+        var _d = beginDate.selectedDateMs + beginTime.hours * 60 + beginTime.minutes
+        if (!root.overlapGuardEnabled || !root.previousTimesheet) {
+            return false
+        }
+        return TimesheetFields.beginIsBeforePreviousEnd(
+            combineStamp(beginDate, beginTime), root.previousTimesheet)
+    }
+
+    function emitSave() {
+        var project = projectCombo.currentItem.value
+        var activity = activityCombo.currentItem.value
+        root.saveRequested(project.id, activity.id, root.stampText(beginDate, beginTime),
+                           metaFields.billable, metaFields.tags)
     }
 
     function parseBeginDate(ts) {
@@ -273,6 +303,15 @@ ColumnLayout {
 
     PlasmaComponents3.Label {
         Layout.fillWidth: true
+        visible: root.overlapGuardEnabled && root.previousEndText.length > 0
+        wrapMode: Text.WordWrap
+        font.pointSize: Kirigami.Theme.smallFont.pointSize
+        opacity: 0.75
+        text: i18n("Previous entry ended at %1", root.previousEndText)
+    }
+
+    PlasmaComponents3.Label {
+        Layout.fillWidth: true
         wrapMode: Text.WordWrap
         font.pointSize: Kirigami.Theme.smallFont.pointSize
         opacity: 0.7
@@ -306,10 +345,11 @@ ColumnLayout {
             text: i18n("Save")
             icon.name: "document-save"
             onClicked: {
-                var project = projectCombo.currentItem.value
-                var activity = activityCombo.currentItem.value
-                root.saveRequested(project.id, activity.id, root.stampText(beginDate, beginTime),
-                                   metaFields.billable, metaFields.tags)
+                if (root.overlapGuardEnabled && root.beginOverlapsPrevious) {
+                    overlapDialog.open()
+                    return
+                }
+                root.emitSave()
             }
         }
 
@@ -318,5 +358,38 @@ ColumnLayout {
             text: i18n("Cancel")
             onClicked: root.cancelled()
         }
+    }
+
+    QQC2.Dialog {
+        id: overlapDialog
+        parent: root.dialogParent || root
+        anchors.centerIn: parent
+        title: i18n("Overlapping start")
+        modal: true
+        width: Math.min(Kirigami.Units.gridUnit * 22, (root.dialogParent || root).width * 0.95)
+        standardButtons: QQC2.Dialog.NoButton
+        padding: Kirigami.Units.largeSpacing
+
+        contentItem: PlasmaComponents3.Label {
+            wrapMode: Text.WordWrap
+            text: i18n("The new start is before the previous entry ended (%1). Set it anyway?",
+                       root.previousEndText)
+        }
+
+        footer: QQC2.DialogButtonBox {
+            PlasmaComponents3.Button {
+                text: i18n("Set anyway")
+                icon.name: "document-save"
+                Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+                QQC2.DialogButtonBox.buttonRole: QQC2.DialogButtonBox.AcceptRole
+            }
+            PlasmaComponents3.Button {
+                text: i18n("Cancel")
+                Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+                QQC2.DialogButtonBox.buttonRole: QQC2.DialogButtonBox.RejectRole
+            }
+        }
+
+        onAccepted: root.emitSave()
     }
 }

@@ -130,7 +130,8 @@ Stack: KDE Plasma 6, QML, JavaScript (`.pragma library`). No compiled binaries
 - Tabs: Connection, Favorites, Display, Maintenance, Behavior — keep that
   split. Do not dump tracking actions into Display. Last-used
   project/activity ids are shared.json keys, not Display checkboxes.
-  Forgot-to-start lives on Behavior. Favorites and Maintenance load
+  Forgot-to-start lives on Behavior, as does overlapping-start confirmation
+  for the running entry. Favorites and Maintenance load
   `shared.json` first, then the catalog cache, only when their tab is
   visible — do not hit the API on every settings dialog open.
   Favorites must show a running `BusyIndicator` **before** catalog I/O.
@@ -205,6 +206,8 @@ Stack: KDE Plasma 6, QML, JavaScript (`.pragma library`). No compiled binaries
   available, else 08:00–18:00), overtime in `neutralTextColor`, tracked time
   in `positiveTextColor`. Sun/moon/work arcs are optional (`showSparklineArcs`)
   and punch soft holes under header labels so text stays readable.
+  Display location search is Nominatim; debounce typing, keep the field
+  usable while a request is in flight, ignore late replies for older queries.
 - Stats view is a secondary pane (`mainViewMode`), not a separate window.
   Billable filters and day/week navigation stay in-widget. Empty charts use
   a single quiet empty string, not a second placeholder stack.
@@ -274,6 +277,9 @@ Stack: KDE Plasma 6, QML, JavaScript (`.pragma library`). No compiled binaries
   Disturb.
 - **Edit** (running entry) is in-place (`ActiveEditView`), not a settings
   page. It can also set billable and tags when the provider allows.
+  When `confirmStartBeforePreviousEnd` is on (Behavior, default on), the
+  editor shows the previous stopped entry’s end and asks before saving a
+  start that is earlier; the user can confirm and set it anyway.
   Manual **Add entry** is a separate `mainViewMode` and uses the same
   `TimesheetMetaFields` extras. Editing a stopped Recent reuses that
   form (`editingStoppedTimesheet`); Save patches instead of creating.
@@ -285,7 +291,7 @@ Stack: KDE Plasma 6, QML, JavaScript (`.pragma library`). No compiled binaries
 - Do not click-test live Start/Stop/Continue/favorite/recent in default CI
   (`tests/README.md`). Those mutate the user’s tracker. Also skip Recent
   overflow, Create project/activity/customer, and idle Keep/Discard even
-  with `PLASMAI_TEST_LIVE`.
+  with `PLASMAI_TEST_LIVE`. Also skip overlap **Set anyway**.
 
 ---
 
@@ -300,7 +306,8 @@ Stack: KDE Plasma 6, QML, JavaScript (`.pragma library`). No compiled binaries
 - Polling: `refreshInterval` (seconds), idle check once a minute when
   enabled, forgot-to-start every five minutes when enabled. No busy-loops,
   no per-keystroke API calls (description save is explicit: Enter or the
-  save button).
+  save button; Display location search waits ~400ms after typing and
+  drops stale Nominatim replies).
 - Kimai **week remaining** (`remainingWeekSeconds`) subtracts tracked time
   from an effective week target: contracted hours minus approved vacation /
   sickness / other absences and public holidays for the current Mon–Sun.

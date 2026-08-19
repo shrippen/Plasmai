@@ -161,3 +161,66 @@ function splitStoppedEntry(timesheet, splitAt) {
         tags: tagsFromTimesheet(timesheet)
     }
 }
+
+function _pushUniqueTimesheet(out, seen, ts) {
+    if (!ts) {
+        return
+    }
+    var key = (ts.id !== undefined && ts.id !== null) ? ("id:" + String(ts.id)) : ""
+    if (!key) {
+        var begin = parseInstant(ts.begin)
+        var end = parseInstant(ts.end)
+        key = "span:" + (begin ? begin.getTime() : "") + ":" + (end ? end.getTime() : "")
+    }
+    if (seen[key]) {
+        return
+    }
+    seen[key] = true
+    out.push(ts)
+}
+
+/**
+ * Latest-ended stopped timesheet that is not `currentTimesheet`.
+ * Recents are deduped by project/activity, so also scan todayList.
+ */
+function previousStoppedTimesheet(recentList, todayList, currentTimesheet) {
+    var currentId = (currentTimesheet && currentTimesheet.id !== undefined
+                     && currentTimesheet.id !== null)
+        ? String(currentTimesheet.id) : ""
+    var list = []
+    var seen = {}
+    var i
+    for (i = 0; i < (recentList || []).length; i++) {
+        _pushUniqueTimesheet(list, seen, recentList[i])
+    }
+    for (i = 0; i < (todayList || []).length; i++) {
+        _pushUniqueTimesheet(list, seen, todayList[i])
+    }
+    var best = null
+    var bestEnd = -Infinity
+    for (i = 0; i < list.length; i++) {
+        var ts = list[i]
+        if (currentId && ts.id !== undefined && ts.id !== null && String(ts.id) === currentId) {
+            continue
+        }
+        var end = parseInstant(ts.end)
+        if (!end) {
+            continue
+        }
+        if (end.getTime() >= bestEnd) {
+            bestEnd = end.getTime()
+            best = ts
+        }
+    }
+    return best
+}
+
+/** True when begin is strictly before the previous timesheet's end. */
+function beginIsBeforePreviousEnd(begin, previousTimesheet) {
+    var start = parseInstant(begin)
+    var prevEnd = parseInstant(previousTimesheet && previousTimesheet.end)
+    if (!start || !prevEnd) {
+        return false
+    }
+    return start.getTime() < prevEnd.getTime()
+}

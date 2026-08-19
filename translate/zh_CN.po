@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-08-18 15:29+0200\n"
+"POT-Creation-Date: 2026-08-18 18:54+0200\n"
 "PO-Revision-Date: 2026-08-09 19:45+0200\n"
 "Last-Translator: Cursor Agent\n"
 "Language-Team: Simplified Chinese\n"
@@ -20,13 +20,13 @@ msgstr ""
 msgid "Connection"
 msgstr "连接"
 
-#: contents/config/config.qml:11 contents/ui/config/ConfigDisplay.qml:843
-#: contents/ui/config/ConfigDisplay.qml:898
-#: contents/ui/config/ConfigFavorites.qml:507 contents/ui/main.qml:3436
+#: contents/config/config.qml:11 contents/ui/config/ConfigDisplay.qml:869
+#: contents/ui/config/ConfigDisplay.qml:924
+#: contents/ui/config/ConfigFavorites.qml:507 contents/ui/main.qml:3439
 msgid "Favorites"
 msgstr "收藏"
 
-#: contents/config/config.qml:16 contents/ui/config/ConfigDisplay.qml:465
+#: contents/config/config.qml:16 contents/ui/config/ConfigDisplay.qml:482
 msgid "Display"
 msgstr "显示"
 
@@ -34,35 +34,51 @@ msgstr "显示"
 msgid "Maintenance"
 msgstr "维护"
 
-#: contents/config/config.qml:26 contents/ui/config/ConfigBehavior.qml:235
+#: contents/config/config.qml:26 contents/ui/config/ConfigBehavior.qml:243
 msgid "Behavior"
 msgstr "行为"
 
-#: contents/ui/ActiveEditView.qml:220
+#: contents/ui/ActiveEditView.qml:250
 msgid "Edit start, project, activity, billable, and tags for the running entry."
 msgstr "编辑进行中条目的开始时间、项目、活动、计费和标签。"
 
-#: contents/ui/ActiveEditView.qml:252 contents/ui/main.qml:3699
+#: contents/ui/ActiveEditView.qml:282 contents/ui/main.qml:3707
 msgid "Start"
 msgstr "开始"
 
-#: contents/ui/ActiveEditView.qml:281
+#: contents/ui/ActiveEditView.qml:310
+msgid "Previous entry ended at %1"
+msgstr "上一条记录结束于 %1"
+
+#: contents/ui/ActiveEditView.qml:320
 msgid "Elapsed time updates from the new start."
 msgstr "已用时间会根据新的开始时间更新。"
 
-#: contents/ui/ActiveEditView.qml:282
+#: contents/ui/ActiveEditView.qml:321
 msgid "Start must be a valid time not in the future."
 msgstr "开始时间必须有效且不能是未来时间。"
 
-#: contents/ui/ActiveEditView.qml:306
+#: contents/ui/ActiveEditView.qml:345
 msgid "Save"
 msgstr "保存"
 
-#: contents/ui/ActiveEditView.qml:318 contents/ui/main.qml:2454
-#: contents/ui/main.qml:3727 contents/ui/ManualEntryView.qml:386
-#: contents/ui/TimeField.qml:259
+#: contents/ui/ActiveEditView.qml:358 contents/ui/ActiveEditView.qml:387
+#: contents/ui/main.qml:2453 contents/ui/main.qml:3735
+#: contents/ui/ManualEntryView.qml:386 contents/ui/TimeField.qml:259
 msgid "Cancel"
 msgstr "取消"
+
+#: contents/ui/ActiveEditView.qml:367
+msgid "Overlapping start"
+msgstr "开始时间重叠"
+
+#: contents/ui/ActiveEditView.qml:375
+msgid "The new start is before the previous entry ended (%1). Set it anyway?"
+msgstr "新的开始早于上一条记录的结束时间（%1）。仍要设置吗？"
+
+#: contents/ui/ActiveEditView.qml:381
+msgid "Set anyway"
+msgstr "仍要设置"
 
 #: contents/ui/ActivityListRow.qml:40
 msgid "Starts or switches this activity"
@@ -72,11 +88,11 @@ msgstr "开始或切换到此活动"
 msgid "Entry actions"
 msgstr "条目操作"
 
-#: contents/ui/ActivityListRow.qml:210 contents/ui/main.qml:2748
+#: contents/ui/ActivityListRow.qml:210 contents/ui/main.qml:2747
 msgid "Edit entry"
 msgstr "编辑条目"
 
-#: contents/ui/ActivityListRow.qml:217 contents/ui/main.qml:2502
+#: contents/ui/ActivityListRow.qml:217 contents/ui/main.qml:2501
 msgid "Split entry"
 msgstr "拆分条目"
 
@@ -132,47 +148,55 @@ msgstr "请求失败 (%1)。"
 msgid "Time"
 msgstr "时间"
 
-#: contents/ui/config/ConfigBehavior.qml:248
+#: contents/ui/config/ConfigBehavior.qml:256
 msgid "Tracking:"
 msgstr "计时："
 
-#: contents/ui/config/ConfigBehavior.qml:251
+#: contents/ui/config/ConfigBehavior.qml:259
 msgid "Confirm before stopping the timer"
 msgstr "停止计时器前确认"
 
-#: contents/ui/config/ConfigBehavior.qml:257
+#: contents/ui/config/ConfigBehavior.qml:268
+msgid "Ask before a start that overlaps the previous entry"
+msgstr "开始时间落入上一条记录时询问"
+
+#: contents/ui/config/ConfigBehavior.qml:279
+msgid "When editing the running timer, the previous entry’s end is shown. Saving an earlier start asks for confirmation."
+msgstr "编辑进行中的计时器时会显示上一条已停止记录的结束时间。保存更早的开始时间需要确认。"
+
+#: contents/ui/config/ConfigBehavior.qml:284
 msgid "Idle detection:"
 msgstr "空闲检测："
 
-#: contents/ui/config/ConfigBehavior.qml:260
+#: contents/ui/config/ConfigBehavior.qml:287
 msgid "Stop timer when idle"
 msgstr "空闲时停止计时器"
 
-#: contents/ui/config/ConfigBehavior.qml:266
+#: contents/ui/config/ConfigBehavior.qml:293
 msgid "Idle threshold (minutes):"
 msgstr "空闲阈值（分钟）："
 
-#: contents/ui/config/ConfigBehavior.qml:281
+#: contents/ui/config/ConfigBehavior.qml:308
 msgid "Idle detection uses the session idle hint on Wayland (loginctl / ScreenSaver) and xprintidle on X11."
 msgstr "空闲检测在 Wayland 上使用会话空闲提示（loginctl / ScreenSaver），在 X11 上使用 xprintidle。"
 
-#: contents/ui/config/ConfigBehavior.qml:286
+#: contents/ui/config/ConfigBehavior.qml:313
 msgid "Notifications:"
 msgstr "通知："
 
-#: contents/ui/config/ConfigBehavior.qml:289
+#: contents/ui/config/ConfigBehavior.qml:316
 msgid "Notify when tracking starts"
 msgstr "开始计时时通知"
 
-#: contents/ui/config/ConfigBehavior.qml:298
+#: contents/ui/config/ConfigBehavior.qml:325
 msgid "Notify when tracking stops"
 msgstr "停止计时时通知"
 
-#: contents/ui/config/ConfigBehavior.qml:307
+#: contents/ui/config/ConfigBehavior.qml:334
 msgid "Notify when stopped due to idle"
 msgstr "因空闲停止时通知"
 
-#: contents/ui/config/ConfigBehavior.qml:317
+#: contents/ui/config/ConfigBehavior.qml:344
 msgid "Remind me once if nothing is tracking during work hours"
 msgstr "工作时间内若没有在计时，提醒一次"
 
@@ -313,217 +337,217 @@ msgstr "ok"
 msgid "Connected to %1 (%2)."
 msgstr "已连接到 %1 (%2)。"
 
-#: contents/ui/config/ConfigDisplay.qml:178
+#: contents/ui/config/ConfigDisplay.qml:193
 msgid "Enter a city or place name to search."
 msgstr "输入城市或地名进行搜索。"
 
-#: contents/ui/config/ConfigDisplay.qml:183
-#: contents/ui/config/ConfigDisplay.qml:650
+#: contents/ui/config/ConfigDisplay.qml:197
+#: contents/ui/config/ConfigDisplay.qml:673
 msgid "Searching…"
 msgstr "搜索中…"
 
-#: contents/ui/config/ConfigDisplay.qml:189
+#: contents/ui/config/ConfigDisplay.qml:206
 msgid "Location search failed. Check your network connection."
 msgstr "位置搜索失败。请检查网络连接。"
 
-#: contents/ui/config/ConfigDisplay.qml:194
+#: contents/ui/config/ConfigDisplay.qml:211
 msgid "No places found."
 msgstr "未找到地点。"
 
-#: contents/ui/config/ConfigDisplay.qml:196
+#: contents/ui/config/ConfigDisplay.qml:213
 msgid "%1 place found."
 msgid_plural "%1 places found."
 msgstr[0] "找到 %1 个地点。"
 
-#: contents/ui/config/ConfigDisplay.qml:479
+#: contents/ui/config/ConfigDisplay.qml:496
 msgid "Appearance"
 msgstr "外观"
 
-#: contents/ui/config/ConfigDisplay.qml:486
+#: contents/ui/config/ConfigDisplay.qml:503
 msgid "Touch optimization:"
 msgstr "触控优化："
 
-#: contents/ui/config/ConfigDisplay.qml:490
+#: contents/ui/config/ConfigDisplay.qml:507
 msgid "Automatic (follow Plasma tablet mode)"
 msgstr "自动（跟随 Plasma 平板模式）"
 
-#: contents/ui/config/ConfigDisplay.qml:491
+#: contents/ui/config/ConfigDisplay.qml:508
 msgid "On"
 msgstr "开"
 
-#: contents/ui/config/ConfigDisplay.qml:492
+#: contents/ui/config/ConfigDisplay.qml:509
 msgid "Off"
 msgstr "关"
 
-#: contents/ui/config/ConfigDisplay.qml:504
+#: contents/ui/config/ConfigDisplay.qml:521
 msgid "Larger tap targets for buttons, lists, pickers, and date/time controls."
 msgstr "为按钮、列表、选择器和日期/时间控件提供更大的触控目标。"
 
-#: contents/ui/config/ConfigDisplay.qml:509
+#: contents/ui/config/ConfigDisplay.qml:526
 msgid "Updates"
 msgstr "更新"
 
-#: contents/ui/config/ConfigDisplay.qml:515
+#: contents/ui/config/ConfigDisplay.qml:532
 msgid "Refresh interval (seconds):"
 msgstr "刷新间隔（秒）："
 
-#: contents/ui/config/ConfigDisplay.qml:525
+#: contents/ui/config/ConfigDisplay.qml:542
 msgid "Colors"
 msgstr "颜色"
 
-#: contents/ui/config/ConfigDisplay.qml:531
+#: contents/ui/config/ConfigDisplay.qml:548
 msgid "Distinction:"
 msgstr "区分："
 
-#: contents/ui/config/ConfigDisplay.qml:535
+#: contents/ui/config/ConfigDisplay.qml:552
 msgid "Make similar colors distinctive within each category"
 msgstr "在每个分类内让相近颜色更易区分"
 
-#: contents/ui/config/ConfigDisplay.qml:541
+#: contents/ui/config/ConfigDisplay.qml:558
 msgid "Similarity threshold (%):"
 msgstr "相似度阈值（%）："
 
-#: contents/ui/config/ConfigDisplay.qml:558
+#: contents/ui/config/ConfigDisplay.qml:575
 msgid "Higher similarity values treat more colors as too close. Clashing items get vivid, well-spaced replacement colors. See Maintenance for clash groups."
 msgstr "更高的相似度会把更多颜色视为过近。冲突项会换成鲜艳、间隔均匀的颜色。冲突组见“维护”。"
 
-#: contents/ui/config/ConfigDisplay.qml:569
+#: contents/ui/config/ConfigDisplay.qml:586
 msgid "Color distinction is available for Kimai profiles (per-customer / project / activity colors)."
 msgstr "颜色区分适用于 Kimai 配置文件（按客户/项目/活动着色）。"
 
-#: contents/ui/config/ConfigDisplay.qml:574
+#: contents/ui/config/ConfigDisplay.qml:591
 msgid "Work hours"
 msgstr "工作时间"
 
-#: contents/ui/config/ConfigDisplay.qml:580
+#: contents/ui/config/ConfigDisplay.qml:597
 msgid "Usual work day start:"
 msgstr "通常工作日开始："
 
-#: contents/ui/config/ConfigDisplay.qml:590
+#: contents/ui/config/ConfigDisplay.qml:607
 msgid "Usual work day end:"
 msgstr "通常工作日结束："
 
-#: contents/ui/config/ConfigDisplay.qml:605
+#: contents/ui/config/ConfigDisplay.qml:622
 msgid "Used for the sparkline zoom and remaining-time in the work summary."
 msgstr "用于迷你图缩放和工作摘要中的剩余时间。"
 
-#: contents/ui/config/ConfigDisplay.qml:610
-#: contents/ui/config/ConfigDisplay.qml:835
-#: contents/ui/config/ConfigDisplay.qml:890
+#: contents/ui/config/ConfigDisplay.qml:627
+#: contents/ui/config/ConfigDisplay.qml:861
+#: contents/ui/config/ConfigDisplay.qml:916
 msgid "Day sparkline"
 msgstr "每日 sparkline"
 
-#: contents/ui/config/ConfigDisplay.qml:616
+#: contents/ui/config/ConfigDisplay.qml:633
 msgid "Arcs:"
 msgstr "弧线："
 
-#: contents/ui/config/ConfigDisplay.qml:619
+#: contents/ui/config/ConfigDisplay.qml:636
 msgid "Show sun, moon, and work arcs"
 msgstr "显示太阳、月亮和工作弧"
 
-#: contents/ui/config/ConfigDisplay.qml:630
+#: contents/ui/config/ConfigDisplay.qml:647
 msgid "Hide the whole sparkline under Panel flyout or Desktop widget below."
 msgstr "在下方的面板弹出或桌面小组件中隐藏整条迷你图。"
 
-#: contents/ui/config/ConfigDisplay.qml:634
+#: contents/ui/config/ConfigDisplay.qml:651
 msgid "Find location:"
 msgstr "查找地点："
 
-#: contents/ui/config/ConfigDisplay.qml:643
+#: contents/ui/config/ConfigDisplay.qml:660
 msgid "City, region, or address…"
 msgstr "城市、地区或地址…"
 
-#: contents/ui/config/ConfigDisplay.qml:650
-#: contents/ui/config/ConfigDisplay.qml:658
+#: contents/ui/config/ConfigDisplay.qml:673
+#: contents/ui/config/ConfigDisplay.qml:681
 msgid "Search"
 msgstr "搜索"
 
-#: contents/ui/config/ConfigDisplay.qml:712
+#: contents/ui/config/ConfigDisplay.qml:735
 msgid "Using %1"
 msgstr "使用 %1"
 
-#: contents/ui/config/ConfigDisplay.qml:726
+#: contents/ui/config/ConfigDisplay.qml:752
 msgid "Current place: %1"
 msgstr "当前地点：%1"
 
-#: contents/ui/config/ConfigDisplay.qml:731
+#: contents/ui/config/ConfigDisplay.qml:757
 msgid "Latitude:"
 msgstr "纬度："
 
-#: contents/ui/config/ConfigDisplay.qml:746
+#: contents/ui/config/ConfigDisplay.qml:772
 msgid "Longitude:"
 msgstr "经度："
 
-#: contents/ui/config/ConfigDisplay.qml:766
+#: contents/ui/config/ConfigDisplay.qml:792
 msgid "Search a place or enter coordinates for sunrise/sunset coloring. Powered by OpenStreetMap Nominatim."
 msgstr "搜索地点或输入坐标，用于日出/日落着色。由 OpenStreetMap Nominatim 提供。"
 
-#: contents/ui/config/ConfigDisplay.qml:771
+#: contents/ui/config/ConfigDisplay.qml:797
 msgid "Panel (taskbar)"
 msgstr "面板（任务栏）"
 
-#: contents/ui/config/ConfigDisplay.qml:777
-#: contents/ui/config/ConfigDisplay.qml:824
-#: contents/ui/config/ConfigDisplay.qml:879
+#: contents/ui/config/ConfigDisplay.qml:803
+#: contents/ui/config/ConfigDisplay.qml:850
+#: contents/ui/config/ConfigDisplay.qml:905
 msgid "Show:"
 msgstr "显示："
 
-#: contents/ui/config/ConfigDisplay.qml:780
+#: contents/ui/config/ConfigDisplay.qml:806
 msgid "Elapsed time"
 msgstr "已用时间"
 
-#: contents/ui/config/ConfigDisplay.qml:788
+#: contents/ui/config/ConfigDisplay.qml:814
 msgid "Project name"
 msgstr "项目名称"
 
-#: contents/ui/config/ConfigDisplay.qml:796
+#: contents/ui/config/ConfigDisplay.qml:822
 msgid "Activity name"
 msgstr "活动名称"
 
-#: contents/ui/config/ConfigDisplay.qml:804
+#: contents/ui/config/ConfigDisplay.qml:830
 msgid "Customer color pill"
 msgstr "客户颜色点"
 
-#: contents/ui/config/ConfigDisplay.qml:812
+#: contents/ui/config/ConfigDisplay.qml:838
 msgid "Project color pill"
 msgstr "项目颜色点"
 
-#: contents/ui/config/ConfigDisplay.qml:818
+#: contents/ui/config/ConfigDisplay.qml:844
 msgid "Panel flyout"
 msgstr "面板弹出窗口"
 
-#: contents/ui/config/ConfigDisplay.qml:827
-#: contents/ui/config/ConfigDisplay.qml:882
+#: contents/ui/config/ConfigDisplay.qml:853
+#: contents/ui/config/ConfigDisplay.qml:908
 msgid "Work summary (today / week / remaining)"
 msgstr "工作摘要（今日 / 本周 / 剩余）"
 
-#: contents/ui/config/ConfigDisplay.qml:851
-#: contents/ui/config/ConfigDisplay.qml:906
-#: contents/ui/config/ConfigDisplay.qml:920
+#: contents/ui/config/ConfigDisplay.qml:877
+#: contents/ui/config/ConfigDisplay.qml:932
+#: contents/ui/config/ConfigDisplay.qml:946
 msgid "Recent list"
 msgstr "最近列表"
 
-#: contents/ui/config/ConfigDisplay.qml:859
+#: contents/ui/config/ConfigDisplay.qml:885
 msgid "Continue last activity"
 msgstr "继续上次活动"
 
-#: contents/ui/config/ConfigDisplay.qml:867
+#: contents/ui/config/ConfigDisplay.qml:893
 msgid "Start / switch activity controls"
 msgstr "开始 / 切换活动控件"
 
-#: contents/ui/config/ConfigDisplay.qml:873
+#: contents/ui/config/ConfigDisplay.qml:899
 msgid "Desktop widget"
 msgstr "桌面小部件"
 
-#: contents/ui/config/ConfigDisplay.qml:914
+#: contents/ui/config/ConfigDisplay.qml:940
 msgid "New activity picker"
 msgstr "新活动选择器"
 
-#: contents/ui/config/ConfigDisplay.qml:926
+#: contents/ui/config/ConfigDisplay.qml:952
 msgid "Activities shown:"
 msgstr "显示的活动："
 
-#: contents/ui/config/ConfigDisplay.qml:940
+#: contents/ui/config/ConfigDisplay.qml:966
 msgid "Applies to both the panel flyout and the desktop widget."
 msgstr "同时适用于面板弹出和桌面小组件。"
 
@@ -715,8 +739,8 @@ msgstr "选择日期"
 msgid "Today's tracked time"
 msgstr "今日已记录时间"
 
-#: contents/ui/main.qml:308 contents/ui/main.qml:310 contents/ui/main.qml:2162
-#: contents/ui/main.qml:2749
+#: contents/ui/main.qml:308 contents/ui/main.qml:310 contents/ui/main.qml:2161
+#: contents/ui/main.qml:2748
 msgid "Plasmai"
 msgstr "Plasmai"
 
@@ -860,11 +884,11 @@ msgid "%1 over this week"
 msgstr "本周超出 %1"
 
 #: contents/ui/main.qml:1254 contents/ui/main.qml:1277
-#: contents/ui/main.qml:3123
+#: contents/ui/main.qml:3122
 msgid "Today %1"
 msgstr "今日 %1"
 
-#: contents/ui/main.qml:1255 contents/ui/main.qml:3125
+#: contents/ui/main.qml:1255 contents/ui/main.qml:3124
 msgid "Week %1"
 msgstr "周 %1"
 
@@ -884,227 +908,227 @@ msgstr "计时已停止（空闲）"
 msgid "Tracking stopped"
 msgstr "计时已停止"
 
-#: contents/ui/main.qml:2029
+#: contents/ui/main.qml:2028
 msgid "Could not resolve project or activity for that entry"
 msgstr "无法解析该条目的项目或活动"
 
-#: contents/ui/main.qml:2068
+#: contents/ui/main.qml:2067
 msgid "This provider cannot delete entries."
 msgstr "此服务无法删除条目。"
 
-#: contents/ui/main.qml:2081
+#: contents/ui/main.qml:2080
 msgid "Entry deleted"
 msgstr "已删除条目"
 
-#: contents/ui/main.qml:2113 contents/ui/main.qml:2595
+#: contents/ui/main.qml:2112 contents/ui/main.qml:2594
 msgid "Split time must be between begin and end."
 msgstr "拆分时间必须介于开始和结束之间。"
 
-#: contents/ui/main.qml:2118
+#: contents/ui/main.qml:2117
 msgid "This provider cannot split entries."
 msgstr "此服务无法拆分条目。"
 
-#: contents/ui/main.qml:2147
+#: contents/ui/main.qml:2146
 msgid "Entry split"
 msgstr "已拆分条目"
 
-#: contents/ui/main.qml:2151
+#: contents/ui/main.qml:2150
 msgid "The first half was saved, but the second half could not be created."
 msgstr "前半段已保存，但无法创建后半段。"
 
-#: contents/ui/main.qml:2163
+#: contents/ui/main.qml:2162
 msgid "Open or close the Plasmai popup"
 msgstr "打开或关闭 Plasmai 弹出窗口"
 
-#: contents/ui/main.qml:2281
+#: contents/ui/main.qml:2280
 msgid "Stop tracking?"
 msgstr "停止计时？"
 
-#: contents/ui/main.qml:2294
+#: contents/ui/main.qml:2293
 msgid "Stop tracking %1 · %2?"
 msgstr "停止计时 %1 · %2？"
 
-#: contents/ui/main.qml:2305 contents/ui/main.qml:3641
+#: contents/ui/main.qml:2304 contents/ui/main.qml:3649
 msgid "Switch activity"
 msgstr "切换活动"
 
-#: contents/ui/main.qml:2414
+#: contents/ui/main.qml:2413
 msgid "Current"
 msgstr "当前"
 
-#: contents/ui/main.qml:2435
+#: contents/ui/main.qml:2434
 msgid "Switch to"
 msgstr "切换到"
 
-#: contents/ui/main.qml:2448 contents/ui/main.qml:3715
+#: contents/ui/main.qml:2447 contents/ui/main.qml:3723
 msgid "Switch"
 msgstr "切换"
 
-#: contents/ui/main.qml:2469
+#: contents/ui/main.qml:2468
 msgid "Delete entry?"
 msgstr "删除此条目？"
 
-#: contents/ui/main.qml:2486
+#: contents/ui/main.qml:2485
 msgid "Delete this finished entry? This cannot be undone."
 msgstr "删除这条已结束的条目？此操作无法撤销。"
 
-#: contents/ui/main.qml:2488
+#: contents/ui/main.qml:2487
 msgid "Delete \"%1 · %2\"? This cannot be undone."
 msgstr "删除“%1 · %2”？此操作无法撤销。"
 
-#: contents/ui/main.qml:2553
+#: contents/ui/main.qml:2552
 msgid "The first half keeps the original start. The second half starts at the split time."
 msgstr "前半段保留原来的开始时间。后半段从拆分时刻开始。"
 
-#: contents/ui/main.qml:2558
+#: contents/ui/main.qml:2557
 msgid "Split at"
 msgstr "拆分于"
 
-#: contents/ui/main.qml:2594
+#: contents/ui/main.qml:2593
 msgid "Both halves will have a positive duration."
 msgstr "两段都会有正的时长。"
 
-#: contents/ui/main.qml:2608
+#: contents/ui/main.qml:2607
 msgid "You were idle"
 msgstr "你处于空闲状态"
 
-#: contents/ui/main.qml:2626
+#: contents/ui/main.qml:2625
 msgid "Keep the time, discard the idle gap, or discard and continue the same activity."
 msgstr "保留这段时间、丢弃空闲间隔，或丢弃后继续同一活动。"
 
-#: contents/ui/main.qml:2635
+#: contents/ui/main.qml:2634
 msgid "Keep time"
 msgstr "保留时间"
 
-#: contents/ui/main.qml:2644
+#: contents/ui/main.qml:2643
 msgid "Discard idle"
 msgstr "丢弃空闲"
 
-#: contents/ui/main.qml:2653
+#: contents/ui/main.qml:2652
 msgid "Discard and continue"
 msgstr "丢弃并继续"
 
-#: contents/ui/main.qml:2746 contents/ui/main.qml:2800
+#: contents/ui/main.qml:2745 contents/ui/main.qml:2799
 msgid "Statistics"
 msgstr "统计"
 
-#: contents/ui/main.qml:2748 contents/ui/main.qml:2785
+#: contents/ui/main.qml:2747 contents/ui/main.qml:2784
 msgid "Add entry"
 msgstr "添加条目"
 
-#: contents/ui/main.qml:2791
+#: contents/ui/main.qml:2790
 msgid "Add a manual time entry"
 msgstr "添加手动时间条目"
 
-#: contents/ui/main.qml:2806
+#: contents/ui/main.qml:2805
 msgid "Show statistics"
 msgstr "显示统计"
 
-#: contents/ui/main.qml:2814
+#: contents/ui/main.qml:2813
 msgid "Back"
 msgstr "返回"
 
-#: contents/ui/main.qml:2819
+#: contents/ui/main.qml:2818
 msgid "Back to timer"
 msgstr "返回计时器"
 
-#: contents/ui/main.qml:2856
+#: contents/ui/main.qml:2855
 msgid "Connect a time tracker"
 msgstr "连接时间跟踪服务"
 
-#: contents/ui/main.qml:2857
+#: contents/ui/main.qml:2856
 msgid "Add your service, server URL (if needed), and API token to start tracking from the panel."
 msgstr "添加您的服务、服务器 URL（如需要）和 API 令牌，即可从面板开始计时。"
 
-#: contents/ui/main.qml:2859
+#: contents/ui/main.qml:2858
 msgid "Configure Plasmai"
 msgstr "配置 Plasmai"
 
-#: contents/ui/main.qml:2872
+#: contents/ui/main.qml:2871
 msgid "Retry"
 msgstr "重试"
 
-#: contents/ui/main.qml:2877
+#: contents/ui/main.qml:2876
 msgid "Configure"
 msgstr "配置"
 
-#: contents/ui/main.qml:3022
+#: contents/ui/main.qml:3021
 msgid "Not tracking"
 msgstr "未在计时"
 
-#: contents/ui/main.qml:3169 contents/ui/main.qml:3207
+#: contents/ui/main.qml:3168 contents/ui/main.qml:3206
 msgid "Edit"
 msgstr "编辑"
 
-#: contents/ui/main.qml:3181 contents/ui/main.qml:3220
+#: contents/ui/main.qml:3180 contents/ui/main.qml:3219
 msgid "Edit start, project, and activity"
 msgstr "编辑开始时间、项目和活动"
 
-#: contents/ui/main.qml:3193 contents/ui/main.qml:3229
+#: contents/ui/main.qml:3192 contents/ui/main.qml:3228
 msgid "Stop"
 msgstr "停止"
 
-#: contents/ui/main.qml:3281
+#: contents/ui/main.qml:3284
 msgid "Description"
 msgstr "描述"
 
-#: contents/ui/main.qml:3352
+#: contents/ui/main.qml:3355
 msgid "Save description"
 msgstr "保存描述"
 
-#: contents/ui/main.qml:3407
+#: contents/ui/main.qml:3410
 msgid "Continue · %1 · %2"
 msgstr "继续 · %1 · %2"
 
-#: contents/ui/main.qml:3419
+#: contents/ui/main.qml:3422
 msgid "Start · %1 · %2"
 msgstr "开始 · %1 · %2"
 
-#: contents/ui/main.qml:3503
-msgid "No favorites yet"
-msgstr "尚无收藏"
-
-#: contents/ui/main.qml:3509
-msgid "Pin frequent project/activity pairs in the widget settings."
-msgstr "在小部件设置中固定常用的项目/活动组合。"
-
-#: contents/ui/main.qml:3515
-msgid "Configure favorites"
-msgstr "配置收藏"
-
-#: contents/ui/main.qml:3531
-msgid "+%1 more in settings"
-msgstr "设置中还有 +%1 项"
-
-#: contents/ui/main.qml:3542
-msgid "Recent"
-msgstr "最近"
-
-#: contents/ui/main.qml:3580
+#: contents/ui/main.qml:3478 contents/ui/main.qml:3588
 msgid "Already running."
 msgstr "已在进行中。"
 
-#: contents/ui/main.qml:3618
+#: contents/ui/main.qml:3513
+msgid "No favorites yet"
+msgstr "尚无收藏"
+
+#: contents/ui/main.qml:3519
+msgid "Pin frequent project/activity pairs in the widget settings."
+msgstr "在小部件设置中固定常用的项目/活动组合。"
+
+#: contents/ui/main.qml:3525
+msgid "Configure favorites"
+msgstr "配置收藏"
+
+#: contents/ui/main.qml:3541
+msgid "+%1 more in settings"
+msgstr "设置中还有 +%1 项"
+
+#: contents/ui/main.qml:3552
+msgid "Recent"
+msgstr "最近"
+
+#: contents/ui/main.qml:3626
 msgid "No recent activities"
 msgstr "无最近活动"
 
-#: contents/ui/main.qml:3619
+#: contents/ui/main.qml:3627
 msgid "Start tracking to build your recent list."
 msgstr "开始计时可建立最近列表。"
 
-#: contents/ui/main.qml:3630
+#: contents/ui/main.qml:3638
 msgid "Switch to another activity…"
 msgstr "切换到其他活动…"
 
-#: contents/ui/main.qml:3630
+#: contents/ui/main.qml:3638
 msgid "Start something else…"
 msgstr "开始其他工作…"
 
-#: contents/ui/main.qml:3641
+#: contents/ui/main.qml:3649
 msgid "New activity"
 msgstr "新活动"
 
-#: contents/ui/main.qml:3685 contents/ui/ManualEntryView.qml:344
+#: contents/ui/main.qml:3693 contents/ui/ManualEntryView.qml:344
 msgid "Description (optional)"
 msgstr "描述（可选）"
 

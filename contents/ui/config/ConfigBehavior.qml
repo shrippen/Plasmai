@@ -33,6 +33,7 @@ ConfigPage {
     function behaviorPatch() {
         return {
             confirmBeforeStop: confirmBeforeStopCheck.checked,
+            confirmStartBeforePreviousEnd: confirmStartOverlapCheck.checked,
             idleStopEnabled: idleStopCheck.checked,
             idleStopMinutes: idleStopSpin.value,
             notifyOnStart: notifyStartCheck.checked,
@@ -48,6 +49,7 @@ ConfigPage {
 
     function syncBehaviorToCfg() {
         page.cfg_confirmBeforeStop = confirmBeforeStopCheck.checked
+        page.cfg_confirmStartBeforePreviousEnd = confirmStartOverlapCheck.checked
         page.cfg_idleStopEnabled = idleStopCheck.checked
         page.cfg_idleStopMinutes = idleStopSpin.value
         page.cfg_notifyOnStart = notifyStartCheck.checked
@@ -60,6 +62,9 @@ ConfigPage {
         suppressNotify = true
         confirmBeforeStopCheck.checked = page.boolFrom(
             page.cfg_confirmBeforeStop, plasmoid.configuration.confirmBeforeStop, false)
+        confirmStartOverlapCheck.checked = page.boolFrom(
+            page.cfg_confirmStartBeforePreviousEnd,
+            plasmoid.configuration.confirmStartBeforePreviousEnd, true)
         idleStopCheck.checked = page.boolFrom(
             page.cfg_idleStopEnabled, plasmoid.configuration.idleStopEnabled, false)
         idleStopSpin.value = page.coerceIdleMinutes(
@@ -109,6 +114,9 @@ ConfigPage {
         suppressNotify = true
         if (typeof shared.confirmBeforeStop === "boolean") {
             confirmBeforeStopCheck.checked = shared.confirmBeforeStop
+        }
+        if (typeof shared.confirmStartBeforePreviousEnd === "boolean") {
+            confirmStartOverlapCheck.checked = shared.confirmStartBeforePreviousEnd
         }
         if (typeof shared.idleStopEnabled === "boolean") {
             idleStopCheck.checked = shared.idleStopEnabled
@@ -250,6 +258,25 @@ ConfigPage {
                     Layout.maximumWidth: page.buddyMaxWidth(behaviorForm)
                     text: i18n("Confirm before stopping the timer")
                     onCheckedChanged: page.notifyEdited()
+                }
+
+                QQC2.CheckBox {
+                    id: confirmStartOverlapCheck
+                    Kirigami.FormData.label: page.formWide ? " " : ""
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(behaviorForm)
+                    text: i18n("Ask before a start that overlaps the previous entry")
+                    onCheckedChanged: page.notifyEdited()
+                }
+
+                QQC2.Label {
+                    Kirigami.FormData.label: page.formWide ? " " : ""
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(behaviorForm)
+                    wrapMode: Text.WordWrap
+                    opacity: 0.75
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    text: i18n("When editing the running timer, the previous entry’s end is shown. Saving an earlier start asks for confirmation.")
                 }
 
                 QQC2.CheckBox {

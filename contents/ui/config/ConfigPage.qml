@@ -63,6 +63,8 @@ ConfigPageBase {
     property var cfg_showFavoritesDefault
     property var cfg_confirmBeforeStop
     property var cfg_confirmBeforeStopDefault
+    property var cfg_confirmStartBeforePreviousEnd
+    property var cfg_confirmStartBeforePreviousEndDefault
     property var cfg_pinnedActivities
     property var cfg_pinnedActivitiesDefault
     property var cfg_idleStopEnabled
