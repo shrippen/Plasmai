@@ -957,7 +957,7 @@ PlasmoidItem {
             project: projectId,
             activity: activityId,
             description: description || "",
-            billable: typeof billable === "boolean" ? billable : true,
+            billable: typeof billable === "boolean" ? billable : undefined,
             tags: tags || []
         }
         var editing = editingStoppedTimesheet

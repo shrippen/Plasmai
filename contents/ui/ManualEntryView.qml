@@ -376,7 +376,7 @@ ColumnLayout {
                     root.stampText(beginDate, beginTime),
                     root.stampText(endDate, endTime),
                     descriptionField.text,
-                    metaFields.billable,
+                    root.editingExisting ? metaFields.billable : metaFields.billableOrNull,
                     metaFields.tags)
             }
         }

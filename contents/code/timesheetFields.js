@@ -64,8 +64,8 @@ function tagsFromTimesheet(timesheet) {
 }
 
 /**
- * Billable for a new entry when the user has not chosen: true.
- * Kimai’s API defaults omitted booleans to false, so callers must send this.
+ * Checkbox default for the billable toggle (shown checked).
+ * Callers omit billable for new entries so the backend auto-resolves.
  */
 function defaultBillable() {
     return true

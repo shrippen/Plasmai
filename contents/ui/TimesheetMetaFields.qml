@@ -18,18 +18,22 @@ ColumnLayout {
     property string tagLookupToken: ""
     property Item pickerViewport: null
 
+    property bool billableTouched: false
     readonly property bool billable: billableCheck.checked
+    readonly property var billableOrNull: billableTouched ? billableCheck.checked : null
     readonly property var tags: tagPicker.normalizedTags
 
     visible: showBillable || showTags
     spacing: Kirigami.Units.smallSpacing
 
     function loadFromTimesheet(timesheet) {
+        billableTouched = true
         billableCheck.checked = Fields.billableFromTimesheet(timesheet, Fields.defaultBillable())
         tagPicker.setTags(Fields.tagsFromTimesheet(timesheet))
     }
 
     function resetDefaults() {
+        billableTouched = false
         billableCheck.checked = Fields.defaultBillable()
         tagPicker.setTags([])
     }
@@ -42,6 +46,7 @@ ColumnLayout {
         checked: true
         text: i18n("Billable")
         Accessible.name: text
+        onClicked: root.billableTouched = true
     }
 
     TagPicker {

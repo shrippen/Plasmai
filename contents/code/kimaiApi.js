@@ -671,14 +671,17 @@ function setSession(/* session */) {
 
 function startTracking(kimaiUrl, apiToken, projectId, activityId, description, callback, extras) {
     var extra = extras || {}
-    createTimesheet(kimaiUrl, apiToken, {
+    var fields = {
         begin: localDateTimeString(new Date()),
         project: projectId,
         activity: activityId,
         description: description || "",
-        billable: Fields.resolveBillable(extra),
         tags: Fields.resolveTags(extra)
-    }, callback)
+    }
+    if (extra.billable !== undefined && extra.billable !== null) {
+        fields.billable = !!extra.billable
+    }
+    createTimesheet(kimaiUrl, apiToken, fields, callback)
 }
 
 function writeEntityId(value) {
@@ -754,16 +757,19 @@ function createTimesheet(kimaiUrl, apiToken, fields, callback) {
         return
     }
 
-    var data = serializeTimesheetWrite({
+    var writeFields = {
         begin: f.begin,
         end: f.end,
         project: f.project,
         activity: f.activity,
         description: f.description || "",
         exported: false,
-        billable: Fields.resolveBillable(f),
         tags: Fields.resolveTags(f)
-    })
+    }
+    if (f.billable !== undefined && f.billable !== null) {
+        writeFields.billable = !!f.billable
+    }
+    var data = serializeTimesheetWrite(writeFields)
 
     var xhr = createRequest("POST", kimaiUrl, "/api/timesheets", apiToken, true)
     runRequest(xhr, JSON.stringify(data), function(status, responseText, statusText) {
