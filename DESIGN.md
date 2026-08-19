@@ -8,6 +8,14 @@ Plugin ID: `com.github.shrippen.plasmai`
 Stack: KDE Plasma 6, QML, JavaScript (`.pragma library`). No compiled binaries
 (KDE Store QML applet requirement).
 
+Visual foundation:
+[shrippen/DesignDefault](https://github.com/shrippen/DesignDefault) — shared
+Gruvbox-warm palette, Rajdhani headings, icon language, and landing-page
+template. The widget itself uses `Kirigami.Theme.*` for all interactive chrome;
+only brand elements (icon mark fill `#E8DCC4`, version badges, landing page)
+use the shared palette directly. See DesignDefault for the full token table,
+typography stack, badge format, and social-preview spec.
+
 ---
 
 ## Product intent
@@ -55,8 +63,9 @@ Stack: KDE Plasma 6, QML, JavaScript (`.pragma library`). No compiled binaries
   `TagPicker`: inline color pills (Kimai `color` / `color-safe`) inside
   the Add-tags field, searchable popup sized to the result count, and
   “Create tag …” when the search has no match.
-  New entries default **billable** to true because Kimai’s API treats
-  omitted booleans as false. Kimai writes (`POST`/`PATCH`) send tags as
+  New entries omit **billable** so Kimai auto-resolves it from the
+  activity/project/customer settings; the checkbox only sends a value
+  when the user actively toggles it. Kimai writes (`POST`/`PATCH`) send tags as
   a comma-separated **string**; a JSON array is rejected as Validation
   Failed. Other providers keep tag arrays. Stopped Recents use the same
   use the same Add-entry form for edit; delete
@@ -155,6 +164,9 @@ Stack: KDE Plasma 6, QML, JavaScript (`.pragma library`). No compiled binaries
 - No hardcoded brand palette for chrome. Customer/project colors come from
   Kimai (or the distinction map). Default placeholder color is
   `KimaiApi.DEFAULT_CUSTOMER_COLOR` (`#d2d6de`).
+- Brand accent (`#E8DCC4` warm cream from DesignDefault) is used only for
+  the icon mark fill and version badges, never for interactive controls.
+  Landing pages and README badges use the full DesignDefault palette.
 - Symbolic Breeze icons (`chronometer`, `media-playback-start/stop`,
   `list-add`, `view-statistics`, `document-edit`, `configure`, …). Tint with
   `Kirigami.Icon.color` / `icon.color` when status must read at a glance
