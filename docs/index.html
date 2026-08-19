@@ -34,6 +34,7 @@ a:hover{text-decoration:underline}
 /* ── Hero ── */
 .hero{display:flex;flex-direction:column;align-items:center;text-align:center;
   padding:5rem 1.5rem 3rem;max-width:var(--max-w);margin:0 auto}
+.hero-icon{width:88px;height:88px;margin-bottom:1.2rem;filter:drop-shadow(0 0 24px rgba(232,220,196,.15))}
 .hero h1{font-family:var(--font-heading);font-size:clamp(2.2rem,5vw,3.4rem);font-weight:700;
   color:var(--fg0);letter-spacing:-.02em;line-height:1.15}
 .hero h1 .hl{color:var(--accent)}
@@ -124,12 +125,13 @@ footer a:hover{color:var(--fg1)}
 
 <!-- Hero -->
 <div class="hero">
+  <img class="hero-icon" src="icon.svg" alt="Plasmai" width="88" height="88">
   <h1>Plas<span class="hl">mai</span></h1>
   <p class="tagline">A native KDE Plasma 6 panel widget for time tracking with Kimai, Clockify, Toggl Track, and SolidTime.</p>
 
   <div class="badges">
     <img src="https://img.shields.io/badge/Plasma-6-83a598?labelColor=1c1c20" alt="Plasma 6">
-    <img src="https://img.shields.io/badge/version-1.6.2-e8dcc4?labelColor=1c1c20" alt="Version 1.6.2">
+    <img src="https://img.shields.io/badge/version-1.6.3-e8dcc4?labelColor=1c1c20" alt="Version 1.6.2">
     <img src="https://img.shields.io/badge/license-GPL--3.0-a89984?labelColor=1c1c20" alt="GPL-3.0">
     <img src="https://img.shields.io/badge/languages-12-83a598?labelColor=1c1c20" alt="12 Languages">
   </div>
@@ -137,7 +139,7 @@ footer a:hover{color:var(--fg1)}
   <div class="install-card">
     <label>Install with one command</label>
     <div class="cmd-row">
-      <div class="cmd-box" id="cmd">kpackagetool6 -i Plasmai-1.6.2.plasmoid -t Plasma/Applet</div>
+      <div class="cmd-box" id="cmd">kpackagetool6 -i Plasmai-1.6.3.plasmoid -t Plasma/Applet</div>
       <button class="copy-btn" id="copyBtn" onclick="copyCmd()" title="Copy">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
       </button>

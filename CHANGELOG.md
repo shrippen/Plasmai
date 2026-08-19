@@ -2,9 +2,16 @@
 
 ## 1.6.3
 
+### Desktop
+- New shatter-clock icon (themed via `currentColor` for Breeze and other icon themes)
+- Billable defaults to auto: Kimai resolves billable from activity/project/customer settings instead of forcing true
+
 ### Settings
 - Display location search waits briefly after typing instead of querying Nominatim on every keystroke
 - Behavior option (on by default) asks before saving a running-entry start that falls inside the previous timesheet; the editor shows that previous end time
+
+### Landing page
+- Rebuilt with DesignDefault Gruvbox-warm palette, Rajdhani headings, install card with copy button
 
 ## 1.6.2
 
