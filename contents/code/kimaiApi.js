@@ -16,7 +16,10 @@ function normalizeUrl(url) {
     if (!url) {
         return ""
     }
-    return String(url).replace(/\/+$/, "")
+    var s = String(url).replace(/\/+$/, "")
+    // Lowercase scheme: "Https://" -> "https://"
+    s = s.replace(/^(HTTPS?)(:)/i, function(m, p1, p2) { return p1.toLowerCase() + p2 })
+    return s
 }
 
 function createRequest(method, kimaiUrl, endpoint, apiToken, isJson) {

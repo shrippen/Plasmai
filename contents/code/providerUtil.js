@@ -16,7 +16,9 @@ function normalizeUrl(url) {
     if (!url) {
         return ""
     }
-    return String(url).replace(/\/+$/, "")
+    var s = String(url).replace(/\/+$/, "")
+    s = s.replace(/^(HTTPS?)(:)/i, function(m, p1, p2) { return p1.toLowerCase() + p2 })
+    return s
 }
 
 function parseJson(responseText, fallback) {

@@ -11,6 +11,8 @@ import org.kde.plasma.plasma5support as P5Support
 import "../code/kimaiApi.js" as KimaiApi
 import "../code/timeTracker.js" as TimeTracker
 import "../code/secret.js" as Secret
+import "../code/platform.js" as Platform
+import "../code/desktopBackend.js" as DesktopBackend
 import "../code/profiles.js" as Profiles
 import "../code/favorites.js" as Favorites
 import "../code/sharedConfig.js" as SharedConfig
@@ -364,7 +366,7 @@ PlasmoidItem {
         running: !root.credentialsLoading && root.tokenLoaded
         repeat: true
         onTriggered: {
-            Secret.loadSharedConfig(execSource, sharedConfigScript, function(shared) {
+            Platform.loadShared(execSource).then(function(shared) {
                 if (!shared) return
                 var newProfileId = shared.activeProfileId || "default"
                 var newProfilesJson = shared.profilesJson || ""
@@ -523,7 +525,7 @@ PlasmoidItem {
     }
 
     function sendNotification(summary, body) {
-        Secret.notify(execSource, notifyScript, summary, body || "")
+        Platform.sendNotification(execSource, summary, body || "")
     }
 
     function checkIdle() {
@@ -533,7 +535,7 @@ PlasmoidItem {
         if (idleDialogRef && idleDialogRef.visible) {
             return
         }
-        Secret.runIdle(execSource, idleScript, function(idleMs, err) {
+        Platform.checkIdle(execSource).then(function(idleMs) {
             if (idleMs < 0) {
                 return
             }
@@ -645,7 +647,7 @@ PlasmoidItem {
         plasmoid.configuration.lastUsedActivityId = String(activityId)
         plasmoid.configuration.lastUsedProjectName = String(projectName || "")
         plasmoid.configuration.lastUsedActivityName = String(activityName || "")
-        Secret.persistSharedPatch(execSource, sharedConfigScript, plasmoid.configuration, {
+        Platform.patchShared(execSource, plasmoid.configuration, {
             lastUsedProjectId: plasmoid.configuration.lastUsedProjectId,
             lastUsedActivityId: plasmoid.configuration.lastUsedActivityId,
             lastUsedProjectName: plasmoid.configuration.lastUsedProjectName,
@@ -1005,7 +1007,7 @@ PlasmoidItem {
             return
         }
         credentialsLoading = true
-        Secret.loadSharedConfig(execSource, sharedConfigScript, function(shared) {
+        Platform.loadShared(execSource).then(function(shared) {
             if (shared) {
                 SharedConfig.applyToConfiguration(plasmoid.configuration, shared)
             } else if ((plasmoid.configuration.kimaiUrl || "").length > 0
@@ -1031,11 +1033,12 @@ PlasmoidItem {
 
     function persistSharedConfig(callback) {
         // This instance's configuration wins (used after a configure session).
-        Secret.persistSharedPatch(
-            execSource, sharedConfigScript, plasmoid.configuration,
-            SharedConfig.fromConfiguration(plasmoid.configuration),
-            callback
-        )
+        Platform.patchShared(
+            execSource, plasmoid.configuration,
+            SharedConfig.fromConfiguration(plasmoid.configuration)
+        ).then(function() {
+            if (callback) { callback() }
+        })
     }
 
     function softReload() {
@@ -1084,20 +1087,22 @@ PlasmoidItem {
             return
         }
         syncTrackerSession()
-        Secret.load(execSource, kwalletScript, activeProfile.id, function(token, err) {
-            if (err) {
-                setError({ type: KimaiApi.ErrorType.Network, status: 0, detail: err })
-                apiToken = ""
+        Platform.loadToken(execSource, activeProfile.id).then(function(token) {
+            apiToken = token || ""
+            syncTrackerSession()
+            var needsUrl = providerMeta.needsUrl
+            if (!token || (needsUrl && kimaiUrl.length === 0)) {
+                setError({ type: "config", status: 0, detail: "" })
             } else {
-                apiToken = token || ""
-                syncTrackerSession()
-                var needsUrl = providerMeta.needsUrl
-                if (!token || (needsUrl && kimaiUrl.length === 0)) {
-                    setError({ type: "config", status: 0, detail: "" })
-                } else {
-                    clearError()
-                }
+                clearError()
             }
+            tokenLoaded = true
+            if (callback) {
+                callback()
+            }
+        }).catch(function(err) {
+            setError({ type: KimaiApi.ErrorType.Network, status: 0, detail: err })
+            apiToken = ""
             tokenLoaded = true
             if (callback) {
                 callback()
@@ -1621,7 +1626,7 @@ PlasmoidItem {
                     activity: ColorDistinct.effectiveSimilarityPercent("activity")
                 }
             })
-            Secret.saveCatalogCache(execSource, root.catalogCacheScript, CatalogCache.exportPayload())
+            Platform.saveCatalog(execSource, CatalogCache.exportPayload())
         }
         if (projects && projects.length) {
             projectPickerModel = KimaiApi.projectPickerItems(projects, customers)
@@ -3474,12 +3479,22 @@ PlasmoidItem {
                             }
                             rowEnabled: root.isConfigured && !root.isBusy && root.connectionState !== "error"
                             showPlayIcon: true
+                            showHistoryActions: true
+                            canPin: true
+                            isPinned: true
                             runningHintVisible: root.alreadyRunningHintKey === pinKey
                             runningHintText: i18n("Already running.")
                             runningHintCounterText: root.isTracking
                                                     ? KimaiApi.formatDurationPanel(root.elapsedSeconds)
                                                     : ""
                             onRowActivated: root.startPinned(root.pinnedEntries[index])
+                            onPinRequested: {
+                                var entry = root.pinnedEntries[index]
+                                plasmoid.configuration.pinnedActivities = Favorites.togglePinned(
+                                    plasmoid.configuration.pinnedActivities,
+                                    entry.projectId, entry.activityId)
+                                root.refreshPinnedEntries(true)
+                            }
                             tooltipText: {
                                 var entry = root.pinnedEntries[index]
                                 var bits = []
@@ -3594,17 +3609,25 @@ PlasmoidItem {
                                 if (!sheet || !sheet.end || root.timesheetIsRunning(sheet)) {
                                     return false
                                 }
-                                return root.providerCapabilities.deleteEntry
-                                       || root.providerCapabilities.editStopped
+                                return true
                             }
                             canEditStopped: root.providerCapabilities.editStopped
                             canDeleteEntry: root.providerCapabilities.deleteEntry
                             canSplitEntry: root.providerCapabilities.editStopped
                                            && !!(root.recentTimesheets[index] && root.recentTimesheets[index].end)
+                            canPin: true
+                            isPinned: Favorites.isPinned(plasmoid.configuration.pinnedActivities, KimaiApi.projectId(root.recentTimesheets[index]), KimaiApi.activityId(root.recentTimesheets[index]))
                             onRowActivated: root.requestRestartFromRecent(root.recentTimesheets[index])
                             onEditRequested: root.openStoppedEdit(root.recentTimesheets[index])
                             onDeleteRequested: root.requestDeleteStopped(root.recentTimesheets[index])
                             onSplitRequested: root.requestSplitStopped(root.recentTimesheets[index])
+                            onPinRequested: {
+                                var ts = root.recentTimesheets[index]
+                                plasmoid.configuration.pinnedActivities = Favorites.togglePinned(
+                                    plasmoid.configuration.pinnedActivities,
+                                    KimaiApi.projectId(ts), KimaiApi.activityId(ts))
+                                root.refreshPinnedEntries(true)
+                            }
                         }
                     }
 
@@ -3790,6 +3813,8 @@ PlasmoidItem {
     }
 
     Component.onCompleted: {
+        Platform.setBackend(DesktopBackend.create(kwalletScript, idleScript, notifyScript,
+            sharedConfigScript, catalogCacheScript))
         showNewActivityForm = !compactPopupLayout && plasmoid.configuration.desktopShowNewActivity
         hardReload()
     }

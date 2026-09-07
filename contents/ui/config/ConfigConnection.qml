@@ -5,6 +5,7 @@ import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
 import org.kde.plasma.plasma5support as P5Support
 import "../../code/secret.js" as Secret
+import "../../code/platform.js" as Platform
 import "../../code/kimaiApi.js" as KimaiApi
 import "../../code/timeTracker.js" as TimeTracker
 import "../../code/profiles.js" as Profiles
@@ -14,8 +15,6 @@ import ".."
 ConfigPage {
     id: page
 
-    readonly property string kwalletScript: Secret.fileUrlToPath(Qt.resolvedUrl("../../code/kwallet.sh"))
-    readonly property string sharedConfigScript: Secret.fileUrlToPath(Qt.resolvedUrl("../../code/sharedConfig.sh"))
     readonly property int pageMargin: Kirigami.Units.gridUnit
     readonly property bool formWide: scroll.availableWidth >= Kirigami.Units.gridUnit * 28
 
@@ -44,7 +43,7 @@ ConfigPage {
             return
         }
         var profileId = profiles[selectedIndex].id
-        Secret.load(execSource, page.kwalletScript, profileId, function(token) {
+        Platform.loadToken(execSource, profileId).then(function(token) {
             hasStoredToken = !!(token && token.length > 0)
         })
     }
@@ -111,7 +110,7 @@ ConfigPage {
     }
 
     function persistShared() {
-        Secret.persistSharedPatch(execSource, page.sharedConfigScript, plasmoid.configuration, page.connectionPatch())
+        Platform.patchShared(execSource, plasmoid.configuration, page.connectionPatch())
     }
 
     function connectionPatch() {
@@ -273,7 +272,7 @@ ConfigPage {
     }
 
     function reloadConnectionState() {
-        Secret.loadSharedConfig(execSource, page.sharedConfigScript, function(shared) {
+        Platform.loadShared(execSource).then(function(shared) {
             page.syncing = true
             if (shared) {
                 SharedConfig.applyToConfiguration(plasmoid.configuration, shared)
@@ -567,15 +566,14 @@ ConfigPage {
                             page.commitUrlField()
                             page.setActiveProfile()
                             var profileId = page.profiles[page.selectedIndex].id
-                            Secret.save(execSource, page.kwalletScript, profileId, tokenField.text, function(ok, err) {
+                            Platform.saveToken(execSource, profileId, tokenField.text).then(function() {
                                 page.busy = false
-                                if (ok) {
-                                    tokenField.text = ""
-                                    page.hasStoredToken = true
-                                    page.showStatus(i18n("Token saved to KWallet for this profile."), false)
-                                } else {
-                                    page.showStatus(err || i18n("Failed to save token"), true)
-                                }
+                                tokenField.text = ""
+                                page.hasStoredToken = true
+                                page.showStatus(i18n("Token saved to KWallet for this profile."), false)
+                            }).catch(function(err) {
+                                page.busy = false
+                                page.showStatus(err || i18n("Failed to save token"), true)
                             })
                         }
                     }
@@ -587,14 +585,13 @@ ConfigPage {
                             page.busy = true
                             page.showStatus("", false)
                             var profileId = page.profiles[page.selectedIndex].id
-                            Secret.clear(execSource, page.kwalletScript, profileId, function(ok, err) {
+                            Platform.clearToken(execSource, profileId).then(function() {
                                 page.busy = false
-                                if (ok) {
-                                    page.hasStoredToken = false
-                                    page.showStatus(i18n("Token removed from KWallet."), false)
-                                } else {
-                                    page.showStatus(err || i18n("Failed to clear token"), true)
-                                }
+                                page.hasStoredToken = false
+                                page.showStatus(i18n("Token removed from KWallet."), false)
+                            }).catch(function(err) {
+                                page.busy = false
+                                page.showStatus(err || i18n("Failed to clear token"), true)
                             })
                         }
                     }
@@ -610,12 +607,7 @@ ConfigPage {
                             var profileId = profile.id
                             var url = TimeTracker.resolveUrl(profile)
                             TimeTracker.applySession(profile.provider || "kimai", profile)
-                            Secret.load(execSource, page.kwalletScript, profileId, function(token, loadErr) {
-                                if (loadErr) {
-                                    page.testingConnection = false
-                                    page.showStatus(loadErr, true)
-                                    return
-                                }
+                            Platform.loadToken(execSource, profileId).then(function(token) {
                                 if (!token) {
                                     page.testingConnection = false
                                     page.showStatus(i18n("No API token stored. Save a token first."), true)

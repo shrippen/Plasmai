@@ -1,0 +1,75 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - '.github/workflows/android.yml'
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Java (for Gradle)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install aqtinstall
+        run: pip install aqtinstall
+
+      - name: Install Qt6 for Android
+        run: |
+          aqt install-qt linux android 6.7.3 android_arm64_v8a -O $HOME/Qt
+          aqt install-qt linux desktop 6.7.3 linux_gcc_64 -O $HOME/Qt
+
+      - name: Install Android NDK
+        run: |
+          wget -q https://dl.google.com/android/repository/android-ndk-r28c-linux.zip -O /tmp/ndk.zip
+          unzip -qo /tmp/ndk.zip -d $HOME/android-sdk/ndk-tmp/
+          mv $HOME/android-sdk/ndk-tmp/android-ndk-r28c $HOME/android-sdk/ndk/28.2.13676358
+          rm -rf $HOME/android-sdk/ndk-tmp /tmp/ndk.zip
+
+      - name: Install Android Platform
+        run: |
+          mkdir -p $HOME/android-sdk/platforms/android-34
+
+      - name: Configure CMake
+        run: |
+          cd app
+          ANDROID_SDK_ROOT=$HOME/android-sdk \
+          cmake -B build-android \
+            -DCMAKE_TOOLCHAIN_FILE=$HOME/android-sdk/ndk/28.2.13676358/build/cmake/android.toolchain.cmake \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DANDROID_ABI=arm64-v8a \
+            -DANDROID_PLATFORM=android-34 \
+            -DCMAKE_PREFIX_PATH=$HOME/Qt/6.7.3/android_arm64_v8a \
+            -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=BOTH \
+            -DQT_HOST_PATH=$HOME/Qt/6.7.3/gcc_64 \
+            -DANDROID_SDK_ROOT=$HOME/android-sdk \
+            -DQT_ANDROID_TARGET_SDK_VERSION=34
+
+      - name: Build
+        run: |
+          cd app/build-android
+          ANDROID_SDK_ROOT=$HOME/android-sdk \
+          cmake --build . -j$(nproc)
+
+      - name: Copy APK
+        run: |
+          mkdir -p dist
+          APK=$(find app/build-android/android-build/build/outputs/apk -name "*.apk" | head -1)
+          cp "$APK" dist/plasmai-app.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: plasmai-app-debug
+          path: app/dist/plasmai-app.apk
+          retention-days: 7

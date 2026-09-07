@@ -1,0 +1,49 @@
+<RCC>
+    <qresource prefix="/">
+        <file alias="qml/main.qml">qml/main.qml</file>
+        <file alias="qml/platform/appBackend.js">qml/platform/appBackend.js</file>
+        <file alias="qml/ConnectionPage.qml">qml/ConnectionPage.qml</file>
+        <file alias="qml/TimerPage.qml">qml/TimerPage.qml</file>
+        <file alias="qml/ManualEntryPage.qml">qml/ManualEntryPage.qml</file>
+        <file alias="qml/StatsPage.qml">qml/StatsPage.qml</file>
+        <file alias="qml/SettingsPage.qml">qml/SettingsPage.qml</file>
+        <file alias="contents/code/platform.js">../contents/code/platform.js</file>
+        <file alias="contents/code/sharedConfig.js">../contents/code/sharedConfig.js</file>
+        <file alias="contents/code/desktopBackend.js">../contents/code/desktopBackend.js</file>
+        <file alias="contents/code/secret.js">../contents/code/secret.js</file>
+        <file alias="contents/code/timeTracker.js">../contents/code/timeTracker.js</file>
+        <file alias="contents/code/kimaiApi.js">../contents/code/kimaiApi.js</file>
+        <file alias="contents/code/profiles.js">../contents/code/profiles.js</file>
+        <file alias="contents/code/favorites.js">../contents/code/favorites.js</file>
+        <file alias="contents/code/colorDistinct.js">../contents/code/colorDistinct.js</file>
+        <file alias="contents/code/providerUtil.js">../contents/code/providerUtil.js</file>
+        <file alias="contents/code/timesheetFields.js">../contents/code/timesheetFields.js</file>
+        <file alias="contents/code/workContractAdjust.js">../contents/code/workContractAdjust.js</file>
+        <file alias="contents/code/statsData.js">../contents/code/statsData.js</file>
+        <file alias="contents/code/buildInfo.js">../contents/code/buildInfo.js</file>
+        <file alias="contents/code/solar.js">../contents/code/solar.js</file>
+        <file alias="contents/code/dateTimeFormat.js">../contents/code/dateTimeFormat.js</file>
+        <file alias="contents/code/geocode.js">../contents/code/geocode.js</file>
+        <file alias="contents/code/maintenanceCache.js">../contents/code/maintenanceCache.js</file>
+        <file alias="contents/code/providers/_stub.js">../contents/code/providers/_stub.js</file>
+        <file alias="contents/code/providers/clockify.js">../contents/code/providers/clockify.js</file>
+        <file alias="contents/code/providers/toggl.js">../contents/code/providers/toggl.js</file>
+        <file alias="contents/code/providers/solidtime.js">../contents/code/providers/solidtime.js</file>
+    </qresource>
+    <qresource prefix="/qt/qml/org/kde/kirigami/styles/Material">
+        <file alias="qmldir">qml/kirigami-styles/org/kde/kirigami/styles/Material/qmldir</file>
+        <file alias="Theme.qml">qml/kirigami-styles/org/kde/kirigami/styles/Material/Theme.qml</file>
+        <file alias="InlineMessage.qml">qml/kirigami-styles/org/kde/kirigami/styles/Material/InlineMessage.qml</file>
+    </qresource>
+    <qresource prefix="/qt/qml/org/kde/kirigami/primitives/shaders">
+        <file alias="shadowedrectangle.vert.qsb">qml/kirigami-shaders/shadowedrectangle.vert.qsb</file>
+        <file alias="shadowedrectangle.frag.qsb">qml/kirigami-shaders/shadowedrectangle.frag.qsb</file>
+        <file alias="shadowedrectangle_lowpower.frag.qsb">qml/kirigami-shaders/shadowedrectangle_lowpower.frag.qsb</file>
+        <file alias="shadowedborderrectangle.frag.qsb">qml/kirigami-shaders/shadowedborderrectangle.frag.qsb</file>
+        <file alias="shadowedborderrectangle_lowpower.frag.qsb">qml/kirigami-shaders/shadowedborderrectangle_lowpower.frag.qsb</file>
+        <file alias="shadowedtexture.frag.qsb">qml/kirigami-shaders/shadowedtexture.frag.qsb</file>
+        <file alias="shadowedtexture_lowpower.frag.qsb">qml/kirigami-shaders/shadowedtexture_lowpower.frag.qsb</file>
+        <file alias="shadowedbordertexture.frag.qsb">qml/kirigami-shaders/shadowedbordertexture.frag.qsb</file>
+        <file alias="shadowedbordertexture_lowpower.frag.qsb">qml/kirigami-shaders/shadowedbordertexture_lowpower.frag.qsb</file>
+    </qresource>
+</RCC>

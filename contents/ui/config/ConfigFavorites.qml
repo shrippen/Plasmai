@@ -5,6 +5,7 @@ import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
 import org.kde.plasma.plasma5support as P5Support
 import "../../code/secret.js" as Secret
+import "../../code/platform.js" as Platform
 import "../../code/kimaiApi.js" as KimaiApi
 import "../../code/timeTracker.js" as TimeTracker
 import "../../code/profiles.js" as Profiles
@@ -17,9 +18,6 @@ import ".."
 ConfigPage {
     id: page
 
-    readonly property string kwalletScript: Secret.fileUrlToPath(Qt.resolvedUrl("../../code/kwallet.sh"))
-    readonly property string sharedConfigScript: Secret.fileUrlToPath(Qt.resolvedUrl("../../code/sharedConfig.sh"))
-    readonly property string catalogCacheScript: Secret.fileUrlToPath(Qt.resolvedUrl("../../code/catalogCache.sh"))
     readonly property int pageMargin: Kirigami.Units.gridUnit
 
     readonly property var activeProfile: Profiles.profileById(
@@ -123,7 +121,7 @@ ConfigPage {
         page.pendingCatalogPayload = null
         page.beginLoadingUi()
 
-        Secret.loadSharedConfig(execSource, page.sharedConfigScript, function(shared) {
+        Platform.loadShared(execSource).then(function(shared) {
             if (shared) {
                 SharedConfig.applyToConfiguration(plasmoid.configuration, shared)
                 if (typeof shared.pinnedActivities === "string") {
@@ -141,8 +139,8 @@ ConfigPage {
             page.catalogLoadDone = true
             page.tryFinishCatalogLoad()
         } else {
-            Secret.loadCatalogCacheText(execSource, page.catalogCacheScript, function(text, err) {
-                if (err || !text) {
+            Platform.loadCatalogText(execSource).then(function(text) {
+                if (!text) {
                     page.pendingCatalogPayload = null
                     page.catalogLoadDone = true
                     page.tryFinishCatalogLoad()
@@ -157,7 +155,7 @@ ConfigPage {
     onPageEntered: scheduleContentLoad()
 
     function loadSharedPinned() {
-        Secret.loadSharedConfig(execSource, page.sharedConfigScript, function(shared) {
+        Platform.loadShared(execSource).then(function(shared) {
             if (shared) {
                 SharedConfig.applyToConfiguration(plasmoid.configuration, shared)
                 if (typeof shared.pinnedActivities === "string") {
@@ -169,7 +167,7 @@ ConfigPage {
     }
 
     function persistShared() {
-        Secret.persistSharedPatch(execSource, page.sharedConfigScript, plasmoid.configuration, {
+        Platform.patchShared(execSource, plasmoid.configuration, {
             pinnedActivities: pinnedField.text
         })
     }
@@ -311,7 +309,7 @@ ConfigPage {
         }
 
         // Disk cache via shell (Qt blocks XMLHttpRequest on file://).
-        Secret.loadCatalogCache(execSource, page.catalogCacheScript, function(payload) {
+        Platform.loadCatalog(execSource).then(function(payload) {
             afterCache(page.applyPayloadIfUsable(payload))
         })
     }
@@ -321,8 +319,8 @@ ConfigPage {
             projectsStatus = i18n("Loading projects…")
             page.loadingProjects = true
         }
-        Secret.load(execSource, page.kwalletScript, page.activeProfile.id, function(token, err) {
-            if (err || !token) {
+        Platform.loadToken(execSource, page.activeProfile.id).then(function(token) {
+            if (!token) {
                 if (!hadCache) {
                     projectsStatus = i18n("Save an API token on the Connection tab first.")
                 }
@@ -362,7 +360,7 @@ ConfigPage {
                             statusText: prev.statusText,
                             effectiveSimilarity: prev.effectiveSimilarity
                         })
-                        Secret.saveCatalogCache(execSource, page.catalogCacheScript, CatalogCache.exportPayload())
+                        Platform.saveCatalog(execSource, CatalogCache.exportPayload())
                     }
                     if (typeof page.tracker.loadAllActivities === "function") {
                         // Prominent indicator in the empty activities pane:
@@ -407,7 +405,7 @@ ConfigPage {
     function fetchActivitiesForProject(project) {
         page.loadingActivities = true
         activitiesStatus = i18n("Loading activities…")
-        Secret.load(execSource, page.kwalletScript, page.activeProfile.id, function(token) {
+        Platform.loadToken(execSource, page.activeProfile.id).then(function(token) {
             if (!token) {
                 activitiesStatus = i18n("No API token available.")
                 page.loadingActivities = false

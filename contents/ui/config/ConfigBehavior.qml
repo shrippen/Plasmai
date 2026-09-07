@@ -4,12 +4,12 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasma5support as P5Support
 import "../../code/secret.js" as Secret
+import "../../code/platform.js" as Platform
 import "../../code/sharedConfig.js" as SharedConfig
 
 ConfigPage {
     id: page
 
-    readonly property string sharedConfigScript: Secret.fileUrlToPath(Qt.resolvedUrl("../../code/sharedConfig.sh"))
     readonly property int pageMargin: Kirigami.Units.gridUnit
     readonly property bool formWide: scroll.availableWidth >= Kirigami.Units.gridUnit * 28
 
@@ -172,13 +172,13 @@ ConfigPage {
         if (syncing || !ready) {
             return
         }
-        Secret.persistSharedPatch(execSource, page.sharedConfigScript, plasmoid.configuration, page.behaviorPatch())
+        Platform.patchShared(execSource, plasmoid.configuration, page.behaviorPatch())
     }
 
     function persistBehaviorConfig() {
         syncBehaviorToCfg()
         var patch = page.behaviorPatch()
-        Secret.persistSharedPatch(execSource, page.sharedConfigScript, plasmoid.configuration, patch)
+        Platform.patchShared(execSource, plasmoid.configuration, patch)
         loadedBehaviorState = JSON.stringify(patch)
         unsavedChanges = false
     }
@@ -200,7 +200,7 @@ ConfigPage {
                 return
             }
             ready = false
-            Secret.loadSharedConfig(execSource, page.sharedConfigScript, function(shared) {
+            Platform.loadShared(execSource).then(function(shared) {
                 syncing = true
                 suppressNotify = true
                 applyCfgToControls()
