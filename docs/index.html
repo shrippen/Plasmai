@@ -1,289 +1,169 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Plasmai — Time Tracking for KDE Plasma</title>
 <meta name="description" content="A KDE Plasma 6 panel widget for time tracking with Kimai, Clockify, Toggl Track, or SolidTime.">
+<meta property="og:title" content="Plasmai — Time Tracking for KDE Plasma">
+<meta property="og:description" content="A KDE Plasma 6 panel widget for time tracking with Kimai, Clockify, Toggl Track, or SolidTime.">
+<meta property="og:image" content="https://shrippen.github.io/Plasmai/social-preview.png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta name="twitter:card" content="summary_large_image">
+<meta property="og:url" content="https://shrippen.github.io/Plasmai/">
+<link rel="icon" href="icon.svg">
 <script defer src="https://um.arianw.de/script.js" data-website-id="056d39ee-6a9d-4b14-9902-5a1ac399df08"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
-<style>
-/*
- * shrippen Design Default — Plasmai landing page
- * https://github.com/shrippen/DesignDefault
- */
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg-hard:#1d2021;--bg0:#282828;--bg1:#3c3836;--bg2:#504945;
-  --fg0:#fbf1c7;--fg1:#ebdbb2;--fg2:#d5c4a1;--fg3:#a89984;
-  --accent:#e8dcc4;
-  --blue:#83a598;--aqua:#8ec07c;--green:#b8bb26;
-  --yellow:#fabd2f;--orange:#fe8019;--red:#fb4934;--purple:#d3869b;
-  --radius:12px;--max-w:860px;
-  --font-heading:'Rajdhani',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;
-  --font-sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;
-  --font-mono:'JetBrains Mono','Fira Code','Cascadia Code',Consolas,monospace;
-}
-html{scroll-behavior:smooth}
-body{background:var(--bg0);color:var(--fg1);font-family:var(--font-sans);line-height:1.6;
-  -webkit-font-smoothing:antialiased}
-a{color:var(--blue);text-decoration:none}
-a:hover{text-decoration:underline}
-
-/* ── Hero ── */
-.hero{display:flex;flex-direction:column;align-items:center;text-align:center;
-  padding:5rem 1.5rem 3rem;max-width:var(--max-w);margin:0 auto}
-.hero-icon{width:88px;height:88px;margin-bottom:1.2rem;filter:drop-shadow(0 0 24px rgba(232,220,196,.15))}
-.hero h1{font-family:var(--font-heading);font-size:clamp(2.2rem,5vw,3.4rem);font-weight:700;
-  color:var(--fg0);letter-spacing:-.02em;line-height:1.15}
-.hero h1 .hl{color:var(--accent)}
-.tagline{font-size:clamp(1rem,2.5vw,1.2rem);color:var(--fg2);max-width:38em;margin:.6rem auto 1.5rem}
-
-/* ── Badges ── */
-.badges{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin-bottom:2rem}
-.badges img{height:22px}
-
-/* ── Install card ── */
-.install-card{background:var(--bg1);border:1px solid var(--bg2);border-radius:var(--radius);
-  padding:1.4rem 1.6rem;width:100%;max-width:640px;text-align:left;margin-bottom:1.5rem}
-.install-card label{display:block;font-size:.85rem;color:var(--fg3);margin-bottom:.6rem;
-  text-transform:uppercase;letter-spacing:.06em}
-.cmd-row{display:flex;gap:.5rem;align-items:stretch}
-.cmd-box{flex:1;background:var(--bg-hard);border:1px solid var(--bg2);border-radius:8px;
-  padding:.65rem .9rem;font-family:var(--font-mono);font-size:.82rem;color:var(--blue);
-  word-break:break-all;line-height:1.45;display:flex;align-items:center}
-.copy-btn{background:var(--bg2);border:none;border-radius:8px;padding:.55rem .7rem;
-  color:var(--fg2);cursor:pointer;transition:background .15s,color .15s,border-color .15s;
-  border:1px solid transparent;display:flex;align-items:center;justify-content:center}
-.copy-btn:hover{background:var(--bg1);color:var(--fg1)}
-.copy-btn.copied{border-color:var(--aqua);color:var(--aqua)}
-.install-note{font-size:.78rem;color:var(--fg3);margin-top:.7rem;line-height:1.5}
-.install-note code{color:var(--fg2);font-family:var(--font-mono);font-size:.76rem}
-
-/* ── Buttons ── */
-.install-links{display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center;margin-bottom:1rem}
-.btn{display:inline-flex;align-items:center;gap:.45rem;padding:.6rem 1.3rem;border-radius:8px;
-  font-size:.9rem;font-weight:500;text-decoration:none;transition:background .15s,color .15s}
-.btn svg{width:18px;height:18px;flex-shrink:0}
-.btn-primary{background:var(--blue);color:var(--bg-hard)}
-.btn-primary:hover{background:#6d9181;text-decoration:none}
-.btn-ghost{background:var(--bg1);color:var(--fg2);border:1px solid var(--bg2)}
-.btn-ghost:hover{background:var(--bg2);color:var(--fg1);text-decoration:none}
-
-/* ── Screenshots ── */
-.screenshot-wrap{max-width:var(--max-w);margin:1rem auto 3rem;padding:0 1.5rem}
-.screenshot-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
-.screenshot-grid img{width:100%;border-radius:var(--radius);border:1px solid var(--bg2);
-  box-shadow:0 12px 40px rgba(0,0,0,.45)}
-.screenshot-grid .caption{font-size:.8rem;color:var(--fg3);text-align:center;margin-top:.5rem}
-
-/* ── Features ── */
-.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.2rem;
-  max-width:var(--max-w);margin:0 auto 3rem;padding:0 1.5rem}
-.feat{background:var(--bg1);border:1px solid var(--bg2);border-radius:var(--radius);padding:1.3rem 1.4rem}
-.feat h3{font-family:var(--font-heading);font-size:1rem;font-weight:600;margin-bottom:.35rem;color:var(--fg0)}
-.feat p{font-size:.88rem;color:var(--fg2);line-height:1.55}
-
-/* ── Sections ── */
-.section{max-width:var(--max-w);margin:0 auto 2.5rem;padding:0 1.5rem}
-.section h2{font-family:var(--font-heading);font-size:1.3rem;font-weight:600;color:var(--fg0);margin-bottom:.8rem}
-.section ul{list-style:disc;padding-left:1.4rem}
-.section li{margin-bottom:.4rem;color:var(--fg2);font-size:.92rem}
-.section li strong{color:var(--fg1)}
-.section li code{color:var(--fg2);font-family:var(--font-mono);font-size:.82rem}
-
-/* ── Provider grid ── */
-.provider-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;
-  max-width:var(--max-w);margin:0 auto 3rem;padding:0 1.5rem}
-.provider-card{background:var(--bg1);border:1px solid var(--bg2);border-radius:var(--radius);
-  padding:1.3rem 1rem;text-align:center}
-.provider-card .name{font-family:var(--font-heading);font-size:1.05rem;font-weight:600;color:var(--fg0);margin-bottom:.3rem}
-.provider-card .detail{font-size:.78rem;color:var(--fg3);margin-bottom:.6rem}
-.status{font-size:.72rem;padding:3px 10px;border-radius:50px;display:inline-block;font-weight:600;letter-spacing:.03em}
-.status-tested{background:rgba(142,192,124,.15);color:var(--aqua)}
-.status-experimental{background:rgba(131,165,152,.12);color:var(--blue)}
-
-/* ── Footer ── */
-footer{text-align:center;padding:2rem 1.5rem 3rem;font-size:.8rem;color:var(--fg3);border-top:1px solid var(--bg1)}
-footer a{color:var(--fg3)}
-footer a:hover{color:var(--fg1)}
-
-@media(max-width:768px){
-  .screenshot-grid{grid-template-columns:1fr;max-width:360px;margin:0 auto}
-  .provider-grid{grid-template-columns:repeat(2,1fr)}
-}
-@media(max-width:520px){
-  .hero{padding:3rem 1rem 2rem}
-  .cmd-box{font-size:.75rem}
-  .install-card{padding:1rem 1.1rem}
-  .provider-grid{grid-template-columns:1fr 1fr}
-}
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://shrippen.github.io/DesignDefault/v1/shrippen.css">
+<script src="https://shrippen.github.io/DesignDefault/v1/shrippen.js"></script>
 </head>
 <body>
 
-<!-- Hero -->
-<div class="hero">
-  <img class="hero-icon" src="icon.svg" alt="Plasmai" width="88" height="88">
-  <h1>Plas<span class="hl">mai</span></h1>
-  <p class="tagline">A native KDE Plasma 6 panel widget for time tracking with Kimai, Clockify, Toggl Track, and SolidTime.</p>
-
-  <div class="badges">
-    <img src="https://img.shields.io/badge/Plasma-6-83a598?labelColor=1c1c20" alt="Plasma 6">
-    <img src="https://img.shields.io/badge/version-1.6.3-e8dcc4?labelColor=1c1c20" alt="Version 1.6.2">
-    <img src="https://img.shields.io/badge/license-GPL--3.0-a89984?labelColor=1c1c20" alt="GPL-3.0">
-    <img src="https://img.shields.io/badge/languages-12-83a598?labelColor=1c1c20" alt="12 Languages">
-  </div>
-
-  <div class="install-card">
-    <label>Install with one command</label>
-    <div class="cmd-row">
-      <div class="cmd-box" id="cmd">kpackagetool6 -i Plasmai-1.6.3.plasmoid -t Plasma/Applet</div>
-      <button class="copy-btn" id="copyBtn" onclick="copyCmd()" title="Copy">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-      </button>
-    </div>
-    <div class="install-note">Download the <code>.plasmoid</code> from the KDE Store or GitHub Releases, then run the command above.</div>
-  </div>
-
-  <div class="install-links">
-    <a class="btn btn-primary" href="https://store.kde.org/p/2368175/">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-      Get from KDE Store
-    </a>
-    <a class="btn btn-ghost" href="https://github.com/shrippen/Plasmai">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .3a12 12 0 00-3.8 23.38c.6.11.82-.26.82-.58l-.01-2.05c-3.34.73-4.04-1.61-4.04-1.61a3.18 3.18 0 00-1.33-1.76c-1.09-.74.08-.73.08-.73a2.52 2.52 0 011.84 1.24 2.56 2.56 0 003.5 1 2.56 2.56 0 01.76-1.6c-2.67-.3-5.47-1.33-5.47-5.93a4.64 4.64 0 011.24-3.22 4.3 4.3 0 01.12-3.18s1-.33 3.3 1.23a11.38 11.38 0 016 0c2.3-1.56 3.3-1.23 3.3-1.23a4.3 4.3 0 01.12 3.18 4.64 4.64 0 011.24 3.22c0 4.61-2.81 5.63-5.48 5.93a2.86 2.86 0 01.82 2.22l-.01 3.29c0 .32.22.7.82.58A12 12 0 0012 .3"/></svg>
-      GitHub
-    </a>
-  </div>
-</div>
-
-<!-- Screenshots -->
-<div class="screenshot-wrap">
-  <div class="screenshot-grid">
-    <div>
-      <img src="01-panel.jpg" alt="Plasmai popup with active timer, sparkline, favorites and recents" loading="lazy">
-      <div class="caption">Timer, sparkline, favorites &amp; recents</div>
-    </div>
-    <div>
-      <img src="02-add-screen.jpg" alt="Manual time entry form" loading="lazy">
-      <div class="caption">Manual time entry</div>
-    </div>
-    <div>
-      <img src="03-statistics.jpg" alt="Statistics view with charts" loading="lazy">
-      <div class="caption">Statistics &amp; charts</div>
+<nav class="nav"><div class="nav-inner">
+  <a class="nav-brand" href="#"><img src="icon.svg" alt="">Plasmai</a>
+  <div class="nav-links">
+    <a href="#features"><span lang="en">Features</span><span lang="de">Funktionen</span></a><a href="#backends"><span lang="en">Backends</span><span lang="de">Backends</span></a><a href="#setup"><span lang="en">Setup</span><span lang="de">Einrichtung</span></a><a href="#faq"><span lang="en">FAQ</span><span lang="de">FAQ</span></a><a class="nav-hl" href="https://github.com/shrippen/Plasmai">GitHub</a>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-lang="en" aria-pressed="true">EN</button>
+      <button type="button" data-lang="de" aria-pressed="false">DE</button>
     </div>
   </div>
-</div>
+</div></nav>
 
-<!-- Features -->
-<div class="features">
-  <div class="feat">
-    <h3>Live Panel Timer</h3>
-    <p>Running project, activity, and elapsed time in the Plasma panel. No extra windows.</p>
+<header class="hero">
+  <img class="hero-wm" src="icon-mono.svg" alt="" aria-hidden="true">
+  <div class="hero-main">
+    <h1 style="--title-size-narrow:clamp(2.5rem,22.0vw,13.1rem)">Plas<br class="split">mai</h1>
+    <p class="tagline" lang="en">A native KDE Plasma 6 panel widget for time tracking with Kimai, Clockify, Toggl Track and SolidTime. Start, switch and edit timers from the panel and see today and the week at a glance.</p><p class="tagline" lang="de">Ein natives KDE-Plasma-6-Panel-Widget zur Zeiterfassung mit Kimai, Clockify, Toggl Track und SolidTime. Timer aus dem Panel starten, wechseln und bearbeiten, dazu Heute und Woche auf einen Blick.</p>
   </div>
-  <div class="feat">
-    <h3>Favorites &amp; Recents</h3>
-    <p>Pin project/activity pairs. Switch tasks with one click and a confirmation dialog.</p>
+  <div class="hero-side">
+    <div class="install-card">
+      <label><span lang="en">Install with one command</span><span lang="de">Installation mit einem Befehl</span></label><div class="cmd-row"><div class="cmd-box">kpackagetool6 -i Plasmai-1.6.3.plasmoid -t Plasma/Applet</div><button class="copy-btn" type="button" title="Copy" aria-label="Copy"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button></div>
+      <p class="install-note" lang="en">Download the <code>.plasmoid</code> from the KDE Store or GitHub Releases, then run the command above.</p><p class="install-note" lang="de">Lade das <code>.plasmoid</code> aus dem KDE Store oder von den GitHub-Releases herunter und führe dann den Befehl oben aus.</p>
+      <div class="install-links"><a class="btn btn-primary" href="https://store.kde.org/p/2368175/"><span lang="en">Get from KDE Store</span><span lang="de">Aus dem KDE Store</span></a><a class="btn btn-ghost" href="https://github.com/shrippen/Plasmai">GitHub</a></div>
+    </div>
+    
   </div>
-  <div class="feat">
-    <h3>Statistics</h3>
-    <p>Hourly bar charts, project gantt, activity donut charts. Today and week at a glance.</p>
-  </div>
-  <div class="feat">
-    <h3>Day Sparkline</h3>
-    <p>Work-hours bar with sun/moon arcs, overtime segments, and hour ticks in the header.</p>
-  </div>
-  <div class="feat">
-    <h3>Tags &amp; Billable</h3>
-    <p>Tag entries and mark billable. Kimai auto-resolves billable from activity/project/customer.</p>
-  </div>
-  <div class="feat">
-    <h3>KWallet Secrets</h3>
-    <p>API tokens stored in KWallet. Multiple profiles per service, shared across instances.</p>
-  </div>
-  <div class="feat">
-    <h3>Edit Running &amp; Stopped</h3>
-    <p>Edit start time, project, activity. Split, delete, or edit stopped recents from the overflow menu.</p>
-  </div>
-  <div class="feat">
-    <h3>Idle Auto-Stop</h3>
-    <p>Stop tracking after idle time. X11 and Wayland with automatic detection.</p>
-  </div>
-  <div class="feat">
-    <h3>12 Languages</h3>
-    <p>EN, DE, FR, ES, IT, NL, PT (BR), PL, UK, RU, JA, ZH (CN).</p>
-  </div>
-</div>
+</header>
 
-<!-- Backends -->
-<div class="section">
-  <h2>Supported Backends</h2>
-</div>
-<div class="provider-grid">
-  <div class="provider-card">
-    <div class="name">Kimai</div>
-    <div class="detail">Bearer token + server URL</div>
-    <span class="status status-tested">Tested</span>
-  </div>
-  <div class="provider-card">
-    <div class="name">Clockify</div>
-    <div class="detail">API key; optional regional URL</div>
-    <span class="status status-experimental">Experimental</span>
-  </div>
-  <div class="provider-card">
-    <div class="name">Toggl Track</div>
-    <div class="detail">API token (Basic auth)</div>
-    <span class="status status-experimental">Experimental</span>
-  </div>
-  <div class="provider-card">
-    <div class="name">SolidTime</div>
-    <div class="detail">Bearer JWT + instance URL</div>
-    <span class="status status-experimental">Experimental</span>
-  </div>
-</div>
+<main>
 
-<!-- Prerequisites -->
-<div class="section">
-  <h2>Requirements</h2>
-  <ul>
-    <li><strong>KDE Plasma 6</strong></li>
-    <li><code>secret-tool</code> (libsecret) for KWallet token storage</li>
-    <li><code>notify-send</code> (libnotify) for desktop notifications</li>
-    <li><code>xprintidle</code> (X11) or <code>loginctl</code> (Wayland) for idle detection — optional</li>
-    <li>A supported time tracker with API access</li>
-  </ul>
-</div>
+<div class="section"><div class="callout callout-warn"><span lang="en"><strong>Note:</strong> Plasmai is completely vibe coded from start to finish. It is something I wanted for myself, but I might as well share it. Only the Kimai backend is tested with a live account.</span><span lang="de"><strong>Hinweis:</strong> Plasmai ist von Anfang bis Ende komplett vibe-codiert. Ich wollte es für mich selbst, teile es aber gern. Nur das Kimai-Backend ist mit einem echten Konto getestet.</span></div></div>
+<section class="facts"><div class="fact"><b>4</b><span><span lang="en">Backends</span><span lang="de">Backends</span></span></div><div class="fact"><b>12</b><span><span lang="en">Languages</span><span lang="de">Sprachen</span></span></div><div class="fact"><b>3</b><span><span lang="en">Screens: timer, add, statistics</span><span lang="de">Ansichten: Timer, Erfassen, Statistik</span></span></div><div class="fact"><b>GPL-3</b><span><span lang="en">Open source</span><span lang="de">Open Source</span></span></div></section>
+<section class="features" id="features">
+  <div class="feat" data-tier="red">
+    <span class="feat-tag">Timer</span>
+    <h3 lang="en">Live Panel Timer</h3><h3 lang="de">Live-Timer im Panel</h3>
+    <p lang="en">Running project, activity, and elapsed time in the Plasma panel. No extra windows.</p><p lang="de">Laufendes Projekt, laufende Tätigkeit und verstrichene Zeit direkt im Plasma-Panel. Keine zusätzlichen Fenster.</p>
+  </div>
+  <div class="feat" data-tier="yellow">
+    <span class="feat-tag"><span lang="en">Favorites</span><span lang="de">Favoriten</span></span>
+    <h3 lang="en">Favorites &amp; Recents</h3><h3 lang="de">Favoriten &amp; Zuletzt genutzt</h3>
+    <p lang="en">Pin project/activity pairs. Switch tasks with one click and a confirmation dialog.</p><p lang="de">Projekt-/Tätigkeitspaare anheften. Aufgaben mit einem Klick und Bestätigungsdialog wechseln.</p>
+  </div>
+  <div class="feat" data-tier="blue">
+    <span class="feat-tag"><span lang="en">Statistics</span><span lang="de">Statistik</span></span>
+    <h3 lang="en">Statistics</h3><h3 lang="de">Statistik</h3>
+    <p lang="en">Hourly bar charts, project gantt, activity donut charts. Today and week at a glance.</p><p lang="de">Stundenbalken, Projekt-Gantt und Tätigkeits-Donut-Diagramme. Heute und Woche auf einen Blick.</p>
+  </div>
+  <div class="feat" data-tier="red">
+    <span class="feat-tag">Sparkline</span>
+    <h3 lang="en">Day Sparkline</h3><h3 lang="de">Tages-Sparkline</h3>
+    <p lang="en">Work-hours bar with sun/moon arcs, overtime segments, and hour ticks in the header.</p><p lang="de">Arbeitszeitleiste mit Sonnen-/Mondbogen, Überstundenabschnitten und Stundenmarken im Kopfbereich.</p>
+  </div>
+  <div class="feat" data-tier="yellow">
+    <span class="feat-tag">Tags</span>
+    <h3 lang="en">Tags &amp; Billable</h3><h3 lang="de">Tags &amp; Abrechenbar</h3>
+    <p lang="en">Tag entries and mark billable. Kimai auto-resolves billable from activity/project/customer.</p><p lang="de">Einträge taggen und als abrechenbar markieren. Kimai leitet „abrechenbar“ automatisch aus Tätigkeit, Projekt und Kunde ab.</p>
+  </div>
+  <div class="feat" data-tier="blue">
+    <span class="feat-tag"><span lang="en">Secrets</span><span lang="de">Geheimnisse</span></span>
+    <h3 lang="en">KWallet Secrets</h3><h3 lang="de">KWallet-Secrets</h3>
+    <p lang="en">API tokens stored in KWallet. Multiple profiles per service, shared across instances.</p><p lang="de">API-Tokens liegen in KWallet. Mehrere Profile pro Dienst, über Instanzen hinweg geteilt.</p>
+  </div>
+  <div class="feat" data-tier="red">
+    <span class="feat-tag"><span lang="en">Editing</span><span lang="de">Bearbeiten</span></span>
+    <h3 lang="en">Edit Running &amp; Stopped</h3><h3 lang="de">Laufende &amp; gestoppte bearbeiten</h3>
+    <p lang="en">Edit start time, project, activity. Split, delete, or edit stopped recents from the overflow menu.</p><p lang="de">Startzeit, Projekt und Tätigkeit ändern. Gestoppte Einträge über das Überlaufmenü teilen, löschen oder bearbeiten.</p>
+  </div>
+  <div class="feat" data-tier="yellow">
+    <span class="feat-tag">Idle</span>
+    <h3 lang="en">Idle Auto-Stop</h3><h3 lang="de">Automatisch stoppen bei Inaktivität</h3>
+    <p lang="en">Stop tracking after idle time. X11 and Wayland with automatic detection.</p><p lang="de">Zeiterfassung nach Inaktivität stoppen. X11 und Wayland mit automatischer Erkennung.</p>
+  </div>
+  <div class="feat" data-tier="blue">
+    <span class="feat-tag"><span lang="en">Languages</span><span lang="de">Sprachen</span></span>
+    <h3 lang="en">12 Languages</h3><h3 lang="de">12 Sprachen</h3>
+    <p lang="en">EN, DE, FR, ES, IT, NL, PT (BR), PL, UK, RU, JA, ZH (CN).</p><p lang="de">EN, DE, FR, ES, IT, NL, PT (BR), PL, UK, RU, JA, ZH (CN).</p>
+  </div>
+</section>
+<section class="showcase"><div class="showcase-text"><span class="showcase-tag"><span lang="en">Timer</span><span lang="de">Timer</span></span><h2 lang="en">Tracking without leaving the panel</h2><h2 lang="de">Zeiterfassung, ohne das Panel zu verlassen</h2><p lang="en">The panel chip shows the running project, activity and elapsed time. Click it to open the popup, on the desktop the widget is the popup. A click on the panel never starts or stops anything by accident.</p><p lang="de">Der Panel-Chip zeigt laufendes Projekt, Tätigkeit und verstrichene Zeit. Ein Klick öffnet das Popup, auf dem Desktop ist das Widget selbst das Popup. Ein Klick auf das Panel startet oder stoppt nie aus Versehen etwas.</p><ul lang="en"><li>Start, stop and switch from the popup or the desktop widget</li><li>Click a Recent or a favorite while tracking to confirm the switch; the same activity is not stopped</li><li>Edit the running entry: start time, project, activity, tags and billable</li><li>Pinned favorites and Recents use customer colors</li></ul><ul lang="de"><li>Starten, stoppen und wechseln im Popup oder im Desktop-Widget</li><li>Klick auf einen Recent-Eintrag oder Favoriten während der Erfassung fragt nach dem Wechsel; dieselbe Tätigkeit wird nicht gestoppt</li><li>Den laufenden Eintrag bearbeiten: Startzeit, Projekt, Tätigkeit, Tags und Abrechenbar</li><li>Angeheftete Favoriten und Recents nutzen Kundenfarben</li></ul></div><figure><img src="01-panel.jpg" alt="The Plasmai popup with a running timer, sparkline, favorites and recents" loading="lazy"><figcaption><span lang="en">Popup with timer, sparkline, favorites and recents</span><span lang="de">Popup mit Timer, Sparkline, Favoriten und Recents</span></figcaption></figure></section>
+<section class="showcase rev"><div class="showcase-text"><span class="showcase-tag"><span lang="en">Sparkline</span><span lang="de">Sparkline</span></span><h2 lang="en">Your day as one bar</h2><h2 lang="de">Dein Tag als ein Balken</h2><p lang="en">A zoomed bar in the popup header shows your work hours: tracked time in green, overtime segments, hour ticks and sun and moon arcs for your location. Above it, today and the week are compared with your work contract.</p><p lang="de">Ein gezoomter Balken im Popup-Kopf zeigt deine Arbeitszeit: erfasste Zeit in Grün, Überstunden-Abschnitte, Stundenmarken und Sonnen- und Mondbögen für deinen Standort. Darüber werden Heute und die Woche mit deinem Arbeitsvertrag verglichen.</p><ul lang="en"><li>Arcs for sun, moon and work can be switched on or off in Display</li><li>The location search waits briefly after typing instead of querying on every keystroke</li></ul><ul lang="de"><li>Bögen für Sonne, Mond und Arbeit lassen sich unter Anzeige ein- und ausschalten</li><li>Die Ortssuche wartet nach dem Tippen kurz, statt bei jedem Tastendruck abzufragen</li></ul></div><figure class="native"><img src="detail-sparkline.jpg" alt="The day sparkline and the running timer of Plasmai" loading="lazy"><figcaption><span lang="en">Timer and day sparkline</span><span lang="de">Timer und Tages-Sparkline</span></figcaption></figure></section>
+<section class="showcase"><div class="showcase-text"><span class="showcase-tag"><span lang="en">Add entry</span><span lang="de">Eintrag erfassen</span></span><h2 lang="en">Manual entries, done properly</h2><h2 lang="de">Manuelle Einträge, sauber gemacht</h2><p lang="en">The plus button opens a form for entries you forgot to track. Searchable pickers find projects and activities, and you can create a new customer, project or activity right from the picker.</p><p lang="de">Der Plus-Knopf öffnet ein Formular für vergessene Einträge. Durchsuchbare Auswahllisten finden Projekte und Tätigkeiten, und einen neuen Kunden, ein neues Projekt oder eine neue Tätigkeit legst du direkt aus der Auswahl an.</p><ul lang="en"><li>Begin, end and duration with date and time pickers</li><li>Description, tags and billable; Kimai resolves billable automatically from activity, project and customer</li><li>Edit, delete or split stopped Recents from the overflow menu</li></ul><ul lang="de"><li>Beginn, Ende und Dauer mit Datums- und Zeitauswahl</li><li>Beschreibung, Tags und Abrechenbar; Kimai leitet Abrechenbar automatisch aus Tätigkeit, Projekt und Kunde ab</li><li>Gestoppte Recents bearbeiten, löschen oder teilen über das Überlaufmenü</li></ul></div><figure><img src="02-add-screen.jpg" alt="The Plasmai add entry form" loading="lazy"><figcaption><span lang="en">Add entry form</span><span lang="de">Formular „Eintrag erfassen“</span></figcaption></figure></section>
+<section class="showcase rev"><div class="showcase-text"><span class="showcase-tag"><span lang="en">Statistics</span><span lang="de">Statistik</span></span><h2 lang="en">Charts for today and the week</h2><h2 lang="de">Diagramme für Heute und die Woche</h2><p lang="en">The chart icon switches to a statistics view. Filter by All, Billable or Not billable and page through days and weeks.</p><p lang="de">Das Diagramm-Symbol wechselt in eine Statistikansicht. Filtere nach Alle, Abrechenbar oder Nicht abrechenbar und blättere durch Tage und Wochen.</p><ul lang="en"><li>Time by hour for the selected day</li><li>Projects by day as stacked bars</li><li>Projects by hour as a Gantt-style chart</li><li>Activity distribution for today and this week as donuts</li></ul><ul lang="de"><li>Zeit nach Stunde für den gewählten Tag</li><li>Projekte nach Tag als gestapelte Balken</li><li>Projekte nach Stunde als Gantt-Diagramm</li><li>Tätigkeitsverteilung für Heute und diese Woche als Donuts</li></ul></div><figure><img src="03-statistics.jpg" alt="The Plasmai statistics view with charts" loading="lazy"><figcaption><span lang="en">Statistics view</span><span lang="de">Statistikansicht</span></figcaption></figure></section>
+<section class="section" id="idle">
+  <h2 lang="en">Idle, reminders and notifications</h2><h2 lang="de">Inaktivität, Erinnerungen und Benachrichtigungen</h2>
+  <ul lang="en"><li><strong>Idle dialog</strong> when you were away: keep the time, discard the idle time, or discard it and continue</li><li><strong>Idle detection</strong> uses the session IdleHint and ScreenSaver on Wayland and <code>xprintidle</code> on X11; optional auto-stop</li><li><strong>Forgot to start?</strong> An opt-in reminder, once per day during work hours</li><li><strong>Tracking in progress</strong>: one notification when you open the widget while a timer is running</li><li><strong>Overlap check</strong>: asks before saving a running-entry start that falls inside the previous timesheet and shows that entry’s end time (on by default)</li></ul><ul lang="de"><li><strong>Inaktivitäts-Dialog</strong> nach deiner Abwesenheit: Zeit behalten, Leerlaufzeit verwerfen oder verwerfen und weitermachen</li><li><strong>Inaktivitätserkennung</strong> nutzt unter Wayland den IdleHint der Sitzung und ScreenSaver, unter X11 <code>xprintidle</code>; optionaler Auto-Stopp</li><li><strong>Start vergessen?</strong> Eine optionale Erinnerung, einmal pro Tag während der Arbeitszeit</li><li><strong>Erfassung läuft</strong>: eine Benachrichtigung, wenn du das Widget bei laufendem Timer öffnest</li><li><strong>Überlappungsprüfung</strong>: fragt nach, bevor ein Start des laufenden Eintrags gespeichert wird, der in den vorigen Eintrag fällt, und zeigt dessen Endzeit (standardmäßig an)</li></ul>
+</section>
+<section class="section" id="contract">
+  <h2 lang="en">Work contract and holidays</h2><h2 lang="de">Arbeitsvertrag und Feiertage</h2>
+  <p lang="en">Today and week totals come from your Kimai work contract. The remaining hours of the week skip vacation and public holidays when the <a href="https://shrippen.github.io/kimai-holiday-bundle/">Working Hours &amp; Holidays</a> plugin or the official WorkContractBundle is installed.</p><p lang="de">Summen für Heute und Woche stammen aus deinem Kimai-Arbeitsvertrag. Die Restzeit der Woche überspringt Urlaub und Feiertage, wenn das Plugin <a href="https://shrippen.github.io/kimai-holiday-bundle/">Working Hours &amp; Holidays</a> oder das offizielle WorkContractBundle installiert ist.</p><ul lang="en"><li>Plasmai detects which of the two plugins is present and re-checks every hour</li><li>Approved absences and public holidays reduce the remaining time; automatic bookings from the WorkContract plugin are not counted twice</li><li>Neither plugin is required; without them you still get today and week totals</li></ul><ul lang="de"><li>Plasmai erkennt, welches der beiden Plugins vorhanden ist, und prüft stündlich neu</li><li>Genehmigte Abwesenheiten und Feiertage verringern die Restzeit; automatische Buchungen des WorkContract-Plugins werden nicht doppelt gezählt</li><li>Keines der Plugins ist Pflicht; ohne sie bekommst du weiter die Summen für Heute und Woche</li></ul>
+</section>
+<section class="section" id="how">
+  <h2 lang="en">How it works</h2><h2 lang="de">So funktioniert es</h2>
+  <p lang="en">Plasmai is a pure QML applet, so the KDE Store package contains no binaries. Every provider is translated into one Kimai-shaped model, so the interface is the same for all services. What a service cannot do is switched off by a capability flag instead of a different UI.</p><p lang="de">Plasmai ist ein reines QML-Applet, das Paket im KDE Store enthält also keine Binärdateien. Jeder Anbieter wird in ein Kimai-förmiges Modell übersetzt, sodass die Oberfläche für alle Dienste gleich ist. Was ein Dienst nicht kann, wird per Capability-Flag abgeschaltet statt durch eine andere Oberfläche.</p>
+  <div class="flow"><div class="flow-node hl"><b>Plasmai widget</b><span><span lang="en">Panel chip, popup, desktop widget in QML</span><span lang="de">Panel-Chip, Popup und Desktop-Widget in QML</span></span></div><span class="flow-arrow" aria-hidden="true"></span><div class="flow-node"><b>timeTracker.js</b><span><span lang="en">Routes each call to the profile’s provider</span><span lang="de">Leitet jeden Aufruf an den Anbieter des Profils weiter</span></span></div><span class="flow-arrow" aria-hidden="true"></span><div class="flow-node"><b>Provider</b><span><span lang="en">kimai, clockify, toggl or solidtime, normalized to one model</span><span lang="de">kimai, clockify, toggl oder solidtime, in ein Modell normalisiert</span></span></div><span class="flow-arrow" aria-hidden="true"></span><div class="flow-node"><b>Your service</b><span><span lang="en">The public API of Kimai, Clockify, Toggl Track or SolidTime</span><span lang="de">Die öffentliche API von Kimai, Clockify, Toggl Track oder SolidTime</span></span></div></div>
+  <ul lang="en"><li>API tokens are stored in <strong>KWallet</strong></li><li>Profiles, favorites, display and behavior settings are shared by all instances in <code>~/.config/com.github.shrippen.plasmai/shared.json</code></li><li>You can keep several profiles per service</li></ul><ul lang="de"><li>API-Tokens liegen in <strong>KWallet</strong></li><li>Profile, Favoriten sowie Anzeige- und Verhaltenseinstellungen teilen sich alle Instanzen in <code>~/.config/com.github.shrippen.plasmai/shared.json</code></li><li>Pro Dienst kannst du mehrere Profile anlegen</li></ul>
+</section>
+<section class="section" id="backends">
+  <h2 lang="en">Supported backends</h2><h2 lang="de">Unterstützte Backends</h2>
+  <div class="table-wrap"><table class="table"><thead><tr><th><span lang="en">Backend</span><span lang="de">Backend</span></th><th><span lang="en">Authentication</span><span lang="de">Authentifizierung</span></th><th><span lang="en">Status</span><span lang="de">Status</span></th></tr></thead><tbody><tr><td>Kimai</td><td><span lang="en">Bearer token + server URL</span><span lang="de">Bearer-Token + Server-URL</span></td><td><span lang="en">Tested, the reference backend</span><span lang="de">Getestet, das Referenz-Backend</span></td></tr><tr><td>Clockify</td><td><span lang="en">API key; optional regional URL</span><span lang="de">API-Key; optionale regionale URL</span></td><td><span lang="en">Experimental, not verified with a live account</span><span lang="de">Experimentell, nicht mit einem echten Konto geprüft</span></td></tr><tr><td>Toggl Track</td><td><span lang="en">API token (Basic auth)</span><span lang="de">API-Token (Basic Auth)</span></td><td><span lang="en">Experimental, not verified with a live account</span><span lang="de">Experimentell, nicht mit einem echten Konto geprüft</span></td></tr><tr><td>SolidTime</td><td><span lang="en">Bearer JWT + instance URL</span><span lang="de">Bearer-JWT + Instanz-URL</span></td><td><span lang="en">Experimental, not verified with a live account</span><span lang="de">Experimentell, nicht mit einem echten Konto geprüft</span></td></tr></tbody></table></div>
+  <p lang="en">Tags work with Kimai and, where the API takes names, Toggl; Clockify and SolidTime hide the field. Billable works with all four. Color distinction and the Maintenance tab are Kimai-only.</p><p lang="de">Tags funktionieren mit Kimai und, wo die API Namen annimmt, mit Toggl; Clockify und SolidTime blenden das Feld aus. Abrechenbar funktioniert mit allen vier. Farbunterscheidung und der Reiter Wartung gibt es nur für Kimai.</p>
+</section>
+<section class="section" id="setup">
+  <h2 lang="en">Setup</h2><h2 lang="de">Einrichtung</h2>
+  <ol class="steps" lang="en"><li>Install the widget with the command above, or add it from the KDE Store, then right-click the panel → <strong>Add Widgets</strong> → search for <strong>Plasmai</strong></li><li>Right-click the widget → <strong>Configure Plasmai</strong></li><li><strong>Connection</strong>: choose the service, set the URL if needed, save the API token and test the connection</li><li><strong>Favorites</strong>: pin frequently used project and activity pairs</li><li><strong>Display</strong> and <strong>Behavior</strong>: number of Recents, panel labels, sparkline arcs, idle stop, notifications</li><li><strong>Maintenance</strong> (optional): review color-clash groups when color distinction is on</li></ol><ol class="steps" lang="de"><li>Installiere das Widget mit dem Befehl oben oder aus dem KDE Store, dann Rechtsklick auf das Panel → <strong>Widgets hinzufügen</strong> → nach <strong>Plasmai</strong> suchen</li><li>Rechtsklick auf das Widget → <strong>Plasmai einrichten</strong></li><li><strong>Verbindung</strong>: Dienst wählen, falls nötig die URL setzen, API-Token speichern und die Verbindung testen</li><li><strong>Favoriten</strong>: häufig genutzte Projekt-/Tätigkeitspaare anheften</li><li><strong>Anzeige</strong> und <strong>Verhalten</strong>: Anzahl der Recents, Panel-Beschriftung, Sparkline-Bögen, Inaktivitäts-Stopp, Benachrichtigungen</li><li><strong>Wartung</strong> (optional): Gruppen mit Farbkonflikten prüfen, wenn die Farbunterscheidung an ist</li></ol>
+  <p lang="en">Update with <code>kpackagetool6 -u . -t Plasma/Applet</code> from a checkout, install a release with <code>kpackagetool6 -i Plasmai-1.6.3.plasmoid -t Plasma/Applet</code> and remove it with <code>kpackagetool6 -r com.github.shrippen.plasmai -t Plasma/Applet</code>.</p><p lang="de">Aktualisieren mit <code>kpackagetool6 -u . -t Plasma/Applet</code> aus einem Checkout, ein Release installieren mit <code>kpackagetool6 -i Plasmai-1.6.3.plasmoid -t Plasma/Applet</code> und entfernen mit <code>kpackagetool6 -r com.github.shrippen.plasmai -t Plasma/Applet</code>.</p>
+  <div class="codeblock"><span class="c"># from source</span>
+git clone https://github.com/shrippen/Plasmai.git
+cd Plasmai
+chmod +x contents/code/*.sh
+kpackagetool6 -i . -t Plasma/Applet</div>
+</section>
+<section class="section">
+  <h2 lang="en">Requirements</h2><h2 lang="de">Voraussetzungen</h2>
+  <ul lang="en"><li><strong>KDE Plasma 6</strong></li><li><code>secret-tool</code> (libsecret) for KWallet token storage</li><li><code>notify-send</code> (libnotify) for desktop notifications</li><li><code>xprintidle</code> (X11) or <code>loginctl</code> (Wayland) for idle detection, optional</li><li>A supported time tracker with API access</li></ul><ul lang="de"><li><strong>KDE Plasma 6</strong></li><li><code>secret-tool</code> (libsecret) zum Speichern der Tokens in KWallet</li><li><code>notify-send</code> (libnotify) für Desktop-Benachrichtigungen</li><li><code>xprintidle</code> (X11) oder <code>loginctl</code> (Wayland) für die Inaktivitätserkennung, optional</li><li>Ein unterstützter Zeiterfassungsdienst mit API-Zugang</li></ul>
+</section>
+<section class="section">
+  <h2 lang="en">Languages</h2><h2 lang="de">Sprachen</h2>
+  <p lang="en">The interface and the KDE Store description are translated into 12 languages: English, German, French, Spanish, Italian, Dutch, Portuguese (Brazil), Polish, Ukrainian, Russian, Japanese and Simplified Chinese.</p><p lang="de">Die Oberfläche und die KDE-Store-Beschreibung sind in 12 Sprachen übersetzt: Englisch, Deutsch, Französisch, Spanisch, Italienisch, Niederländisch, Portugiesisch (Brasilien), Polnisch, Ukrainisch, Russisch, Japanisch und vereinfachtes Chinesisch.</p>
+</section>
+<section class="section" id="faq">
+  <h2 lang="en">Questions</h2><h2 lang="de">Fragen</h2>
+  <div class="faq"><details><summary><span lang="en">Can I start or stop by clicking the panel icon?</span><span lang="de">Kann ich per Klick auf das Panel-Symbol starten oder stoppen?</span></summary><div><p lang="en">No. A click on the panel chip only opens the popup, so nothing starts or stops by accident. Starting and stopping happen inside the popup or the desktop widget.</p><p lang="de">Nein. Ein Klick auf den Panel-Chip öffnet nur das Popup, damit nichts versehentlich startet oder stoppt. Starten und Stoppen passieren im Popup oder im Desktop-Widget.</p></div></details><details><summary><span lang="en">Which backends are production-tested?</span><span lang="de">Welche Backends sind produktiv getestet?</span></summary><div><p lang="en">Only Kimai. Clockify, Toggl Track and SolidTime are implemented against their public APIs, but stay experimental until they are verified with live accounts.</p><p lang="de">Nur Kimai. Clockify, Toggl Track und SolidTime sind gegen ihre öffentlichen APIs umgesetzt, bleiben aber experimentell, bis sie mit echten Konten geprüft sind.</p></div></details><details><summary><span lang="en">Does it track apps or windows automatically?</span><span lang="de">Erfasst es Apps oder Fenster automatisch?</span></summary><div><p lang="en">No. Automatic app tracking, screenshots, invoicing, expenses and team dashboards are on the “won’t do” list. Plasmai stays a small API client in the panel.</p><p lang="de">Nein. Automatische App-Erfassung, Screenshots, Rechnungen, Spesen und Team-Dashboards stehen auf der „Wird nicht gemacht“-Liste. Plasmai bleibt ein kleiner API-Client im Panel.</p></div></details><details><summary><span lang="en">Where are my tokens stored?</span><span lang="de">Wo liegen meine Tokens?</span></summary><div><p lang="en">In KWallet, via <code>secret-tool</code>. The shared settings file holds your profiles, favorites and options.</p><p lang="de">In KWallet, über <code>secret-tool</code>. Die geteilte Einstellungsdatei enthält deine Profile, Favoriten und Optionen.</p></div></details><details><summary><span lang="en">Do I need the holiday plugin for Kimai?</span><span lang="de">Brauche ich das Feiertags-Plugin für Kimai?</span></summary><div><p lang="en">No. It only improves the remaining hours of the week. Plasmai works without it and detects it automatically when it is there.</p><p lang="de">Nein. Es verbessert nur die Restzeit der Woche. Plasmai funktioniert auch ohne und erkennt es automatisch, wenn es vorhanden ist.</p></div></details></div>
+</section>
+<section class="section" id="roadmap">
+  <h2 lang="en">Roadmap</h2><h2 lang="de">Roadmap</h2>
+  <p lang="en">Version 2.0 is about backends that are no longer experimental: at least one non-Kimai backend documented as production-tested, plus provider gaps such as Clockify tags. KRunner may come as a separate package, since the Store applet cannot ship binaries. Global shortcuts, D-Bus control and a shutdown hold were tried and removed.</p><p lang="de">Version 2.0 dreht sich um Backends, die nicht mehr experimentell sind: mindestens ein Nicht-Kimai-Backend, das als produktiv getestet dokumentiert ist, dazu Lücken bei Anbietern wie Clockify-Tags. KRunner käme gegebenenfalls als eigenes Paket, weil das Store-Applet keine Binärdateien ausliefern kann. Globale Tastenkürzel, D-Bus-Steuerung und eine Herunterfahr-Sperre wurden ausprobiert und wieder entfernt.</p><p lang="en">Details in <a href="https://github.com/shrippen/Plasmai/blob/main/ROADMAP.md">ROADMAP.md</a> and the <a href="https://github.com/shrippen/Plasmai/blob/main/CHANGELOG.md">changelog</a>.</p><p lang="de">Details in der <a href="https://github.com/shrippen/Plasmai/blob/main/ROADMAP.md">ROADMAP.md</a> und im <a href="https://github.com/shrippen/Plasmai/blob/main/CHANGELOG.md">Changelog</a>.</p>
+</section>
+</main>
 
-<!-- How it works -->
-<div class="section">
-  <h2>Setup</h2>
-  <ul>
-    <li>Right-click the panel → <strong>Add Widgets</strong> → search for <strong>Plasmai</strong></li>
-    <li>Right-click the widget → <strong>Configure Plasmai</strong></li>
-    <li><strong>Connection</strong> tab: choose service, set URL, save API token, test</li>
-    <li><strong>Favorites</strong> tab: pin frequently used project/activity pairs</li>
-    <li><strong>Display</strong> / <strong>Behavior</strong>: recent count, panel labels, sparkline, idle, notifications</li>
-  </ul>
-</div>
-
-<footer>
-  GPL-3.0-or-later · Made by <a href="https://github.com/shrippen">shrippen</a> ·
-  <a href="https://github.com/shrippen/Plasmai/issues">Issues</a> ·
-  <a href="https://github.com/shrippen/Plasmai/blob/main/CHANGELOG.md">Changelog</a>
+<footer class="foot">
+  <div class="foot-inner">
+    <div class="foot-brand">
+      <img src="icon.svg" alt="">
+      <div><span class="foot-name">Plasmai</span><span class="foot-tag"><span lang="en">Time tracking for KDE Plasma</span><span lang="de">Zeiterfassung für KDE Plasma</span></span></div>
+    </div>
+    <nav class="foot-cols" aria-label="Footer">
+      <div><h4><span lang="en">Project</span><span lang="de">Projekt</span></h4><a href="#features"><span lang="en">Features</span><span lang="de">Funktionen</span></a><a href="#backends"><span lang="en">Backends</span><span lang="de">Backends</span></a><a href="#setup"><span lang="en">Setup</span><span lang="de">Einrichtung</span></a><a href="#faq"><span lang="en">FAQ</span><span lang="de">FAQ</span></a></div>
+      <div><h4><span lang="en">Source</span><span lang="de">Quelltext</span></h4><a href="https://github.com/shrippen/Plasmai">GitHub</a><a href="https://github.com/shrippen/Plasmai/issues">Issues</a><a href="https://github.com/shrippen/Plasmai/blob/main/CHANGELOG.md">Changelog</a><a href="https://store.kde.org/p/2368175/">KDE Store</a></div>
+    </nav>
+  </div>
+  <div class="foot-meta"><p>GPL-3.0-or-later · shrippen · v1.6.3</p></div>
 </footer>
 
-<script>
-function copyCmd(){
-  var t=document.getElementById('cmd').textContent;
-  navigator.clipboard.writeText(t).then(function(){
-    var b=document.getElementById('copyBtn');
-    b.classList.add('copied');
-    setTimeout(function(){b.classList.remove('copied')},1500);
-  });
-}
-</script>
 </body>
 </html>
