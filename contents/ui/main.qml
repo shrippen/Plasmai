@@ -357,6 +357,11 @@ PlasmoidItem {
         onTriggered: {
             root.refreshActiveTimesheet(true)
             root.refreshWorkTotals()
+            // Keep the project / activity / customer catalog current so new
+            // entities created in the Kimai web UI appear without requiring
+            // a plasmoid restart.  refreshProjects checks CatalogCache.isFresh()
+            // internally, so the API is hit at most every FRESH_MS (10 min).
+            root.refreshProjects(true, false)
         }
     }
 
@@ -2196,7 +2201,8 @@ PlasmoidItem {
                 Layout.preferredWidth: TouchUi.compactIconSize
                 Layout.preferredHeight: TouchUi.compactIconSize
                 source: root.connectionState === "error" ? "network-disconnect"
-                        : root.isTracking ? "media-record" : "chronometer"
+                        : root.isTracking ? "media-record" : Qt.resolvedUrl("../images/icon.svg")
+                isMask: root.connectionState !== "error" && !root.isTracking
                 active: compactRoot.containsMouse
                 color: root.isTracking ? Kirigami.Theme.positiveTextColor : Kirigami.Theme.textColor
             }

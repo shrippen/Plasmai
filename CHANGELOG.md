@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Desktop
+- Redesigned icon: half-dial clock with a gold shard trail; the panel icon uses the mono variant (tinted by the theme) while idle, the store and Android icons use the colored version
+
 ## 1.6.3
 
 ### Desktop

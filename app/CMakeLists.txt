@@ -8,6 +8,13 @@ set(CMAKE_AUTORCC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Quick Svg Core QuickControls2)
 
+# QtDBus: idle detection (org.freedesktop.ScreenSaver) and native notifications
+# (org.freedesktop.Notifications) on a real Linux/Plasma session — desktop
+# Linux and Plasma Mobile devices both qualify, Android does not.
+if(NOT ANDROID)
+    find_package(Qt6 COMPONENTS DBus QUIET)
+endif()
+
 # KF6 — available for desktop and cross-compiled Android builds
 find_package(ECM REQUIRED NO_MODULE)
 set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
@@ -77,6 +84,12 @@ target_link_libraries(plasmai-app PRIVATE
 if(NOT CMAKE_CROSSCOMPILING AND TARGET Qt6Keychain::Qt6Keychain)
     target_include_directories(plasmai-app PRIVATE /usr/include/qt6keychain)
     target_link_libraries(plasmai-app PRIVATE Qt6Keychain::Qt6Keychain)
+endif()
+
+if(TARGET Qt6::DBus)
+    message(STATUS "Qt6::DBus found — building with idle detection + native notifications")
+    target_compile_definitions(plasmai-app PRIVATE HAVE_QTDBUS)
+    target_link_libraries(plasmai-app PRIVATE Qt6::DBus)
 endif()
 
 if(KF6_FOUND)

@@ -9,30 +9,189 @@ import "../contents/code/profiles.js" as Profiles
 import "../contents/code/kimaiApi.js" as KimaiApi
 import "../contents/code/favorites.js" as Favorites
 import "../contents/code/sharedConfig.js" as SharedConfig
+import "../contents/code/colorDistinct.js" as ColorDistinct
+import "../contents/code/maintenanceCache.js" as CatalogCache
+import "shared"
 
 Kirigami.ApplicationWindow {
     id: root
 
-    // ── Dark theme colors (matching Plasmoid Breeze Dark) ──
-    readonly property color bgWindow:      "#2b2d30"
-    readonly property color bgSurface:     "#353739"
-    readonly property color bgCard:        Qt.rgba(0.15, 0.16, 0.18, 1)
-    readonly property color bgCardTracking: Qt.rgba(0.09, 0.20, 0.12, 1)
-    readonly property color bgInput:       "#3d4044"
-    readonly property color bgDrawer:      "#2b2d30"
-    readonly property color bgDialog:      "#353739"
-    readonly property color clrBorder:     "#3d4044"
-    readonly property color clrBorderTracking: Qt.rgba(0.15, 0.68, 0.38, 0.35)
-    readonly property color clrSeparator:  "#4a4a4a"
-    readonly property color clrText:       "#e0e0e0"
-    readonly property color clrTextSec:    "#9a9a9a"
-    readonly property color clrTextMuted:  "#6a6a6a"
-    readonly property color clrAccent:     "#27ae60"
-    readonly property color clrPositive:   "#27ae60"
-    readonly property color clrWarning:    "#e67e22"
-    readonly property color clrDanger:     "#e74c3c"
-    readonly property color clrButton:     "#3d4044"
-    readonly property color clrButtonBorder: "#555555"
+    // ── Theme colors, mirroring contents/ui/main.qml: Kirigami.Theme roles
+    // so the app follows the system light/dark palette like the Plasmoid,
+    // instead of a permanently-dark hardcoded palette. ──
+    readonly property color bgWindow:      Kirigami.Theme.backgroundColor
+    readonly property color bgSurface:     Kirigami.Theme.alternateBackgroundColor
+    readonly property color bgCard:        Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.05)
+    readonly property color bgCardTracking: Qt.rgba(Kirigami.Theme.positiveTextColor.r, Kirigami.Theme.positiveTextColor.g, Kirigami.Theme.positiveTextColor.b, 0.08)
+    readonly property color bgInput:       Kirigami.Theme.backgroundColor
+    readonly property color bgDrawer:      Kirigami.Theme.backgroundColor
+    readonly property color bgDialog:      Kirigami.Theme.backgroundColor
+    readonly property color clrBorder:     Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.14)
+    readonly property color clrBorderTracking: Qt.rgba(Kirigami.Theme.positiveTextColor.r, Kirigami.Theme.positiveTextColor.g, Kirigami.Theme.positiveTextColor.b, 0.35)
+    readonly property color clrSeparator:  Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.16)
+    readonly property color clrText:       Kirigami.Theme.textColor
+    readonly property color clrTextSec:    Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.7)
+    readonly property color clrTextMuted:  Kirigami.Theme.disabledTextColor
+    readonly property color clrAccent:     Kirigami.Theme.positiveTextColor
+    readonly property color clrPositive:   Kirigami.Theme.positiveTextColor
+    readonly property color clrWarning:    Kirigami.Theme.neutralTextColor
+    readonly property color clrDanger:     Kirigami.Theme.negativeTextColor
+
+    // ── Provider capabilities (tags, billable, statistics, color distinction, …) ──
+    readonly property var providerCapabilities: TimeTracker.providerCapabilities(providerId)
+
+    // ── Color distinction (Kimai-only "power" feature, ported from the Plasmoid) ──
+    // The actual similarity computation (ColorDistinct.rebuild + maintenanceGroups)
+    // runs off the GUI thread in platform/colorWorker.js — it's an O(n²)-ish
+    // comparison over every customer/project/activity color and can be slow with
+    // a large catalog. Results come back via colorWorker.onMessage and are cached
+    // to disk (catalog.json via CatalogCache/Platform.saveCatalog) so the next
+    // launch can show distinguished colors instantly instead of waiting on a
+    // fresh computation — see loadSharedAndConnect()'s cache-hydrate step.
+    property bool colorDistinctionEnabled: true
+    property int colorSimilarityPercent: 22
+    property var customerColorGroups: []
+    property var projectColorGroups: []
+    property var activityColorGroups: []
+    property string _colorDispatchKey: ""
+    property int _colorRequestId: 0
+    readonly property string themePaletteKey: [
+        String(Kirigami.Theme.highlightColor),
+        String(Kirigami.Theme.positiveTextColor),
+        String(Kirigami.Theme.neutralTextColor),
+        String(Kirigami.Theme.negativeTextColor),
+        String(Kirigami.Theme.linkColor),
+        String(Kirigami.Theme.activeTextColor),
+        String(Kirigami.Theme.visitedLinkColor)
+    ].join("|")
+    onThemePaletteKeyChanged: root.rebuildColorMaps(true)
+
+    WorkerScript {
+        id: colorWorker
+        source: Qt.resolvedUrl("platform/colorWorker.js")
+        onMessage: function(msg) { root.applyColorWorkerResult(msg) }
+    }
+
+    function rebuildColorMaps(force) {
+        var extra = (allActivities || []).slice()
+        if (activities && activities.length) {
+            for (var ai = 0; ai < activities.length; ai++) extra.push(activities[ai])
+        }
+        var acts = ColorDistinct.flattenActivitiesByProject(activitiesByProject, extra)
+        var distinctionOn = root.providerCapabilities.colorDistinction && root.colorDistinctionEnabled
+        var dispatchKey = [
+            distinctionOn ? "1" : "0",
+            String(root.colorSimilarityPercent || 22),
+            root.themePaletteKey,
+            JSON.stringify(customers.map(function(c) { return [c.id, c.color] })),
+            JSON.stringify(projects.map(function(p) { return [p.id, p.color] })),
+            JSON.stringify(acts.map(function(a) { return [a.id, a.color] }))
+        ].join("|")
+        if (!force && dispatchKey === root._colorDispatchKey) return
+        root._colorDispatchKey = dispatchKey
+        root._colorRequestId += 1
+        var payload = {
+            requestId: root._colorRequestId,
+            customers: customers,
+            projects: projects,
+            activities: acts,
+            themePalette: [
+                String(Kirigami.Theme.highlightColor),
+                String(Kirigami.Theme.positiveTextColor),
+                String(Kirigami.Theme.neutralTextColor),
+                String(Kirigami.Theme.negativeTextColor),
+                String(Kirigami.Theme.linkColor),
+                String(Kirigami.Theme.activeTextColor),
+                String(Kirigami.Theme.visitedLinkColor)
+            ],
+            enabled: distinctionOn,
+            similarityPercent: root.colorSimilarityPercent || 22,
+            force: !!force
+        }
+        // Sending immediately can race WorkerScript's background-thread startup
+        // ("Attempt to send message before WorkerScript establishment") right
+        // after app launch; deferring one event-loop tick avoids it.
+        Qt.callLater(function() { colorWorker.sendMessage(payload) })
+    }
+
+    function applyColorWorkerResult(msg) {
+        if (msg.requestId !== root._colorRequestId) return // superseded by a newer dispatch
+        ColorDistinct.importMaps({ maps: msg.maps, originals: msg.originals, effectiveSimilarity: msg.effectiveSimilarity })
+        customerColorGroups = msg.customerGroups || []
+        projectColorGroups = msg.projectGroups || []
+        activityColorGroups = msg.activityGroups || []
+        ColorDistinctState.version += 1
+
+        if (customers.length || projects.length || (allActivities || []).length) {
+            CatalogCache.store(activeProfile ? activeProfile.id : "", {
+                customers: customers,
+                projects: projects,
+                activities: allActivities,
+                customerGroups: customerColorGroups,
+                projectGroups: projectColorGroups,
+                activityGroups: activityColorGroups,
+                shiftedCount: CatalogCache.countShifted(customerColorGroups)
+                    + CatalogCache.countShifted(projectColorGroups) + CatalogCache.countShifted(activityColorGroups),
+                groupCount: customerColorGroups.length + projectColorGroups.length + activityColorGroups.length,
+                settingsKey: [
+                    root.colorDistinctionEnabled ? "1" : "0",
+                    String(root.colorSimilarityPercent || 22),
+                    root.themePaletteKey
+                ].join("|"),
+                effectiveSimilarity: msg.effectiveSimilarity
+            })
+            Platform.saveCatalog(null, CatalogCache.exportPayload())
+        }
+    }
+
+    /** Seed colors instantly from the on-disk cache written by a previous run,
+     *  before any network data arrives or the (async) worker computation finishes. */
+    function hydrateColorMapsFromDiskCache() {
+        Platform.loadCatalog(null).then(function(payload) {
+            if (!payload || !CatalogCache.hydrate(payload)) return
+            ColorDistinct.hydrateMapsFromGroups(
+                payload.customers, payload.projects, payload.activities,
+                payload.customerGroups, payload.projectGroups, payload.activityGroups)
+            customerColorGroups = payload.customerGroups || []
+            projectColorGroups = payload.projectGroups || []
+            activityColorGroups = payload.activityGroups || []
+            ColorDistinctState.version += 1
+        })
+    }
+
+    // ── Location (sun/moon accuracy for the day sparkline) ──
+    property real latitude: 0
+    property real longitude: 0
+    property string locationName: ""
+
+    // ── Behavior ──
+    property bool confirmStartBeforePreviousEnd: true
+
+    // ── Last used project/activity (Continue-button fallback before any Recent exists) ──
+    property string lastUsedProjectId: ""
+    property string lastUsedActivityId: ""
+    property string lastUsedProjectName: ""
+    property string lastUsedActivityName: ""
+    readonly property bool hasLastUsed: lastUsedProjectId.length > 0 && lastUsedActivityId.length > 0
+
+    function rememberLastUsed(projectId, activityId, projectName, activityName) {
+        if (!projectId || !activityId) return
+        lastUsedProjectId = String(projectId); lastUsedActivityId = String(activityId)
+        lastUsedProjectName = String(projectName || ""); lastUsedActivityName = String(activityName || "")
+        Platform.patchShared(null, currentConfig(), {
+            lastUsedProjectId: lastUsedProjectId, lastUsedActivityId: lastUsedActivityId,
+            lastUsedProjectName: lastUsedProjectName, lastUsedActivityName: lastUsedActivityName
+        })
+    }
+
+    function startLastUsed() {
+        if (!hasLastUsed || isTracking || isBusy) return
+        startTracking(lastUsedProjectId, lastUsedActivityId, lastUsedProjectName, lastUsedActivityName, "")
+    }
+
+    // ── Platform capability flags (native idle/notification bridge, Linux-only) ──
+    readonly property bool supportsIdleDetection: typeof idleWatcher !== "undefined"
+    readonly property bool supportsNotifications: typeof notifier !== "undefined"
 
     title: i18n("Plasmai")
     width: 420; height: 720; visible: true
@@ -40,6 +199,8 @@ Kirigami.ApplicationWindow {
 
     property var profiles: []; property var activeProfile: null
     readonly property string providerId: activeProfile && activeProfile.provider ? activeProfile.provider : "kimai"
+    readonly property var providerMeta: TimeTracker.providerMeta(providerId)
+    readonly property string tagLookupUrl: TimeTracker.resolveUrl(activeProfile)
     readonly property var tracker: TimeTracker.api(providerId)
     property string apiToken: ""; property bool tokenLoaded: false
     property bool isConfigured: apiToken.length > 0
@@ -62,6 +223,13 @@ Kirigami.ApplicationWindow {
     property bool confirmBeforeStop: false; property bool showWorkSummary: true
     property bool showRecent: true; property bool showFavorites: true
     property string workDayBegin: "09:00"; property string workDayEnd: "17:00"
+    property bool showSparkline: true; property bool showSparklineArcs: true
+    property bool showContinue: true; property bool showNewActivity: true
+
+    // ── Idle detection / notifications (native bridge on Linux, no-op on Android) ──
+    property bool idleStopEnabled: false; property int idleStopMinutes: 10
+    property bool notifyOnStart: true; property bool notifyOnStop: true
+    property bool notifyOnIdleStop: true; property bool notifyForgotToStart: false
 
     property real todayTotalSeconds: 0; property real weekTotalSeconds: 0
     property real todayTargetSeconds: 0; property real weekTargetSeconds: 0
@@ -76,7 +244,10 @@ Kirigami.ApplicationWindow {
     property var pendingSwitchTimesheet: null
 
     readonly property var lastRecent: recentTimesheets.length > 0 ? recentTimesheets[0] : null
-    readonly property color currentCustomerColor: activeTimesheet ? (KimaiApi.barColorInfoFromTimesheet(activeTimesheet, customersById).color || KimaiApi.DEFAULT_CUSTOMER_COLOR) : KimaiApi.DEFAULT_CUSTOMER_COLOR
+    readonly property var currentBarColorInfo: KimaiApi.barColorInfoFromTimesheet(activeTimesheet, customersById)
+    readonly property color currentCustomerColor: currentBarColorInfo.color || KimaiApi.DEFAULT_CUSTOMER_COLOR
+    readonly property string currentColorCategory: currentBarColorInfo.category || ""
+    readonly property var currentColorEntityId: currentBarColorInfo.id !== undefined ? currentBarColorInfo.id : null
 
     readonly property real todayLiveSeconds: todayTotalSeconds + (isTracking ? elapsedSeconds : 0)
     readonly property real weekLiveSeconds: weekTotalSeconds + (isTracking ? elapsedSeconds : 0)
@@ -92,10 +263,111 @@ Kirigami.ApplicationWindow {
     Timer { id: sparklineTimer; interval: 30000; running: root.isConfigured; repeat: true; onTriggered: root.sparklineNowTick++ }
     Timer { id: descriptionSaveTimer; interval: 800; repeat: false; onTriggered: root.saveCurrentDescription() }
     Timer { id: descriptionFlashTimer; interval: 2500; repeat: false; onTriggered: root.descriptionSavedFlash = false }
+    Timer { id: idlePollTimer; interval: 60000; running: root.isTracking && root.idleStopEnabled && root.supportsIdleDetection; repeat: true; onTriggered: root.checkIdle() }
+    Timer { id: forgotToStartTimer; interval: 300000; running: root.isConfigured && root.supportsNotifications; repeat: true; onTriggered: root.checkForgotToStart() }
+
+    // ── Idle detection state ──
+    property bool idleIgnoreUntilActive: false
+    property int pendingIdleMs: 0
+    property var pendingIdleSnapshot: null
+    property bool idleDialogPending: false
+    property string forgotReminderDay: ""
+
+    function sendNotification(summary, body) {
+        if (!root.supportsNotifications) return
+        Platform.sendNotification(null, summary, body || "")
+    }
+
+    function checkIdle() {
+        if (!isTracking || !idleStopEnabled || idleDialogPending) return
+        Platform.checkIdle(null).then(function(idleMs) {
+            if (idleMs < 0) return
+            if (root.idleIgnoreUntilActive) {
+                if (idleMs < 30000) root.idleIgnoreUntilActive = false
+                return
+            }
+            var thresholdMs = Math.max(1, idleStopMinutes) * 60 * 1000
+            if (idleMs >= thresholdMs) root.promptIdle(idleMs)
+        })
+    }
+
+    function promptIdle(idleMs) {
+        pendingIdleMs = idleMs
+        pendingIdleSnapshot = {
+            timesheetId: currentTimesheetId,
+            projectId: activeTimesheet ? KimaiApi.projectId(activeTimesheet) : null,
+            activityId: activeTimesheet ? KimaiApi.activityId(activeTimesheet) : null,
+            projectName: currentProject,
+            activityName: currentActivity,
+            description: currentDescription
+        }
+        idleDialogPending = true
+    }
+
+    function keepIdleTime() {
+        idleIgnoreUntilActive = true
+        pendingIdleSnapshot = null; pendingIdleMs = 0; idleDialogPending = false
+    }
+
+    function discardIdleTime(andContinue) {
+        var snap = pendingIdleSnapshot; var idleMs = pendingIdleMs
+        pendingIdleSnapshot = null; pendingIdleMs = 0; idleDialogPending = false
+        if (!snap || !snap.timesheetId) { stopTracking(); return }
+        var endDate = new Date(Date.now() - Math.max(0, idleMs))
+        isBusy = true
+        tracker.patchTimesheet(TimeTracker.resolveUrl(activeProfile), apiToken, snap.timesheetId,
+            { end: KimaiApi.localDateTimeString(endDate) }, function(result) {
+            isBusy = false
+            if (!result.ok) return
+            applyActiveTimesheet(null); refreshAll()
+            if (notifyOnIdleStop) sendNotification(i18n("Idle time discarded"), snap.projectName + " · " + snap.activityName)
+            if (andContinue && snap.projectId && snap.activityId) {
+                startTracking(snap.projectId, snap.activityId, snap.projectName, snap.activityName, snap.description || "")
+            }
+        })
+    }
+
+    function checkForgotToStart() {
+        if (!isConfigured || isTracking || !notifyForgotToStart) return
+        if (!KimaiApi.isWithinWorkHours(workDayBegin, workDayEnd, new Date())) return
+        var dayKey = Qt.formatDate(new Date(), "yyyy-MM-dd")
+        if (forgotReminderDay === dayKey) return
+        forgotReminderDay = dayKey
+        sendNotification(i18n("Nothing is tracking"), i18n("Start tracking when you begin work."))
+    }
 
     function formatElapsed(sec) { var h = Math.floor(sec / 3600); var m = Math.floor((sec % 3600) / 60); if (h > 0) return i18n("%1h %2m", h, m); return i18n("%1m %2s", m, sec % 60) }
     function currentConfig() { return { kimaiUrl: activeProfile ? (activeProfile.url || "") : "", profilesJson: profiles ? Profiles.serializeProfiles(profiles) : "", activeProfileId: activeProfile ? activeProfile.id : "default" } }
     function activityCatalog() { return allActivities }
+
+    // ── Project/Activity picker models (SearchableCombo-shaped), shared by
+    // ActiveEditView and ManualEntryView across pages. ──
+    readonly property var projectPickerModel: KimaiApi.projectPickerItems(projects, customers)
+
+    function projectById(projectId) {
+        if (!projectId) return null
+        for (var i = 0; i < projects.length; i++) {
+            if (String(projects[i].id) === String(projectId)) return projects[i]
+        }
+        return null
+    }
+
+    /** Loads (and caches) project-scoped activities, then hands back a picker model. */
+    function loadActivitiesForProject(projectId, callback) {
+        if (!projectId) { callback(KimaiApi.activityPickerItems(allActivities, null, null, customersById)); return }
+        var cached = activitiesByProject[String(projectId)]
+        if (cached) { callback(KimaiApi.activityPickerItems(cached, projectId, root.projectById(projectId), customersById)); return }
+        tracker.loadActivities(TimeTracker.resolveUrl(activeProfile), apiToken, projectId, function(result) {
+            if (result.ok) {
+                var copy = Object.assign({}, activitiesByProject)
+                copy[String(projectId)] = result.data || []
+                activitiesByProject = copy
+                callback(KimaiApi.activityPickerItems(result.data || [], projectId, root.projectById(projectId), customersById))
+            } else {
+                callback(KimaiApi.activityPickerItems(allActivities, projectId, root.projectById(projectId), customersById))
+            }
+        })
+    }
 
     function loadApiToken() {
         if (!activeProfile) { apiToken = ""; tokenLoaded = true; return }
@@ -116,12 +388,12 @@ Kirigami.ApplicationWindow {
         tracker.fetchRecentTimesheets(url, apiToken, recentCount, function(result) {
             if (result.ok) recentTimesheets = KimaiApi.hydrateTimesheets(KimaiApi.deduplicateRecent(result.data || []), projects, activityCatalog(), activitiesByProject)
         })
-        tracker.loadProjects(url, apiToken, function(result) { if (result.ok) projects = result.data || [] })
+        tracker.loadProjects(url, apiToken, function(result) { if (result.ok) { projects = result.data || []; root.rebuildColorMaps() } })
         tracker.loadCustomers(url, apiToken, function(result) {
-            if (result.ok) { customers = result.data || []; customersById = {}; for (var i = 0; i < customers.length; i++) customersById[String(customers[i].id)] = customers[i] }
+            if (result.ok) { customers = result.data || []; customersById = {}; for (var i = 0; i < customers.length; i++) customersById[String(customers[i].id)] = customers[i]; root.rebuildColorMaps() }
         })
         tracker.loadActivities(url, apiToken, null, function(result) {
-            if (result.ok) { activities = result.data || []; allActivities = result.data || [] }
+            if (result.ok) { activities = result.data || []; allActivities = result.data || []; root.rebuildColorMaps() }
         })
         refreshWorkTotals(); refreshPinnedEntries()
     }
@@ -187,8 +459,11 @@ Kirigami.ApplicationWindow {
     function stopTracking() {
         if (!currentTimesheetId) return
         isBusy = true
+        var summary = currentProject + " · " + currentActivity
         tracker.stopTracking(TimeTracker.resolveUrl(activeProfile), apiToken, currentTimesheetId, function(result) {
-            isBusy = false; applyActiveTimesheet(null); refreshAll()
+            isBusy = false
+            if (result.ok && notifyOnStop) sendNotification(i18n("Stopped"), summary)
+            applyActiveTimesheet(null); refreshAll()
         })
     }
 
@@ -220,27 +495,74 @@ Kirigami.ApplicationWindow {
         })
     }
 
-    function startTracking(projectId, activityId, projectLabel, activityLabel, description) {
+    /** Splits a stopped entry at splitDate: patches its end, creates a twin from there to the original end. */
+    function splitEntry(ts, splitDate) {
+        if (!ts || !ts.id || !splitDate) return
+        var originalEnd = ts.end
+        isBusy = true
+        tracker.patchTimesheet(TimeTracker.resolveUrl(activeProfile), apiToken, ts.id,
+            { end: KimaiApi.localDateTimeString(splitDate) }, function(result) {
+            if (!result.ok) { isBusy = false; return }
+            var fields = {
+                projectId: KimaiApi.projectId(ts), activityId: KimaiApi.activityId(ts),
+                begin: KimaiApi.localDateTimeString(splitDate), description: ts.description || ""
+            }
+            if (originalEnd) fields.end = originalEnd
+            tracker.createTimesheet(TimeTracker.resolveUrl(activeProfile), apiToken, fields, function(r2) {
+                isBusy = false; if (r2.ok) refreshAll()
+            })
+        })
+    }
+
+    function createCustomer(fields, callback) {
+        isBusy = true
+        tracker.createCustomer(TimeTracker.resolveUrl(activeProfile), apiToken, fields, function(result) {
+            isBusy = false; if (result.ok) refreshAll(); if (callback) callback(result)
+        })
+    }
+
+    function createProject(fields, callback) {
+        isBusy = true
+        tracker.createProject(TimeTracker.resolveUrl(activeProfile), apiToken, fields, function(result) {
+            isBusy = false; if (result.ok) refreshAll(); if (callback) callback(result)
+        })
+    }
+
+    function createActivity(fields, callback) {
+        isBusy = true
+        tracker.createActivity(TimeTracker.resolveUrl(activeProfile), apiToken, fields, function(result) {
+            isBusy = false; if (result.ok) refreshAll(); if (callback) callback(result)
+        })
+    }
+
+    function startTracking(projectId, activityId, projectLabel, activityLabel, description, extras) {
         if (isTracking) { requestRestartFromRecent({project: projectId, activity: activityId, description: description || ""}); return }
         isBusy = true
         tracker.startTracking(TimeTracker.resolveUrl(activeProfile), apiToken, projectId, activityId, description || "", function(result) {
             isBusy = false
-            if (result.ok && result.data) { applyActiveTimesheet(KimaiApi.hydrateTimesheets([result.data], projects, activityCatalog(), activitiesByProject)[0] || result.data); refreshAll() }
-        })
+            if (result.ok && result.data) {
+                if (notifyOnStart) sendNotification(i18n("Started"), (projectLabel || "") + " · " + (activityLabel || ""))
+                rememberLastUsed(projectId, activityId, projectLabel, activityLabel)
+                applyActiveTimesheet(KimaiApi.hydrateTimesheets([result.data], projects, activityCatalog(), activitiesByProject)[0] || result.data); refreshAll()
+            }
+        }, extras || {})
     }
 
-    function switchToActivity(projectId, activityId, projectLabel, activityLabel, description) {
+    function switchToActivity(projectId, activityId, projectLabel, activityLabel, description, extras) {
         if (!isConfigured || isBusy) return
-        if (!isTracking) { startTracking(projectId, activityId, projectLabel, activityLabel, description); return }
+        if (!isTracking) { startTracking(projectId, activityId, projectLabel, activityLabel, description, extras); return }
         isBusy = true
         tracker.stopTracking(TimeTracker.resolveUrl(activeProfile), apiToken, currentTimesheetId, function(stopResult) {
             if (!stopResult.ok) { isBusy = false; return }
             applyActiveTimesheet(null)
             tracker.startTracking(TimeTracker.resolveUrl(activeProfile), apiToken, projectId, activityId, description || "", function(startResult) {
                 isBusy = false
-                if (startResult.ok && startResult.data) { applyActiveTimesheet(KimaiApi.hydrateTimesheets([startResult.data], projects, activityCatalog(), activitiesByProject)[0] || startResult.data); refreshAll() }
+                if (startResult.ok && startResult.data) {
+                    rememberLastUsed(projectId, activityId, projectLabel, activityLabel)
+                    applyActiveTimesheet(KimaiApi.hydrateTimesheets([startResult.data], projects, activityCatalog(), activitiesByProject)[0] || startResult.data); refreshAll()
+                }
                 else refreshAll()
-            })
+            }, extras || {})
         })
     }
 
@@ -302,10 +624,34 @@ Kirigami.ApplicationWindow {
                 if (typeof shared.popupShowWorkSummary === "boolean") showWorkSummary = shared.popupShowWorkSummary
                 if (typeof shared.popupShowRecent === "boolean") showRecent = shared.popupShowRecent
                 if (typeof shared.popupShowFavorites === "boolean") showFavorites = shared.popupShowFavorites
+                if (typeof shared.popupShowContinue === "boolean") showContinue = shared.popupShowContinue
+                if (typeof shared.popupShowNewActivity === "boolean") showNewActivity = shared.popupShowNewActivity
                 if (typeof shared.pinnedActivities === "string") pinnedActivities = shared.pinnedActivities
                 if (typeof shared.workDayBegin === "string") workDayBegin = shared.workDayBegin
                 if (typeof shared.workDayEnd === "string") workDayEnd = shared.workDayEnd
+                if (typeof shared.popupShowSparkline === "boolean") showSparkline = shared.popupShowSparkline
+                if (typeof shared.showSparklineArcs === "boolean") showSparklineArcs = shared.showSparklineArcs
+                if (typeof shared.colorDistinctionEnabled === "boolean") colorDistinctionEnabled = shared.colorDistinctionEnabled
+                if (typeof shared.colorSimilarityPercent === "number") colorSimilarityPercent = shared.colorSimilarityPercent
+                if (typeof shared.latitude === "number") latitude = shared.latitude
+                if (typeof shared.longitude === "number") longitude = shared.longitude
+                if (typeof shared.locationName === "string") locationName = shared.locationName
+                if (typeof shared.confirmStartBeforePreviousEnd === "boolean") confirmStartBeforePreviousEnd = shared.confirmStartBeforePreviousEnd
+                if (typeof shared.idleStopEnabled === "boolean") idleStopEnabled = shared.idleStopEnabled
+                if (typeof shared.idleStopMinutes === "number") idleStopMinutes = shared.idleStopMinutes
+                if (typeof shared.notifyOnStart === "boolean") notifyOnStart = shared.notifyOnStart
+                if (typeof shared.notifyOnStop === "boolean") notifyOnStop = shared.notifyOnStop
+                if (typeof shared.notifyOnIdleStop === "boolean") notifyOnIdleStop = shared.notifyOnIdleStop
+                if (typeof shared.notifyForgotToStart === "boolean") notifyForgotToStart = shared.notifyForgotToStart
+                if (typeof shared.lastUsedProjectId === "string") lastUsedProjectId = shared.lastUsedProjectId
+                if (typeof shared.lastUsedActivityId === "string") lastUsedActivityId = shared.lastUsedActivityId
+                if (typeof shared.lastUsedProjectName === "string") lastUsedProjectName = shared.lastUsedProjectName
+                if (typeof shared.lastUsedActivityName === "string") lastUsedActivityName = shared.lastUsedActivityName
             }
+            // Instant seed from the last computed result (no catalog yet to rebuild from);
+            // refreshAll()'s catalog-load callbacks trigger the real (async) rebuild once
+            // live customers/projects/activities arrive.
+            root.hydrateColorMapsFromDiskCache()
             loadApiToken()
         })
     }
@@ -332,12 +678,21 @@ Kirigami.ApplicationWindow {
                 onTriggered: { pageStack.push(statsPageComponent); globalDrawer.close() }
             },
             Kirigami.Action {
+                text: i18n("Favorites")
+                onTriggered: { pageStack.push(favoritesComponent); globalDrawer.close() }
+            },
+            Kirigami.Action {
                 text: i18n("Connection")
                 onTriggered: { pageStack.push(connectionComponent); globalDrawer.close() }
             },
             Kirigami.Action {
                 text: i18n("Settings")
                 onTriggered: { pageStack.push(settingsComponent); globalDrawer.close() }
+            },
+            Kirigami.Action {
+                text: i18n("Color maintenance")
+                visible: root.providerCapabilities.colorDistinction
+                onTriggered: { pageStack.push(maintenanceComponent); globalDrawer.close() }
             }
         ]
     }
@@ -347,10 +702,17 @@ Kirigami.ApplicationWindow {
     }
 
     pageStack.initialPage: TimerPage { }
-    Component.onCompleted: { Platform.setBackend(AppBackend.create(TokenStore, FileStore)); loadSharedAndConnect() }
+    Component.onCompleted: {
+        Platform.setBackend(AppBackend.create(TokenStore, FileStore,
+            typeof idleWatcher !== "undefined" ? idleWatcher : undefined,
+            typeof notifier !== "undefined" ? notifier : undefined))
+        loadSharedAndConnect()
+    }
     Component { id: manualPageComponent; ManualEntryPage { } }
     Component { id: statsPageComponent; StatsPage { } }
     Component { id: settingsComponent; SettingsPage { } }
     Component { id: connectionComponent; ConnectionPage { } }
+    Component { id: favoritesComponent; FavoritesPage { } }
+    Component { id: maintenanceComponent; MaintenancePage { } }
 }
 

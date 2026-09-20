@@ -10,9 +10,11 @@
  *
  * @param {QObject} tokenStore - C++ TokenStore singleton
  * @param {QObject} fileStore  - C++ FileStore singleton
+ * @param {QObject} [idleWatcher] - C++ IdleWatcher singleton (Linux/Plasma Mobile only, undefined on Android)
+ * @param {QObject} [notifier] - C++ Notifier singleton (Linux/Plasma Mobile only, undefined on Android)
  * @returns {Object} backend object matching the platform.js interface
  */
-function create(tokenStore, fileStore) {
+function create(tokenStore, fileStore, idleWatcher, notifier) {
     function _connectOnce(signal, handler) {
         var wrapper = function() {
             signal.disconnect(wrapper)
@@ -50,11 +52,19 @@ function create(tokenStore, fileStore) {
         },
 
         runIdle: function(_ds, cb) {
-            cb(-1, null)
+            if (!idleWatcher) { cb(-1, null); return }
+            _connectOnce(idleWatcher.idleChecked, function(idleMs, ok) {
+                cb(ok ? idleMs : -1, null)
+            })
+            idleWatcher.checkIdle()
         },
 
-        notify: function(_ds, _summary, _body, cb) {
-            if (cb) { cb() }
+        notify: function(_ds, summary, body, cb) {
+            if (!notifier) { if (cb) cb(); return }
+            if (cb) {
+                _connectOnce(notifier.notified, function(_ok) { cb() })
+            }
+            notifier.notify(summary || "", body || "")
         },
 
         loadSharedConfig: function(_ds, cb) {

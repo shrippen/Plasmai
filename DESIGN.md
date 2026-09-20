@@ -12,7 +12,7 @@ Visual foundation:
 [shrippen/DesignDefault](https://github.com/shrippen/DesignDefault) — shared
 Gruvbox-warm palette, Rajdhani headings, icon language, and landing-page
 template. The widget itself uses `Kirigami.Theme.*` for all interactive chrome;
-only brand elements (icon mark fill `#E8DCC4`, version badges, landing page)
+only brand elements (icon mark fill `#E8DCC4` with gold `#FABD2F` shards, version badges, landing page)
 use the shared palette directly. See DesignDefault for the full token table,
 typography stack, badge format, and social-preview spec.
 
@@ -166,6 +166,9 @@ typography stack, badge format, and social-preview spec.
   `KimaiApi.DEFAULT_CUSTOMER_COLOR` (`#d2d6de`).
 - Brand accent (`#E8DCC4` warm cream from DesignDefault) is used only for
   the icon mark fill and version badges, never for interactive controls.
+  The icon's shards use the gold accent `#FABD2F`; the monochrome variant
+  (`docs/icon-mono.svg`, `contents/images/icon.svg` with `currentColor`) is
+  used wherever the icon must follow the theme.
   Landing pages and README badges use the full DesignDefault palette.
 - Symbolic Breeze icons (`chronometer`, `media-playback-start/stop`,
   `list-add`, `view-statistics`, `document-edit`, `configure`, …). Tint with

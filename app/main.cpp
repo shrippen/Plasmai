@@ -21,6 +21,16 @@
 #define HAS_KEYCHAIN 1
 #endif
 
+// Idle detection + native notifications: real Linux/Plasma session only
+// (desktop Linux and Plasma Mobile devices both run a Plasma D-Bus session;
+// Android does not, so this whole block is compiled out there).
+#ifdef HAVE_QTDBUS
+#include <QDBusInterface>
+#include <QDBusReply>
+#include <QVariantList>
+#include <QVariantMap>
+#endif
+
 // -- I18nFallback: passthrough i18n() when KF6 I18n is unavailable -----------
 
 #if !defined(HAVE_KF6_COREADDONS)
@@ -182,6 +192,72 @@ signals:
     void saved(const QString &fileName, bool ok);
 };
 
+// -- IdleWatcher: session idle time via org.freedesktop.ScreenSaver -------
+// Same D-Bus source contents/code/idle.sh falls back to on Wayland/Plasma;
+// Plasma Mobile devices run a real Plasma Wayland session so this works
+// unmodified on-device, same as on a desktop Linux build.
+
+#ifdef HAVE_QTDBUS
+class IdleWatcher : public QObject {
+    Q_OBJECT
+public:
+    using QObject::QObject;
+
+    Q_INVOKABLE void checkIdle() {
+        QDBusInterface iface(QStringLiteral("org.freedesktop.ScreenSaver"),
+                             QStringLiteral("/org/freedesktop/ScreenSaver"),
+                             QStringLiteral("org.freedesktop.ScreenSaver"),
+                             QDBusConnection::sessionBus());
+        if (!iface.isValid()) {
+            emit idleChecked(-1, false);
+            return;
+        }
+        QDBusReply<uint> reply = iface.call(QStringLiteral("GetSessionIdleTime"));
+        if (!reply.isValid()) {
+            emit idleChecked(-1, false);
+            return;
+        }
+        emit idleChecked(static_cast<qint64>(reply.value()), true);
+    }
+
+signals:
+    void idleChecked(qint64 idleMs, bool ok);
+};
+
+// -- Notifier: desktop notifications via org.freedesktop.Notifications ----
+
+class Notifier : public QObject {
+    Q_OBJECT
+public:
+    using QObject::QObject;
+
+    Q_INVOKABLE void notify(const QString &summary, const QString &body) {
+        QDBusInterface iface(QStringLiteral("org.freedesktop.Notifications"),
+                             QStringLiteral("/org/freedesktop/Notifications"),
+                             QStringLiteral("org.freedesktop.Notifications"),
+                             QDBusConnection::sessionBus());
+        if (!iface.isValid()) {
+            emit notified(false);
+            return;
+        }
+        QDBusReply<uint> reply = iface.call(
+            QStringLiteral("Notify"),
+            APP_ID,               // app_name
+            0u,                    // replaces_id
+            QStringLiteral("chronometer"), // app_icon
+            summary,
+            body,
+            QStringList(),         // actions
+            QVariantMap(),         // hints
+            -1);                   // expire_timeout (server default)
+        emit notified(reply.isValid());
+    }
+
+signals:
+    void notified(bool ok);
+};
+#endif
+
 // -- main ----------------------------------------------------------------
 
 int main(int argc, char *argv[])
@@ -228,6 +304,12 @@ int main(int argc, char *argv[])
 #endif
     engine.rootContext()->setContextProperty(QStringLiteral("TokenStore"), tokenStore);
     engine.rootContext()->setContextProperty(QStringLiteral("FileStore"), fileStore);
+#ifdef HAVE_QTDBUS
+    auto *idleWatcher = new IdleWatcher(&app);
+    auto *notifier = new Notifier(&app);
+    engine.rootContext()->setContextProperty(QStringLiteral("idleWatcher"), idleWatcher);
+    engine.rootContext()->setContextProperty(QStringLiteral("notifier"), notifier);
+#endif
 
     // Add QRC import path so Kirigami platform plugin can find style modules
 #ifdef Q_OS_ANDROID

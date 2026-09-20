@@ -106,8 +106,27 @@ Installiere Qt 6.8+ mit Android Kit via [Qt Online Installer](https://www.qt.io/
 - **Android**: qtkeychain → Android Keystore (automatisch)
 - Auf beiden Plattformen: API-Tokens verschlüsselt gespeichert.
 
-### Fehlende Features (Desktop vs. App)
-- Idle-Detection (xprintidle/loginctl): App-seitig nicht implementiert
-- Desktop-Benachrichtigungen: Optional, via Android-Notification-System
-- Sparkline (DaySparkline): Benötigt Qt5Compat.GraphicalEffects (nicht auf Android)
-- Farb-Distinction Settings: Noch nicht in App-Settings implementiert
+### Feature-Parität mit dem Plasmoid
+Die App teilt sich `app/qml/shared/` (portierte Kopien der Plasmoid-Komponenten
+aus `contents/ui/`) und erreicht damit funktional/visuell weitgehend Parität:
+Tags, Billable, Split/Edit/Delete auf Recents, Favoriten-Verwaltung, volle
+Statistik-Charts, Farb-Distinction + Maintenance-Ansicht, Standortsuche für
+den Sparkline-Sonnenstand.
+
+- **Idle-Detection / native Benachrichtigungen**: plattform-adaptiv über
+  `IdleWatcher`/`Notifier` (`app/main.cpp`, `org.freedesktop.ScreenSaver` /
+  `org.freedesktop.Notifications` via QtDBus). Nur kompiliert wenn
+  `NOT ANDROID` (siehe `HAVE_QTDBUS` in `app/CMakeLists.txt`) — funktioniert
+  auf Desktop-Linux und auf echten Plasma-Mobile-Geräten (beides reale
+  Plasma-Wayland-Sessions mit D-Bus), ist auf Android deaktiviert
+  (`root.supportsIdleDetection`/`supportsNotifications` blenden die
+  zugehörigen Einstellungen dort aus).
+- **Sparkline (DaySparkline)**: voll portiert, aber ohne die
+  `Qt5Compat.GraphicalEffects`-Opacity-Masken der Plasmoid-Version (dort nur
+  für einen weichen "Aussparung unter dem Text"-Effekt und die
+  Kapsel-Rundung genutzt) — die Kapsel-Rundung kommt stattdessen aus
+  Canvas-`clip()` + `Rectangle.radius`, die Textaussparung entfällt (rein
+  kosmetisch).
+- **Übersetzungen**: Die App bündelt aktuell keine `.mo`-Kataloge; `i18n()`
+  gibt daher immer den englischen Originaltext zurück, unabhängig von der
+  Systemsprache. Nicht Teil dieses Rewrites — separates Packaging-Thema.

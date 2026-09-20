@@ -97,6 +97,10 @@ Kirigami.Page {
         urlField.text = profiles[selectedIndex].url || ""
         updatingFields = false
         persistShared()
+        // Live-apply the newly active profile so the timer view doesn't need
+        // an app restart to notice (root only reads shared.json at startup
+        // otherwise).
+        root.loadSharedAndConnect()
     }
 
     function commitUrlField() {
@@ -184,7 +188,7 @@ Kirigami.Page {
     Flickable {
         id: flickable
         anchors.fill: parent
-        contentHeight: formCol.implicitHeight + 32
+        contentHeight: formCol.implicitHeight + Kirigami.Units.largeSpacing * 2
         clip: true
         flickableDirection: Flickable.VerticalFlick
         boundsBehavior: Flickable.StopAtBounds
@@ -192,20 +196,19 @@ Kirigami.Page {
     ColumnLayout {
         id: formCol
         width: parent.width
-        anchors.margins: 16
-        spacing: 12
+        anchors.margins: Kirigami.Units.largeSpacing
+        spacing: Kirigami.Units.smallSpacing
 
-        Kirigami.Heading { level: 1; text: i18n("Connection"); color: root.clrText }
+        Kirigami.Heading { level: 1; text: i18n("Connection") }
 
-        // ── Profile selector ──
-        QQC2.Label { Layout.fillWidth: true; text: i18n("Profile"); font.bold: true; color: root.clrText }
-
-        RowLayout {
+        Kirigami.FormLayout {
             Layout.fillWidth: true
-            spacing: 8
+            wideMode: formCol.width >= Kirigami.Units.gridUnit * 28
 
+            // ── Profile selector ──
             QQC2.ComboBox {
                 id: profileCombo
+                Kirigami.FormData.label: i18n("Profile:")
                 Layout.fillWidth: true
                 model: page.profiles.map(function(p) { return p.name })
                 currentIndex: page.selectedIndex
@@ -216,262 +219,246 @@ Kirigami.Page {
                     page.checkStoredToken()
                 }
             }
-        }
 
-        // ── Profile name ──
-        QQC2.Label { Layout.fillWidth: true; text: i18n("Profile name"); font.bold: true; color: root.clrText }
-
-        QQC2.TextField {
-            id: profileNameField
-            Layout.fillWidth: true
-            placeholderText: i18n("Profile name")
-            onEditingFinished: {
-                if (!page.updatingFields) {
-                    page.updateSelectedProfile("name", text)
-                    // Refresh combo display
-                    var idx = page.selectedIndex
-                    page.profiles = page.profiles.slice()
-                    profileCombo.currentIndex = idx
-                }
-            }
-        }
-
-        // ── Profile actions ──
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: 8
-
-            QQC2.Button {
-                text: i18n("Add")
-                icon.name: "list-add"
-                onClicked: {
-                    var copy = page.profiles.slice()
-                    var existingNames = {}
-                    for (var n = 0; n < copy.length; n++) {
-                        existingNames[copy[n].name] = true
+            QQC2.TextField {
+                id: profileNameField
+                Kirigami.FormData.label: i18n("Profile name:")
+                Layout.fillWidth: true
+                placeholderText: i18n("Profile name")
+                onEditingFinished: {
+                    if (!page.updatingFields) {
+                        page.updateSelectedProfile("name", text)
+                        var idx = page.selectedIndex
+                        page.profiles = page.profiles.slice()
+                        profileCombo.currentIndex = idx
                     }
-                    var num = copy.length + 1
-                    while (existingNames[i18n("Profile %1", num)]) {
-                        num++
-                    }
-                    var profile = Profiles.normalizeProfile({
-                        id: Profiles.newProfileId(),
-                        name: i18n("Profile %1", num),
-                        url: "",
-                        provider: page.selectedProviderId || "kimai"
-                    })
-                    copy.push(profile)
-                    page.profiles = copy
-                    page.syncProfiles()
-                    page.selectedIndex = copy.length - 1
-                    profileCombo.currentIndex = page.selectedIndex
-                    page.updateFieldsForSelection()
-                    page.checkStoredToken()
-                    page.persistShared()
                 }
             }
 
-            QQC2.Button {
-                text: i18n("Remove")
-                icon.name: "list-remove"
-                enabled: page.profiles.length > 1
-                onClicked: {
-                    if (page.profiles.length <= 1) return
-                    var removedId = page.profiles[page.selectedIndex].id
-                    var copy = page.profiles.slice()
-                    copy.splice(page.selectedIndex, 1)
-                    page.profiles = copy
-                    page.syncProfiles()
-                    page.selectedIndex = Math.max(0, page.selectedIndex - 1)
-                    profileCombo.currentIndex = page.selectedIndex
-                    page.updateFieldsForSelection()
-                    if (activeProfileField.text === removedId) {
-                        page.setActiveProfile()
-                    }
-                    page.checkStoredToken()
-                    page.persistShared()
-                }
-            }
+            RowLayout {
+                Kirigami.FormData.label: " "
+                Layout.fillWidth: true
+                spacing: Kirigami.Units.smallSpacing
 
-            QQC2.Button {
-                text: i18n("Use this")
-                icon.name: "emblem-default"
-                enabled: page.profiles.length > 0
-                onClicked: {
-                    page.setActiveProfile()
-                    page.checkStoredToken()
-                }
-            }
-        }
-
-        // ── Active profile indicator ──
-        QQC2.Label {
-            Layout.fillWidth: true
-            text: {
-                var active = Profiles.profileById(page.profiles, activeProfileField.text || "default")
-                return i18n("Active: %1", active ? active.name : i18n("none"))
-            }
-            color: root.clrTextMuted
-            font.pointSize: root.font.pointSize - 1
-        }
-
-        // ── Separator ──
-        Rectangle { Layout.fillWidth: true; height: 1; color: Qt.rgba(1,1,1,0.1) }
-
-        // ── Provider ──
-        QQC2.Label { Layout.fillWidth: true; text: i18n("Provider"); font.bold: true; color: root.clrText }
-
-        QQC2.ComboBox {
-            id: providerCombo
-            Layout.fillWidth: true
-            model: ["Kimai", "Clockify", "Toggl Track", "SolidTime"]
-            currentIndex: {
-                var id = page.selectedProviderId
-                if (id === "clockify") return 1
-                if (id === "toggl") return 2
-                if (id === "solidtime") return 3
-                return 0
-            }
-            onCurrentIndexChanged: {
-                if (page.updatingFields || page.syncing) return
-                var ids = ["kimai", "clockify", "toggl", "solidtime"]
-                var defaults = {
-                    kimai: "",
-                    clockify: "https://api.clockify.me/api/v1",
-                    toggl: "https://api.track.toggl.com/api/v9",
-                    solidtime: "https://api.solidtime.io"
-                }
-                var newId = ids[currentIndex] || "kimai"
-                urlField.placeholderText = defaults[newId] || ""
-                page.updateSelectedProfile("provider", newId)
-                page.updateFieldsForSelection()
-            }
-        }
-
-        // ── Server URL ──
-        QQC2.Label { Layout.fillWidth: true; text: i18n("Server URL"); font.bold: true; color: root.clrText }
-
-        QQC2.TextField {
-            id: urlField
-            Layout.fillWidth: true
-            placeholderText: i18n("https://your-server.com")
-            onTextChanged: {
-                if (!page.updatingFields && !page.syncing) {
-                    page.updateSelectedProfile("url", text)
-                }
-            }
-            onEditingFinished: page.commitUrlField()
-        }
-
-        // ── Separator ──
-        Rectangle { Layout.fillWidth: true; height: 1; color: Qt.rgba(1,1,1,0.1) }
-
-        // ── API Token ──
-        QQC2.Label { Layout.fillWidth: true; text: i18n("API Token"); font.bold: true; color: root.clrText }
-
-        QQC2.Label {
-            Layout.fillWidth: true
-            text: page.hasStoredToken ? i18n("Token stored.") : i18n("No token stored.")
-            color: page.hasStoredToken ? root.clrPositive : root.clrTextMuted
-        }
-
-        QQC2.TextField {
-            id: tokenField
-            Layout.fillWidth: true
-            placeholderText: i18n("Enter API token…")
-            echoMode: TextInput.Password
-            enabled: !page.busy
-        }
-
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: 8
-
-            QQC2.Button {
-                text: page.busy ? i18n("Saving…") : i18n("Save token")
-                enabled: !page.busy && tokenField.text.length > 0 && page.profiles.length > 0
-                onClicked: {
-                    page.busy = true
-                    page.showStatus("", false)
-                    page.persistShared()
-                    var pid = page.profiles[page.selectedIndex].id
-                    Platform.saveToken(null, pid, tokenField.text).then(function() {
-                        page.busy = false
-                        tokenField.text = ""
-                        page.hasStoredToken = true
-                        page.showStatus(i18n("Token saved."), false)
-                    }).catch(function(err) {
-                        page.busy = false
-                        page.showStatus(err || i18n("Failed to save"), true)
-                    })
-                }
-            }
-
-            QQC2.Button {
-                text: i18n("Clear")
-                enabled: !page.busy && page.hasStoredToken
-                onClicked: {
-                    page.busy = true
-                    Platform.clearToken(null, page.profiles[page.selectedIndex].id).then(function() {
-                        page.busy = false
-                        page.hasStoredToken = false
-                        page.showStatus(i18n("Token removed."), false)
-                    }).catch(function(err) {
-                        page.busy = false
-                        page.showStatus(i18n("Failed"), true)
-                    })
-                }
-            }
-
-            Item { Layout.fillWidth: true }
-
-            QQC2.Button {
-                text: i18n("Test")
-                enabled: !page.busy && page.profiles.length > 0
-                onClicked: {
-                    page.busy = true
-                    page.showStatus(i18n("Testing…"), false)
-                    page.persistShared()
-                    var profile = page.profiles[page.selectedIndex]
-                    var url = TimeTracker.resolveUrl(profile)
-                    console.log("TEST: profile.id=", profile.id, "url=", url, "provider=", profile.provider)
-                    console.log("TEST: profile.url=", profile.url)
-                    TimeTracker.applySession(profile.provider || "kimai", profile)
-                    Platform.loadToken(null, profile.id).then(function(token) {
-                        console.log("TEST: loaded token length=", token ? token.length : 0, "token=", token ? token.substring(0,4) + "..." : "(empty)")
-                        page.busy = false
-                        if (!token) {
-                            page.showStatus(i18n("No token stored."), true)
-                            return
-                        }
-                        page.showStatus(i18n("Testing… (%1)", url), false)
-                        console.log("TEST: calling testConnection with url=", url)
-                        page.tracker.testConnection(url, token, function(result) {
-                            console.log("TEST: result.ok=", result.ok, "error=", JSON.stringify(result.error || {}))
-                            page.busy = false
-                            if (result.ok) {
-                                page.showStatus(i18n("Connection OK!"), false)
-                            } else {
-                                var err = result.error || {}
-                                var detail = err.detail || err.statusText || i18n("Failed")
-                                var type = err.type || ""
-                                if (type === "config") detail = i18n("Missing URL or token (type: %1)", type)
-                                page.showStatus(detail || i18n("Failed"), true)
-                            }
+                QQC2.Button {
+                    text: i18n("Add")
+                    icon.name: "list-add"
+                    onClicked: {
+                        var copy = page.profiles.slice()
+                        var existingNames = {}
+                        for (var n = 0; n < copy.length; n++) existingNames[copy[n].name] = true
+                        var num = copy.length + 1
+                        while (existingNames[i18n("Profile %1", num)]) num++
+                        var profile = Profiles.normalizeProfile({
+                            id: Profiles.newProfileId(),
+                            name: i18n("Profile %1", num),
+                            url: "",
+                            provider: page.selectedProviderId || "kimai"
                         })
-                    }).catch(function(err) {
-                        page.busy = false
-                        page.showStatus(err, true)
-                    })
+                        copy.push(profile)
+                        page.profiles = copy
+                        page.syncProfiles()
+                        page.selectedIndex = copy.length - 1
+                        profileCombo.currentIndex = page.selectedIndex
+                        page.updateFieldsForSelection()
+                        page.checkStoredToken()
+                        page.persistShared()
+                    }
+                }
+
+                QQC2.Button {
+                    text: i18n("Remove")
+                    icon.name: "list-remove"
+                    enabled: page.profiles.length > 1
+                    onClicked: {
+                        if (page.profiles.length <= 1) return
+                        var removedId = page.profiles[page.selectedIndex].id
+                        var copy = page.profiles.slice()
+                        copy.splice(page.selectedIndex, 1)
+                        page.profiles = copy
+                        page.syncProfiles()
+                        page.selectedIndex = Math.max(0, page.selectedIndex - 1)
+                        profileCombo.currentIndex = page.selectedIndex
+                        page.updateFieldsForSelection()
+                        if (activeProfileField.text === removedId) page.setActiveProfile()
+                        page.checkStoredToken()
+                        page.persistShared()
+                    }
+                }
+
+                QQC2.Button {
+                    text: i18n("Use this")
+                    icon.name: "emblem-default"
+                    enabled: page.profiles.length > 0
+                    onClicked: { page.setActiveProfile(); page.checkStoredToken() }
+                }
+            }
+
+            QQC2.Label {
+                Kirigami.FormData.label: " "
+                Layout.fillWidth: true
+                text: {
+                    var active = Profiles.profileById(page.profiles, activeProfileField.text || "default")
+                    return i18n("Active: %1", active ? active.name : i18n("none"))
+                }
+                color: root.clrTextMuted
+                font.pointSize: Kirigami.Theme.smallFont.pointSize
+            }
+
+            Kirigami.Separator { Kirigami.FormData.isSection: true; Layout.fillWidth: true }
+
+            // ── Provider ──
+            QQC2.ComboBox {
+                id: providerCombo
+                Kirigami.FormData.label: i18n("Provider:")
+                Layout.fillWidth: true
+                model: ["Kimai", "Clockify", "Toggl Track", "SolidTime"]
+                currentIndex: {
+                    var id = page.selectedProviderId
+                    if (id === "clockify") return 1
+                    if (id === "toggl") return 2
+                    if (id === "solidtime") return 3
+                    return 0
+                }
+                onCurrentIndexChanged: {
+                    if (page.updatingFields || page.syncing) return
+                    var ids = ["kimai", "clockify", "toggl", "solidtime"]
+                    var defaults = {
+                        kimai: "",
+                        clockify: "https://api.clockify.me/api/v1",
+                        toggl: "https://api.track.toggl.com/api/v9",
+                        solidtime: "https://api.solidtime.io"
+                    }
+                    var newId = ids[currentIndex] || "kimai"
+                    urlField.placeholderText = defaults[newId] || ""
+                    page.updateSelectedProfile("provider", newId)
+                    page.updateFieldsForSelection()
+                }
+            }
+
+            QQC2.TextField {
+                id: urlField
+                Kirigami.FormData.label: i18n("Server URL:")
+                Layout.fillWidth: true
+                placeholderText: i18n("https://your-server.com")
+                onTextChanged: {
+                    if (!page.updatingFields && !page.syncing) page.updateSelectedProfile("url", text)
+                }
+                onEditingFinished: page.commitUrlField()
+            }
+
+            Kirigami.Separator { Kirigami.FormData.isSection: true; Layout.fillWidth: true }
+
+            // ── API Token ──
+            QQC2.Label {
+                Kirigami.FormData.label: i18n("API Token:")
+                Layout.fillWidth: true
+                text: page.hasStoredToken ? i18n("Token stored.") : i18n("No token stored.")
+                color: page.hasStoredToken ? root.clrPositive : root.clrTextMuted
+            }
+
+            QQC2.TextField {
+                id: tokenField
+                Kirigami.FormData.label: " "
+                Layout.fillWidth: true
+                placeholderText: i18n("Enter API token…")
+                echoMode: TextInput.Password
+                enabled: !page.busy
+            }
+
+            RowLayout {
+                Kirigami.FormData.label: " "
+                Layout.fillWidth: true
+                spacing: Kirigami.Units.smallSpacing
+
+                QQC2.Button {
+                    text: page.busy ? i18n("Saving…") : i18n("Save token")
+                    icon.name: "document-save"
+                    enabled: !page.busy && tokenField.text.length > 0 && page.profiles.length > 0
+                    onClicked: {
+                        page.busy = true
+                        page.showStatus("", false)
+                        page.persistShared()
+                        var pid = page.profiles[page.selectedIndex].id
+                        Platform.saveToken(null, pid, tokenField.text).then(function() {
+                            page.busy = false
+                            tokenField.text = ""
+                            page.hasStoredToken = true
+                            page.showStatus(i18n("Token saved."), false)
+                            // Live-apply: root only reads the token from the keychain
+                            // once at startup otherwise.
+                            root.loadSharedAndConnect()
+                        }).catch(function(err) {
+                            page.busy = false
+                            page.showStatus(err || i18n("Failed to save"), true)
+                        })
+                    }
+                }
+
+                QQC2.Button {
+                    text: i18n("Clear")
+                    icon.name: "edit-delete"
+                    enabled: !page.busy && page.hasStoredToken
+                    onClicked: {
+                        page.busy = true
+                        Platform.clearToken(null, page.profiles[page.selectedIndex].id).then(function() {
+                            page.busy = false
+                            page.hasStoredToken = false
+                            page.showStatus(i18n("Token removed."), false)
+                            root.loadSharedAndConnect()
+                        }).catch(function(err) {
+                            page.busy = false
+                            page.showStatus(i18n("Failed"), true)
+                        })
+                    }
+                }
+
+                Item { Layout.fillWidth: true }
+
+                QQC2.Button {
+                    text: i18n("Test")
+                    icon.name: "network-connect"
+                    enabled: !page.busy && page.profiles.length > 0
+                    onClicked: {
+                        page.busy = true
+                        page.showStatus(i18n("Testing…"), false)
+                        page.persistShared()
+                        var profile = page.profiles[page.selectedIndex]
+                        var url = TimeTracker.resolveUrl(profile)
+                        TimeTracker.applySession(profile.provider || "kimai", profile)
+                        Platform.loadToken(null, profile.id).then(function(token) {
+                            page.busy = false
+                            if (!token) {
+                                page.showStatus(i18n("No token stored."), true)
+                                return
+                            }
+                            page.showStatus(i18n("Testing… (%1)", url), false)
+                            page.tracker.testConnection(url, token, function(result) {
+                                page.busy = false
+                                if (result.ok) {
+                                    page.showStatus(i18n("Connection OK!"), false)
+                                } else {
+                                    var err = result.error || {}
+                                    var detail = err.detail || err.statusText || i18n("Failed")
+                                    var type = err.type || ""
+                                    if (type === "config") detail = i18n("Missing URL or token (type: %1)", type)
+                                    page.showStatus(detail || i18n("Failed"), true)
+                                }
+                            })
+                        }).catch(function(err) {
+                            page.busy = false
+                            page.showStatus(err, true)
+                        })
+                    }
                 }
             }
         }
 
         // ── Status message ──
-        Rectangle { Layout.fillWidth: true; visible: page.statusMessage.length > 0; radius: 6; height: statusLabel.implicitHeight + 16
-            color: page.statusIsError ? Qt.rgba(0.91, 0.30, 0.24, 0.15) : Qt.rgba(0.15, 0.68, 0.38, 0.15)
+        Rectangle { Layout.fillWidth: true; visible: page.statusMessage.length > 0; radius: Kirigami.Units.smallSpacing; height: statusLabel.implicitHeight + Kirigami.Units.smallSpacing * 2
+            color: page.statusIsError ? Qt.rgba(root.clrDanger.r, root.clrDanger.g, root.clrDanger.b, 0.15) : Qt.rgba(root.clrPositive.r, root.clrPositive.g, root.clrPositive.b, 0.15)
             border.width: 1; border.color: page.statusIsError ? root.clrDanger : root.clrPositive
-            QQC2.Label { id: statusLabel; anchors.fill: parent; anchors.margins: 8
+            QQC2.Label { id: statusLabel; anchors.fill: parent; anchors.margins: Kirigami.Units.smallSpacing
                 text: page.statusMessage; wrapMode: Text.WordWrap
                 color: page.statusIsError ? root.clrDanger : root.clrPositive }
         }

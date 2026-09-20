@@ -54,11 +54,13 @@ kpackagetool6 -u . -t Plasma/Applet
 # plasmashell --replace &
 ```
 
-Install a release package (`.plasmoid`):
+Install or update to the latest release (the script downloads the `.plasmoid` from GitHub Releases and runs `kpackagetool6`):
 
 ```bash
-kpackagetool6 -i Plasmai-1.6.2.plasmoid -t Plasma/Applet
+curl -fsSL https://github.com/shrippen/Plasmai/releases/latest/download/install-linux.sh | bash
 ```
+
+Or download a `.plasmoid` yourself and run `kpackagetool6 -i <file> -t Plasma/Applet` (`-u` to update).
 
 ## Setup
 

@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import "../contents/code/timeTracker.js" as TimeTracker
 import "../contents/code/kimaiApi.js" as KimaiApi
+import "shared"
 
 Kirigami.Page {
     id: page; title: ""
@@ -11,13 +12,13 @@ Kirigami.Page {
     background: Rectangle { color: root.bgWindow }
 
     property bool editingActive: false
-    property var editActModel: []
-    property string editDate: ""
-    property string editTime: ""
-    property string editDesc: ""
+    property var editActivityPickerModel: []
+    property bool showNewActivityForm: false
+    property var newActivityPickerModel: []
+    property string newActivityDescription: ""
 
-    function editProjectIndex() { for(var i=0;i<root.projects.length;i++){if(root.projects[i].name===root.currentProject)return i} return -1 }
-    function editActivityIndex() { for(var i=0;i<editActModel.length;i++){if(editActModel[i].name===root.currentActivity)return i} return -1 }
+    function connIcon() { return !root.isConfigured ? "network-disconnect" : root.connectionState === "error" ? "network-disconnect" : root.connectionState === "connecting" ? "view-refresh" : "network-connect" }
+    function connColor() { return !root.isConfigured ? root.clrTextMuted : root.connectionState === "error" ? root.clrDanger : root.clrPositive }
     function workSummaryText() {
         var bits = []
         bits.push(i18n("Today %1", KimaiApi.formatDurationShort(root.todayLiveSeconds)))
@@ -31,49 +32,56 @@ Kirigami.Page {
         if (root.weekTargetSeconds > 0) bits.push(root.remainingWeekText())
         return bits.join(" · ")
     }
-    function isOverTime() {
-        return root.hasWorkContract && (root.remainingTodaySeconds < 0 || root.remainingWeekSeconds < 0)
+    function isOverTime() { return root.hasWorkContract && (root.remainingTodaySeconds < 0 || root.remainingWeekSeconds < 0) }
+
+    function openEdit() {
+        if (!root.isTracking || !root.activeTimesheet) return
+        editingActive = true
+        var pid = KimaiApi.projectId(root.activeTimesheet)
+        root.loadActivitiesForProject(pid, function(model) { page.editActivityPickerModel = model })
+        activeEditView.timesheet = root.activeTimesheet
     }
-    function connIcon() { return !root.isConfigured ? "⊘" : root.connectionState === "error" ? "⚠" : "✓" }
-    function connColor() { return !root.isConfigured ? root.clrTextMuted : root.connectionState === "error" ? root.clrDanger : root.clrPositive }
-    function openEdit() { if (root.isTracking && root.activeTimesheet) { editingActive = true; refreshEditActivities() } }
-    function saveEdit() { var f={}; if(editProj.currentIndex>=0)f.project=editProj.model[editProj.currentIndex].id; if(editAct.currentIndex>=0)f.activity=editAct.model[editAct.currentIndex].id; var d=new Date(page.editDate+"T"+page.editTime+":00"); if(!isNaN(d.getTime()))f.begin=KimaiApi.localDateTimeString(d); f.description=page.editDesc; root.patchActiveEntry(f); editingActive=false }
-    function refreshEditActivities() {
-        if(!editingActive||editProj.currentIndex<0||!root.projects[editProj.currentIndex]){editActModel=[];return}
-        var pid=root.projects[editProj.currentIndex].id, a=root.activities.filter(function(x){return String(x.projectId)===String(pid)}); if(!a.length)a=root.allActivities
-        editActModel=a.map(function(x){return{name:x.name||"?",id:String(x.id)}})
+
+    function openNewActivityForm() {
+        showNewActivityForm = true
+        newActivityPickerModel = root.projectPickerModel
+        newActivityDescription = ""
     }
 
     Flickable {
         anchors.fill: parent
-        contentHeight: col.implicitHeight + 32
+        contentHeight: col.implicitHeight + Kirigami.Units.largeSpacing * 2
         clip: true
         flickableDirection: Flickable.VerticalFlick
 
-        ColumnLayout { id: col; anchors.left: parent.left; anchors.right: parent.right; anchors.top: parent.top; anchors.margins: 16; spacing: 10
+        ColumnLayout {
+            id: col; anchors.left: parent.left; anchors.right: parent.right; anchors.top: parent.top
+            anchors.margins: Kirigami.Units.largeSpacing; spacing: Kirigami.Units.smallSpacing
 
             // ══════ HEADER ══════
-            RowLayout { Layout.fillWidth: true; spacing: 8
-                QQC2.Label { text: i18n("Plasmai"); font.bold: true; font.pointSize: 16; color: root.clrText; Layout.fillWidth: true }
+            RowLayout { Layout.fillWidth: true; spacing: Kirigami.Units.smallSpacing
+                Kirigami.Heading { level: 1; text: i18n("Plasmai"); Layout.fillWidth: true }
                 QQC2.ToolButton {
                     visible: root.isConfigured
-                    contentItem: QQC2.Label { text: "＋"; font.pointSize: 20; color: root.clrAccent; horizontalAlignment: Text.AlignHCenter }
-                    Layout.preferredWidth: 40; Layout.preferredHeight: 40
-                    background: Rectangle { radius: 8; color: parent.hovered ? Qt.rgba(0.15, 0.68, 0.38, 0.15) : "transparent" }
+                    icon.name: "list-add"
+                    text: i18n("Add entry")
+                    display: QQC2.AbstractButton.IconOnly
                     onClicked: pageStack.push(manualPageComponent)
+                    QQC2.ToolTip.text: text; QQC2.ToolTip.visible: hovered; QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
                 }
                 QQC2.ToolButton {
                     visible: root.isConfigured
-                    contentItem: QQC2.Label { text: "\u2261"; font.pointSize: 20; color: root.clrTextSec; horizontalAlignment: Text.AlignHCenter; font.bold: true }
-                    Layout.preferredWidth: 40; Layout.preferredHeight: 40
-                    background: Rectangle { radius: 8; color: parent.hovered ? Qt.rgba(0.15, 0.68, 0.38, 0.15) : "transparent" }
+                    icon.name: "view-statistics"
+                    text: i18n("Statistics")
+                    display: QQC2.AbstractButton.IconOnly
                     onClicked: pageStack.push(statsPageComponent)
+                    QQC2.ToolTip.text: text; QQC2.ToolTip.visible: hovered; QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
                 }
             }
 
             // ══════ CONNECTION STATUS ══════
-            RowLayout { Layout.fillWidth: true; spacing: 6
-                QQC2.Label { text: connIcon(); color: connColor(); font.pointSize: 11 }
+            RowLayout { Layout.fillWidth: true; spacing: Kirigami.Units.smallSpacing
+                Kirigami.Icon { source: page.connIcon(); color: page.connColor(); Layout.preferredWidth: Kirigami.Units.iconSizes.small; Layout.preferredHeight: Kirigami.Units.iconSizes.small }
                 QQC2.Label {
                     text: {
                         if (!root.isConfigured) return i18n("Not configured")
@@ -81,364 +89,393 @@ Kirigami.Page {
                         if (root.connectionState === "error") return i18n("Connection problem")
                         var profileName = root.activeProfile ? root.activeProfile.name || "" : ""
                         var url = root.activeProfile ? root.activeProfile.url || "" : ""
-                        if (profileName.length > 0) return i18n("Verbunden mit %1 (%2)", url, profileName)
-                        return i18n("Verbunden mit %1", url)
+                        return profileName.length > 0 ? i18n("Connected to %1 (%2)", url, profileName) : i18n("Connected to %1", url)
                     }
-                    color: root.clrTextSec; font.pointSize: 11; elide: Text.ElideRight
+                    color: root.clrTextSec; font.pointSize: Kirigami.Theme.smallFont.pointSize; elide: Text.ElideRight
                     Layout.fillWidth: true; maximumLineCount: 1
                 }
-                QQC2.BusyIndicator {
-                    running: root.isBusy || root.connectionState === "connecting"
-                    visible: running; Layout.preferredWidth: 16; Layout.preferredHeight: 16
-                }
+                QQC2.BusyIndicator { running: root.isBusy || root.connectionState === "connecting"; visible: running; Layout.preferredWidth: Kirigami.Units.iconSizes.small; Layout.preferredHeight: Kirigami.Units.iconSizes.small }
+            }
+
+            // ══════ SETUP / ERROR STATES ══════
+            Kirigami.PlaceholderMessage {
+                Layout.fillWidth: true; Layout.topMargin: Kirigami.Units.largeSpacing
+                visible: !root.isConfigured
+                icon.name: "configure"
+                text: i18n("Connect a time tracker")
+                explanation: i18n("Add your service, server URL (if needed), and API token to start tracking.")
+                helpfulAction: Kirigami.Action { text: i18n("Configure Plasmai"); onTriggered: pageStack.push(connectionComponent) }
+            }
+            Kirigami.InlineMessage {
+                Layout.fillWidth: true
+                visible: root.isConfigured && root.connectionState === "error"
+                type: Kirigami.MessageType.Error
+                text: root.errorMessage.length > 0 ? root.errorMessage : i18n("Connection problem")
+                actions: [
+                    Kirigami.Action { text: i18n("Retry"); icon.name: "view-refresh"; onTriggered: root.refreshAll() },
+                    Kirigami.Action { text: i18n("Configure"); icon.name: "configure"; onTriggered: pageStack.push(connectionComponent) }
+                ]
             }
 
             // ══════ TIMER CARD ══════
             Rectangle {
-                Layout.fillWidth: true
-                radius: 12
-                height: timerCol.implicitHeight + 24
+                Layout.fillWidth: true; Layout.topMargin: root.isConfigured ? Kirigami.Units.smallSpacing : 0
+                visible: root.isConfigured
+                radius: Kirigami.Units.smallSpacing
+                height: heroCol.implicitHeight + Kirigami.Units.largeSpacing * 2
                 color: root.isTracking ? root.bgCardTracking : root.bgCard
                 border.width: root.isTracking ? 2 : 1
                 border.color: root.isTracking ? root.clrBorderTracking : root.clrBorder
 
-                ColumnLayout { id: timerCol; anchors.fill: parent; anchors.margins: 12; spacing: 8
+                ColumnLayout { id: heroCol; anchors.fill: parent; anchors.margins: Kirigami.Units.largeSpacing; spacing: Kirigami.Units.smallSpacing
 
-                    // ── Timer row: big time + stop ──
-                    RowLayout { Layout.fillWidth: true; spacing: 12
+                    RowLayout { Layout.fillWidth: true; spacing: Kirigami.Units.largeSpacing
                         QQC2.Label {
                             text: KimaiApi.formatDuration(root.elapsedSeconds)
-                            font.family: "monospace"; font.pointSize: 30; font.bold: true
+                            font.family: "monospace"; font.pointSize: Kirigami.Theme.defaultFont.pointSize + 12; font.bold: true
                             color: root.clrAccent
                             Layout.fillWidth: true
                         }
-                        QQC2.Label {
-                            text: root.currentCustomer || ""
-                            color: root.clrTextSec; font.pointSize: 12
-                            visible: root.isTracking && root.currentCustomer.length > 0
-                        }
+                        QQC2.Label { text: root.currentCustomer || ""; color: root.clrTextSec; visible: root.isTracking && root.currentCustomer.length > 0 }
                         QQC2.Button {
                             visible: root.isTracking
-                            text: i18n("Stopp")
-                            implicitHeight: 40
+                            text: i18n("Stop")
+                            icon.name: "media-playback-stop"
+                            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                             onClicked: root.confirmBeforeStop ? confirmDialog.open() : root.stopTracking()
-                            contentItem: RowLayout { spacing: 6; anchors.centerIn: parent
-                                Rectangle { width: 12; height: 12; radius: 2; color: "white"
-                                    QQC2.Label { anchors.centerIn: parent; text: "■"; font.pointSize: 8; color: root.clrDanger } }
-                                QQC2.Label { text: i18n("Stopp"); color: "white"; font.bold: true }
-                            }
-                            background: Rectangle { radius: 8; color: parent.down ? Qt.darker(root.clrDanger, 1.2) : (parent.hovered ? Qt.lighter(root.clrDanger, 1.1) : Qt.rgba(0.91, 0.30, 0.24, 0.85)) }
                         }
                     }
 
-                    // ── Project / Activity row ──
-                    RowLayout { visible: root.isTracking; Layout.fillWidth: true; spacing: 6
-                        Rectangle { width: 10; height: 14; radius: 5; color: root.currentCustomerColor || KimaiApi.DEFAULT_CUSTOMER_COLOR; border.width: 1; border.color: Qt.rgba(0,0,0,0.18) }
-                        QQC2.Label { text: root.currentProject || ""; color: root.clrText; font.bold: true; font.pointSize: 12; elide: Text.ElideRight; maximumLineCount: 1; Layout.fillWidth: true; Layout.preferredWidth: 0; Layout.minimumWidth: 0 }
-                        QQC2.Label { text: "·"; color: root.clrTextMuted; font.pointSize: 12; Layout.preferredWidth: 12 }
-                        QQC2.Label { text: root.currentActivity || ""; color: root.clrTextSec; font.pointSize: 12; elide: Text.ElideRight; maximumLineCount: 1; Layout.fillWidth: true; Layout.preferredWidth: 0; Layout.minimumWidth: 0 }
+                    RowLayout { visible: root.isTracking; Layout.fillWidth: true; spacing: Kirigami.Units.smallSpacing
+                        CustomerColorDot { customerColor: root.currentCustomerColor; colorCategory: root.currentColorCategory; entityId: root.currentColorEntityId; sizeFactor: 0.9 }
+                        QQC2.Label { text: root.currentProject || ""; color: root.clrText; font.bold: true; elide: Text.ElideRight; maximumLineCount: 1; Layout.fillWidth: true; Layout.preferredWidth: 0; Layout.minimumWidth: 0 }
+                        QQC2.Label { text: "·"; color: root.clrTextMuted; Layout.preferredWidth: 12 }
+                        QQC2.Label { text: root.currentActivity || ""; color: root.clrTextSec; elide: Text.ElideRight; maximumLineCount: 1; Layout.fillWidth: true; Layout.preferredWidth: 0; Layout.minimumWidth: 0 }
                         QQC2.ToolButton {
-                            contentItem: QQC2.Label { text: "✎"; font.pointSize: 12; color: root.clrTextSec }
-                            onClicked: openEdit(); Layout.preferredWidth: 28; Layout.minimumWidth: 28; Layout.maximumWidth: 28; Layout.preferredHeight: 28
+                            icon.name: "document-edit"
+                            display: QQC2.AbstractButton.IconOnly
+                            text: i18n("Edit")
+                            onClicked: page.openEdit()
+                            QQC2.ToolTip.text: text; QQC2.ToolTip.visible: hovered; QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
                         }
                     }
 
-                    // ── Inline activity editor (when editing active entry) ──
-                    ColumnLayout { visible: editingActive; spacing: 6
-                        RowLayout { spacing: 4
-                            QQC2.ComboBox { id: editProj; Layout.fillWidth: true; textRole: "name"; model: root.projects; currentIndex: page.editProjectIndex()
-                                onCurrentIndexChanged: page.refreshEditActivities() }
+                    ActiveEditView {
+                        id: activeEditView
+                        visible: page.editingActive
+                        Layout.fillWidth: true
+                        elapsedSeconds: root.elapsedSeconds
+                        projectPickerModel: root.projectPickerModel
+                        activityPickerModel: page.editActivityPickerModel
+                        busy: root.isBusy
+                        configured: root.isConfigured
+                        connectionOk: root.connectionState !== "error"
+                        supportsBillableEdit: root.providerCapabilities.billableEdit
+                        supportsTags: root.providerCapabilities.tags
+                        showCreateActions: root.providerCapabilities.createEntities
+                        tagLookupUrl: root.tagLookupUrl
+                        tagLookupToken: root.apiToken
+                        previousTimesheet: root.recentTimesheets.length > 0 ? root.recentTimesheets[0] : null
+                        overlapGuardEnabled: root.confirmStartBeforePreviousEnd
+                        onProjectChosen: function(projectId) {
+                            root.loadActivitiesForProject(projectId, function(model) { page.editActivityPickerModel = model })
                         }
-                        RowLayout { spacing: 4
-                            QQC2.ComboBox { id: editAct; Layout.fillWidth: true; textRole: "name"; model: page.editActModel; currentIndex: page.editActivityIndex() }
+                        onSaveRequested: function(projectId, activityId, beginText, billable, tags) {
+                            root.patchActiveEntry({ project: projectId, activity: activityId, begin: beginText, billable: billable, tags: tags })
+                            page.editingActive = false
                         }
-                        RowLayout { spacing: 4
-                            QQC2.TextField { id: editDateField; Layout.fillWidth: true; placeholderText: "YYYY-MM-DD"
-                                text: Qt.formatDate(new Date(), "yyyy-MM-dd"); color: root.clrText; placeholderTextColor: root.clrTextMuted
-                                Component.onCompleted: { page.editDate = text }
-                                background: Rectangle { radius: 6; color: root.bgInput; border.width: 1; border.color: root.clrBorder } }
-                            QQC2.TextField { id: editTimeField; Layout.fillWidth: true; placeholderText: "HH:mm"
-                                text: Qt.formatTime(new Date(), "HH:mm"); color: root.clrText; placeholderTextColor: root.clrTextMuted
-                                Component.onCompleted: { page.editTime = text }
-                                background: Rectangle { radius: 6; color: root.bgInput; border.width: 1; border.color: root.clrBorder } }
-                        }
-                        QQC2.TextField { id: editDescField; Layout.fillWidth: true; placeholderText: i18n("Description")
-                            text: root.currentDescription; color: root.clrText; placeholderTextColor: root.clrTextMuted
-                            onEditingFinished: page.editDesc = text
-                            background: Rectangle { radius: 6; color: root.bgInput; border.width: 1; border.color: root.clrBorder } }
-                        RowLayout { spacing: 6
-                            QQC2.Button { text: i18n("Save"); Layout.fillWidth: true; onClicked: page.saveEdit()
-                                contentItem: RowLayout { spacing: 4; anchors.centerIn: parent; QQC2.Label { text: parent.parent.text; color: "white" } }
-                                background: Rectangle { radius: 6; color: parent.down ? Qt.darker(root.clrAccent, 1.2) : root.clrAccent } }
-                            QQC2.Button { text: i18n("Cancel"); onClicked: editingActive = false }
+                        onCancelled: page.editingActive = false
+                        onCreateProjectRequested: { createEntityDialog.customers = root.customers; createEntityDialog.resetForMode("project"); createEntityDialog.open() }
+                        onCreateActivityRequested: {
+                            createEntityDialog.selectedProjectId = activeEditView.projectCombo.currentItem ? activeEditView.projectCombo.currentItem.value.id : null
+                            createEntityDialog.selectedProjectName = activeEditView.projectCombo.currentItem ? activeEditView.projectCombo.currentItem.value.name : ""
+                            createEntityDialog.resetForMode("activity"); createEntityDialog.open()
                         }
                     }
 
-                    // ── Work summary ──
-                    RowLayout { Layout.fillWidth: true; spacing: 10
-                        QQC2.Label { text: workSummaryText(); color: root.clrTextSec; font.pointSize: 11; Layout.fillWidth: true }
+                    DaySparkline {
+                        Layout.fillWidth: true; Layout.topMargin: Kirigami.Units.smallSpacing
+                        visible: root.isConfigured && !page.editingActive && root.showSparkline
+                        entries: root.todayTimesheets
+                        targetSeconds: root.todayTargetSeconds
+                        workDayBegin: root.workDayBegin; workDayEnd: root.workDayEnd
+                        latitude: root.latitude; longitude: root.longitude
+                        nowTick: root.sparklineNowTick
+                        showArcs: root.showSparklineArcs
+                        flyoutOpen: page.visible
+                    }
+
+                    RowLayout { Layout.fillWidth: true; spacing: Kirigami.Units.largeSpacing; visible: !page.editingActive
+                        QQC2.Label { text: page.workSummaryText(); color: root.clrTextSec; Layout.fillWidth: true }
                         QQC2.Label {
                             visible: root.hasWorkContract
-                            text: remainingText()
-                            color: isOverTime() ? root.clrWarning : root.clrTextSec
-                            font.pointSize: 11; font.bold: isOverTime()
+                            text: page.remainingText()
+                            color: page.isOverTime() ? root.clrWarning : root.clrTextSec
+                            font.bold: page.isOverTime()
                         }
                     }
-
-                }
-            }
-
-            // ══════ DAY SPARKLINE BAR ══════
-            Item {
-                visible: root.isConfigured
-                Layout.fillWidth: true; Layout.topMargin: 8; implicitHeight: sparkBar.height
-                property var sparkModel: (function() { var _f = root.sparklineNowTick; return root.todayTimesheets && root.todayTimesheets.length > 0 ? KimaiApi.buildDaySparklineModel(root.todayTimesheets, root.todayTargetSeconds, root.workDayBegin, root.workDayEnd, Date.now()) : null })()
-                Canvas { id: sparkBar; anchors.left: parent.left; anchors.right: parent.right; anchors.top: parent.top; height: 44
-                    property var sm: parent.sparkModel
-                    onPaint: {
-                        var ctx = getContext("2d"); ctx.reset()
-                        var w = width, h = height
-                        var barH = 14, barY = 6
-                        if (!sm || !sm.segments) {
-                            // Empty state: draw subtle background track
-                            ctx.fillStyle = Qt.rgba(1,1,1,0.06)
-                            ctx.beginPath(); ctx.roundedRect(0, barY, w, barH, 3, 3); ctx.fill()
-                            return
-                        }
-                        var vs = sm.viewStart, ve = sm.viewEnd, span = ve - vs
-                        if (span <= 0) return
-                        // Background track
-                        ctx.fillStyle = Qt.rgba(1,1,1,0.12); ctx.beginPath(); ctx.roundedRect(0, barY, w, barH, 3, 3); ctx.fill()
-                        // Business hours outline
-                        var bs = (sm.businessStart - vs) / span, be = (sm.businessEnd - vs) / span
-                        ctx.strokeStyle = Qt.rgba(1,1,1,0.28); ctx.lineWidth = 1
-                        ctx.strokeRect(Math.max(0, bs * w), barY, Math.min(w, (be - bs) * w), barH)
-                        // Work segments
-                        for (var i = 0; i < sm.segments.length; i++) {
-                            var seg = sm.segments[i]
-                            var x0 = Math.max(0, (seg.start - vs) / span * w)
-                            var x1 = Math.min(w, (seg.end - vs) / span * w)
-                            if (x1 <= x0) continue
-                            ctx.fillStyle = seg.overtime ? root.clrWarning : root.clrAccent
-                            ctx.beginPath(); ctx.roundedRect(x0, barY + 1, x1 - x0, barH - 2, 2, 2); ctx.fill()
-                        }
-                        // Now indicator
-                        var nowX = (sm.now - vs) / span * w
-                        if (nowX >= 0 && nowX <= w) {
-                            ctx.strokeStyle = root.clrText; ctx.lineWidth = 2
-                            ctx.beginPath(); ctx.moveTo(nowX, barY - 2); ctx.lineTo(nowX, barY + barH + 2); ctx.stroke()
-                            ctx.fillStyle = root.clrText; ctx.beginPath(); ctx.arc(nowX, barY - 2, 3, 0, 2 * Math.PI); ctx.fill()
-                        }
-                        // 3h labels
-                        ctx.fillStyle = root.clrTextMuted; ctx.font = "9px sans-serif"; ctx.textAlign = "center"
-                        var hourSpan = span * 24
-                        var step = hourSpan <= 12 ? 2 : (hourSpan <= 24 ? 3 : 6)
-                        var firstH = Math.floor(vs * 24 / step) * step
-                        for (var hr = firstH; hr <= 24; hr += step) {
-                            var frac = hr / 24
-                            if (frac < vs || frac > ve) continue
-                            var lx = (frac - vs) / span * w
-                            ctx.fillText((hr < 10 ? "0" : "") + hr, lx, barY + barH + 14)
-                        }
-                    }
-                    Connections { target: root; function onSparklineNowTickChanged() { sparkBar.requestPaint() } }
-                    Component.onCompleted: requestPaint()
                 }
             }
 
             // ══════ DESCRIPTION FIELD ══════
             Rectangle {
-                Layout.fillWidth: true; height: descField.implicitHeight + 16
-                radius: 8; color: root.bgInput; border.width: 1; border.color: descField.activeFocus ? root.clrAccent : root.clrBorder
-                visible: root.isTracking
+                Layout.fillWidth: true; height: descField.implicitHeight + Kirigami.Units.smallSpacing * 2
+                radius: Kirigami.Units.smallSpacing; color: root.bgInput; border.width: 1; border.color: descField.activeFocus ? root.clrAccent : root.clrBorder
+                visible: root.isTracking && !page.editingActive
                 QQC2.TextField {
-                    id: descField; anchors.fill: parent; anchors.margins: 6
+                    id: descField; anchors.fill: parent; anchors.margins: Kirigami.Units.smallSpacing
                     text: root.isTracking ? root.descriptionDraft : ""
-                    placeholderText: i18n("Beschreibung…")
-                    color: root.clrText; placeholderTextColor: root.clrTextMuted
+                    placeholderText: i18n("Description…")
                     background: Item {}
                     onEditingFinished: root.saveDescription(text)
                 }
-                Rectangle { visible: root.descriptionSavedFlash; anchors.centerIn: descField; width: 22; height: 22; radius: 11
-                    color: Qt.rgba(root.clrAccent.r, root.clrAccent.g, root.clrAccent.b, 0.18)
-                    border.width: 1; border.color: root.clrAccent
-                    QQC2.Label { anchors.centerIn: parent; text: "✓"; font.pointSize: 11; color: root.clrAccent; font.bold: true }
+                Kirigami.Icon {
+                    visible: root.descriptionSavedFlash; anchors.centerIn: descField
+                    width: Kirigami.Units.iconSizes.small; height: Kirigami.Units.iconSizes.small
+                    source: "dialog-ok-apply"; color: root.clrAccent
                 }
             }
 
-            // ══════ NOT TRACKING MESSAGE ══════
-            Rectangle {
-                visible: !root.isTracking
-                Layout.fillWidth: true; radius: 8
-                height: notTrackLabel.implicitHeight + 20; color: root.bgSurface
-                QQC2.Label {
-                    id: notTrackLabel; anchors.centerIn: parent
-                    text: !root.isConfigured ? i18n("Keine Aktivität. Verbinde Plasmai über das Menü mit Kimai.")
-                          : root.pinnedEntries.length > 0 ? i18n("Keine Aktivität. Tippe auf einen Favoriten, um zu starten.")
-                          : i18n("Keine Aktivität.")
-                    color: root.clrTextMuted; font.pointSize: 12
-                }
+            // ══════ NOT TRACKING PLACEHOLDER ══════
+            Kirigami.PlaceholderMessage {
+                Layout.fillWidth: true; Layout.topMargin: Kirigami.Units.smallSpacing
+                visible: root.isConfigured && !root.isTracking
+                icon.name: "chronometer"
+                text: root.pinnedEntries.length > 0 ? i18n("No activity. Tap a favorite to start.") : i18n("No activity.")
             }
 
-                        // ══════ CONTINUE BUTTON ══════
+            // ══════ CONTINUE BUTTON ══════
             QQC2.Button {
                 Layout.fillWidth: true
-                visible: !root.isTracking && root.isConfigured && root.lastRecent
+                visible: !root.isTracking && root.isConfigured && root.showContinue && (root.lastRecent || root.hasLastUsed)
                 enabled: !root.isBusy && root.connectionState !== "error"
-                contentItem: RowLayout { spacing: 6
-                    Canvas { Layout.preferredWidth: 14; Layout.preferredHeight: 12
-                        onPaint: { var ctx = getContext("2d"); ctx.reset(); ctx.fillStyle = root.clrText; ctx.beginPath(); ctx.moveTo(2, 1); ctx.lineTo(12, 6); ctx.lineTo(2, 11); ctx.closePath(); ctx.fill() }
-                    }
-                    QQC2.Label { text: i18n("Continue · %1 · %2", KimaiApi.displayProjectName(root.lastRecent, root.projects), KimaiApi.displayActivityName(root.lastRecent, root.allActivities, root.activitiesByProject)); color: root.clrText; elide: Text.ElideRight; maximumLineCount: 1; Layout.fillWidth: true }
-                }
-                background: Rectangle { radius: 8; color: parent.down ? Qt.darker(root.clrAccent, 1.2) : (parent.hovered ? Qt.lighter(root.clrAccent, 1.1) : root.clrAccent) }
-                onClicked: root.continueRecent(root.lastRecent)
+                icon.name: "media-playback-start"
+                text: root.lastRecent
+                      ? i18n("Continue · %1 · %2", KimaiApi.displayProjectName(root.lastRecent, root.projects), KimaiApi.displayActivityName(root.lastRecent, root.allActivities, root.activitiesByProject))
+                      : i18n("Start · %1 · %2", root.lastUsedProjectName, root.lastUsedActivityName)
+                onClicked: root.lastRecent ? root.continueRecent(root.lastRecent) : root.startLastUsed()
             }
 
             // ══════ FAVORITES ══════
-            QQC2.Label {
-                Layout.fillWidth: true; Layout.topMargin: 4
-                text: i18n("Favoriten"); font.bold: true; font.pointSize: 13; color: root.clrText
+            Kirigami.Heading {
+                Layout.fillWidth: true; Layout.topMargin: Kirigami.Units.smallSpacing
+                level: 4; text: i18n("Favorites")
                 visible: root.showFavorites && root.pinnedEntries.length > 0
             }
-            Repeater {
-                model: root.showFavorites ? root.pinnedEntries : []
-                delegate: QQC2.ItemDelegate {
-                    required property var modelData
-                    required property int index
-                    property string pinKey: String(modelData.projectId || "") + "|" + String(modelData.activityId || "")
-                    property bool isRunning: root.alreadyRunningHintKey === pinKey
-                    Layout.fillWidth: true; implicitWidth: 1; topPadding: 6; bottomPadding: 6
-                    contentItem: Item {
-                        implicitHeight: 36
-                        Row {
-                            anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; spacing: 8
-                            Rectangle { width: 6; height: 18; radius: 3; color: modelData.color || KimaiApi.DEFAULT_CUSTOMER_COLOR; border.width: 1; border.color: Qt.rgba(0,0,0,0.15); anchors.verticalCenter: parent.verticalCenter }
-                            Canvas { width: 18; height: 14; anchors.verticalCenter: parent.verticalCenter
-                                onPaint: { var ctx = getContext("2d"); ctx.reset(); ctx.fillStyle = root.clrAccent; ctx.beginPath(); ctx.moveTo(4, 1); ctx.lineTo(14, 7); ctx.lineTo(4, 13); ctx.closePath(); ctx.fill() }
-                            }
-                        }
-                        ColumnLayout { anchors.left: parent.left; anchors.leftMargin: 34; anchors.right: rightZone.left; anchors.rightMargin: 8; anchors.verticalCenter: parent.verticalCenter; spacing: 0
-                            QQC2.Label { text: modelData.projectName || ""; color: root.clrText; elide: Text.ElideRight; maximumLineCount: 1 }
-                            QQC2.Label { text: modelData.activityName || ""; font.pointSize: 10; color: root.clrTextSec; elide: Text.ElideRight; maximumLineCount: 1 }
-                        }
-                        Item { id: rightZone; anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter; width: isRunning ? 80 : 32; height: 32
-                            QQC2.Label { visible: isRunning; anchors.fill: parent; text: i18n("Already running.") + " " + KimaiApi.formatDurationShort(root.elapsedSeconds); color: root.clrAccent; font.pointSize: 10; font.bold: true; horizontalAlignment: Text.AlignRight; verticalAlignment: Text.AlignVCenter }
-                            QQC2.ToolButton { visible: !isRunning; anchors.fill: parent
-                                contentItem: QQC2.Label { text: "✕"; font.pointSize: 11; color: root.clrTextMuted; horizontalAlignment: Text.AlignHCenter }
-                                background: Rectangle { radius: 6; color: parent.hovered ? Qt.rgba(0.91, 0.30, 0.24, 0.12) : "transparent" }
-                                onClicked: root.togglePin(modelData.projectId || "", modelData.activityId || "") }
-                        }
+            GridLayout {
+                Layout.fillWidth: true
+                visible: root.showFavorites && root.pinnedEntries.length > 0
+                columns: Math.max(1, Math.floor(width / (Kirigami.Units.gridUnit * TouchUi.favoriteCellGu)))
+                columnSpacing: Kirigami.Units.smallSpacing; rowSpacing: Kirigami.Units.smallSpacing
+                Repeater {
+                    model: root.showFavorites ? root.pinnedEntries : []
+                    delegate: ActivityListRow {
+                        required property var modelData
+                        property string pinKey: String(modelData.projectId || "") + "|" + String(modelData.activityId || "")
+                        titleText: modelData.projectName || ""
+                        subtitleText: modelData.activityName || ""
+                        customerColor: modelData.color || KimaiApi.DEFAULT_CUSTOMER_COLOR
+                        showHistoryActions: true
+                        canPin: true; isPinned: true
+                        runningHintVisible: root.alreadyRunningHintKey === pinKey
+                        runningHintText: i18n("Already running.")
+                        runningHintCounterText: KimaiApi.formatDurationShort(root.elapsedSeconds)
+                        onRowActivated: if (root.isConfigured && !root.isBusy) root.requestRestartFromRecent({ project: modelData.projectId, activity: modelData.activityId })
+                        onPinRequested: root.togglePin(modelData.projectId || "", modelData.activityId || "")
                     }
-                    background: Rectangle { radius: 6; color: parent.hovered ? Qt.rgba(1,1,1,0.05) : "transparent" }
-                    onClicked: { if(root.isConfigured && !root.isBusy) root.requestRestartFromRecent({ project: modelData.projectId, activity: modelData.activityId }) }
                 }
             }
-
             QQC2.Label {
-                Layout.fillWidth: true; visible: root.showFavorites && root.pinnedEntries.length === 0
-                text: i18n("Tippe ☆ um einen Eintrag zu deinen Favoriten hinzuzufügen.")
-                color: root.clrTextMuted; font.pointSize: 11; wrapMode: Text.WordWrap
+                Layout.fillWidth: true; visible: root.isConfigured && root.showFavorites && root.pinnedEntries.length === 0
+                text: i18n("Pin an entry from Recent to add it to your favorites.")
+                color: root.clrTextMuted; wrapMode: Text.WordWrap
             }
 
             // ══════ RECENT ══════
-            QQC2.Label {
-                Layout.fillWidth: true; Layout.topMargin: 4
-                text: i18n("Zuletzt"); font.bold: true; font.pointSize: 13; color: root.clrText
+            Kirigami.Heading {
+                Layout.fillWidth: true; Layout.topMargin: Kirigami.Units.smallSpacing
+                level: 4; text: i18n("Recent")
                 visible: root.showRecent && root.recentTimesheets.length > 0
             }
             Repeater {
                 model: root.showRecent ? root.recentTimesheets : []
-                delegate: QQC2.ItemDelegate {
+                delegate: ActivityListRow {
                     required property var modelData
-                    required property int index
                     property string tsKey: root.switchHintKey(modelData)
-                    property bool isRunning: root.alreadyRunningHintKey === tsKey
-                    Layout.fillWidth: true; implicitWidth: 1; topPadding: 6; bottomPadding: 6
-                    contentItem: Item {
-                        implicitHeight: 36
-                        Row {
-                            anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; spacing: 8
-                            Rectangle { width: 6; height: 18; radius: 3; color: KimaiApi.barColorInfoFromTimesheet(modelData, root.customersById).color || KimaiApi.DEFAULT_CUSTOMER_COLOR; border.width: 1; border.color: Qt.rgba(0,0,0,0.15); anchors.verticalCenter: parent.verticalCenter }
-                            Canvas { width: 18; height: 14; anchors.verticalCenter: parent.verticalCenter
-                                onPaint: { var ctx = getContext("2d"); ctx.reset(); ctx.fillStyle = root.clrAccent; ctx.beginPath(); ctx.moveTo(4, 1); ctx.lineTo(14, 7); ctx.lineTo(4, 13); ctx.closePath(); ctx.fill() }
-                            }
-                        }
-                        ColumnLayout { anchors.left: parent.left; anchors.leftMargin: 34; anchors.right: rightZone2.left; anchors.rightMargin: 8; anchors.verticalCenter: parent.verticalCenter; spacing: 0
-                            QQC2.Label { text: KimaiApi.displayActivityName(modelData, root.allActivities, root.activitiesByProject); color: root.clrText; elide: Text.ElideRight; maximumLineCount: 1 }
-                            QQC2.Label {
-                                text: { var bits = [KimaiApi.displayProjectName(modelData, root.projects)]; var secs = modelData.duration || 0; if (secs > 0) bits.push(KimaiApi.formatDurationShort(secs)); bits.push(root.formatRelativeTime(modelData.end || modelData.begin)); return bits.join(" · ") }
-                                font.pointSize: 10; color: root.clrTextSec; elide: Text.ElideRight; maximumLineCount: 1 }
-                        }
-                        Item { id: rightZone2; anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter; width: isRunning ? 80 : 72; height: 32
-                            QQC2.Label { visible: isRunning; anchors.fill: parent; text: i18n("Already running.") + " " + KimaiApi.formatDurationShort(root.elapsedSeconds); color: root.clrAccent; font.pointSize: 10; font.bold: true; horizontalAlignment: Text.AlignRight; verticalAlignment: Text.AlignVCenter }
-                            QQC2.ToolButton { visible: !isRunning; anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; width: 32; height: 32
-                                contentItem: QQC2.Label { text: "☆"; font.pointSize: 14; color: root.clrTextSec; horizontalAlignment: Text.AlignHCenter }
-                                background: Rectangle { radius: 6; color: parent.hovered ? Qt.rgba(1,1,1,0.08) : "transparent" }
-                                onClicked: root.togglePin(modelData.project || "", modelData.activity || "") }
-                            QQC2.ToolButton { visible: !isRunning; anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter; width: 32; height: 32
-                                contentItem: QQC2.Label { text: "⋮"; font.pointSize: 16; color: root.clrTextSec; horizontalAlignment: Text.AlignHCenter }
-                                background: Rectangle { radius: 6; color: "transparent" }
-                                onClicked: {
-                                    recentContextMenu.index = index; recentContextMenu.ts = modelData
-                                    var btn = parent
-                                    var p = btn.mapToItem(page.contentItem, 0, btn.height + 4)
-                                    recentContextMenu.x = Math.min(p.x, page.width - recentContextMenu.width - 16)
-                                    recentContextMenu.y = Math.min(p.y, page.height - recentContextMenu.height - 16)
-                                    recentContextMenu.open()
-                                } }
-                        }
+                    readonly property var barColorInfo: KimaiApi.barColorInfoFromTimesheet(modelData, root.customersById)
+                    titleText: KimaiApi.displayActivityName(modelData, root.allActivities, root.activitiesByProject)
+                    subtitleText: {
+                        var bits = [KimaiApi.displayProjectName(modelData, root.projects)]
+                        var secs = modelData.duration || 0
+                        if (secs > 0) bits.push(KimaiApi.formatDurationShort(secs))
+                        bits.push(root.formatRelativeTime(modelData.end || modelData.begin))
+                        return bits.join(" · ")
                     }
-                    background: Rectangle { radius: 6; color: parent.hovered ? Qt.rgba(1,1,1,0.05) : "transparent" }
-                    onClicked: root.requestRestartFromRecent(modelData)
+                    customerColor: barColorInfo.color || KimaiApi.DEFAULT_CUSTOMER_COLOR
+                    colorCategory: barColorInfo.category || ""
+                    entityId: barColorInfo.id
+                    showHistoryActions: true
+                    canPin: true; isPinned: root.isPinned(modelData.project || "", modelData.activity || "")
+                    canEditStopped: root.providerCapabilities.editStopped
+                    canSplitEntry: root.providerCapabilities.editStopped
+                    canDeleteEntry: root.providerCapabilities.deleteEntry
+                    runningHintVisible: root.alreadyRunningHintKey === tsKey
+                    runningHintText: i18n("Already running.")
+                    runningHintCounterText: KimaiApi.formatDurationShort(root.elapsedSeconds)
+                    onRowActivated: root.requestRestartFromRecent(modelData)
+                    onPinRequested: root.togglePin(modelData.project || "", modelData.activity || "")
+                    onEditRequested: pageStack.push(manualPageComponent, { editTs: modelData })
+                    onDeleteRequested: { deleteDialog.target = modelData; deleteDialog.open() }
+                    onSplitRequested: { splitDialog.target = modelData; splitDialog.open() }
                 }
             }
 
-// ══════ BOTTOM SPACER ══════
-            Item { Layout.fillHeight: true; Layout.minimumHeight: 12 }
+            // ══════ NEW / SWITCH ACTIVITY ══════
+            QQC2.Button {
+                Layout.fillWidth: true; Layout.topMargin: Kirigami.Units.smallSpacing
+                visible: root.isConfigured && root.showNewActivity && !page.showNewActivityForm
+                text: root.isTracking ? i18n("Switch to another activity…") : i18n("Start something else…")
+                icon.name: "media-skip-forward"
+                onClicked: page.openNewActivityForm()
+            }
+            ColumnLayout {
+                Layout.fillWidth: true; spacing: Kirigami.Units.smallSpacing
+                visible: root.showNewActivity && page.showNewActivityForm
+
+                ProjectActivityPickers {
+                    id: newActivityPickers
+                    Layout.fillWidth: true
+                    projectPickerModel: root.projectPickerModel
+                    activityPickerModel: page.newActivityPickerModel
+                    showCreateActions: root.providerCapabilities.createEntities
+                    onProjectActivated: function(index) {
+                        var projectId = index >= 0 ? root.projectPickerModel[index].value.id : null
+                        root.loadActivitiesForProject(projectId, function(model) { page.newActivityPickerModel = model })
+                    }
+                    onCreateProjectRequested: { createEntityDialog.customers = root.customers; createEntityDialog.resetForMode("project"); createEntityDialog.open() }
+                    onCreateActivityRequested: {
+                        createEntityDialog.selectedProjectId = newActivityPickers.projectCombo.currentItem ? newActivityPickers.projectCombo.currentItem.value.id : null
+                        createEntityDialog.selectedProjectName = newActivityPickers.projectCombo.currentItem ? newActivityPickers.projectCombo.currentItem.value.name : ""
+                        createEntityDialog.resetForMode("activity"); createEntityDialog.open()
+                    }
+                }
+                QQC2.TextField {
+                    Layout.fillWidth: true
+                    placeholderText: i18n("Description (optional)")
+                    text: page.newActivityDescription
+                    onEditingFinished: page.newActivityDescription = text
+                }
+                RowLayout { Layout.fillWidth: true; spacing: Kirigami.Units.smallSpacing
+                    QQC2.Button {
+                        Layout.fillWidth: true
+                        text: root.isTracking ? i18n("Switch") : i18n("Start")
+                        icon.name: root.isTracking ? "media-skip-forward" : "media-playback-start"
+                        enabled: !root.isBusy && newActivityPickers.projectCombo.currentIndex >= 0 && newActivityPickers.activityCombo.currentIndex >= 0
+                        onClicked: {
+                            var proj = newActivityPickers.projectCombo.currentItem.value
+                            var act = newActivityPickers.activityCombo.currentItem.value
+                            root.switchToActivity(proj.id, act.id, proj.name, act.name || "", page.newActivityDescription)
+                            page.showNewActivityForm = false
+                        }
+                    }
+                    QQC2.Button { text: i18n("Cancel"); onClicked: page.showNewActivityForm = false }
+                }
+            }
+
+            // ══════ BOTTOM SPACER ══════
+            Item { Layout.fillHeight: true; Layout.minimumHeight: Kirigami.Units.largeSpacing }
         }
     } // Flickable
 
-    // ══════ CONTEXT MENUS ══════
-    QQC2.Menu {
-        id: recentContextMenu
-        property int index: -1
-        property var ts: null
-        QQC2.MenuItem { text: i18n("Edit"); onClicked: { if(recentContextMenu.ts) pageStack.push(manualPageComponent, { editTs: recentContextMenu.ts }) } }
-        QQC2.MenuItem { text: i18n("Delete"); onClicked: { if(recentContextMenu.ts) { deleteDialog.target = recentContextMenu.ts; deleteDialog.open() } } }
-    }
-
     // ══════ DIALOGS ══════
     QQC2.Dialog {
-        id: confirmDialog; title: i18n("Tracking beenden?"); modal: true
+        id: confirmDialog; title: i18n("Stop tracking?"); modal: true
         standardButtons: QQC2.Dialog.Ok | QQC2.Dialog.Cancel
-        width: Math.min(320, parent ? parent.width * 0.9 : 320)
-        contentItem: QQC2.Label { text: i18n("%1 · %2 beenden?", root.currentProject, root.currentActivity); wrapMode: Text.WordWrap; color: root.clrText }
+        width: Math.min(Kirigami.Units.gridUnit * 20, parent ? parent.width * 0.9 : 320)
+        anchors.centerIn: parent
+        contentItem: QQC2.Label { width: confirmDialog.availableWidth; text: i18n("Stop %1 · %2?", root.currentProject, root.currentActivity); wrapMode: Text.WordWrap }
         onAccepted: root.stopTracking()
-        background: Rectangle { radius: 12; color: root.bgDialog; border.width: 1; border.color: root.clrBorder }
     }
     QQC2.Dialog {
         id: deleteDialog; property var target: null
-        title: i18n("Eintrag löschen?"); modal: true
+        title: i18n("Delete entry?"); modal: true
         standardButtons: QQC2.Dialog.Ok | QQC2.Dialog.Cancel
-        width: Math.min(320, parent ? parent.width * 0.9 : 320)
-        contentItem: QQC2.Label { text: i18n("Diesen Eintrag wirklich löschen?"); wrapMode: Text.WordWrap; color: root.clrText }
-        onAccepted: { if(target) root.deleteEntry(target); target = null }
-        background: Rectangle { radius: 12; color: root.bgDialog; border.width: 1; border.color: root.clrBorder }
+        width: Math.min(Kirigami.Units.gridUnit * 20, parent ? parent.width * 0.9 : 320)
+        anchors.centerIn: parent
+        contentItem: QQC2.Label { width: deleteDialog.availableWidth; text: i18n("Really delete this entry?"); wrapMode: Text.WordWrap }
+        onAccepted: { if (target) root.deleteEntry(target); target = null }
     }
     QQC2.Dialog {
         id: switchDialog; modal: true
+        title: i18n("Switch activity")
         standardButtons: QQC2.Dialog.Ok | QQC2.Dialog.Cancel
-        width: Math.min(320, parent ? parent.width * 0.9 : 320)
+        width: Math.min(Kirigami.Units.gridUnit * 20, parent ? parent.width * 0.9 : 320)
+        anchors.centerIn: parent
         contentItem: QQC2.Label {
-            text: root.pendingSwitchTimesheet ? i18n("Zu %1 · %2 wechseln?", KimaiApi.displayProjectName(root.pendingSwitchTimesheet, root.projects), KimaiApi.displayActivityName(root.pendingSwitchTimesheet, root.allActivities, root.activitiesByProject)) : ""
-            wrapMode: Text.WordWrap; color: root.clrText
+            width: switchDialog.availableWidth
+            text: root.pendingSwitchTimesheet ? i18n("Switch to %1 · %2?", KimaiApi.displayProjectName(root.pendingSwitchTimesheet, root.projects), KimaiApi.displayActivityName(root.pendingSwitchTimesheet, root.allActivities, root.activitiesByProject)) : ""
+            wrapMode: Text.WordWrap
         }
         onAccepted: {
             var ts = root.pendingSwitchTimesheet; root.pendingSwitchTimesheet = null
             if (ts) root.switchToActivity(KimaiApi.projectId(ts), KimaiApi.activityId(ts), KimaiApi.displayProjectName(ts, root.projects), KimaiApi.displayActivityName(ts, root.allActivities, root.activitiesByProject), ts.description || "")
         }
         onRejected: root.pendingSwitchTimesheet = null
-        background: Rectangle { radius: 12; color: root.bgDialog; border.width: 1; border.color: root.clrBorder }
+    }
+    QQC2.Dialog {
+        id: splitDialog; property var target: null
+        title: i18n("Split entry"); modal: true
+        standardButtons: QQC2.Dialog.Ok | QQC2.Dialog.Cancel
+        width: Math.min(Kirigami.Units.gridUnit * 20, parent ? parent.width * 0.9 : 320)
+        anchors.centerIn: parent
+        onAboutToShow: {
+            if (!target) return
+            var begin = new Date(target.begin); var end = target.end ? new Date(target.end) : new Date()
+            var mid = new Date(begin.getTime() + (end.getTime() - begin.getTime()) / 2)
+            splitDate.setDate(mid); splitTime.setTime(mid.getHours(), mid.getMinutes())
+        }
+        contentItem: ColumnLayout { spacing: Kirigami.Units.smallSpacing
+            QQC2.Label { text: i18n("Split at:"); Layout.fillWidth: true }
+            RowLayout { Layout.fillWidth: true; spacing: Kirigami.Units.smallSpacing
+                DateField { id: splitDate; Layout.fillWidth: true }
+                TimeField { id: splitTime; Layout.fillWidth: true }
+            }
+        }
+        onAccepted: {
+            if (!target) return
+            var d = new Date(splitDate.selectedDate)
+            d.setHours(splitTime.hours, splitTime.minutes, 0, 0)
+            root.splitEntry(target, d)
+            target = null
+        }
+    }
+    CreateEntityDialog {
+        id: createEntityDialog
+        onSubmitted: function(mode, payload) {
+            if (mode === "customer") root.createCustomer(payload)
+            else if (mode === "project") root.createProject(payload)
+            else if (mode === "activity") root.createActivity(payload)
+        }
+    }
+
+    QQC2.Dialog {
+        id: idleDialog
+        title: i18n("You were idle")
+        modal: true
+        standardButtons: QQC2.Dialog.NoButton
+        width: Math.min(Kirigami.Units.gridUnit * 20, parent ? parent.width * 0.9 : 320)
+        anchors.centerIn: parent
+        closePolicy: QQC2.Popup.NoAutoClose
+        visible: root.idleDialogPending
+
+        contentItem: ColumnLayout { spacing: Kirigami.Units.smallSpacing
+            QQC2.Label {
+                Layout.fillWidth: true; wrapMode: Text.WordWrap
+                text: i18n("You were idle for %1. Keep this time, discard it, or discard and continue?", KimaiApi.formatDurationShort(Math.round(root.pendingIdleMs / 1000)))
+            }
+            QQC2.Button { Layout.fillWidth: true; text: i18n("Keep time"); onClicked: root.keepIdleTime() }
+            QQC2.Button { Layout.fillWidth: true; text: i18n("Discard idle"); onClicked: root.discardIdleTime(false) }
+            QQC2.Button { Layout.fillWidth: true; text: i18n("Discard and continue"); onClicked: root.discardIdleTime(true) }
+        }
     }
 }
