@@ -167,6 +167,12 @@ ColumnLayout {
                 height: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                 checkable: true
                 autoExclusive: true
+                background: Rectangle {
+                    radius: Kirigami.Units.smallSpacing
+                    color: parent.checked ? Qt.rgba(Kirigami.Theme.highlightColor.r, Kirigami.Theme.highlightColor.g, Kirigami.Theme.highlightColor.b, 0.18) : "transparent"
+                    border.width: parent.checked ? 1 : 0
+                    border.color: Kirigami.Theme.highlightColor
+                }
                 checked: root.billableFilter === StatsData.BILLABLE_ALL
                 text: root.filterAllLabel
                 onClicked: root.billableFilter = StatsData.BILLABLE_ALL
@@ -177,6 +183,12 @@ ColumnLayout {
                 height: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                 checkable: true
                 autoExclusive: true
+                background: Rectangle {
+                    radius: Kirigami.Units.smallSpacing
+                    color: parent.checked ? Qt.rgba(Kirigami.Theme.highlightColor.r, Kirigami.Theme.highlightColor.g, Kirigami.Theme.highlightColor.b, 0.18) : "transparent"
+                    border.width: parent.checked ? 1 : 0
+                    border.color: Kirigami.Theme.highlightColor
+                }
                 checked: root.billableFilter === StatsData.BILLABLE_ONLY
                 text: root.filterBillableLabel
                 onClicked: root.billableFilter = StatsData.BILLABLE_ONLY
@@ -187,6 +199,12 @@ ColumnLayout {
                 height: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                 checkable: true
                 autoExclusive: true
+                background: Rectangle {
+                    radius: Kirigami.Units.smallSpacing
+                    color: parent.checked ? Qt.rgba(Kirigami.Theme.highlightColor.r, Kirigami.Theme.highlightColor.g, Kirigami.Theme.highlightColor.b, 0.18) : "transparent"
+                    border.width: parent.checked ? 1 : 0
+                    border.color: Kirigami.Theme.highlightColor
+                }
                 checked: root.billableFilter === StatsData.BILLABLE_NONE
                 text: root.filterNonBillableLabel
                 onClicked: root.billableFilter = StatsData.BILLABLE_NONE
@@ -247,7 +265,7 @@ ColumnLayout {
             icon.name: "go-previous"
             onClicked: root.shiftDay(-1)
             QQC2.ToolTip.text: i18n("Previous day")
-            QQC2.ToolTip.visible: hovered && !TouchUi.active
+            QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile
         }
 
         QQC2.Label {
@@ -272,7 +290,7 @@ ColumnLayout {
             enabled: root.dayOffset < 0
             onClicked: root.shiftDay(1)
             QQC2.ToolTip.text: i18n("Next day")
-            QQC2.ToolTip.visible: hovered && !TouchUi.active
+            QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile
         }
 
     }
@@ -304,7 +322,7 @@ ColumnLayout {
             icon.name: "go-previous"
             onClicked: root.shiftWeek(-1)
             QQC2.ToolTip.text: i18n("Previous week")
-            QQC2.ToolTip.visible: hovered && !TouchUi.active
+            QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile
         }
 
         QQC2.Label {
@@ -326,7 +344,7 @@ ColumnLayout {
             enabled: root.weekOffset < 0
             onClicked: root.shiftWeek(1)
             QQC2.ToolTip.text: i18n("Next week")
-            QQC2.ToolTip.visible: hovered && !TouchUi.active
+            QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile
         }
 
     }
@@ -387,7 +405,7 @@ ColumnLayout {
             icon.name: "go-previous"
             onClicked: root.shiftHourWeek(-1)
             QQC2.ToolTip.text: i18n("Previous week")
-            QQC2.ToolTip.visible: hovered
+            QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile
         }
 
         QQC2.Label {
@@ -407,7 +425,7 @@ ColumnLayout {
             enabled: root.hourWeekOffset < 0
             onClicked: root.shiftHourWeek(1)
             QQC2.ToolTip.text: i18n("Next week")
-            QQC2.ToolTip.visible: hovered
+            QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile
         }
 
     }
@@ -515,7 +533,7 @@ ColumnLayout {
                     icon.name: "go-previous"
                     onClicked: root.shiftPieWeek(-1)
                     QQC2.ToolTip.text: i18n("Previous week")
-                    QQC2.ToolTip.visible: hovered && !TouchUi.active
+                    QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile
                 }
 
                 QQC2.Label {
@@ -537,7 +555,7 @@ ColumnLayout {
                     enabled: root.pieWeekOffset < 0
                     onClicked: root.shiftPieWeek(1)
                     QQC2.ToolTip.text: i18n("Next week")
-                    QQC2.ToolTip.visible: hovered && !TouchUi.active
+                    QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile
                 }
             }
 

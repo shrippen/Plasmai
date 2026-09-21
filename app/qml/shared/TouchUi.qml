@@ -61,9 +61,6 @@ QtObject {
 
     readonly property int favoriteCellGu: active ? 8 : 7
 
-    readonly property real calendarCellGu: active ? 2.2 : 1.6
-    readonly property int tumblerWidthGu: active ? 4 : 3
-    readonly property int tumblerHeightGu: active ? 8 : 6
 
     readonly property int chartHitSlop: active
                                         ? Math.round(Kirigami.Units.smallSpacing * 2)

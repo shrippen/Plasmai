@@ -9,7 +9,7 @@ import "."
  * Overflow create dialog for customer / project / activity.
  * One form, mode switches fields; pickers stay the normal path.
  */
-QQC2.Dialog {
+Kirigami.Dialog {
     id: root
 
     property string mode: "project" // customer | project | activity
@@ -33,8 +33,7 @@ QQC2.Dialog {
 
     signal submitted(string mode, var payload)
 
-    modal: true
-    standardButtons: QQC2.Dialog.Ok | QQC2.Dialog.Cancel
+    standardButtons: Kirigami.Dialog.Ok | Kirigami.Dialog.Cancel
     padding: Kirigami.Units.largeSpacing
     title: {
         if (mode === "customer") {
@@ -54,7 +53,7 @@ QQC2.Dialog {
     }
 
     function refreshOk() {
-        var btn = standardButton(QQC2.Dialog.Ok)
+        var btn = standardButton(Kirigami.Dialog.Ok)
         if (!btn) {
             return
         }
@@ -72,7 +71,7 @@ QQC2.Dialog {
         Qt.callLater(refreshOk)
     }
 
-    contentItem: ColumnLayout {
+    ColumnLayout {
         spacing: Kirigami.Units.mediumSpacing
 
         QQC2.Label {

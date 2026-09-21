@@ -6,8 +6,7 @@ import "shared"
 
 Kirigami.Page {
     id: page
-    title: ""
-    background: Rectangle { color: root.bgWindow }
+    title: i18n("Color maintenance")
 
     // Groups come from root's last async color-worker result (platform/colorWorker.js)
     // rather than being recomputed here — that computation is O(n²)-ish over the
@@ -17,26 +16,24 @@ Kirigami.Page {
     readonly property var projectGroups: page.supported ? root.projectColorGroups : []
     readonly property var activityGroups: page.supported ? root.activityColorGroups : []
 
-    Flickable {
+    QQC2.ScrollView {
+        id: pageScroll
         anchors.fill: parent
-        contentHeight: col.implicitHeight + Kirigami.Units.largeSpacing * 2
-        clip: true
-        flickableDirection: Flickable.VerticalFlick
+        contentWidth: availableWidth
+        QQC2.ScrollBar.horizontal.policy: QQC2.ScrollBar.AlwaysOff
 
         ColumnLayout {
             id: col
-            width: parent.width
-            anchors.margins: Kirigami.Units.largeSpacing
+            width: pageScroll.availableWidth
             spacing: Kirigami.Units.smallSpacing
 
             RowLayout { Layout.fillWidth: true
-                Kirigami.Heading { level: 1; text: i18n("Color maintenance"); Layout.fillWidth: true }
                 QQC2.ToolButton {
                     icon.name: "view-refresh"
                     text: i18n("Reload")
                     display: QQC2.AbstractButton.IconOnly
                     onClicked: { root.refreshAll(); root.rebuildColorMaps(true) }
-                    QQC2.ToolTip.text: text; QQC2.ToolTip.visible: hovered
+                    QQC2.ToolTip.text: text; QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile
                 }
             }
 
@@ -85,7 +82,7 @@ Kirigami.Page {
                                     QQC2.Label { text: modelData.name; elide: Text.ElideRight; Layout.fillWidth: true; Layout.preferredWidth: 0; Layout.minimumWidth: 0 }
                                     QQC2.Label {
                                         text: modelData.keeper ? i18n("kept") : i18n("shifted")
-                                        color: modelData.keeper ? root.clrTextMuted : root.clrWarning
+                                        color: modelData.keeper ? Kirigami.Theme.disabledTextColor : Kirigami.Theme.neutralTextColor
                                         font.pointSize: Kirigami.Theme.smallFont.pointSize
                                     }
                                 }
@@ -99,7 +96,7 @@ Kirigami.Page {
                 Layout.fillWidth: true; Layout.topMargin: Kirigami.Units.smallSpacing
                 visible: page.supported && page.customerGroups.length === 0 && page.projectGroups.length === 0 && page.activityGroups.length === 0
                 text: i18n("No color clashes detected.")
-                color: root.clrTextMuted
+                color: Kirigami.Theme.disabledTextColor
             }
 
             Item { Layout.fillHeight: true; Layout.minimumHeight: Kirigami.Units.largeSpacing }

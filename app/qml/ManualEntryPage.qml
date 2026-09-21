@@ -8,8 +8,7 @@ import "shared"
 
 Kirigami.Page {
     id: page
-    title: ""
-    background: Rectangle { color: root.bgWindow }
+    title: page.editMode ? i18n("Edit entry") : i18n("Add entry")
 
     property bool busy: false
     property var editTs: null
@@ -39,51 +38,48 @@ Kirigami.Page {
     Connections {
         target: Qt.inputMethod
         function onKeyboardRectangleChanged() {
-            Qt.callLater(function() { page.ensureFocusedVisible() })
+            keyboardScrollTimer.restart()
         }
+    }
+
+    // Wait until the window has resized for the keyboard before scrolling the field into view.
+    Timer {
+        id: keyboardScrollTimer
+        interval: 250
+        onTriggered: page.ensureFocusedVisible()
     }
 
     function ensureFocusedVisible() {
         var fi = root.activeFocusItem
-        if (!fi || !flickable) return
-        var kb = Qt.inputMethod.keyboardRectangle
-        var kbHeight = kb ? kb.height : 0
-        if (kbHeight <= 0) return
-        var pos = flickable.mapFromItem(fi, 0, 0)
-        var itemBottom = pos.y + fi.height + 12
-        var visibleBottom = flickable.height - kbHeight
-        if (itemBottom > visibleBottom) {
-            flickable.contentY += (itemBottom - visibleBottom)
-        } else if (pos.y < flickable.contentY) {
-            flickable.contentY = pos.y
-        }
+        var flick = pageScroll.contentItem
+        if (!fi || !flick || Qt.inputMethod.keyboardRectangle.height <= 0) return
+        var pos = flick.mapFromItem(fi, 0, 0)
+        var maxY = Math.max(0, flick.contentHeight - flick.height)
+        // pos is relative to the viewport, not to the scrolled content. The window already resizes
+        // for the keyboard, so put the field at the top: its suggestion popup gets the whole height below.
+        flick.contentY = Math.max(0, Math.min(maxY, flick.contentY + pos.y - Kirigami.Units.largeSpacing))
     }
 
-    Flickable {
-        id: flickable
+    QQC2.ScrollView {
+        id: pageScroll
         anchors.fill: parent
-        contentHeight: formCol.implicitHeight + Kirigami.Units.largeSpacing * 2
-        clip: true
-        flickableDirection: Flickable.VerticalFlick
-        boundsBehavior: Flickable.StopAtBounds
+        contentWidth: availableWidth
+        QQC2.ScrollBar.horizontal.policy: QQC2.ScrollBar.AlwaysOff
 
         ColumnLayout {
             id: formCol
-            width: parent.width
-            anchors.margins: Kirigami.Units.largeSpacing
+            width: pageScroll.availableWidth
             spacing: Kirigami.Units.smallSpacing
-
-            Kirigami.Heading { level: 1; text: page.editMode ? i18n("Edit entry") : i18n("Add entry") }
 
             RowLayout { Layout.fillWidth: true; spacing: Kirigami.Units.smallSpacing
                 Kirigami.Icon {
                     source: !root.isConfigured ? "network-disconnect" : root.connectionState === "error" ? "network-disconnect" : "network-connect"
-                    color: !root.isConfigured ? root.clrTextMuted : root.connectionState === "error" ? root.clrDanger : root.clrPositive
+                    color: !root.isConfigured ? Kirigami.Theme.disabledTextColor : root.connectionState === "error" ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.positiveTextColor
                     Layout.preferredWidth: Kirigami.Units.iconSizes.small; Layout.preferredHeight: Kirigami.Units.iconSizes.small
                 }
                 QQC2.Label {
                     text: root.activeProfile ? (root.activeProfile.url || root.activeProfile.provider || "") : ""
-                    color: root.clrTextSec; elide: Text.ElideRight; Layout.fillWidth: true
+                    color: Qt.alpha(Kirigami.Theme.textColor, 0.7); elide: Text.ElideRight; Layout.fillWidth: true
                 }
             }
 
@@ -115,8 +111,11 @@ Kirigami.Page {
                     createEntityDialog.resetForMode("activity"); createEntityDialog.open()
                 }
             }
+
+            // Room to scroll the focused field up while the keyboard is visible (suggestion popups need it)
+            Item { Layout.fillWidth: true; Layout.preferredHeight: Qt.inputMethod.visible ? Kirigami.Units.gridUnit * 14 : 0 }
         }
-    } // Flickable
+    }
 
     CreateEntityDialog {
         id: createEntityDialog

@@ -7,8 +7,7 @@ import "../contents/code/geocode.js" as Geocode
 
 Kirigami.Page {
     id: page
-    title: ""
-    background: Rectangle { color: root.bgWindow }
+    title: i18n("Settings")
 
     property string locationQuery: ""
     property var locationResults: []
@@ -32,19 +31,16 @@ Kirigami.Page {
         }
     }
 
-    Flickable {
+    QQC2.ScrollView {
+        id: pageScroll
         anchors.fill: parent
-        contentHeight: form.implicitHeight + Kirigami.Units.largeSpacing * 2
-        clip: true
-        flickableDirection: Flickable.VerticalFlick
+        contentWidth: availableWidth
+        QQC2.ScrollBar.horizontal.policy: QQC2.ScrollBar.AlwaysOff
 
         ColumnLayout {
             id: form
-            width: parent.width
-            anchors.margins: Kirigami.Units.largeSpacing
+            width: pageScroll.availableWidth
             spacing: Kirigami.Units.smallSpacing
-
-            Kirigami.Heading { level: 1; text: i18n("Settings") }
 
             Kirigami.FormLayout {
                 Layout.fillWidth: true
@@ -145,7 +141,7 @@ Kirigami.Page {
                 QQC2.Label {
                     Kirigami.FormData.label: i18n("Current:")
                     text: root.locationName.length > 0 ? root.locationName : i18n("%1, %2", root.latitude.toFixed(2), root.longitude.toFixed(2))
-                    color: root.clrTextSec
+                    color: Qt.alpha(Kirigami.Theme.textColor, 0.7)
                 }
 
                 QQC2.TextField {
@@ -249,7 +245,7 @@ Kirigami.Page {
                 Layout.fillWidth: true; Layout.topMargin: Kirigami.Units.largeSpacing
                 text: i18n("Settings sync with the Plasma widget via shared.json on the same machine.")
                 wrapMode: Text.WordWrap
-                color: root.clrTextMuted
+                color: Kirigami.Theme.disabledTextColor
             }
 
             Item { Layout.fillHeight: true; Layout.minimumHeight: Kirigami.Units.largeSpacing }

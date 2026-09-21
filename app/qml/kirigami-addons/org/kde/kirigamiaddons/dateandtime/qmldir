@@ -1,0 +1,4 @@
+module org.kde.kirigamiaddons.dateandtime
+DatePopup 1.0 DatePopup.qml
+TimePopup 1.0 TimePopup.qml
+TimePicker 1.0 TimePicker.qml

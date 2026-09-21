@@ -33,6 +33,9 @@ endif()
 qt_add_executable(plasmai-app
     main.cpp
     plasmai-app.qrc
+    addons/yearmodel.cpp
+    addons/monthmodel.cpp
+    addons/infinitecalendarviewmodel.cpp
 )
 
 if(ANDROID)

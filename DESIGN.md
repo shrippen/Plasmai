@@ -9,7 +9,7 @@ Stack: KDE Plasma 6, QML, JavaScript (`.pragma library`). No compiled binaries
 (KDE Store QML applet requirement).
 
 Visual foundation:
-[shrippen/DesignDefault](https://github.com/shrippen/DesignDefault) — shared
+[shrippen/shrippen.github.io](https://github.com/shrippen/shrippen.github.io) — shared
 Gruvbox-warm palette, Rajdhani headings, icon language, and landing-page
 template. The widget itself uses `Kirigami.Theme.*` for all interactive chrome;
 only brand elements (icon mark fill `#E8DCC4` with gold `#FABD2F` shards, version badges, landing page)

@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as QQC2
+import QtQuick.Controls.Material
 import org.kde.kirigami as Kirigami
 import "../../contents/code/kimaiApi.js" as KimaiApi
 import "../../contents/code/dateTimeFormat.js" as DTF
@@ -336,6 +337,9 @@ ColumnLayout {
         spacing: Kirigami.Units.smallSpacing
 
         QQC2.Button {
+            Material.theme: Material.Dark
+            Material.background: Qt.lighter(Kirigami.Theme.backgroundColor, 1.7)
+            Material.foreground: Kirigami.Theme.textColor
             Layout.fillWidth: true
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             enabled: root.configured && !root.busy && root.connectionOk
@@ -353,6 +357,9 @@ ColumnLayout {
         }
 
         QQC2.Button {
+            Material.theme: Material.Dark
+            Material.background: Qt.lighter(Kirigami.Theme.backgroundColor, 1.7)
+            Material.foreground: Kirigami.Theme.textColor
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             text: i18n("Cancel")
             onClicked: root.cancelled()

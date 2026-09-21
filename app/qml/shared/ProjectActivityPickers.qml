@@ -31,7 +31,7 @@ ColumnLayout {
     signal createProjectRequested()
     signal createActivityRequested()
 
-    spacing: 0
+    spacing: TouchUi.active ? Kirigami.Units.largeSpacing : 0
 
     function closePickers() {
         projectCombo.closePopup()
@@ -68,7 +68,7 @@ ColumnLayout {
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             onClicked: root.createProjectRequested()
             QQC2.ToolTip.text: text
-            QQC2.ToolTip.visible: hovered
+            QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile
             QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
         }
     }
@@ -102,7 +102,7 @@ ColumnLayout {
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             onClicked: root.createActivityRequested()
             QQC2.ToolTip.text: text
-            QQC2.ToolTip.visible: hovered
+            QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile
             QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
         }
     }

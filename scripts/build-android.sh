@@ -86,10 +86,10 @@ fi
 # ── 5. Copy APK ──
 APK=$(find "$APP_DIR/build-android/android-build/build/outputs/apk" -name "*.apk" 2>/dev/null | head -1)
 if [ -n "$APK" ]; then
-    mkdir -p "$APP_DIR/dist"
-    cp "$APK" "$APP_DIR/dist/plasmai-app.apk"
-    info "APK ready: app/dist/plasmai-app.apk"
-    info "Install: adb install $APP_DIR/dist/plasmai-app.apk"
+    mkdir -p "$REPO_DIR/dist/android"
+    cp "$APK" "$REPO_DIR/dist/android/plasmai-app.apk"
+    info "APK ready: dist/android/plasmai-app.apk"
+    info "Install: adb install $REPO_DIR/dist/android/plasmai-app.apk"
 else
     error "APK not found in build output"
 fi

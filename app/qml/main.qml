@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls as QQC2
+import QtQuick.Controls.Material
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import "platform/appBackend.js" as AppBackend
@@ -15,27 +16,8 @@ import "shared"
 
 Kirigami.ApplicationWindow {
     id: root
-
-    // ── Theme colors, mirroring contents/ui/main.qml: Kirigami.Theme roles
-    // so the app follows the system light/dark palette like the Plasmoid,
-    // instead of a permanently-dark hardcoded palette. ──
-    readonly property color bgWindow:      Kirigami.Theme.backgroundColor
-    readonly property color bgSurface:     Kirigami.Theme.alternateBackgroundColor
-    readonly property color bgCard:        Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.05)
-    readonly property color bgCardTracking: Qt.rgba(Kirigami.Theme.positiveTextColor.r, Kirigami.Theme.positiveTextColor.g, Kirigami.Theme.positiveTextColor.b, 0.08)
-    readonly property color bgInput:       Kirigami.Theme.backgroundColor
-    readonly property color bgDrawer:      Kirigami.Theme.backgroundColor
-    readonly property color bgDialog:      Kirigami.Theme.backgroundColor
-    readonly property color clrBorder:     Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.14)
-    readonly property color clrBorderTracking: Qt.rgba(Kirigami.Theme.positiveTextColor.r, Kirigami.Theme.positiveTextColor.g, Kirigami.Theme.positiveTextColor.b, 0.35)
-    readonly property color clrSeparator:  Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.16)
-    readonly property color clrText:       Kirigami.Theme.textColor
-    readonly property color clrTextSec:    Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.7)
-    readonly property color clrTextMuted:  Kirigami.Theme.disabledTextColor
-    readonly property color clrAccent:     Kirigami.Theme.positiveTextColor
-    readonly property color clrPositive:   Kirigami.Theme.positiveTextColor
-    readonly property color clrWarning:    Kirigami.Theme.neutralTextColor
-    readonly property color clrDanger:     Kirigami.Theme.negativeTextColor
+    signal switchConfirmRequested()
+    Material.theme: Material.Dark
 
     // ── Provider capabilities (tags, billable, statistics, color distinction, …) ──
     readonly property var providerCapabilities: TimeTracker.providerCapabilities(providerId)
@@ -195,7 +177,6 @@ Kirigami.ApplicationWindow {
 
     title: i18n("Plasmai")
     width: 420; height: 720; visible: true
-    color: bgWindow
 
     property var profiles: []; property var activeProfile: null
     readonly property string providerId: activeProfile && activeProfile.provider ? activeProfile.provider : "kimai"
@@ -218,6 +199,9 @@ Kirigami.ApplicationWindow {
     property var activitiesByProject: ({})
 
     property string pinnedActivities: ""; property var pinnedEntries: []
+    onProjectsChanged: refreshPinnedEntries()
+    onAllActivitiesChanged: refreshPinnedEntries()
+    onActivitiesByProjectChanged: refreshPinnedEntries()
 
     property int refreshInterval: 30; property int recentCount: 10
     property bool confirmBeforeStop: false; property bool showWorkSummary: true
@@ -386,7 +370,10 @@ Kirigami.ApplicationWindow {
             else { connectionState = "error"; errorMessage = result.error ? (result.error.statusText || "") : "" }
         })
         tracker.fetchRecentTimesheets(url, apiToken, recentCount, function(result) {
-            if (result.ok) recentTimesheets = KimaiApi.hydrateTimesheets(KimaiApi.deduplicateRecent(result.data || []), projects, activityCatalog(), activitiesByProject)
+            if (!result.ok) return
+            // Only replace the model when it actually changed: a new array resets the list delegates and closes open row menus.
+            var fresh = KimaiApi.hydrateTimesheets(KimaiApi.deduplicateRecent(result.data || []), projects, activityCatalog(), activitiesByProject)
+            if (JSON.stringify(fresh) !== JSON.stringify(recentTimesheets)) recentTimesheets = fresh
         })
         tracker.loadProjects(url, apiToken, function(result) { if (result.ok) { projects = result.data || []; root.rebuildColorMaps() } })
         tracker.loadCustomers(url, apiToken, function(result) {
@@ -422,13 +409,20 @@ Kirigami.ApplicationWindow {
         var pinStr = pinnedActivities
         if (!pinStr || pinStr.length === 0) { pinnedEntries = []; return }
         var pinIds = pinStr.split(",").map(function(s) { return s.trim() }).filter(function(s) { return s.length > 0 })
-        pinnedEntries = []
+        var entries = []
         for (var i = 0; i < pinIds.length; i++) {
             var parts = pinIds[i].split(":"); var pid = parts[0] || ""; var aid = parts.length > 1 ? parts[1] : ""
             var proj = null; var act = null
             for (var p = 0; p < projects.length; p++) { if (String(projects[p].id) === pid || String(projects[p].name) === pid) { proj = projects[p]; break } }
             if (proj && aid) { for (var a = 0; a < allActivities.length; a++) { if (String(allActivities[a].id) === aid) { act = allActivities[a]; break } } }
-            pinnedEntries.push({ projectId: pid, projectName: proj ? proj.name : pid, activityId: aid, activityName: act ? act.name : aid, color: proj && proj.color ? proj.color : KimaiApi.DEFAULT_CUSTOMER_COLOR })
+            if (!act && aid) { var byProj = activitiesByProject[pid] || []; for (var b = 0; b < byProj.length; b++) { if (String(byProj[b].id) === aid) { act = byProj[b]; break } } }
+            entries.push({ projectId: pid, projectName: proj ? proj.name : pid, activityId: aid, activityName: act ? act.name : aid, color: proj && proj.color ? proj.color : KimaiApi.DEFAULT_CUSTOMER_COLOR })
+        }
+        if (JSON.stringify(entries) !== JSON.stringify(pinnedEntries)) pinnedEntries = entries
+        for (var k = 0; k < entries.length; k++) {
+            var ePid = String(entries[k].projectId)
+            if (entries[k].activityId && entries[k].activityName === entries[k].activityId && !activitiesByProject[ePid] && projects.length > 0)
+                loadActivitiesForProject(ePid, function() {})
         }
     }
 
@@ -442,7 +436,10 @@ Kirigami.ApplicationWindow {
         refreshPinnedEntries()
     }
 
-    function isPinned(projectId, activityId) { return pinnedActivities.indexOf(projectId + ":" + activityId) >= 0 }
+    function isPinned(projectId, activityId) {
+        var key = projectId + ":" + activityId
+        return pinnedActivities.split(",").some(function(s) { return s.trim() === key })
+    }
 
     function applyActiveTimesheet(ts) {
         if (!ts) { isTracking = false; currentTimesheetId = null; currentProject = ""; currentActivity = ""
@@ -572,6 +569,12 @@ Kirigami.ApplicationWindow {
         return String(pid) + "|" + String(aid) + "|" + String(idPart)
     }
 
+    function startPinned(entry) {
+        if (!entry || !isConfigured || isBusy) return
+        if (isTracking) { requestRestartFromRecent({ project: entry.projectId, activity: entry.activityId }); return }
+        startTracking(entry.projectId, entry.activityId, entry.projectName, entry.activityName, "")
+    }
+
     function requestRestartFromRecent(ts) {
         if (!isConfigured || isBusy || !ts) return
         if (!isTracking) { continueRecent(ts); return }
@@ -579,7 +582,7 @@ Kirigami.ApplicationWindow {
         if (activeTimesheet && String(KimaiApi.projectId(activeTimesheet)) === String(pid) && String(KimaiApi.activityId(activeTimesheet)) === String(aid)) {
             alreadyRunningHintKey = switchHintKey(ts); alreadyRunningHintTimer.restart(); return
         }
-        pendingSwitchTimesheet = ts; switchDialog.open()
+        pendingSwitchTimesheet = ts; switchConfirmRequested()
     }
 
     function formatRelativeTime(isoDate) {
@@ -656,13 +659,17 @@ Kirigami.ApplicationWindow {
         })
     }
 
+    /** Drawer navigation is flat: return to the timer page first so pages don't stack up. */
+    function navigateTo(component) {
+        if (pageStack.depth > 1) pageStack.pop(pageStack.get(0))
+        pageStack.push(component)
+    }
+
     globalDrawer: Kirigami.GlobalDrawer {
         id: globalDrawer
         title: i18n("Plasmai")
         isMenu: false
         modal: true
-
-        background: Rectangle { color: root.bgDrawer }
 
         actions: [
             Kirigami.Action {
@@ -671,28 +678,28 @@ Kirigami.ApplicationWindow {
             },
             Kirigami.Action {
                 text: i18n("Add Entry")
-                onTriggered: { pageStack.push(manualPageComponent); globalDrawer.close() }
+                onTriggered: { root.navigateTo(manualPageComponent); globalDrawer.close() }
             },
             Kirigami.Action {
                 text: i18n("Statistics")
-                onTriggered: { pageStack.push(statsPageComponent); globalDrawer.close() }
+                onTriggered: { root.navigateTo(statsPageComponent); globalDrawer.close() }
             },
             Kirigami.Action {
                 text: i18n("Favorites")
-                onTriggered: { pageStack.push(favoritesComponent); globalDrawer.close() }
+                onTriggered: { root.navigateTo(favoritesComponent); globalDrawer.close() }
             },
             Kirigami.Action {
                 text: i18n("Connection")
-                onTriggered: { pageStack.push(connectionComponent); globalDrawer.close() }
+                onTriggered: { root.navigateTo(connectionComponent); globalDrawer.close() }
             },
             Kirigami.Action {
                 text: i18n("Settings")
-                onTriggered: { pageStack.push(settingsComponent); globalDrawer.close() }
+                onTriggered: { root.navigateTo(settingsComponent); globalDrawer.close() }
             },
             Kirigami.Action {
                 text: i18n("Color maintenance")
                 visible: root.providerCapabilities.colorDistinction
-                onTriggered: { pageStack.push(maintenanceComponent); globalDrawer.close() }
+                onTriggered: { root.navigateTo(maintenanceComponent); globalDrawer.close() }
             }
         ]
     }
@@ -700,6 +707,10 @@ Kirigami.ApplicationWindow {
     contextDrawer: Kirigami.ContextDrawer {
         id: contextDrawer
     }
+
+    // Actions in the top toolbar (like the Plasmoid header) instead of Kirigami's bottom bar on mobile
+    pageStack.globalToolBar.style: Kirigami.ApplicationHeaderStyle.ToolBar
+    pageStack.globalToolBar.showNavigationButtons: Kirigami.ApplicationHeaderStyle.ShowBackButton
 
     pageStack.initialPage: TimerPage { }
     Component.onCompleted: {

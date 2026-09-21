@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
+import org.kde.kirigamiaddons.dateandtime
 import "../../contents/code/dateTimeFormat.js" as DTF
 import "."
 
@@ -115,7 +116,7 @@ RowLayout {
         id: timeField
         Layout.fillWidth: true
         Layout.preferredHeight: Math.max(implicitHeight, TouchUi.controlMinHeight)
-        placeholderText: DTF.timePlaceholder()
+        placeholderText: text.length > 0 ? "" : DTF.timePlaceholder()  // Material floats the placeholder above filled fields
         inputMethodHints: Qt.ImhTime | Qt.ImhPreferNumbers
         selectByMouse: true
 
@@ -179,97 +180,21 @@ RowLayout {
         display: QQC2.AbstractButton.IconOnly
         enabled: timeField.enabled
         onClicked: {
-            hourTumbler.currentIndex = root.hours
-            minuteTumbler.currentIndex = root.minutes
+            var now = new Date()
+            now.setHours(root.hours, root.minutes, 0, 0)
+            timePopup.value = now
             timePopup.open()
         }
         QQC2.ToolTip.text: text
-        QQC2.ToolTip.visible: hovered && !TouchUi.active
+        QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile
         QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
     }
 
-    QQC2.Popup {
+    TimePopup {
         id: timePopup
-        parent: root
-        x: Math.max(0, root.width - width)
-        y: timeField.height + Kirigami.Units.smallSpacing
-        width: Kirigami.Units.gridUnit * (TouchUi.active ? 12 : 10)
-        padding: Kirigami.Units.smallSpacing
-        closePolicy: QQC2.Popup.CloseOnEscape | QQC2.Popup.CloseOnPressOutside
-
-        contentItem: ColumnLayout {
-            spacing: Kirigami.Units.smallSpacing
-
-            QQC2.Label {
-                Layout.fillWidth: true
-                horizontalAlignment: Text.AlignHCenter
-                opacity: 0.75
-                font.pointSize: Kirigami.Theme.smallFont.pointSize
-                text: i18n("Hours : Minutes")
-            }
-
-            RowLayout {
-                Layout.fillWidth: true
-                Layout.alignment: Qt.AlignHCenter
-                spacing: Kirigami.Units.smallSpacing
-
-                QQC2.Tumbler {
-                    id: hourTumbler
-                    Layout.preferredWidth: Kirigami.Units.gridUnit * TouchUi.tumblerWidthGu
-                    Layout.preferredHeight: Kirigami.Units.gridUnit * TouchUi.tumblerHeightGu
-                    model: 24
-                    visibleItemCount: 5
-                    delegate: QQC2.Label {
-                        text: DTF.pad2(modelData)
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        opacity: Math.abs(QQC2.Tumbler.displacement) < 0.5 ? 1 : 0.4
-                        font.bold: Math.abs(QQC2.Tumbler.displacement) < 0.5
-                    }
-                }
-
-                QQC2.Label {
-                    text: ":"
-                    font.bold: true
-                    font.pointSize: Kirigami.Theme.defaultFont.pointSize + 2
-                }
-
-                QQC2.Tumbler {
-                    id: minuteTumbler
-                    Layout.preferredWidth: Kirigami.Units.gridUnit * TouchUi.tumblerWidthGu
-                    Layout.preferredHeight: Kirigami.Units.gridUnit * TouchUi.tumblerHeightGu
-                    model: 60
-                    visibleItemCount: 5
-                    delegate: QQC2.Label {
-                        text: DTF.pad2(modelData)
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        opacity: Math.abs(QQC2.Tumbler.displacement) < 0.5 ? 1 : 0.4
-                        font.bold: Math.abs(QQC2.Tumbler.displacement) < 0.5
-                    }
-                }
-            }
-
-            RowLayout {
-                Layout.fillWidth: true
-                QQC2.Button {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-                    text: i18n("Cancel")
-                    onClicked: timePopup.close()
-                }
-                QQC2.Button {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-                    text: i18n("Select")
-                    icon.name: "dialog-ok-apply"
-                    onClicked: {
-                        root.setTime(hourTumbler.currentIndex, minuteTumbler.currentIndex)
-                        timePopup.close()
-                    }
-                }
-            }
-        }
+        parent: QQC2.Overlay.overlay
+        anchors.centerIn: parent
+        onAccepted: root.setTime(value.getHours(), value.getMinutes())
     }
 
     Component.onCompleted: refreshText()

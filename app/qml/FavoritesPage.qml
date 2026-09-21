@@ -7,8 +7,7 @@ import "shared"
 
 Kirigami.Page {
     id: page
-    title: ""
-    background: Rectangle { color: root.bgWindow }
+    title: i18n("Favorites")
 
     property var expandedProjectId: null
     property var expandedActivities: []
@@ -26,19 +25,16 @@ Kirigami.Page {
         })
     }
 
-    Flickable {
+    QQC2.ScrollView {
+        id: pageScroll
         anchors.fill: parent
-        contentHeight: col.implicitHeight + Kirigami.Units.largeSpacing * 2
-        clip: true
-        flickableDirection: Flickable.VerticalFlick
+        contentWidth: availableWidth
+        QQC2.ScrollBar.horizontal.policy: QQC2.ScrollBar.AlwaysOff
 
         ColumnLayout {
             id: col
-            width: parent.width
-            anchors.margins: Kirigami.Units.largeSpacing
+            width: pageScroll.availableWidth
             spacing: Kirigami.Units.smallSpacing
-
-            Kirigami.Heading { level: 1; text: i18n("Favorites") }
             QQC2.Label {
                 Layout.fillWidth: true; wrapMode: Text.WordWrap
                 opacity: 0.75

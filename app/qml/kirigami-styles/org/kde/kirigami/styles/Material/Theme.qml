@@ -9,12 +9,18 @@ import QtQuick.Controls.Material
 import org.kde.kirigami as Kirigami
 
 Kirigami.BasicThemeDefinition {
-    textColor: Material.foreground
-    disabledTextColor: Qt.alpha(Material.foreground, 0.6)
+    // Dark palette as literals: this object has no Item context, so Material.* here would resolve to the *light* defaults.
+    readonly property color _fg: "#ffffff"
+    readonly property color _bg: "#1e1e22"
+    readonly property color _dialog: "#2a2a2f"
+    readonly property color _listHighlight: "#3a3a3f"
+
+    textColor: _fg
+    disabledTextColor: Qt.alpha(_fg, 0.6)
 
     highlightColor: "#27AE60"
     highlightedTextColor: "#ffffff"
-    backgroundColor: "#1e2e1e"
+    backgroundColor: _bg
     alternateBackgroundColor: Qt.darker(backgroundColor, 1.05)
 
     hoverColor: "#3a3a3a"
@@ -33,17 +39,17 @@ Kirigami.BasicThemeDefinition {
     positiveTextColor: "#27AE60"
     positiveBackgroundColor: "#27AE60"
 
-    buttonTextColor: Material.foreground
-    buttonBackgroundColor: Qt.darker(Material.background, 1.2)
-    buttonAlternateBackgroundColor: Qt.darker(Material.background, 1.3)
+    buttonTextColor: _fg
+    buttonBackgroundColor: Qt.darker(_bg, 1.2)
+    buttonAlternateBackgroundColor: Qt.darker(_bg, 1.3)
     buttonHoverColor: "#3a3a3a"
     buttonFocusColor: "#27AE60"
 
-    viewTextColor: Material.foreground
-    viewBackgroundColor: Material.dialogColor
-    viewAlternateBackgroundColor: Qt.darker(Material.dialogColor, 1.05)
-    viewHoverColor: Material.listHighlightColor
-    viewFocusColor: Material.listHighlightColor
+    viewTextColor: _fg
+    viewBackgroundColor: _dialog
+    viewAlternateBackgroundColor: Qt.darker(_dialog, 1.05)
+    viewHoverColor: _listHighlight
+    viewFocusColor: _listHighlight
 
     selectionTextColor: "#ffffff"
     selectionBackgroundColor: "#27AE60"

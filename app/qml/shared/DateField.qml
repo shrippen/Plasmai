@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
+import org.kde.kirigamiaddons.dateandtime
 import "../../contents/code/dateTimeFormat.js" as DTF
 import "."
 
@@ -30,8 +31,6 @@ RowLayout {
     property int activeSegment: -1
     property string digitBuffer: ""
     property bool suppressHandler: false
-    property int calendarMonth: (new Date()).getMonth()
-    property int calendarYear: (new Date()).getFullYear()
 
     function parseDate(text) {
         return DTF.parseLocaleDate(text)
@@ -46,8 +45,6 @@ RowLayout {
         suppressHandler = true
         dateField.text = DTF.formatLocaleDate(next)
         suppressHandler = false
-        calendarMonth = next.getMonth()
-        calendarYear = next.getFullYear()
         root.dateEdited()
     }
 
@@ -133,7 +130,7 @@ RowLayout {
         id: dateField
         Layout.fillWidth: true
         Layout.preferredHeight: Math.max(implicitHeight, TouchUi.controlMinHeight)
-        placeholderText: DTF.datePlaceholder()
+        placeholderText: text.length > 0 ? "" : DTF.datePlaceholder()  // Material floats the placeholder above filled fields
         inputMethodHints: Qt.ImhDate | Qt.ImhPreferNumbers
         // Keep selection look when clicking segments
         selectByMouse: true
@@ -204,103 +201,19 @@ RowLayout {
         display: QQC2.AbstractButton.IconOnly
         enabled: dateField.enabled
         onClicked: {
-            var d = DTF.coerceDate(root.selectedDate) || new Date()
-            root.calendarMonth = d.getMonth()
-            root.calendarYear = d.getFullYear()
+            calendarPopup.value = DTF.coerceDate(root.selectedDate) || new Date()
             calendarPopup.open()
         }
         QQC2.ToolTip.text: text
-        QQC2.ToolTip.visible: hovered && !TouchUi.active
+        QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile
         QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
     }
 
-    QQC2.Popup {
+    DatePopup {
         id: calendarPopup
-        parent: root
-        x: Math.max(0, root.width - width)
-        y: dateField.height + Kirigami.Units.smallSpacing
-        width: Kirigami.Units.gridUnit * 14
-        padding: Kirigami.Units.smallSpacing
-        closePolicy: QQC2.Popup.CloseOnEscape | QQC2.Popup.CloseOnPressOutside
-
-        contentItem: ColumnLayout {
-            spacing: Kirigami.Units.smallSpacing
-
-            RowLayout {
-                Layout.fillWidth: true
-                QQC2.ToolButton {
-                    Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
-                    Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-                    icon.name: "go-previous"
-                    onClicked: {
-                        if (root.calendarMonth === 0) {
-                            root.calendarMonth = 11
-                            root.calendarYear -= 1
-                        } else {
-                            root.calendarMonth -= 1
-                        }
-                    }
-                }
-                QQC2.Label {
-                    Layout.fillWidth: true
-                    horizontalAlignment: Text.AlignHCenter
-                    font.bold: true
-                    text: Qt.locale().standaloneMonthName(root.calendarMonth) + " " + root.calendarYear
-                }
-                QQC2.ToolButton {
-                    Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
-                    Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-                    icon.name: "go-next"
-                    onClicked: {
-                        if (root.calendarMonth === 11) {
-                            root.calendarMonth = 0
-                            root.calendarYear += 1
-                        } else {
-                            root.calendarMonth += 1
-                        }
-                    }
-                }
-            }
-
-            DayOfWeekRow {
-                Layout.fillWidth: true
-                locale: Qt.locale()
-            }
-
-            MonthGrid {
-                id: monthGrid
-                Layout.fillWidth: true
-                month: root.calendarMonth
-                year: root.calendarYear
-                locale: Qt.locale()
-                spacing: 2
-
-                delegate: QQC2.ItemDelegate {
-                    required property var model
-                    implicitWidth: Kirigami.Units.gridUnit * TouchUi.calendarCellGu
-                    implicitHeight: Kirigami.Units.gridUnit * TouchUi.calendarCellGu
-                    enabled: model.month === monthGrid.month
-                    highlighted: {
-                        var sel = DTF.coerceDate(root.selectedDate)
-                        return !!sel
-                                 && model.year === sel.getFullYear()
-                                 && model.month === sel.getMonth()
-                                 && model.day === sel.getDate()
-                    }
-                    contentItem: QQC2.Label {
-                        text: model.day
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        opacity: model.month === monthGrid.month ? 1 : 0.35
-                        font.bold: parent.highlighted
-                    }
-                    onClicked: {
-                        root.setDate(new Date(model.year, model.month, model.day, 12, 0, 0, 0))
-                        calendarPopup.close()
-                    }
-                }
-            }
-        }
+        parent: QQC2.Overlay.overlay
+        anchors.centerIn: parent
+        onAccepted: root.setDate(new Date(value.getFullYear(), value.getMonth(), value.getDate(), 12, 0, 0, 0))
     }
 
     Component.onCompleted: refreshText()

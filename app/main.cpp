@@ -1,4 +1,9 @@
 #include <QGuiApplication>
+#include <QIcon>
+#include <QtQml>
+#include "addons/yearmodel.h"
+#include "addons/monthmodel.h"
+#include "addons/infinitecalendarviewmodel.h"
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QStandardPaths>
@@ -41,6 +46,10 @@ public:
 
     // 0 extra args
     Q_INVOKABLE QString i18n(const QString &text) const { return text; }
+
+    // Domain / context variants used by the vendored kirigami-addons QML
+    Q_INVOKABLE QString i18nd(const QString &, const QString &text) const { return text; }
+    Q_INVOKABLE QString i18ndc(const QString &, const QString &, const QString &text) const { return text; }
 
     // 1 extra arg
     Q_INVOKABLE QString i18n(const QString &text, const QVariant &a1) const {
@@ -266,10 +275,19 @@ int main(int argc, char *argv[])
 #ifdef Q_OS_ANDROID
     qputenv("QT_QUICK_CONTROLS_MATERIAL_THEME", "Dark");
     qputenv("QT_QUICK_CONTROLS_MATERIAL_ACCENT", "#27ae60");
+    qputenv("QT_QUICK_CONTROLS_MATERIAL_PRIMARY", "#2d2d2d");
     qputenv("QT_QUICK_CONTROLS_STYLE", "Material");
 #endif
 
     QGuiApplication app(argc, argv);
+
+#ifdef Q_OS_ANDROID
+    // Android has no system icon theme: use the Breeze Dark subset bundled in the QRC
+    // (icons/breeze-dark) so icon.name / Kirigami.Icon resolve like on the Plasmoid.
+    QIcon::setThemeSearchPaths(QIcon::themeSearchPaths() << QStringLiteral(":/icons"));
+    QIcon::setThemeName(QStringLiteral("breeze-dark"));
+    QIcon::setFallbackThemeName(QStringLiteral("breeze-dark"));
+#endif
 
 #ifdef HAVE_KF6_COREADDONS
     KLocalizedString::setApplicationDomain("plasmai");
@@ -288,6 +306,11 @@ int main(int argc, char *argv[])
     // Singletons
     auto *tokenStore = new TokenStore(&app);
     auto *fileStore = new FileStore(&app);
+
+    // Vendored kirigami-addons dateandtime module (see addons/README.md)
+    qmlRegisterType<YearModel>("org.kde.kirigamiaddons.dateandtime", 1, 0, "YearModel");
+    qmlRegisterType<MonthModel>("org.kde.kirigamiaddons.dateandtime", 1, 0, "MonthModel");
+    qmlRegisterType<InfiniteCalendarViewModel>("org.kde.kirigamiaddons.dateandtime", 1, 0, "InfiniteCalendarViewModel");
 
     QQmlApplicationEngine engine;
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreationFailed,

@@ -63,13 +63,13 @@ jobs:
 
       - name: Copy APK
         run: |
-          mkdir -p dist
+          mkdir -p dist/android
           APK=$(find app/build-android/android-build/build/outputs/apk -name "*.apk" | head -1)
-          cp "$APK" dist/plasmai-app.apk
+          cp "$APK" dist/android/plasmai-app.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: plasmai-app-debug
-          path: app/dist/plasmai-app.apk
+          path: dist/android/plasmai-app.apk
           retention-days: 7

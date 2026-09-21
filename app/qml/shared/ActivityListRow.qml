@@ -198,7 +198,7 @@ QQC2.ItemDelegate {
                 onClicked: historyMenu.popup()
             }
 
-            QQC2.ToolTip.visible: historyButton.hovered
+            QQC2.ToolTip.visible: historyButton.hovered && !Kirigami.Settings.isMobile
             QQC2.ToolTip.text: i18n("Entry actions")
             QQC2.ToolTip.delay: 600
         }
