@@ -45,6 +45,14 @@ Kirigami.Page {
                 explanation: i18n("Only Kimai provides customer/project/activity colors to distinguish.")
             }
 
+            Kirigami.InlineMessage {
+                Layout.fillWidth: true
+                visible: page.supported
+                type: Kirigami.MessageType.Information
+                icon.source: "dialog-information"
+                text: i18n("Customers, projects and activities whose colors look too similar are grouped here. \"kept\" entries keep their color, \"shifted\" ones are shown in a distinct replacement color inside Plasmai only. Your Kimai data is not changed. Turn this on or off in Settings under Color distinction.")
+            }
+
             Repeater {
                 model: page.supported ? [
                     { title: i18n("Customers"), groups: page.customerGroups },

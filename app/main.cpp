@@ -8,6 +8,10 @@
 #include <QQmlContext>
 #include <QStandardPaths>
 #include <QFile>
+#include <QHash>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QLocale>
 #include <QDir>
 #include <QObject>
 #include <cstdio>
@@ -39,37 +43,71 @@
 // -- I18nFallback: passthrough i18n() when KF6 I18n is unavailable -----------
 
 #if !defined(HAVE_KF6_COREADDONS)
+// Android has no KF6 I18n / gettext runtime. Messages are looked up in JSON catalogs
+// ({msgid: msgstr}, generated from translate/*.po by translate/po2json.py) that are
+// bundled in the QRC under :/i18n/<lang>.json. English source strings are the fallback.
 class I18nFallback : public QObject {
     Q_OBJECT
 public:
-    using QObject::QObject;
+    explicit I18nFallback(QObject *parent = nullptr) : QObject(parent) { loadCatalog(); }
 
     // 0 extra args
-    Q_INVOKABLE QString i18n(const QString &text) const { return text; }
+    Q_INVOKABLE QString i18n(const QString &text) const { return tr(text); }
 
     // Domain / context variants used by the vendored kirigami-addons QML
-    Q_INVOKABLE QString i18nd(const QString &, const QString &text) const { return text; }
-    Q_INVOKABLE QString i18ndc(const QString &, const QString &, const QString &text) const { return text; }
+    Q_INVOKABLE QString i18nd(const QString &, const QString &text) const { return tr(text); }
+    Q_INVOKABLE QString i18ndc(const QString &, const QString &, const QString &text) const { return tr(text); }
 
     // 1 extra arg
     Q_INVOKABLE QString i18n(const QString &text, const QVariant &a1) const {
-        return text.arg(a1.toString());
+        return tr(text).arg(a1.toString());
     }
 
     // 2 extra args
     Q_INVOKABLE QString i18n(const QString &text, const QVariant &a1, const QVariant &a2) const {
-        return text.arg(a1.toString()).arg(a2.toString());
+        return tr(text).arg(a1.toString()).arg(a2.toString());
     }
 
     // 3 extra args
     Q_INVOKABLE QString i18n(const QString &text, const QVariant &a1, const QVariant &a2, const QVariant &a3) const {
-        return text.arg(a1.toString()).arg(a2.toString()).arg(a3.toString());
+        return tr(text).arg(a1.toString()).arg(a2.toString()).arg(a3.toString());
     }
 
     // 4 extra args
     Q_INVOKABLE QString i18n(const QString &text, const QVariant &a1, const QVariant &a2, const QVariant &a3, const QVariant &a4) const {
-        return text.arg(a1.toString()).arg(a2.toString()).arg(a3.toString()).arg(a4.toString());
+        return tr(text).arg(a1.toString()).arg(a2.toString()).arg(a3.toString()).arg(a4.toString());
     }
+
+private:
+    QString tr(const QString &text) const { return m_catalog.value(text, text); }
+
+    // Pick the first UI language that has a catalog; English (no file) stops the search.
+    void loadCatalog() {
+        const QStringList uiLanguages = QLocale::system().uiLanguages();
+        for (const QString &ui : uiLanguages) {
+            const QString name = QString(ui).replace(QLatin1Char('-'), QLatin1Char('_'));
+            const QString base = name.section(QLatin1Char('_'), 0, 0);
+            if (base == QLatin1String("en")) {
+                return;
+            }
+            QStringList candidates{name, base};
+            if (base == QLatin1String("pt")) candidates << QStringLiteral("pt_BR");
+            if (base == QLatin1String("zh")) candidates << QStringLiteral("zh_CN");
+            for (const QString &c : std::as_const(candidates)) {
+                QFile f(QStringLiteral(":/i18n/%1.json").arg(c));
+                if (!f.open(QIODevice::ReadOnly)) {
+                    continue;
+                }
+                const QJsonObject obj = QJsonDocument::fromJson(f.readAll()).object();
+                for (auto it = obj.constBegin(); it != obj.constEnd(); ++it) {
+                    m_catalog.insert(it.key(), it.value().toString());
+                }
+                return;
+            }
+        }
+    }
+
+    QHash<QString, QString> m_catalog;
 };
 #endif
 
@@ -291,6 +329,13 @@ int main(int argc, char *argv[])
 
 #ifdef HAVE_KF6_COREADDONS
     KLocalizedString::setApplicationDomain("plasmai");
+#ifdef PLASMAI_BUILD_LOCALE_DIR
+    // Development runs from the build tree find the compiled catalogs here;
+    // installed builds use the regular <prefix>/share/locale.
+    if (QDir(QStringLiteral(PLASMAI_BUILD_LOCALE_DIR)).exists()) {
+        KLocalizedString::addDomainLocaleDir("plasmai", QStringLiteral(PLASMAI_BUILD_LOCALE_DIR));
+    }
+#endif
     KAboutData aboutData(APP_ID, i18n("Plasmai"),
                          QStringLiteral("1.6.3"),
                          i18n("Time tracking with Kimai, Clockify, Toggl Track, or SolidTime"),

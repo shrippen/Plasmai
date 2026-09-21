@@ -80,8 +80,9 @@ QQC2.ItemDelegate {
 
         Kirigami.Icon {
             visible: root.showPlayIcon
-            Layout.preferredWidth: TouchUi.iconSize
-            Layout.preferredHeight: TouchUi.iconSize
+            // Small like in the Plasmoid; the row action icons keep the larger touch size.
+            Layout.preferredWidth: Kirigami.Units.iconSizes.small
+            Layout.preferredHeight: Kirigami.Units.iconSizes.small
             source: "media-playback-start"
             opacity: root.enabled ? 1 : 0.5
         }

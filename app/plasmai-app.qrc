@@ -13,6 +13,7 @@
         <file alias="qml/shared/qmldir">qml/shared/qmldir</file>
         <file alias="qml/shared/ApiErrors.qml">qml/shared/ApiErrors.qml</file>
         <file alias="qml/shared/TouchUi.qml">qml/shared/TouchUi.qml</file>
+        <file alias="qml/shared/WrapCheckBox.qml">qml/shared/WrapCheckBox.qml</file>
         <file alias="qml/shared/ColorDistinctState.qml">qml/shared/ColorDistinctState.qml</file>
         <file alias="qml/shared/LoadingRow.qml">qml/shared/LoadingRow.qml</file>
         <file alias="qml/shared/CustomerColorDot.qml">qml/shared/CustomerColorDot.qml</file>
@@ -189,5 +190,18 @@
         <file alias="delegates/RoundedItemDelegate.qml">qml/kirigami-addons/org/kde/kirigamiaddons/delegates/RoundedItemDelegate.qml</file>
         <file alias="delegates/SubtitleContentItem.qml">qml/kirigami-addons/org/kde/kirigamiaddons/delegates/SubtitleContentItem.qml</file>
         <file alias="delegates/qmldir">qml/kirigami-addons/org/kde/kirigamiaddons/delegates/qmldir</file>
+    </qresource>
+    <qresource prefix="/i18n">
+        <file alias="de.json">i18n/de.json</file>
+        <file alias="es.json">i18n/es.json</file>
+        <file alias="fr.json">i18n/fr.json</file>
+        <file alias="it.json">i18n/it.json</file>
+        <file alias="ja.json">i18n/ja.json</file>
+        <file alias="nl.json">i18n/nl.json</file>
+        <file alias="pl.json">i18n/pl.json</file>
+        <file alias="pt_BR.json">i18n/pt_BR.json</file>
+        <file alias="ru.json">i18n/ru.json</file>
+        <file alias="uk.json">i18n/uk.json</file>
+        <file alias="zh_CN.json">i18n/zh_CN.json</file>
     </qresource>
 </RCC>

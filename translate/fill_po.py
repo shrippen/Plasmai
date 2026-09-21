@@ -195,6 +195,10 @@ def main():
             trans[msgid] = {"s": val}
         for msgid, vals in mod.PLURALS.items():
             trans[msgid] = {"p": vals}
+        # App-only strings (Plasma Mobile / Android) and vendored kirigami-addons
+        import app_strings
+        for msgid, val in app_strings.T_BY_LANG.get(lang, {}).items():
+            trans.setdefault(msgid, {"s": val})
         write_po(lang, items, trans)
         print(f"Wrote {lang}.po ({len(items)} strings)")
 

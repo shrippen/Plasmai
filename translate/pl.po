@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-08-18 18:54+0200\n"
+"POT-Creation-Date: 2026-09-22 00:54+0200\n"
 "PO-Revision-Date: 2026-08-09 19:45+0200\n"
 "Last-Translator: Cursor Agent\n"
 "Language-Team: Polish\n"
@@ -16,15 +16,977 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#: contents/config/config.qml:6 contents/ui/config/ConfigConnection.qml:367
+#: app/qml/ConnectionPage.qml:12 app/qml/main.qml:692
+#: contents/config/config.qml:6 contents/ui/config/ConfigConnection.qml:366
 msgid "Connection"
 msgstr "Połączenie"
 
+#: app/qml/ConnectionPage.qml:206 contents/ui/config/ConfigConnection.qml:388
+msgid "Profile:"
+msgstr "Profil:"
+
+#: app/qml/ConnectionPage.qml:220 contents/ui/config/ConfigConnection.qml:402
+msgid "Profile name:"
+msgstr "Nazwa profilu:"
+
+#: app/qml/ConnectionPage.qml:238
+msgid "Add"
+msgstr "Dodaj"
+
+#: app/qml/ConnectionPage.qml:245 app/qml/ConnectionPage.qml:248
+#: contents/ui/config/ConfigConnection.qml:490
+#: contents/ui/config/ConfigConnection.qml:495
+msgid "Profile %1"
+msgstr "Profil %1"
+
+#: app/qml/ConnectionPage.qml:264 contents/ui/config/ConfigConnection.qml:509
+msgid "Remove"
+msgstr "Usuń"
+
+#: app/qml/ConnectionPage.qml:284
+msgid "Use this"
+msgstr "Użyj"
+
+#: app/qml/ConnectionPage.qml:296 contents/ui/config/ConfigConnection.qml:547
+msgid "none"
+msgstr "brak"
+
+#: app/qml/ConnectionPage.qml:296
+msgid "Active: %1"
+msgstr "Aktywny: %1"
+
+#: app/qml/ConnectionPage.qml:307
+msgid "Provider:"
+msgstr "Dostawca:"
+
+#: app/qml/ConnectionPage.qml:335 contents/ui/config/ConfigConnection.qml:74
+msgid "Server URL:"
+msgstr "Adres URL serwera:"
+
+#: app/qml/ConnectionPage.qml:337
+msgid "https://your-server.com"
+msgstr "https://twoj-serwer.pl"
+
+#: app/qml/ConnectionPage.qml:348
+msgid "API Token:"
+msgstr "Token API:"
+
+#: app/qml/ConnectionPage.qml:350
+msgid "Token stored."
+msgstr "Token zapisany."
+
+#: app/qml/ConnectionPage.qml:350 app/qml/ConnectionPage.qml:424
+msgid "No token stored."
+msgstr "Brak zapisanego tokenu."
+
+#: app/qml/ConnectionPage.qml:358
+msgid "Enter API token…"
+msgstr "Wpisz token API…"
+
+#: app/qml/ConnectionPage.qml:369 contents/ui/config/ConfigConnection.qml:560
+msgid "Saving…"
+msgstr "Zapisywanie…"
+
+#: app/qml/ConnectionPage.qml:369 contents/ui/config/ConfigConnection.qml:560
+msgid "Save token"
+msgstr "Zapisz token"
+
+#: app/qml/ConnectionPage.qml:381
+msgid "Token saved."
+msgstr "Token zapisany."
+
+#: app/qml/ConnectionPage.qml:387
+msgid "Failed to save"
+msgstr "Nie udało się zapisać"
+
+#: app/qml/ConnectionPage.qml:393
+msgid "Clear"
+msgstr "Wyczyść"
+
+#: app/qml/ConnectionPage.qml:401
+msgid "Token removed."
+msgstr "Token usunięty."
+
+#: app/qml/ConnectionPage.qml:405 app/qml/ConnectionPage.qml:434
+#: app/qml/ConnectionPage.qml:437
+msgid "Failed"
+msgstr "Niepowodzenie"
+
+#: app/qml/ConnectionPage.qml:411
+msgid "Test"
+msgstr "Testuj"
+
+#: app/qml/ConnectionPage.qml:416
+msgid "Testing…"
+msgstr "Testowanie…"
+
+#: app/qml/ConnectionPage.qml:427
+msgid "Testing… (%1)"
+msgstr "Testowanie… (%1)"
+
+#: app/qml/ConnectionPage.qml:431
+msgid "Connection OK!"
+msgstr "Połączenie OK!"
+
+#: app/qml/ConnectionPage.qml:436
+msgid "Missing URL or token (type: %1)"
+msgstr "Brak adresu URL lub tokenu (typ: %1)"
+
+#: app/qml/FavoritesPage.qml:10 app/qml/main.qml:688 app/qml/TimerPage.qml:295
 #: contents/config/config.qml:11 contents/ui/config/ConfigDisplay.qml:869
 #: contents/ui/config/ConfigDisplay.qml:924
-#: contents/ui/config/ConfigFavorites.qml:507 contents/ui/main.qml:3439
+#: contents/ui/config/ConfigFavorites.qml:505 contents/ui/main.qml:3450
 msgid "Favorites"
 msgstr "Ulubione"
+
+#: app/qml/FavoritesPage.qml:41
+msgid "Tap a project to see its activities, then pin the ones you use often."
+msgstr "Dotknij projektu, aby zobaczyć jego aktywności, a następnie przypnij te, których często używasz."
+
+#: app/qml/FavoritesPage.qml:48
+msgid "Connect a time tracker first"
+msgstr "Najpierw połącz usługę śledzenia czasu"
+
+#: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/DatePopup.qml:87
+#: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/TimePopup.qml:46
+#: app/qml/shared/ActiveEditView.qml:364 app/qml/shared/ActiveEditView.qml:406
+#: app/qml/shared/ManualEntryView.qml:385 app/qml/TimerPage.qml:414
+#: contents/ui/ActiveEditView.qml:358 contents/ui/ActiveEditView.qml:387
+#: contents/ui/main.qml:2464 contents/ui/main.qml:3764
+#: contents/ui/ManualEntryView.qml:386 contents/ui/TimeField.qml:259
+msgid "Cancel"
+msgstr "Anuluj"
+
+#: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/DatePopup.qml:99
+#: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/TimePopup.qml:57
+#: contents/ui/TimeField.qml:265
+msgid "Select"
+msgstr "Wybierz"
+
+#: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/private/DatePicker.qml:275
+msgid "Day"
+msgstr "Dzień"
+
+#: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/private/DatePicker.qml:278
+msgid "Month"
+msgstr "Miesiąc"
+
+#: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/private/DatePicker.qml:281
+msgid "Year"
+msgstr "Rok"
+
+#: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/private/DatePicker.qml:366
+msgid "Go Previous"
+msgstr "Wstecz"
+
+#: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/private/DatePicker.qml:379
+msgid "Jump to today"
+msgstr "Przejdź do dziś"
+
+#: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/private/DatePicker.qml:386
+msgid "Go Next"
+msgstr "Dalej"
+
+#: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/TimePicker.qml:97
+msgid "Hours"
+msgstr "Godziny"
+
+#: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/TimePicker.qml:119
+msgid ":"
+msgstr ":"
+
+#: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/TimePicker.qml:134
+msgid "Minutes"
+msgstr "Minuty"
+
+#: app/qml/main.qml:178 app/qml/main.qml:670 app/qml/TimerPage.qml:12
+#: contents/ui/main.qml:310 contents/ui/main.qml:312 contents/ui/main.qml:2171
+#: contents/ui/main.qml:2759
+msgid "Plasmai"
+msgstr "Plasmai"
+
+#: app/qml/main.qml:241 contents/ui/main.qml:1250
+msgid "%1 left today"
+msgstr "Pozostało dziś: %1"
+
+#: app/qml/main.qml:241 contents/ui/main.qml:1252
+msgid "%1 over today"
+msgstr "Przekroczono dziś o %1"
+
+#: app/qml/main.qml:242 contents/ui/main.qml:1257
+msgid "%1 left this week"
+msgstr "Pozostało w tym tygodniu: %1"
+
+#: app/qml/main.qml:242 contents/ui/main.qml:1259
+msgid "%1 over this week"
+msgstr "Przekroczono w tym tygodniu o %1"
+
+#: app/qml/main.qml:307 contents/ui/main.qml:618
+msgid "Idle time discarded"
+msgstr "Czas bezczynności odrzucony"
+
+#: app/qml/main.qml:320 contents/ui/main.qml:643
+msgid "Nothing is tracking"
+msgstr "Nic nie jest śledzone"
+
+#: app/qml/main.qml:320
+msgid "Start tracking when you begin work."
+msgstr "Włącz śledzenie czasu, gdy zaczynasz pracę."
+
+#: app/qml/main.qml:323
+msgid "%1h %2m"
+msgstr "%1h %2m"
+
+#: app/qml/main.qml:323
+msgid "%1m %2s"
+msgstr "%1m %2s"
+
+#: app/qml/main.qml:462
+msgid "Stopped"
+msgstr "Zatrzymano"
+
+#: app/qml/main.qml:541
+msgid "Started"
+msgstr "Rozpoczęto"
+
+#: app/qml/main.qml:592 contents/ui/main.qml:448
+msgid "just now"
+msgstr "przed chwilą"
+
+#: app/qml/main.qml:594
+msgid "%1m ago"
+msgstr "%1 min temu"
+
+#: app/qml/main.qml:596
+msgid "%1h ago"
+msgstr "%1 godz. temu"
+
+#: app/qml/main.qml:598 contents/ui/main.qml:460
+msgid "yesterday"
+msgstr "wczoraj"
+
+#: app/qml/main.qml:599
+msgid "%1d ago"
+msgstr "%1 d temu"
+
+#: app/qml/main.qml:676
+msgid "Timer"
+msgstr "Stoper"
+
+#: app/qml/main.qml:680
+msgid "Add Entry"
+msgstr "Dodaj wpis"
+
+#: app/qml/main.qml:684 app/qml/StatsPage.qml:11 app/qml/TimerPage.qml:30
+#: contents/ui/main.qml:2756 contents/ui/main.qml:2810
+msgid "Statistics"
+msgstr "Statystyki"
+
+#: app/qml/main.qml:696 app/qml/SettingsPage.qml:10
+msgid "Settings"
+msgstr "Ustawienia"
+
+#: app/qml/main.qml:700 app/qml/MaintenancePage.qml:9
+msgid "Color maintenance"
+msgstr "Konserwacja kolorów"
+
+#: app/qml/MaintenancePage.qml:33 contents/ui/config/ConfigFavorites.qml:519
+msgid "Reload"
+msgstr "Odśwież"
+
+#: app/qml/MaintenancePage.qml:44 contents/ui/config/ConfigMaintenance.qml:419
+msgid "Color maintenance is for Kimai"
+msgstr "Konserwacja kolorów dotyczy Kimai"
+
+#: app/qml/MaintenancePage.qml:45
+msgid "Only Kimai provides customer/project/activity colors to distinguish."
+msgstr "Tylko Kimai udostępnia kolory klientów/projektów/aktywności do rozróżniania."
+
+#: app/qml/MaintenancePage.qml:53
+msgid "Customers, projects and activities whose colors look too similar are grouped here. \"kept\" entries keep their color, \"shifted\" ones are shown in a distinct replacement color inside Plasmai only. Your Kimai data is not changed. Turn this on or off in Settings under Color distinction."
+msgstr "Klienci, projekty i aktywności o zbyt podobnych kolorach są tu pogrupowani. Wpisy „zachowany” zachowują kolor, a „przesunięty” są pokazywane w odróżniającym kolorze zastępczym tylko w Plasmai. Twoje dane w Kimai nie są zmieniane. Włącz lub wyłącz w Ustawieniach, w sekcji Rozróżnianie kolorów."
+
+#: app/qml/MaintenancePage.qml:58 contents/ui/config/ConfigMaintenance.qml:476
+msgid "Customers"
+msgstr "Klienci"
+
+#: app/qml/MaintenancePage.qml:59 contents/ui/config/ConfigFavorites.qml:514
+#: contents/ui/config/ConfigMaintenance.qml:549
+msgid "Projects"
+msgstr "Projekty"
+
+#: app/qml/MaintenancePage.qml:60 contents/ui/config/ConfigFavorites.qml:635
+#: contents/ui/config/ConfigMaintenance.qml:622
+msgid "Activities"
+msgstr "Aktywności"
+
+#: app/qml/MaintenancePage.qml:92 contents/ui/config/ConfigMaintenance.qml:537
+#: contents/ui/config/ConfigMaintenance.qml:610
+#: contents/ui/config/ConfigMaintenance.qml:683
+msgid "kept"
+msgstr "zachowany"
+
+#: app/qml/MaintenancePage.qml:92 contents/ui/config/ConfigMaintenance.qml:538
+#: contents/ui/config/ConfigMaintenance.qml:611
+#: contents/ui/config/ConfigMaintenance.qml:684
+msgid "shifted"
+msgstr "przesunięty"
+
+#: app/qml/MaintenancePage.qml:106
+msgid "No color clashes detected."
+msgstr "Nie wykryto konfliktów kolorów."
+
+#: app/qml/ManualEntryPage.qml:11 app/qml/shared/ActivityListRow.qml:220
+#: contents/ui/ActivityListRow.qml:220 contents/ui/main.qml:2758
+msgid "Edit entry"
+msgstr "Edytuj wpis"
+
+#: app/qml/ManualEntryPage.qml:11 app/qml/TimerPage.qml:24
+#: contents/ui/main.qml:2758 contents/ui/main.qml:2795
+msgid "Add entry"
+msgstr "Dodaj wpis"
+
+#: app/qml/SettingsPage.qml:49 contents/config/config.qml:26
+#: contents/ui/config/ConfigBehavior.qml:243
+msgid "Behavior"
+msgstr "Zachowanie"
+
+#: app/qml/SettingsPage.qml:53
+msgid "Refresh interval:"
+msgstr "Interwał odświeżania:"
+
+#: app/qml/SettingsPage.qml:61
+msgid "Recent entries:"
+msgstr "Ostatnie wpisy:"
+
+#: app/qml/SettingsPage.qml:68
+msgid "Timer view:"
+msgstr "Widok stopera:"
+
+#: app/qml/SettingsPage.qml:69
+msgid "Show work summary (today / week totals)"
+msgstr "Pokaż podsumowanie pracy (sumy z dziś / tygodnia)"
+
+#: app/qml/SettingsPage.qml:74
+msgid "Show recent entries"
+msgstr "Pokaż ostatnie wpisy"
+
+#: app/qml/SettingsPage.qml:79
+msgid "Show favorites"
+msgstr "Pokaż ulubione"
+
+#: app/qml/SettingsPage.qml:84
+msgid "Show \"Continue\" button"
+msgstr "Pokaż przycisk „Kontynuuj”"
+
+#: app/qml/SettingsPage.qml:89
+msgid "Show start / switch activity controls"
+msgstr "Pokaż elementy startu / zmiany aktywności"
+
+#: app/qml/SettingsPage.qml:95
+msgid "Show day sparkline"
+msgstr "Pokaż wykres dnia"
+
+#: app/qml/SettingsPage.qml:102 contents/ui/config/ConfigDisplay.qml:636
+msgid "Show sun, moon, and work arcs"
+msgstr "Pokaż łuki słońca, księżyca i pracy"
+
+#: app/qml/SettingsPage.qml:108
+msgid "Confirmations:"
+msgstr "Potwierdzenia:"
+
+#: app/qml/SettingsPage.qml:109
+msgid "Confirm before stopping tracking"
+msgstr "Potwierdzaj przed zatrzymaniem śledzenia"
+
+#: app/qml/SettingsPage.qml:114 contents/ui/config/ConfigBehavior.qml:268
+msgid "Ask before a start that overlaps the previous entry"
+msgstr "Pytaj, gdy start nachodzi na poprzedni wpis"
+
+#: app/qml/SettingsPage.qml:121
+msgid "When editing the running timer, the previous entry's end is shown. Saving an earlier start asks for confirmation."
+msgstr "Podczas edycji działającego stopera pokazywany jest koniec poprzedniego wpisu. Zapisanie wcześniejszego początku wymaga potwierdzenia."
+
+#: app/qml/SettingsPage.qml:124 contents/ui/config/ConfigDisplay.qml:591
+msgid "Work hours"
+msgstr "Godziny pracy"
+
+#: app/qml/SettingsPage.qml:127
+msgid "Begin:"
+msgstr "Początek:"
+
+#: app/qml/SettingsPage.qml:133
+msgid "End:"
+msgstr "Koniec:"
+
+#: app/qml/SettingsPage.qml:139
+msgid "Location (sun / moon accuracy)"
+msgstr "Lokalizacja (dokładność słońca / księżyca)"
+
+#: app/qml/SettingsPage.qml:142
+msgid "Current:"
+msgstr "Bieżąca:"
+
+#: app/qml/SettingsPage.qml:143
+msgid "%1, %2"
+msgstr "%1, %2"
+
+#: app/qml/SettingsPage.qml:149
+msgid "Search city:"
+msgstr "Szukaj miasta:"
+
+#: app/qml/SettingsPage.qml:150
+msgid "Search for a city…"
+msgstr "Szukaj miasta…"
+
+#: app/qml/SettingsPage.qml:181
+msgid "Color distinction"
+msgstr "Rozróżnianie kolorów"
+
+#: app/qml/SettingsPage.qml:185
+msgid "Kimai only:"
+msgstr "Tylko Kimai:"
+
+#: app/qml/SettingsPage.qml:187
+msgid "Shift similar customer/project/activity colors apart"
+msgstr "Rozsuwaj podobne kolory klientów/projektów/aktywności"
+
+#: app/qml/SettingsPage.qml:192
+msgid "Similarity threshold:"
+msgstr "Próg podobieństwa:"
+
+#: app/qml/SettingsPage.qml:200
+msgid "Idle detection"
+msgstr "Wykrywanie bezczynności"
+
+#: app/qml/SettingsPage.qml:202
+msgid "Enable:"
+msgstr "Włącz:"
+
+#: app/qml/SettingsPage.qml:204
+msgid "Prompt after being idle while tracking"
+msgstr "Pytaj po bezczynności podczas śledzenia"
+
+#: app/qml/SettingsPage.qml:209
+msgid "Idle after:"
+msgstr "Bezczynność po:"
+
+#: app/qml/SettingsPage.qml:212
+msgid "%1 min"
+msgstr "%1 min"
+
+#: app/qml/SettingsPage.qml:216
+msgid "Notifications"
+msgstr "Powiadomienia"
+
+#: app/qml/SettingsPage.qml:218
+msgid "Notify on:"
+msgstr "Powiadamiaj o:"
+
+#: app/qml/SettingsPage.qml:220 app/qml/shared/ActiveEditView.qml:282
+#: app/qml/TimerPage.qml:404 contents/ui/ActiveEditView.qml:282
+#: contents/ui/main.qml:3736
+msgid "Start"
+msgstr "Start"
+
+#: app/qml/SettingsPage.qml:226 app/qml/TimerPage.qml:169
+#: contents/ui/main.qml:3203 contents/ui/main.qml:3239
+msgid "Stop"
+msgstr "Stop"
+
+#: app/qml/SettingsPage.qml:232
+msgid "Idle stop"
+msgstr "Zatrzymanie przy bezczynności"
+
+#: app/qml/SettingsPage.qml:238
+msgid "Forgot to start tracking"
+msgstr "Nie uruchomiono śledzenia"
+
+#: app/qml/SettingsPage.qml:246
+msgid "Settings sync with the Plasma widget via shared.json on the same machine."
+msgstr "Ustawienia synchronizują się z widżetem Plasma przez shared.json na tym samym komputerze."
+
+#: app/qml/shared/ActiveEditView.qml:250 contents/ui/ActiveEditView.qml:250
+msgid "Edit start, project, activity, billable, and tags for the running entry."
+msgstr "Edytuj start, projekt, czynność, płatność i tagi bieżącego wpisu."
+
+#: app/qml/shared/ActiveEditView.qml:310 contents/ui/ActiveEditView.qml:310
+msgid "Previous entry ended at %1"
+msgstr "Poprzedni wpis zakończył się o %1"
+
+#: app/qml/shared/ActiveEditView.qml:320 contents/ui/ActiveEditView.qml:320
+msgid "Elapsed time updates from the new start."
+msgstr "Czas upływający jest przeliczany od nowego startu."
+
+#: app/qml/shared/ActiveEditView.qml:321 contents/ui/ActiveEditView.qml:321
+msgid "Start must be a valid time not in the future."
+msgstr "Start musi być poprawną godziną i nie może być w przyszłości."
+
+#: app/qml/shared/ActiveEditView.qml:348 contents/ui/ActiveEditView.qml:345
+msgid "Save"
+msgstr "Zapisz"
+
+#: app/qml/shared/ActiveEditView.qml:373 contents/ui/ActiveEditView.qml:367
+msgid "Overlapping start"
+msgstr "Nachodzący start"
+
+#: app/qml/shared/ActiveEditView.qml:388 contents/ui/ActiveEditView.qml:375
+msgid "The new start is before the previous entry ended (%1). Set it anyway?"
+msgstr "Nowy start jest przed końcem poprzedniego wpisu (%1). Ustawić mimo to?"
+
+#: app/qml/shared/ActiveEditView.qml:399 contents/ui/ActiveEditView.qml:381
+msgid "Set anyway"
+msgstr "Ustaw mimo to"
+
+#: app/qml/shared/ActivityListRow.qml:42 contents/ui/ActivityListRow.qml:43
+msgid "Starts or switches this activity"
+msgstr "Uruchamia lub przełącza tę czynność"
+
+#: app/qml/shared/ActivityListRow.qml:175
+#: app/qml/shared/ActivityListRow.qml:203 contents/ui/ActivityListRow.qml:175
+#: contents/ui/ActivityListRow.qml:203
+msgid "Entry actions"
+msgstr "Akcje wpisu"
+
+#: app/qml/shared/ActivityListRow.qml:213 contents/ui/ActivityListRow.qml:213
+msgid "Unpin from favorites"
+msgstr "Odepnij z ulubionych"
+
+#: app/qml/shared/ActivityListRow.qml:213 contents/ui/ActivityListRow.qml:213
+msgid "Pin as favorite"
+msgstr "Przypnij jako ulubione"
+
+#: app/qml/shared/ActivityListRow.qml:227 app/qml/TimerPage.qml:453
+#: contents/ui/ActivityListRow.qml:227 contents/ui/main.qml:2512
+msgid "Split entry"
+msgstr "Podziel wpis"
+
+#: app/qml/shared/ActivityListRow.qml:234 contents/ui/ActivityListRow.qml:234
+msgid "Delete entry"
+msgstr "Usuń wpis"
+
+#: app/qml/shared/ApiErrors.qml:12 contents/ui/ApiErrors.qml:12
+msgid "Unknown error"
+msgstr "Nieznany błąd"
+
+#: app/qml/shared/ApiErrors.qml:16 contents/ui/ApiErrors.qml:16
+msgid "URL and API token are required"
+msgstr "Adres URL i token API są wymagane"
+
+#: app/qml/shared/ApiErrors.qml:17 contents/ui/ApiErrors.qml:17
+msgid "Configure your time tracker URL and API token"
+msgstr "Skonfiguruj adres URL i token API usługi rejestrowania czasu"
+
+#: app/qml/shared/ApiErrors.qml:20 contents/ui/ApiErrors.qml:20
+msgid "This action is not supported for the selected service yet."
+msgstr "Ta akcja nie jest jeszcze obsługiwana dla wybranej usługi."
+
+#: app/qml/shared/ApiErrors.qml:23 contents/ui/ApiErrors.qml:23
+msgid "Cannot reach the server. Check your network, URL, or TLS certificate."
+msgstr "Nie można połączyć się z serwerem. Sprawdź sieć, adres URL lub certyfikat TLS."
+
+#: app/qml/shared/ApiErrors.qml:26 contents/ui/ApiErrors.qml:26
+msgid "Authentication failed. Check your API token."
+msgstr "Uwierzytelnianie nie powiodło się. Sprawdź token API."
+
+#: app/qml/shared/ApiErrors.qml:29 contents/ui/ApiErrors.qml:29
+msgid "Server not found. Check your URL."
+msgstr "Nie znaleziono serwera. Sprawdź adres URL."
+
+#: app/qml/shared/ApiErrors.qml:32 contents/ui/ApiErrors.qml:32
+msgid "Access denied. Your token may lack required permissions."
+msgstr "Odmowa dostępu. Twój token może nie mieć wymaganych uprawnień."
+
+#: app/qml/shared/ApiErrors.qml:35 contents/ui/ApiErrors.qml:35
+msgid "Server error (%1)."
+msgstr "Błąd serwera (%1)."
+
+#: app/qml/shared/ApiErrors.qml:38 contents/ui/ApiErrors.qml:38
+msgid "Request failed: %1"
+msgstr "Żądanie nie powiodło się: %1"
+
+#: app/qml/shared/ApiErrors.qml:40 contents/ui/ApiErrors.qml:40
+msgid "Request failed (%1)."
+msgstr "Żądanie nie powiodło się (%1)."
+
+#: app/qml/shared/BarChart.qml:49 app/qml/shared/StackedBarChart.qml:49
+#: contents/ui/BarChart.qml:49 contents/ui/StackedBarChart.qml:49
+msgid "Time"
+msgstr "Czas"
+
+#: app/qml/shared/CreateEntityDialog.qml:40
+#: app/qml/shared/CreateEntityDialog.qml:172
+#: contents/ui/CreateEntityDialog.qml:42 contents/ui/CreateEntityDialog.qml:174
+msgid "Create customer"
+msgstr "Utwórz klienta"
+
+#: app/qml/shared/CreateEntityDialog.qml:43
+#: app/qml/shared/ProjectActivityPickers.qml:97
+#: contents/ui/CreateEntityDialog.qml:45
+#: contents/ui/ProjectActivityPickers.qml:98
+msgid "Create activity"
+msgstr "Utwórz czynność"
+
+#: app/qml/shared/CreateEntityDialog.qml:45
+#: app/qml/shared/ProjectActivityPickers.qml:63
+#: contents/ui/CreateEntityDialog.qml:47
+#: contents/ui/ProjectActivityPickers.qml:64
+msgid "Create project"
+msgstr "Utwórz projekt"
+
+#: app/qml/shared/CreateEntityDialog.qml:82
+#: contents/ui/CreateEntityDialog.qml:84
+msgid "Activity will be added to %1."
+msgstr "Czynność zostanie dodana do %1."
+
+#: app/qml/shared/CreateEntityDialog.qml:87
+#: app/qml/shared/CreateEntityDialog.qml:95
+#: contents/ui/CreateEntityDialog.qml:89 contents/ui/CreateEntityDialog.qml:97
+msgid "Name"
+msgstr "Nazwa"
+
+#: app/qml/shared/CreateEntityDialog.qml:102
+#: app/qml/shared/CreateEntityDialog.qml:113
+#: contents/ui/CreateEntityDialog.qml:104
+#: contents/ui/CreateEntityDialog.qml:115
+msgid "Customer"
+msgstr "Klient"
+
+#: app/qml/shared/CreateEntityDialog.qml:139
+#: contents/ui/CreateEntityDialog.qml:141
+msgid "Select customer…"
+msgstr "Wybierz klienta…"
+
+#: app/qml/shared/DateField.qml:200 contents/ui/DateField.qml:204
+msgid "Pick date"
+msgstr "Wybierz datę"
+
+#: app/qml/shared/DaySparkline.qml:498 contents/ui/DaySparkline.qml:491
+msgid "Today's tracked time"
+msgstr "Czas zarejestrowany dzisiaj"
+
+#: app/qml/shared/ManualEntryView.qml:242 contents/ui/ManualEntryView.qml:243
+msgid "Change project, activity, range, billable, and tags for this finished entry."
+msgstr "Zmień projekt, czynność, zakres, płatność i tagi tego zakończonego wpisu."
+
+#: app/qml/shared/ManualEntryView.qml:243 contents/ui/ManualEntryView.qml:244
+msgid "Create a finished entry with project, activity, and time range."
+msgstr "Utwórz zakończony wpis z projektem, aktywnością i zakresem czasu."
+
+#: app/qml/shared/ManualEntryView.qml:275 contents/ui/ManualEntryView.qml:276
+msgid "Begin"
+msgstr "Początek"
+
+#: app/qml/shared/ManualEntryView.qml:299 contents/ui/ManualEntryView.qml:300
+msgid "End"
+msgstr "Koniec"
+
+#: app/qml/shared/ManualEntryView.qml:329 contents/ui/ManualEntryView.qml:330
+msgid "Duration: %1"
+msgstr "Czas trwania: %1"
+
+#: app/qml/shared/ManualEntryView.qml:333 contents/ui/ManualEntryView.qml:334
+msgid "Duration: —"
+msgstr "Czas trwania: —"
+
+#: app/qml/shared/ManualEntryView.qml:335 contents/ui/ManualEntryView.qml:336
+msgid "Duration: invalid range"
+msgstr "Czas trwania: nieprawidłowy zakres"
+
+#: app/qml/shared/ManualEntryView.qml:343 app/qml/TimerPage.qml:397
+#: contents/ui/main.qml:3722 contents/ui/ManualEntryView.qml:344
+msgid "Description (optional)"
+msgstr "Opis (opcjonalnie)"
+
+#: app/qml/shared/ManualEntryView.qml:367 contents/ui/ManualEntryView.qml:368
+msgid "Save changes"
+msgstr "Zapisz zmiany"
+
+#: app/qml/shared/ManualEntryView.qml:367 contents/ui/ManualEntryView.qml:368
+msgid "Save entry"
+msgstr "Zapisz wpis"
+
+#: app/qml/shared/ProjectActivityPickers.qml:51
+#: contents/ui/ProjectActivityPickers.qml:52
+msgid "Select project…"
+msgstr "Wybierz projekt…"
+
+#: app/qml/shared/ProjectActivityPickers.qml:87
+#: contents/ui/ProjectActivityPickers.qml:88
+msgid "Select activity…"
+msgstr "Wybierz aktywność…"
+
+#: app/qml/shared/StatsView.qml:44 contents/ui/StatsView.qml:46
+msgid "All"
+msgstr "Wszystkie"
+
+#: app/qml/shared/StatsView.qml:45 app/qml/shared/TimesheetMetaFields.qml:47
+#: contents/ui/StatsView.qml:47 contents/ui/TimesheetMetaFields.qml:47
+msgid "Billable"
+msgstr "Płatne"
+
+#: app/qml/shared/StatsView.qml:46 contents/ui/StatsView.qml:48
+msgid "Non-billable"
+msgstr "Niepłatne"
+
+#: app/qml/shared/StatsView.qml:223 app/qml/shared/StatsView.qml:277
+#: app/qml/shared/StatsView.qml:517 contents/ui/StatsView.qml:207
+#: contents/ui/StatsView.qml:261 contents/ui/StatsView.qml:501
+msgid "Today"
+msgstr "Dziś"
+
+#: app/qml/shared/StatsView.qml:235 app/qml/shared/StatsView.qml:334
+#: app/qml/shared/StatsView.qml:417 app/qml/shared/StatsView.qml:545
+#: contents/ui/StatsView.qml:219 contents/ui/StatsView.qml:318
+#: contents/ui/StatsView.qml:401 contents/ui/StatsView.qml:529
+msgid "This week"
+msgstr "Ten tydzień"
+
+#: app/qml/shared/StatsView.qml:256 contents/ui/StatsView.qml:240
+msgid "Time by hour"
+msgstr "Czas według godzin"
+
+#: app/qml/shared/StatsView.qml:267 contents/ui/StatsView.qml:251
+msgid "Previous day"
+msgstr "Poprzedni dzień"
+
+#: app/qml/shared/StatsView.qml:280 contents/ui/StatsView.qml:264
+msgid "Yesterday"
+msgstr "Wczoraj"
+
+#: app/qml/shared/StatsView.qml:292 contents/ui/StatsView.qml:276
+msgid "Next day"
+msgstr "Następny dzień"
+
+#: app/qml/shared/StatsView.qml:302 contents/ui/StatsView.qml:286
+msgid "No time logged this day"
+msgstr "Brak zalogowanego czasu w tym dniu"
+
+#: app/qml/shared/StatsView.qml:313 contents/ui/StatsView.qml:297
+msgid "Projects by day"
+msgstr "Projekty według dni"
+
+#: app/qml/shared/StatsView.qml:324 app/qml/shared/StatsView.qml:407
+#: app/qml/shared/StatsView.qml:535 contents/ui/StatsView.qml:308
+#: contents/ui/StatsView.qml:391 contents/ui/StatsView.qml:519
+msgid "Previous week"
+msgstr "Poprzedni tydzień"
+
+#: app/qml/shared/StatsView.qml:346 app/qml/shared/StatsView.qml:427
+#: app/qml/shared/StatsView.qml:557 contents/ui/StatsView.qml:330
+#: contents/ui/StatsView.qml:411 contents/ui/StatsView.qml:541
+msgid "Next week"
+msgstr "Następny tydzień"
+
+#: app/qml/shared/StatsView.qml:356 app/qml/shared/StatsView.qml:454
+#: contents/ui/StatsView.qml:340 contents/ui/StatsView.qml:438
+msgid "No time logged this week"
+msgstr "Brak zalogowanego czasu w tym tygodniu"
+
+#: app/qml/shared/StatsView.qml:398 contents/ui/StatsView.qml:382
+msgid "Projects by hour"
+msgstr "Projekty według godzin"
+
+#: app/qml/shared/StatsView.qml:441 contents/ui/StatsView.qml:425
+msgid "Weekdays and weekend — segments placed by clock time."
+msgstr "Dni robocze i weekend — segmenty według godziny."
+
+#: app/qml/shared/StatsView.qml:443 contents/ui/StatsView.qml:427
+msgid "Weekdays — segments placed by clock time. Weekend appears when tracked."
+msgstr "Dni robocze — segmenty według godziny. Weekend pojawia się przy śledzeniu."
+
+#: app/qml/shared/StatsView.qml:444 contents/ui/StatsView.qml:428
+msgid "Axis shows business hours (%1–%2); expands if work falls outside."
+msgstr "Oś pokazuje godziny pracy (%1–%2); rozszerza się, gdy praca wypada poza."
+
+#: app/qml/shared/StatsView.qml:505 contents/ui/StatsView.qml:489
+msgid "Activity distribution"
+msgstr "Rozkład aktywności"
+
+#: app/qml/shared/StatsView.qml:520 contents/ui/StatsView.qml:504
+msgid "No activities today"
+msgstr "Brak aktywności dziś"
+
+#: app/qml/shared/StatsView.qml:568 contents/ui/StatsView.qml:552
+msgid "No activities this week"
+msgstr "Brak aktywności w tym tygodniu"
+
+#: app/qml/shared/TagPicker.qml:252 contents/ui/TagPicker.qml:253
+msgid "Add tag…"
+msgstr "Dodaj tag…"
+
+#: app/qml/shared/TagPicker.qml:253 contents/ui/TagPicker.qml:254
+msgid "Add tags…"
+msgstr "Dodaj tagi…"
+
+#: app/qml/shared/TagPicker.qml:258 contents/ui/TagPicker.qml:259
+msgid "Tags"
+msgstr "Tagi"
+
+#: app/qml/shared/TagPicker.qml:312 contents/ui/TagPicker.qml:313
+msgid "Loading tags…"
+msgstr "Wczytywanie tagów…"
+
+#: app/qml/shared/TagPicker.qml:313 contents/ui/TagPicker.qml:314
+msgid "No tags on the server yet."
+msgstr "Na serwerze nie ma jeszcze tagów."
+
+#: app/qml/shared/TagPicker.qml:366 contents/ui/TagPicker.qml:367
+msgid "Create tag “%1”"
+msgstr "Utwórz tag „%1”"
+
+#: app/qml/shared/TimeField.qml:179 contents/ui/TimeField.qml:179
+msgid "Pick time"
+msgstr "Wybierz godzinę"
+
+#: app/qml/TimerPage.qml:39 contents/ui/main.qml:1264 contents/ui/main.qml:1287
+#: contents/ui/main.qml:3133
+msgid "Today %1"
+msgstr "Dziś %1"
+
+#: app/qml/TimerPage.qml:40 contents/ui/main.qml:1265 contents/ui/main.qml:3135
+msgid "Week %1"
+msgstr "Tydzień %1"
+
+#: app/qml/TimerPage.qml:110 contents/ui/main.qml:483
+msgid "Not configured"
+msgstr "Nie skonfigurowano"
+
+#: app/qml/TimerPage.qml:111
+msgid "Connecting…"
+msgstr "Łączenie…"
+
+#: app/qml/TimerPage.qml:112 app/qml/TimerPage.qml:136 contents/ui/main.qml:489
+msgid "Connection problem"
+msgstr "Problem z połączeniem"
+
+#: app/qml/TimerPage.qml:115 contents/ui/main.qml:493
+msgid "Connected to %1 (%2)"
+msgstr "Połączono z %1 (%2)"
+
+#: app/qml/TimerPage.qml:115 contents/ui/main.qml:494
+msgid "Connected to %1"
+msgstr "Połączono z %1"
+
+#: app/qml/TimerPage.qml:128 contents/ui/main.qml:2866
+msgid "Connect a time tracker"
+msgstr "Połącz usługę rejestrowania czasu"
+
+#: app/qml/TimerPage.qml:129
+msgid "Add your service, server URL (if needed), and API token to start tracking."
+msgstr "Dodaj usługę, adres URL serwera (jeśli potrzeba) i token API, aby rozpocząć śledzenie."
+
+#: app/qml/TimerPage.qml:130 contents/ui/main.qml:2869
+msgid "Configure Plasmai"
+msgstr "Skonfiguruj Plasmai"
+
+#: app/qml/TimerPage.qml:138 contents/ui/main.qml:2882
+msgid "Retry"
+msgstr "Spróbuj ponownie"
+
+#: app/qml/TimerPage.qml:139 contents/ui/main.qml:2887
+msgid "Configure"
+msgstr "Konfiguruj"
+
+#: app/qml/TimerPage.qml:184 contents/ui/main.qml:3179
+#: contents/ui/main.qml:3217
+msgid "Edit"
+msgstr "Edytuj"
+
+#: app/qml/TimerPage.qml:254
+msgid "Description…"
+msgstr "Opis…"
+
+#: app/qml/TimerPage.qml:270
+msgid "No activity. Tap a favorite to start."
+msgstr "Brak aktywności. Dotknij ulubionej, aby rozpocząć."
+
+#: app/qml/TimerPage.qml:270
+msgid "No activity."
+msgstr "Brak aktywności."
+
+#: app/qml/TimerPage.qml:284 contents/ui/main.qml:3421
+msgid "Continue · %1 · %2"
+msgstr "Kontynuuj · %1 · %2"
+
+#: app/qml/TimerPage.qml:285 contents/ui/main.qml:3433
+msgid "Start · %1 · %2"
+msgstr "Start · %1 · %2"
+
+#: app/qml/TimerPage.qml:314 app/qml/TimerPage.qml:356
+#: contents/ui/main.qml:3492 contents/ui/main.qml:3609
+msgid "Already running."
+msgstr "Już trwa."
+
+#: app/qml/TimerPage.qml:323
+msgid "Pin an entry from Recent to add it to your favorites."
+msgstr "Przypnij wpis z listy Ostatnie, aby dodać go do ulubionych."
+
+#: app/qml/TimerPage.qml:330 contents/ui/main.qml:3573
+msgid "Recent"
+msgstr "Ostatnie"
+
+#: app/qml/TimerPage.qml:370 contents/ui/main.qml:3667
+msgid "Switch to another activity…"
+msgstr "Przełącz na inną aktywność…"
+
+#: app/qml/TimerPage.qml:370 contents/ui/main.qml:3667
+msgid "Start something else…"
+msgstr "Rozpocznij coś innego…"
+
+#: app/qml/TimerPage.qml:404 contents/ui/main.qml:2458
+#: contents/ui/main.qml:3752
+msgid "Switch"
+msgstr "Zmień"
+
+#: app/qml/TimerPage.qml:426 contents/ui/main.qml:2291
+msgid "Stop tracking?"
+msgstr "Zatrzymać rejestrowanie?"
+
+#: app/qml/TimerPage.qml:427
+msgid "Stop %1 · %2?"
+msgstr "Zatrzymać %1 · %2?"
+
+#: app/qml/TimerPage.qml:434 contents/ui/main.qml:2479
+msgid "Delete entry?"
+msgstr "Usunąć wpis?"
+
+#: app/qml/TimerPage.qml:435
+msgid "Really delete this entry?"
+msgstr "Na pewno usunąć ten wpis?"
+
+#: app/qml/TimerPage.qml:441 contents/ui/main.qml:2315
+#: contents/ui/main.qml:3678
+msgid "Switch activity"
+msgstr "Zmień aktywność"
+
+#: app/qml/TimerPage.qml:442
+msgid "Switch to %1 · %2?"
+msgstr "Przełączyć na %1 · %2?"
+
+#: app/qml/TimerPage.qml:463
+msgid "Split at:"
+msgstr "Podziel o:"
+
+#: app/qml/TimerPage.qml:488 contents/ui/main.qml:2618
+msgid "You were idle"
+msgstr "Byłeś bezczynny"
+
+#: app/qml/TimerPage.qml:497
+msgid "You were idle for %1. Keep this time, discard it, or discard and continue?"
+msgstr "Byłeś bezczynny przez %1. Zachować ten czas, odrzucić go czy odrzucić i kontynuować?"
+
+#: app/qml/TimerPage.qml:499 contents/ui/main.qml:2645
+msgid "Keep time"
+msgstr "Zachowaj czas"
+
+#: app/qml/TimerPage.qml:500 contents/ui/main.qml:2654
+msgid "Discard idle"
+msgstr "Odrzuć bezczynność"
+
+#: app/qml/TimerPage.qml:501 contents/ui/main.qml:2663
+msgid "Discard and continue"
+msgstr "Odrzuć i kontynuuj"
 
 #: contents/config/config.qml:16 contents/ui/config/ConfigDisplay.qml:482
 msgid "Display"
@@ -34,120 +996,6 @@ msgstr "Wyświetlanie"
 msgid "Maintenance"
 msgstr "Konserwacja"
 
-#: contents/config/config.qml:26 contents/ui/config/ConfigBehavior.qml:243
-msgid "Behavior"
-msgstr "Zachowanie"
-
-#: contents/ui/ActiveEditView.qml:250
-msgid "Edit start, project, activity, billable, and tags for the running entry."
-msgstr "Edytuj start, projekt, czynność, płatność i tagi bieżącego wpisu."
-
-#: contents/ui/ActiveEditView.qml:282 contents/ui/main.qml:3707
-msgid "Start"
-msgstr "Start"
-
-#: contents/ui/ActiveEditView.qml:310
-msgid "Previous entry ended at %1"
-msgstr "Poprzedni wpis zakończył się o %1"
-
-#: contents/ui/ActiveEditView.qml:320
-msgid "Elapsed time updates from the new start."
-msgstr "Czas upływający jest przeliczany od nowego startu."
-
-#: contents/ui/ActiveEditView.qml:321
-msgid "Start must be a valid time not in the future."
-msgstr "Start musi być poprawną godziną i nie może być w przyszłości."
-
-#: contents/ui/ActiveEditView.qml:345
-msgid "Save"
-msgstr "Zapisz"
-
-#: contents/ui/ActiveEditView.qml:358 contents/ui/ActiveEditView.qml:387
-#: contents/ui/main.qml:2453 contents/ui/main.qml:3735
-#: contents/ui/ManualEntryView.qml:386 contents/ui/TimeField.qml:259
-msgid "Cancel"
-msgstr "Anuluj"
-
-#: contents/ui/ActiveEditView.qml:367
-msgid "Overlapping start"
-msgstr "Nachodzący start"
-
-#: contents/ui/ActiveEditView.qml:375
-msgid "The new start is before the previous entry ended (%1). Set it anyway?"
-msgstr "Nowy start jest przed końcem poprzedniego wpisu (%1). Ustawić mimo to?"
-
-#: contents/ui/ActiveEditView.qml:381
-msgid "Set anyway"
-msgstr "Ustaw mimo to"
-
-#: contents/ui/ActivityListRow.qml:40
-msgid "Starts or switches this activity"
-msgstr "Uruchamia lub przełącza tę czynność"
-
-#: contents/ui/ActivityListRow.qml:172 contents/ui/ActivityListRow.qml:200
-msgid "Entry actions"
-msgstr "Akcje wpisu"
-
-#: contents/ui/ActivityListRow.qml:210 contents/ui/main.qml:2747
-msgid "Edit entry"
-msgstr "Edytuj wpis"
-
-#: contents/ui/ActivityListRow.qml:217 contents/ui/main.qml:2501
-msgid "Split entry"
-msgstr "Podziel wpis"
-
-#: contents/ui/ActivityListRow.qml:224
-msgid "Delete entry"
-msgstr "Usuń wpis"
-
-#: contents/ui/ApiErrors.qml:12
-msgid "Unknown error"
-msgstr "Nieznany błąd"
-
-#: contents/ui/ApiErrors.qml:16
-msgid "URL and API token are required"
-msgstr "Adres URL i token API są wymagane"
-
-#: contents/ui/ApiErrors.qml:17
-msgid "Configure your time tracker URL and API token"
-msgstr "Skonfiguruj adres URL i token API usługi rejestrowania czasu"
-
-#: contents/ui/ApiErrors.qml:20
-msgid "This action is not supported for the selected service yet."
-msgstr "Ta akcja nie jest jeszcze obsługiwana dla wybranej usługi."
-
-#: contents/ui/ApiErrors.qml:23
-msgid "Cannot reach the server. Check your network, URL, or TLS certificate."
-msgstr "Nie można połączyć się z serwerem. Sprawdź sieć, adres URL lub certyfikat TLS."
-
-#: contents/ui/ApiErrors.qml:26
-msgid "Authentication failed. Check your API token."
-msgstr "Uwierzytelnianie nie powiodło się. Sprawdź token API."
-
-#: contents/ui/ApiErrors.qml:29
-msgid "Server not found. Check your URL."
-msgstr "Nie znaleziono serwera. Sprawdź adres URL."
-
-#: contents/ui/ApiErrors.qml:32
-msgid "Access denied. Your token may lack required permissions."
-msgstr "Odmowa dostępu. Twój token może nie mieć wymaganych uprawnień."
-
-#: contents/ui/ApiErrors.qml:35
-msgid "Server error (%1)."
-msgstr "Błąd serwera (%1)."
-
-#: contents/ui/ApiErrors.qml:38
-msgid "Request failed: %1"
-msgstr "Żądanie nie powiodło się: %1"
-
-#: contents/ui/ApiErrors.qml:40
-msgid "Request failed (%1)."
-msgstr "Żądanie nie powiodło się (%1)."
-
-#: contents/ui/BarChart.qml:49 contents/ui/StackedBarChart.qml:49
-msgid "Time"
-msgstr "Czas"
-
 #: contents/ui/config/ConfigBehavior.qml:256
 msgid "Tracking:"
 msgstr "Rejestrowanie:"
@@ -155,10 +1003,6 @@ msgstr "Rejestrowanie:"
 #: contents/ui/config/ConfigBehavior.qml:259
 msgid "Confirm before stopping the timer"
 msgstr "Potwierdź przed zatrzymaniem licznika"
-
-#: contents/ui/config/ConfigBehavior.qml:268
-msgid "Ask before a start that overlaps the previous entry"
-msgstr "Pytaj, gdy start nachodzi na poprzedni wpis"
 
 #: contents/ui/config/ConfigBehavior.qml:279
 msgid "When editing the running timer, the previous entry’s end is shown. Saving an earlier start asks for confirmation."
@@ -200,140 +1044,107 @@ msgstr "Powiadom przy zatrzymaniu z powodu bezczynności"
 msgid "Remind me once if nothing is tracking during work hours"
 msgstr "Przypomnij raz, jeśli w godzinach pracy nic nie jest śledzone"
 
-#: contents/ui/config/ConfigConnection.qml:63
+#: contents/ui/config/ConfigConnection.qml:62
 msgid "Clockify cloud API is prefilled. Change only for a regional endpoint (e.g. euc1)."
 msgstr "API chmury Clockify jest wstępnie wypełnione. Zmień tylko dla regionalnego endpointu (np. euc1)."
 
-#: contents/ui/config/ConfigConnection.qml:65
+#: contents/ui/config/ConfigConnection.qml:64
 msgid "Toggl Track cloud API is prefilled. Use your personal API token from Profile settings."
 msgstr "API chmury Toggl Track jest wstępnie wypełnione. Użyj osobistego tokenu API z ustawień profilu."
 
-#: contents/ui/config/ConfigConnection.qml:67
+#: contents/ui/config/ConfigConnection.qml:66
 msgid "SolidTime cloud API is prefilled. For self-hosting, replace with your instance base URL."
 msgstr "API chmury SolidTime jest wstępnie wypełnione. Przy self-hostingu zamień na bazowy URL swojej instancji."
 
-#: contents/ui/config/ConfigConnection.qml:70
+#: contents/ui/config/ConfigConnection.qml:69
 msgid "Self-hosted Kimai or the official hosted service (kimai.cloud). Paste the instance URL."
 msgstr "Kimai self-hosted lub oficjalna usługa hostowana (kimai.cloud). Wklej URL instancji."
 
-#: contents/ui/config/ConfigConnection.qml:74
+#: contents/ui/config/ConfigConnection.qml:73
 msgid "API URL:"
 msgstr "URL API:"
 
-#: contents/ui/config/ConfigConnection.qml:75
-msgid "Server URL:"
-msgstr "Adres URL serwera:"
-
-#: contents/ui/config/ConfigConnection.qml:83
+#: contents/ui/config/ConfigConnection.qml:82
 msgid "https://api.solidtime.io or https://time.example.com"
 msgstr "https://api.solidtime.io lub https://time.example.com"
 
-#: contents/ui/config/ConfigConnection.qml:86
+#: contents/ui/config/ConfigConnection.qml:85
 msgid "https://kimai.example.com or https://www.kimai.cloud"
 msgstr "https://kimai.example.com lub https://www.kimai.cloud"
 
-#: contents/ui/config/ConfigConnection.qml:92
+#: contents/ui/config/ConfigConnection.qml:91
 msgid "API key:"
 msgstr "Klucz API:"
 
-#: contents/ui/config/ConfigConnection.qml:94
+#: contents/ui/config/ConfigConnection.qml:93
 msgid "API token:"
 msgstr "Token API:"
 
-#: contents/ui/config/ConfigConnection.qml:377
+#: contents/ui/config/ConfigConnection.qml:376
 msgid "Configure a time-tracking profile. Choose Kimai, Clockify, Toggl Track, or SolidTime."
 msgstr "Skonfiguruj profil rejestrowania czasu. Wybierz Kimai, Clockify, Toggl Track lub SolidTime."
 
-#: contents/ui/config/ConfigConnection.qml:389
-msgid "Profile:"
-msgstr "Profil:"
-
-#: contents/ui/config/ConfigConnection.qml:403
-msgid "Profile name:"
-msgstr "Nazwa profilu:"
-
-#: contents/ui/config/ConfigConnection.qml:411
+#: contents/ui/config/ConfigConnection.qml:410
 msgid "A profile named \"%1\" already exists."
 msgstr "Profil o nazwie „%1” już istnieje."
 
-#: contents/ui/config/ConfigConnection.qml:423
+#: contents/ui/config/ConfigConnection.qml:422
 msgid "Service:"
 msgstr "Usługa:"
 
-#: contents/ui/config/ConfigConnection.qml:469
+#: contents/ui/config/ConfigConnection.qml:468
 msgid "Paste token to save in KWallet"
 msgstr "Wklej token, aby zapisać w KWallet"
 
-#: contents/ui/config/ConfigConnection.qml:482
+#: contents/ui/config/ConfigConnection.qml:481
 msgid "Add profile"
 msgstr "Dodaj profil"
 
-#: contents/ui/config/ConfigConnection.qml:491
-#: contents/ui/config/ConfigConnection.qml:496
-msgid "Profile %1"
-msgstr "Profil %1"
-
-#: contents/ui/config/ConfigConnection.qml:510
-msgid "Remove"
-msgstr "Usuń"
-
-#: contents/ui/config/ConfigConnection.qml:532
+#: contents/ui/config/ConfigConnection.qml:531
 msgid "Use this profile"
 msgstr "Użyj tego profilu"
 
-#: contents/ui/config/ConfigConnection.qml:548
-msgid "none"
-msgstr "brak"
-
-#: contents/ui/config/ConfigConnection.qml:548
+#: contents/ui/config/ConfigConnection.qml:547
 msgid "Active profile: %1"
 msgstr "Aktywny profil: %1"
 
-#: contents/ui/config/ConfigConnection.qml:561
-msgid "Saving…"
-msgstr "Zapisywanie…"
-
-#: contents/ui/config/ConfigConnection.qml:561
-msgid "Save token"
-msgstr "Zapisz token"
-
-#: contents/ui/config/ConfigConnection.qml:575
+#: contents/ui/config/ConfigConnection.qml:573
 msgid "Token saved to KWallet for this profile."
 msgstr "Token zapisany w KWallet dla tego profilu."
 
-#: contents/ui/config/ConfigConnection.qml:577
+#: contents/ui/config/ConfigConnection.qml:576
 msgid "Failed to save token"
 msgstr "Nie udało się zapisać tokenu"
 
-#: contents/ui/config/ConfigConnection.qml:583
+#: contents/ui/config/ConfigConnection.qml:581
 msgid "Clear token"
 msgstr "Wyczyść token"
 
-#: contents/ui/config/ConfigConnection.qml:594
+#: contents/ui/config/ConfigConnection.qml:591
 msgid "Token removed from KWallet."
 msgstr "Token usunięty z KWallet."
 
-#: contents/ui/config/ConfigConnection.qml:596
+#: contents/ui/config/ConfigConnection.qml:594
 msgid "Failed to clear token"
 msgstr "Nie udało się wyczyścić tokenu"
 
-#: contents/ui/config/ConfigConnection.qml:602
+#: contents/ui/config/ConfigConnection.qml:599
 msgid "Test connection"
 msgstr "Testuj połączenie"
 
-#: contents/ui/config/ConfigConnection.qml:607
+#: contents/ui/config/ConfigConnection.qml:604
 msgid "Testing connection…"
 msgstr "Testowanie połączenia…"
 
-#: contents/ui/config/ConfigConnection.qml:621
+#: contents/ui/config/ConfigConnection.qml:613
 msgid "No API token stored. Save a token first."
 msgstr "Brak zapisanego tokenu API. Najpierw zapisz token."
 
-#: contents/ui/config/ConfigConnection.qml:629
+#: contents/ui/config/ConfigConnection.qml:621
 msgid "ok"
 msgstr "ok"
 
-#: contents/ui/config/ConfigConnection.qml:630
+#: contents/ui/config/ConfigConnection.qml:622
 msgid "Connected to %1 (%2)."
 msgstr "Połączono z %1 (%2)."
 
@@ -417,10 +1228,6 @@ msgstr "Wyższe wartości podobieństwa uznają więcej kolorów za zbyt bliskie
 msgid "Color distinction is available for Kimai profiles (per-customer / project / activity colors)."
 msgstr "Rozróżnianie kolorów jest dostępne dla profili Kimai (kolory klienta / projektu / czynności)."
 
-#: contents/ui/config/ConfigDisplay.qml:591
-msgid "Work hours"
-msgstr "Godziny pracy"
-
 #: contents/ui/config/ConfigDisplay.qml:597
 msgid "Usual work day start:"
 msgstr "Początek zwykłego dnia pracy:"
@@ -442,10 +1249,6 @@ msgstr "Miniwykres dnia"
 #: contents/ui/config/ConfigDisplay.qml:633
 msgid "Arcs:"
 msgstr "Łuki:"
-
-#: contents/ui/config/ConfigDisplay.qml:636
-msgid "Show sun, moon, and work arcs"
-msgstr "Pokaż łuki słońca, księżyca i pracy"
 
 #: contents/ui/config/ConfigDisplay.qml:647
 msgid "Hide the whole sparkline under Panel flyout or Desktop widget below."
@@ -553,757 +1356,366 @@ msgstr "Pokazywane czynności:"
 msgid "Applies to both the panel flyout and the desktop widget."
 msgstr "Dotyczy menu panelu i widgetu pulpitu."
 
-#: contents/ui/config/ConfigFavorites.qml:86
-#: contents/ui/config/ConfigFavorites.qml:309
-#: contents/ui/config/ConfigFavorites.qml:321
+#: contents/ui/config/ConfigFavorites.qml:84
+#: contents/ui/config/ConfigFavorites.qml:307
+#: contents/ui/config/ConfigFavorites.qml:319
 msgid "Loading projects…"
 msgstr "Ładowanie projektów…"
 
-#: contents/ui/config/ConfigFavorites.qml:107
-#: contents/ui/config/ConfigFavorites.qml:292
+#: contents/ui/config/ConfigFavorites.qml:105
+#: contents/ui/config/ConfigFavorites.qml:290
 msgid "Configure a Kimai URL on the Connection tab first."
 msgstr "Najpierw skonfiguruj adres URL Kimai na karcie Połączenie."
 
-#: contents/ui/config/ConfigFavorites.qml:245
+#: contents/ui/config/ConfigFavorites.qml:243
 msgid "Loaded %1 projects."
 msgstr "Załadowano %1 projektów."
 
-#: contents/ui/config/ConfigFavorites.qml:262
-#: contents/ui/config/ConfigFavorites.qml:266
+#: contents/ui/config/ConfigFavorites.qml:260
+#: contents/ui/config/ConfigFavorites.qml:264
 msgid "Select a project to pin activities."
 msgstr "Wybierz projekt, aby przypiąć aktywności."
 
-#: contents/ui/config/ConfigFavorites.qml:327
-#: contents/ui/config/ConfigMaintenance.qml:290
+#: contents/ui/config/ConfigFavorites.qml:325
+#: contents/ui/config/ConfigMaintenance.qml:288
 msgid "Save an API token on the Connection tab first."
 msgstr "Najpierw zapisz token API na karcie Połączenie."
 
-#: contents/ui/config/ConfigFavorites.qml:339
+#: contents/ui/config/ConfigFavorites.qml:337
 msgid "Failed to load projects."
 msgstr "Nie udało się załadować projektów."
 
-#: contents/ui/config/ConfigFavorites.qml:372
-#: contents/ui/config/ConfigFavorites.qml:409
+#: contents/ui/config/ConfigFavorites.qml:370
+#: contents/ui/config/ConfigFavorites.qml:407
 msgid "Loading activities…"
 msgstr "Ładowanie aktywności…"
 
-#: contents/ui/config/ConfigFavorites.qml:396
-#: contents/ui/config/ConfigFavorites.qml:430
+#: contents/ui/config/ConfigFavorites.qml:394
+#: contents/ui/config/ConfigFavorites.qml:428
 msgid "%1 project-specific, %2 global"
 msgstr "%1 specyficznych dla projektu, %2 globalnych"
 
-#: contents/ui/config/ConfigFavorites.qml:412
+#: contents/ui/config/ConfigFavorites.qml:410
 msgid "No API token available."
 msgstr "Brak dostępnego tokenu API."
 
-#: contents/ui/config/ConfigFavorites.qml:434
+#: contents/ui/config/ConfigFavorites.qml:432
 msgid "Failed to load activities."
 msgstr "Nie udało się załadować aktywności."
 
-#: contents/ui/config/ConfigFavorites.qml:466 contents/ui/main.qml:248
+#: contents/ui/config/ConfigFavorites.qml:464 contents/ui/main.qml:250
 msgid "Project-specific"
 msgstr "Specyficzne dla projektu"
 
-#: contents/ui/config/ConfigFavorites.qml:469 contents/ui/main.qml:249
+#: contents/ui/config/ConfigFavorites.qml:467 contents/ui/main.qml:251
 msgid "Global activities"
 msgstr "Globalne aktywności"
 
-#: contents/ui/config/ConfigFavorites.qml:516
-#: contents/ui/config/ConfigMaintenance.qml:551
-msgid "Projects"
-msgstr "Projekty"
-
-#: contents/ui/config/ConfigFavorites.qml:521
-msgid "Reload"
-msgstr "Odśwież"
-
-#: contents/ui/config/ConfigFavorites.qml:539
-#: contents/ui/config/ConfigFavorites.qml:618
+#: contents/ui/config/ConfigFavorites.qml:537
+#: contents/ui/config/ConfigFavorites.qml:616
 msgid "Loading projects"
 msgstr "Wczytywanie projektów"
 
-#: contents/ui/config/ConfigFavorites.qml:636
+#: contents/ui/config/ConfigFavorites.qml:634
 msgid "Activities — %1"
 msgstr "Aktywności — %1"
 
-#: contents/ui/config/ConfigFavorites.qml:637
-#: contents/ui/config/ConfigMaintenance.qml:624
-msgid "Activities"
-msgstr "Aktywności"
-
-#: contents/ui/config/ConfigMaintenance.qml:154
+#: contents/ui/config/ConfigMaintenance.qml:152
 msgid "Color distinction is off. Enable it in Display settings to see clash groups."
 msgstr "Rozróżnianie kolorów jest wyłączone. Włącz je w Ustawieniach wyświetlania, aby zobaczyć grupy konfliktów."
 
-#: contents/ui/config/ConfigMaintenance.qml:156
+#: contents/ui/config/ConfigMaintenance.qml:154
 msgid "Loaded %1 customers, %2 projects, %3 activities. No similar colors within a category."
 msgstr "Załadowano %1 klientów, %2 projektów, %3 aktywności. Brak podobnych kolorów w kategorii."
 
-#: contents/ui/config/ConfigMaintenance.qml:159
-#: contents/ui/config/ConfigMaintenance.qml:186
+#: contents/ui/config/ConfigMaintenance.qml:157
+#: contents/ui/config/ConfigMaintenance.qml:184
 msgid "Loaded %1 customers, %2 projects, %3 activities. %4 clash group(s), %5 color(s) shifted."
 msgstr "Załadowano %1 klientów, %2 projektów, %3 aktywności. %4 grup(y) konfliktów, %5 kolor(ów) przesuniętych."
 
-#: contents/ui/config/ConfigMaintenance.qml:232
+#: contents/ui/config/ConfigMaintenance.qml:230
 msgid "Color distinction is only available for Kimai profiles."
 msgstr "Rozróżnianie kolorów jest dostępne tylko dla profili Kimai."
 
-#: contents/ui/config/ConfigMaintenance.qml:236
+#: contents/ui/config/ConfigMaintenance.qml:234
 msgid "Configure a server URL on the Connection tab first."
 msgstr "Najpierw skonfiguruj URL serwera w zakładce Połączenie."
 
-#: contents/ui/config/ConfigMaintenance.qml:282
+#: contents/ui/config/ConfigMaintenance.qml:280
 msgid "Loading customers, projects, and activities…"
 msgstr "Ładowanie klientów, projektów i aktywności…"
 
-#: contents/ui/config/ConfigMaintenance.qml:421
-msgid "Color maintenance is for Kimai"
-msgstr "Konserwacja kolorów dotyczy Kimai"
-
-#: contents/ui/config/ConfigMaintenance.qml:422
+#: contents/ui/config/ConfigMaintenance.qml:420
 msgid "Clockify, Toggl, and SolidTime do not expose Kimai-style customer / project / activity colors, so clash groups and color shifting are hidden for those profiles."
 msgstr "Clockify, Toggl i SolidTime nie udostępniają kolorów klienta / projektu / czynności jak Kimai, więc grupy konfliktów i przesunięcia kolorów są ukryte dla tych profili."
 
-#: contents/ui/config/ConfigMaintenance.qml:429
+#: contents/ui/config/ConfigMaintenance.qml:427
 msgid "Only colors that clash within a category are listed. Each group starts with the entry that kept the Kimai color; shifted variants follow. Unique colors are hidden."
 msgstr "Wyświetlane są tylko kolory konfliktujące w kategorii. Każda grupa zaczyna się od wpisu, który zachował kolor Kimai; potem warianty przesunięte. Unikalne kolory są ukryte."
 
-#: contents/ui/config/ConfigMaintenance.qml:436
+#: contents/ui/config/ConfigMaintenance.qml:434
 msgid "Reload from server"
 msgstr "Przeładuj z serwera"
 
-#: contents/ui/config/ConfigMaintenance.qml:455
+#: contents/ui/config/ConfigMaintenance.qml:453
 msgid "Distinction on · configured %1% · effective customers %2% / projects %3% / activities %4%"
 msgstr "Rozróżnianie włączone · skonfigurowano %1% · efektywnie klienci %2% / projekty %3% / aktywności %4%"
 
-#: contents/ui/config/ConfigMaintenance.qml:460
+#: contents/ui/config/ConfigMaintenance.qml:458
 msgid "Distinction off — enable it in Display settings."
 msgstr "Rozróżnianie wyłączone — włącz w Ustawieniach wyświetlania."
 
-#: contents/ui/config/ConfigMaintenance.qml:478
-msgid "Customers"
-msgstr "Klienci"
-
-#: contents/ui/config/ConfigMaintenance.qml:484
-#: contents/ui/config/ConfigMaintenance.qml:557
-#: contents/ui/config/ConfigMaintenance.qml:630
+#: contents/ui/config/ConfigMaintenance.qml:482
+#: contents/ui/config/ConfigMaintenance.qml:555
+#: contents/ui/config/ConfigMaintenance.qml:628
 msgid "No similar colors in this category."
 msgstr "Brak podobnych kolorów w tej kategorii."
 
-#: contents/ui/config/ConfigMaintenance.qml:539
-#: contents/ui/config/ConfigMaintenance.qml:612
-#: contents/ui/config/ConfigMaintenance.qml:685
-msgid "kept"
-msgstr "zachowany"
-
-#: contents/ui/config/ConfigMaintenance.qml:540
-#: contents/ui/config/ConfigMaintenance.qml:613
-#: contents/ui/config/ConfigMaintenance.qml:686
-msgid "shifted"
-msgstr "przesunięty"
-
-#: contents/ui/CreateEntityDialog.qml:42 contents/ui/CreateEntityDialog.qml:174
-msgid "Create customer"
-msgstr "Utwórz klienta"
-
-#: contents/ui/CreateEntityDialog.qml:45
-#: contents/ui/ProjectActivityPickers.qml:98
-msgid "Create activity"
-msgstr "Utwórz czynność"
-
-#: contents/ui/CreateEntityDialog.qml:47
-#: contents/ui/ProjectActivityPickers.qml:64
-msgid "Create project"
-msgstr "Utwórz projekt"
-
-#: contents/ui/CreateEntityDialog.qml:84
-msgid "Activity will be added to %1."
-msgstr "Czynność zostanie dodana do %1."
-
-#: contents/ui/CreateEntityDialog.qml:89 contents/ui/CreateEntityDialog.qml:97
-msgid "Name"
-msgstr "Nazwa"
-
-#: contents/ui/CreateEntityDialog.qml:104
-#: contents/ui/CreateEntityDialog.qml:115
-msgid "Customer"
-msgstr "Klient"
-
-#: contents/ui/CreateEntityDialog.qml:141
-msgid "Select customer…"
-msgstr "Wybierz klienta…"
-
-#: contents/ui/DateField.qml:204
-msgid "Pick date"
-msgstr "Wybierz datę"
-
-#: contents/ui/DaySparkline.qml:491
-msgid "Today's tracked time"
-msgstr "Czas zarejestrowany dzisiaj"
-
-#: contents/ui/main.qml:308 contents/ui/main.qml:310 contents/ui/main.qml:2161
-#: contents/ui/main.qml:2748
-msgid "Plasmai"
-msgstr "Plasmai"
-
-#: contents/ui/main.qml:314
+#: contents/ui/main.qml:316
 msgid "Loading…"
 msgstr "Ładowanie…"
 
-#: contents/ui/main.qml:317
+#: contents/ui/main.qml:319
 msgid "Not configured — right-click to configure"
 msgstr "Nie skonfigurowano — kliknij prawym przyciskiem, aby skonfigurować"
 
-#: contents/ui/main.qml:441
-msgid "just now"
-msgstr "przed chwilą"
-
-#: contents/ui/main.qml:445
+#: contents/ui/main.qml:452
 msgid "%1 minute ago"
 msgid_plural "%1 minutes ago"
 msgstr[0] "%1 minutę temu"
 msgstr[1] "%1 minuty temu"
 msgstr[2] "%1 minut temu"
 
-#: contents/ui/main.qml:449
+#: contents/ui/main.qml:456
 msgid "%1 hour ago"
 msgid_plural "%1 hours ago"
 msgstr[0] "%1 godzinę temu"
 msgstr[1] "%1 godziny temu"
 msgstr[2] "%1 godzin temu"
 
-#: contents/ui/main.qml:453
-msgid "yesterday"
-msgstr "wczoraj"
-
-#: contents/ui/main.qml:456
+#: contents/ui/main.qml:463
 msgid "%1 day ago"
 msgid_plural "%1 days ago"
 msgstr[0] "%1 dzień temu"
 msgstr[1] "%1 dni temu"
 msgstr[2] "%1 dni temu"
 
-#: contents/ui/main.qml:476
-msgid "Not configured"
-msgstr "Nie skonfigurowano"
-
-#: contents/ui/main.qml:479
+#: contents/ui/main.qml:486
 msgid "Connecting to %1…"
 msgstr "Łączenie z %1…"
 
-#: contents/ui/main.qml:482
-msgid "Connection problem"
-msgstr "Problem z połączeniem"
-
-#: contents/ui/main.qml:486
-msgid "Connected to %1 (%2)"
-msgstr "Połączono z %1 (%2)"
-
-#: contents/ui/main.qml:487
-msgid "Connected to %1"
-msgstr "Połączono z %1"
-
-#: contents/ui/main.qml:611
-msgid "Idle time discarded"
-msgstr "Czas bezczynności odrzucony"
-
-#: contents/ui/main.qml:636
-msgid "Nothing is tracking"
-msgstr "Nic nie jest śledzone"
-
-#: contents/ui/main.qml:637
+#: contents/ui/main.qml:644
 msgid "Work hours have started. Start a timer when you begin."
 msgstr "Godziny pracy się zaczęły. Uruchom timer, gdy zaczniesz."
 
-#: contents/ui/main.qml:699
+#: contents/ui/main.qml:706
 msgid "Customer created"
 msgstr "Utworzono klienta"
 
-#: contents/ui/main.qml:716
+#: contents/ui/main.qml:723
 msgid "Project created"
 msgstr "Utworzono projekt"
 
-#: contents/ui/main.qml:734
+#: contents/ui/main.qml:741
 msgid "Activity created"
 msgstr "Utworzono czynność"
 
-#: contents/ui/main.qml:818
+#: contents/ui/main.qml:825
 msgid "This provider cannot update the running entry."
 msgstr "Ten dostawca nie może zaktualizować bieżącego wpisu."
 
-#: contents/ui/main.qml:830
+#: contents/ui/main.qml:837
 msgid "Enter a valid start date/time."
 msgstr "Podaj prawidłową datę/godzinę rozpoczęcia."
 
-#: contents/ui/main.qml:834
+#: contents/ui/main.qml:841
 msgid "Start must not be in the future."
 msgstr "Start nie może być w przyszłości."
 
-#: contents/ui/main.qml:944
+#: contents/ui/main.qml:951
 msgid "Enter valid begin and end date/time."
 msgstr "Wprowadź prawidłową datę i godzinę rozpoczęcia oraz zakończenia."
 
-#: contents/ui/main.qml:948
+#: contents/ui/main.qml:955
 msgid "End must be after begin."
 msgstr "Koniec musi być po rozpoczęciu."
 
-#: contents/ui/main.qml:973
+#: contents/ui/main.qml:980
 msgid "Entry added"
 msgstr "Wpis dodany"
 
-#: contents/ui/main.qml:973
+#: contents/ui/main.qml:980
 msgid "Entry updated"
 msgstr "Zaktualizowano wpis"
 
-#: contents/ui/main.qml:974
+#: contents/ui/main.qml:981
 msgid "Manual time entry"
 msgstr "Ręczny wpis czasu"
 
-#: contents/ui/main.qml:974
+#: contents/ui/main.qml:981
 msgid "Timesheet updated"
 msgstr "Zaktualizowano timesheet"
 
-#: contents/ui/main.qml:982
+#: contents/ui/main.qml:989
 msgid "This provider cannot update stopped entries."
 msgstr "Ten serwis nie może aktualizować zatrzymanych wpisów."
 
-#: contents/ui/main.qml:1180
+#: contents/ui/main.qml:1190
 msgid "Tracking in progress"
 msgstr "Śledzenie w toku"
 
-#: contents/ui/main.qml:1218
+#: contents/ui/main.qml:1228
 msgid "This provider cannot update descriptions."
 msgstr "Ten serwis nie może aktualizować opisów."
 
-#: contents/ui/main.qml:1240
-msgid "%1 left today"
-msgstr "Pozostało dziś: %1"
-
-#: contents/ui/main.qml:1242
-msgid "%1 over today"
-msgstr "Przekroczono dziś o %1"
-
-#: contents/ui/main.qml:1247
-msgid "%1 left this week"
-msgstr "Pozostało w tym tygodniu: %1"
-
-#: contents/ui/main.qml:1249
-msgid "%1 over this week"
-msgstr "Przekroczono w tym tygodniu o %1"
-
-#: contents/ui/main.qml:1254 contents/ui/main.qml:1277
-#: contents/ui/main.qml:3122
-msgid "Today %1"
-msgstr "Dziś %1"
-
-#: contents/ui/main.qml:1255 contents/ui/main.qml:3124
-msgid "Week %1"
-msgstr "Tydzień %1"
-
-#: contents/ui/main.qml:1828 contents/ui/main.qml:1961
+#: contents/ui/main.qml:1838 contents/ui/main.qml:1971
 msgid "Tracking started"
 msgstr "Rozpoczęto rejestrowanie"
 
-#: contents/ui/main.qml:1868
+#: contents/ui/main.qml:1878
 msgid "Switched activity"
 msgstr "Zmieniono aktywność"
 
-#: contents/ui/main.qml:1923
+#: contents/ui/main.qml:1933
 msgid "Tracking stopped (idle)"
 msgstr "Rejestrowanie zatrzymane (bezczynność)"
 
-#: contents/ui/main.qml:1927
+#: contents/ui/main.qml:1937
 msgid "Tracking stopped"
 msgstr "Rejestrowanie zatrzymane"
 
-#: contents/ui/main.qml:2028
+#: contents/ui/main.qml:2038
 msgid "Could not resolve project or activity for that entry"
 msgstr "Nie udało się rozpoznać projektu lub aktywności dla tego wpisu"
 
-#: contents/ui/main.qml:2067
+#: contents/ui/main.qml:2077
 msgid "This provider cannot delete entries."
 msgstr "Ten serwis nie może usuwać wpisów."
 
-#: contents/ui/main.qml:2080
+#: contents/ui/main.qml:2090
 msgid "Entry deleted"
 msgstr "Usunięto wpis"
 
-#: contents/ui/main.qml:2112 contents/ui/main.qml:2594
+#: contents/ui/main.qml:2122 contents/ui/main.qml:2605
 msgid "Split time must be between begin and end."
 msgstr "Czas podziału musi być między początkiem a końcem."
 
-#: contents/ui/main.qml:2117
+#: contents/ui/main.qml:2127
 msgid "This provider cannot split entries."
 msgstr "Ten serwis nie może dzielić wpisów."
 
-#: contents/ui/main.qml:2146
+#: contents/ui/main.qml:2156
 msgid "Entry split"
 msgstr "Podzielono wpis"
 
-#: contents/ui/main.qml:2150
+#: contents/ui/main.qml:2160
 msgid "The first half was saved, but the second half could not be created."
 msgstr "Pierwsza połowa została zapisana, ale drugiej nie udało się utworzyć."
 
-#: contents/ui/main.qml:2162
+#: contents/ui/main.qml:2172
 msgid "Open or close the Plasmai popup"
 msgstr "Otwórz lub zamknij wyskakujące okno Plasmai"
 
-#: contents/ui/main.qml:2280
-msgid "Stop tracking?"
-msgstr "Zatrzymać rejestrowanie?"
-
-#: contents/ui/main.qml:2293
+#: contents/ui/main.qml:2304
 msgid "Stop tracking %1 · %2?"
 msgstr "Zatrzymać rejestrowanie %1 · %2?"
 
-#: contents/ui/main.qml:2304 contents/ui/main.qml:3649
-msgid "Switch activity"
-msgstr "Zmień aktywność"
-
-#: contents/ui/main.qml:2413
+#: contents/ui/main.qml:2424
 msgid "Current"
 msgstr "Bieżąca"
 
-#: contents/ui/main.qml:2434
+#: contents/ui/main.qml:2445
 msgid "Switch to"
 msgstr "Przełącz na"
 
-#: contents/ui/main.qml:2447 contents/ui/main.qml:3723
-msgid "Switch"
-msgstr "Zmień"
-
-#: contents/ui/main.qml:2468
-msgid "Delete entry?"
-msgstr "Usunąć wpis?"
-
-#: contents/ui/main.qml:2485
+#: contents/ui/main.qml:2496
 msgid "Delete this finished entry? This cannot be undone."
 msgstr "Usunąć ten zakończony wpis? Tego nie można cofnąć."
 
-#: contents/ui/main.qml:2487
+#: contents/ui/main.qml:2498
 msgid "Delete \"%1 · %2\"? This cannot be undone."
 msgstr "Usunąć „%1 · %2”? Tego nie można cofnąć."
 
-#: contents/ui/main.qml:2552
+#: contents/ui/main.qml:2563
 msgid "The first half keeps the original start. The second half starts at the split time."
 msgstr "Pierwsza połowa zachowuje oryginalny start. Druga zaczyna się w chwili podziału."
 
-#: contents/ui/main.qml:2557
+#: contents/ui/main.qml:2568
 msgid "Split at"
 msgstr "Podziel o"
 
-#: contents/ui/main.qml:2593
+#: contents/ui/main.qml:2604
 msgid "Both halves will have a positive duration."
 msgstr "Obie połowy będą miały dodatni czas trwania."
 
-#: contents/ui/main.qml:2607
-msgid "You were idle"
-msgstr "Byłeś bezczynny"
-
-#: contents/ui/main.qml:2625
+#: contents/ui/main.qml:2636
 msgid "Keep the time, discard the idle gap, or discard and continue the same activity."
 msgstr "Zachowaj czas, odrzuć lukę bezczynności albo odrzuć i kontynuuj tę samą czynność."
 
-#: contents/ui/main.qml:2634
-msgid "Keep time"
-msgstr "Zachowaj czas"
-
-#: contents/ui/main.qml:2643
-msgid "Discard idle"
-msgstr "Odrzuć bezczynność"
-
-#: contents/ui/main.qml:2652
-msgid "Discard and continue"
-msgstr "Odrzuć i kontynuuj"
-
-#: contents/ui/main.qml:2745 contents/ui/main.qml:2799
-msgid "Statistics"
-msgstr "Statystyki"
-
-#: contents/ui/main.qml:2747 contents/ui/main.qml:2784
-msgid "Add entry"
-msgstr "Dodaj wpis"
-
-#: contents/ui/main.qml:2790
+#: contents/ui/main.qml:2801
 msgid "Add a manual time entry"
 msgstr "Dodaj ręczny wpis czasu"
 
-#: contents/ui/main.qml:2805
+#: contents/ui/main.qml:2816
 msgid "Show statistics"
 msgstr "Pokaż statystyki"
 
-#: contents/ui/main.qml:2813
+#: contents/ui/main.qml:2824
 msgid "Back"
 msgstr "Wstecz"
 
-#: contents/ui/main.qml:2818
+#: contents/ui/main.qml:2829
 msgid "Back to timer"
 msgstr "Wróć do licznika"
 
-#: contents/ui/main.qml:2855
-msgid "Connect a time tracker"
-msgstr "Połącz usługę rejestrowania czasu"
-
-#: contents/ui/main.qml:2856
+#: contents/ui/main.qml:2867
 msgid "Add your service, server URL (if needed), and API token to start tracking from the panel."
 msgstr "Dodaj usługę, adres URL serwera (jeśli potrzebny) i token API, aby rozpocząć rejestrowanie z panelu."
 
-#: contents/ui/main.qml:2858
-msgid "Configure Plasmai"
-msgstr "Skonfiguruj Plasmai"
-
-#: contents/ui/main.qml:2871
-msgid "Retry"
-msgstr "Spróbuj ponownie"
-
-#: contents/ui/main.qml:2876
-msgid "Configure"
-msgstr "Konfiguruj"
-
-#: contents/ui/main.qml:3021
+#: contents/ui/main.qml:3032
 msgid "Not tracking"
 msgstr "Brak rejestrowania"
 
-#: contents/ui/main.qml:3168 contents/ui/main.qml:3206
-msgid "Edit"
-msgstr "Edytuj"
-
-#: contents/ui/main.qml:3180 contents/ui/main.qml:3219
+#: contents/ui/main.qml:3191 contents/ui/main.qml:3230
 msgid "Edit start, project, and activity"
 msgstr "Edytuj start, projekt i aktywność"
 
-#: contents/ui/main.qml:3192 contents/ui/main.qml:3228
-msgid "Stop"
-msgstr "Stop"
-
-#: contents/ui/main.qml:3284
+#: contents/ui/main.qml:3295
 msgid "Description"
 msgstr "Opis"
 
-#: contents/ui/main.qml:3355
+#: contents/ui/main.qml:3366
 msgid "Save description"
 msgstr "Zapisz opis"
 
-#: contents/ui/main.qml:3410
-msgid "Continue · %1 · %2"
-msgstr "Kontynuuj · %1 · %2"
-
-#: contents/ui/main.qml:3422
-msgid "Start · %1 · %2"
-msgstr "Start · %1 · %2"
-
-#: contents/ui/main.qml:3478 contents/ui/main.qml:3588
-msgid "Already running."
-msgstr "Już trwa."
-
-#: contents/ui/main.qml:3513
+#: contents/ui/main.qml:3534
 msgid "No favorites yet"
 msgstr "Brak ulubionych"
 
-#: contents/ui/main.qml:3519
+#: contents/ui/main.qml:3540
 msgid "Pin frequent project/activity pairs in the widget settings."
 msgstr "Przypnij często używane pary projekt/aktywność w ustawieniach widgetu."
 
-#: contents/ui/main.qml:3525
+#: contents/ui/main.qml:3546
 msgid "Configure favorites"
 msgstr "Skonfiguruj ulubione"
 
-#: contents/ui/main.qml:3541
+#: contents/ui/main.qml:3562
 msgid "+%1 more in settings"
 msgstr "+%1 więcej w ustawieniach"
 
-#: contents/ui/main.qml:3552
-msgid "Recent"
-msgstr "Ostatnie"
-
-#: contents/ui/main.qml:3626
+#: contents/ui/main.qml:3655
 msgid "No recent activities"
 msgstr "Brak ostatnich aktywności"
 
-#: contents/ui/main.qml:3627
+#: contents/ui/main.qml:3656
 msgid "Start tracking to build your recent list."
 msgstr "Rozpocznij rejestrowanie, aby utworzyć listę ostatnich."
 
-#: contents/ui/main.qml:3638
-msgid "Switch to another activity…"
-msgstr "Przełącz na inną aktywność…"
-
-#: contents/ui/main.qml:3638
-msgid "Start something else…"
-msgstr "Rozpocznij coś innego…"
-
-#: contents/ui/main.qml:3649
+#: contents/ui/main.qml:3678
 msgid "New activity"
 msgstr "Nowa aktywność"
-
-#: contents/ui/main.qml:3693 contents/ui/ManualEntryView.qml:344
-msgid "Description (optional)"
-msgstr "Opis (opcjonalnie)"
-
-#: contents/ui/ManualEntryView.qml:243
-msgid "Change project, activity, range, billable, and tags for this finished entry."
-msgstr "Zmień projekt, czynność, zakres, płatność i tagi tego zakończonego wpisu."
-
-#: contents/ui/ManualEntryView.qml:244
-msgid "Create a finished entry with project, activity, and time range."
-msgstr "Utwórz zakończony wpis z projektem, aktywnością i zakresem czasu."
-
-#: contents/ui/ManualEntryView.qml:276
-msgid "Begin"
-msgstr "Początek"
-
-#: contents/ui/ManualEntryView.qml:300
-msgid "End"
-msgstr "Koniec"
-
-#: contents/ui/ManualEntryView.qml:330
-msgid "Duration: %1"
-msgstr "Czas trwania: %1"
-
-#: contents/ui/ManualEntryView.qml:334
-msgid "Duration: —"
-msgstr "Czas trwania: —"
-
-#: contents/ui/ManualEntryView.qml:336
-msgid "Duration: invalid range"
-msgstr "Czas trwania: nieprawidłowy zakres"
-
-#: contents/ui/ManualEntryView.qml:368
-msgid "Save changes"
-msgstr "Zapisz zmiany"
-
-#: contents/ui/ManualEntryView.qml:368
-msgid "Save entry"
-msgstr "Zapisz wpis"
-
-#: contents/ui/ProjectActivityPickers.qml:52
-msgid "Select project…"
-msgstr "Wybierz projekt…"
-
-#: contents/ui/ProjectActivityPickers.qml:88
-msgid "Select activity…"
-msgstr "Wybierz aktywność…"
-
-#: contents/ui/StatsView.qml:46
-msgid "All"
-msgstr "Wszystkie"
-
-#: contents/ui/StatsView.qml:47 contents/ui/TimesheetMetaFields.qml:43
-msgid "Billable"
-msgstr "Płatne"
-
-#: contents/ui/StatsView.qml:48
-msgid "Non-billable"
-msgstr "Niepłatne"
-
-#: contents/ui/StatsView.qml:207 contents/ui/StatsView.qml:261
-#: contents/ui/StatsView.qml:501
-msgid "Today"
-msgstr "Dziś"
-
-#: contents/ui/StatsView.qml:219 contents/ui/StatsView.qml:318
-#: contents/ui/StatsView.qml:401 contents/ui/StatsView.qml:529
-msgid "This week"
-msgstr "Ten tydzień"
-
-#: contents/ui/StatsView.qml:240
-msgid "Time by hour"
-msgstr "Czas według godzin"
-
-#: contents/ui/StatsView.qml:251
-msgid "Previous day"
-msgstr "Poprzedni dzień"
-
-#: contents/ui/StatsView.qml:264
-msgid "Yesterday"
-msgstr "Wczoraj"
-
-#: contents/ui/StatsView.qml:276
-msgid "Next day"
-msgstr "Następny dzień"
-
-#: contents/ui/StatsView.qml:286
-msgid "No time logged this day"
-msgstr "Brak zalogowanego czasu w tym dniu"
-
-#: contents/ui/StatsView.qml:297
-msgid "Projects by day"
-msgstr "Projekty według dni"
-
-#: contents/ui/StatsView.qml:308 contents/ui/StatsView.qml:391
-#: contents/ui/StatsView.qml:519
-msgid "Previous week"
-msgstr "Poprzedni tydzień"
-
-#: contents/ui/StatsView.qml:330 contents/ui/StatsView.qml:411
-#: contents/ui/StatsView.qml:541
-msgid "Next week"
-msgstr "Następny tydzień"
-
-#: contents/ui/StatsView.qml:340 contents/ui/StatsView.qml:438
-msgid "No time logged this week"
-msgstr "Brak zalogowanego czasu w tym tygodniu"
-
-#: contents/ui/StatsView.qml:382
-msgid "Projects by hour"
-msgstr "Projekty według godzin"
-
-#: contents/ui/StatsView.qml:425
-msgid "Weekdays and weekend — segments placed by clock time."
-msgstr "Dni robocze i weekend — segmenty według godziny."
-
-#: contents/ui/StatsView.qml:427
-msgid "Weekdays — segments placed by clock time. Weekend appears when tracked."
-msgstr "Dni robocze — segmenty według godziny. Weekend pojawia się przy śledzeniu."
-
-#: contents/ui/StatsView.qml:428
-msgid "Axis shows business hours (%1–%2); expands if work falls outside."
-msgstr "Oś pokazuje godziny pracy (%1–%2); rozszerza się, gdy praca wypada poza."
-
-#: contents/ui/StatsView.qml:489
-msgid "Activity distribution"
-msgstr "Rozkład aktywności"
-
-#: contents/ui/StatsView.qml:504
-msgid "No activities today"
-msgstr "Brak aktywności dziś"
-
-#: contents/ui/StatsView.qml:552
-msgid "No activities this week"
-msgstr "Brak aktywności w tym tygodniu"
-
-#: contents/ui/TagPicker.qml:253
-msgid "Add tag…"
-msgstr "Dodaj tag…"
-
-#: contents/ui/TagPicker.qml:254
-msgid "Add tags…"
-msgstr "Dodaj tagi…"
-
-#: contents/ui/TagPicker.qml:259
-msgid "Tags"
-msgstr "Tagi"
-
-#: contents/ui/TagPicker.qml:313
-msgid "Loading tags…"
-msgstr "Wczytywanie tagów…"
-
-#: contents/ui/TagPicker.qml:314
-msgid "No tags on the server yet."
-msgstr "Na serwerze nie ma jeszcze tagów."
-
-#: contents/ui/TagPicker.qml:367
-msgid "Create tag “%1”"
-msgstr "Utwórz tag „%1”"
-
-#: contents/ui/TimeField.qml:179
-msgid "Pick time"
-msgstr "Wybierz godzinę"
 
 #: contents/ui/TimeField.qml:209
 msgid "Hours : Minutes"
 msgstr "Godziny : Minuty"
-
-#: contents/ui/TimeField.qml:265
-msgid "Select"
-msgstr "Wybierz"

@@ -118,6 +118,37 @@ else()
     message(STATUS "KF6 not found — building without Kirigami")
 endif()
 
+# Translations for Plasma Mobile / desktop Linux: compile translate/*.po into
+# <lang>/LC_MESSAGES/plasmai.mo (KLocalizedString domain "plasmai"). Android has
+# no gettext runtime and bundles JSON catalogs instead (app/i18n, see main.cpp).
+if(NOT ANDROID)
+    include(GNUInstallDirs)
+    find_program(MSGFMT_EXECUTABLE msgfmt)
+    if(MSGFMT_EXECUTABLE)
+        file(GLOB PLASMAI_PO_FILES "${CMAKE_CURRENT_SOURCE_DIR}/../translate/*.po")
+        set(PLASMAI_MO_FILES)
+        foreach(po ${PLASMAI_PO_FILES})
+            get_filename_component(lang ${po} NAME_WE)
+            set(mo "${CMAKE_CURRENT_BINARY_DIR}/locale/${lang}/LC_MESSAGES/plasmai.mo")
+            add_custom_command(
+                OUTPUT ${mo}
+                COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/locale/${lang}/LC_MESSAGES"
+                COMMAND ${MSGFMT_EXECUTABLE} -o ${mo} ${po}
+                DEPENDS ${po}
+                COMMENT "Compiling ${lang} translation"
+            )
+            list(APPEND PLASMAI_MO_FILES ${mo})
+            install(FILES ${mo} DESTINATION ${CMAKE_INSTALL_LOCALEDIR}/${lang}/LC_MESSAGES)
+        endforeach()
+        add_custom_target(plasmai-translations ALL DEPENDS ${PLASMAI_MO_FILES})
+        add_dependencies(plasmai-app plasmai-translations)
+        target_compile_definitions(plasmai-app PRIVATE
+            PLASMAI_BUILD_LOCALE_DIR="${CMAKE_CURRENT_BINARY_DIR}/locale")
+    else()
+        message(WARNING "msgfmt not found: translations will not be built")
+    endif()
+endif()
+
 install(TARGETS plasmai-app
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib

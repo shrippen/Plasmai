@@ -407,8 +407,6 @@ Kirigami.Page {
                         }
                     }
 
-                    Item { Layout.fillWidth: true }
-
                     QQC2.Button {
                         text: i18n("Test")
                         icon.name: "network-connect"

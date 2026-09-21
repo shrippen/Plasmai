@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import "../contents/code/platform.js" as Platform
 import "../contents/code/geocode.js" as Geocode
+import "shared"
 
 Kirigami.Page {
     id: page
@@ -64,39 +65,39 @@ Kirigami.Page {
                     onValueChanged: { root.recentCount = value; page.saveSetting("recentCount", value) }
                 }
 
-                QQC2.CheckBox {
+                WrapCheckBox {
                     Kirigami.FormData.label: i18n("Timer view:")
                     text: i18n("Show work summary (today / week totals)")
                     checked: root.showWorkSummary
                     onToggled: { root.showWorkSummary = checked; page.saveSetting("popupShowWorkSummary", checked) }
                 }
-                QQC2.CheckBox {
+                WrapCheckBox {
                     text: i18n("Show recent entries")
                     checked: root.showRecent
                     onToggled: { root.showRecent = checked; page.saveSetting("popupShowRecent", checked) }
                 }
-                QQC2.CheckBox {
+                WrapCheckBox {
                     text: i18n("Show favorites")
                     checked: root.showFavorites
                     onToggled: { root.showFavorites = checked; page.saveSetting("popupShowFavorites", checked) }
                 }
-                QQC2.CheckBox {
+                WrapCheckBox {
                     text: i18n("Show \"Continue\" button")
                     checked: root.showContinue
                     onToggled: { root.showContinue = checked; page.saveSetting("popupShowContinue", checked) }
                 }
-                QQC2.CheckBox {
+                WrapCheckBox {
                     text: i18n("Show start / switch activity controls")
                     checked: root.showNewActivity
                     onToggled: { root.showNewActivity = checked; page.saveSetting("popupShowNewActivity", checked) }
                 }
-                QQC2.CheckBox {
+                WrapCheckBox {
                     id: showSparklineCheck
                     text: i18n("Show day sparkline")
                     checked: root.showSparkline
                     onToggled: { root.showSparkline = checked; page.saveSetting("popupShowSparkline", checked) }
                 }
-                QQC2.CheckBox {
+                WrapCheckBox {
                     Layout.leftMargin: Kirigami.Units.largeSpacing
                     enabled: showSparklineCheck.checked
                     text: i18n("Show sun, moon, and work arcs")
@@ -104,13 +105,13 @@ Kirigami.Page {
                     onToggled: { root.showSparklineArcs = checked; page.saveSetting("showSparklineArcs", checked) }
                 }
 
-                QQC2.CheckBox {
+                WrapCheckBox {
                     Kirigami.FormData.label: i18n("Confirmations:")
                     text: i18n("Confirm before stopping tracking")
                     checked: root.confirmBeforeStop
                     onToggled: { root.confirmBeforeStop = checked; page.saveSetting("confirmBeforeStop", checked) }
                 }
-                QQC2.CheckBox {
+                WrapCheckBox {
                     text: i18n("Ask before a start that overlaps the previous entry")
                     checked: root.confirmStartBeforePreviousEnd
                     onToggled: { root.confirmStartBeforePreviousEnd = checked; page.saveSetting("confirmStartBeforePreviousEnd", checked) }
@@ -181,7 +182,7 @@ Kirigami.Page {
                     Kirigami.FormData.isSection: true; level: 4; text: i18n("Color distinction")
                     visible: root.providerCapabilities.colorDistinction
                 }
-                QQC2.CheckBox {
+                WrapCheckBox {
                     Kirigami.FormData.label: i18n("Kimai only:")
                     visible: root.providerCapabilities.colorDistinction
                     text: i18n("Shift similar customer/project/activity colors apart")
@@ -198,7 +199,7 @@ Kirigami.Page {
                 }
 
                 Kirigami.Heading { Kirigami.FormData.isSection: true; level: 4; text: i18n("Idle detection"); visible: root.supportsIdleDetection }
-                QQC2.CheckBox {
+                WrapCheckBox {
                     Kirigami.FormData.label: i18n("Enable:")
                     visible: root.supportsIdleDetection
                     text: i18n("Prompt after being idle while tracking")
@@ -214,26 +215,26 @@ Kirigami.Page {
                 }
 
                 Kirigami.Heading { Kirigami.FormData.isSection: true; level: 4; text: i18n("Notifications"); visible: root.supportsNotifications }
-                QQC2.CheckBox {
+                WrapCheckBox {
                     Kirigami.FormData.label: i18n("Notify on:")
                     visible: root.supportsNotifications
                     text: i18n("Start")
                     checked: root.notifyOnStart
                     onToggled: { root.notifyOnStart = checked; page.saveSetting("notifyOnStart", checked) }
                 }
-                QQC2.CheckBox {
+                WrapCheckBox {
                     visible: root.supportsNotifications
                     text: i18n("Stop")
                     checked: root.notifyOnStop
                     onToggled: { root.notifyOnStop = checked; page.saveSetting("notifyOnStop", checked) }
                 }
-                QQC2.CheckBox {
+                WrapCheckBox {
                     visible: root.supportsNotifications && root.supportsIdleDetection
                     text: i18n("Idle stop")
                     checked: root.notifyOnIdleStop
                     onToggled: { root.notifyOnIdleStop = checked; page.saveSetting("notifyOnIdleStop", checked) }
                 }
-                QQC2.CheckBox {
+                WrapCheckBox {
                     visible: root.supportsNotifications
                     text: i18n("Forgot to start tracking")
                     checked: root.notifyForgotToStart

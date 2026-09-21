@@ -201,19 +201,25 @@ RowLayout {
         display: QQC2.AbstractButton.IconOnly
         enabled: dateField.enabled
         onClicked: {
-            calendarPopup.value = DTF.coerceDate(root.selectedDate) || new Date()
-            calendarPopup.open()
+            calendarLoader.active = true
+            calendarLoader.item.value = DTF.coerceDate(root.selectedDate) || new Date()
+            calendarLoader.item.open()
         }
         QQC2.ToolTip.text: text
         QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile
         QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
     }
 
-    DatePopup {
-        id: calendarPopup
-        parent: QQC2.Overlay.overlay
-        anchors.centerIn: parent
-        onAccepted: root.setDate(new Date(value.getFullYear(), value.getMonth(), value.getDate(), 12, 0, 0, 0))
+    // The calendar popup builds several month/year/decade views; create it on first use only,
+    // otherwise every DateField slows down the page it sits on.
+    Loader {
+        id: calendarLoader
+        active: false
+        sourceComponent: DatePopup {
+            parent: QQC2.Overlay.overlay
+            anchors.centerIn: parent
+            onAccepted: root.setDate(new Date(value.getFullYear(), value.getMonth(), value.getDate(), 12, 0, 0, 0))
+        }
     }
 
     Component.onCompleted: refreshText()

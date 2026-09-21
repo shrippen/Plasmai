@@ -182,19 +182,24 @@ RowLayout {
         onClicked: {
             var now = new Date()
             now.setHours(root.hours, root.minutes, 0, 0)
-            timePopup.value = now
-            timePopup.open()
+            timeLoader.active = true
+            timeLoader.item.value = now
+            timeLoader.item.open()
         }
         QQC2.ToolTip.text: text
         QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile
         QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
     }
 
-    TimePopup {
-        id: timePopup
-        parent: QQC2.Overlay.overlay
-        anchors.centerIn: parent
-        onAccepted: root.setTime(value.getHours(), value.getMinutes())
+    // Created on first use only, see DateField.
+    Loader {
+        id: timeLoader
+        active: false
+        sourceComponent: TimePopup {
+            parent: QQC2.Overlay.overlay
+            anchors.centerIn: parent
+            onAccepted: root.setTime(value.getHours(), value.getMinutes())
+        }
     }
 
     Component.onCompleted: refreshText()
