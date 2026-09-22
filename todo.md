@@ -48,6 +48,14 @@ Ziel: möglichst viele Standard-Kirigami-Elemente statt eigener Controls, damit 
 - [ ] Gemeinsame Quelle für `contents/ui/` und `app/qml/shared/` (aktuell Kopien; Diffs > 40 Zeilen: StatsView, DaySparkline, ActiveEditView) statt Drift.
 - [ ] Plasma-Mobile-Render live prüfen (kein Gerät/keine Session bisher; dort gilt Breeze statt Material, Icon-Fallback nur auf Android).
 
+## Plasma Mobile (Desktop-Test, ohne echtes Gerät)
+Kein Plasma-Mobile-Gerät vorhanden. Stattdessen `app/build-test/plasmai-app` (CMake-Option `-DPLASMAI_TEST_DRIVER=ON`, Default aus) mit `org.kde.desktop`-Stil unter `QT_QPA_PLATFORM=offscreen` + `QT_QPA_PLATFORMTHEME=kde` betrieben — das entspricht optisch dem, was Plasma Mobile zeigt (Breeze statt Material, kein Icon-Fallback nötig). Steuerung per `app/testdriver.h` (Skriptsprache `size/wait/grab/click/text/key/scroll/js/quit`, `PLASMAI_TEST_SCRIPT`/`PLASMAI_TEST_OUT`), Screenshots nur vom App-Fenster (kein Desktop-Screenshot).
+- [x] Alle Seiten (Timer, Add entry, Statistik, Favoriten, Verbindung, Einstellungen, Farbwartung) gerendert und geprüft — sehen wie unter Android aus (KDE-Palette statt Material-Dark, das ist erwartet).
+- [x] Deutsche Übersetzung (`LANGUAGE=de`) auf allen Seiten geprüft — funktioniert wie unter Android, inkl. Farbwartungs-Hinweistext.
+- [x] Funktionstest: "Start something else…"-Formular mit Projekt-/Aktivitätssuche, Datum-/Zeit-Popup, Start, Stop, Zeilenmenü (Pin/Edit/Split/Delete-Dialog mit Bestätigung), Add entry speichern (inkl. Datum-/Zeit-Popup). Alle erzeugten Test-Einträge wieder gelöscht, Wochensumme danach wieder beim Ausgangswert (18h 15m).
+- [x] Bug gefunden und behoben: Das Zeilen-Overflow-Menü (`historyMenu.popup()`) öffnete links oben im Fenster statt an der Schaltfläche — `popup()` ohne Argumente folgt dem Mauszeiger, was auf Touch/Plasma-Mobile bedeutungslos ist. Jetzt an `historyButton` verankert (`app/qml/shared/ActivityListRow.qml`).
+- [ ] Nicht geprüft: echtes Touch-Verhalten (Scroll-Fling, Soft-Keyboard-Verhalten, Bildschirmgrößen/Auflösungen), Idle-Dialog (derselbe Trigger wie Desktop, aber nicht ausgelöst), Statistik-Diagramme im Detail (nur Übersicht gesehen), reales Plasma-Mobile-Gerät.
+
 ## Hinweise zum Testen
 - Build: `./scripts/build-android.sh debug`, Install: `adb install -r dist/android/plasmai-app.apk`, Screenshots: `adb exec-out screencap -p`.
 - Vor Screenshots prüfen, dass Plasmai im Vordergrund ist (`adb shell dumpsys window | grep mCurrentFocus`); das Handy ist auch das Alltagsgerät.

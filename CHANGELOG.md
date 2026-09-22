@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 2.0.0
+
+### Android / Plasma Mobile
+- New: Plasmai is now also a standalone Kirigami app for Android and Plasma Mobile (KF6), built from `app/`, sharing the Kimai/Clockify/Toggl Track/SolidTime backend and QML components with the Plasmoid
+- Full timer flow: start/stop/switch activity, continue last entry, edit the running entry, add a manual entry, favorites (pin/unpin/start), recent entries with edit/split/delete, statistics, color maintenance, and settings — matching the Plasmoid's behavior
+- Kirigami pages, dialogs (`PromptDialog`/`Dialog`) and date/time pickers (vendored `kirigami-addons` `DatePopup`/`TimePopup`) replace bespoke controls
+- Breeze-Dark icon subset bundled for Android, which has no system icon theme
+- Translations: the 11 languages already shipped for the Plasmoid now also cover the app (Plasma Mobile via compiled `.mo` catalogs through KLocalizedString; Android, which has no gettext runtime, via bundled JSON catalogs)
+- Add entry now loads promptly — the date/time popups are built on first use instead of upfront
+- Timer card layout matches the Plasmoid's hero card (summary, continue button, and description all inside one bordered card)
+
 ### Desktop
 - Redesigned icon: half-dial clock with a gold shard trail; the panel icon uses the mono variant (tinted by the theme) while idle, the store and Android icons use the colored version
 

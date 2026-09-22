@@ -15,6 +15,9 @@
 #include <QDir>
 #include <QObject>
 #include <cstdio>
+#ifdef PLASMAI_TEST_DRIVER
+#include "testdriver.h"
+#endif
 
 #ifdef HAVE_KF6
 #ifdef HAVE_KF6_COREADDONS
@@ -337,14 +340,14 @@ int main(int argc, char *argv[])
     }
 #endif
     KAboutData aboutData(APP_ID, i18n("Plasmai"),
-                         QStringLiteral("1.6.3"),
+                         QStringLiteral("2.0.0"),
                          i18n("Time tracking with Kimai, Clockify, Toggl Track, or SolidTime"),
                          KAboutLicense::GPL_V3,
                          i18n("© 2025 Plasmai contributors"));
     KAboutData::setApplicationData(aboutData);
 #else
     app.setApplicationName("Plasmai");
-    app.setApplicationVersion("1.6.3");
+    app.setApplicationVersion("2.0.0");
     app.setOrganizationName("shrippen");
 #endif
 
@@ -389,6 +392,13 @@ int main(int argc, char *argv[])
         fprintf(stderr, "plasmai-app: failed to load QML\n");
         return -1;
     }
+#ifdef PLASMAI_TEST_DRIVER
+    if (qEnvironmentVariableIsSet("PLASMAI_TEST_SCRIPT")) {
+        auto *win = qobject_cast<QQuickWindow *>(engine.rootObjects().first());
+        new TestDriver(win, &engine, qEnvironmentVariable("PLASMAI_TEST_SCRIPT"),
+                       qEnvironmentVariable("PLASMAI_TEST_OUT", QStringLiteral(".")), &app);
+    }
+#endif
     return app.exec();
 }
 

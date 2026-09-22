@@ -196,7 +196,9 @@ QQC2.ItemDelegate {
                         root.ignoreNextRowClick = false
                     })
                 }
-                onClicked: historyMenu.popup()
+                // Anchor to the button: popup() without arguments follows the mouse cursor, which is
+                // meaningless for touch input (Plasma Mobile) and lands in the window corner there.
+                onClicked: historyMenu.popup(historyButton, historyButton.width - historyMenu.implicitWidth, historyButton.height)
             }
 
             QQC2.ToolTip.visible: historyButton.hovered && !Kirigami.Settings.isMobile

@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Plasmai
+Name[de]=Plasmai
+Comment=Track time with Kimai, Clockify, Toggl Track, or SolidTime
+Comment[de]=Zeiterfassung mit Kimai, Clockify, Toggl Track oder SolidTime
+Exec=plasmai-app
+Icon=com.github.shrippen.plasmai
+Terminal=false
+Categories=Utility;Office;
+Keywords=time;tracking;kimai;clockify;toggl;solidtime;
+X-KDE-FormFactors=handset,tablet,desktop

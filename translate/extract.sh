@@ -10,7 +10,7 @@ mkdir -p translate
 # so new files with i18n() are not missed. Kirigami style overrides carry no strings.
 find contents app/qml -name '*.qml' -not -path '*/kirigami-styles/*' -print0 | sort -z | xargs -0 \
 xgettext --from-code=UTF-8 -L JavaScript \
-  --package-name="Plasmai" --package-version="1.6.3" \
+  --package-name="Plasmai" --package-version="2.0.0" \
   --msgid-bugs-address="https://github.com/shrippen/Plasmai/issues" \
   -ki18n:1 -ki18nc:1c,2 -ki18np:1,2 -ki18ncp:1c,2,3 -ki18nd:2 -ki18ndc:3 \
   -o translate/template.pot

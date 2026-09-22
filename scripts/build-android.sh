@@ -70,26 +70,47 @@ cmake -B build-android \
 cmake --build build-android -j$(nproc) 2>&1 | tail -10
 
 # ── 4. Patch KF6 QML plugin dependencies (libomp.so) ──
-LIBS_DIR="$APP_DIR/build-android/android-build/libs/arm64-v8a"
-LIBOMP="$NDK_PATH/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/lib/linux/aarch64/libomp.so"
-if [ -d "$LIBS_DIR" ] && [ -f "$LIBOMP" ]; then
-    if [ ! -f "$LIBS_DIR/libomp.so" ]; then
-        info "Adding libomp.so for KF6 Kirigami QML plugins..."
-        cp "$LIBOMP" "$LIBS_DIR/"
-        # Rebuild APK with the additional dependency
-        cd "$APP_DIR/build-android/android-build"
-        ./gradlew assembleDebug 2>&1 | tail -3
-        cd "$APP_DIR"
-    fi
+GRADLE_TASK="assembleDebug"
+[ "$MODE" = "release" ] && GRADLE_TASK="assembleRelease"
+
+# Release signing (optional): scripts/build-android.sh release with these set produces a
+# signed APK; see RELEASING.md for how to create the keystore. Without them, "release"
+# still builds (unoptimized signing config falls back to unsigned/debuggable output).
+if [ "$MODE" = "release" ] && [ -n "${PLASMAI_KEYSTORE_PATH:-}" ]; then
+    info "Configuring release signing from PLASMAI_KEYSTORE_* environment variables..."
+    PROPS="$APP_DIR/build-android/android-build/gradle.properties"
+    {
+        echo "RELEASE_STORE_FILE=$PLASMAI_KEYSTORE_PATH"
+        echo "RELEASE_STORE_PASSWORD=${PLASMAI_KEYSTORE_PASSWORD:?PLASMAI_KEYSTORE_PASSWORD not set}"
+        echo "RELEASE_KEY_ALIAS=${PLASMAI_KEY_ALIAS:?PLASMAI_KEY_ALIAS not set}"
+        echo "RELEASE_KEY_PASSWORD=${PLASMAI_KEY_PASSWORD:?PLASMAI_KEY_PASSWORD not set}"
+    } >> "$PROPS"
+elif [ "$MODE" = "release" ]; then
+    info "No PLASMAI_KEYSTORE_PATH set — release build will be unsigned. See RELEASING.md."
 fi
 
+LIBS_DIR="$APP_DIR/build-android/android-build/libs/arm64-v8a"
+LIBOMP="$NDK_PATH/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/lib/linux/aarch64/libomp.so"
+if [ -d "$LIBS_DIR" ] && [ -f "$LIBOMP" ] && [ ! -f "$LIBS_DIR/libomp.so" ]; then
+    info "Adding libomp.so for KF6 Kirigami QML plugins..."
+    cp "$LIBOMP" "$LIBS_DIR/"
+fi
+cd "$APP_DIR/build-android/android-build"
+./gradlew "$GRADLE_TASK" 2>&1 | tail -10
+cd "$APP_DIR"
+
 # ── 5. Copy APK ──
-APK=$(find "$APP_DIR/build-android/android-build/build/outputs/apk" -name "*.apk" 2>/dev/null | head -1)
+APK=$(find "$APP_DIR/build-android/android-build/build/outputs/apk/$MODE" -name "*.apk" 2>/dev/null | head -1)
+[ -z "$APK" ] && APK=$(find "$APP_DIR/build-android/android-build/build/outputs/apk" -name "*.apk" 2>/dev/null | head -1)
 if [ -n "$APK" ]; then
     mkdir -p "$REPO_DIR/dist/android"
-    cp "$APK" "$REPO_DIR/dist/android/plasmai-app.apk"
-    info "APK ready: dist/android/plasmai-app.apk"
-    info "Install: adb install $REPO_DIR/dist/android/plasmai-app.apk"
+    OUT="$REPO_DIR/dist/android/plasmai-app-$MODE.apk"
+    cp "$APK" "$OUT"
+    info "APK ready: $OUT"
+    info "Install: adb install -r $OUT"
+    case "$APK" in
+        *unsigned*) info "Note: unsigned APK — sign it (apksigner) before distributing, see RELEASING.md." ;;
+    esac
 else
     error "APK not found in build output"
 fi

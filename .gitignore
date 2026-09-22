@@ -18,6 +18,7 @@ translate/langs/__pycache__/
 # Build artifacts
 app/build/
 app/build-android/
+app/build-test/
 dist/
 *.keystore
 aqtinstall.log

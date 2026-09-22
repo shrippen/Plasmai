@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-09-22 00:54+0200\n"
+"POT-Creation-Date: 2026-09-22 01:22+0200\n"
 "PO-Revision-Date: 2026-08-09 19:45+0200\n"
 "Last-Translator: Cursor Agent\n"
 "Language-Team: Japanese\n"
@@ -282,7 +282,7 @@ msgstr "エントリを追加"
 msgid "Statistics"
 msgstr "統計"
 
-#: app/qml/main.qml:696 app/qml/SettingsPage.qml:10
+#: app/qml/main.qml:696 app/qml/SettingsPage.qml:11
 msgid "Settings"
 msgstr "設定"
 
@@ -336,7 +336,7 @@ msgstr "シフト済み"
 msgid "No color clashes detected."
 msgstr "色の競合は見つかりませんでした。"
 
-#: app/qml/ManualEntryPage.qml:11 app/qml/shared/ActivityListRow.qml:220
+#: app/qml/ManualEntryPage.qml:11 app/qml/shared/ActivityListRow.qml:222
 #: contents/ui/ActivityListRow.qml:220 contents/ui/main.qml:2758
 msgid "Edit entry"
 msgstr "エントリを編集"
@@ -346,163 +346,163 @@ msgstr "エントリを編集"
 msgid "Add entry"
 msgstr "エントリを追加"
 
-#: app/qml/SettingsPage.qml:49 contents/config/config.qml:26
+#: app/qml/SettingsPage.qml:50 contents/config/config.qml:26
 #: contents/ui/config/ConfigBehavior.qml:243
 msgid "Behavior"
 msgstr "動作"
 
-#: app/qml/SettingsPage.qml:53
+#: app/qml/SettingsPage.qml:54
 msgid "Refresh interval:"
 msgstr "更新間隔:"
 
-#: app/qml/SettingsPage.qml:61
+#: app/qml/SettingsPage.qml:62
 msgid "Recent entries:"
 msgstr "最近のエントリ:"
 
-#: app/qml/SettingsPage.qml:68
+#: app/qml/SettingsPage.qml:69
 msgid "Timer view:"
 msgstr "タイマー表示:"
 
-#: app/qml/SettingsPage.qml:69
+#: app/qml/SettingsPage.qml:70
 msgid "Show work summary (today / week totals)"
 msgstr "作業サマリーを表示 (今日／週の合計)"
 
-#: app/qml/SettingsPage.qml:74
+#: app/qml/SettingsPage.qml:75
 msgid "Show recent entries"
 msgstr "最近のエントリを表示"
 
-#: app/qml/SettingsPage.qml:79
+#: app/qml/SettingsPage.qml:80
 msgid "Show favorites"
 msgstr "お気に入りを表示"
 
-#: app/qml/SettingsPage.qml:84
+#: app/qml/SettingsPage.qml:85
 msgid "Show \"Continue\" button"
 msgstr "「続ける」ボタンを表示"
 
-#: app/qml/SettingsPage.qml:89
+#: app/qml/SettingsPage.qml:90
 msgid "Show start / switch activity controls"
 msgstr "アクティビティの開始／切り替え操作を表示"
 
-#: app/qml/SettingsPage.qml:95
+#: app/qml/SettingsPage.qml:96
 msgid "Show day sparkline"
 msgstr "1日のグラフを表示"
 
-#: app/qml/SettingsPage.qml:102 contents/ui/config/ConfigDisplay.qml:636
+#: app/qml/SettingsPage.qml:103 contents/ui/config/ConfigDisplay.qml:636
 msgid "Show sun, moon, and work arcs"
 msgstr "太陽・月・勤務の弧を表示"
 
-#: app/qml/SettingsPage.qml:108
+#: app/qml/SettingsPage.qml:109
 msgid "Confirmations:"
 msgstr "確認:"
 
-#: app/qml/SettingsPage.qml:109
+#: app/qml/SettingsPage.qml:110
 msgid "Confirm before stopping tracking"
 msgstr "計測を停止する前に確認する"
 
-#: app/qml/SettingsPage.qml:114 contents/ui/config/ConfigBehavior.qml:268
+#: app/qml/SettingsPage.qml:115 contents/ui/config/ConfigBehavior.qml:268
 msgid "Ask before a start that overlaps the previous entry"
 msgstr "開始が直前の記録と重なる場合は確認する"
 
-#: app/qml/SettingsPage.qml:121
+#: app/qml/SettingsPage.qml:122
 msgid "When editing the running timer, the previous entry's end is shown. Saving an earlier start asks for confirmation."
 msgstr "実行中のタイマーを編集すると、前のエントリの終了時刻が表示されます。より早い開始時刻を保存するときは確認が必要です。"
 
-#: app/qml/SettingsPage.qml:124 contents/ui/config/ConfigDisplay.qml:591
+#: app/qml/SettingsPage.qml:125 contents/ui/config/ConfigDisplay.qml:591
 msgid "Work hours"
 msgstr "勤務時間"
 
-#: app/qml/SettingsPage.qml:127
+#: app/qml/SettingsPage.qml:128
 msgid "Begin:"
 msgstr "開始:"
 
-#: app/qml/SettingsPage.qml:133
+#: app/qml/SettingsPage.qml:134
 msgid "End:"
 msgstr "終了:"
 
-#: app/qml/SettingsPage.qml:139
+#: app/qml/SettingsPage.qml:140
 msgid "Location (sun / moon accuracy)"
 msgstr "場所 (太陽／月の精度)"
 
-#: app/qml/SettingsPage.qml:142
+#: app/qml/SettingsPage.qml:143
 msgid "Current:"
 msgstr "現在:"
 
-#: app/qml/SettingsPage.qml:143
+#: app/qml/SettingsPage.qml:144
 msgid "%1, %2"
 msgstr "%1, %2"
 
-#: app/qml/SettingsPage.qml:149
+#: app/qml/SettingsPage.qml:150
 msgid "Search city:"
 msgstr "都市を検索:"
 
-#: app/qml/SettingsPage.qml:150
+#: app/qml/SettingsPage.qml:151
 msgid "Search for a city…"
 msgstr "都市を検索…"
 
-#: app/qml/SettingsPage.qml:181
+#: app/qml/SettingsPage.qml:182
 msgid "Color distinction"
 msgstr "色の区別"
 
-#: app/qml/SettingsPage.qml:185
+#: app/qml/SettingsPage.qml:186
 msgid "Kimai only:"
 msgstr "Kimai のみ:"
 
-#: app/qml/SettingsPage.qml:187
+#: app/qml/SettingsPage.qml:188
 msgid "Shift similar customer/project/activity colors apart"
 msgstr "似ている顧客・プロジェクト・アクティビティの色を離す"
 
-#: app/qml/SettingsPage.qml:192
+#: app/qml/SettingsPage.qml:193
 msgid "Similarity threshold:"
 msgstr "類似度のしきい値:"
 
-#: app/qml/SettingsPage.qml:200
+#: app/qml/SettingsPage.qml:201
 msgid "Idle detection"
 msgstr "アイドル検出"
 
-#: app/qml/SettingsPage.qml:202
+#: app/qml/SettingsPage.qml:203
 msgid "Enable:"
 msgstr "有効化:"
 
-#: app/qml/SettingsPage.qml:204
+#: app/qml/SettingsPage.qml:205
 msgid "Prompt after being idle while tracking"
 msgstr "計測中にアイドル状態になったら確認する"
 
-#: app/qml/SettingsPage.qml:209
+#: app/qml/SettingsPage.qml:210
 msgid "Idle after:"
 msgstr "アイドルになるまで:"
 
-#: app/qml/SettingsPage.qml:212
+#: app/qml/SettingsPage.qml:213
 msgid "%1 min"
 msgstr "%1分"
 
-#: app/qml/SettingsPage.qml:216
+#: app/qml/SettingsPage.qml:217
 msgid "Notifications"
 msgstr "通知"
 
-#: app/qml/SettingsPage.qml:218
+#: app/qml/SettingsPage.qml:219
 msgid "Notify on:"
 msgstr "通知するとき:"
 
-#: app/qml/SettingsPage.qml:220 app/qml/shared/ActiveEditView.qml:282
+#: app/qml/SettingsPage.qml:221 app/qml/shared/ActiveEditView.qml:282
 #: app/qml/TimerPage.qml:404 contents/ui/ActiveEditView.qml:282
 #: contents/ui/main.qml:3736
 msgid "Start"
 msgstr "開始"
 
-#: app/qml/SettingsPage.qml:226 app/qml/TimerPage.qml:169
+#: app/qml/SettingsPage.qml:227 app/qml/TimerPage.qml:169
 #: contents/ui/main.qml:3203 contents/ui/main.qml:3239
 msgid "Stop"
 msgstr "停止"
 
-#: app/qml/SettingsPage.qml:232
+#: app/qml/SettingsPage.qml:233
 msgid "Idle stop"
 msgstr "アイドルによる停止"
 
-#: app/qml/SettingsPage.qml:238
+#: app/qml/SettingsPage.qml:239
 msgid "Forgot to start tracking"
 msgstr "計測の開始忘れ"
 
-#: app/qml/SettingsPage.qml:246
+#: app/qml/SettingsPage.qml:247
 msgid "Settings sync with the Plasma widget via shared.json on the same machine."
 msgstr "設定は同じマシン上の shared.json を介して Plasma ウィジェットと同期されます。"
 
@@ -543,25 +543,25 @@ msgid "Starts or switches this activity"
 msgstr "このアクティビティを開始または切り替えます"
 
 #: app/qml/shared/ActivityListRow.qml:175
-#: app/qml/shared/ActivityListRow.qml:203 contents/ui/ActivityListRow.qml:175
+#: app/qml/shared/ActivityListRow.qml:205 contents/ui/ActivityListRow.qml:175
 #: contents/ui/ActivityListRow.qml:203
 msgid "Entry actions"
 msgstr "エントリ操作"
 
-#: app/qml/shared/ActivityListRow.qml:213 contents/ui/ActivityListRow.qml:213
+#: app/qml/shared/ActivityListRow.qml:215 contents/ui/ActivityListRow.qml:213
 msgid "Unpin from favorites"
 msgstr "お気に入りから外す"
 
-#: app/qml/shared/ActivityListRow.qml:213 contents/ui/ActivityListRow.qml:213
+#: app/qml/shared/ActivityListRow.qml:215 contents/ui/ActivityListRow.qml:213
 msgid "Pin as favorite"
 msgstr "お気に入りにピン留め"
 
-#: app/qml/shared/ActivityListRow.qml:227 app/qml/TimerPage.qml:453
+#: app/qml/shared/ActivityListRow.qml:229 app/qml/TimerPage.qml:453
 #: contents/ui/ActivityListRow.qml:227 contents/ui/main.qml:2512
 msgid "Split entry"
 msgstr "エントリを分割"
 
-#: app/qml/shared/ActivityListRow.qml:234 contents/ui/ActivityListRow.qml:234
+#: app/qml/shared/ActivityListRow.qml:236 contents/ui/ActivityListRow.qml:234
 msgid "Delete entry"
 msgstr "エントリを削除"
 

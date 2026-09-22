@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-09-22 00:54+0200\n"
+"POT-Creation-Date: 2026-09-22 01:22+0200\n"
 "PO-Revision-Date: 2026-08-09 19:45+0200\n"
 "Last-Translator: Cursor Agent\n"
 "Language-Team: Brazilian Portuguese\n"
@@ -282,7 +282,7 @@ msgstr "Adicionar registro"
 msgid "Statistics"
 msgstr "Estatísticas"
 
-#: app/qml/main.qml:696 app/qml/SettingsPage.qml:10
+#: app/qml/main.qml:696 app/qml/SettingsPage.qml:11
 msgid "Settings"
 msgstr "Configurações"
 
@@ -336,7 +336,7 @@ msgstr "deslocado"
 msgid "No color clashes detected."
 msgstr "Nenhum conflito de cores detectado."
 
-#: app/qml/ManualEntryPage.qml:11 app/qml/shared/ActivityListRow.qml:220
+#: app/qml/ManualEntryPage.qml:11 app/qml/shared/ActivityListRow.qml:222
 #: contents/ui/ActivityListRow.qml:220 contents/ui/main.qml:2758
 msgid "Edit entry"
 msgstr "Editar entrada"
@@ -346,163 +346,163 @@ msgstr "Editar entrada"
 msgid "Add entry"
 msgstr "Adicionar registro"
 
-#: app/qml/SettingsPage.qml:49 contents/config/config.qml:26
+#: app/qml/SettingsPage.qml:50 contents/config/config.qml:26
 #: contents/ui/config/ConfigBehavior.qml:243
 msgid "Behavior"
 msgstr "Comportamento"
 
-#: app/qml/SettingsPage.qml:53
+#: app/qml/SettingsPage.qml:54
 msgid "Refresh interval:"
 msgstr "Intervalo de atualização:"
 
-#: app/qml/SettingsPage.qml:61
+#: app/qml/SettingsPage.qml:62
 msgid "Recent entries:"
 msgstr "Registros recentes:"
 
-#: app/qml/SettingsPage.qml:68
+#: app/qml/SettingsPage.qml:69
 msgid "Timer view:"
 msgstr "Exibição do cronômetro:"
 
-#: app/qml/SettingsPage.qml:69
+#: app/qml/SettingsPage.qml:70
 msgid "Show work summary (today / week totals)"
 msgstr "Mostrar resumo do trabalho (totais de hoje / semana)"
 
-#: app/qml/SettingsPage.qml:74
+#: app/qml/SettingsPage.qml:75
 msgid "Show recent entries"
 msgstr "Mostrar registros recentes"
 
-#: app/qml/SettingsPage.qml:79
+#: app/qml/SettingsPage.qml:80
 msgid "Show favorites"
 msgstr "Mostrar favoritos"
 
-#: app/qml/SettingsPage.qml:84
+#: app/qml/SettingsPage.qml:85
 msgid "Show \"Continue\" button"
 msgstr "Mostrar o botão «Continuar»"
 
-#: app/qml/SettingsPage.qml:89
+#: app/qml/SettingsPage.qml:90
 msgid "Show start / switch activity controls"
 msgstr "Mostrar controles para iniciar / mudar atividade"
 
-#: app/qml/SettingsPage.qml:95
+#: app/qml/SettingsPage.qml:96
 msgid "Show day sparkline"
 msgstr "Mostrar gráfico do dia"
 
-#: app/qml/SettingsPage.qml:102 contents/ui/config/ConfigDisplay.qml:636
+#: app/qml/SettingsPage.qml:103 contents/ui/config/ConfigDisplay.qml:636
 msgid "Show sun, moon, and work arcs"
 msgstr "Mostrar arcos do sol, da lua e do trabalho"
 
-#: app/qml/SettingsPage.qml:108
+#: app/qml/SettingsPage.qml:109
 msgid "Confirmations:"
 msgstr "Confirmações:"
 
-#: app/qml/SettingsPage.qml:109
+#: app/qml/SettingsPage.qml:110
 msgid "Confirm before stopping tracking"
 msgstr "Confirmar antes de parar o rastreamento"
 
-#: app/qml/SettingsPage.qml:114 contents/ui/config/ConfigBehavior.qml:268
+#: app/qml/SettingsPage.qml:115 contents/ui/config/ConfigBehavior.qml:268
 msgid "Ask before a start that overlaps the previous entry"
 msgstr "Perguntar se o início sobrepõe a entrada anterior"
 
-#: app/qml/SettingsPage.qml:121
+#: app/qml/SettingsPage.qml:122
 msgid "When editing the running timer, the previous entry's end is shown. Saving an earlier start asks for confirmation."
 msgstr "Ao editar o cronômetro em andamento, o fim do registro anterior é exibido. Salvar um início anterior pede confirmação."
 
-#: app/qml/SettingsPage.qml:124 contents/ui/config/ConfigDisplay.qml:591
+#: app/qml/SettingsPage.qml:125 contents/ui/config/ConfigDisplay.qml:591
 msgid "Work hours"
 msgstr "Horário de trabalho"
 
-#: app/qml/SettingsPage.qml:127
+#: app/qml/SettingsPage.qml:128
 msgid "Begin:"
 msgstr "Início:"
 
-#: app/qml/SettingsPage.qml:133
+#: app/qml/SettingsPage.qml:134
 msgid "End:"
 msgstr "Fim:"
 
-#: app/qml/SettingsPage.qml:139
+#: app/qml/SettingsPage.qml:140
 msgid "Location (sun / moon accuracy)"
 msgstr "Localização (precisão de sol / lua)"
 
-#: app/qml/SettingsPage.qml:142
+#: app/qml/SettingsPage.qml:143
 msgid "Current:"
 msgstr "Atual:"
 
-#: app/qml/SettingsPage.qml:143
+#: app/qml/SettingsPage.qml:144
 msgid "%1, %2"
 msgstr "%1, %2"
 
-#: app/qml/SettingsPage.qml:149
+#: app/qml/SettingsPage.qml:150
 msgid "Search city:"
 msgstr "Buscar cidade:"
 
-#: app/qml/SettingsPage.qml:150
+#: app/qml/SettingsPage.qml:151
 msgid "Search for a city…"
 msgstr "Buscar uma cidade…"
 
-#: app/qml/SettingsPage.qml:181
+#: app/qml/SettingsPage.qml:182
 msgid "Color distinction"
 msgstr "Distinção de cores"
 
-#: app/qml/SettingsPage.qml:185
+#: app/qml/SettingsPage.qml:186
 msgid "Kimai only:"
 msgstr "Somente Kimai:"
 
-#: app/qml/SettingsPage.qml:187
+#: app/qml/SettingsPage.qml:188
 msgid "Shift similar customer/project/activity colors apart"
 msgstr "Afastar cores parecidas de cliente/projeto/atividade"
 
-#: app/qml/SettingsPage.qml:192
+#: app/qml/SettingsPage.qml:193
 msgid "Similarity threshold:"
 msgstr "Limite de similaridade:"
 
-#: app/qml/SettingsPage.qml:200
+#: app/qml/SettingsPage.qml:201
 msgid "Idle detection"
 msgstr "Detecção de ociosidade"
 
-#: app/qml/SettingsPage.qml:202
+#: app/qml/SettingsPage.qml:203
 msgid "Enable:"
 msgstr "Ativar:"
 
-#: app/qml/SettingsPage.qml:204
+#: app/qml/SettingsPage.qml:205
 msgid "Prompt after being idle while tracking"
 msgstr "Perguntar após ociosidade durante o rastreamento"
 
-#: app/qml/SettingsPage.qml:209
+#: app/qml/SettingsPage.qml:210
 msgid "Idle after:"
 msgstr "Ocioso após:"
 
-#: app/qml/SettingsPage.qml:212
+#: app/qml/SettingsPage.qml:213
 msgid "%1 min"
 msgstr "%1 min"
 
-#: app/qml/SettingsPage.qml:216
+#: app/qml/SettingsPage.qml:217
 msgid "Notifications"
 msgstr "Notificações"
 
-#: app/qml/SettingsPage.qml:218
+#: app/qml/SettingsPage.qml:219
 msgid "Notify on:"
 msgstr "Notificar em:"
 
-#: app/qml/SettingsPage.qml:220 app/qml/shared/ActiveEditView.qml:282
+#: app/qml/SettingsPage.qml:221 app/qml/shared/ActiveEditView.qml:282
 #: app/qml/TimerPage.qml:404 contents/ui/ActiveEditView.qml:282
 #: contents/ui/main.qml:3736
 msgid "Start"
 msgstr "Iniciar"
 
-#: app/qml/SettingsPage.qml:226 app/qml/TimerPage.qml:169
+#: app/qml/SettingsPage.qml:227 app/qml/TimerPage.qml:169
 #: contents/ui/main.qml:3203 contents/ui/main.qml:3239
 msgid "Stop"
 msgstr "Parar"
 
-#: app/qml/SettingsPage.qml:232
+#: app/qml/SettingsPage.qml:233
 msgid "Idle stop"
 msgstr "Parada por ociosidade"
 
-#: app/qml/SettingsPage.qml:238
+#: app/qml/SettingsPage.qml:239
 msgid "Forgot to start tracking"
 msgstr "Esqueceu de iniciar o rastreamento"
 
-#: app/qml/SettingsPage.qml:246
+#: app/qml/SettingsPage.qml:247
 msgid "Settings sync with the Plasma widget via shared.json on the same machine."
 msgstr "As configurações são sincronizadas com o widget do Plasma via shared.json na mesma máquina."
 
@@ -543,25 +543,25 @@ msgid "Starts or switches this activity"
 msgstr "Inicia ou troca para esta atividade"
 
 #: app/qml/shared/ActivityListRow.qml:175
-#: app/qml/shared/ActivityListRow.qml:203 contents/ui/ActivityListRow.qml:175
+#: app/qml/shared/ActivityListRow.qml:205 contents/ui/ActivityListRow.qml:175
 #: contents/ui/ActivityListRow.qml:203
 msgid "Entry actions"
 msgstr "Ações da entrada"
 
-#: app/qml/shared/ActivityListRow.qml:213 contents/ui/ActivityListRow.qml:213
+#: app/qml/shared/ActivityListRow.qml:215 contents/ui/ActivityListRow.qml:213
 msgid "Unpin from favorites"
 msgstr "Remover dos favoritos"
 
-#: app/qml/shared/ActivityListRow.qml:213 contents/ui/ActivityListRow.qml:213
+#: app/qml/shared/ActivityListRow.qml:215 contents/ui/ActivityListRow.qml:213
 msgid "Pin as favorite"
 msgstr "Fixar como favorito"
 
-#: app/qml/shared/ActivityListRow.qml:227 app/qml/TimerPage.qml:453
+#: app/qml/shared/ActivityListRow.qml:229 app/qml/TimerPage.qml:453
 #: contents/ui/ActivityListRow.qml:227 contents/ui/main.qml:2512
 msgid "Split entry"
 msgstr "Dividir entrada"
 
-#: app/qml/shared/ActivityListRow.qml:234 contents/ui/ActivityListRow.qml:234
+#: app/qml/shared/ActivityListRow.qml:236 contents/ui/ActivityListRow.qml:234
 msgid "Delete entry"
 msgstr "Excluir entrada"
 
