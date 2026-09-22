@@ -17,6 +17,13 @@ gegen das Plasmoid. Technische Details und Begründungen zu jedem Punkt hier ste
   gestartet getestet.
 - Flatpak-Manifest geschrieben (`packaging/flatpak/`), aber **nicht gebaut** — hier fehlt
   `flatpak-builder` und die KDE-Runtime.
+- **CI-Lücke geschlossen**: `.github/workflows/android.yml` baute bisher ohne KF6 (nicht die
+  App, die im Repo liegt — `~/kf6-android` existierte nur lokal, nicht reproduzierbar). Neues
+  `scripts/build-kf6-android.sh` baut ECM + KCoreAddons + Kirigami für Android aus den
+  KDE-Quellen (Tag `v6.8.0`) in unter einer Minute — end-to-end getestet: frisch gebaut, die
+  App erfolgreich dagegen gelinkt, resultierende APK mit `readelf` geprüft. Workflow nutzt das
+  jetzt. Details und ein dabei gefundener Bug (fehlendes `libomp.so` in der APK, hätte auf dem
+  Gerät gecrasht) in `RELEASING.md` §4.1.
 
 ## Zu klären, bevor es weitergeht
 - [ ] **App-ID für Flatpak**: aktuell `com.github.shrippen.plasmai` (wie Plasmoid/Android).
@@ -25,9 +32,10 @@ gegen das Plasmoid. Technische Details und Begründungen zu jedem Punkt hier ste
 - [ ] **versionCode-Schema**: aktuell `Major*100+Minor*10+Patch` (200 für 2.0.0). Reicht das für
       alle künftigen Patch-Releases, oder lieber mehr Spielraum (`Major*10000+Minor*100+Patch`)?
       versionCode darf bei Play Store/F-Droid nie sinken — vor dem ersten 2.x-Release entscheiden.
-- [ ] **F-Droid überhaupt anstreben?** F-Droid baut selbst aus dem Quellcode, nicht aus einer
-      APK. Das braucht denselben KF6-für-Android-Toolchain wie unten (Punkt 2) — unklar, ob
-      F-Droids Build-Server das mitmacht. Das ist der größte offene Blocker in diesem Release.
+- [ ] **F-Droid überhaupt anstreben?** Der größte Unsicherheitsfaktor (KF6-für-Android-Toolchain)
+      ist jetzt gelöst und reproduzierbar (s. o.). Offen bleibt: F-Droids Sandbox erlaubt keinen
+      Live-Netzwerkzugriff beim Bauen — das `git clone` in `build-kf6-android.sh` muss als
+      F-Droid-`srclibs:`-Eintrag umgebaut werden. Machbar, aber noch nicht gemacht (Punkt 4).
 
 ## 1. Android-Keystore anlegen (ich habe das nicht gemacht — Passwort muss von dir kommen)
 - [ ] `keytool -genkeypair ...` (genauer Befehl in `RELEASING.md` §4.3), Passwort in einen
@@ -36,13 +44,10 @@ gegen das Plasmoid. Technische Details und Begründungen zu jedem Punkt hier ste
       kann nie wieder aktualisiert werden (bei GitHub/F-Droid nur ärgerlich, nicht fatal).
 - [ ] Als GitHub-Secrets hinterlegen, falls CI später signieren soll (Namen in `RELEASING.md`).
 
-## 2. CI kann noch keine echte Android-App bauen (größte offene Baustelle)
-- [ ] `.github/workflows/android.yml` baut aktuell **ohne KF6** — nicht die App, die im Repo
-      liegt. Lokal funktioniert `scripts/build-android.sh`, weil `~/kf6-android` auf dieser
-      Maschine schon existiert (von früher, nicht reproduzierbar dokumentiert).
-- [ ] Vor dem ersten „echten" CI-Release: Reproduzierbaren Weg finden, KF6 für Android zu bauen
-      (siehe `RELEASING.md` §4.1 für drei mögliche Ansätze) und in CI einbinden.
-- [ ] Bis dahin: Release-APKs kommen von einer lokalen Maschine mit `~/kf6-android`.
+## 2. CI verifizieren
+- [ ] Den überarbeiteten Workflow einmal wirklich auf GitHub laufen lassen (push auf `main`
+      oder `workflow_dispatch`) — bisher nur lokal (Build-Server dieser Maschine) validiert,
+      nicht auf einem echten GitHub-Actions-Runner.
 
 ## 3. Android-Release signieren und hochladen
 - [ ] `PLASMAI_KEYSTORE_*`-Umgebungsvariablen setzen, `./scripts/build-android.sh release`.
@@ -50,8 +55,8 @@ gegen das Plasmoid. Technische Details und Begründungen zu jedem Punkt hier ste
 - [ ] An GitHub Release anhängen (siehe Punkt 6).
 
 ## 4. F-Droid-Recipe (nur falls Punkt „Zu klären" oben mit Ja beantwortet)
-- [ ] Erst Punkt 2 lösen (F-Droids Buildserver braucht denselben Toolchain).
-- [ ] `RELEASING.md` §4.5 lesen, Recipe schreiben, PR gegen `fdroiddata` öffnen.
+- [ ] `RELEASING.md` §4.5 lesen, `srclibs:`-Umbau für den KF6-Teil, Recipe schreiben, PR gegen
+      `fdroiddata` öffnen.
 
 ## 5. Flatpak verifizieren
 - [ ] `flatpak-builder` + `org.kde.Platform//6.9` + `org.kde.Sdk//6.9` installieren.

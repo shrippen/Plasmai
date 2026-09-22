@@ -37,27 +37,35 @@ store.kde.org listing's version/changelog fields to match.
 
 ## 4. Android
 
-### 4.1 Debug build (works, already produced a local artifact)
+### 4.1 Debug build (works, CI builds it too now)
 
 `./scripts/build-android.sh debug` → `dist/android/plasmai-app-debug.apk`. This is what CI
 (`.github/workflows/android.yml`) also produces, on every push to `main` that touches `app/`.
 
-**CI gap**: that workflow does not build KF6 for Android at all (no `-DCMAKE_PREFIX_PATH`
-pointing at a KF6 Android prefix, no `ECM_DIR`/`QT_QML_IMPORT_PATH`) — it currently builds the
-non-Kirigami fallback UI, not what's actually in this repo now. `scripts/build-android.sh`
-only works on this machine because `~/kf6-android` already exists here (built previously,
-outside this repo — there is no script that reproduces it). **Before CI can build a real
-release APK, someone needs to either**:
-- add a CI step that cross-compiles KF6 (ECM, Kirigami, KI18n, KCoreAddons) for
-  `android_arm64_v8a`, and cache it (this is the standard, well-trodden but fiddly path —
-  KDE's own `craft` tool or the `kdesrc-build`/`android` scripts can do this, or
-- pre-build `~/kf6-android` once and publish it as a downloadable archive the workflow
-  fetches (much faster CI, but someone has to own producing and updating that archive), or
-- self-host a runner with `~/kf6-android` already present (what this machine effectively is).
+**Previous CI gap, now closed**: the workflow used to skip KF6 entirely and build a
+non-Kirigami fallback UI — not what's in this repo. `scripts/build-android.sh` only worked
+locally because `~/kf6-android` already existed on the development machine, built previously
+outside this repo with no reproducing script.
 
-This is real work, not a checkbox — treat it as its own task before relying on CI for Android
-releases; until then, release APKs get built locally on a machine with `~/kf6-android` set up
-(scripts/build-android.sh's own comments describe how it's laid out, but not how to build it).
+Fixed by adding `scripts/build-kf6-android.sh`, which cross-compiles the only KF6 pieces the
+app actually needs — extra-cmake-modules, KCoreAddons (a Kirigami dependency), and Kirigami
+itself (`app/CMakeLists.txt` only requires `KF6::Kirigami` when cross-compiling) — for
+`android_arm64_v8a`, from the `frameworks/{extra-cmake-modules,kcoreaddons,kirigami}` KDE
+repos at tag `v6.8.0`. This is verified working, end to end, not just written and hoped for:
+built from a clean clone, linked against by a fresh build of the app, and the resulting APK's
+native libraries checked with `readelf` for the `libomp.so` dependency (see below). It runs in
+well under a minute (ECM installs cmake modules only; KCoreAddons and Kirigami compile in
+~10s and ~30s respectively on a 24-core machine — CI will be slower but still fast), so it
+isn't cached between runs; add that if CI runtime becomes a concern.
+
+Both `scripts/build-android.sh` and the CI workflow now call this script automatically when
+`~/kf6-android` doesn't already have `KF6Kirigami` installed.
+
+**One real gotcha this surfaced and that both now handle**: `androiddeployqt`'s dependency
+scanner does not detect that `libKirigami.so` needs `libomp.so` (Kirigami's `ImageColors` uses
+OpenMP for palette generation) — confirmed with `readelf -d libKirigami.so | grep NEEDED`. Without
+it, the app is missing a native library and would crash on startup on-device. Both scripts copy
+it into `libs/arm64-v8a` and rebuild the APK with Gradle as a second pass.
 
 ### 4.2 Release build (works, unsigned — produced a local artifact)
 
@@ -115,19 +123,26 @@ F-Droid builds from source on their own infrastructure — you cannot upload a b
 (except in narrow, discouraged exceptions). Preparing this means submitting a recipe
 (`metadata/com.github.shrippen.plasmai.yml`) as a PR to
 [F-Droid/fdroiddata](https://gitlab.com/fdroid/fdroiddata), not producing an artifact here.
-**Real open question, not just paperwork**: F-Droid's build environment needs to reproduce the
-same Qt6 + KF6-for-Android toolchain as 4.1 — I don't know whether F-Droid's buildserver
-supports that today (it's uncommon; most F-Droid Qt apps don't pull in KF6). Sequence:
 
-1. Solve 4.1 first (a CI recipe for building KF6-for-Android reproducibly) — F-Droid's
-   `srclibs`/build steps will need essentially the same thing.
-2. Read F-Droid's [Build Metadata Reference](https://f-droid.org/docs/Build_Metadata_Reference/)
+4.1's gap is closed (`scripts/build-kf6-android.sh` cross-compiles ECM + KCoreAddons + Kirigami
+in well under a minute, verified end to end), which removes the biggest uncertainty. **One
+real difference remains, not just paperwork**: that script does a plain `git clone` of
+`invent.kde.org/frameworks/{...}` at build time — fine for CI, but F-Droid's sandboxed
+builders don't allow live network access during the build (that's how they guarantee
+reproducible builds). The KDE sources need to become an F-Droid `srclibs:` entry instead (their
+mechanism for pinning an external source ahead of the sandboxed build) rather than a raw clone
+inside the recipe's build steps. Sequence:
+
+1. Read F-Droid's [Build Metadata Reference](https://f-droid.org/docs/Build_Metadata_Reference/)
    and [Inclusion Policy](https://f-droid.org/docs/Inclusion_Policy/) (all dependencies must be
    FOSS — Qt6/KF6/QtKeychain all qualify; the Kimai/Clockify/etc. backends are just HTTP APIs,
    fine).
-3. Draft the recipe (`gradle`, `srclibs: KF6Kirigami@<tag>`-style entries for whichever KF6
-   modules need building from source, `sudo: ...` for NDK/cmake setup) and open the PR — expect
-   review rounds; F-Droid maintainers test the build themselves before merging.
+2. Translate `scripts/build-kf6-android.sh`'s three `cmake -B/--build/--install` passes (ECM,
+   KCoreAddons, Kirigami) into `srclibs:` entries + `build:`/`init:` steps in the recipe —
+   the actual CMake invocations can likely be reused close to verbatim, only the source
+   acquisition changes.
+3. Open the PR — expect review rounds; F-Droid maintainers test the build themselves before
+   merging, so treat this as a starting point, not a finished submission.
 
 ## 5. Plasma Mobile / desktop Linux app
 

@@ -46,7 +46,15 @@ info "NDK: $NDK_PATH"
 [ -d "$QT_ANDROID" ] && [ -d "$QT_HOST" ] || error "Qt not found"
 info "Qt: host=$QT_HOST android=$QT_ANDROID"
 
-# ── 3. Build ──
+# ── 3. KF6 (Kirigami + its KCoreAddons dependency) for Android ──
+KF6_ANDROID="$HOME/kf6-android"
+if [ ! -d "$KF6_ANDROID/lib/cmake/KF6Kirigami" ]; then
+    info "KF6 for Android not found at $KF6_ANDROID — building it (scripts/build-kf6-android.sh)..."
+    ANDROID_SDK_ROOT="$SDK_ROOT" "$SCRIPT_DIR/build-kf6-android.sh" "$KF6_ANDROID"
+fi
+info "KF6: $KF6_ANDROID"
+
+# ── 4. Build ──
 info "Building Plasmai ($MODE)..."
 cd "$APP_DIR"
 rm -rf build-android
@@ -57,19 +65,19 @@ cmake -B build-android \
     -DCMAKE_BUILD_TYPE="$MODE" \
     -DANDROID_ABI=arm64-v8a \
     -DANDROID_PLATFORM=android-34 \
-    -DCMAKE_PREFIX_PATH="$QT_ANDROID;$HOME/kf6-android" \
+    -DCMAKE_PREFIX_PATH="$QT_ANDROID;$KF6_ANDROID" \
     -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=BOTH \
     -DQT_HOST_PATH="$QT_HOST" \
     -DANDROID_SDK_ROOT="$SDK_ROOT" \
     -DQT_ANDROID_TARGET_SDK_VERSION=34 \
-    -DECM_DIR="$HOME/kf6-android/share/ECM/cmake" \
-    -DQT_QML_IMPORT_PATH="$HOME/kf6-android/lib/qml" \
+    -DECM_DIR="$KF6_ANDROID/share/ECM/cmake" \
+    -DQT_QML_IMPORT_PATH="$KF6_ANDROID/lib/qml" \
     -DBUILD_TESTING=OFF \
     2>&1 | tail -5
 
 cmake --build build-android -j$(nproc) 2>&1 | tail -10
 
-# ── 4. Patch KF6 QML plugin dependencies (libomp.so) ──
+# ── 5. Patch KF6 QML plugin dependencies (libomp.so) ──
 GRADLE_TASK="assembleDebug"
 [ "$MODE" = "release" ] && GRADLE_TASK="assembleRelease"
 
@@ -99,7 +107,7 @@ cd "$APP_DIR/build-android/android-build"
 ./gradlew "$GRADLE_TASK" 2>&1 | tail -10
 cd "$APP_DIR"
 
-# ── 5. Copy APK ──
+# ── 6. Copy APK ──
 APK=$(find "$APP_DIR/build-android/android-build/build/outputs/apk/$MODE" -name "*.apk" 2>/dev/null | head -1)
 [ -z "$APK" ] && APK=$(find "$APP_DIR/build-android/android-build/build/outputs/apk" -name "*.apk" 2>/dev/null | head -1)
 if [ -n "$APK" ]; then

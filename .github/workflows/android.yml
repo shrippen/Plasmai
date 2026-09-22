@@ -8,6 +8,11 @@ on:
       - '.github/workflows/android.yml'
   workflow_dispatch:
 
+env:
+  QT_VERSION: 6.7.3
+  NDK_VERSION: 28.2.13676358
+  KF6_VERSION: 6.8.0
+
 jobs:
   build-apk:
     runs-on: ubuntu-latest
@@ -26,34 +31,48 @@ jobs:
 
       - name: Install Qt6 for Android
         run: |
-          aqt install-qt linux android 6.7.3 android_arm64_v8a -O $HOME/Qt
-          aqt install-qt linux desktop 6.7.3 linux_gcc_64 -O $HOME/Qt
+          aqt install-qt linux android ${{ env.QT_VERSION }} android_arm64_v8a -O $HOME/Qt
+          aqt install-qt linux desktop ${{ env.QT_VERSION }} linux_gcc_64 -O $HOME/Qt
 
       - name: Install Android NDK
         run: |
           wget -q https://dl.google.com/android/repository/android-ndk-r28c-linux.zip -O /tmp/ndk.zip
           unzip -qo /tmp/ndk.zip -d $HOME/android-sdk/ndk-tmp/
-          mv $HOME/android-sdk/ndk-tmp/android-ndk-r28c $HOME/android-sdk/ndk/28.2.13676358
+          mv $HOME/android-sdk/ndk-tmp/android-ndk-r28c $HOME/android-sdk/ndk/${{ env.NDK_VERSION }}
           rm -rf $HOME/android-sdk/ndk-tmp /tmp/ndk.zip
 
       - name: Install Android Platform
         run: |
           mkdir -p $HOME/android-sdk/platforms/android-34
 
+      # KF6 (Kirigami + its KCoreAddons dependency, see scripts/build-kf6-android.sh) is what
+      # turns the fallback UI into the actual Kirigami app — without it, app/CMakeLists.txt's
+      # find_package(KF6 COMPONENTS Kirigami) silently fails and a much plainer QQC2-only build
+      # comes out instead. It builds in well under a minute (verified locally — ECM installs
+      # cmake modules only, KCoreAddons+Kirigami compile fast), so this is not cached across
+      # runs; add an actions/cache step keyed on env.KF6_VERSION + env.NDK_VERSION if this job's
+      # runtime becomes a problem.
+      - name: Build KF6 (Kirigami) for Android
+        run: |
+          ANDROID_SDK_ROOT=$HOME/android-sdk ./scripts/build-kf6-android.sh $HOME/kf6-android
+
       - name: Configure CMake
         run: |
           cd app
           ANDROID_SDK_ROOT=$HOME/android-sdk \
           cmake -B build-android \
-            -DCMAKE_TOOLCHAIN_FILE=$HOME/android-sdk/ndk/28.2.13676358/build/cmake/android.toolchain.cmake \
+            -DCMAKE_TOOLCHAIN_FILE=$HOME/android-sdk/ndk/${{ env.NDK_VERSION }}/build/cmake/android.toolchain.cmake \
             -DCMAKE_BUILD_TYPE=Release \
             -DANDROID_ABI=arm64-v8a \
             -DANDROID_PLATFORM=android-34 \
-            -DCMAKE_PREFIX_PATH=$HOME/Qt/6.7.3/android_arm64_v8a \
+            -DCMAKE_PREFIX_PATH="$HOME/Qt/${{ env.QT_VERSION }}/android_arm64_v8a;$HOME/kf6-android" \
             -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=BOTH \
-            -DQT_HOST_PATH=$HOME/Qt/6.7.3/gcc_64 \
+            -DQT_HOST_PATH=$HOME/Qt/${{ env.QT_VERSION }}/gcc_64 \
             -DANDROID_SDK_ROOT=$HOME/android-sdk \
-            -DQT_ANDROID_TARGET_SDK_VERSION=34
+            -DQT_ANDROID_TARGET_SDK_VERSION=34 \
+            -DECM_DIR=$HOME/kf6-android/share/ECM/cmake \
+            -DQT_QML_IMPORT_PATH=$HOME/kf6-android/lib/qml \
+            -DBUILD_TESTING=OFF
 
       - name: Build
         run: |
@@ -61,10 +80,23 @@ jobs:
           ANDROID_SDK_ROOT=$HOME/android-sdk \
           cmake --build . -j$(nproc)
 
+      # androiddeployqt's own dependency scan does not pick up libomp.so, which
+      # Kirigami.ImageColors links against for palette generation (OpenMP) — without this the
+      # app crashes on startup (UnsatisfiedLinkError) on-device. Verified locally: readelf -d
+      # on libKirigami.so lists libomp.so as NEEDED, and it is absent from libs/arm64-v8a
+      # until copied here.
+      - name: Add libomp.so (Kirigami OpenMP dependency androiddeployqt misses)
+        run: |
+          LIBS_DIR=app/build-android/android-build/libs/arm64-v8a
+          LIBOMP=$HOME/android-sdk/ndk/${{ env.NDK_VERSION }}/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/lib/linux/aarch64/libomp.so
+          cp "$LIBOMP" "$LIBS_DIR/"
+          cd app/build-android/android-build
+          ANDROID_SDK_ROOT=$HOME/android-sdk ./gradlew assembleDebug
+
       - name: Copy APK
         run: |
           mkdir -p dist/android
-          APK=$(find app/build-android/android-build/build/outputs/apk -name "*.apk" | head -1)
+          APK=$(find app/build-android/android-build/build/outputs/apk/debug -name "*.apk" | head -1)
           cp "$APK" dist/android/plasmai-app.apk
 
       - name: Upload APK artifact
