@@ -37,7 +37,8 @@ var PROVIDERS = [
             holidayBundle: true,
             deleteEntry: true,
             editStopped: true,
-            createEntities: true
+            createEntities: true,
+            filmDays: true
         }
     },
     {
@@ -146,7 +147,10 @@ function providerCapabilities(providerId) {
         holidayBundle: caps.holidayBundle === true,
         deleteEntry: caps.deleteEntry === true,
         editStopped: caps.editStopped === true,
-        createEntities: caps.createEntities === true
+        createEntities: caps.createEntities === true,
+        // Local-only extras UI (break, catering, day type, production day,
+        // note); Kimai-only like color distinction and Maintenance.
+        filmDays: caps.filmDays === true
     }
 }
 

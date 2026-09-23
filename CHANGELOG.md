@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Desktop
+- Film day view (Kimai only): a shooting-day entry screen modeled on the Android TimeSheet app — begin/end/break, catering, day category/type, production-day counter, extra pay, note. Begin/end save to a normal Kimai entry; the film-specific extras are kept locally until kimai-drehzettel-bundle has an API for them
+
 ## 1.6.3
 
 ### Desktop

@@ -18,6 +18,7 @@ import "../code/colorDistinct.js" as ColorDistinct
 import "../code/maintenanceCache.js" as CatalogCache
 import "../code/buildInfo.js" as BuildInfo
 import "../code/timesheetFields.js" as TimesheetFields
+import "../code/filmDays.js" as FilmDays
 import "."
 
 PlasmoidItem {
@@ -47,7 +48,7 @@ PlasmoidItem {
     property string apiToken: ""
     property bool tokenLoaded: false
     property bool isConfigured: apiToken.length > 0 && (!providerMeta.needsUrl || kimaiUrl.length > 0)
-    property string mainViewMode: "main"  // main | manual | stats
+    property string mainViewMode: "main"  // main | manual | stats | filmday
     /** Inline editor for the running timesheet (start / project / activity). */
     property bool editingActiveEntry: false
     /** Stopped Recent timesheet currently in the Add-entry form (null = new entry). */
@@ -155,6 +156,14 @@ PlasmoidItem {
     property var statsRangeBeginMs: 0
     property var statsRangeEndMs: 0
     property bool loadingStats: false
+    /** Local film-day extras (break, catering, day type, …), see filmDays.js.
+     *  Bound to plasmoid.configuration.filmDaysJson — write through that
+     *  property (saveFilmDay), never assign filmDaysMap directly. */
+    readonly property var filmDaysMap: FilmDays.parse(plasmoid.configuration.filmDaysJson)
+    property var filmDaySelectedDate: new Date()
+    /** The Kimai entry for filmDaySelectedDate + the picked project, if any. */
+    property var filmDayTimesheet: null
+    property bool loadingFilmDay: false
     readonly property string workDayBegin: {
         var v = plasmoid.configuration.workDayBegin
         return (v && String(v).length > 0) ? String(v) : KimaiApi.DEFAULT_WORK_DAY_BEGIN
@@ -262,6 +271,9 @@ PlasmoidItem {
         }
         if (typeof activeEditView !== "undefined" && activeEditView) {
             activeEditView.closePickers()
+        }
+        if (typeof filmDayView !== "undefined" && filmDayView) {
+            filmDayView.closePickers()
         }
     }
 
@@ -923,7 +935,123 @@ PlasmoidItem {
     function returnToMainView() {
         mainViewMode = "main"
         editingStoppedTimesheet = null
+        filmDayTimesheet = null
         dismissPickerPopups()
+    }
+
+    function openFilmDayView() {
+        if (!isConfigured || !providerCapabilities.filmDays) {
+            return
+        }
+        editingActiveEntry = false
+        editingStoppedTimesheet = null
+        mainViewMode = "filmday"
+        if (projectPickerModel.length === 0) {
+            refreshProjects(false)
+        }
+        loadFilmDayForDate(filmDaySelectedDate)
+    }
+
+    function stepFilmDay(deltaDays) {
+        var next = new Date(filmDaySelectedDate)
+        next.setDate(next.getDate() + deltaDays)
+        loadFilmDayForDate(next)
+    }
+
+    /** Loads the Kimai entry and film-day extras for `date` into the Filmday view. */
+    function loadFilmDayForDate(date) {
+        filmDaySelectedDate = date
+        if (!isConfigured) {
+            return
+        }
+        var selectedProjectIdForDay = (typeof filmDayView !== "undefined" && filmDayView
+            && filmDayView.projectCombo.currentIndex >= 0)
+            ? filmDayView.projectCombo.currentItem.value.id : null
+        loadingFilmDay = true
+        tracker.fetchTimesheetsRange(
+            kimaiUrl, apiToken, KimaiApi.startOfLocalDay(date), KimaiApi.endOfLocalDay(date),
+            function(result) {
+                loadingFilmDay = false
+                var entries = (result && result.ok) ? KimaiApi.hydrateTimesheets(
+                    result.data || [], root.projects, root.activityCatalog(), root.activitiesByProject) : []
+                var match = null
+                for (var i = 0; i < entries.length; i++) {
+                    if (selectedProjectIdForDay
+                        && String(KimaiApi.projectId(entries[i])) === String(selectedProjectIdForDay)) {
+                        match = entries[i]
+                        break
+                    }
+                }
+                if (!match && entries.length > 0) {
+                    match = entries[0]
+                }
+                filmDayTimesheet = match
+                var dateStr = KimaiApi.localDateString(date)
+                var entryProjectId = match ? KimaiApi.projectId(match) : selectedProjectIdForDay
+                var filmEntry = FilmDays.get(root.filmDaysMap, entryProjectId, dateStr)
+                if (typeof filmDayView !== "undefined" && filmDayView) {
+                    filmDayView.loadForDay(date, match, filmEntry)
+                }
+            })
+    }
+
+    function saveFilmDay(projectId, activityId, beginText, endText, filmDayFields) {
+        if (!isConfigured || isBusy) {
+            return
+        }
+        function parseLocalStamp(text) {
+            var s = String(text || "").trim().replace(" ", "T")
+            if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(s)) {
+                s += ":00"
+            }
+            return new Date(s)
+        }
+        var beginDate = parseLocalStamp(beginText)
+        var endDate = parseLocalStamp(endText)
+        if (isNaN(beginDate.getTime()) || isNaN(endDate.getTime())) {
+            userMessage = i18n("Enter valid begin and end date/time.")
+            return
+        }
+        if (endDate.getTime() <= beginDate.getTime()) {
+            userMessage = i18n("End must be after begin.")
+            return
+        }
+        isBusy = true
+        lastError = null
+        userMessage = ""
+        var fields = {
+            begin: KimaiApi.localDateTimeString(beginDate),
+            end: KimaiApi.localDateTimeString(endDate),
+            project: projectId,
+            activity: activityId
+        }
+        var existingId = filmDayTimesheet && filmDayTimesheet.id
+        function afterSave(result) {
+            isBusy = false
+            if (!result.ok) {
+                setError(result.error)
+                return
+            }
+            clearError()
+            var dateStr = KimaiApi.localDateString(root.filmDaySelectedDate)
+            var nextMap = FilmDays.set(root.filmDaysMap, projectId, dateStr, filmDayFields)
+            plasmoid.configuration.filmDaysJson = FilmDays.serialize(nextMap)
+            Secret.persistSharedPatch(execSource, sharedConfigScript, plasmoid.configuration, {
+                filmDaysJson: plasmoid.configuration.filmDaysJson
+            })
+            refreshRecentTimesheets()
+            refreshWorkTotals()
+            sendNotification(
+                i18n("Shooting day saved"),
+                KimaiApi.formatDuration(FilmDays.workSecondsFromSpan(
+                    beginDate.getTime(), endDate.getTime(), filmDayFields.breakMinutes)))
+            loadFilmDayForDate(root.filmDaySelectedDate)
+        }
+        if (existingId !== undefined && existingId !== null && existingId !== "") {
+            tracker.patchTimesheet(kimaiUrl, apiToken, existingId, fields, afterSave)
+        } else {
+            tracker.createTimesheet(kimaiUrl, apiToken, fields, afterSave)
+        }
     }
 
     function createManualEntry(projectId, activityId, beginText, endText, description, billable, tags) {
@@ -2743,9 +2871,10 @@ PlasmoidItem {
                             Layout.fillWidth: true
                             level: 3
                             text: root.mainViewMode === "stats" ? i18n("Statistics")
+                                  : (root.mainViewMode === "filmday" ? i18n("Film day")
                                   : (root.mainViewMode === "manual"
                                      ? (root.editingStoppedTimesheet ? i18n("Edit entry") : i18n("Add entry"))
-                                      : (BuildInfo.BUILD > 0 ? (i18n("Plasmai") + " #" + BuildInfo.BUILD) : i18n("Plasmai")))
+                                      : (BuildInfo.BUILD > 0 ? (i18n("Plasmai") + " #" + BuildInfo.BUILD) : i18n("Plasmai"))))
                         }
 
                         RowLayout {
@@ -2808,7 +2937,23 @@ PlasmoidItem {
                         }
 
                         PlasmaComponents3.ToolButton {
+                            visible: root.isConfigured && root.mainViewMode === "main"
+                                     && root.providerCapabilities.filmDays
+                            icon.name: "view-calendar-day"
+                            text: i18n("Film day")
+                            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+                            display: TouchUi.active ? QQC2.AbstractButton.TextBesideIcon
+                                                    : QQC2.AbstractButton.IconOnly
+                            enabled: !root.isBusy && root.connectionState !== "error"
+                            onClicked: root.openFilmDayView()
+                            PlasmaComponents3.ToolTip.text: i18n("Log a shooting day")
+                            PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
+                            PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
+                        }
+
+                        PlasmaComponents3.ToolButton {
                             visible: root.mainViewMode === "manual" || root.mainViewMode === "stats"
+                                     || root.mainViewMode === "filmday"
                             icon.name: "go-previous"
                             text: i18n("Back")
                             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
@@ -2929,6 +3074,40 @@ PlasmoidItem {
                     onNeedMoreHistory: function(rangeBegin, rangeEnd) {
                         root.loadStatsRange(rangeBegin, rangeEnd)
                     }
+                }
+
+                FilmDayView {
+                    id: filmDayView
+                    Layout.fillWidth: true
+                    visible: root.mainViewMode === "filmday" && root.isConfigured
+                             && root.providerCapabilities.filmDays
+                    projectPickerModel: root.projectPickerModel
+                    activityPickerModel: root.activityPickerModel
+                    activitySectionTitles: root.activitySectionTitles
+                    pickerOpenBelow: root.pickerOpenBelow
+                    pickerViewport: popupScroll
+                    busy: root.isBusy || root.loadingFilmDay
+                    configured: root.isConfigured
+                    connectionOk: root.connectionState !== "error"
+                    showCreateActions: root.providerCapabilities.createEntities
+                    onAboutToOpenPicker: function(projectField, activityField) {
+                        root.updatePickerOpenDirection(projectField, activityField)
+                    }
+                    onProjectChosen: function(projectId) {
+                        root.loadActivitiesForProject(projectId)
+                    }
+                    onDayStepRequested: function(deltaDays) {
+                        root.stepFilmDay(deltaDays)
+                    }
+                    onDayChosen: function(date) {
+                        root.loadFilmDayForDate(date)
+                    }
+                    onSaveRequested: function(projectId, activityId, beginText, endText, filmDayFields) {
+                        root.saveFilmDay(projectId, activityId, beginText, endText, filmDayFields)
+                    }
+                    onCancelled: root.returnToMainView()
+                    onCreateProjectRequested: root.openCreateEntity("project")
+                    onCreateActivityRequested: root.openCreateEntity("activity")
                 }
 
                 ColumnLayout {

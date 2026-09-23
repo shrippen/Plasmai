@@ -212,6 +212,30 @@ typography stack, badge format, and social-preview spec.
   (`isBusy`, connection error). `LoadingRow` placeholders only while a list
   is empty and loading — do not flash them over existing data.
 
+### Film day view (Kimai only)
+
+- `mainViewMode: "filmday"` (`FilmDayView.qml`), gated by `providerCapabilities.filmDays`
+  (Kimai only — like color distinction and Maintenance, this does not grow a
+  parallel UI on other providers).
+- One shooting day = one Kimai timesheet entry for that calendar day (begin/end,
+  created or patched like Add entry). Film-specific extras that Kimai has no
+  field for — break, catering, day category, day type, production-day counter,
+  extra pay, note — are **not** sent to Kimai. There is no API for them yet:
+  [kimai-drehzettel-bundle](https://github.com/shrippen/kimai-drehzettel-bundle)
+  (a separate Kimai plugin implementing TV FFS-style film crew payroll) stores
+  the same concepts server-side, but only through Symfony CSRF forms today, no
+  JSON API. Until it has one, the extras live in `shared.json`
+  (`filmDaysJson`, keyed by project + date; see `filmDays.js`) — local to the
+  machine, synced across this widget's own instances, never sent anywhere.
+  The view says so in an inline label so this isn't a silent surprise.
+- Vocabulary (`FilmDays.DayCategory`, `DayType`, `Catering` enum strings)
+  mirrors that plugin's own enums so swapping the storage for its API later
+  is a transport change, not a re-design. Do not invent day types the plugin
+  does not implement yet (it currently has `workday`/`travel` only, not the
+  full Android-app set).
+- Same-day begin/end only (no overnight span across midnight), matching the
+  reference Android app's day screen.
+
 ### Charts and sparkline
 
 - Sparkline is a 24h work-day bar (business hours from Kimai calendar when
