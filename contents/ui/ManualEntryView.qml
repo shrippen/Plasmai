@@ -53,9 +53,41 @@ ColumnLayout {
     signal createProjectRequested()
     signal createActivityRequested()
 
-    /** filmDayData: { breakMinutes, catering, category, note } or null; status: { active, rulesetName }. */
-    function applyDrehzettelStatus(status, filmDayData) {
-        filmDayFields.loadFilmDay(filmDayData, status && status.active, status && status.rulesetName)
+    /**
+     * filmDayData: { breakMinutes, catering, category, note } or null; status: { active, rulesetName };
+     * key: "engagementId|YYYY-MM-DD" of the loaded film day, or "".
+     */
+    function applyDrehzettelStatus(status, filmDayData, key) {
+        filmDayFields.loadFilmDay(filmDayData, status && status.active, status && status.rulesetName, key)
+    }
+
+    /** project|activity|day last sent via entryContextChanged - dedupes re-checks. */
+    property string lastContextKey: ""
+
+    /**
+     * Any change to the effective project/activity/day re-checks the engagement - user
+     * picks, programmatic selection (editing an entry, pending ids resolving) and picker
+     * model reloads alike. Debounced: a project change reloads the activity list and moves
+     * the activity selection right after, and only the settled selection should be sent.
+     */
+    function scheduleEntryContextCheck() {
+        contextCheckTimer.restart()
+    }
+
+    Timer {
+        id: contextCheckTimer
+        interval: 200
+        onTriggered: root.emitEntryContextChanged()
+    }
+
+    Connections {
+        target: root.projectCombo
+        function onCurrentIndexChanged() { root.scheduleEntryContextCheck() }
+    }
+
+    Connections {
+        target: root.activityCombo
+        function onCurrentIndexChanged() { root.scheduleEntryContextCheck() }
     }
 
     function currentProjectId() {
@@ -69,12 +101,20 @@ ColumnLayout {
     }
 
     function emitEntryContextChanged() {
-        var pid = currentProjectId()
-        if (!hasId(pid)) {
-            root.applyDrehzettelStatus(null, null)
+        if (!root.visible) {
             return
         }
-        root.entryContextChanged(pid, currentActivityId(), root.stampText(beginDate, beginTime))
+        var pid = currentProjectId()
+        var aid = currentActivityId()
+        var stamp = root.stampText(beginDate, beginTime)
+        var key = (hasId(pid) ? pid : "") + "|" + (hasId(aid) ? aid : "") + "|" + stamp.slice(0, 10)
+        if (key === lastContextKey) {
+            return
+        }
+        lastContextKey = key
+        // Emitted even without a project, so the caller resets the fields and supersedes
+        // any request still in flight for the previous selection.
+        root.entryContextChanged(hasId(pid) ? pid : null, hasId(aid) ? aid : null, hasId(pid) ? stamp : "")
     }
 
     function closePickers() {
@@ -136,6 +176,7 @@ ColumnLayout {
         pendingActivityId = null
         metaFields.resetDefaults()
         filmDayFields.resetDefaults()
+        lastContextKey = ""
     }
 
     function hasId(value) {
@@ -202,7 +243,7 @@ ColumnLayout {
         pendingProjectId = null
         if (!suppressProjectSignal) {
             root.projectChosen(pid)
-            root.emitEntryContextChanged()
+            root.scheduleEntryContextCheck()
         }
     }
 
@@ -210,6 +251,10 @@ ColumnLayout {
         if (!ts) {
             return
         }
+        // A different entry may share engagement + day with the previous one - start clean
+        // so its unsaved film-day edits never carry over.
+        filmDayFields.resetDefaults()
+        lastContextKey = ""
         var begin = parseStampDate(ts.begin, new Date(Date.now() - 60 * 60 * 1000))
         var end = parseStampDate(ts.end, new Date())
         beginDate.setDate(begin)
@@ -235,12 +280,15 @@ ColumnLayout {
         }
         Qt.callLater(trySelectPendingActivity)
         metaFields.loadFromTimesheet(ts)
-        root.emitEntryContextChanged()
+        root.scheduleEntryContextCheck()
     }
 
     Component.onCompleted: resetDefaults()
 
     onVisibleChanged: {
+        if (visible) {
+            scheduleEntryContextCheck()
+        }
         if (visible && editingExisting && hasId(pendingProjectId)) {
             Qt.callLater(function() {
                 if (root.visible && root.editingExisting) {
@@ -252,6 +300,7 @@ ColumnLayout {
     }
 
     onProjectPickerModelChanged: {
+        scheduleEntryContextCheck()
         if (!visible || !editingExisting) {
             return
         }
@@ -262,6 +311,7 @@ ColumnLayout {
     }
 
     onActivityPickerModelChanged: {
+        scheduleEntryContextCheck()
         if (!visible || !editingExisting) {
             return
         }
@@ -299,10 +349,10 @@ ColumnLayout {
                 return
             }
             root.projectChosen(pickers.projectPickerModel[index].value.id)
-            root.emitEntryContextChanged()
+            root.scheduleEntryContextCheck()
         }
         onActivityActivated: function(index) {
-            root.emitEntryContextChanged()
+            root.scheduleEntryContextCheck()
         }
         onCreateProjectRequested: root.createProjectRequested()
         onCreateActivityRequested: root.createActivityRequested()
@@ -324,7 +374,7 @@ ColumnLayout {
             Layout.fillWidth: true
             Layout.preferredWidth: 1
             enabled: root.configured && !root.busy
-            onDateEdited: root.emitEntryContextChanged()
+            onDateEdited: root.scheduleEntryContextCheck()
         }
         TimeField {
             id: beginTime

@@ -50,10 +50,21 @@ ColumnLayout {
         return idx >= 0 ? idx + 1 : 0
     }
 
-    /** filmDay: { breakMinutes, catering, category, note } or null (nothing saved yet). */
-    function loadFilmDay(filmDayData, active, ruleset) {
-        engagementActive = !!active
+    /** "engagementId|YYYY-MM-DD" of the film day currently loaded into the fields, or "". */
+    property string loadedKey: ""
+
+    /**
+     * filmDay: { breakMinutes, catering, category, note } or null (nothing saved yet).
+     * key identifies engagement + day; a re-check that resolves to the same one (e.g. the
+     * user switched between two counting activities) keeps what they already typed.
+     */
+    function loadFilmDay(filmDayData, active, ruleset, key) {
         rulesetName = ruleset || ""
+        if (active && key && key === loadedKey && engagementActive) {
+            return
+        }
+        engagementActive = !!active
+        loadedKey = active ? (key || "") : ""
         toggle.checked = !!active
         var d = filmDayData || {}
         breakField.text = (d.breakMinutes === null || d.breakMinutes === undefined) ? "" : String(d.breakMinutes)
@@ -63,6 +74,7 @@ ColumnLayout {
     }
 
     function resetDefaults() {
+        loadedKey = ""
         engagementActive = false
         rulesetName = ""
         toggle.checked = false

@@ -50,6 +50,7 @@ PlasmoidItem {
     property bool isConfigured: apiToken.length > 0 && (!providerMeta.needsUrl || kimaiUrl.length > 0)
     /** Drehzettel plugin (kimai-drehzettel-bundle) presence on the active Kimai profile, cached per URL. */
     property bool drehzettelInstalled: false
+    property int drehzettelStatusSeq: 0
     readonly property bool drehzettelAvailable: providerId === "kimai" && drehzettelInstalled
     property string mainViewMode: "main"  // main | manual | stats
     /** Inline editor for the running timesheet (start / project / activity). */
@@ -970,7 +971,7 @@ PlasmoidItem {
             isBusy = false
             if (result.ok) {
                 clearError()
-                saveDrehzettelFilmDay(projectId, activityId, KimaiApi.localDateString(beginDate), filmDayFields)
+                saveDrehzettelFilmDay(projectId, activityId, beginDate, filmDayFields)
                 returnToMainView()
                 refreshRecentTimesheets()
                 refreshWorkTotals()
@@ -1818,33 +1819,44 @@ PlasmoidItem {
      * "Anfahrt"/commute activity on the same project), so activityId matters here too.
      */
     function loadDrehzettelStatus(projectId, activityId, dateText) {
+        // Every call supersedes the previous one, including the reset path: a reply that
+        // lands after the user already moved on (project A, then quickly B) is dropped
+        // instead of overwriting B's state or the fields typed since.
+        var seq = ++drehzettelStatusSeq
         if (!drehzettelAvailable || !projectId || !dateText) {
-            manualEntryView.applyDrehzettelStatus(null, null)
+            manualEntryView.applyDrehzettelStatus(null, null, "")
             return
         }
+        // "YYYY-MM-DD HH:MM" -> local date-time (only a date-only string parses as UTC).
         var date = new Date(String(dateText).replace(" ", "T"))
         if (isNaN(date.getTime())) {
             date = new Date()
         }
+        var dayKey = KimaiApi.localDateString(date)
         DrehzettelApi.engagementStatus(kimaiUrl, apiToken, projectId, date, activityId, function(statusResult) {
+            if (seq !== drehzettelStatusSeq) {
+                return
+            }
             if (!statusResult.ok || !statusResult.data || !statusResult.data.active) {
-                manualEntryView.applyDrehzettelStatus(statusResult.ok ? statusResult.data : null, null)
+                manualEntryView.applyDrehzettelStatus(statusResult.ok ? statusResult.data : null, null, "")
                 return
             }
             var status = statusResult.data
             DrehzettelApi.filmDayGet(kimaiUrl, apiToken, projectId, date, activityId, function(filmDayResult) {
-                manualEntryView.applyDrehzettelStatus(status, filmDayResult.ok ? filmDayResult.data : null)
+                if (seq !== drehzettelStatusSeq) {
+                    return
+                }
+                manualEntryView.applyDrehzettelStatus(status, filmDayResult.ok ? filmDayResult.data : null,
+                                                      status.engagementId + "|" + dayKey)
             })
         })
     }
 
     /** Best-effort: entry save already succeeded, a Drehzettel write failing is logged, not surfaced. */
-    function saveDrehzettelFilmDay(projectId, activityId, dateText, filmDayFields) {
-        if (!drehzettelAvailable || !projectId || !dateText || !filmDayFields) {
-            return
-        }
-        var date = new Date(String(dateText).replace(" ", "T"))
-        if (isNaN(date.getTime())) {
+    // Takes the entry's local begin Date, not a "YYYY-MM-DD" string: JS parses a
+    // date-only string as UTC midnight, which shifts to the previous day west of UTC.
+    function saveDrehzettelFilmDay(projectId, activityId, date, filmDayFields) {
+        if (!drehzettelAvailable || !projectId || !filmDayFields || !date || isNaN(date.getTime())) {
             return
         }
         DrehzettelApi.filmDayPut(kimaiUrl, apiToken, projectId, date, activityId, filmDayFields, function(result) {
