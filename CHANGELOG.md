@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Desktop
+- Kimai profiles with the kimai-drehzettel-bundle plugin installed show a "Film day" toggle in the manual entry form when the chosen project/date fall inside an active engagement, with break/catering/category/note fields (Konzept A, inline expand). Saved alongside the timesheet entry via the plugin's `/api/drehzettel/v1/...` API; inert everywhere else.
+
 ## 1.6.3
 
 ### Desktop

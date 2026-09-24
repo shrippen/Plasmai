@@ -36,15 +36,41 @@ ColumnLayout {
     property var pendingActivityId: null
     property bool suppressProjectSignal: false
 
+    /** Whether the Drehzettel plugin is installed on the active Kimai profile. */
+    property bool drehzettelAvailable: false
+
     readonly property alias projectCombo: pickers.projectCombo
     readonly property alias activityCombo: pickers.activityCombo
+    readonly property alias filmDay: filmDayFields.filmDay
+    readonly property alias filmDayEngagementActive: filmDayFields.engagementActive
 
     signal aboutToOpenPicker(var projectField, var activityField)
     signal projectChosen(var projectId)
-    signal saveRequested(var projectId, var activityId, string beginText, string endText, string description, bool billable, var tags)
+    /** project + effective begin date changed - caller should refresh Drehzettel engagement status. */
+    signal entryContextChanged(var projectId, string dateText)
+    signal saveRequested(var projectId, var activityId, string beginText, string endText, string description, bool billable, var tags, var filmDayFields)
     signal cancelled()
     signal createProjectRequested()
     signal createActivityRequested()
+
+    /** filmDayData: { breakMinutes, catering, category, note } or null; status: { active, rulesetName }. */
+    function applyDrehzettelStatus(status, filmDayData) {
+        filmDayFields.loadFilmDay(filmDayData, status && status.active, status && status.rulesetName)
+    }
+
+    function currentProjectId() {
+        return (projectCombo.currentIndex >= 0 && projectCombo.currentItem)
+            ? projectCombo.currentItem.value.id : null
+    }
+
+    function emitEntryContextChanged() {
+        var pid = currentProjectId()
+        if (!hasId(pid)) {
+            root.applyDrehzettelStatus(null, null)
+            return
+        }
+        root.entryContextChanged(pid, root.stampText(beginDate, beginTime))
+    }
 
     function closePickers() {
         pickers.closePickers()
@@ -104,6 +130,7 @@ ColumnLayout {
         pendingProjectId = null
         pendingActivityId = null
         metaFields.resetDefaults()
+        filmDayFields.resetDefaults()
     }
 
     function hasId(value) {
@@ -170,6 +197,7 @@ ColumnLayout {
         pendingProjectId = null
         if (!suppressProjectSignal) {
             root.projectChosen(pid)
+            root.emitEntryContextChanged()
         }
     }
 
@@ -202,6 +230,7 @@ ColumnLayout {
         }
         Qt.callLater(trySelectPendingActivity)
         metaFields.loadFromTimesheet(ts)
+        root.emitEntryContextChanged()
     }
 
     Component.onCompleted: resetDefaults()
@@ -265,6 +294,7 @@ ColumnLayout {
                 return
             }
             root.projectChosen(pickers.projectPickerModel[index].value.id)
+            root.emitEntryContextChanged()
         }
         onCreateProjectRequested: root.createProjectRequested()
         onCreateActivityRequested: root.createActivityRequested()
@@ -286,6 +316,7 @@ ColumnLayout {
             Layout.fillWidth: true
             Layout.preferredWidth: 1
             enabled: root.configured && !root.busy
+            onDateEdited: root.emitEntryContextChanged()
         }
         TimeField {
             id: beginTime
@@ -355,6 +386,13 @@ ColumnLayout {
         enabled: root.configured && !root.busy
     }
 
+    FilmDayFields {
+        id: filmDayFields
+        Layout.fillWidth: true
+        visible: root.drehzettelAvailable && engagementActive
+        enabled: root.configured && !root.busy
+    }
+
     RowLayout {
         Layout.fillWidth: true
         spacing: Kirigami.Units.smallSpacing
@@ -370,6 +408,14 @@ ColumnLayout {
             onClicked: {
                 var project = projectCombo.currentItem.value
                 var activity = activityCombo.currentItem.value
+                var filmDayPayload = (root.drehzettelAvailable && filmDayFields.visible && filmDayFields.filmDay)
+                    ? {
+                        breakMinutes: filmDayFields.breakMinutes,
+                        catering: filmDayFields.catering,
+                        category: filmDayFields.category,
+                        note: filmDayFields.note
+                    }
+                    : null
                 root.saveRequested(
                     project.id,
                     activity.id,
@@ -377,7 +423,8 @@ ColumnLayout {
                     root.stampText(endDate, endTime),
                     descriptionField.text,
                     root.editingExisting ? metaFields.billable : metaFields.billableOrNull,
-                    metaFields.tags)
+                    metaFields.tags,
+                    filmDayPayload)
             }
         }
 
