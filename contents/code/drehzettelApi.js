@@ -90,14 +90,24 @@ function dateParam(date) {
     return KimaiApi.localDateString(date instanceof Date ? date : new Date(date))
 }
 
-/** Whether project+date fall inside an active engagement for the token holder. */
-function engagementStatus(kimaiUrl, apiToken, projectId, date, callback) {
+function activityQuery(activityId) {
+    // Kimai activity ids are always positive, so 0/""/null/undefined all mean "none chosen".
+    return activityId ? "&activity=" + encodeURIComponent(String(activityId)) : ""
+}
+
+/**
+ * Whether project(+activity)+date fall inside an active engagement for the token holder.
+ * activityId is optional - an engagement may restrict itself to specific activities
+ * (e.g. excluding a private "Anfahrt"/commute activity on the same project); omitting
+ * it keeps the project-only check for backward compatibility.
+ */
+function engagementStatus(kimaiUrl, apiToken, projectId, date, activityId, callback) {
     if (!kimaiUrl || !apiToken || !projectId) {
         callback(KimaiApi.fail({ type: "config", status: 0, detail: "" }))
         return
     }
     var endpoint = API_BASE + "/v1/engagement-status?project=" + encodeURIComponent(String(projectId))
-        + "&date=" + encodeURIComponent(dateParam(date))
+        + "&date=" + encodeURIComponent(dateParam(date)) + activityQuery(activityId)
     var xhr = KimaiApi.createRequest("GET", kimaiUrl, endpoint, apiToken, false)
     KimaiApi.runRequest(xhr, undefined, function(status, responseText, statusText) {
         if (status === 200) {
@@ -108,24 +118,24 @@ function engagementStatus(kimaiUrl, apiToken, projectId, date, callback) {
     })
 }
 
-function filmDayEndpoint(projectId, date) {
+function filmDayEndpoint(projectId, date, activityId) {
     return API_BASE + "/v1/film-days/" + encodeURIComponent(dateParam(date))
-        + "?project=" + encodeURIComponent(String(projectId))
+        + "?project=" + encodeURIComponent(String(projectId)) + activityQuery(activityId)
 }
 
-/** The stored film-day fields for this project+date, or null if none exist yet. */
-function filmDayGet(kimaiUrl, apiToken, projectId, date, callback) {
+/** The stored film-day fields for this project(+activity)+date, or null if none exist yet. */
+function filmDayGet(kimaiUrl, apiToken, projectId, date, activityId, callback) {
     if (!kimaiUrl || !apiToken || !projectId) {
         callback(KimaiApi.fail({ type: "config", status: 0, detail: "" }))
         return
     }
-    var xhr = KimaiApi.createRequest("GET", kimaiUrl, filmDayEndpoint(projectId, date), apiToken, false)
+    var xhr = KimaiApi.createRequest("GET", kimaiUrl, filmDayEndpoint(projectId, date, activityId), apiToken, false)
     KimaiApi.runRequest(xhr, undefined, function(status, responseText, statusText) {
         if (status === 200) {
             callback(KimaiApi.ok(KimaiApi.parseJson(responseText, {})))
         } else if (status === 404) {
-            // No active engagement for this project/date after all (e.g. it just
-            // ended) - treat like "nothing saved yet" rather than an error.
+            // No active engagement for this project/activity/date after all (e.g. it
+            // just ended) - treat like "nothing saved yet" rather than an error.
             callback(KimaiApi.ok(null))
         } else {
             callback(KimaiApi.fail(KimaiApi.parseApiError(status, statusText, responseText)))
@@ -134,7 +144,7 @@ function filmDayGet(kimaiUrl, apiToken, projectId, date, callback) {
 }
 
 /** fields: { breakMinutes, catering, category, note } - upserts the day (PUT). */
-function filmDayPut(kimaiUrl, apiToken, projectId, date, fields, callback) {
+function filmDayPut(kimaiUrl, apiToken, projectId, date, activityId, fields, callback) {
     if (!kimaiUrl || !apiToken || !projectId) {
         callback(KimaiApi.fail({ type: "config", status: 0, detail: "" }))
         return
@@ -147,7 +157,7 @@ function filmDayPut(kimaiUrl, apiToken, projectId, date, fields, callback) {
         category: f.category || null,
         note: f.note || ""
     }
-    var xhr = KimaiApi.createRequest("PUT", kimaiUrl, filmDayEndpoint(projectId, date), apiToken, true)
+    var xhr = KimaiApi.createRequest("PUT", kimaiUrl, filmDayEndpoint(projectId, date, activityId), apiToken, true)
     KimaiApi.runRequest(xhr, JSON.stringify(data), function(status, responseText, statusText) {
         if (status >= 200 && status < 300) {
             callback(KimaiApi.ok(KimaiApi.parseJson(responseText, {})))

@@ -46,8 +46,8 @@ ColumnLayout {
 
     signal aboutToOpenPicker(var projectField, var activityField)
     signal projectChosen(var projectId)
-    /** project + effective begin date changed - caller should refresh Drehzettel engagement status. */
-    signal entryContextChanged(var projectId, string dateText)
+    /** project/activity + effective begin date changed - caller should refresh Drehzettel engagement status. */
+    signal entryContextChanged(var projectId, var activityId, string dateText)
     signal saveRequested(var projectId, var activityId, string beginText, string endText, string description, bool billable, var tags, var filmDayFields)
     signal cancelled()
     signal createProjectRequested()
@@ -63,13 +63,18 @@ ColumnLayout {
             ? projectCombo.currentItem.value.id : null
     }
 
+    function currentActivityId() {
+        return (activityCombo.currentIndex >= 0 && activityCombo.currentItem)
+            ? activityCombo.currentItem.value.id : null
+    }
+
     function emitEntryContextChanged() {
         var pid = currentProjectId()
         if (!hasId(pid)) {
             root.applyDrehzettelStatus(null, null)
             return
         }
-        root.entryContextChanged(pid, root.stampText(beginDate, beginTime))
+        root.entryContextChanged(pid, currentActivityId(), root.stampText(beginDate, beginTime))
     }
 
     function closePickers() {
@@ -294,6 +299,9 @@ ColumnLayout {
                 return
             }
             root.projectChosen(pickers.projectPickerModel[index].value.id)
+            root.emitEntryContextChanged()
+        }
+        onActivityActivated: function(index) {
             root.emitEntryContextChanged()
         }
         onCreateProjectRequested: root.createProjectRequested()

@@ -970,7 +970,7 @@ PlasmoidItem {
             isBusy = false
             if (result.ok) {
                 clearError()
-                saveDrehzettelFilmDay(projectId, KimaiApi.localDateString(beginDate), filmDayFields)
+                saveDrehzettelFilmDay(projectId, activityId, KimaiApi.localDateString(beginDate), filmDayFields)
                 returnToMainView()
                 refreshRecentTimesheets()
                 refreshWorkTotals()
@@ -1811,11 +1811,13 @@ PlasmoidItem {
     }
 
     /**
-     * Fetch whether project+date fall inside an active Drehzettel engagement,
-     * and the saved film-day fields if so, then push both into the manual
-     * entry form. Called whenever the form's project or begin date changes.
+     * Fetch whether project+activity+date fall inside an active Drehzettel engagement,
+     * and the saved film-day fields if so, then push both into the manual entry form.
+     * Called whenever the form's project, activity, or begin date changes - an
+     * engagement may restrict itself to specific activities (e.g. excluding a private
+     * "Anfahrt"/commute activity on the same project), so activityId matters here too.
      */
-    function loadDrehzettelStatus(projectId, dateText) {
+    function loadDrehzettelStatus(projectId, activityId, dateText) {
         if (!drehzettelAvailable || !projectId || !dateText) {
             manualEntryView.applyDrehzettelStatus(null, null)
             return
@@ -1824,20 +1826,20 @@ PlasmoidItem {
         if (isNaN(date.getTime())) {
             date = new Date()
         }
-        DrehzettelApi.engagementStatus(kimaiUrl, apiToken, projectId, date, function(statusResult) {
+        DrehzettelApi.engagementStatus(kimaiUrl, apiToken, projectId, date, activityId, function(statusResult) {
             if (!statusResult.ok || !statusResult.data || !statusResult.data.active) {
                 manualEntryView.applyDrehzettelStatus(statusResult.ok ? statusResult.data : null, null)
                 return
             }
             var status = statusResult.data
-            DrehzettelApi.filmDayGet(kimaiUrl, apiToken, projectId, date, function(filmDayResult) {
+            DrehzettelApi.filmDayGet(kimaiUrl, apiToken, projectId, date, activityId, function(filmDayResult) {
                 manualEntryView.applyDrehzettelStatus(status, filmDayResult.ok ? filmDayResult.data : null)
             })
         })
     }
 
     /** Best-effort: entry save already succeeded, a Drehzettel write failing is logged, not surfaced. */
-    function saveDrehzettelFilmDay(projectId, dateText, filmDayFields) {
+    function saveDrehzettelFilmDay(projectId, activityId, dateText, filmDayFields) {
         if (!drehzettelAvailable || !projectId || !dateText || !filmDayFields) {
             return
         }
@@ -1845,7 +1847,7 @@ PlasmoidItem {
         if (isNaN(date.getTime())) {
             return
         }
-        DrehzettelApi.filmDayPut(kimaiUrl, apiToken, projectId, date, filmDayFields, function(result) {
+        DrehzettelApi.filmDayPut(kimaiUrl, apiToken, projectId, date, activityId, filmDayFields, function(result) {
             if (!result.ok) {
                 console.warn("Plasmai: failed to save Drehzettel film day:", JSON.stringify(result.error))
             }
@@ -2964,8 +2966,8 @@ PlasmoidItem {
                     onProjectChosen: function(projectId) {
                         root.loadActivitiesForProject(projectId)
                     }
-                    onEntryContextChanged: function(projectId, dateText) {
-                        root.loadDrehzettelStatus(projectId, dateText)
+                    onEntryContextChanged: function(projectId, activityId, dateText) {
+                        root.loadDrehzettelStatus(projectId, activityId, dateText)
                     }
                     onSaveRequested: function(projectId, activityId, beginText, endText, description, billable, tags, filmDayFields) {
                         root.createManualEntry(projectId, activityId, beginText, endText, description, billable, tags, filmDayFields)

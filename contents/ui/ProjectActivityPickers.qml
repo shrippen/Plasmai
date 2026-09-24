@@ -29,6 +29,7 @@ ColumnLayout {
 
     signal aboutToOpenPicker(var projectField, var activityField)
     signal projectActivated(int index)
+    signal activityActivated(int index)
     signal createProjectRequested()
     signal createActivityRequested()
 
@@ -91,6 +92,9 @@ ColumnLayout {
             useSharedDirection: true
             openBelow: root.pickerOpenBelow
             onAboutToOpen: root.aboutToOpenPicker(projectCombo, activityCombo)
+            onActivated: function(index) {
+                root.activityActivated(index)
+            }
         }
 
         PlasmaComponents3.ToolButton {

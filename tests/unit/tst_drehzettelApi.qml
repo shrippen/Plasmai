@@ -30,6 +30,8 @@ TestCase {
     function test_filmDayEndpoint() {
         var d = new Date(2026, 8, 24)
         compare(DrehzettelApi.filmDayEndpoint(42, d), "/api/drehzettel/v1/film-days/2026-09-24?project=42")
+        compare(DrehzettelApi.filmDayEndpoint(42, d, 7),
+            "/api/drehzettel/v1/film-days/2026-09-24?project=42&activity=7")
     }
 
     function test_pingCache() {
@@ -46,11 +48,17 @@ TestCase {
 
     function test_configErrorWithoutCredentials() {
         var received = null
-        DrehzettelApi.engagementStatus("", "", 1, new Date(), function(result) {
+        DrehzettelApi.engagementStatus("", "", 1, new Date(), null, function(result) {
             received = result
         })
         verify(received !== null)
         verify(!received.ok)
         compare(received.error.type, "config")
+    }
+
+    function test_activityQuery() {
+        var d = new Date(2026, 8, 24)
+        compare(DrehzettelApi.filmDayEndpoint(42, d, null), "/api/drehzettel/v1/film-days/2026-09-24?project=42")
+        compare(DrehzettelApi.filmDayEndpoint(42, d, 0), "/api/drehzettel/v1/film-days/2026-09-24?project=42")
     }
 }
