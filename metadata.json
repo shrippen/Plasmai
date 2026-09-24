@@ -29,7 +29,7 @@
         "Name[de]": "Plasmai",
         "Version": "2.0.0",
         "Website": "https://github.com/shrippen/Plasmai",
-        "Build": "6"
+        "Build": "9"
     },
     "X-Plasma-API-Minimum-Version": "6.0"
 }

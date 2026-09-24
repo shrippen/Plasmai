@@ -3,7 +3,9 @@
 
 Android has no KF6 I18n / gettext runtime, so the app looks messages up in these
 JSON catalogs ({msgid: msgstr}) that are bundled into the QRC (see main.cpp, I18nFallback).
-Plural forms are skipped: the app QML only uses plain i18n().
+Plural forms (msgid/msgid_plural) are stored under both the singular and plural
+msgid, each mapped to its own msgstr — matching I18nFallback::i18np(), which only
+picks between the two English-rule forms, not full gettext plural rules.
 """
 import json
 import re
@@ -21,26 +23,37 @@ def unesc(s):
 def parse(text):
     catalog = {}
     for block in re.split(r"\n\n+", text):
-        if "msgid_plural" in block or "Project-Id-Version" in block:
+        if "Project-Id-Version" in block:
             continue
-        msgid = []
-        msgstr = []
+        fields = {}
         target = None
         for line in block.splitlines():
-            if line.startswith("msgid "):
-                target = msgid
-                line = line[len("msgid "):]
-            elif line.startswith("msgstr "):
-                target = msgstr
-                line = line[len("msgstr "):]
-            elif not line.startswith('"'):
-                target = None
-                continue
+            for prefix, name in (
+                ("msgid_plural ", "msgid_plural"), ("msgid ", "msgid"),
+                ("msgstr[0] ", "msgstr0"), ("msgstr[1] ", "msgstr1"), ("msgstr ", "msgstr"),
+            ):
+                if line.startswith(prefix):
+                    target = fields.setdefault(name, [])
+                    line = line[len(prefix):]
+                    break
+            else:
+                if not line.startswith('"'):
+                    target = None
+                    continue
             if target is not None:
                 m = re.match(r'"(.*)"$', line)
                 if m:
                     target.append(unesc(m.group(1)))
-        key, val = "".join(msgid), "".join(msgstr)
+        joined = {k: "".join(v) for k, v in fields.items()}
+        if "msgid_plural" in joined:
+            singular, plural = joined.get("msgid", ""), joined["msgid_plural"]
+            msgstr0, msgstr1 = joined.get("msgstr0", ""), joined.get("msgstr1", "")
+            if singular and msgstr0 and singular != msgstr0:
+                catalog[singular] = msgstr0
+            if plural and msgstr1 and plural != msgstr1:
+                catalog[plural] = msgstr1
+            continue
+        key, val = joined.get("msgid", ""), joined.get("msgstr", "")
         if key and val and key != val:
             catalog[key] = val
     return catalog

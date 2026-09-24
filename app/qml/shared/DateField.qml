@@ -193,6 +193,13 @@ RowLayout {
         }
     }
 
+    /** Opens the calendar popup programmatically (e.g. from a custom big-text header). */
+    function openPicker() {
+        calendarLoader.active = true
+        calendarLoader.item.value = DTF.coerceDate(root.selectedDate) || new Date()
+        calendarLoader.item.open()
+    }
+
     QQC2.ToolButton {
         Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
         Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
@@ -200,11 +207,7 @@ RowLayout {
         text: i18n("Pick date")
         display: QQC2.AbstractButton.IconOnly
         enabled: dateField.enabled
-        onClicked: {
-            calendarLoader.active = true
-            calendarLoader.item.value = DTF.coerceDate(root.selectedDate) || new Date()
-            calendarLoader.item.open()
-        }
+        onClicked: root.openPicker()
         QQC2.ToolTip.text: text
         QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile
         QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay

@@ -2,10 +2,9 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
-import org.kde.plasma.components as PlasmaComponents3
-import "../code/kimaiApi.js" as KimaiApi
-import "../code/filmDays.js" as FilmDays
-import "../code/dateTimeFormat.js" as DTF
+import "../../contents/code/kimaiApi.js" as KimaiApi
+import "../../contents/code/filmDays.js" as FilmDays
+import "../../contents/code/dateTimeFormat.js" as DTF
 import "."
 
 /**
@@ -274,7 +273,7 @@ ColumnLayout {
         }
     }
 
-    PlasmaComponents3.Label {
+    QQC2.Label {
         Layout.fillWidth: true
         wrapMode: Text.WordWrap
         font.pointSize: Kirigami.Theme.smallFont.pointSize
@@ -287,19 +286,19 @@ ColumnLayout {
         Layout.topMargin: Kirigami.Units.smallSpacing
         spacing: Kirigami.Units.smallSpacing
 
-        PlasmaComponents3.ToolButton {
+        QQC2.ToolButton {
             icon.name: "go-previous"
             display: QQC2.AbstractButton.IconOnly
             text: i18n("Previous day")
             Accessible.name: text
             enabled: root.configured && !root.busy
             onClicked: root.dayStepRequested(-1)
-            PlasmaComponents3.ToolTip.text: text
-            PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
-            PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
+            QQC2.ToolTip.text: text
+            QQC2.ToolTip.visible: hovered && !TouchUi.active
+            QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
         }
 
-        PlasmaComponents3.Label {
+        QQC2.Label {
             Layout.fillWidth: true
             horizontalAlignment: Text.AlignHCenter
             font.bold: true
@@ -316,16 +315,16 @@ ColumnLayout {
             }
         }
 
-        PlasmaComponents3.ToolButton {
+        QQC2.ToolButton {
             icon.name: "go-next"
             display: QQC2.AbstractButton.IconOnly
             text: i18n("Next day")
             Accessible.name: text
             enabled: root.configured && !root.busy
             onClicked: root.dayStepRequested(1)
-            PlasmaComponents3.ToolTip.text: text
-            PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
-            PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
+            QQC2.ToolTip.text: text
+            QQC2.ToolTip.visible: hovered && !TouchUi.active
+            QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
         }
     }
 
@@ -366,13 +365,13 @@ ColumnLayout {
             Layout.fillWidth: true
             spacing: Kirigami.Units.smallSpacing / 2
 
-            PlasmaComponents3.Label {
+            QQC2.Label {
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
                 opacity: 0.75
                 text: i18n("Begin")
             }
-            PlasmaComponents3.Label {
+            QQC2.Label {
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
                 font.bold: true
@@ -392,13 +391,13 @@ ColumnLayout {
             Layout.fillWidth: true
             spacing: Kirigami.Units.smallSpacing / 2
 
-            PlasmaComponents3.Label {
+            QQC2.Label {
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
                 opacity: 0.75
                 text: i18n("Break")
             }
-            PlasmaComponents3.Label {
+            QQC2.Label {
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
                 font.bold: true
@@ -427,13 +426,13 @@ ColumnLayout {
             Layout.fillWidth: true
             spacing: Kirigami.Units.smallSpacing / 2
 
-            PlasmaComponents3.Label {
+            QQC2.Label {
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
                 opacity: 0.75
                 text: i18n("End")
             }
-            PlasmaComponents3.Label {
+            QQC2.Label {
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
                 font.bold: true
@@ -450,7 +449,7 @@ ColumnLayout {
         }
     }
 
-    PlasmaComponents3.Label {
+    QQC2.Label {
         Layout.fillWidth: true
         Layout.topMargin: Kirigami.Units.smallSpacing
         horizontalAlignment: Text.AlignHCenter
@@ -472,7 +471,7 @@ ColumnLayout {
         ColumnLayout {
             Layout.fillWidth: true
             spacing: Kirigami.Units.smallSpacing / 2
-            PlasmaComponents3.Label {
+            QQC2.Label {
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
                 text: i18n("Day category")
@@ -485,14 +484,14 @@ ColumnLayout {
                 stepSize: 1
                 snapMode: QQC2.Slider.SnapAlways
                 enabled: root.configured && !root.busy
-                PlasmaComponents3.ToolTip.text: root.categoryOptions[Math.round(categorySlider.value)].label
-                PlasmaComponents3.ToolTip.visible: pressed
+                QQC2.ToolTip.text: root.categoryOptions[Math.round(categorySlider.value)].label
+                QQC2.ToolTip.visible: pressed
             }
         }
 
         ColumnLayout {
             spacing: Kirigami.Units.smallSpacing / 2
-            PlasmaComponents3.Label {
+            QQC2.Label {
                 Layout.alignment: Qt.AlignHCenter
                 text: i18n("Catering")
             }
@@ -507,7 +506,7 @@ ColumnLayout {
         ColumnLayout {
             Layout.fillWidth: true
             spacing: Kirigami.Units.smallSpacing / 2
-            PlasmaComponents3.Label {
+            QQC2.Label {
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
                 text: i18n("Day type")
@@ -520,13 +519,13 @@ ColumnLayout {
                 stepSize: 1
                 snapMode: QQC2.Slider.SnapAlways
                 enabled: root.configured && !root.busy
-                PlasmaComponents3.ToolTip.text: root.dayTypeOptions[Math.round(dayTypeSlider.value)].label
-                PlasmaComponents3.ToolTip.visible: pressed
+                QQC2.ToolTip.text: root.dayTypeOptions[Math.round(dayTypeSlider.value)].label
+                QQC2.ToolTip.visible: pressed
             }
         }
     }
 
-    PlasmaComponents3.Label {
+    QQC2.Label {
         Layout.fillWidth: true
         Layout.topMargin: Kirigami.Units.smallSpacing
         text: i18n("Production day")
@@ -557,7 +556,7 @@ ColumnLayout {
         ColumnLayout {
             Layout.fillWidth: true
             spacing: Kirigami.Units.smallSpacing / 2
-            PlasmaComponents3.Label {
+            QQC2.Label {
                 text: i18n("Extra pay / expenses")
                 font.bold: true
                 opacity: 0.85
@@ -586,23 +585,23 @@ ColumnLayout {
         ColumnLayout {
             Layout.fillWidth: true
             spacing: Kirigami.Units.smallSpacing / 2
-            PlasmaComponents3.Label {
+            QQC2.Label {
                 text: i18n("Earnings (non-binding)")
                 font.bold: true
                 opacity: 0.85
             }
-            PlasmaComponents3.Label {
+            QQC2.Label {
                 Layout.fillWidth: true
                 opacity: 0.55
                 text: "—"
-                PlasmaComponents3.ToolTip.text: i18n("Needs the Drehzettel plugin's ruleset API — not available yet")
-                PlasmaComponents3.ToolTip.visible: earningsHover.hovered
+                QQC2.ToolTip.text: i18n("Needs the Drehzettel plugin's ruleset API — not available yet")
+                QQC2.ToolTip.visible: earningsHover.hovered
                 HoverHandler { id: earningsHover }
             }
         }
     }
 
-    PlasmaComponents3.Label {
+    QQC2.Label {
         Layout.fillWidth: true
         Layout.topMargin: Kirigami.Units.largeSpacing
         text: i18n("Note")
@@ -630,7 +629,7 @@ ColumnLayout {
         }
     }
 
-    PlasmaComponents3.Button {
+    QQC2.Button {
         Layout.fillWidth: true
         Layout.topMargin: Kirigami.Units.largeSpacing
         Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight * 1.3
@@ -652,7 +651,7 @@ ColumnLayout {
         }
     }
 
-    PlasmaComponents3.Button {
+    QQC2.Button {
         Layout.alignment: Qt.AlignHCenter
         Layout.topMargin: Kirigami.Units.smallSpacing
         Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight

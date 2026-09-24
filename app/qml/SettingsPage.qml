@@ -40,7 +40,10 @@ Kirigami.Page {
 
         ColumnLayout {
             id: form
-            width: pageScroll.availableWidth
+            // Centered, capped width once the page is wider than a form needs — long
+            // label/field rows stretched across a landscape screen just look sparse.
+            width: Math.min(pageScroll.availableWidth, Kirigami.Units.gridUnit * 40)
+            x: Math.max(0, (pageScroll.availableWidth - width) / 2)
             spacing: Kirigami.Units.smallSpacing
 
             Kirigami.FormLayout {

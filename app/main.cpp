@@ -61,6 +61,12 @@ public:
     Q_INVOKABLE QString i18nd(const QString &, const QString &text) const { return tr(text); }
     Q_INVOKABLE QString i18ndc(const QString &, const QString &, const QString &text) const { return tr(text); }
 
+    // Plural form. Catalogs only carry the two-form (singular/plural) English rule —
+    // see translate/po2json.py — good enough since the languages shipped here all use it.
+    Q_INVOKABLE QString i18np(const QString &singular, const QString &plural, const QVariant &n) const {
+        return tr(n.toInt() == 1 ? singular : plural).arg(n.toString());
+    }
+
     // 1 extra arg
     Q_INVOKABLE QString i18n(const QString &text, const QVariant &a1) const {
         return tr(text).arg(a1.toString());

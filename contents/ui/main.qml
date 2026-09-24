@@ -2399,6 +2399,33 @@ PlasmoidItem {
 
         property var sparklineItem: null
 
+        /** Once the widget (a freely resizable desktop Planar item, unlike the fixed-size
+            panel popup) is wide enough for a fixed timer pane and a separately scrolling
+            list pane to both be useful, split the main view the same way the phone app does
+            in landscape. Below the threshold everything stacks in the single popupScroll,
+            unchanged from before. */
+        readonly property bool isWideLayout: width >= Kirigami.Units.gridUnit * 44
+        readonly property bool splitActive: root.mainViewMode === "main" && !root.showSetupState
+                                             && isWideLayout
+
+        /** Move heroCard/listSection between the single-column host (mainPaneHost) and the
+            wide two-pane hosts (wideLeftCol/wideRightCol). Done imperatively rather than via
+            a `parent:` binding on each item so the order they're appended to their shared
+            host is guaranteed — two independent bindings evaluating in unspecified order can
+            otherwise parent listSection before heroCard, which then paints the list on top
+            of the timer card. */
+        function relayoutMainPane() {
+            if (splitActive) {
+                heroCard.parent = wideLeftCol
+                listSection.parent = wideRightCol
+            } else {
+                heroCard.parent = mainPaneHost
+                listSection.parent = mainPaneHost
+            }
+        }
+        onSplitActiveChanged: relayoutMainPane()
+        Component.onCompleted: relayoutMainPane()
+
         function refreshSparkCutouts() {
             if (sparklineItem) {
                 sparklineItem.scheduleHeaderCutouts()
@@ -2819,10 +2846,20 @@ PlasmoidItem {
         PlasmaComponents3.ScrollView {
             id: popupScroll
             anchors {
-                fill: parent
+                top: parent.top
+                left: parent.left
+                right: parent.right
                 margins: Kirigami.Units.smallSpacing
             }
+            // Hugs its own content (header/profile switcher — mainPaneHost is emptied out by
+            // relayoutMainPane() in this state) instead of filling the popup, so wideSplitRow
+            // below can take the rest of the height for its own two independently scrolling
+            // panes. Below the split threshold this still fills the full popup, unchanged.
+            height: popupRoot.splitActive
+                    ? Math.min(parent.height - Kirigami.Units.smallSpacing * 2, popupColumn.implicitHeight)
+                    : parent.height - Kirigami.Units.smallSpacing * 2
             clip: true
+            QQC2.ScrollBar.horizontal.policy: QQC2.ScrollBar.AlwaysOff
             readonly property bool vScrollNeeded: contentItem
                                                   ? contentItem.contentHeight > contentItem.height + 1
                                                   : false
@@ -3005,7 +3042,10 @@ PlasmoidItem {
 
                 Kirigami.PlaceholderMessage {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: Kirigami.Units.gridUnit * 8
+                    // Layout.preferredHeight ignores `visible` (Qt Quick Layouts still
+                    // reserve it), so an explicit fixed height here would otherwise leave a
+                    // permanent gap above the wide split view even while this is hidden.
+                    Layout.preferredHeight: root.showSetupState ? Kirigami.Units.gridUnit * 8 : 0
                     visible: root.showSetupState
                     icon.name: "configure"
                     text: i18n("Connect a time tracker")
@@ -3122,12 +3162,18 @@ PlasmoidItem {
                 }
 
                 ColumnLayout {
+                    id: mainPaneHost
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
-                    visible: root.mainViewMode === "main" && !root.showSetupState
+                    // Also hidden (not just emptied by relayoutMainPane()) once the wide split
+                    // view takes over, so it never reserves layout space in popupColumn.
+                    visible: root.mainViewMode === "main" && !root.showSetupState && !popupRoot.splitActive
 
-                // —— Hero ——
+                // —— Hero —— (heroCard/listSection below are moved into the wide split-view
+                // panes via popupRoot.relayoutMainPane() when there's room for both side by
+                // side; see that function and wideSplitRow further down.)
                 Rectangle {
+                    id: heroCard
                     Layout.fillWidth: true
                     visible: root.isConfigured && !root.showSetupState
                     radius: 6
@@ -3190,18 +3236,36 @@ PlasmoidItem {
 
                                 Item { Layout.fillWidth: true }
 
-                                PlasmaComponents3.Label {
-                                    id: customerLabel
-                                    visible: root.currentCustomer.length > 0
-                                    Layout.alignment: Qt.AlignVCenter
-                                    Layout.maximumWidth: trackingHeader.width * 0.55
-                                    horizontalAlignment: Text.AlignRight
-                                    elide: Text.ElideRight
-                                    text: root.currentCustomer
-                                    opacity: 0.9
+                                PlasmaComponents3.ToolButton {
+                                    id: editHeaderButton
+                                    enabled: !root.isBusy
+                                    text: i18n("Edit")
+                                    icon.name: "document-edit"
+                                    display: QQC2.AbstractButton.IconOnly
+                                    down: root.editingActiveEntry
+                                    onClicked: {
+                                        if (root.editingActiveEntry) {
+                                            root.closeActiveEdit()
+                                        } else {
+                                            root.openActiveEdit()
+                                        }
+                                    }
+                                    PlasmaComponents3.ToolTip.text: i18n("Edit start, project, and activity")
+                                    PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
+                                    PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
                                     onWidthChanged: daySparkline.scheduleHeaderCutouts()
                                     onHeightChanged: daySparkline.scheduleHeaderCutouts()
-                                    onVisibleChanged: daySparkline.scheduleHeaderCutouts()
+                                }
+
+                                PlasmaComponents3.Button {
+                                    id: stopHeaderButton
+                                    Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+                                    enabled: !root.isBusy
+                                    text: i18n("Stop")
+                                    icon.name: "media-playback-stop"
+                                    onClicked: root.requestStop()
+                                    onWidthChanged: daySparkline.scheduleHeaderCutouts()
+                                    onHeightChanged: daySparkline.scheduleHeaderCutouts()
                                 }
                             }
 
@@ -3236,7 +3300,7 @@ PlasmoidItem {
                                 nowTick: root.sparklineNowTick
                                 showArcs: plasmoid.configuration.showSparklineArcs
                                 flyoutOpen: root.expanded
-                                headerMaskItems: [elapsedLabel, customerLabel]
+                                headerMaskItems: [elapsedLabel, editHeaderButton, stopHeaderButton]
                                 Component.onCompleted: {
                                     popupRoot.sparklineItem = daySparkline
                                     scheduleHeaderCutouts()
@@ -3249,6 +3313,14 @@ PlasmoidItem {
                                 onWidthChanged: scheduleHeaderCutouts()
                                 onHeightChanged: scheduleHeaderCutouts()
                                 onVisibleChanged: scheduleHeaderCutouts()
+                            }
+
+                            PlasmaComponents3.Label {
+                                Layout.fillWidth: true
+                                visible: root.isTracking && root.currentCustomer.length > 0
+                                text: root.currentCustomer
+                                elide: Text.ElideRight
+                                opacity: 0.85
                             }
 
                             PlasmaComponents3.Label {
@@ -3281,143 +3353,52 @@ PlasmoidItem {
                                 id: workSummaryBlock
                                 Layout.fillWidth: true
                                 visible: root.isTracking || root.showWorkSummaryHere
-                                spacing: Kirigami.Units.smallSpacing / 2
+                                spacing: 1
 
-                                // Beside only when there is clear room for stats + both actions.
-                                readonly property bool actionsBeside: root.isTracking
-                                    && root.showWorkSummaryHere
-                                    && workSummaryBlock.width >= Kirigami.Units.gridUnit * 22
-
-                                // Stats on their own row (full width). Actions sit beside only when wide.
+                                // Edit/Stop now live in trackingHeader beside the timer, so this
+                                // block is just the stats — no more width-dependent placement.
                                 RowLayout {
                                     Layout.fillWidth: true
+                                    visible: root.showWorkSummaryHere
                                     spacing: Kirigami.Units.smallSpacing
-                                    visible: root.showWorkSummaryHere || workSummaryBlock.actionsBeside
-
-                                    ColumnLayout {
+                                    PlasmaComponents3.Label {
                                         Layout.fillWidth: true
                                         Layout.minimumWidth: 0
-                                        Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                                        visible: root.showWorkSummaryHere
-                                        opacity: root.showWorkSummaryHere ? 1 : 0
-                                        spacing: 1
-                                        Behavior on opacity { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
-
-                                        RowLayout {
-                                            Layout.fillWidth: true
-                                            spacing: Kirigami.Units.smallSpacing
-                                            PlasmaComponents3.Label {
-                                                Layout.fillWidth: true
-                                                Layout.minimumWidth: 0
-                                                text: i18n("Today %1", KimaiApi.formatDurationShort(root.todayLiveSeconds))
-                                                    + " · "
-                                                    + i18n("Week %1", KimaiApi.formatDurationShort(root.weekLiveSeconds))
-                                                font.pointSize: Kirigami.Theme.smallFont.pointSize
-                                                opacity: 0.8
-                                                elide: Text.ElideRight
-                                            }
-                                        }
-
-                                        RowLayout {
-                                            Layout.fillWidth: true
-                                            visible: root.hasWorkContract
-                                                     && (root.todayTargetSeconds > 0 || root.weekTargetSeconds > 0)
-                                            spacing: Kirigami.Units.smallSpacing
-
-                                            PlasmaComponents3.Label {
-                                                Layout.fillWidth: true
-                                                Layout.minimumWidth: 0
-                                                visible: root.todayTargetSeconds > 0 || root.weekTargetSeconds > 0
-                                                text: {
-                                                    var bits = []
-                                                    if (root.todayTargetSeconds > 0) {
-                                                        bits.push(root.remainingTodayText())
-                                                    }
-                                                    if (root.weekTargetSeconds > 0) {
-                                                        bits.push(root.remainingWeekText())
-                                                    }
-                                                    return bits.join(" · ")
-                                                }
-                                                font.pointSize: Kirigami.Theme.smallFont.pointSize
-                                                opacity: 0.75
-                                                elide: Text.ElideRight
-                                                color: (root.remainingTodaySeconds < 0 || root.remainingWeekSeconds < 0)
-                                                       ? Kirigami.Theme.neutralTextColor
-                                                       : Kirigami.Theme.textColor
-                                            }
-                                        }
-                                    }
-
-                                    PlasmaComponents3.ToolButton {
-                                        id: editActiveBesideButton
-                                        visible: workSummaryBlock.actionsBeside
-                                        Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                                        Layout.preferredWidth: implicitWidth
-                                        Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-                                        enabled: !root.isBusy
-                                        text: i18n("Edit")
-                                        icon.name: "document-edit"
-                                        display: TouchUi.active ? QQC2.AbstractButton.TextBesideIcon
-                                                                : QQC2.AbstractButton.IconOnly
-                                        down: root.editingActiveEntry
-                                        onClicked: {
-                                            if (root.editingActiveEntry) {
-                                                root.closeActiveEdit()
-                                            } else {
-                                                root.openActiveEdit()
-                                            }
-                                        }
-                                        PlasmaComponents3.ToolTip.text: i18n("Edit start, project, and activity")
-                                        PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
-                                        PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
-                                    }
-
-                                    PlasmaComponents3.Button {
-                                        id: stopBesideButton
-                                        visible: workSummaryBlock.actionsBeside
-                                        Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                                        Layout.preferredWidth: implicitWidth
-                                        Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-                                        enabled: !root.isBusy
-                                        text: i18n("Stop")
-                                        icon.name: "media-playback-stop"
-                                        onClicked: root.requestStop()
+                                        text: i18n("Today %1", KimaiApi.formatDurationShort(root.todayLiveSeconds))
+                                            + " · "
+                                            + i18n("Week %1", KimaiApi.formatDurationShort(root.weekLiveSeconds))
+                                        font.pointSize: Kirigami.Theme.smallFont.pointSize
+                                        opacity: 0.8
+                                        elide: Text.ElideRight
                                     }
                                 }
 
-                                // Narrow / no-summary: Edit + Stop on the line under the stats
                                 RowLayout {
                                     Layout.fillWidth: true
-                                    visible: root.isTracking && !workSummaryBlock.actionsBeside
+                                    visible: root.showWorkSummaryHere && root.hasWorkContract
+                                             && (root.todayTargetSeconds > 0 || root.weekTargetSeconds > 0)
                                     spacing: Kirigami.Units.smallSpacing
 
-                                    PlasmaComponents3.ToolButton {
-                                        enabled: !root.isBusy
-                                        text: i18n("Edit")
-                                        icon.name: "document-edit"
-                                        Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-                                        display: TouchUi.active ? QQC2.AbstractButton.TextBesideIcon
-                                                                : QQC2.AbstractButton.IconOnly
-                                        down: root.editingActiveEntry
-                                        onClicked: {
-                                            if (root.editingActiveEntry) {
-                                                root.closeActiveEdit()
-                                            } else {
-                                                root.openActiveEdit()
-                                            }
-                                        }
-                                        PlasmaComponents3.ToolTip.text: i18n("Edit start, project, and activity")
-                                        PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
-                                        PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
-                                    }
-
-                                    PlasmaComponents3.Button {
+                                    PlasmaComponents3.Label {
                                         Layout.fillWidth: true
-                                        Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-                                        enabled: !root.isBusy
-                                        text: i18n("Stop")
-                                        icon.name: "media-playback-stop"
-                                        onClicked: root.requestStop()
+                                        Layout.minimumWidth: 0
+                                        visible: root.todayTargetSeconds > 0 || root.weekTargetSeconds > 0
+                                        text: {
+                                            var bits = []
+                                            if (root.todayTargetSeconds > 0) {
+                                                bits.push(root.remainingTodayText())
+                                            }
+                                            if (root.weekTargetSeconds > 0) {
+                                                bits.push(root.remainingWeekText())
+                                            }
+                                            return bits.join(" · ")
+                                        }
+                                        font.pointSize: Kirigami.Theme.smallFont.pointSize
+                                        opacity: 0.75
+                                        elide: Text.ElideRight
+                                        color: (root.remainingTodaySeconds < 0 || root.remainingWeekSeconds < 0)
+                                               ? Kirigami.Theme.neutralTextColor
+                                               : Kirigami.Theme.textColor
                                     }
                                 }
                             }
@@ -3618,6 +3599,11 @@ PlasmoidItem {
                         }
                     }
                 }
+
+                ColumnLayout {
+                    id: listSection
+                    Layout.fillWidth: true
+                    spacing: Kirigami.Units.smallSpacing
 
                 // —— Favorites ——
                 PlasmaExtras.Heading {
@@ -3944,7 +3930,66 @@ PlasmoidItem {
                         onClicked: root.showNewActivityForm = false
                     }
                 }
+                } // listSection
                 } // main pane
+            }
+        }
+
+        // Wide split view: heroCard/listSection are moved here (out of mainPaneHost, inside
+        // popupScroll above) via relayoutMainPane() whenever the widget is wide enough — see
+        // popupRoot.splitActive. Anchored below popupScroll itself (a plain sibling Item,
+        // sized to hug its own remaining header content in that state) rather than to
+        // something inside popupScroll's Flickable — anchoring across a Flickable boundary
+        // doesn't track that content's layout changes reliably.
+        RowLayout {
+            id: wideSplitRow
+            visible: popupRoot.splitActive
+            anchors {
+                top: popupScroll.bottom
+                left: parent.left
+                right: parent.right
+                bottom: parent.bottom
+                topMargin: Kirigami.Units.smallSpacing
+                leftMargin: Kirigami.Units.smallSpacing
+                rightMargin: Kirigami.Units.smallSpacing
+                bottomMargin: Kirigami.Units.smallSpacing
+            }
+            spacing: Kirigami.Units.largeSpacing
+
+            PlasmaComponents3.ScrollView {
+                id: wideLeftPane
+                Layout.preferredWidth: Math.round(wideSplitRow.width * 0.42)
+                Layout.minimumWidth: Kirigami.Units.gridUnit * 14
+                Layout.fillHeight: true
+                clip: true
+
+                // A plain centered Item rather than a ScrollView: the timer card's content is
+                // short and fixed, so pinning it to the top of a pane as tall as the favorites
+                // list on the right left it looking stranded in empty space below. Centering
+                // it vertically instead reads as a deliberate "now tracking" panel.
+                ColumnLayout {
+                    id: wideLeftCol
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: Kirigami.Units.smallSpacing
+                }
+            }
+
+            Kirigami.Separator { Layout.fillHeight: true }
+
+            PlasmaComponents3.ScrollView {
+                id: wideRightScroll
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                clip: true
+                contentWidth: availableWidth
+
+                ColumnLayout {
+                    id: wideRightCol
+                    width: wideRightScroll.availableWidth
+                    spacing: Kirigami.Units.smallSpacing
+                }
             }
         }
 

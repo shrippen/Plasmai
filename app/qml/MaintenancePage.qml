@@ -24,7 +24,9 @@ Kirigami.Page {
 
         ColumnLayout {
             id: col
-            width: pageScroll.availableWidth
+            // Centered, capped width once the page is wider than this list needs.
+            width: Math.min(pageScroll.availableWidth, Kirigami.Units.gridUnit * 40)
+            x: Math.max(0, (pageScroll.availableWidth - width) / 2)
             spacing: Kirigami.Units.smallSpacing
 
             RowLayout { Layout.fillWidth: true

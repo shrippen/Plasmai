@@ -243,115 +243,141 @@ ColumnLayout {
               : i18n("Create a finished entry with project, activity, and time range.")
     }
 
-    ProjectActivityPickers {
-        id: pickers
+    // Two columns once there's room: project/activity/range on the left,
+    // description and billable/tags details on the right. Below the threshold
+    // this reflows to a single stacked column, unchanged from before.
+    readonly property bool isWideLayout: width >= Kirigami.Units.gridUnit * 34
+
+    GridLayout {
         Layout.fillWidth: true
-        projectPickerModel: root.projectPickerModel
-        activityPickerModel: root.activityPickerModel
-        activitySectionTitles: root.activitySectionTitles
-        pickerOpenBelow: root.pickerOpenBelow
-        pickerViewport: root.pickerViewport
-        projectEnabled: root.configured && !root.busy && root.connectionOk
-        activityEnabled: root.configured && !root.busy && root.connectionOk
-        showCreateActions: root.showCreateActions
-        onAboutToOpenPicker: function(projectField, activityField) {
-            root.aboutToOpenPicker(projectField, activityField)
-        }
-        onProjectActivated: function(index) {
-            pendingProjectId = null
-            if (index < 0 || index >= pickers.projectPickerModel.length) {
-                root.projectChosen(null)
-                return
+        columns: root.isWideLayout ? 2 : 1
+        columnSpacing: Kirigami.Units.largeSpacing * 1.5
+        rowSpacing: Kirigami.Units.smallSpacing
+
+        // —— Column A: what & when ——
+        ColumnLayout {
+            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignTop
+            spacing: Kirigami.Units.smallSpacing
+
+            ProjectActivityPickers {
+                id: pickers
+                Layout.fillWidth: true
+                projectPickerModel: root.projectPickerModel
+                activityPickerModel: root.activityPickerModel
+                activitySectionTitles: root.activitySectionTitles
+                pickerOpenBelow: root.pickerOpenBelow
+                pickerViewport: root.pickerViewport
+                projectEnabled: root.configured && !root.busy && root.connectionOk
+                activityEnabled: root.configured && !root.busy && root.connectionOk
+                showCreateActions: root.showCreateActions
+                onAboutToOpenPicker: function(projectField, activityField) {
+                    root.aboutToOpenPicker(projectField, activityField)
+                }
+                onProjectActivated: function(index) {
+                    pendingProjectId = null
+                    if (index < 0 || index >= pickers.projectPickerModel.length) {
+                        root.projectChosen(null)
+                        return
+                    }
+                    root.projectChosen(pickers.projectPickerModel[index].value.id)
+                }
+                onCreateProjectRequested: root.createProjectRequested()
+                onCreateActivityRequested: root.createActivityRequested()
             }
-            root.projectChosen(pickers.projectPickerModel[index].value.id)
-        }
-        onCreateProjectRequested: root.createProjectRequested()
-        onCreateActivityRequested: root.createActivityRequested()
-    }
 
-    QQC2.Label {
-        Layout.fillWidth: true
-        Layout.topMargin: Kirigami.Units.smallSpacing
-        text: i18n("Begin")
-        font.bold: true
-        opacity: 0.85
-    }
-
-    RowLayout {
-        Layout.fillWidth: true
-        spacing: Kirigami.Units.smallSpacing
-        DateField {
-            id: beginDate
-            Layout.fillWidth: true
-            Layout.preferredWidth: 1
-            enabled: root.configured && !root.busy
-        }
-        TimeField {
-            id: beginTime
-            Layout.fillWidth: true
-            Layout.preferredWidth: 1
-            enabled: root.configured && !root.busy
-        }
-    }
-
-    QQC2.Label {
-        Layout.fillWidth: true
-        text: i18n("End")
-        font.bold: true
-        opacity: 0.85
-    }
-
-    RowLayout {
-        Layout.fillWidth: true
-        spacing: Kirigami.Units.smallSpacing
-        DateField {
-            id: endDate
-            Layout.fillWidth: true
-            Layout.preferredWidth: 1
-            enabled: root.configured && !root.busy
-        }
-        TimeField {
-            id: endTime
-            Layout.fillWidth: true
-            Layout.preferredWidth: 1
-            enabled: root.configured && !root.busy
-        }
-    }
-
-    QQC2.Label {
-        Layout.fillWidth: true
-        wrapMode: Text.WordWrap
-        font.pointSize: Kirigami.Theme.smallFont.pointSize
-        opacity: root.rangeValid ? 0.9 : 0.65
-        color: root.rangeValid ? Kirigami.Theme.textColor : Kirigami.Theme.neutralTextColor
-        text: {
-            if (root.durationSeconds > 0) {
-                return i18n("Duration: %1", KimaiApi.formatDuration(root.durationSeconds))
+            QQC2.Label {
+                Layout.fillWidth: true
+                Layout.topMargin: Kirigami.Units.smallSpacing
+                text: i18n("Begin")
+                font.bold: true
+                opacity: 0.85
             }
-            if (beginDate.text.length === 0 && beginTime.text.length === 0
-                && endDate.text.length === 0 && endTime.text.length === 0) {
-                return i18n("Duration: —")
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Kirigami.Units.smallSpacing
+                DateField {
+                    id: beginDate
+                    Layout.fillWidth: true
+                    Layout.preferredWidth: 1
+                    enabled: root.configured && !root.busy
+                }
+                TimeField {
+                    id: beginTime
+                    Layout.fillWidth: true
+                    Layout.preferredWidth: 1
+                    enabled: root.configured && !root.busy
+                }
             }
-            return i18n("Duration: invalid range")
+
+            QQC2.Label {
+                Layout.fillWidth: true
+                text: i18n("End")
+                font.bold: true
+                opacity: 0.85
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Kirigami.Units.smallSpacing
+                DateField {
+                    id: endDate
+                    Layout.fillWidth: true
+                    Layout.preferredWidth: 1
+                    enabled: root.configured && !root.busy
+                }
+                TimeField {
+                    id: endTime
+                    Layout.fillWidth: true
+                    Layout.preferredWidth: 1
+                    enabled: root.configured && !root.busy
+                }
+            }
+
+            QQC2.Label {
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                opacity: root.rangeValid ? 0.9 : 0.65
+                color: root.rangeValid ? Kirigami.Theme.textColor : Kirigami.Theme.neutralTextColor
+                text: {
+                    if (root.durationSeconds > 0) {
+                        return i18n("Duration: %1", KimaiApi.formatDuration(root.durationSeconds))
+                    }
+                    if (beginDate.text.length === 0 && beginTime.text.length === 0
+                        && endDate.text.length === 0 && endTime.text.length === 0) {
+                        return i18n("Duration: —")
+                    }
+                    return i18n("Duration: invalid range")
+                }
+            }
         }
-    }
 
-    QQC2.TextField {
-        id: descriptionField
-        Layout.fillWidth: true
-        enabled: root.configured && !root.busy
-        placeholderText: i18n("Description (optional)")
-    }
+        // —— Column B: description & details ——
+        ColumnLayout {
+            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignTop
+            spacing: Kirigami.Units.smallSpacing
 
-    TimesheetMetaFields {
-        id: metaFields
-        Layout.fillWidth: true
-        showBillable: root.supportsBillableEdit
-        showTags: root.supportsTags
-        tagLookupUrl: root.tagLookupUrl
-        tagLookupToken: root.tagLookupToken
-        pickerViewport: root.pickerViewport
-        enabled: root.configured && !root.busy
+            QQC2.TextField {
+                id: descriptionField
+                Layout.fillWidth: true
+                enabled: root.configured && !root.busy
+                placeholderText: i18n("Description (optional)")
+            }
+
+            TimesheetMetaFields {
+                id: metaFields
+                Layout.fillWidth: true
+                showBillable: root.supportsBillableEdit
+                showTags: root.supportsTags
+                tagLookupUrl: root.tagLookupUrl
+                tagLookupToken: root.tagLookupToken
+                pickerViewport: root.pickerViewport
+                enabled: root.configured && !root.busy
+            }
+        }
     }
 
     RowLayout {

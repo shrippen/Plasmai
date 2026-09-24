@@ -8,6 +8,7 @@ import "../contents/code/platform.js" as Platform
 import "../contents/code/timeTracker.js" as TimeTracker
 import "../contents/code/profiles.js" as Profiles
 import "../contents/code/kimaiApi.js" as KimaiApi
+import "../contents/code/filmDays.js" as FilmDays
 import "../contents/code/favorites.js" as Favorites
 import "../contents/code/sharedConfig.js" as SharedConfig
 import "../contents/code/colorDistinct.js" as ColorDistinct
@@ -169,6 +170,17 @@ Kirigami.ApplicationWindow {
     function startLastUsed() {
         if (!hasLastUsed || isTracking || isBusy) return
         startTracking(lastUsedProjectId, lastUsedActivityId, lastUsedProjectName, lastUsedActivityName, "")
+    }
+
+    // ── Film day extras (break, catering, day type, …), see filmDays.js ──
+    // Synced through shared.json (filmDaysJson), same as the Plasmoid.
+    property string filmDaysJson: ""
+    readonly property var filmDaysMap: FilmDays.parse(filmDaysJson)
+
+    function saveFilmDayEntry(projectId, dateStr, fields) {
+        var nextMap = FilmDays.set(filmDaysMap, projectId, dateStr, fields)
+        filmDaysJson = FilmDays.serialize(nextMap)
+        Platform.patchShared(null, currentConfig(), { filmDaysJson: filmDaysJson })
     }
 
     // ── Platform capability flags (native idle/notification bridge, Linux-only) ──
@@ -647,6 +659,7 @@ Kirigami.ApplicationWindow {
                 if (typeof shared.notifyOnIdleStop === "boolean") notifyOnIdleStop = shared.notifyOnIdleStop
                 if (typeof shared.notifyForgotToStart === "boolean") notifyForgotToStart = shared.notifyForgotToStart
                 if (typeof shared.lastUsedProjectId === "string") lastUsedProjectId = shared.lastUsedProjectId
+                if (typeof shared.filmDaysJson === "string") filmDaysJson = shared.filmDaysJson
                 if (typeof shared.lastUsedActivityId === "string") lastUsedActivityId = shared.lastUsedActivityId
                 if (typeof shared.lastUsedProjectName === "string") lastUsedProjectName = shared.lastUsedProjectName
                 if (typeof shared.lastUsedActivityName === "string") lastUsedActivityName = shared.lastUsedActivityName
@@ -721,6 +734,7 @@ Kirigami.ApplicationWindow {
     }
     Component { id: manualPageComponent; ManualEntryPage { } }
     Component { id: statsPageComponent; StatsPage { } }
+    Component { id: filmDayPageComponent; FilmDayPage { } }
     Component { id: settingsComponent; SettingsPage { } }
     Component { id: connectionComponent; ConnectionPage { } }
     Component { id: favoritesComponent; FavoritesPage { } }

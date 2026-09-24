@@ -7,6 +7,7 @@
         <file alias="qml/TimerPage.qml">qml/TimerPage.qml</file>
         <file alias="qml/ManualEntryPage.qml">qml/ManualEntryPage.qml</file>
         <file alias="qml/StatsPage.qml">qml/StatsPage.qml</file>
+        <file alias="qml/FilmDayPage.qml">qml/FilmDayPage.qml</file>
         <file alias="qml/SettingsPage.qml">qml/SettingsPage.qml</file>
         <file alias="qml/FavoritesPage.qml">qml/FavoritesPage.qml</file>
         <file alias="qml/MaintenancePage.qml">qml/MaintenancePage.qml</file>
@@ -34,6 +35,7 @@
         <file alias="qml/shared/ActiveEditView.qml">qml/shared/ActiveEditView.qml</file>
         <file alias="qml/shared/ManualEntryView.qml">qml/shared/ManualEntryView.qml</file>
         <file alias="qml/shared/StatsView.qml">qml/shared/StatsView.qml</file>
+        <file alias="qml/shared/FilmDayView.qml">qml/shared/FilmDayView.qml</file>
         <file alias="qml/shared/DaySparkline.qml">qml/shared/DaySparkline.qml</file>
         <file alias="contents/code/platform.js">../contents/code/platform.js</file>
         <file alias="contents/code/sharedConfig.js">../contents/code/sharedConfig.js</file>
@@ -41,6 +43,7 @@
         <file alias="contents/code/secret.js">../contents/code/secret.js</file>
         <file alias="contents/code/timeTracker.js">../contents/code/timeTracker.js</file>
         <file alias="contents/code/kimaiApi.js">../contents/code/kimaiApi.js</file>
+        <file alias="contents/code/filmDays.js">../contents/code/filmDays.js</file>
         <file alias="contents/code/profiles.js">../contents/code/profiles.js</file>
         <file alias="contents/code/favorites.js">../contents/code/favorites.js</file>
         <file alias="contents/code/colorDistinct.js">../contents/code/colorDistinct.js</file>
@@ -118,6 +121,7 @@
         <file alias="actions/16/pan-down-symbolic.svg">icons/breeze-dark/actions/16/pan-down-symbolic.svg</file>
         <file alias="actions/16/pan-up-symbolic.svg">icons/breeze-dark/actions/16/pan-up-symbolic.svg</file>
         <file alias="actions/16/view-calendar.svg">icons/breeze-dark/actions/16/view-calendar.svg</file>
+        <file alias="actions/16/view-calendar-day.svg">icons/breeze-dark/actions/16/view-calendar-day.svg</file>
         <file alias="actions/16/view-more-symbolic.svg">icons/breeze-dark/actions/16/view-more-symbolic.svg</file>
         <file alias="actions/16/view-refresh.svg">icons/breeze-dark/actions/16/view-refresh.svg</file>
         <file alias="actions/16/view-statistics.svg">icons/breeze-dark/actions/16/view-statistics.svg</file>
@@ -160,6 +164,7 @@
         <file alias="actions/22/open-menu-symbolic.svg">icons/breeze-dark/actions/22/open-menu-symbolic.svg</file>
         <file alias="actions/22/overflow-menu.svg">icons/breeze-dark/actions/22/overflow-menu.svg</file>
         <file alias="actions/22/view-calendar.svg">icons/breeze-dark/actions/22/view-calendar.svg</file>
+        <file alias="actions/22/view-calendar-day.svg">icons/breeze-dark/actions/22/view-calendar-day.svg</file>
         <file alias="actions/22/view-refresh.svg">icons/breeze-dark/actions/22/view-refresh.svg</file>
         <file alias="actions/22/view-statistics.svg">icons/breeze-dark/actions/22/view-statistics.svg</file>
         <file alias="actions/22/window-close-symbolic.svg">icons/breeze-dark/actions/22/window-close-symbolic.svg</file>

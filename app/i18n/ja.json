@@ -1,9 +1,13 @@
 {
+"%1 day ago": "%1 日前",
+"%1 hour ago": "%1 時間前",
 "%1 left this week": "今週あと %1",
 "%1 left today": "今日あと %1",
 "%1 min": "%1分",
+"%1 minute ago": "%1 分前",
 "%1 over this week": "今週 %1 超過",
 "%1 over today": "今日 %1 超過",
+"%1 place found.": "%1 件の場所が見つかりました。",
 "%1 project-specific, %2 global": "プロジェクト専用 %1 件、グローバル %2 件",
 "%1d ago": "%1日前",
 "%1h %2m": "%1時間%2分",

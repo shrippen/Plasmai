@@ -249,280 +249,28 @@ ColumnLayout {
         Layout.fillWidth: true
     }
 
-    // —— Hourly bars + day switcher ——
-    Kirigami.Heading {
-        Layout.fillWidth: true
-        level: 4
-        text: i18n("Time by hour")
-    }
-
-    RowLayout {
-        Layout.fillWidth: true
-
-        QQC2.ToolButton {
-            Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
-            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-            icon.name: "go-previous"
-            onClicked: root.shiftDay(-1)
-            QQC2.ToolTip.text: i18n("Previous day")
-            QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile
-        }
-
-        QQC2.Label {
-            Layout.fillWidth: true
-            horizontalAlignment: Text.AlignHCenter
-            font.bold: true
-            text: {
-                if (root.dayOffset === 0)
-                    return i18n("Today");
-
-                if (root.dayOffset === -1)
-                    return i18n("Yesterday");
-
-                return StatsData.formatDayLabel(root.selectedDay);
-            }
-        }
-
-        QQC2.ToolButton {
-            Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
-            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-            icon.name: "go-next"
-            enabled: root.dayOffset < 0
-            onClicked: root.shiftDay(1)
-            QQC2.ToolTip.text: i18n("Next day")
-            QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile
-        }
-
-    }
-
-    BarChart {
-        Layout.fillWidth: true
-        Layout.preferredHeight: Kirigami.Units.gridUnit * 7
-        model: root.hourlyModel
-        emptyText: i18n("No time logged this day")
-    }
-
-    Kirigami.Separator {
-        Layout.fillWidth: true
-    }
-
-    // —— Weekly project stacks + week switcher ——
-    Kirigami.Heading {
-        Layout.fillWidth: true
-        level: 4
-        text: i18n("Projects by day")
-    }
-
-    RowLayout {
-        Layout.fillWidth: true
-
-        QQC2.ToolButton {
-            Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
-            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-            icon.name: "go-previous"
-            onClicked: root.shiftWeek(-1)
-            QQC2.ToolTip.text: i18n("Previous week")
-            QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile
-        }
-
-        QQC2.Label {
-            Layout.fillWidth: true
-            horizontalAlignment: Text.AlignHCenter
-            font.bold: true
-            text: {
-                if (root.weekOffset === 0)
-                    return i18n("This week");
-
-                return StatsData.formatWeekLabel(root.selectedWeekStart);
-            }
-        }
-
-        QQC2.ToolButton {
-            Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
-            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-            icon.name: "go-next"
-            enabled: root.weekOffset < 0
-            onClicked: root.shiftWeek(1)
-            QQC2.ToolTip.text: i18n("Next week")
-            QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile
-        }
-
-    }
-
-    StackedBarChart {
-        Layout.fillWidth: true
-        Layout.preferredHeight: Kirigami.Units.gridUnit * 7
-        days: root.weeklyDays
-        emptyText: i18n("No time logged this week")
-    }
-
-    Flow {
-        Layout.fillWidth: true
-        spacing: Kirigami.Units.smallSpacing * 2
-        visible: root.weeklyLegend.length > 0
-
-        Repeater {
-            model: root.weeklyLegend
-
-            delegate: Row {
-                spacing: 4
-
-                CustomerColorDot {
-                    anchors.verticalCenter: parent.verticalCenter
-                    height: 14
-                    customerColor: modelData.color || KimaiApi.DEFAULT_CUSTOMER_COLOR
-                    sizeFactor: 0.55
-                    slotSizeFactor: 0.7
-                }
-
-                QQC2.Label {
-                    text: modelData.name || ""
-                    font.pointSize: Kirigami.Theme.smallFont.pointSize
-                    opacity: 0.8
-                }
-
-            }
-
-        }
-
-    }
-
-    Kirigami.Separator {
-        Layout.fillWidth: true
-    }
-
-    // —— Projects by hour (week timeline) ——
-    Kirigami.Heading {
-        Layout.fillWidth: true
-        level: 4
-        text: i18n("Projects by hour")
-    }
-
-    RowLayout {
-        Layout.fillWidth: true
-
-        QQC2.ToolButton {
-            icon.name: "go-previous"
-            onClicked: root.shiftHourWeek(-1)
-            QQC2.ToolTip.text: i18n("Previous week")
-            QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile
-        }
-
-        QQC2.Label {
-            Layout.fillWidth: true
-            horizontalAlignment: Text.AlignHCenter
-            font.bold: true
-            text: {
-                if (root.hourWeekOffset === 0)
-                    return i18n("This week");
-
-                return StatsData.formatWeekLabel(root.selectedHourWeekStart);
-            }
-        }
-
-        QQC2.ToolButton {
-            icon.name: "go-next"
-            enabled: root.hourWeekOffset < 0
-            onClicked: root.shiftHourWeek(1)
-            QQC2.ToolTip.text: i18n("Next week")
-            QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile
-        }
-
-    }
-
-    QQC2.Label {
-        Layout.fillWidth: true
-        wrapMode: Text.WordWrap
-        font.pointSize: Kirigami.Theme.smallFont.pointSize
-        opacity: 0.7
-        text: {
-            var bits = [];
-            if (root.weekHourData && root.weekHourData.weekendIncluded)
-                bits.push(i18n("Weekdays and weekend — segments placed by clock time."));
-            else
-                bits.push(i18n("Weekdays — segments placed by clock time. Weekend appears when tracked."));
-            bits.push(i18n("Axis shows business hours (%1–%2); expands if work falls outside.", root.workDayBegin, root.workDayEnd));
-            return bits.join(" ");
-        }
-    }
-
-    WeeklyHourChart {
-        Layout.fillWidth: true
-        days: root.weekHourDays
-        hourMin: root.weekHourMin
-        hourMax: root.weekHourMax
-        emptyText: i18n("No time logged this week")
-    }
-
-    Flow {
-        Layout.fillWidth: true
-        spacing: Kirigami.Units.smallSpacing * 2
-        visible: root.weekHourLegend.length > 0
-
-        Repeater {
-            model: root.weekHourLegend
-
-            delegate: Row {
-                spacing: 4
-
-                CustomerColorDot {
-                    anchors.verticalCenter: parent.verticalCenter
-                    height: 14
-                    customerColor: modelData.color || KimaiApi.DEFAULT_CUSTOMER_COLOR
-                    sizeFactor: 0.55
-                    slotSizeFactor: 0.7
-                }
-
-                QQC2.Label {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: modelData.name || ""
-                    font.pointSize: Kirigami.Theme.smallFont.pointSize
-                    opacity: 0.8
-                }
-
-                QQC2.Label {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: KimaiApi.formatDurationShort(modelData.seconds || 0)
-                    font.pointSize: Kirigami.Theme.smallFont.pointSize
-                    font.bold: true
-                    opacity: 0.9
-                }
-
-            }
-
-        }
-
-    }
-
-    Kirigami.Separator {
-        Layout.fillWidth: true
-    }
-
-    // —— Activity pies ——
-    Kirigami.Heading {
-        Layout.fillWidth: true
-        level: 4
-        text: i18n("Activity distribution")
-    }
+    // —— Two columns once there's room: "today" charts left, weekly trends right.
+    // Below the threshold this reflows to a single stacked column (columns: 1),
+    // unchanged from before.
+    readonly property bool isWideLayout: width >= Kirigami.Units.gridUnit * 40
 
     GridLayout {
         Layout.fillWidth: true
-        columns: width > Kirigami.Units.gridUnit * 18 ? 2 : 1
-        columnSpacing: Kirigami.Units.largeSpacing
+        columns: root.isWideLayout ? 2 : 1
+        columnSpacing: Kirigami.Units.largeSpacing * 1.5
         rowSpacing: Kirigami.Units.largeSpacing
 
-        PieChart {
-            Layout.fillWidth: true
-            Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
-            title: i18n("Today")
-            rows: root.todayPieRows
-            totalSeconds: root.todayPieTotal
-            emptyText: i18n("No activities today")
-        }
-
+        // —— Column A: today's hourly breakdown + activity distribution ——
         ColumnLayout {
             Layout.fillWidth: true
+            Layout.alignment: Qt.AlignTop
             spacing: Kirigami.Units.smallSpacing
+
+            Kirigami.Heading {
+                Layout.fillWidth: true
+                level: 4
+                text: i18n("Time by hour")
+            }
 
             RowLayout {
                 Layout.fillWidth: true
@@ -531,7 +279,144 @@ ColumnLayout {
                     Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
                     Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     icon.name: "go-previous"
-                    onClicked: root.shiftPieWeek(-1)
+                    onClicked: root.shiftDay(-1)
+                    QQC2.ToolTip.text: i18n("Previous day")
+                    QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile
+                }
+
+                QQC2.Label {
+                    Layout.fillWidth: true
+                    horizontalAlignment: Text.AlignHCenter
+                    font.bold: true
+                    text: {
+                        if (root.dayOffset === 0)
+                            return i18n("Today");
+
+                        if (root.dayOffset === -1)
+                            return i18n("Yesterday");
+
+                        return StatsData.formatDayLabel(root.selectedDay);
+                    }
+                }
+
+                QQC2.ToolButton {
+                    Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
+                    Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+                    icon.name: "go-next"
+                    enabled: root.dayOffset < 0
+                    onClicked: root.shiftDay(1)
+                    QQC2.ToolTip.text: i18n("Next day")
+                    QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile
+                }
+
+            }
+
+            BarChart {
+                Layout.fillWidth: true
+                Layout.preferredHeight: Kirigami.Units.gridUnit * 7
+                model: root.hourlyModel
+                emptyText: i18n("No time logged this day")
+            }
+
+            Kirigami.Separator {
+                Layout.fillWidth: true
+                Layout.topMargin: Kirigami.Units.smallSpacing
+            }
+
+            // —— Activity pies ——
+            Kirigami.Heading {
+                Layout.fillWidth: true
+                level: 4
+                text: i18n("Activity distribution")
+            }
+
+            GridLayout {
+                Layout.fillWidth: true
+                columns: width > Kirigami.Units.gridUnit * 18 ? 2 : 1
+                columnSpacing: Kirigami.Units.largeSpacing
+                rowSpacing: Kirigami.Units.largeSpacing
+
+                PieChart {
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
+                    title: i18n("Today")
+                    rows: root.todayPieRows
+                    totalSeconds: root.todayPieTotal
+                    emptyText: i18n("No activities today")
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: Kirigami.Units.smallSpacing
+
+                    RowLayout {
+                        Layout.fillWidth: true
+
+                        QQC2.ToolButton {
+                            Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
+                            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+                            icon.name: "go-previous"
+                            onClicked: root.shiftPieWeek(-1)
+                            QQC2.ToolTip.text: i18n("Previous week")
+                            QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile
+                        }
+
+                        QQC2.Label {
+                            Layout.fillWidth: true
+                            horizontalAlignment: Text.AlignHCenter
+                            font.bold: true
+                            text: {
+                                if (root.pieWeekOffset === 0)
+                                    return i18n("This week");
+
+                                return StatsData.formatWeekLabel(root.selectedPieWeekStart);
+                            }
+                        }
+
+                        QQC2.ToolButton {
+                            Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
+                            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+                            icon.name: "go-next"
+                            enabled: root.pieWeekOffset < 0
+                            onClicked: root.shiftPieWeek(1)
+                            QQC2.ToolTip.text: i18n("Next week")
+                            QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile
+                        }
+                    }
+
+                    PieChart {
+                        Layout.fillWidth: true
+                        Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
+                        title: ""
+                        rows: root.weekPieRows
+                        totalSeconds: root.weekPieTotal
+                        emptyText: i18n("No activities this week")
+                    }
+                }
+
+            }
+        }
+
+        // —— Column B: weekly trends (projects by day, projects by hour) ——
+        ColumnLayout {
+            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignTop
+            spacing: Kirigami.Units.smallSpacing
+
+            Kirigami.Heading {
+                Layout.fillWidth: true
+                level: 4
+                text: i18n("Projects by day")
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+
+                QQC2.ToolButton {
+                    Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
+                    Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+                    icon.name: "go-previous"
+                    onClicked: root.shiftWeek(-1)
                     QQC2.ToolTip.text: i18n("Previous week")
                     QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile
                 }
@@ -541,10 +426,10 @@ ColumnLayout {
                     horizontalAlignment: Text.AlignHCenter
                     font.bold: true
                     text: {
-                        if (root.pieWeekOffset === 0)
+                        if (root.weekOffset === 0)
                             return i18n("This week");
 
-                        return StatsData.formatWeekLabel(root.selectedPieWeekStart);
+                        return StatsData.formatWeekLabel(root.selectedWeekStart);
                     }
                 }
 
@@ -552,23 +437,160 @@ ColumnLayout {
                     Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
                     Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     icon.name: "go-next"
-                    enabled: root.pieWeekOffset < 0
-                    onClicked: root.shiftPieWeek(1)
+                    enabled: root.weekOffset < 0
+                    onClicked: root.shiftWeek(1)
                     QQC2.ToolTip.text: i18n("Next week")
                     QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile
                 }
+
             }
 
-            PieChart {
+            StackedBarChart {
                 Layout.fillWidth: true
-                Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
-                title: ""
-                rows: root.weekPieRows
-                totalSeconds: root.weekPieTotal
-                emptyText: i18n("No activities this week")
+                Layout.preferredHeight: Kirigami.Units.gridUnit * 7
+                days: root.weeklyDays
+                emptyText: i18n("No time logged this week")
+            }
+
+            Flow {
+                Layout.fillWidth: true
+                spacing: Kirigami.Units.smallSpacing * 2
+                visible: root.weeklyLegend.length > 0
+
+                Repeater {
+                    model: root.weeklyLegend
+
+                    delegate: Row {
+                        spacing: 4
+
+                        CustomerColorDot {
+                            anchors.verticalCenter: parent.verticalCenter
+                            height: 14
+                            customerColor: modelData.color || KimaiApi.DEFAULT_CUSTOMER_COLOR
+                            sizeFactor: 0.55
+                            slotSizeFactor: 0.7
+                        }
+
+                        QQC2.Label {
+                            text: modelData.name || ""
+                            font.pointSize: Kirigami.Theme.smallFont.pointSize
+                            opacity: 0.8
+                        }
+
+                    }
+
+                }
+
+            }
+
+            Kirigami.Separator {
+                Layout.fillWidth: true
+                Layout.topMargin: Kirigami.Units.smallSpacing
+            }
+
+            // —— Projects by hour (week timeline) ——
+            Kirigami.Heading {
+                Layout.fillWidth: true
+                level: 4
+                text: i18n("Projects by hour")
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+
+                QQC2.ToolButton {
+                    icon.name: "go-previous"
+                    onClicked: root.shiftHourWeek(-1)
+                    QQC2.ToolTip.text: i18n("Previous week")
+                    QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile
+                }
+
+                QQC2.Label {
+                    Layout.fillWidth: true
+                    horizontalAlignment: Text.AlignHCenter
+                    font.bold: true
+                    text: {
+                        if (root.hourWeekOffset === 0)
+                            return i18n("This week");
+
+                        return StatsData.formatWeekLabel(root.selectedHourWeekStart);
+                    }
+                }
+
+                QQC2.ToolButton {
+                    icon.name: "go-next"
+                    enabled: root.hourWeekOffset < 0
+                    onClicked: root.shiftHourWeek(1)
+                    QQC2.ToolTip.text: i18n("Next week")
+                    QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile
+                }
+
+            }
+
+            QQC2.Label {
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                opacity: 0.7
+                text: {
+                    var bits = [];
+                    if (root.weekHourData && root.weekHourData.weekendIncluded)
+                        bits.push(i18n("Weekdays and weekend — segments placed by clock time."));
+                    else
+                        bits.push(i18n("Weekdays — segments placed by clock time. Weekend appears when tracked."));
+                    bits.push(i18n("Axis shows business hours (%1–%2); expands if work falls outside.", root.workDayBegin, root.workDayEnd));
+                    return bits.join(" ");
+                }
+            }
+
+            WeeklyHourChart {
+                Layout.fillWidth: true
+                days: root.weekHourDays
+                hourMin: root.weekHourMin
+                hourMax: root.weekHourMax
+                emptyText: i18n("No time logged this week")
+            }
+
+            Flow {
+                Layout.fillWidth: true
+                spacing: Kirigami.Units.smallSpacing * 2
+                visible: root.weekHourLegend.length > 0
+
+                Repeater {
+                    model: root.weekHourLegend
+
+                    delegate: Row {
+                        spacing: 4
+
+                        CustomerColorDot {
+                            anchors.verticalCenter: parent.verticalCenter
+                            height: 14
+                            customerColor: modelData.color || KimaiApi.DEFAULT_CUSTOMER_COLOR
+                            sizeFactor: 0.55
+                            slotSizeFactor: 0.7
+                        }
+
+                        QQC2.Label {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: modelData.name || ""
+                            font.pointSize: Kirigami.Theme.smallFont.pointSize
+                            opacity: 0.8
+                        }
+
+                        QQC2.Label {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: KimaiApi.formatDurationShort(modelData.seconds || 0)
+                            font.pointSize: Kirigami.Theme.smallFont.pointSize
+                            font.bold: true
+                            opacity: 0.9
+                        }
+
+                    }
+
+                }
+
             }
         }
-
     }
 
 }

@@ -129,6 +129,17 @@ Constraint: panel click still must not start/stop. No standalone tray app.
 
 Not required to call it 2.0.
 
+- **Drehzettel API sync for the Film day view.** As of 2026-09-24, `kimai-drehzettel-bundle`'s
+  `Controller/Api/DrehzettelApiController.php` is live on production (`ki.arianw.de`, verified via
+  `GET /api/drehzettel/ping` → 401 with the route present, not 404) — `GET /ping`,
+  `GET /v1/engagement-status?project=&user=&date=`, `GET`/`PUT /v1/film-days/{date}?project=&user=`.
+  Vocabulary matches `filmDays.js` exactly (`DayCategory`/`Catering` string values), so wiring this
+  up is a storage change, not a translation layer. Not yet built: capability detection (`ping` once
+  per profile, cached), reading/writing `breakMinutes`/`catering`/`category`/`note` through the API
+  instead of `shared.json` only, and reconciling local vs. server state on first sync.
+  **API gap** (tracked in the plugin's own `roadmap.md`): the endpoint does not expose `dayType` or
+  `productionDay` at all (`PUT` silently discards them), and has no field for extra pay/expenses —
+  those three stay Plasmai-local even after sync is built, until the plugin's API grows them.
 - Compact **week timesheet grid** as another `mainViewMode` (SolidTime / Clockify), same density as stats.
 - Map **KDE Activities** to a default project (easy to get wrong).
 - **Pomodoro** as a Behavior option — not a second product.

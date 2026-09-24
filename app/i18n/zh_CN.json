@@ -1,9 +1,13 @@
 {
+"%1 day ago": "%1 天前",
+"%1 hour ago": "%1 小时前",
 "%1 left this week": "本周剩余 %1",
 "%1 left today": "今日剩余 %1",
 "%1 min": "%1 分钟",
+"%1 minute ago": "%1 分钟前",
 "%1 over this week": "本周超出 %1",
 "%1 over today": "今日超出 %1",
+"%1 place found.": "找到 %1 个地点。",
 "%1 project-specific, %2 global": "%1 个项目专用，%2 个全局",
 "%1, %2": "%1，%2",
 "%1d ago": "%1天前",
