@@ -15,6 +15,7 @@
 
 ### Desktop
 - Redesigned icon: half-dial clock with a gold shard trail; the panel icon uses the mono variant (tinted by the theme) while idle, the store and Android icons use the colored version
+- Film day view (Kimai only): a shooting-day entry screen modeled on the Android TimeSheet app — begin/end/break, catering, day category/type, production-day counter, extra pay, note. Begin/end save to a normal Kimai entry; the film-specific extras are kept locally until kimai-drehzettel-bundle has an API for them
 
 ## 1.6.3
 

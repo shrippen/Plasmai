@@ -112,6 +112,11 @@
         <entry name="pinnedActivities" type="String">
             <default></default>
         </entry>
+        <!-- Filmday view extras (break, catering, day type/category, production
+             day, extra pay, note), keyed by project + date; see filmDays.js -->
+        <entry name="filmDaysJson" type="String">
+            <default></default>
+        </entry>
         <entry name="idleStopEnabled" type="Bool">
             <default>false</default>
         </entry>
