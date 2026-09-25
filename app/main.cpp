@@ -8,6 +8,7 @@
 #include <QQmlContext>
 #include <QStandardPaths>
 #include <QFile>
+#include <QSaveFile>
 #include <QHash>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -167,9 +168,13 @@ public:
         job->start();
 #else
         QDir().mkpath(tokenDir());
-        QFile f(tokenPath(profileId));
-        bool ok = f.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate);
-        if (ok) f.write(token.toUtf8());
+        // QSaveFile: temp file + rename, so a killed app never leaves a torn token.
+        QSaveFile f(tokenPath(profileId));
+        bool ok = f.open(QIODevice::WriteOnly | QIODevice::Text);
+        if (ok) {
+            f.write(token.toUtf8());
+            ok = f.commit();
+        }
         emit saved(profileId, ok);
 #endif
     }
@@ -225,10 +230,13 @@ public:
     Q_INVOKABLE void save(const QString &fileName, const QString &json) {
         QString dir = configDir();
         QDir().mkpath(dir);
-        QFile f(dir + "/" + fileName);
-        bool ok = f.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate);
+        // QSaveFile: temp file + rename (like mktemp + mv in sharedConfig.sh),
+        // so a killed app never leaves a half-written shared.json.
+        QSaveFile f(dir + "/" + fileName);
+        bool ok = f.open(QIODevice::WriteOnly | QIODevice::Text);
         if (ok) {
             f.write(json.toUtf8());
+            ok = f.commit();
         }
         emit saved(fileName, ok);
     }
