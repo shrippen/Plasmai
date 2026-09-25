@@ -20,7 +20,7 @@ Kirigami.Page {
         var url = TimeTracker.resolveUrl(root.activeProfile)
         var fields = { project: projectId, activity: activityId, begin: beginText, end: endText, description: description, tags: tags }
         if (billable !== undefined && billable !== null) fields.billable = billable
-        var cb = function(r) { page.busy = false; if (r.ok) pageStack.pop() }
+        var cb = function(r) { page.busy = false; if (r.ok) { root.noteDroppedFields(r); pageStack.pop() } }
         if (page.editMode && page.editTs) root.tracker.patchTimesheet(url, root.apiToken, page.editTs.id, fields, cb)
         else root.tracker.createTimesheet(url, root.apiToken, fields, cb)
     }

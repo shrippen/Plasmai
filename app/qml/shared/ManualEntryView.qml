@@ -40,7 +40,7 @@ ColumnLayout {
 
     signal aboutToOpenPicker(var projectField, var activityField)
     signal projectChosen(var projectId)
-    signal saveRequested(var projectId, var activityId, string beginText, string endText, string description, bool billable, var tags)
+    signal saveRequested(var projectId, var activityId, string beginText, string endText, string description, var billable, var tags)
     signal cancelled()
     signal createProjectRequested()
     signal createActivityRequested()
@@ -401,7 +401,7 @@ ColumnLayout {
                     root.stampText(beginDate, beginTime),
                     root.stampText(endDate, endTime),
                     descriptionField.text,
-                    root.editingExisting ? metaFields.billable : metaFields.billableOrNull,
+                    metaFields.billableOrNull,
                     metaFields.tags)
             }
         }
