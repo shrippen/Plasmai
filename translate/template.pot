@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 2.0.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-09-25 19:52+0000\n"
+"POT-Creation-Date: 2026-09-25 21:41+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1081,7 +1081,7 @@ msgstr ""
 
 #: app/qml/shared/FilmDayView.qml:748 app/qml/shared/FilmDayView.qml:760
 #: contents/ui/FilmDayView.qml:749 contents/ui/FilmDayView.qml:761
-msgid "Consecutive day (empty = automatic)"
+msgid "Surcharge day (1–7, empty = automatic)"
 msgstr ""
 
 #: app/qml/shared/FilmDayView.qml:761 contents/ui/FilmDayView.qml:762

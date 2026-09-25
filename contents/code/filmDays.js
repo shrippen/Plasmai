@@ -37,7 +37,7 @@ function entryDefaults() {
         category: DayCategory.AUTO,
         dayType: DayType.WORKDAY,
         productionDay: null,
-        consecutiveDay: null,
+        surchargeDay: null,
         extraPayCents: 0,
         note: ""
     }
@@ -157,7 +157,8 @@ function saveTargetId(timesheet, projectId, projectIdOf) {
 // (film-day GET/PUT). The view keeps working on the local entry shape above,
 // with two differences in server mode:
 //   breakMinutes    null = the ruleset default (defaultBreakMinutes)
-//   consecutiveDay  server `productionDay` ("Tag in Folge"), null = automatic
+//   surchargeDay    server `productionDay` ("Zuschlagstag", day 1–7 of the
+//                   TV FFS calendar week for the 6th/7th-day surcharge), null = automatic
 // and one renamed field (decision D7): the local `productionDay` counter is
 // the production's running shooting day, i.e. the server's shootingDayNumber.
 //
@@ -167,7 +168,7 @@ function saveTargetId(timesheet, projectId, projectIdOf) {
 //   category ""         category           null | workday|saturday|sunday|holiday
 //   dayType             dayType            workday|travel
 //   productionDay 0/n   shootingDayNumber  null | 1–999
-//   consecutiveDay      productionDay      null | 1–999
+//   surchargeDay        productionDay      null | 1–7
 //   extraPayCents       extraPayCents      int 0–10,000,000
 //   note ""             note               null | trimmed, ≤ 500
 
@@ -175,6 +176,7 @@ var BREAK_MAX_MINUTES = 720
 var DEFAULT_BREAK_MINUTES = 45
 var NOTE_MAX_LENGTH = 500
 var DAY_NUMBER_MAX = 999
+var SURCHARGE_DAY_MAX = 7
 var EXTRA_PAY_MAX_CENTS = 10000000
 
 /** Keys the client may send in a PUT, in a stable order. */
@@ -219,7 +221,7 @@ function toApi(local) {
         category: category,
         dayType: e.dayType === DayType.TRAVEL ? DayType.TRAVEL : DayType.WORKDAY,
         shootingDayNumber: optionalDayNumber(e.productionDay, DAY_NUMBER_MAX),
-        productionDay: optionalDayNumber(e.consecutiveDay, DAY_NUMBER_MAX),
+        productionDay: optionalDayNumber(e.surchargeDay, SURCHARGE_DAY_MAX),
         extraPayCents: clampInt(e.extraPayCents || 0, 0, EXTRA_PAY_MAX_CENTS),
         note: note.length ? note : null
     }
@@ -245,7 +247,7 @@ function normalizeServer(json) {
         out.shootingDayNumber = optionalDayNumber(j.shootingDayNumber, DAY_NUMBER_MAX)
     }
     if (Object.prototype.hasOwnProperty.call(j, "productionDay")) {
-        out.productionDay = optionalDayNumber(j.productionDay, DAY_NUMBER_MAX)
+        out.productionDay = optionalDayNumber(j.productionDay, SURCHARGE_DAY_MAX)
     }
     if (Object.prototype.hasOwnProperty.call(j, "extraPayCents")) {
         out.extraPayCents = Number(j.extraPayCents) || 0
@@ -301,7 +303,7 @@ function fromApi(json, localExtras) {
         category: n.category || DayCategory.AUTO,
         dayType: n.dayType || DayType.WORKDAY,
         productionDay: n.shootingDayNumber || null,
-        consecutiveDay: n.productionDay || null,
+        surchargeDay: n.productionDay || null,
         extraPayCents: n.hasOwnProperty("extraPayCents") ? n.extraPayCents : (Number(fallback.extraPayCents) || 0),
         note: n.note || ""
     }

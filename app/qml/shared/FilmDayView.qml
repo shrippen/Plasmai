@@ -10,7 +10,7 @@ import "."
 /**
  * Shooting-day entry: one Kimai timesheet (begin/end for one calendar day)
  * plus film-specific extras (break, catering, day category/type, production
- * shooting day, consecutive day, extra pay, note). Modeled on the Android
+ * shooting day, surcharge day, extra pay, note). Modeled on the Android
  * TimeSheet app's day screen; see kimai-drehzettel-bundle's
  * research/timesheet-app-analyse.md for the reference layout.
  *
@@ -182,7 +182,7 @@ ColumnLayout {
         categorySlider.value = indexOfValue(root.categoryOptions, e.category || FilmDays.DayCategory.AUTO)
         dayTypeSlider.value = indexOfValue(root.dayTypeOptions, e.dayType || FilmDays.DayType.WORKDAY)
         productionDaySpin.value = e.productionDay || 0
-        consecutiveDaySpin.value = e.consecutiveDay || 0
+        surchargeDaySpin.value = e.surchargeDay || 0
         extraPayField.text = e.extraPayCents ? (e.extraPayCents / 100).toFixed(2) : ""
         noteField.text = String(e.note || "").substring(0, FilmDays.NOTE_MAX_LENGTH)
     }
@@ -195,7 +195,7 @@ ColumnLayout {
             category: root.categoryOptions[Math.round(categorySlider.value)].value,
             dayType: root.dayTypeOptions[Math.round(dayTypeSlider.value)].value,
             productionDay: productionDaySpin.value > 0 ? productionDaySpin.value : null,
-            consecutiveDay: consecutiveDaySpin.value > 0 ? consecutiveDaySpin.value : null,
+            surchargeDay: surchargeDaySpin.value > 0 ? surchargeDaySpin.value : null,
             extraPayCents: isNaN(extraPay) ? 0 : Math.max(0, Math.min(FilmDays.EXTRA_PAY_MAX_CENTS, Math.round(extraPay * 100))),
             note: String(noteField.text).trim()
         }
@@ -704,7 +704,7 @@ ColumnLayout {
         }
     }
 
-    /** Production shooting day ("Drehtag 37", informational) and the consecutive-day override. */
+    /** Production shooting day ("Drehtag 37", informational) and the surcharge-day override (day 1–7 of the TV FFS week). */
     RowLayout {
         Layout.fillWidth: true
         Layout.topMargin: Kirigami.Units.smallSpacing
@@ -745,19 +745,19 @@ ColumnLayout {
             spacing: Kirigami.Units.smallSpacing / 2
             QQC2.Label {
                 Layout.fillWidth: true
-                text: i18n("Consecutive day (empty = automatic)")
+                text: i18n("Surcharge day (1–7, empty = automatic)")
                 elide: Text.ElideRight
                 font.bold: true
                 opacity: 0.85
             }
             QQC2.SpinBox {
-                id: consecutiveDaySpin
+                id: surchargeDaySpin
                 Layout.fillWidth: true
                 from: 0
-                to: FilmDays.DAY_NUMBER_MAX
+                to: FilmDays.SURCHARGE_DAY_MAX
                 editable: true
                 enabled: root.extrasEnabled
-                Accessible.name: i18n("Consecutive day (empty = automatic)")
+                Accessible.name: i18n("Surcharge day (1–7, empty = automatic)")
                 textFromValue: function(value) { return value === 0 ? i18n("Automatic") : String(value) }
                 valueFromText: function(text) {
                     var n = parseInt(text, 10)

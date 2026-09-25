@@ -338,7 +338,7 @@ T = {
     'Day type': 'Tagesart',
     'Production shooting day': 'Drehtag der Produktion',
     'Not set': 'Nicht gesetzt',
-    'Consecutive day (empty = automatic)': 'Tag in Folge (leer = automatisch)',
+    'Surcharge day (1–7, empty = automatic)': 'Zuschlagstag (1–7, leer = automatisch)',
     'Automatic': 'Automatisch',
     'Extra pay / expenses (this device only)': 'Zusatzgage / Spesen (nur auf diesem Gerät)',
     'Extra pay / expenses': 'Zusatzgage / Spesen',

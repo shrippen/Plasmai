@@ -137,7 +137,7 @@ TestCase {
     function test_toApiMapsEveryField() {
         var api = FilmDays.toApi({
             breakMinutes: 30, catering: "yes", category: "", dayType: "travel",
-            productionDay: 37, consecutiveDay: 6, extraPayCents: 2500, note: "  Nacht  "
+            productionDay: 37, surchargeDay: 6, extraPayCents: 2500, note: "  Nacht  "
         })
         compare(api.breakMinutes, 30)
         compare(api.catering, true)
@@ -152,7 +152,7 @@ TestCase {
     function test_toApiEmptyValues() {
         var api = FilmDays.toApi({
             breakMinutes: null, catering: "no", category: "holiday", dayType: "workday",
-            productionDay: 0, consecutiveDay: null, extraPayCents: 0, note: "   "
+            productionDay: 0, surchargeDay: null, extraPayCents: 0, note: "   "
         })
         compare(api.breakMinutes, null)
         compare(api.catering, false)
@@ -163,10 +163,11 @@ TestCase {
     }
 
     function test_toApiClampsRanges() {
-        var api = FilmDays.toApi({ breakMinutes: 900, productionDay: 5000, extraPayCents: -3,
+        var api = FilmDays.toApi({ breakMinutes: 900, productionDay: 5000, surchargeDay: 9, extraPayCents: -3,
                                    note: new Array(600).join("x") })
         compare(api.breakMinutes, 720)
         compare(api.shootingDayNumber, 999)
+        compare(api.productionDay, 7)
         compare(api.extraPayCents, 0)
         compare(api.note.length, 500)
     }
@@ -179,7 +180,7 @@ TestCase {
         compare(local.category, "sunday")
         compare(local.dayType, "travel")
         compare(local.productionDay, 12)
-        compare(local.consecutiveDay, 3)
+        compare(local.surchargeDay, 3)
         compare(local.extraPayCents, 999)
         compare(local.note, "n")
         compare(Object.keys(FilmDays.toApiPatch(local, serverDay({ breakMinutes: 60, catering: true,
