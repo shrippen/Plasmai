@@ -19,8 +19,10 @@ if [ -z "$summary" ]; then
     exit 64
 fi
 
+# "--" ends option parsing: a summary/body starting with "-" (e.g. a
+# description like "-fix") must not be read as a notify-send option.
 if [ -n "$body" ]; then
-    exec notify-send "$summary" "$body" -i "$icon"
+    exec notify-send -i "$icon" -- "$summary" "$body"
 fi
 
-exec notify-send "$summary" -i "$icon"
+exec notify-send -i "$icon" -- "$summary"

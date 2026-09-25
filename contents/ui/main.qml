@@ -18,6 +18,7 @@ import "../code/colorDistinct.js" as ColorDistinct
 import "../code/maintenanceCache.js" as CatalogCache
 import "../code/buildInfo.js" as BuildInfo
 import "../code/timesheetFields.js" as TimesheetFields
+import "../code/providerUtil.js" as ProviderUtil
 import "."
 
 PlasmoidItem {
@@ -86,6 +87,8 @@ PlasmoidItem {
     property var idleDialogRef: null
     property var createEntityDialogRef: null
     property int pendingIdleMs: 0
+    // Wall-clock ms when the idle period began (detection time − idle ms).
+    property double pendingIdleSince: 0
     property bool idleIgnoreUntilActive: false
     property var pendingIdleSnapshot: null
     property string forgotReminderDay: ""
@@ -339,6 +342,16 @@ PlasmoidItem {
         onTriggered: root.elapsedSeconds++
     }
 
+    // QML XMLHttpRequest has no timeout: abort requests that hang so
+    // isBusy / loading flags cannot stay stuck.
+    Timer {
+        id: requestWatchdogTimer
+        interval: 5000
+        running: true
+        repeat: true
+        onTriggered: ProviderUtil.abortStaleRequests(Date.now())
+    }
+
     Timer {
         id: sparklineRefreshTimer
         interval: 30000
@@ -502,6 +515,13 @@ PlasmoidItem {
         }
     }
 
+    /** Kimai saved the entry but ignored billable (no edit_billable permission). */
+    function noteDroppedFields(result) {
+        if (result && result.droppedFields && result.droppedFields.indexOf("billable") >= 0) {
+            userMessage = i18n("Saved without the billable change: your Kimai account is not allowed to edit billable.")
+        }
+    }
+
     function openConfigure() {
         var action = plasmoid.internalAction("configure")
         if (action) {
@@ -556,7 +576,10 @@ PlasmoidItem {
 
     function promptIdle(idleMs) {
         pendingIdleMs = idleMs
+        pendingIdleSince = Date.now() - Math.max(0, idleMs)
+        var beginInstant = activeTimesheet ? TimesheetFields.parseInstant(activeTimesheet.begin) : null
         pendingIdleSnapshot = {
+            beginMs: beginInstant ? beginInstant.getTime() : 0,
             timesheetId: currentTimesheetId,
             projectId: activeTimesheet ? KimaiApi.projectId(activeTimesheet) : null,
             activityId: activeTimesheet ? KimaiApi.activityId(activeTimesheet) : null,
@@ -576,18 +599,23 @@ PlasmoidItem {
         idleIgnoreUntilActive = true
         pendingIdleSnapshot = null
         pendingIdleMs = 0
+        pendingIdleSince = 0
     }
 
     function discardIdleTime(andContinue) {
         var snap = pendingIdleSnapshot
-        var idleMs = pendingIdleMs
+        var idleSince = pendingIdleSince > 0 ? pendingIdleSince : Date.now() - Math.max(0, pendingIdleMs)
         pendingIdleSnapshot = null
         pendingIdleMs = 0
+        pendingIdleSince = 0
         if (!snap || !snap.timesheetId) {
             stopTracking(true)
             return
         }
-        var endDate = new Date(Date.now() - Math.max(0, idleMs))
+        // Stop where idle began (not "now − idle" at click time, which would
+        // keep the time the dialog sat open), never before the entry's begin.
+        var endMs = Math.max(idleSince, snap.beginMs || 0)
+        var endDate = new Date(endMs)
         if (!tracker || typeof tracker.patchTimesheet !== "function") {
             stopTracking(true)
             return
@@ -841,12 +869,13 @@ PlasmoidItem {
             begin: KimaiApi.localDateTimeString(beginDate),
             project: projectId,
             activity: activityId,
-            billable: billable,
+            billable: typeof billable === "boolean" ? billable : undefined,
             tags: tags || []
         }, function(result) {
             isBusy = false
             if (result && result.ok) {
                 clearError()
+                noteDroppedFields(result)
                 editingActiveEntry = false
                 if (result.data) {
                     var hydrated = KimaiApi.hydrateTimesheets(
@@ -967,6 +996,7 @@ PlasmoidItem {
             if (result.ok) {
                 clearError()
                 returnToMainView()
+                noteDroppedFields(result)
                 refreshRecentTimesheets()
                 refreshWorkTotals()
                 sendNotification(

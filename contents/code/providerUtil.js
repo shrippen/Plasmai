@@ -58,16 +58,72 @@ function fail(error) {
     return { ok: false, error: error }
 }
 
+/** Requests still waiting for an answer longer than this are aborted. */
+var REQUEST_TIMEOUT_MS = 30000
+var TIMEOUT_MESSAGE = "Request timed out"
+
+var pendingRequests = []
+
+function untrackRequest(entry) {
+    var i = pendingRequests.indexOf(entry)
+    if (i >= 0) {
+        pendingRequests.splice(i, 1)
+    }
+}
+
+/**
+ * QML's XMLHttpRequest has no timeout. The applet calls this from a Timer;
+ * it aborts overdue requests, whose callback then fires once with status 0
+ * and a "Request timed out" message, so busy flags are always released.
+ * Returns the number of aborted requests.
+ */
+function abortStaleRequests(nowMs) {
+    var now = (typeof nowMs === "number") ? nowMs : Date.now()
+    var stale = []
+    for (var i = 0; i < pendingRequests.length; i++) {
+        if (pendingRequests[i].deadline <= now) {
+            stale.push(pendingRequests[i])
+        }
+    }
+    for (i = 0; i < stale.length; i++) {
+        untrackRequest(stale[i])
+        stale[i].timedOut = true
+        try {
+            stale[i].xhr.abort()
+        } catch (e) {
+        }
+        stale[i].finish(0, JSON.stringify({ message: TIMEOUT_MESSAGE }), TIMEOUT_MESSAGE)
+    }
+    return stale.length
+}
+
+function pendingRequestCount() {
+    return pendingRequests.length
+}
+
 function runRequest(xhr, body, callback) {
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState !== XMLHttpRequest.DONE) {
+    var entry = { xhr: xhr, deadline: Date.now() + REQUEST_TIMEOUT_MS, timedOut: false, finished: false }
+    // onerror and DONE can both fire; abort() also reports DONE. Answer once.
+    entry.finish = function(status, responseText, statusText) {
+        if (entry.finished) {
             return
         }
-        callback(xhr.status, xhr.responseText, xhr.statusText)
+        entry.finished = true
+        untrackRequest(entry)
+        callback(status, responseText, statusText)
+    }
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState !== 4 || entry.timedOut) {
+            return
+        }
+        entry.finish(xhr.status, xhr.responseText, xhr.statusText)
     }
     xhr.onerror = function() {
-        callback(0, "", "Network error")
+        if (!entry.timedOut) {
+            entry.finish(0, "", "Network error")
+        }
     }
+    pendingRequests.push(entry)
     if (body !== undefined) {
         xhr.send(body)
     } else {

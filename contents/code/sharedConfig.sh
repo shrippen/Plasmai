@@ -24,8 +24,13 @@ case "${1:-}" in
             exit 2
         fi
         mkdir -p "$DIR"
-        printf %s "$KIMAI_SHARED_JSON" > "$FILE.tmp"
-        mv "$FILE.tmp" "$FILE"
+        # Unique temp file: parallel stores (widget + settings) must not
+        # write into the same $FILE.tmp.
+        TMP=$(mktemp "$DIR/.shared.json.XXXXXX")
+        trap 'rm -f "$TMP"' EXIT
+        printf %s "$KIMAI_SHARED_JSON" > "$TMP"
+        mv "$TMP" "$FILE"
+        trap - EXIT
         ;;
     *)
         echo "usage: $0 {load|store}" >&2

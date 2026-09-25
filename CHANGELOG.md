@@ -1,5 +1,28 @@
 # Changelog
 
+## Unreleased
+
+### Kimai
+- Works for regular users (ROLE_USER) again: `exported` is no longer sent, and `billable` only when you change it; without the edit_billable permission the entry is saved without it and a hint is shown
+- Manual entries no longer save as non-billable when the checkbox was left alone
+- Start lets Kimai set the begin time (Kimai timezone instead of the desktop clock)
+- Continue keeps the description and tags (`copy=all`)
+- Statistics/week totals no longer fail for ranges with exactly 100, 200 … entries
+- Customers, projects and activities load in one request (no duplicates above 500)
+- Hidden customers, projects and activities are no longer offered in the pickers
+- Requests are aborted after 30 s so the widget does not stay busy
+
+### Desktop
+- Discarding idle time stops the entry where idle began, not where you clicked
+- Idle detection asks the ScreenSaver D-Bus when logind does not report idle
+- Notifications whose text starts with "-" are shown
+- Short absence durations in seconds are no longer read as hours; day sparkline is correct on DST days
+
+### Security and robustness
+- The API token no longer stays on the `sh -c` command line while it is stored
+- Large catalog caches (>128 KiB) are saved in chunks; config/cache files are written via `mktemp`
+- Widget paths with spaces work for the shell helpers
+
 ## 1.6.3
 
 ### Desktop

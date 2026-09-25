@@ -2,6 +2,8 @@
 # Print system idle time in milliseconds on stdout.
 #
 # Wayland (Plasma 6 default): loginctl IdleSinceHint, then ScreenSaver D-Bus.
+# Many sessions never set logind's IdleHint, so "not idle" from loginctl is
+# only trusted when ScreenSaver is unavailable.
 # X11: xprintidle. Do not prefer xprintidle when WAYLAND_DISPLAY is set —
 # it only sees XWayland and is often stuck "idle".
 
@@ -14,6 +16,9 @@ emit_ms() {
     esac
 }
 
+# Prints idle ms and returns 0 when logind reports IdleHint=yes.
+# Returns 2 when logind answered but the session is not flagged idle,
+# 1 when loginctl / the session id is unavailable.
 idle_from_loginctl() {
     if ! command -v loginctl >/dev/null 2>&1; then
         return 1
@@ -24,9 +29,11 @@ idle_from_loginctl() {
     fi
     hint=$(loginctl show-session "$sid" -p IdleHint --value 2>/dev/null || true)
     since=$(loginctl show-session "$sid" -p IdleSinceHint --value 2>/dev/null || true)
+    if [ -z "$hint" ]; then
+        return 1
+    fi
     if [ "$hint" != "yes" ] || [ -z "$since" ] || [ "$since" = "0" ]; then
-        echo 0
-        return 0
+        return 2
     fi
     now_s=$(date +%s)
     since_s=$((since / 1000000))
@@ -65,11 +72,14 @@ idle_from_xprintidle() {
     emit_ms "$out"
 }
 
+logind=1
 if [ -n "${WAYLAND_DISPLAY:-}" ]; then
-    if idle_from_loginctl; then
+    idle_from_loginctl && exit 0 || logind=$?
+    if idle_from_screensaver; then
         exit 0
     fi
-    if idle_from_screensaver; then
+    if [ "$logind" -eq 2 ]; then
+        echo 0
         exit 0
     fi
     if idle_from_xprintidle; then
@@ -79,10 +89,12 @@ else
     if idle_from_xprintidle; then
         exit 0
     fi
-    if idle_from_loginctl; then
+    idle_from_loginctl && exit 0 || logind=$?
+    if idle_from_screensaver; then
         exit 0
     fi
-    if idle_from_screensaver; then
+    if [ "$logind" -eq 2 ]; then
+        echo 0
         exit 0
     fi
 fi

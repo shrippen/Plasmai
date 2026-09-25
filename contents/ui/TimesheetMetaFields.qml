@@ -19,21 +19,28 @@ ColumnLayout {
     property Item pickerViewport: null
 
     property bool billableTouched: false
+    // Billable as loaded from an existing entry (null for new entries).
+    property var loadedBillable: null
     readonly property bool billable: billableCheck.checked
-    readonly property var billableOrNull: billableTouched ? billableCheck.checked : null
+    // Only a value the user actually changed is sent: Kimai auto-resolves
+    // billable otherwise, and rejects the field without edit_billable permission.
+    readonly property var billableOrNull: (billableTouched && billableCheck.checked !== loadedBillable)
+                                          ? billableCheck.checked : null
     readonly property var tags: tagPicker.normalizedTags
 
     visible: showBillable || showTags
     spacing: Kirigami.Units.smallSpacing
 
     function loadFromTimesheet(timesheet) {
-        billableTouched = true
+        billableTouched = false
         billableCheck.checked = Fields.billableFromTimesheet(timesheet, Fields.defaultBillable())
+        loadedBillable = billableCheck.checked
         tagPicker.setTags(Fields.tagsFromTimesheet(timesheet))
     }
 
     function resetDefaults() {
         billableTouched = false
+        loadedBillable = null
         billableCheck.checked = Fields.defaultBillable()
         tagPicker.setTags([])
     }
