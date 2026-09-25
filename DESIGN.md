@@ -102,8 +102,8 @@ typography stack, badge format, and social-preview spec.
   The executable engine runs `sh -c <command>`: that argv is world-readable
   and capped at 128 KiB. Pass secrets as `NAME=… exec sh script` (the
   `exec` drops the command line at once) and send large payloads (catalog
-  cache) in chunks (`catalogCache.sh append/commit`). Stores write through
-  `mktemp` + `mv`. Idle
+  cache, shared.json) in chunks (`append/commit`, `secret.js` `storeJson`).
+  Stores write through `mktemp` + `mv` (app: `QSaveFile`). Idle
   prefers the session idle hint on Wayland (`loginctl` /
   `org.freedesktop.ScreenSaver`) and `xprintidle` on X11.
 
