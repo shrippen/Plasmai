@@ -5,6 +5,7 @@ import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
 import org.kde.plasma.plasma5support as P5Support
 import "../../code/secret.js" as Secret
+import "../../code/platform.js" as Platform
 import "../../code/geocode.js" as Geocode
 import "../../code/profiles.js" as Profiles
 import "../../code/timeTracker.js" as TimeTracker
@@ -105,7 +106,6 @@ ConfigPageBase {
     property alias cfg_colorSimilarityPercent: colorSimilaritySpin.value
     property alias cfg_touchMode: touchModeCombo.currentIndex
 
-    readonly property string sharedConfigScript: Secret.fileUrlToPath(Qt.resolvedUrl("../../code/sharedConfig.sh"))
     readonly property int pageMargin: Kirigami.Units.gridUnit
     /** Stack FormLayout labels above fields when the config window is narrow. */
     readonly property bool formWide: scroll.availableWidth >= Kirigami.Units.gridUnit * 28
@@ -328,8 +328,8 @@ ConfigPageBase {
 
     function persistDisplayConfig() {
         syncControlsToCfg()
-        Secret.persistSharedPatch(
-            execSource, page.sharedConfigScript, plasmoid.configuration, page.displayPatch()
+        Platform.patchShared(
+            execSource, plasmoid.configuration, page.displayPatch()
         )
         unsavedChanges = false
     }
@@ -451,7 +451,7 @@ ConfigPageBase {
         suppressNotify = true
         page.applyCfgToControls()
         suppressNotify = false
-        Secret.loadSharedConfig(execSource, page.sharedConfigScript, function(shared) {
+        Platform.loadShared(execSource).then(function(shared) {
             if (page.unsavedChanges) {
                 ready = true
                 return

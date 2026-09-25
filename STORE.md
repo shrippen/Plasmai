@@ -6,7 +6,7 @@
 ./scripts/package.sh
 ```
 
-This creates `Plasmai-<version>.plasmoid` (a ZIP with `metadata.json` and `contents/` at the root).
+This creates `dist/plasmoid/Plasmai-<version>.plasmoid` (a ZIP with `metadata.json` and `contents/` at the root).
 
 The version comes from `metadata.json`. Attach both this file and `scripts/install-linux.sh` to the GitHub Release: the one-line install command on the landing page and in the README runs `releases/latest/download/install-linux.sh`, which then fetches the release’s `.plasmoid`.
 
@@ -14,7 +14,7 @@ The version comes from `metadata.json`. Attach both this file and `scripts/insta
 
 ```bash
 kpackagetool6 -r com.github.shrippen.plasmai -t Plasma/Applet 2>/dev/null || true
-kpackagetool6 -i ./Plasmai-<version>.plasmoid -t Plasma/Applet
+kpackagetool6 -i ./dist/plasmoid/Plasmai-<version>.plasmoid -t Plasma/Applet
 ```
 
 Add the widget to a panel and verify start/stop, pickers, sparkline, stats, and configuration.
@@ -28,7 +28,7 @@ Add the widget to a panel and verify start/stop, pickers, sparkline, stats, and 
 | Field | Value |
 |---|---|
 | **Name** | Plasmai |
-| **Version** | 1.6.3 |
+| **Version** | 2.0.0 |
 | **License** | GPL-3.0-or-later |
 | **Homepage / Source** | https://github.com/shrippen/Plasmai |
 | **Bug tracker** | https://github.com/shrippen/Plasmai/issues |

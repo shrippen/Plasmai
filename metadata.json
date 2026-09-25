@@ -22,14 +22,14 @@
         "Description[uk]": "Облік часу з Kimai, Clockify, Toggl Track або SolidTime з панелі Plasma",
         "Description[zh_CN]": "从 Plasma 面板用 Kimai、Clockify、Toggl Track 或 SolidTime 记录工时",
         "EnabledByDefault": true,
-        "Icon": "chronometer",
+        "Icon": "plasmai",
         "Id": "com.github.shrippen.plasmai",
         "License": "GPL-3.0-or-later",
         "Name": "Plasmai",
         "Name[de]": "Plasmai",
-        "Version": "1.6.3",
+        "Version": "2.0.0",
         "Website": "https://github.com/shrippen/Plasmai",
-        "Build": "0"
+        "Build": "9"
     },
     "X-Plasma-API-Minimum-Version": "6.0"
 }

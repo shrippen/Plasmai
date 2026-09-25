@@ -1,0 +1,5 @@
+module org.kde.kirigamiaddons.delegates
+DefaultContentItem 1.0 DefaultContentItem.qml
+IndicatorItemDelegate 1.0 IndicatorItemDelegate.qml
+RoundedItemDelegate 1.0 RoundedItemDelegate.qml
+SubtitleContentItem 1.0 SubtitleContentItem.qml

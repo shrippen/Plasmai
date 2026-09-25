@@ -12,7 +12,7 @@ Visual foundation:
 [shrippen/shrippen.github.io](https://github.com/shrippen/shrippen.github.io) — shared
 Gruvbox-warm palette, Rajdhani headings, icon language, and landing-page
 template. The widget itself uses `Kirigami.Theme.*` for all interactive chrome;
-only brand elements (icon mark fill `#E8DCC4`, version badges, landing page)
+only brand elements (icon mark fill `#E8DCC4` with gold `#FABD2F` shards, version badges, landing page)
 use the shared palette directly. See DesignDefault for the full token table,
 typography stack, badge format, and social-preview spec.
 
@@ -56,7 +56,10 @@ typography stack, badge format, and social-preview spec.
 - Do not fork the UI per provider. Gate features with
   `TimeTracker.providerCapabilities(providerId)` (`statistics`,
   `colorDistinction`, `billableFilter`, `billableEdit`, `tags`,
-  `workContract`, `holidayBundle`, `deleteEntry`, `editStopped`, `createEntities`).
+  `workContract`, `holidayBundle`, `deleteEntry`, `editStopped`, `createEntities`,
+  `filmDays`, `drehzettelApi`, `mileage`). The last two only say a Kimai
+  plugin *may* be there; the UI still probes it (see "Kimai plugin
+  detection").
   Entry tags and billable use one `TimesheetMetaFields` block on Add
   entry and Edit running; hide a field when the capability is false
   (Clockify has no name-based tags yet). Kimai tags use a searchable
@@ -102,8 +105,9 @@ typography stack, badge format, and social-preview spec.
   The executable engine runs `sh -c <command>`: that argv is world-readable
   and capped at 128 KiB. Pass secrets as `NAME=… exec sh script` (the
   `exec` drops the command line at once) and send large payloads (catalog
-  cache) in chunks (`catalogCache.sh append/commit`). Stores write through
-  `mktemp` + `mv`. Idle
+  cache, shared.json) in chunks (`catalogCache.sh` / `sharedConfig.sh`
+  `append/commit`, `secret.js` `storeJson`).
+  Stores write through `mktemp` + `mv` (app: `QSaveFile`). Idle
   prefers the session idle hint on Wayland (`loginctl` /
   `org.freedesktop.ScreenSaver`) and `xprintidle` on X11.
 
@@ -177,6 +181,9 @@ typography stack, badge format, and social-preview spec.
   `KimaiApi.DEFAULT_CUSTOMER_COLOR` (`#d2d6de`).
 - Brand accent (`#E8DCC4` warm cream from DesignDefault) is used only for
   the icon mark fill and version badges, never for interactive controls.
+  The icon's shards use the gold accent `#FABD2F`; the monochrome variant
+  (`docs/icon-mono.svg`, `contents/images/icon.svg` with `currentColor`) is
+  used wherever the icon must follow the theme.
   Landing pages and README badges use the full DesignDefault palette.
 - Symbolic Breeze icons (`chronometer`, `media-playback-start/stop`,
   `list-add`, `view-statistics`, `document-edit`, `configure`, …). Tint with
@@ -222,6 +229,56 @@ typography stack, badge format, and social-preview spec.
 - Busy state: small `BusyIndicator` in the header, disable mutating actions
   (`isBusy`, connection error). `LoadingRow` placeholders only while a list
   is empty and loading — do not flash them over existing data.
+
+### Film day view (Kimai only)
+
+- `mainViewMode: "filmday"` (`FilmDayView.qml`; app: `FilmDayPage.qml` with the
+  shared copy), gated by `providerCapabilities.filmDays` (Kimai only — like color
+  distinction and Maintenance, no parallel UI on other providers).
+- One shooting day = one Kimai timesheet entry for that calendar day (begin/end,
+  created or patched like Add entry; only a stopped entry of the picked project is
+  reused). The film-specific extras — break, catering, day category, day type,
+  production shooting day, surcharge day, extra pay, note — belong to
+  [kimai-drehzettel-bundle](https://github.com/shrippen/kimai-drehzettel-bundle).
+- **Storage follows the plugin** (`filmDaySync.js`, shared by Plasmoid and app so
+  the orchestration exists once):
+  - Plugin answers `ping` with `v1` → **server mode**: the server is the source of
+    truth; the view loads `GET /v1/film-days/{date}?project=` and never keeps a
+    second local copy.
+  - `ping` 404 (or no `v1`) → **local mode**: extras in `shared.json`
+    (`filmDaysJson`, keyed `projectId|date`), with an inline hint saying so.
+  - Film-day GET 404 (`no_engagement`) → extras hidden, "only begin and end are
+    saved". Missing `drehzettel` permission (`ping.permissions.view` false or 403)
+    → same, with a permission hint. No local fallback in either case.
+  - Network/5xx → last-seen server values, extras disabled, hint.
+  - Project or day change reloads the day, which is also the engagement check.
+    The `user` parameter is never sent (own data only).
+- **Save is two-step**: timesheet first, then `PUT` with **only the keys that differ
+  from the loaded server JSON** (`FilmDays.toApiPatch`; keys the server JSON does
+  not have — an older plugin — are never sent). A transient PUT failure queues the
+  patch in `shared.json` `filmDaysPending` (key `profile|url|project|date`) together
+  with the server values it was made against; the queue is retried when the view
+  opens and a patch is only sent if the server still holds those base values —
+  otherwise the server wins and the patch is dropped. A 400/403/404 is shown, not
+  queued.
+- Field mapping (decision D7): Plasmai's old "production day" counter is the
+  production's running shooting day → `shootingDayNumber` ("Production shooting
+  day"). The server's `productionDay` is a separate override for the day of the
+  TV FFS calendar week that drives the 6th/7th-day surcharge ("Surcharge day
+  (1–7, empty = automatic)"), server mode only. Unknown response keys (e.g.
+  `streakMode`) are ignored. Break 0–720 with a
+  "Default (n min)" option (`null`, the ruleset's `defaultBreakMinutes`); locally
+  there is no ruleset, so 45 is stored explicitly. `catering` yes/no ↔ bool,
+  category `""` ↔ `null`, note trimmed, max 500.
+- Earnings show the plugin's day summary (`payCents`, customer currency); Plasmai
+  never computes pay itself. Extra pay is entered in the customer's currency.
+- **Migration** (one time per profile and device, after the user confirms in the
+  view): local entries whose project is in the active profile's catalog are sent
+  one by one — server empty → PUT, equal → done, different → server wins and the
+  local entry stays untouched, 404 → stays local. Each entry records
+  `migrated[profileKey]`; nothing is deleted, so a rollback stays possible.
+- Same-day begin/end only (no overnight span across midnight), matching the
+  reference Android app's day screen.
 
 ### Charts and sparkline
 
@@ -344,6 +401,14 @@ typography stack, badge format, and social-preview spec.
   timesheets; remaining adds an **absence credit** so target reduce and
   bookings do not double-count. Fall back to the plain contract total when
   neither plugin answers.
+- **Kimai plugin detection** (`KimaiApi.detectPlugin`): one GET probe per plugin
+  and profile. 200 (plus a plugin check such as "`apiVersions` has `v1`") →
+  present, 404 → absent, 403 → forbidden. The answer is cached **persistently**
+  in `shared.json` `pluginProbesJson` (key `profileId|url|plugin`, 24 h) so an
+  offline start keeps the last known state; network errors, 401 and 5xx never
+  overwrite it and are not cached. The Plasmoid probes when the film day view
+  opens, the app once after login. Holiday/WorkContract detection still uses its
+  own in-memory hourly probe.
 - Failures set `connectionState` / `errorMessage` and offer Retry +
   Configure. Do not toast every poll failure.
 

@@ -129,6 +129,12 @@ Constraint: panel click still must not start/stop. No standalone tray app.
 
 Not required to call it 2.0.
 
+- **Drehzettel API sync for the Film day view — built in 2.0** (`filmDaySync.js`, see DESIGN.md
+  "Film day view"). The plugin's film-day `GET`/`PUT` now carries every field the view has:
+  `breakMinutes`, `catering`, `category`, `note`, `dayType`, `productionDay` (surcharge-day
+  override, 1–7), `shootingDayNumber` (the production's running shooting day, Plasmai's old local
+  counter) and `extraPayCents`; `PUT` is a partial update. Still open: a conflict view with
+  "use local" per day after the migration, the Mileage (Anfahrten) plugin (`todo-plugins.md` A1–A6).
 - Compact **week timesheet grid** as another `mainViewMode` (SolidTime / Clockify), same density as stats.
 - Map **KDE Activities** to a default project (easy to get wrong).
 - **Pomodoro** as a Behavior option — not a second product.

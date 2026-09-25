@@ -1,0 +1,60 @@
+# Flatpak manifest for the Plasmai app (Android/Plasma Mobile/desktop-Linux Kirigami build,
+# app/CMakeLists.txt) — NOT the Plasma Widget, which is a Plasmoid and cannot be a Flatpak.
+#
+# UNTESTED: written from the KDE Flatpak conventions without a local flatpak-builder / KDE
+# runtime to build against (see RELEASING.md before publishing). Check before shipping:
+#   - The KDE runtime version below (org.kde.Platform//6.9) against the current
+#     https://api.kde.org/flatpak-kde-runtime — bump if a newer one is current.
+#   - Whether org.kde.Platform already bundles QtKeychain; if so, drop the qtkeychain module.
+#   - The qtkeychain tag/commit pinned below against https://github.com/frankosterfeld/qtkeychain/tags.
+#
+# Build (once flatpak-builder and the runtime/sdk below are installed):
+#   flatpak-builder --user --install --force-clean build-dir packaging/flatpak/com.github.shrippen.plasmai.yml
+# Run:
+#   flatpak run com.github.shrippen.plasmai
+
+app-id: com.github.shrippen.plasmai
+runtime: org.kde.Platform
+runtime-version: '6.9'
+sdk: org.kde.Sdk
+command: plasmai-app
+
+finish-args:
+  - --share=network        # Kimai/Clockify/Toggl Track/SolidTime API
+  - --share=ipc
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --device=dri
+  - --talk-name=org.freedesktop.secrets   # Secret Service, used by QtKeychain on desktop/Plasma Mobile
+
+modules:
+  - name: qtkeychain
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DBUILD_TRANSLATIONS=OFF
+      - -DBUILD_WITH_QT6=ON
+      - -DQT_TRANSLATIONS_DIR=/app/translations
+    sources:
+      - type: git
+        url: https://github.com/frankosterfeld/qtkeychain.git
+        tag: 0.14.3   # verify against the repo's tags before building
+
+  - name: plasmai
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+    sources:
+      - type: dir
+        path: ../../app
+        skip:
+          - build
+          - build-android
+          - build-test
+      - type: dir
+        path: ../../translate
+        dest: ../translate
+    post-install:
+      # metainfo/desktop/icon: see packaging/linux/ (same files the tarball install uses)
+      - install -Dm644 ../../packaging/linux/com.github.shrippen.plasmai.desktop /app/share/applications/com.github.shrippen.plasmai.desktop
+      - install -Dm644 ../../packaging/linux/com.github.shrippen.plasmai.metainfo.xml /app/share/metainfo/com.github.shrippen.plasmai.metainfo.xml
+      - install -Dm644 ../../app/icons/breeze-dark/actions/22/chronometer.svg /app/share/icons/hicolor/scalable/apps/com.github.shrippen.plasmai.svg

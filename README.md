@@ -15,6 +15,7 @@ A KDE Plasma 6 panel widget for time tracking — Kimai, Clockify, Toggl Track, 
 - Click Recent or a favorite while tracking to confirm switching to that activity
 - Edit the running entry’s start time, project, and activity
 - Manual time entries (+) and a secondary statistics view with charts
+- Film day view (Kimai only): shooting-day entry modeled on the Android TimeSheet app — begin/end/break, catering, day category/type, production-day counter, extra pay, note. The Kimai entry itself saves normally; the film-specific extras are kept on this device until the [kimai-drehzettel-bundle](https://github.com/shrippen/kimai-drehzettel-bundle) plugin has an API for them
 - Recent activities and pinned favorites (customer colors)
 - Tags and billable on new and running entries (Kimai/Toggl tags; all providers for billable)
 - Edit, delete, and split stopped Recents from the overflow menu

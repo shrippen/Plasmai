@@ -654,6 +654,31 @@ function hydrateMapsFromGroups(customers, projects, activities, customerGroups, 
     return true
 }
 
+/**
+ * Snapshot _maps/_originals/_effectiveSimilarity for transfer across a
+ * WorkerScript boundary (its `.pragma library` state is a separate copy
+ * in the worker thread's engine, not shared with the main thread's).
+ */
+function exportMaps() {
+    return {
+        maps: _maps,
+        originals: _originals,
+        effectiveSimilarity: _effectiveSimilarity
+    }
+}
+
+/** Apply a snapshot from exportMaps() (e.g. a WorkerScript result) without recomputing. */
+function importMaps(state) {
+    if (!state) {
+        return false
+    }
+    _maps = state.maps || { customer: {}, project: {}, activity: {} }
+    _originals = state.originals || { customer: {}, project: {}, activity: {} }
+    _effectiveSimilarity = state.effectiveSimilarity || _effectiveSimilarity
+    _cacheKey = ""
+    return true
+}
+
 function originalOf(category, id) {
     var map = _originals[category]
     if (map && map[String(id)]) {

@@ -169,19 +169,9 @@ function loadSharedConfig(dataSource, scriptPath, callback) {
 }
 
 function saveSharedConfig(dataSource, scriptPath, sharedObj, callback) {
-    var json = JSON.stringify(sharedObj || {})
-    var cmd = "env KIMAI_SHARED_JSON=" + shQuote(json) + " sh " + shQuote(scriptPath) + " store"
-    _run(dataSource, cmd, function(data) {
-        var exitCode = data["exit code"]
-        if (callback) {
-            if (exitCode === 0) {
-                callback(true, null)
-            } else {
-                var stderr = (data["stderr"] || "").toString().trim()
-                callback(false, stderr || ("sharedConfig.sh store failed (exit " + exitCode + ")"))
-            }
-        }
-    })
+    // Film-day extras (filmDaysJson) make shared.json grow past one argv.
+    storeJson(dataSource, scriptPath, "KIMAI_SHARED_JSON", JSON.stringify(sharedObj || {}),
+              "sharedConfig.sh", callback)
 }
 
 /** Raw catalog JSON text. Parse off the UI thread (WorkerScript) so the KCM stays responsive. */
@@ -257,7 +247,15 @@ function catalogChunks(json, size) {
 }
 
 function saveCatalogCache(dataSource, scriptPath, payload, callback) {
-    var json = JSON.stringify(payload || {})
+    storeJson(dataSource, scriptPath, "PLASMAI_CATALOG_JSON", JSON.stringify(payload || {}),
+              "catalogCache.sh", callback)
+}
+
+/**
+ * Write json through a store script (catalogCache.sh / sharedConfig.sh):
+ * one `store` call, or `append` chunks + `commit` above one argv.
+ */
+function storeJson(dataSource, scriptPath, envName, json, scriptName, callback) {
     function finish(data, what) {
         var exitCode = data["exit code"]
         if (callback) {
@@ -265,12 +263,12 @@ function saveCatalogCache(dataSource, scriptPath, payload, callback) {
                 callback(true, null)
             } else {
                 var stderr = (data["stderr"] || "").toString().trim()
-                callback(false, stderr || ("catalogCache.sh " + what + " failed (exit " + exitCode + ")"))
+                callback(false, stderr || (scriptName + " " + what + " failed (exit " + exitCode + ")"))
             }
         }
     }
     if (json.length <= CATALOG_CHUNK_CHARS) {
-        _run(dataSource, storeCommand("PLASMAI_CATALOG_JSON", json, scriptPath, ["store"]), function(data) {
+        _run(dataSource, storeCommand(envName, json, scriptPath, ["store"]), function(data) {
             finish(data, "store")
         })
         return
@@ -286,7 +284,7 @@ function saveCatalogCache(dataSource, scriptPath, payload, callback) {
             })
             return
         }
-        var cmd = storeCommand("PLASMAI_CATALOG_JSON", chunks[index], scriptPath, ["append", job])
+        var cmd = storeCommand(envName, chunks[index], scriptPath, ["append", job])
         index += 1
         _run(dataSource, cmd, function(data) {
             if (data["exit code"] !== 0) {
