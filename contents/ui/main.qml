@@ -18,6 +18,7 @@ import "../code/colorDistinct.js" as ColorDistinct
 import "../code/maintenanceCache.js" as CatalogCache
 import "../code/buildInfo.js" as BuildInfo
 import "../code/timesheetFields.js" as TimesheetFields
+import "../code/drehzettelApi.js" as DrehzettelApi
 import "."
 
 PlasmoidItem {
@@ -47,6 +48,10 @@ PlasmoidItem {
     property string apiToken: ""
     property bool tokenLoaded: false
     property bool isConfigured: apiToken.length > 0 && (!providerMeta.needsUrl || kimaiUrl.length > 0)
+    /** Drehzettel plugin (kimai-drehzettel-bundle) presence on the active Kimai profile, cached per URL. */
+    property bool drehzettelInstalled: false
+    property int drehzettelStatusSeq: 0
+    readonly property bool drehzettelAvailable: providerId === "kimai" && drehzettelInstalled
     property string mainViewMode: "main"  // main | manual | stats
     /** Inline editor for the running timesheet (start / project / activity). */
     property bool editingActiveEntry: false
@@ -926,7 +931,7 @@ PlasmoidItem {
         dismissPickerPopups()
     }
 
-    function createManualEntry(projectId, activityId, beginText, endText, description, billable, tags) {
+    function createManualEntry(projectId, activityId, beginText, endText, description, billable, tags, filmDayFields) {
         if (!isConfigured || isBusy) {
             return
         }
@@ -966,6 +971,7 @@ PlasmoidItem {
             isBusy = false
             if (result.ok) {
                 clearError()
+                saveDrehzettelFilmDay(projectId, activityId, beginDate, filmDayFields)
                 returnToMainView()
                 refreshRecentTimesheets()
                 refreshWorkTotals()
@@ -1791,6 +1797,73 @@ PlasmoidItem {
         refreshRecentTimesheets(!!quiet)
         refreshProjects(!!quiet, !!forceCatalog)
         refreshWorkTotals()
+        checkDrehzettelPlugin()
+    }
+
+    /** Discover the Drehzettel plugin (cached per URL) - inert no-op for non-Kimai profiles. */
+    function checkDrehzettelPlugin() {
+        if (providerId !== "kimai") {
+            drehzettelInstalled = false
+            return
+        }
+        DrehzettelApi.ping(kimaiUrl, apiToken, function(result) {
+            drehzettelInstalled = result.ok && DrehzettelApi.supportsV1(result.data)
+        })
+    }
+
+    /**
+     * Fetch whether project+activity+date fall inside an active Drehzettel engagement,
+     * and the saved film-day fields if so, then push both into the manual entry form.
+     * Called whenever the form's project, activity, or begin date changes - an
+     * engagement may restrict itself to specific activities (e.g. excluding a private
+     * "Anfahrt"/commute activity on the same project), so activityId matters here too.
+     */
+    function loadDrehzettelStatus(projectId, activityId, dateText) {
+        // Every call supersedes the previous one, including the reset path: a reply that
+        // lands after the user already moved on (project A, then quickly B) is dropped
+        // instead of overwriting B's state or the fields typed since.
+        var seq = ++drehzettelStatusSeq
+        if (!drehzettelAvailable || !projectId || !dateText) {
+            manualEntryView.applyDrehzettelStatus(null, null, "")
+            return
+        }
+        // "YYYY-MM-DD HH:MM" -> local date-time (only a date-only string parses as UTC).
+        var date = new Date(String(dateText).replace(" ", "T"))
+        if (isNaN(date.getTime())) {
+            date = new Date()
+        }
+        var dayKey = KimaiApi.localDateString(date)
+        DrehzettelApi.engagementStatus(kimaiUrl, apiToken, projectId, date, activityId, function(statusResult) {
+            if (seq !== drehzettelStatusSeq) {
+                return
+            }
+            if (!statusResult.ok || !statusResult.data || !statusResult.data.active) {
+                manualEntryView.applyDrehzettelStatus(statusResult.ok ? statusResult.data : null, null, "")
+                return
+            }
+            var status = statusResult.data
+            DrehzettelApi.filmDayGet(kimaiUrl, apiToken, projectId, date, activityId, function(filmDayResult) {
+                if (seq !== drehzettelStatusSeq) {
+                    return
+                }
+                manualEntryView.applyDrehzettelStatus(status, filmDayResult.ok ? filmDayResult.data : null,
+                                                      status.engagementId + "|" + dayKey)
+            })
+        })
+    }
+
+    /** Best-effort: entry save already succeeded, a Drehzettel write failing is logged, not surfaced. */
+    // Takes the entry's local begin Date, not a "YYYY-MM-DD" string: JS parses a
+    // date-only string as UTC midnight, which shifts to the previous day west of UTC.
+    function saveDrehzettelFilmDay(projectId, activityId, date, filmDayFields) {
+        if (!drehzettelAvailable || !projectId || !filmDayFields || !date || isNaN(date.getTime())) {
+            return
+        }
+        DrehzettelApi.filmDayPut(kimaiUrl, apiToken, projectId, date, activityId, filmDayFields, function(result) {
+            if (!result.ok) {
+                console.warn("Plasmai: failed to save Drehzettel film day:", JSON.stringify(result.error))
+            }
+        })
     }
 
     function loadActivitiesForProject(projectId) {
@@ -2898,14 +2971,18 @@ PlasmoidItem {
                     tagLookupToken: root.apiToken
                     showCreateActions: root.providerCapabilities.createEntities
                     editingExisting: root.editingStoppedTimesheet !== null && root.editingStoppedTimesheet !== undefined
+                    drehzettelAvailable: root.drehzettelAvailable
                     onAboutToOpenPicker: function(projectField, activityField) {
                         root.updatePickerOpenDirection(projectField, activityField)
                     }
                     onProjectChosen: function(projectId) {
                         root.loadActivitiesForProject(projectId)
                     }
-                    onSaveRequested: function(projectId, activityId, beginText, endText, description, billable, tags) {
-                        root.createManualEntry(projectId, activityId, beginText, endText, description, billable, tags)
+                    onEntryContextChanged: function(projectId, activityId, dateText) {
+                        root.loadDrehzettelStatus(projectId, activityId, dateText)
+                    }
+                    onSaveRequested: function(projectId, activityId, beginText, endText, description, billable, tags, filmDayFields) {
+                        root.createManualEntry(projectId, activityId, beginText, endText, description, billable, tags, filmDayFields)
                     }
                     onCancelled: root.returnToMainView()
                     onCreateProjectRequested: root.openCreateEntity("project")
