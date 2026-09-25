@@ -5,7 +5,10 @@
  * day, extra pay, note) for the Filmday view. With kimai-drehzettel-bundle
  * installed they live on the server (mapping below, orchestration in
  * filmDaySync.js); without it they stay in shared.json (filmDaysJson), keyed
- * by project + date. Values mirror the plugin's enum strings.
+ * by profile + server + project + date ("<profileId>|<url>|<projectId>|<date>",
+ * see scopedDayKey). Older keys have no profile
+ * ("<projectId>|<date>"); they are still read as a fallback but never written.
+ * Values mirror the plugin's enum strings.
  */
 
 var DayCategory = {
@@ -26,8 +29,57 @@ var Catering = {
     NO: "no"
 }
 
+/** Legacy key without profile (B8): only read, never written by the app. */
 function dayKey(projectId, dateStr) {
     return String(projectId || "") + "|" + String(dateStr || "")
+}
+
+/**
+ * Key scoped to one profile and Kimai server (B8): project ids of two
+ * Kimai instances must not share a film day. profKey is
+ * FilmDaySync.profileKey(profileId, url), the same prefix the pending
+ * queue uses.
+ */
+function scopedDayKey(profKey, projectId, dateStr) {
+    return String(profKey || "") + "|" + dayKey(projectId, dateStr)
+}
+
+/**
+ * { profileKey, projectId, date, legacy } of a filmDaysJson key. Legacy keys
+ * ("<projectId>|<date>") have profileKey null.
+ */
+function parseDayKey(key) {
+    var parts = String(key || "").split("|")
+    if (parts.length < 2) {
+        return { profileKey: null, projectId: "", date: "", legacy: true }
+    }
+    var date = parts[parts.length - 1]
+    var projectId = parts[parts.length - 2]
+    if (parts.length === 2) {
+        return { profileKey: null, projectId: projectId, date: date, legacy: true }
+    }
+    return { profileKey: parts.slice(0, parts.length - 2).join("|"), projectId: projectId, date: date, legacy: false }
+}
+
+/**
+ * The key an entry of (profKey, projectId, date) is read from: the scoped
+ * key when it exists, else the legacy key when that exists, else the
+ * scoped key (where a save would put it). Without profKey: the legacy key.
+ */
+function storedKey(map, projectId, dateStr, profKey) {
+    var legacy = dayKey(projectId, dateStr)
+    if (profKey === undefined || profKey === null) {
+        return legacy
+    }
+    var scoped = scopedDayKey(profKey, projectId, dateStr)
+    var m = map || {}
+    if (Object.prototype.hasOwnProperty.call(m, scoped)) {
+        return scoped
+    }
+    if (Object.prototype.hasOwnProperty.call(m, legacy)) {
+        return legacy
+    }
+    return scoped
 }
 
 function entryDefaults() {
@@ -59,9 +111,17 @@ function serialize(map) {
     return JSON.stringify(map || {})
 }
 
-function get(map, projectId, dateStr) {
-    var key = dayKey(projectId, dateStr)
-    var stored = (map || {})[key]
+/**
+ * Entry of (projectId, dateStr) with defaults filled in. With profKey the
+ * profile's own entry wins, a legacy entry is the fallback (see storedKey).
+ */
+function get(map, projectId, dateStr, profKey) {
+    var key = storedKey(map, projectId, dateStr, profKey)
+    return entryFromStored((map || {})[key])
+}
+
+/** Stored map value → entry with defaults for missing fields (bookkeeping keys dropped). */
+function entryFromStored(stored) {
     var entry = entryDefaults()
     if (!stored) {
         return entry
@@ -74,14 +134,20 @@ function get(map, projectId, dateStr) {
     return entry
 }
 
-/** Returns a new map with the entry set (does not mutate the input). */
-function set(map, projectId, dateStr, entry) {
+/**
+ * Returns a new map with the entry set (does not mutate the input). With
+ * profKey it goes to the scoped key; a legacy entry of the same project
+ * and day stays untouched (it may belong to another profile).
+ */
+function set(map, projectId, dateStr, entry, profKey) {
     var next = {}
     var key
     for (key in (map || {})) {
         next[key] = map[key]
     }
-    next[dayKey(projectId, dateStr)] = entry
+    var target = (profKey === undefined || profKey === null)
+        ? dayKey(projectId, dateStr) : scopedDayKey(profKey, projectId, dateStr)
+    next[target] = entry
     return next
 }
 
@@ -149,6 +215,66 @@ function saveTargetId(timesheet, projectId, projectIdOf) {
         return null
     }
     return timesheet.id
+}
+
+function stampMs(value) {
+    if (!value) {
+        return NaN
+    }
+    var d = new Date(String(value))
+    if (isNaN(d.getTime())) {
+        d = new Date(String(value).replace(" ", "T"))
+    }
+    return d.getTime()
+}
+
+/**
+ * Stopped entries of projectId on the day other than `picked` (B3: a film
+ * day is one entry; more entries of the same project make the shown work
+ * time wrong). Sorted by begin. Running entries are never included.
+ */
+function otherDayEntries(entries, picked, projectId, projectIdOf) {
+    if (!picked || projectId === null || projectId === undefined || projectId === "") {
+        return []
+    }
+    var out = []
+    for (var i = 0; i < (entries || []).length; i++) {
+        var ts = entries[i]
+        if (ts === picked || !isStopped(ts) || String(projectIdOf(ts)) !== String(projectId)) {
+            continue
+        }
+        if (picked.id !== undefined && picked.id !== null && String(ts.id) === String(picked.id)) {
+            continue
+        }
+        out.push(ts)
+    }
+    out.sort(function(a, b) { return stampMs(a.begin) - stampMs(b.begin) })
+    return out
+}
+
+/**
+ * Span covering all entries (earliest begin, latest end) and the sum of
+ * their durations in seconds. { beginMs, endMs, seconds }; NaN times when
+ * no entry has a valid stamp.
+ */
+function daySpan(entries) {
+    var begin = NaN
+    var end = NaN
+    var seconds = 0
+    for (var i = 0; i < (entries || []).length; i++) {
+        var b = stampMs(entries[i].begin)
+        var e = stampMs(entries[i].end)
+        if (!isNaN(b) && (isNaN(begin) || b < begin)) {
+            begin = b
+        }
+        if (!isNaN(e) && (isNaN(end) || e > end)) {
+            end = e
+        }
+        if (!isNaN(b) && !isNaN(e) && e > b) {
+            seconds += Math.floor((e - b) / 1000)
+        }
+    }
+    return { beginMs: begin, endMs: end, seconds: seconds }
 }
 
 // ── kimai-drehzettel-bundle API mapping ──────────────────────────────────
@@ -344,18 +470,16 @@ function serverMatchesBase(server, base) {
     return true
 }
 
-function splitDayKey(key) {
-    var s = String(key || "")
-    var i = s.lastIndexOf("|")
-    return i < 0 ? { projectId: "", date: "" } : { projectId: s.substring(0, i), date: s.substring(i + 1) }
-}
-
 /**
- * Local film days that could move to the server for one profile: keyed
- * entries whose project id is in `projectIds` (the active profile's catalog)
- * and that have no migration result for `profileKey` yet. Sorted by date.
- * The local key has no profile (B8), so two Kimai instances with the same
- * project id both see the entry; the server-wins rule keeps that safe.
+ * Local film days that could move to the server for one profile, sorted by
+ * date, without a migration result for `profileKey` yet:
+ *   - the profile's own (scoped) entries;
+ *   - legacy entries without profile (B8) whose project id is in
+ *     `projectIds` (the active profile's catalog), unless the profile has
+ *     its own entry for that project and day. Two Kimai instances with the
+ *     same project id both see such an entry; the server-wins rule keeps
+ *     that safe.
+ * Other profiles' scoped entries are never offered.
  */
 function planMigration(map, projectIds, profileKey) {
     var known = {}
@@ -363,17 +487,26 @@ function planMigration(map, projectIds, profileKey) {
     for (i = 0; i < (projectIds || []).length; i++) {
         known[String(projectIds[i])] = true
     }
+    var m = map || {}
     var out = []
-    for (var key in (map || {})) {
-        var parts = splitDayKey(key)
-        if (!parts.projectId || !/^\d{4}-\d{2}-\d{2}$/.test(parts.date) || !known[parts.projectId]) {
+    for (var key in m) {
+        var parts = parseDayKey(key)
+        if (!parts.projectId || !/^\d{4}-\d{2}-\d{2}$/.test(parts.date)) {
             continue
         }
-        var stored = map[key] || {}
+        if (parts.legacy) {
+            if (!known[parts.projectId]
+                || Object.prototype.hasOwnProperty.call(m, scopedDayKey(profileKey, parts.projectId, parts.date))) {
+                continue
+            }
+        } else if (parts.profileKey !== String(profileKey)) {
+            continue
+        }
+        var stored = m[key] || {}
         if (stored.migrated && stored.migrated[profileKey]) {
             continue
         }
-        var entry = get(map, parts.projectId, parts.date)
+        var entry = entryFromStored(stored)
         out.push({
             key: key,
             projectId: parts.projectId,

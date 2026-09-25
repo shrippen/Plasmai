@@ -148,7 +148,7 @@ Reine Funktionen in `filmDays.js`: `toApiPatch(local, serverOrNull)` (liefert nu
   - Verdienst aus `/v1/days/{date}/summary` (`payCents`, Währung).
 - P6 teilweise: Planer, Runner (`FilmDaySync.migrate`) und eine Inline-Bestätigung in der FilmDayView (beide UIs) mit Bericht. Konflikte bleiben lokal unangetastet und bekommen `migrated[profileKey].result = "conflict"`; eine Konfliktansicht mit „lokal übernehmen“ und `filmDaysConflicts` fehlt noch. Einträge ohne Engagement werden nicht erneut angeboten.
 - Getestet: Unit-Tests (`tst_filmDays`, `tst_kimaiRequests`, `tst_filmDaySync`) und Live-Replay der JS-Funktionen gegen Kimai 2.67 + Drehzettel (admin: Server-Modus, Speichern, nur geänderte Keys, 400, Warteschlange, Migration; user1: kein Engagement). Die QML-Views sind nur per qmllint geprüft, nicht gerendert.
-- Offen aus §6: B3, B8 (lokaler Modus), B9.
+- §6: B3, B8, B9 erledigt (`claude/filmday-b3-b8-b9`).
 
 **Reihenfolge:** P2 und D-Punkte parallel → G1/G2 → P1 → P3 → P4/P5/P7 → P6. Danach A1 → A2 → A4 (mobil zuerst) → A3/A5/A6.
 
@@ -156,12 +156,12 @@ Reine Funktionen in `filmDays.js`: `toApiPatch(local, serverOrNull)` (liefert nu
 
 - **B1** ✅ behoben in `claude/plasmai-2.0-review-fixes`. Beim Projektwechsel werden die Extras und `filmDayTimesheet` nicht neu geladen. `onProjectChosen` lädt nur Aktivitäten (`contents/ui/main.qml:3147`, `FilmDayPage.qml:123`). Folge: Werte von Projekt A werden unter Projekt B gespeichert, und der Timesheet von A wird per PATCH auf B umgehängt.
 - **B2** ✅ behoben in `claude/plasmai-2.0-review-fixes`. `match = entries[0]` als Fallback (`main.qml:990`, `FilmDayPage.qml:40`). Damit wird ein fremder Eintrag (anderes Projekt, evtl. der laufende Timer ohne `end`) gewählt und beim Speichern überschrieben bzw. gestoppt.
-- **B3** Bei mehreren Einträgen pro Tag wird nur einer gepatcht, die übrigen bleiben liegen. Die Nettozeit ist falsch.
+- **B3** ✅ Bei mehreren Einträgen pro Tag wird nur einer gepatcht, die übrigen bleiben liegen. Die Nettozeit ist falsch.
 - **B4** `breakSpin.to: 360` und `applyEntryFields` schneiden Serverwerte bis 720 still ab. Beim nächsten Speichern ist der Wert verloren.
 - **B5** Lokal gibt es nur einen Zähler 0–999. Gelöst durch D7: Er wird zu `shootingDayNumber`; `productionDay` (1–7) kommt als neues Feld dazu. Der Wert 0 wird bei der Migration als leer behandelt.
 - **B6** Die Notiz hat lokal kein Limit, der Server 500 → 400.
 - **B7** `entryDefaults().breakMinutes = 45` wird immer explizit gespeichert. Ein Regelwerk-Default lässt sich nicht erkennen.
-- **B8** Der Schlüssel `projectId|date` enthält kein Profil bzw. keine Server-URL. Projekt-IDs verschiedener Kimai-Instanzen kollidieren.
-- **B9** Die App lädt `filmDaysJson` nur beim Start (`app/qml/main.qml:662`) und schreibt die ganze Map zurück. Auf dem Desktop überschreibt sie Einträge, die das Plasmoid inzwischen geschrieben hat (Last-Writer-Wins).
+- **B8** ✅ Der Schlüssel `projectId|date` enthält kein Profil bzw. keine Server-URL. Projekt-IDs verschiedener Kimai-Instanzen kollidieren.
+- **B9** ✅ Die App lädt `filmDaysJson` nur beim Start (`app/qml/main.qml:662`) und schreibt die ganze Map zurück. Auf dem Desktop überschreibt sie Einträge, die das Plasmoid inzwischen geschrieben hat (Last-Writer-Wins).
 - **B10** ✅ behoben in `claude/plasmai-2.0-review-fixes`. `FilmDayPage.doSave` ignoriert Validierungs- und API-Fehler ohne Meldung (`return` in Z. 68/81) und prüft keinen Busy-Zustand.
 - **B11** Das Speichern ist nicht atomar: Scheitert ein späterer PUT, sind Timesheet und Extras inkonsistent. Das wird mit P3 (Warteschlange) gelöst.
