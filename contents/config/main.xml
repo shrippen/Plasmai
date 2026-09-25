@@ -127,6 +127,11 @@
         <entry name="pluginProbesJson" type="String">
             <default></default>
         </entry>
+        <!-- Trips of the kimai-anfahrten plugin (MileageBundle): "Log trip" actions,
+             detected-trip row, km in statistics. Only when the plugin is there. -->
+        <entry name="showTrips" type="Bool">
+            <default>true</default>
+        </entry>
         <entry name="idleStopEnabled" type="Bool">
             <default>false</default>
         </entry>

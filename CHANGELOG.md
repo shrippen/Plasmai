@@ -2,7 +2,17 @@
 
 ## Unreleased
 
+### Trips (kimai-anfahrten plugin, Desktop and app)
+- With the Anfahrten plugin (MileageBundle) on the Kimai server: log a trip from the header, from the running entry or from a Recent entry's menu (linked to that entry); edit and delete trips
+- Trips detected from Dawarich show above Recent (Desktop) and on the new Trips page (app): accept, edit and accept, or dismiss
+- App: Trips page with the month's logbook, "Log trip" and "Commute today"; after saving a travel day the film day page offers "Log trip"
+- Statistics show the trip km of this week and month
+- New setting "Trips" (on by default) to hide all of it
+
 ### Film day (Desktop and app)
+- Several entries of the same project on one day: the view says so and can merge them into one entry (the others are deleted after saving); before, only one was updated and the work time was wrong
+- Film days kept on the device (without the Drehzettel plugin) are stored per profile and Kimai server, so two servers with the same project id no longer share a day; older entries are still shown
+- The app and the Plasmoid no longer overwrite each other's film days on the same computer: film day data is merged into shared.json per day and reloaded when the view opens
 - Review of film days that differ between this device and the Drehzettel plugin after copying them to the server: both values side by side, per day keep the server values or send the ones from this device (before, the server values were kept without a choice)
 
 ## 2.0.0

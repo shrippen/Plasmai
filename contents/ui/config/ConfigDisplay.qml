@@ -42,6 +42,7 @@ ConfigPageBase {
     property var cfg_popupShowRecentDefault
     property var cfg_popupShowContinueDefault
     property var cfg_popupShowNewActivityDefault
+    property var cfg_showTripsDefault
     property var cfg_desktopShowWorkSummaryDefault
     property var cfg_desktopShowFavoritesDefault
     property var cfg_desktopShowRecentDefault
@@ -98,6 +99,7 @@ ConfigPageBase {
     property alias cfg_popupShowRecent: popupRecentCheck.checked
     property alias cfg_popupShowContinue: popupContinueCheck.checked
     property alias cfg_popupShowNewActivity: popupNewActivityCheck.checked
+    property alias cfg_showTrips: showTripsCheck.checked
     property alias cfg_desktopShowWorkSummary: desktopWorkSummaryCheck.checked
     property alias cfg_desktopShowFavorites: desktopFavoritesCheck.checked
     property alias cfg_desktopShowRecent: desktopRecentCheck.checked
@@ -237,6 +239,7 @@ ConfigPageBase {
             popupShowRecent: popupRecentCheck.checked,
             popupShowContinue: popupContinueCheck.checked,
             popupShowNewActivity: popupNewActivityCheck.checked,
+            showTrips: showTripsCheck.checked,
             desktopShowWorkSummary: desktopWorkSummaryCheck.checked,
             desktopShowFavorites: desktopFavoritesCheck.checked,
             desktopShowRecent: desktopRecentCheck.checked,
@@ -266,6 +269,7 @@ ConfigPageBase {
         page.cfg_popupShowRecent = popupRecentCheck.checked
         page.cfg_popupShowContinue = popupContinueCheck.checked
         page.cfg_popupShowNewActivity = popupNewActivityCheck.checked
+        page.cfg_showTrips = showTripsCheck.checked
         page.cfg_desktopShowWorkSummary = desktopWorkSummaryCheck.checked
         page.cfg_desktopShowFavorites = desktopFavoritesCheck.checked
         page.cfg_desktopShowRecent = desktopRecentCheck.checked
@@ -301,6 +305,7 @@ ConfigPageBase {
         popupRecentCheck.checked = page.cfg_popupShowRecent !== false
         popupContinueCheck.checked = page.cfg_popupShowContinue !== false
         popupNewActivityCheck.checked = page.cfg_popupShowNewActivity !== false
+        showTripsCheck.checked = page.cfg_showTrips !== false
         desktopWorkSummaryCheck.checked = page.cfg_desktopShowWorkSummary !== false
         desktopSparklineCheck.checked = page.cfg_desktopShowSparkline !== false
         desktopFavoritesCheck.checked = page.cfg_desktopShowFavorites !== false
@@ -424,6 +429,9 @@ ConfigPageBase {
         }
         if (typeof shared.popupShowNewActivity === "boolean") {
             popupNewActivityCheck.checked = shared.popupShowNewActivity
+        }
+        if (typeof shared.showTrips === "boolean") {
+            showTripsCheck.checked = shared.showTrips
         }
         if (typeof shared.desktopShowWorkSummary === "boolean") {
             desktopWorkSummaryCheck.checked = shared.desktopShowWorkSummary
@@ -964,6 +972,31 @@ ConfigPageBase {
                     opacity: 0.7
                     font.pointSize: Kirigami.Theme.smallFont.pointSize
                     text: i18n("Applies to both the panel flyout and the desktop widget.")
+                }
+
+                // —— Kimai plugins ——
+                Kirigami.Separator {
+                    Kirigami.FormData.label: i18n("Kimai plugins")
+                    Kirigami.FormData.isSection: true
+                }
+
+                QQC2.CheckBox {
+                    id: showTripsCheck
+                    Kirigami.FormData.label: i18n("Trips:")
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
+                    text: i18n("Log trips and show detected trips")
+                    onToggled: page.notifyEdited()
+                }
+
+                PlasmaComponents3.Label {
+                    Kirigami.FormData.label: page.formWide ? " " : ""
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
+                    wrapMode: Text.WordWrap
+                    opacity: 0.7
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    text: i18n("Only when the Anfahrten plugin (MileageBundle) is installed on the Kimai server and your account may use it.")
                 }
             }
         }

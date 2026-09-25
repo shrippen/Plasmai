@@ -56,6 +56,15 @@ ColumnLayout {
     /** Migrated days whose server values differ from this device, still to review (P6). */
     property int conflictCount: 0
 
+    /**
+     * B3: further stopped entries of the picked project on this day besides
+     * the one shown. Saving updates only the shown entry unless the user
+     * merges them (mergeOthers: the caller deletes these after the save).
+     */
+    property var otherEntries: []
+    readonly property var otherSpan: FilmDays.daySpan(otherEntries)
+    readonly property bool mergeOthers: otherEntries.length > 0 && mergeable && mergeCheck.checked
+
     readonly property bool serverMode: mode === "server" || mode === "offline"
     readonly property bool extrasVisible: mode === "local" || mode === "server" || mode === "offline"
     readonly property bool extrasEnabled: configured && !busy && (mode === "local" || mode === "server")
@@ -120,6 +129,48 @@ ColumnLayout {
     readonly property var beginInstant: combineStamp(root.selectedDay, beginTime)
     readonly property var endInstant: combineStamp(root.selectedDay, endTime)
     readonly property bool rangeValid: beginInstant && endInstant && endInstant.getTime() > beginInstant.getTime()
+    /** Merging needs every other entry inside the selected calendar day (the view edits times of one day). */
+    readonly property bool mergeable: {
+        if (otherEntries.length === 0 || isNaN(otherSpan.beginMs) || isNaN(otherSpan.endMs)) {
+            return false
+        }
+        var b = new Date(otherSpan.beginMs)
+        var e = new Date(otherSpan.endMs)
+        var d = root.selectedDay
+        function sameDay(x) {
+            return x.getFullYear() === d.getFullYear() && x.getMonth() === d.getMonth() && x.getDate() === d.getDate()
+        }
+        return sameDay(b) && sameDay(e)
+    }
+
+    function otherEntryIds() {
+        var ids = []
+        for (var i = 0; i < otherEntries.length; i++) {
+            if (hasId(otherEntries[i].id)) {
+                ids.push(otherEntries[i].id)
+            }
+        }
+        return ids
+    }
+
+    /** Stretch begin/end over the shown entry and all other entries of the day. */
+    function applyMergedSpan() {
+        if (!mergeable) {
+            return
+        }
+        var b = otherSpan.beginMs
+        var e = otherSpan.endMs
+        if (beginInstant && beginInstant.getTime() < b) {
+            b = beginInstant.getTime()
+        }
+        if (endInstant && endInstant.getTime() > e) {
+            e = endInstant.getTime()
+        }
+        var bd = new Date(b)
+        var ed = new Date(e)
+        beginTime.setTime(bd.getHours(), bd.getMinutes())
+        endTime.setTime(ed.getHours(), ed.getMinutes())
+    }
     readonly property int workSeconds: rangeValid
         ? FilmDays.workSecondsFromSpan(beginInstant.getTime(), endInstant.getTime(), root.effectiveBreakMinutes)
         : 0
@@ -271,7 +322,7 @@ ColumnLayout {
      * Fill the view from a FilmDaySync.loadDay() result. `currency` is the
      * fallback when the day summary has none (customer currency from the catalog).
      */
-    function applyLoadedDay(date, timesheet, day, currency, migrationCount) {
+    function applyLoadedDay(date, timesheet, day, currency, migrationCount, otherEntries) {
         var summary = day.summary || null
         root.mode = day.mode
         root.defaultBreakMinutes = day.defaultBreakMinutes
@@ -281,6 +332,8 @@ ColumnLayout {
         root.extraPayLocalOnly = !!day.server && !Object.prototype.hasOwnProperty.call(day.server, "extraPayCents")
         root.pendingSync = !!day.pending
         root.migrationCount = migrationCount || 0
+        root.otherEntries = otherEntries || []
+        mergeCheck.checked = false
         root.loadForDay(date, timesheet, day.fields)
     }
 
@@ -664,6 +717,40 @@ ColumnLayout {
         text: root.rangeValid
               ? i18n("Work time: %1", KimaiApi.formatDuration(root.workSeconds))
               : i18n("Work time: invalid range")
+    }
+
+    /** B3: more than one entry of the project on this day. */
+    ColumnLayout {
+        Layout.fillWidth: true
+        visible: root.otherEntries.length > 0
+        spacing: Kirigami.Units.smallSpacing / 2
+
+        QQC2.Label {
+            Layout.fillWidth: true
+            wrapMode: Text.WordWrap
+            font.pointSize: Kirigami.Theme.smallFont.pointSize
+            color: Kirigami.Theme.neutralTextColor
+            text: root.mergeOthers
+                ? i18np("Saving sets this entry from begin to end and deletes the other entry of this project on this day (%2). Its description and tags are lost.",
+                        "Saving sets this entry from begin to end and deletes the %1 other entries of this project on this day (%2). Their descriptions and tags are lost.",
+                        root.otherEntries.length, KimaiApi.formatDuration(root.otherSpan.seconds))
+                : i18np("This project has %1 more entry on this day (%2). Saving only updates the entry shown; the work time above does not include the other one.",
+                        "This project has %1 more entries on this day (%2). Saving only updates the entry shown; the work time above does not include the others.",
+                        root.otherEntries.length, KimaiApi.formatDuration(root.otherSpan.seconds))
+        }
+
+        QQC2.CheckBox {
+            id: mergeCheck
+            Layout.fillWidth: true
+            visible: root.mergeable
+            enabled: root.configured && !root.busy
+            text: i18n("Merge into one entry")
+            onToggled: {
+                if (checked) {
+                    root.applyMergedSpan()
+                }
+            }
+        }
     }
 
     /** Day category / catering / day type, as snapping sliders and a switch (TimeSheet-app style). */

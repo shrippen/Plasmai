@@ -301,10 +301,45 @@ TestCase {
         var fields = FilmDays.entryDefaults()
         fields.note = "lokal"
         var got = null
-        Sync.saveDay(ctx("local"), saveReq(fields, null, 5), function(r) { got = r })
+        var c = ctx("local")
+        Sync.saveDay(c, saveReq(fields, null, 5), function(r) { got = r })
         compare(requests.length, 1)
         compare(got.extras, "local")
-        compare(FilmDays.get(got.localMap, 1, "2026-09-14").note, "lokal")
+        compare(FilmDays.get(got.localMap, 1, "2026-09-14", c.profileKey).note, "lokal")
+        // B8: stored under profile + server, not under the bare project id
+        verify(got.localMap["p1|http://k|1|2026-09-14"] !== undefined)
+        verify(got.localMap["1|2026-09-14"] === undefined)
+        compare(FilmDays.get(got.localMap, 1, "2026-09-14", Sync.profileKey("p2", "http://other")).note, "")
+    }
+
+    function test_loadLocalPrefersOwnOverLegacy() {
+        var legacy = FilmDays.entryDefaults()
+        legacy.note = "legacy"
+        var own = FilmDays.entryDefaults()
+        own.note = "own"
+        var map = FilmDays.set({}, 3, "2026-09-14", legacy)
+        var c = ctx("local", { localMap: map })
+        var got = null
+        Sync.loadDay(c, 3, "2026-09-14", function(r) { got = r })
+        compare(got.fields.note, "legacy")
+        c.localMap = FilmDays.set(map, 3, "2026-09-14", own, c.profileKey)
+        Sync.loadDay(c, 3, "2026-09-14", function(r) { got = r })
+        compare(got.fields.note, "own")
+        // the legacy entry stays for other profiles
+        compare(c.localMap["3|2026-09-14"].note, "legacy")
+    }
+
+    function test_deleteEntriesReportsFailures() {
+        responses = [{ status: 204 }, { status: 403, body: { code: 403, message: "Access denied." } }, { status: 200 }]
+        var got = null
+        Sync.deleteEntries(ctx("server"), [7, 8, 9], function(r) { got = r })
+        compare(requests.length, 3)
+        compare(requests[0].method, "DELETE")
+        compare(requests[0].url, "http://k/api/timesheets/7")
+        compare(got.deleted, 2)
+        compare(got.failed.length, 1)
+        compare(got.failed[0].id, 8)
+        compare(got.failed[0].error.status, 403)
     }
 
     function test_saveOldPluginKeepsExtraPayLocal() {
@@ -314,10 +349,11 @@ TestCase {
         fields.extraPayCents = 1200
         responses = [{ status: 200, body: { id: 5 } }]
         var got = null
-        Sync.saveDay(ctx("server"), saveReq(fields, server, 5), function(r) { got = r })
+        var c = ctx("server")
+        Sync.saveDay(c, saveReq(fields, server, 5), function(r) { got = r })
         compare(requests.length, 1)
         compare(got.extras, "unchanged")
-        compare(FilmDays.get(got.localMap, 1, "2026-09-14").extraPayCents, 1200)
+        compare(FilmDays.get(got.localMap, 1, "2026-09-14", c.profileKey).extraPayCents, 1200)
     }
 
     function test_flushPendingSendsWhenBaseUnchanged() {

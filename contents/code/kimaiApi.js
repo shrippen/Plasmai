@@ -1275,6 +1275,151 @@ function fetchDaySummary(kimaiUrl, apiToken, projectId, dateStr, callback) {
         undefined, callback)
 }
 
+// ── MileageBundle / kimai-anfahrten (/api/mileage) ───────────────────────
+// Trips of the token owner only: the `user` parameter is never sent.
+// Form/body helpers live in mileage.js.
+
+var MILEAGE_PING_PATH = "/api/mileage/ping"
+var MILEAGE_PLUGIN = "mileage"
+
+/** ping answers v1 → usable. */
+function mileagePingAccepts(data) {
+    return !!data && Array.isArray(data.apiVersions) && data.apiVersions.indexOf("v1") >= 0
+}
+
+/** permissions.view of the ping (ping needs only API access, so 200 does not mean "may use"). */
+function mileageCanView(ping) {
+    return !!ping && !!ping.permissions && ping.permissions.view === true
+}
+
+function detectMileage(kimaiUrl, apiToken, options, callback) {
+    var o = {}
+    for (var k in (options || {})) {
+        o[k] = options[k]
+    }
+    o.accept = mileagePingAccepts
+    detectPlugin(kimaiUrl, apiToken, MILEAGE_PING_PATH, o, callback)
+}
+
+/**
+ * parseApiError plus the plugin's bodies: 400 {"errors": {field: message}}
+ * (err.fields, detail "field: message; …"), 409 {"error": "…"}.
+ */
+function mileageError(status, statusText, responseText) {
+    var err = parseApiError(status, statusText, responseText)
+    var body = parseJson(responseText, {})
+    err.fields = {}
+    if (body && body.errors && typeof body.errors === "object" && !Array.isArray(body.errors)
+            && !body.errors.children && !body.errors.errors) {
+        var bits = []
+        for (var field in body.errors) {
+            err.fields[field] = String(body.errors[field])
+            bits.push(field + ": " + String(body.errors[field]))
+        }
+        if (bits.length) {
+            err.detail = bits.join("; ")
+        }
+    }
+    if (body && typeof body.error === "string" && body.error) {
+        err.detail = body.error
+    }
+    return err
+}
+
+function mileageRequest(method, kimaiUrl, apiToken, endpoint, body, callback) {
+    if (!kimaiUrl || !apiToken) {
+        callback(fail({ type: "config", status: 0, detail: "", fields: {} }))
+        return
+    }
+    var xhr = createRequest(method, kimaiUrl, "/api/mileage" + endpoint, apiToken, body !== undefined)
+    runRequest(xhr, body === undefined ? undefined : JSON.stringify(body), function(status, responseText, statusText) {
+        if (status >= 200 && status < 300) {
+            callback(ok(status === 204 ? null : parseJson(responseText, null)))
+        } else {
+            callback(fail(mileageError(status, statusText, responseText)))
+        }
+    })
+}
+
+function mileageRangeQuery(range) {
+    var r = range || {}
+    var q = []
+    if (r.from && r.to) {
+        q.push("from=" + encodeURIComponent(String(r.from)))
+        q.push("to=" + encodeURIComponent(String(r.to)))
+    } else {
+        if (r.year) {
+            q.push("year=" + encodeURIComponent(String(r.year)))
+        }
+        if (r.month) {
+            q.push("month=" + encodeURIComponent(String(r.month)))
+        }
+    }
+    return q.length ? "?" + q.join("&") : ""
+}
+
+function listOrEmpty(callback) {
+    return function(result) {
+        if (result.ok && !Array.isArray(result.data)) {
+            result.data = []
+        }
+        callback(result)
+    }
+}
+
+/** {purposes, vehicles, taxProfiles}: [{value, label}] in the user's language. */
+function fetchMileageMeta(kimaiUrl, apiToken, callback) {
+    mileageRequest("GET", kimaiUrl, apiToken, "/meta", undefined, callback)
+}
+
+/**
+ * range: {from, to} ("YYYY-MM-DD", needs the dateRange feature, at most
+ * 366 days) or {year, month}.
+ */
+function fetchTrips(kimaiUrl, apiToken, range, callback) {
+    mileageRequest("GET", kimaiUrl, apiToken, "/trips" + mileageRangeQuery(range), undefined, listOrEmpty(callback))
+}
+
+function createTrip(kimaiUrl, apiToken, body, callback) {
+    mileageRequest("POST", kimaiUrl, apiToken, "/trips", body || {}, callback)
+}
+
+function patchTrip(kimaiUrl, apiToken, tripId, body, callback) {
+    if (tripId === null || tripId === undefined || tripId === "") {
+        callback(fail({ type: "config", status: 0, detail: "", fields: {} }))
+        return
+    }
+    mileageRequest("PATCH", kimaiUrl, apiToken, "/trips/" + encodeURIComponent(String(tripId)), body || {}, callback)
+}
+
+function deleteTrip(kimaiUrl, apiToken, tripId, callback) {
+    if (tripId === null || tripId === undefined || tripId === "") {
+        callback(fail({ type: "config", status: 0, detail: "", fields: {} }))
+        return
+    }
+    mileageRequest("DELETE", kimaiUrl, apiToken, "/trips/" + encodeURIComponent(String(tripId)), undefined, callback)
+}
+
+function fetchVehicles(kimaiUrl, apiToken, callback) {
+    mileageRequest("GET", kimaiUrl, apiToken, "/vehicles", undefined, listOrEmpty(callback))
+}
+
+/** Open suggestions (Dawarich), optionally within range {from, to} (dateRange feature). */
+function fetchTripSuggestions(kimaiUrl, apiToken, range, callback) {
+    mileageRequest("GET", kimaiUrl, apiToken, "/suggestions" + mileageRangeQuery(range), undefined, listOrEmpty(callback))
+}
+
+/** Creates the trip (201 → trip JSON); 409 when the suggestion is no longer open. */
+function acceptTripSuggestion(kimaiUrl, apiToken, suggestionId, body, callback) {
+    mileageRequest("POST", kimaiUrl, apiToken, "/suggestions/" + encodeURIComponent(String(suggestionId)) + "/accept",
+                   body || {}, callback)
+}
+
+function dismissTripSuggestion(kimaiUrl, apiToken, suggestionId, callback) {
+    mileageRequest("POST", kimaiUrl, apiToken, "/suggestions/" + encodeURIComponent(String(suggestionId)) + "/dismiss",
+                   {}, callback)
+}
+
 /** ISO currency code of the project's customer from the loaded catalog, or "". */
 function customerCurrencyOfProject(project, customers) {
     if (!project) {

@@ -10,6 +10,7 @@ import "../contents/code/profiles.js" as Profiles
 import "../contents/code/kimaiApi.js" as KimaiApi
 import "../contents/code/filmDays.js" as FilmDays
 import "../contents/code/filmDaySync.js" as FilmDaySync
+import "../contents/code/mileage.js" as Mileage
 import "../contents/code/favorites.js" as Favorites
 import "../contents/code/sharedConfig.js" as SharedConfig
 import "../contents/code/colorDistinct.js" as ColorDistinct
@@ -192,11 +193,36 @@ Kirigami.ApplicationWindow {
     property bool filmDayMigrationDismissed: false
     readonly property string filmDayProfileKey: FilmDaySync.profileKey(activeProfile ? activeProfile.id : "", TimeTracker.resolveUrl(activeProfile))
 
+    /**
+     * Write film-day data maps merged onto shared.json key by key, so film
+     * days the Plasmoid saved since the app loaded them are kept (B9).
+     */
     function persistFilmDayKeys(patch) {
+        var bases = {}
         for (var key in patch) {
+            bases[key] = root[key]
             root[key] = patch[key]
         }
-        Platform.patchShared(null, currentConfig(), patch)
+        Platform.patchShared(null, currentConfig(), patch, bases).then(function(written) {
+            for (var k in written) {
+                if (root[k] === patch[k] && written[k] !== patch[k]) root[k] = written[k]
+            }
+        }, function(err) {
+            console.warn("Plasmai: could not save film day data:", err)
+        })
+    }
+
+    /** Re-read the film-day data maps from shared.json (the Plasmoid may have written them). */
+    function reloadFilmDayData(callback) {
+        Platform.loadShared(null).then(function(shared) {
+            if (shared) {
+                for (var i = 0; i < SharedConfig.DATA_MAP_KEYS.length; i++) {
+                    var k = SharedConfig.DATA_MAP_KEYS[i]
+                    if (typeof shared[k] === "string" && root[k] !== shared[k]) root[k] = shared[k]
+                }
+            }
+            if (callback) callback()
+        })
     }
 
     function filmDayContext() {
@@ -257,6 +283,59 @@ Kirigami.ApplicationWindow {
     function filmDayMigrationCount() {
         if (filmDayMode !== FilmDaySync.Mode.SERVER || filmDayMigrationDismissed) return 0
         return FilmDaySync.migrationCandidates(filmDayContext(), projectIdsOfCatalog()).length
+    }
+
+    // ── Trips (kimai-anfahrten / MileageBundle), see mileage.js ──
+    property bool showTrips: true
+    property string mileageState: KimaiApi.PluginState.UNKNOWN
+    property var mileagePing: null
+    property var mileageMeta: null
+    property var mileageVehicles: []
+    property string mileageProfileKey: ""
+    readonly property bool mileageAvailable: isConfigured && providerCapabilities.mileage && showTrips
+        && mileageState === KimaiApi.PluginState.PRESENT && KimaiApi.mileageCanView(mileagePing)
+    readonly property bool canEditTrips: mileageAvailable && Mileage.can(mileagePing, "editOwn")
+
+    /** Probe the plugin (cached 24 h per profile in pluginProbesJson); /meta and vehicles once per profile. */
+    function resolveMileage(force, callback) {
+        var url = TimeTracker.resolveUrl(activeProfile)
+        var key = KimaiApi.pluginCacheKey(activeProfile ? activeProfile.id : "", url, KimaiApi.MILEAGE_PLUGIN)
+        if (key !== mileageProfileKey) {
+            mileageProfileKey = key
+            mileageState = KimaiApi.PluginState.UNKNOWN
+            mileagePing = null; mileageMeta = null; mileageVehicles = []
+        }
+        if (!apiToken || !providerCapabilities.mileage || !showTrips) {
+            if (callback) callback()
+            return
+        }
+        KimaiApi.detectMileage(url, apiToken, { cache: pluginProbeCache, key: key, force: !!force }, function(det) {
+            mileageState = det.state
+            mileagePing = det.data || null
+            if (det.cacheEntry) persistFilmDayKeys({ pluginProbesJson: JSON.stringify(KimaiApi.storePluginCache(pluginProbeCache, key, det.cacheEntry)) })
+            if (mileageAvailable && !mileageMeta) {
+                KimaiApi.fetchMileageMeta(url, apiToken, function(r) { if (r.ok) mileageMeta = r.data })
+                KimaiApi.fetchVehicles(url, apiToken, function(r) { if (r.ok) mileageVehicles = r.data })
+            }
+            if (callback) callback()
+        })
+    }
+
+    function timesheetSummaryText(ts) {
+        if (!ts) return ""
+        var bits = [KimaiApi.displayProjectName(ts, projects), KimaiApi.displayActivityName(ts, allActivities, activitiesByProject)]
+        var begin = new Date(String(ts.begin || ""))
+        if (!isNaN(begin.getTime())) bits.push(begin.toLocaleDateString(Qt.locale(), Locale.ShortFormat) + " " + begin.toLocaleTimeString(Qt.locale(), Locale.ShortFormat))
+        return bits.filter(function(b) { return !!b }).join(" · ")
+    }
+
+    /** Trip page for a new trip, or linked to a Kimai entry (Recent row, running entry, travel film day). */
+    function openTripForTimesheet(ts) {
+        if (!canEditTrips) return
+        pageStack.push(tripEditPageComponent, {
+            form: ts ? Mileage.formForTimesheet(mileagePing, ts, KimaiApi.projectId) : Mileage.emptyForm(mileagePing, Mileage.dateString(new Date())),
+            linkedText: timesheetSummaryText(ts)
+        })
     }
 
     // ── Platform capability flags (native idle/notification bridge, Linux-only) ──
@@ -455,7 +534,7 @@ Kirigami.ApplicationWindow {
         if (!activeProfile) { apiToken = ""; tokenLoaded = true; return }
         Platform.loadToken(null, activeProfile.id).then(function(token) {
             apiToken = token || ""; tokenLoaded = true; connectionState = token ? "online" : "offline"
-            if (token) { refreshAll(); resolveFilmDayMode(false, flushFilmDayPending) }
+            if (token) { refreshAll(); resolveFilmDayMode(false, flushFilmDayPending); resolveMileage(false) }
         }).catch(function() { apiToken = ""; tokenLoaded = true; connectionState = "error" })
     }
 
@@ -762,6 +841,7 @@ Kirigami.ApplicationWindow {
                 if (typeof shared.filmDaysJson === "string") filmDaysJson = shared.filmDaysJson
                 if (typeof shared.filmDaysPending === "string") filmDaysPending = shared.filmDaysPending
                 if (typeof shared.pluginProbesJson === "string") pluginProbesJson = shared.pluginProbesJson
+                if (typeof shared.showTrips === "boolean") showTrips = shared.showTrips
                 if (typeof shared.lastUsedActivityId === "string") lastUsedActivityId = shared.lastUsedActivityId
                 if (typeof shared.lastUsedProjectName === "string") lastUsedProjectName = shared.lastUsedProjectName
                 if (typeof shared.lastUsedActivityName === "string") lastUsedActivityName = shared.lastUsedActivityName
@@ -798,6 +878,11 @@ Kirigami.ApplicationWindow {
             Kirigami.Action {
                 text: i18n("Statistics")
                 onTriggered: { root.navigateTo(statsPageComponent); globalDrawer.close() }
+            },
+            Kirigami.Action {
+                text: i18n("Trips")
+                visible: root.mileageAvailable
+                onTriggered: { root.navigateTo(tripsPageComponent); globalDrawer.close() }
             },
             Kirigami.Action {
                 text: i18n("Favorites")
@@ -838,6 +923,8 @@ Kirigami.ApplicationWindow {
     Component { id: statsPageComponent; StatsPage { } }
     Component { id: filmDayPageComponent; FilmDayPage { } }
     Component { id: filmDayConflictsPageComponent; FilmDayConflictsPage { } }
+    Component { id: tripsPageComponent; TripsPage { } }
+    Component { id: tripEditPageComponent; TripEditPage { } }
     Component { id: settingsComponent; SettingsPage { } }
     Component { id: connectionComponent; ConnectionPage { } }
     Component { id: favoritesComponent; FavoritesPage { } }

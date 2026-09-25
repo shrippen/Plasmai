@@ -210,7 +210,7 @@ function emptyLoad(mode, fields) {
  * `server` is the film-day JSON the next save diffs against.
  */
 function loadDay(ctx, projectId, dateStr, callback) {
-    var localEntry = FilmDays.get(ctx.localMap, projectId, dateStr)
+    var localEntry = FilmDays.get(ctx.localMap, projectId, dateStr, ctx.profileKey)
     if (ctx.mode === Mode.LOCAL) {
         callback(emptyLoad(Mode.LOCAL, localEntry))
         return
@@ -338,7 +338,7 @@ function saveExtras(ctx, req, callback) {
     }
     if (ctx.mode === Mode.LOCAL) {
         callback(result("local", {
-            localMap: FilmDays.set(ctx.localMap, req.projectId, req.dateStr, stripMeta(req.fields))
+            localMap: FilmDays.set(ctx.localMap, req.projectId, req.dateStr, stripMeta(req.fields), ctx.profileKey)
         }))
         return
     }
@@ -357,7 +357,7 @@ function saveExtras(ctx, req, callback) {
     // A local-only extra pay for plugins without the extraPay feature.
     var localMap = null
     if (base && !Object.prototype.hasOwnProperty.call(base, "extraPayCents")) {
-        localMap = FilmDays.set(ctx.localMap, req.projectId, req.dateStr, stripMeta(req.fields))
+        localMap = FilmDays.set(ctx.localMap, req.projectId, req.dateStr, stripMeta(req.fields), ctx.profileKey)
     }
     var pendingWithout = copyMap(ctx.pendingMap)
     var hadPending = Object.prototype.hasOwnProperty.call(pendingWithout, dkey)
@@ -392,6 +392,33 @@ function saveExtras(ctx, req, callback) {
         // 400 (field error), 403, 404: the patch would never be accepted; do not queue.
         callback(result("rejected", { error: put.error, localMap: localMap, pendingMap: hadPending ? pendingWithout : null }))
     })
+}
+
+/**
+ * Delete the other entries of a merged film day (B3), one by one.
+ * callback({ deleted, failed: [{ id, error }] }). Failures do not stop the
+ * rest; the caller reports them.
+ */
+function deleteEntries(ctx, ids, callback) {
+    var tracker = trackerOf(ctx)
+    var report = { deleted: 0, failed: [] }
+    var i = 0
+    function step() {
+        if (i >= (ids || []).length) {
+            callback(report)
+            return
+        }
+        var id = ids[i++]
+        tracker.deleteTimesheet(ctx.url, ctx.token, id, function(res) {
+            if (res && res.ok) {
+                report.deleted += 1
+            } else {
+                report.failed.push({ id: id, error: res ? res.error : null })
+            }
+            step()
+        })
+    }
+    step()
 }
 
 /** Local entry without bookkeeping keys the view does not own. */

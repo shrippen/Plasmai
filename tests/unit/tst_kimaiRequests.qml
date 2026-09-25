@@ -464,4 +464,104 @@ TestCase {
         compare(KimaiApi.customerCurrencyOfProject({ customer: 4 }, [{ id: 3, currency: "CHF" }]), "")
         compare(KimaiApi.customerCurrencyOfProject(null, []), "")
     }
+
+    // ── MileageBundle (/api/mileage) ──
+
+    function mileagePing(view) {
+        return { installed: true, pluginVersion: "0.9.0", apiVersions: ["v1"],
+                 permissions: { view: view !== false, editOwn: true, deleteOwn: true, editLocked: false },
+                 features: ["tripTimesheet", "dateRange", "acceptFields", "commuteCheck"],
+                 profile: { commuteKm: 12.5, defaultVehicle: "own_car", defaultVehicleId: null, dawarichConfigured: true },
+                 lockedMonths: ["2026-08"] }
+    }
+
+    function test_detectMileage() {
+        responses = [{ status: 200, body: mileagePing() },
+                     { status: 200, body: mileagePing(false) },
+                     { status: 404, body: { code: 404, message: "Not Found" } }]
+        var r = []
+        KimaiApi.detectMileage("http://k", "t", { cache: {}, key: "p|http://k|mileage", nowMs: 5 }, function(x) { r.push(x) })
+        KimaiApi.detectMileage("http://k", "t", {}, function(x) { r.push(x) })
+        KimaiApi.detectMileage("http://k", "t", {}, function(x) { r.push(x) })
+        compare(requests[0].url, "http://k/api/mileage/ping")
+        compare(r[0].state, "present")
+        verify(KimaiApi.mileageCanView(r[0].data))
+        compare(r[0].cacheEntry.at, 5)
+        compare(r[1].state, "present")
+        verify(!KimaiApi.mileageCanView(r[1].data))
+        compare(r[2].state, "absent")
+    }
+
+    function test_fetchTripsRangeAndMonth() {
+        responses = [{ status: 200, body: [{ id: 1, date: "2026-09-02" }] }, { status: 200, body: {} }]
+        var a = null, b = null
+        KimaiApi.fetchTrips("http://k", "t", { from: "2026-09-01", to: "2026-09-30" }, function(x) { a = x })
+        KimaiApi.fetchTrips("http://k", "t", { year: 2026, month: 9 }, function(x) { b = x })
+        compare(requests[0].url, "http://k/api/mileage/trips?from=2026-09-01&to=2026-09-30")
+        compare(requests[1].url, "http://k/api/mileage/trips?year=2026&month=9")
+        verify(requests[0].url.indexOf("user=") < 0)
+        compare(a.data.length, 1)
+        verify(b.ok)
+        compare(b.data.length, 0)
+    }
+
+    function test_createPatchDeleteTrip() {
+        responses = [{ status: 201, body: { id: 7, distanceKm: 12 } },
+                     { status: 200, body: { id: 7, distanceKm: 13 } },
+                     { status: 204 }]
+        var r = []
+        KimaiApi.createTrip("http://k", "t", { distanceKm: 12, timesheet: 5 }, function(x) { r.push(x) })
+        KimaiApi.patchTrip("http://k", "t", 7, { distanceKm: 13 }, function(x) { r.push(x) })
+        KimaiApi.deleteTrip("http://k", "t", 7, function(x) { r.push(x) })
+        compare(requests[0].method, "POST")
+        compare(requests[0].url, "http://k/api/mileage/trips")
+        compare(requests[0].headers["Content-Type"], "application/json")
+        compare(bodyOf(0).timesheet, 5)
+        compare(requests[1].method, "PATCH")
+        compare(requests[1].url, "http://k/api/mileage/trips/7")
+        compare(bodyOf(1).distanceKm, 13)
+        compare(requests[2].method, "DELETE")
+        verify(r[0].ok && r[1].ok && r[2].ok)
+        compare(r[0].data.id, 7)
+        compare(r[2].data, null)
+    }
+
+    function test_mileageFieldErrors() {
+        responses = [{ status: 400, body: { errors: { distanceKm: "expected a positive number", date: "invalid date" } } },
+                     { status: 409, body: { error: "suggestion is not open" } },
+                     { status: 403, body: { code: 403, message: "This month of the logbook is closed." } }]
+        var r = []
+        KimaiApi.createTrip("http://k", "t", { distanceKm: -1 }, function(x) { r.push(x) })
+        KimaiApi.acceptTripSuggestion("http://k", "t", 3, {}, function(x) { r.push(x) })
+        KimaiApi.patchTrip("http://k", "t", 1, {}, function(x) { r.push(x) })
+        compare(r[0].error.status, 400)
+        compare(r[0].error.fields.distanceKm, "expected a positive number")
+        verify(r[0].error.detail.indexOf("date: invalid date") >= 0)
+        compare(requests[1].url, "http://k/api/mileage/suggestions/3/accept")
+        compare(r[1].error.status, 409)
+        compare(r[1].error.detail, "suggestion is not open")
+        compare(r[2].error.status, 403)
+        compare(r[2].error.detail, "This month of the logbook is closed.")
+    }
+
+    function test_suggestionsAndVehicles() {
+        responses = [{ status: 200, body: [{ id: 3, distanceKm: 7.4 }] },
+                     { status: 204 },
+                     { status: 200, body: [{ id: 6, name: "Golf", type: "own_car", active: true }] },
+                     { status: 200, body: { purposes: [{ value: "business", label: "Dienstreise" }] } }]
+        var r = []
+        KimaiApi.fetchTripSuggestions("http://k", "t", { from: "2026-09-21", to: "2026-09-21" }, function(x) { r.push(x) })
+        KimaiApi.dismissTripSuggestion("http://k", "t", 3, function(x) { r.push(x) })
+        KimaiApi.fetchVehicles("http://k", "t", function(x) { r.push(x) })
+        KimaiApi.fetchMileageMeta("http://k", "t", function(x) { r.push(x) })
+        compare(requests[0].url, "http://k/api/mileage/suggestions?from=2026-09-21&to=2026-09-21")
+        compare(requests[1].method, "POST")
+        compare(requests[1].url, "http://k/api/mileage/suggestions/3/dismiss")
+        compare(requests[2].url, "http://k/api/mileage/vehicles")
+        compare(requests[3].url, "http://k/api/mileage/meta")
+        compare(r[0].data[0].id, 3)
+        verify(r[1].ok)
+        compare(r[2].data[0].name, "Golf")
+        compare(r[3].data.purposes[0].label, "Dienstreise")
+    }
 }

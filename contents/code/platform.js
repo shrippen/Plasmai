@@ -80,18 +80,32 @@ function saveShared(dataSource, sharedObj) {
     })
 }
 
-function patchShared(dataSource, configuration, patch) {
-    return new Promise(function(resolve, reject) {
-        _backend.loadSharedConfig(dataSource, function(existing) {
-            var base = existing || SharedConfig.fromConfiguration(configuration)
-            base = SharedConfig.sanitizeProfilesForPersistence(base, configuration)
-            var shared = SharedConfig.merge(base, patch || {})
-            _backend.saveSharedConfig(dataSource, shared,
-                function(ok, err) {
-                    if (!ok) { reject(err) } else { resolve(true) }
-                })
+// One read-modify-write of shared.json at a time (see secret.js).
+var _sharedChain = null
+
+/**
+ * Load shared.json, merge patch, save. With `bases` ({ key: json last seen }),
+ * data-map keys (SharedConfig.DATA_MAP_KEYS) are three-way merged onto the
+ * file (B9). Resolves with the patch that was written.
+ */
+function patchShared(dataSource, configuration, patch, bases) {
+    function run() {
+        return new Promise(function(resolve, reject) {
+            _backend.loadSharedConfig(dataSource, function(existing) {
+                var base = existing || SharedConfig.fromConfiguration(configuration)
+                base = SharedConfig.sanitizeProfilesForPersistence(base, configuration)
+                var effective = bases ? SharedConfig.mergeDataPatch(base, bases, patch || {}) : (patch || {})
+                var shared = SharedConfig.merge(base, effective)
+                _backend.saveSharedConfig(dataSource, shared,
+                    function(ok, err) {
+                        if (!ok) { reject(err) } else { resolve(effective) }
+                    })
+            })
         })
-    })
+    }
+    var p = _sharedChain ? _sharedChain.then(run, run) : run()
+    _sharedChain = p.then(function() {}, function() {})
+    return p
 }
 
 // -- Catalog cache (projects / activities / colors)

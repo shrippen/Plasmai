@@ -254,6 +254,14 @@ Kirigami.Page {
                         }
                         Item { Layout.fillWidth: true }
                         QQC2.ToolButton {
+                            visible: root.isTracking && root.canEditTrips && !!root.activeTimesheet
+                            icon.name: "mark-location"
+                            display: QQC2.AbstractButton.IconOnly
+                            text: i18n("Log trip")
+                            onClicked: root.openTripForTimesheet(root.activeTimesheet)
+                            QQC2.ToolTip.text: i18n("Log a trip for this entry"); QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile; QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
+                        }
+                        QQC2.ToolButton {
                             visible: root.isTracking
                             icon.name: "document-edit"
                             display: QQC2.AbstractButton.IconOnly
@@ -485,6 +493,8 @@ Kirigami.Page {
                     canEditStopped: root.providerCapabilities.editStopped
                     canSplitEntry: root.providerCapabilities.editStopped
                     canDeleteEntry: root.providerCapabilities.deleteEntry
+                    canLogTrip: root.canEditTrips
+                    onTripRequested: root.openTripForTimesheet(modelData)
                     runningHintVisible: root.alreadyRunningHintKey === tsKey
                     runningHintText: i18n("Already running.")
                     runningHintCounterText: KimaiApi.formatDurationShort(root.elapsedSeconds)

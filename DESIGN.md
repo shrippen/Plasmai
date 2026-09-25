@@ -237,7 +237,10 @@ typography stack, badge format, and social-preview spec.
   distinction and Maintenance, no parallel UI on other providers).
 - One shooting day = one Kimai timesheet entry for that calendar day (begin/end,
   created or patched like Add entry; only a stopped entry of the picked project is
-  reused). The film-specific extras — break, catering, day category, day type,
+  reused). If the project has more stopped entries that day, the view says so
+  (their total time) and offers "Merge into one entry": begin/end stretch over
+  all of them, and after a successful save the other entries are deleted
+  (`FilmDaySync.deleteEntries`; failures are reported, never retried silently). The film-specific extras — break, catering, day category, day type,
   production shooting day, surcharge day, extra pay, note — belong to
   [kimai-drehzettel-bundle](https://github.com/shrippen/kimai-drehzettel-bundle).
 - **Storage follows the plugin** (`filmDaySync.js`, shared by Plasmoid and app so
@@ -246,7 +249,10 @@ typography stack, badge format, and social-preview spec.
     truth; the view loads `GET /v1/film-days/{date}?project=` and never keeps a
     second local copy.
   - `ping` 404 (or no `v1`) → **local mode**: extras in `shared.json`
-    (`filmDaysJson`, keyed `projectId|date`), with an inline hint saying so.
+    (`filmDaysJson`, keyed `profileId|url|projectId|date`, see
+    `FilmDays.scopedDayKey`), with an inline hint saying so. Older keys
+    (`projectId|date`) are still read as a fallback for any profile but
+    never written; saving writes the profile's own key and leaves the old one.
   - Film-day GET 404 (`no_engagement`) → extras hidden, "only begin and end are
     saved". Missing `drehzettel` permission (`ping.permissions.view` false or 403)
     → same, with a permission hint. No local fallback in either case.
@@ -287,8 +293,51 @@ typography stack, badge format, and social-preview spec.
   A day the server meanwhile holds identically becomes `same`; a 404 can only
   be acknowledged. The conflict state lives in `migrated` (no separate
   `filmDaysConflicts` key).
+- **Shared data maps** (`filmDaysJson`, `filmDaysPending`, `pluginProbesJson`,
+  `SharedConfig.DATA_MAP_KEYS`) are written by the Plasmoid and the app. Never
+  write them as a whole from memory: `Platform.patchShared(…, patch, bases)`
+  three-way merges each top-level key onto the file as loaded just now
+  (`SharedConfig.mergeMapJson`), writes are queued one at a time per process,
+  both UIs reload the maps when the film day view opens, and the Plasmoid's
+  settings-wide write (`fromConfiguration(…, { withoutDataMaps: true })`)
+  leaves them out.
 - Same-day begin/end only (no overnight span across midnight), matching the
   reference Android app's day screen.
+
+### Trips (kimai-anfahrten, Kimai only)
+
+- Gated by `providerCapabilities.mileage`, the `showTrips` setting (shared,
+  default on) and `GET /api/mileage/ping`: 200 with `v1` and
+  `permissions.view` → available; 404 → absent. The probe is cached 24 h per
+  profile in `pluginProbesJson` (key `profileId|url|mileage`) like the
+  Drehzettel probe. Writing needs `permissions.editOwn`, deleting `deleteOwn`.
+- Requests in `kimaiApi.js` (`fetchTrips`, `createTrip`, `patchTrip`,
+  `deleteTrip`, `fetchVehicles`, `fetchTripSuggestions`,
+  `acceptTripSuggestion`, `dismissTripSuggestion`, `fetchMileageMeta`); form,
+  bodies and totals in `mileage.js`, shared by both UIs. The `user` parameter
+  is never sent. A new trip sends every set field; an edit sends only the keys
+  that differ from the loaded trip. `timesheet` is only sent when the ping lists
+  `tripTimesheet`; accepting with project/distance/comment/timesheet needs
+  `acceptFields`; `from`/`to` queries need `dateRange` (else year/month).
+- Times: the plugin writes `departure`/`arrival` in the user's Kimai timezone
+  and reads "HH:MM" in it, so the form takes the literal "HH:MM" of the string
+  (no device-timezone conversion).
+- `TripSheet.qml` (Plasmoid `mainViewMode: "trip"`, app `TripEditPage`) is the
+  one form: date, purpose, means of travel (+ assigned vehicle when the user
+  has vehicles), one-way distance, round trip, from/to, optional times,
+  comment, linked time entry (can be unlinked). Plugin field errors
+  (`400 {"errors": {field: message}}`) show under the form. A detected trip
+  opens the same sheet read-only for date/route/times ("Edit and accept").
+- Entry points: header "Log trip", the running entry's trip button and the
+  Recent row menu (linked to that entry) on the Plasmoid; drawer "Trips"
+  (`TripsPage`: month logbook, detected trips, "Log trip", "Commute today"),
+  the running entry and the Recent menu in the app; after saving a travel film
+  day the app offers "Log trip" in the notification.
+- Detected trips (`TripSuggestionList.qml`) only when the profile has Dawarich
+  configured (`ping.profile.dawarichConfigured`); the Plasmoid loads them when
+  the popup opens, at most every 10 minutes, last 14 days, 2–3 rows.
+- Statistics show trip km this week/month (`StatsData.tripKmSummary`, the
+  plugin's `totalKm`, i.e. round trips count twice).
 
 ### Charts and sparkline
 
