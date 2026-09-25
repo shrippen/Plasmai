@@ -12,10 +12,31 @@
 - Translations: the 11 languages already shipped for the Plasmoid now also cover the app (Plasma Mobile via compiled `.mo` catalogs through KLocalizedString; Android, which has no gettext runtime, via bundled JSON catalogs)
 - Add entry now loads promptly — the date/time popups are built on first use instead of upfront
 - Timer card layout matches the Plasmoid's hero card (summary, continue button, and description all inside one bordered card)
+- Split works (the second half was never created); save errors on the Film day page are shown
+- Token loads for two profiles in flight no longer lose one; settings and cache files are written atomically
 
 ### Desktop
 - Redesigned icon: half-dial clock with a gold shard trail; the panel icon uses the mono variant (tinted by the theme) while idle, the store and Android icons use the colored version
 - Film day view (Kimai only): a shooting-day entry screen modeled on the Android TimeSheet app — begin/end/break, catering, day category/type, production-day counter, extra pay, note. Begin/end save to a normal Kimai entry; the film-specific extras are kept locally until kimai-drehzettel-bundle has an API for them
+- Film day saves only update a finished entry of the picked project; other projects' entries and the running timer are left alone, and picking a project reloads that day
+
+### Kimai
+- Works for regular users (ROLE_USER) again: `exported` is no longer sent, and `billable` only when you change it; without the edit_billable permission the entry is saved without it and a hint is shown
+- Manual entries and running-entry edits no longer save as non-billable when the checkbox was left alone
+- Start lets Kimai set the begin time (Kimai timezone instead of the device clock)
+- Continue keeps the description and tags (`copy=all`)
+- Statistics/week totals no longer fail for ranges with exactly 100, 200 … entries
+- Customers, projects and activities load in one request (no duplicates above 500)
+- Hidden customers, projects and activities are no longer offered in the pickers
+- Requests are aborted after 30 s so the widget and app do not stay busy
+- Discarding idle time stops the entry where idle began, not where you clicked
+- Short absence durations in seconds are no longer read as hours; day sparkline is correct on DST days
+
+### Security and robustness (Desktop)
+- The API token no longer stays on the `sh -c` command line while it is stored
+- Large catalog caches and `shared.json` (>128 KiB, e.g. many film days) are saved in chunks; config/cache files are written via `mktemp`
+- Idle detection asks the ScreenSaver D-Bus when logind does not report idle
+- Notifications whose text starts with "-" are shown; widget paths with spaces work for the shell helpers
 
 ## 1.6.3
 

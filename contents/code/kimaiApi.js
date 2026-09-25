@@ -2,6 +2,7 @@
 .import "./colorDistinct.js" as ColorDistinct
 .import "./timesheetFields.js" as Fields
 .import "./workContractAdjust.js" as WorkAdjust
+.import "./providerUtil.js" as ProviderUtil
 
 var ErrorType = {
     Network: "network",
@@ -22,8 +23,15 @@ function normalizeUrl(url) {
     return s
 }
 
+/** Test hook: function() returning an XMLHttpRequest-like object (null = real XHR). */
+var requestFactory = null
+
+function setRequestFactory(factory) {
+    requestFactory = factory || null
+}
+
 function createRequest(method, kimaiUrl, endpoint, apiToken, isJson) {
-    var xhr = new XMLHttpRequest()
+    var xhr = requestFactory ? requestFactory() : new XMLHttpRequest()
     xhr.open(method, normalizeUrl(kimaiUrl) + endpoint, true)
     xhr.setRequestHeader("Authorization", "Bearer " + apiToken)
     xhr.setRequestHeader("Accept", "application/json")
@@ -34,20 +42,9 @@ function createRequest(method, kimaiUrl, endpoint, apiToken, isJson) {
 }
 
 function runRequest(xhr, body, callback) {
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState !== XMLHttpRequest.DONE) {
-            return
-        }
-        callback(xhr.status, xhr.responseText, xhr.statusText, xhr)
-    }
-    xhr.onerror = function() {
-        callback(0, "", "Network error", xhr)
-    }
-    if (body !== undefined) {
-        xhr.send(body)
-    } else {
-        xhr.send()
-    }
+    ProviderUtil.runRequest(xhr, body, function(status, responseText, statusText) {
+        callback(status, responseText, statusText, xhr)
+    })
 }
 
 function parseJson(responseText, fallback) {
@@ -299,51 +296,18 @@ function getJson(kimaiUrl, apiToken, endpoint, emptyValue, callback) {
 }
 
 /**
- * Fetch every page of a Kimai collection (default page size is 50).
- * endpointBase: path + query without page/size (e.g. "/api/activities?visible=3").
+ * Load a whole Kimai collection (customers / projects / activities).
+ * These endpoints have no page/size parameters in Kimai 2.x and always
+ * return the full list, so one request is enough; paging them only
+ * duplicated the list when it had 500+ entries.
  */
 function getJsonAllPages(kimaiUrl, apiToken, endpointBase, callback) {
-    if (!kimaiUrl || !apiToken) {
-        callback(fail({ type: "config", status: 0, detail: "" }))
-        return
-    }
-    var page = 1
-    var size = 500
-    var collected = []
-    var sep = String(endpointBase).indexOf("?") >= 0 ? "&" : "?"
-
-    function fetchPage() {
-        var endpoint = endpointBase + sep + "page=" + page + "&size=" + size
-        var xhr = createRequest("GET", kimaiUrl, endpoint, apiToken, false)
-        runRequest(xhr, undefined, function(status, responseText, statusText) {
-            if (status !== 200) {
-                callback(fail(parseApiError(status, statusText, responseText)))
-                return
-            }
-            var batch = parseJson(responseText, [])
-            if (!Array.isArray(batch)) {
-                batch = []
-            }
-            for (var i = 0; i < batch.length; i++) {
-                collected.push(batch[i])
-            }
-            var totalPages = parseInt(xhr.getResponseHeader("X-Total-Pages"), 10)
-            var more = false
-            if (!isNaN(totalPages) && totalPages > 0) {
-                more = page < totalPages
-            } else {
-                more = batch.length >= size
-            }
-            if (more && page < 40) {
-                page++
-                fetchPage()
-            } else {
-                callback(ok(collected))
-            }
-        })
-    }
-
-    fetchPage()
+    getJson(kimaiUrl, apiToken, endpointBase, [], function(result) {
+        if (result.ok && !Array.isArray(result.data)) {
+            result.data = []
+        }
+        callback(result)
+    })
 }
 
 function testConnection(kimaiUrl, apiToken, callback) {
@@ -625,8 +589,46 @@ function projectsGroupedByCustomer(projects, customers) {
     return rows
 }
 
+/** Kimai lists are loaded with visible=3 (incl. hidden) so names still resolve. */
+function isHiddenEntity(entity) {
+    return !!entity && typeof entity === "object" && entity.visible === false
+}
+
+/** Projects that may be picked for new time: project and its customer visible. */
+function visibleProjects(projects, customers) {
+    var hiddenCustomers = {}
+    var i
+    for (i = 0; i < (customers || []).length; i++) {
+        if (isHiddenEntity(customers[i])) {
+            hiddenCustomers[String(customers[i].id)] = true
+        }
+    }
+    var out = []
+    for (i = 0; i < (projects || []).length; i++) {
+        var project = projects[i]
+        if (isHiddenEntity(project) || isHiddenEntity(project && project.customer)) {
+            continue
+        }
+        if (hiddenCustomers[String(customerIdOfProject(project))]) {
+            continue
+        }
+        out.push(project)
+    }
+    return out
+}
+
+function visibleActivities(activities) {
+    var out = []
+    for (var i = 0; i < (activities || []).length; i++) {
+        if (!isHiddenEntity(activities[i])) {
+            out.push(activities[i])
+        }
+    }
+    return out
+}
+
 function projectPickerItems(projects, customers) {
-    var rows = projectsGroupedByCustomer(projects, customers)
+    var rows = projectsGroupedByCustomer(visibleProjects(projects, customers), customers)
     var items = []
     for (var i = 0; i < rows.length; i++) {
         var row = rows[i]
@@ -650,7 +652,7 @@ function projectPickerItems(projects, customers) {
 }
 
 function activityPickerItems(activities, projectId, project, customersById) {
-    var rows = activitiesListModel(activities, projectId)
+    var rows = activitiesListModel(visibleActivities(activities), projectId)
     var items = []
     for (var i = 0; i < rows.length; i++) {
         var activity = rows[i].activity
@@ -674,8 +676,9 @@ function setSession(/* session */) {
 
 function startTracking(kimaiUrl, apiToken, projectId, activityId, description, callback, extras) {
     var extra = extras || {}
+    // No begin: Kimai stamps "now" in the user's Kimai timezone, which the
+    // desktop clock/timezone may not match (and punch-in mode rejects begin).
     var fields = {
-        begin: localDateTimeString(new Date()),
         project: projectId,
         activity: activityId,
         description: description || "",
@@ -702,7 +705,9 @@ function writeEntityId(value) {
  * Kimai TimesheetApiEditForm: tags is a text field (comma-separated),
  * billable is a boolean, project/activity are integers. Sending a JSON
  * array for tags yields "Validation Failed".
- * fields: { begin, end?, project, activity, description?, billable?, tags?, exported? }
+ * fields: { begin, end?, project, activity, description?, billable?, tags? }
+ * `exported` is never sent: it needs the edit_export permission and Kimai
+ * answers "This form should not contain extra fields" without it.
  */
 function serializeTimesheetWrite(fields) {
     var f = fields || {}
@@ -730,10 +735,110 @@ function serializeTimesheetWrite(fields) {
     if (f.tags !== undefined) {
         data.tags = Fields.formatTagString(f.tags)
     }
-    if (f.exported !== undefined && f.exported !== null) {
-        data.exported = !!f.exported
-    }
     return data
+}
+
+/**
+ * Timesheet fields Kimai only accepts with an extra permission
+ * (edit_billable_*). Without it the API form lacks the field and the whole
+ * write fails with "This form should not contain extra fields".
+ */
+var PERMISSION_FIELDS = ["billable"]
+
+/** Fields a server/token pair rejected before: { "<url>|<token>": { billable: true } } */
+var deniedWriteFields = {}
+
+function resetDeniedWriteFields() {
+    deniedWriteFields = {}
+}
+
+function deniedFieldsKey(kimaiUrl, apiToken) {
+    return normalizeUrl(kimaiUrl) + "|" + String(apiToken || "")
+}
+
+/**
+ * Permission fields to drop after an "extra fields" 400: Kimai lists the
+ * form's allowed fields in errors.children, so a sent permission field
+ * that is missing there was rejected.
+ */
+function rejectedPermissionFields(responseText, data) {
+    var body = parseJson(responseText, null)
+    if (!body || !body.errors || !body.errors.children || !body.errors.errors) {
+        return []
+    }
+    var extra = false
+    for (var i = 0; i < body.errors.errors.length; i++) {
+        if (String(body.errors.errors[i]).indexOf("extra fields") >= 0) {
+            extra = true
+        }
+    }
+    if (!extra) {
+        return []
+    }
+    var out = []
+    for (i = 0; i < PERMISSION_FIELDS.length; i++) {
+        var key = PERMISSION_FIELDS[i]
+        if (data.hasOwnProperty(key) && !body.errors.children.hasOwnProperty(key)) {
+            out.push(key)
+        }
+    }
+    return out
+}
+
+function withoutFields(data, keys) {
+    var out = {}
+    for (var k in data) {
+        if (data.hasOwnProperty(k) && keys.indexOf(k) < 0) {
+            out[k] = data[k]
+        }
+    }
+    return out
+}
+
+/**
+ * POST/PATCH a timesheet. Drops permission fields this token is known not
+ * to have; otherwise retries once without them after an "extra fields" 400.
+ * A successful result lists the dropped fields in result.droppedFields.
+ */
+function sendTimesheetWrite(method, kimaiUrl, apiToken, endpoint, data, callback) {
+    var key = deniedFieldsKey(kimaiUrl, apiToken)
+    var denied = deniedWriteFields[key] || {}
+    var dropped = []
+    for (var i = 0; i < PERMISSION_FIELDS.length; i++) {
+        if (denied[PERMISSION_FIELDS[i]] && data.hasOwnProperty(PERMISSION_FIELDS[i])) {
+            dropped.push(PERMISSION_FIELDS[i])
+        }
+    }
+    var payload = dropped.length ? withoutFields(data, dropped) : data
+
+    function done(result) {
+        if (result.ok && dropped.length) {
+            result.droppedFields = dropped
+        }
+        callback(result)
+    }
+
+    function send(body, allowRetry) {
+        var xhr = createRequest(method, kimaiUrl, endpoint, apiToken, true)
+        runRequest(xhr, JSON.stringify(body), function(status, responseText, statusText) {
+            if (allowRetry && (status === 400 || status === 200)) {
+                var rejected = rejectedPermissionFields(responseText, body)
+                if (rejected.length) {
+                    var mark = deniedWriteFields[key] || {}
+                    for (var r = 0; r < rejected.length; r++) {
+                        mark[rejected[r]] = true
+                        dropped.push(rejected[r])
+                    }
+                    deniedWriteFields[key] = mark
+                    send(withoutFields(body, rejected), false)
+                    return
+                }
+            }
+            finishTimesheetWrite(status, responseText, statusText, done)
+        })
+    }
+
+    send(payload, true)
 }
 
 function finishTimesheetWrite(status, responseText, statusText, callback) {
@@ -755,7 +860,8 @@ function createTimesheet(kimaiUrl, apiToken, fields, callback) {
         return
     }
     var f = fields || {}
-    if (!f.begin || !f.project || !f.activity) {
+    // begin may only be omitted for a running entry (Kimai then uses "now").
+    if ((!f.begin && f.end) || !f.project || !f.activity) {
         callback(fail({ type: "config", status: 0, detail: "begin, project and activity are required" }))
         return
     }
@@ -766,18 +872,13 @@ function createTimesheet(kimaiUrl, apiToken, fields, callback) {
         project: f.project,
         activity: f.activity,
         description: f.description || "",
-        exported: false,
         tags: Fields.resolveTags(f)
     }
     if (f.billable !== undefined && f.billable !== null) {
         writeFields.billable = !!f.billable
     }
     var data = serializeTimesheetWrite(writeFields)
-
-    var xhr = createRequest("POST", kimaiUrl, "/api/timesheets", apiToken, true)
-    runRequest(xhr, JSON.stringify(data), function(status, responseText, statusText) {
-        finishTimesheetWrite(status, responseText, statusText, callback)
-    })
+    sendTimesheetWrite("POST", kimaiUrl, apiToken, "/api/timesheets", data, callback)
 }
 
 function stopTracking(kimaiUrl, apiToken, timesheetId, callback) {
@@ -802,8 +903,10 @@ function restartTimesheet(kimaiUrl, apiToken, timesheetId, callback) {
         return
     }
 
+    // copy=all carries description, tags, rates and meta fields over; with {}
+    // Kimai restarts with an empty description.
     var xhr = createRequest("PATCH", kimaiUrl, "/api/timesheets/" + timesheetId + "/restart", apiToken, true)
-    runRequest(xhr, "{}", function(status, responseText, statusText) {
+    runRequest(xhr, JSON.stringify({ copy: "all" }), function(status, responseText, statusText) {
         if (status === 200 || status === 201) {
             callback(ok(parseJson(responseText, null)))
         } else {
@@ -819,10 +922,7 @@ function patchTimesheet(kimaiUrl, apiToken, timesheetId, fields, callback) {
     }
 
     var data = serializeTimesheetWrite(fields)
-    var xhr = createRequest("PATCH", kimaiUrl, "/api/timesheets/" + timesheetId, apiToken, true)
-    runRequest(xhr, JSON.stringify(data), function(status, responseText, statusText) {
-        finishTimesheetWrite(status, responseText, statusText, callback)
-    })
+    sendTimesheetWrite("PATCH", kimaiUrl, apiToken, "/api/timesheets/" + timesheetId, data, callback)
 }
 
 function deleteTimesheet(kimaiUrl, apiToken, timesheetId, callback) {
@@ -1286,15 +1386,27 @@ function fetchTimesheetsRange(kimaiUrl, apiToken, beginDate, endDate, callback) 
             + "&page=" + page + "&size=" + size + "&orderBy=begin&order=ASC&full=1"
         var xhr = createRequest("GET", kimaiUrl, endpoint, apiToken, false)
         runRequest(xhr, undefined, function(status, responseText, statusText) {
+            // Kimai answers 404 for a page past the end (e.g. exactly 100 entries).
+            if (status === 404 && page > 1) {
+                callback(ok(collected))
+                return
+            }
             if (status !== 200) {
                 callback(fail(parseApiError(status, statusText, responseText)))
                 return
             }
             var batch = parseJson(responseText, [])
+            if (!Array.isArray(batch)) {
+                batch = []
+            }
             for (var i = 0; i < batch.length; i++) {
                 collected.push(batch[i])
             }
-            if (batch.length >= size && page < 20) {
+            var totalPages = parseInt(xhr.getResponseHeader("X-Total-Pages"), 10)
+            var more = (!isNaN(totalPages) && totalPages > 0)
+                ? page < totalPages
+                : batch.length >= size
+            if (more && page < 20) {
                 page++
                 fetchPage()
             } else {
@@ -1671,9 +1783,19 @@ function dayIntervalsFromTimesheets(entries, dayDate, nowMs) {
         if (stopMs <= startMs) {
             continue
         }
+        // Wall-clock seconds (not ms since midnight): on DST days the day has
+        // 23/25 h and elapsed time would be off by an hour against the
+        // business-hours / "now" markers.
+        var startSec = startMs <= dayStartMs ? 0 : secondsOfLocalDay(new Date(startMs))
+        var endSec = stopMs > dayEndMs ? DAY_SECONDS
+            : secondsOfLocalDay(new Date(stopMs)) + (stopMs % 1000 > 0 ? 1 : 0)
+        if (endSec <= startSec) {
+            // Fall-back hour repeats wall-clock times; keep the duration.
+            endSec = Math.min(DAY_SECONDS, startSec + Math.ceil((stopMs - startMs) / 1000))
+        }
         intervals.push({
-            startSec: Math.max(0, Math.floor((startMs - dayStartMs) / 1000)),
-            endSec: Math.min(DAY_SECONDS, Math.ceil((stopMs - dayStartMs) / 1000))
+            startSec: Math.max(0, startSec),
+            endSec: Math.min(DAY_SECONDS, endSec)
         })
     }
 

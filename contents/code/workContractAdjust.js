@@ -215,13 +215,16 @@ function publicHolidayForDate(publicHolidays, date) {
     return null
 }
 
-/** Time-off duration: Kimai seconds, or hours when the value is a small integer. */
+/**
+ * Time-off duration: seconds, or hours when the value fits in one day (≤ 24).
+ * (A "< 1000" cut read e.g. 900 s = 15 min as 900 h, i.e. a full day off.)
+ */
 function durationToSeconds(duration) {
     var n = Number(duration)
     if (!n || n <= 0 || isNaN(n)) {
         return 0
     }
-    if (n < 1000) {
+    if (n <= 24) {
         return Math.floor(n * 3600)
     }
     return Math.floor(n)

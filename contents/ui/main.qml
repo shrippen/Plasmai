@@ -21,6 +21,7 @@ import "../code/maintenanceCache.js" as CatalogCache
 import "../code/buildInfo.js" as BuildInfo
 import "../code/timesheetFields.js" as TimesheetFields
 import "../code/filmDays.js" as FilmDays
+import "../code/providerUtil.js" as ProviderUtil
 import "."
 
 PlasmoidItem {
@@ -89,6 +90,8 @@ PlasmoidItem {
     property var idleDialogRef: null
     property var createEntityDialogRef: null
     property int pendingIdleMs: 0
+    // Wall-clock ms when the idle period began (detection time − idle ms).
+    property double pendingIdleSince: 0
     property bool idleIgnoreUntilActive: false
     property var pendingIdleSnapshot: null
     property string forgotReminderDay: ""
@@ -166,6 +169,7 @@ PlasmoidItem {
     /** The Kimai entry for filmDaySelectedDate + the picked project, if any. */
     property var filmDayTimesheet: null
     property bool loadingFilmDay: false
+    property int filmDayLoadSerial: 0
     readonly property string workDayBegin: {
         var v = plasmoid.configuration.workDayBegin
         return (v && String(v).length > 0) ? String(v) : KimaiApi.DEFAULT_WORK_DAY_BEGIN
@@ -353,6 +357,16 @@ PlasmoidItem {
         onTriggered: root.elapsedSeconds++
     }
 
+    // QML XMLHttpRequest has no timeout: abort requests that hang so
+    // isBusy / loading flags cannot stay stuck.
+    Timer {
+        id: requestWatchdogTimer
+        interval: 5000
+        running: true
+        repeat: true
+        onTriggered: ProviderUtil.abortStaleRequests(Date.now())
+    }
+
     Timer {
         id: sparklineRefreshTimer
         interval: 30000
@@ -521,6 +535,13 @@ PlasmoidItem {
         }
     }
 
+    /** Kimai saved the entry but ignored billable (no edit_billable permission). */
+    function noteDroppedFields(result) {
+        if (result && result.droppedFields && result.droppedFields.indexOf("billable") >= 0) {
+            userMessage = i18n("Saved without the billable change: your Kimai account is not allowed to edit billable.")
+        }
+    }
+
     function openConfigure() {
         var action = plasmoid.internalAction("configure")
         if (action) {
@@ -575,7 +596,10 @@ PlasmoidItem {
 
     function promptIdle(idleMs) {
         pendingIdleMs = idleMs
+        pendingIdleSince = Date.now() - Math.max(0, idleMs)
+        var beginInstant = activeTimesheet ? TimesheetFields.parseInstant(activeTimesheet.begin) : null
         pendingIdleSnapshot = {
+            beginMs: beginInstant ? beginInstant.getTime() : 0,
             timesheetId: currentTimesheetId,
             projectId: activeTimesheet ? KimaiApi.projectId(activeTimesheet) : null,
             activityId: activeTimesheet ? KimaiApi.activityId(activeTimesheet) : null,
@@ -595,18 +619,23 @@ PlasmoidItem {
         idleIgnoreUntilActive = true
         pendingIdleSnapshot = null
         pendingIdleMs = 0
+        pendingIdleSince = 0
     }
 
     function discardIdleTime(andContinue) {
         var snap = pendingIdleSnapshot
-        var idleMs = pendingIdleMs
+        var idleSince = pendingIdleSince > 0 ? pendingIdleSince : Date.now() - Math.max(0, pendingIdleMs)
         pendingIdleSnapshot = null
         pendingIdleMs = 0
+        pendingIdleSince = 0
         if (!snap || !snap.timesheetId) {
             stopTracking(true)
             return
         }
-        var endDate = new Date(Date.now() - Math.max(0, idleMs))
+        // Stop where idle began (not "now − idle" at click time, which would
+        // keep the time the dialog sat open), never before the entry's begin.
+        var endMs = Math.max(idleSince, snap.beginMs || 0)
+        var endDate = new Date(endMs)
         if (!tracker || typeof tracker.patchTimesheet !== "function") {
             stopTracking(true)
             return
@@ -860,12 +889,13 @@ PlasmoidItem {
             begin: KimaiApi.localDateTimeString(beginDate),
             project: projectId,
             activity: activityId,
-            billable: billable,
+            billable: typeof billable === "boolean" ? billable : undefined,
             tags: tags || []
         }, function(result) {
             isBusy = false
             if (result && result.ok) {
                 clearError()
+                noteDroppedFields(result)
                 editingActiveEntry = false
                 if (result.data) {
                     var hydrated = KimaiApi.hydrateTimesheets(
@@ -975,23 +1005,18 @@ PlasmoidItem {
             && filmDayView.projectCombo.currentIndex >= 0)
             ? filmDayView.projectCombo.currentItem.value.id : null
         loadingFilmDay = true
+        // Only the latest load may fill the view (fast day steps / project picks).
+        var serial = ++filmDayLoadSerial
         tracker.fetchTimesheetsRange(
             kimaiUrl, apiToken, KimaiApi.startOfLocalDay(date), KimaiApi.endOfLocalDay(date),
             function(result) {
+                if (serial !== filmDayLoadSerial) {
+                    return
+                }
                 loadingFilmDay = false
                 var entries = (result && result.ok) ? KimaiApi.hydrateTimesheets(
                     result.data || [], root.projects, root.activityCatalog(), root.activitiesByProject) : []
-                var match = null
-                for (var i = 0; i < entries.length; i++) {
-                    if (selectedProjectIdForDay
-                        && String(KimaiApi.projectId(entries[i])) === String(selectedProjectIdForDay)) {
-                        match = entries[i]
-                        break
-                    }
-                }
-                if (!match && entries.length > 0) {
-                    match = entries[0]
-                }
+                var match = FilmDays.pickDayEntry(entries, selectedProjectIdForDay, KimaiApi.projectId)
                 filmDayTimesheet = match
                 var dateStr = KimaiApi.localDateString(date)
                 var entryProjectId = match ? KimaiApi.projectId(match) : selectedProjectIdForDay
@@ -1032,7 +1057,7 @@ PlasmoidItem {
             project: projectId,
             activity: activityId
         }
-        var existingId = filmDayTimesheet && filmDayTimesheet.id
+        var existingId = FilmDays.saveTargetId(filmDayTimesheet, projectId, KimaiApi.projectId)
         function afterSave(result) {
             isBusy = false
             if (!result.ok) {
@@ -1102,6 +1127,7 @@ PlasmoidItem {
             if (result.ok) {
                 clearError()
                 returnToMainView()
+                noteDroppedFields(result)
                 refreshRecentTimesheets()
                 refreshWorkTotals()
                 sendNotification(
@@ -3146,6 +3172,9 @@ PlasmoidItem {
                     }
                     onProjectChosen: function(projectId) {
                         root.loadActivitiesForProject(projectId)
+                    }
+                    onProjectPicked: function(projectId) {
+                        root.loadFilmDayForDate(root.filmDaySelectedDate)
                     }
                     onDayStepRequested: function(deltaDays) {
                         root.stepFilmDay(deltaDays)

@@ -13,6 +13,8 @@ import "../contents/code/favorites.js" as Favorites
 import "../contents/code/sharedConfig.js" as SharedConfig
 import "../contents/code/colorDistinct.js" as ColorDistinct
 import "../contents/code/maintenanceCache.js" as CatalogCache
+import "../contents/code/providerUtil.js" as ProviderUtil
+import "../contents/code/timesheetFields.js" as TimesheetFields
 import "shared"
 
 Kirigami.ApplicationWindow {
@@ -260,11 +262,15 @@ Kirigami.ApplicationWindow {
     Timer { id: descriptionSaveTimer; interval: 800; repeat: false; onTriggered: root.saveCurrentDescription() }
     Timer { id: descriptionFlashTimer; interval: 2500; repeat: false; onTriggered: root.descriptionSavedFlash = false }
     Timer { id: idlePollTimer; interval: 60000; running: root.isTracking && root.idleStopEnabled && root.supportsIdleDetection; repeat: true; onTriggered: root.checkIdle() }
+    // QML XMLHttpRequest has no timeout: abort hung requests so isBusy cannot stay stuck.
+    Timer { id: requestWatchdogTimer; interval: 5000; running: true; repeat: true; onTriggered: ProviderUtil.abortStaleRequests(Date.now()) }
     Timer { id: forgotToStartTimer; interval: 300000; running: root.isConfigured && root.supportsNotifications; repeat: true; onTriggered: root.checkForgotToStart() }
 
     // ── Idle detection state ──
     property bool idleIgnoreUntilActive: false
     property int pendingIdleMs: 0
+    // Wall-clock ms when the idle period began (detection time − idle ms).
+    property double pendingIdleSince: 0
     property var pendingIdleSnapshot: null
     property bool idleDialogPending: false
     property string forgotReminderDay: ""
@@ -289,7 +295,10 @@ Kirigami.ApplicationWindow {
 
     function promptIdle(idleMs) {
         pendingIdleMs = idleMs
+        pendingIdleSince = Date.now() - Math.max(0, idleMs)
+        var beginInstant = activeTimesheet ? TimesheetFields.parseInstant(activeTimesheet.begin) : null
         pendingIdleSnapshot = {
+            beginMs: beginInstant ? beginInstant.getTime() : 0,
             timesheetId: currentTimesheetId,
             projectId: activeTimesheet ? KimaiApi.projectId(activeTimesheet) : null,
             activityId: activeTimesheet ? KimaiApi.activityId(activeTimesheet) : null,
@@ -302,14 +311,17 @@ Kirigami.ApplicationWindow {
 
     function keepIdleTime() {
         idleIgnoreUntilActive = true
-        pendingIdleSnapshot = null; pendingIdleMs = 0; idleDialogPending = false
+        pendingIdleSnapshot = null; pendingIdleMs = 0; pendingIdleSince = 0; idleDialogPending = false
     }
 
     function discardIdleTime(andContinue) {
-        var snap = pendingIdleSnapshot; var idleMs = pendingIdleMs
-        pendingIdleSnapshot = null; pendingIdleMs = 0; idleDialogPending = false
+        var snap = pendingIdleSnapshot
+        var idleSince = pendingIdleSince > 0 ? pendingIdleSince : Date.now() - Math.max(0, pendingIdleMs)
+        pendingIdleSnapshot = null; pendingIdleMs = 0; pendingIdleSince = 0; idleDialogPending = false
         if (!snap || !snap.timesheetId) { stopTracking(); return }
-        var endDate = new Date(Date.now() - Math.max(0, idleMs))
+        // Stop where idle began (not "now − idle" at click time, which keeps
+        // the time the dialog sat open), never before the entry's begin.
+        var endDate = new Date(Math.max(idleSince, snap.beginMs || 0))
         isBusy = true
         tracker.patchTimesheet(TimeTracker.resolveUrl(activeProfile), apiToken, snap.timesheetId,
             { end: KimaiApi.localDateTimeString(endDate) }, function(result) {
@@ -483,10 +495,17 @@ Kirigami.ApplicationWindow {
         })
     }
 
+    /** Kimai saved the entry but ignored billable (no edit_billable permission). */
+    function noteDroppedFields(result) {
+        if (result && result.droppedFields && result.droppedFields.indexOf("billable") >= 0) {
+            showPassiveNotification(i18n("Saved without the billable change: your Kimai account is not allowed to edit billable."))
+        }
+    }
+
     function patchActiveEntry(fields) {
         if (!currentTimesheetId) return; isBusy = true
         tracker.patchTimesheet(TimeTracker.resolveUrl(activeProfile), apiToken, currentTimesheetId, fields, function(result) {
-            isBusy = false; if (result.ok) refreshAll()
+            isBusy = false; if (result.ok) { noteDroppedFields(result); refreshAll() }
         })
     }
 
@@ -500,25 +519,32 @@ Kirigami.ApplicationWindow {
     function editStoppedEntry(ts, fields) {
         if (!ts || !ts.id) return; isBusy = true
         tracker.patchTimesheet(TimeTracker.resolveUrl(activeProfile), apiToken, ts.id, fields, function(result) {
-            isBusy = false; if (result.ok) refreshAll()
+            isBusy = false; if (result.ok) { noteDroppedFields(result); refreshAll() }
         })
     }
 
     /** Splits a stopped entry at splitDate: patches its end, creates a twin from there to the original end. */
     function splitEntry(ts, splitDate) {
         if (!ts || !ts.id || !splitDate) return
-        var originalEnd = ts.end
+        // Same as the Plasmoid: split must fall inside the entry; the twin
+        // keeps project/activity (write keys project/activity, not *Id),
+        // description, billable and tags, with a local end stamp.
+        var split = TimesheetFields.splitStoppedEntry(ts, splitDate)
+        if (!split.ok) { showPassiveNotification(i18n("Split time must be between begin and end.")); return }
         isBusy = true
         tracker.patchTimesheet(TimeTracker.resolveUrl(activeProfile), apiToken, ts.id,
-            { end: KimaiApi.localDateTimeString(splitDate) }, function(result) {
+            { end: KimaiApi.localDateTimeString(split.firstEnd) }, function(result) {
             if (!result.ok) { isBusy = false; return }
             var fields = {
-                projectId: KimaiApi.projectId(ts), activityId: KimaiApi.activityId(ts),
-                begin: KimaiApi.localDateTimeString(splitDate), description: ts.description || ""
+                project: KimaiApi.projectId(ts), activity: KimaiApi.activityId(ts),
+                begin: KimaiApi.localDateTimeString(split.secondBegin),
+                end: KimaiApi.localDateTimeString(split.secondEnd),
+                description: split.description, billable: split.billable, tags: split.tags
             }
-            if (originalEnd) fields.end = originalEnd
             tracker.createTimesheet(TimeTracker.resolveUrl(activeProfile), apiToken, fields, function(r2) {
-                isBusy = false; if (r2.ok) refreshAll()
+                isBusy = false
+                if (!r2.ok) { showPassiveNotification(i18n("The first half was saved, but the second half could not be created.")) }
+                refreshAll()
             })
         })
     }

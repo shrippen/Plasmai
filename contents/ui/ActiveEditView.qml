@@ -47,7 +47,7 @@ ColumnLayout {
 
     signal aboutToOpenPicker(var projectField, var activityField)
     signal projectChosen(var projectId)
-    signal saveRequested(var projectId, var activityId, string beginText, bool billable, var tags)
+    signal saveRequested(var projectId, var activityId, string beginText, var billable, var tags)
     signal cancelled()
     signal createProjectRequested()
     signal createActivityRequested()
@@ -109,7 +109,7 @@ ColumnLayout {
         var project = projectCombo.currentItem.value
         var activity = activityCombo.currentItem.value
         root.saveRequested(project.id, activity.id, root.stampText(beginDate, beginTime),
-                           metaFields.billable, metaFields.tags)
+                           metaFields.billableOrNull, metaFields.tags)
     }
 
     function parseBeginDate(ts) {

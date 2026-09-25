@@ -5,11 +5,15 @@ function shQuote(value) {
     return "'" + String(value).replace(/'/g, "'\\''") + "'"
 }
 
-/** Strip file:// from Qt.resolvedUrl() results for shell scripts. */
+/** Strip file:// from Qt.resolvedUrl() results for shell scripts (percent-decoded). */
 function fileUrlToPath(url) {
     var s = String(url)
     if (s.indexOf("file://") === 0) {
-        return s.substring(7)
+        s = s.substring(7)
+        try {
+            s = decodeURIComponent(s)
+        } catch (e) {
+        }
     }
     return s
 }
@@ -87,7 +91,10 @@ function save(dataSource, scriptPath, profileId, token, callback) {
         return
     }
     var id = profileId || "default"
-    var cmd = "env KIMAI_TOKEN=" + shQuote(token) + " sh " + shQuote(scriptPath) + " store " + shQuote(id)
+    // The command line is the argv of `sh -c` (world-readable in /proc).
+    // `exec` replaces that shell right away, so the token only stays in the
+    // environment of kwallet.sh (owner-only) and reaches secret-tool on stdin.
+    var cmd = storeCommand("KIMAI_TOKEN", token, scriptPath, ["store", id])
     _run(dataSource, cmd, function(data) {
         var exitCode = data["exit code"]
         if (exitCode === 0) {
@@ -162,19 +169,9 @@ function loadSharedConfig(dataSource, scriptPath, callback) {
 }
 
 function saveSharedConfig(dataSource, scriptPath, sharedObj, callback) {
-    var json = JSON.stringify(sharedObj || {})
-    var cmd = "env KIMAI_SHARED_JSON=" + shQuote(json) + " sh " + shQuote(scriptPath) + " store"
-    _run(dataSource, cmd, function(data) {
-        var exitCode = data["exit code"]
-        if (callback) {
-            if (exitCode === 0) {
-                callback(true, null)
-            } else {
-                var stderr = (data["stderr"] || "").toString().trim()
-                callback(false, stderr || ("sharedConfig.sh store failed (exit " + exitCode + ")"))
-            }
-        }
-    })
+    // Film-day extras (filmDaysJson) make shared.json grow past one argv.
+    storeJson(dataSource, scriptPath, "KIMAI_SHARED_JSON", JSON.stringify(sharedObj || {}),
+              "sharedConfig.sh", callback)
 }
 
 /** Raw catalog JSON text. Parse off the UI thread (WorkerScript) so the KCM stays responsive. */
@@ -216,20 +213,88 @@ function loadCatalogCache(dataSource, scriptPath, callback) {
     })
 }
 
+/** `NAME='value' exec sh 'script' 'arg'…` — value passed via the environment. */
+function storeCommand(envName, value, scriptPath, args) {
+    var cmd = envName + "=" + shQuote(value) + " exec sh " + shQuote(scriptPath)
+    for (var i = 0; i < (args || []).length; i++) {
+        cmd += " " + shQuote(args[i])
+    }
+    return cmd
+}
+
+/**
+ * Linux caps one argv string (the whole `sh -c` command) at 128 KiB.
+ * Chars per chunk: ≤ 4 bytes each after UTF-8 / quote escaping.
+ */
+var CATALOG_CHUNK_CHARS = 30000
+var _catalogJob = 0
+
+function catalogChunks(json, size) {
+    var n = size || CATALOG_CHUNK_CHARS
+    var out = []
+    var i = 0
+    while (i < json.length) {
+        var end = Math.min(json.length, i + n)
+        // Do not split a UTF-16 surrogate pair across chunks.
+        var last = json.charCodeAt(end - 1)
+        if (end < json.length && last >= 0xD800 && last <= 0xDBFF) {
+            end -= 1
+        }
+        out.push(json.substring(i, end))
+        i = end
+    }
+    return out
+}
+
 function saveCatalogCache(dataSource, scriptPath, payload, callback) {
-    var json = JSON.stringify(payload || {})
-    var cmd = "env PLASMAI_CATALOG_JSON=" + shQuote(json) + " sh " + shQuote(scriptPath) + " store"
-    _run(dataSource, cmd, function(data) {
+    storeJson(dataSource, scriptPath, "PLASMAI_CATALOG_JSON", JSON.stringify(payload || {}),
+              "catalogCache.sh", callback)
+}
+
+/**
+ * Write json through a store script (catalogCache.sh / sharedConfig.sh):
+ * one `store` call, or `append` chunks + `commit` above one argv.
+ */
+function storeJson(dataSource, scriptPath, envName, json, scriptName, callback) {
+    function finish(data, what) {
         var exitCode = data["exit code"]
         if (callback) {
             if (exitCode === 0) {
                 callback(true, null)
             } else {
                 var stderr = (data["stderr"] || "").toString().trim()
-                callback(false, stderr || ("catalogCache.sh store failed (exit " + exitCode + ")"))
+                callback(false, stderr || (scriptName + " " + what + " failed (exit " + exitCode + ")"))
             }
         }
-    })
+    }
+    if (json.length <= CATALOG_CHUNK_CHARS) {
+        _run(dataSource, storeCommand(envName, json, scriptPath, ["store"]), function(data) {
+            finish(data, "store")
+        })
+        return
+    }
+    _catalogJob += 1
+    var job = Date.now() + "-" + _catalogJob
+    var chunks = catalogChunks(json)
+    var index = 0
+    function next() {
+        if (index >= chunks.length) {
+            _run(dataSource, "exec sh " + shQuote(scriptPath) + " commit " + shQuote(job), function(data) {
+                finish(data, "commit")
+            })
+            return
+        }
+        var cmd = storeCommand(envName, chunks[index], scriptPath, ["append", job])
+        index += 1
+        _run(dataSource, cmd, function(data) {
+            if (data["exit code"] !== 0) {
+                finish(data, "append")
+                return
+            }
+            next()
+        })
+    }
+    next()
 }
 
 /** Load shared.json, merge patch, and save. configuration is plasmoid.configuration. */
