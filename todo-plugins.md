@@ -42,7 +42,8 @@ Neue Basis: `feature/android-plasmamobile` (2.0.0, `61268ca`). Gelesen: DESIGN.m
 | `catering` `"yes"/"no"` | `"no"` | `catering` bool | Umrechnen: `=== "yes"` ↔ `true`. |
 | `category` `""`/workday/saturday/sunday/holiday | `""` | string\|null | `""` ↔ `null` (der Server akzeptiert beides). |
 | `dayType` workday/travel | workday | gleich | identisch |
-| `productionDay` int\|null, UI **0–999** („Drehtag-Zähler“) | null | int\|null, **1–7** | **Semantischer Konflikt:** Serverseitig ist das die Tagesnummer in der Drehwoche (`WeekCalculator.php:46`, relevant für die Zuschläge am 6. und 7. Tag). Werte 1–7 werden übertragen. Werte > 7 bleiben lokal, werden gemeldet und nicht gesendet (sonst 400). Die UI im Server-Modus zeigt „Tag der Woche (leer = automatisch)“, 1–7. Offene Produktfrage: Braucht es einen separaten laufenden Zähler? |
+| `productionDay` int\|null, UI **0–999** („Drehtag-Zähler“) | null | **`shootingDayNumber`** int\|null, **1–999** | Entschieden (D7): Der lokale Zähler ist der fortlaufende Drehtag der Produktion und wird zu `shootingDayNumber` (rein informativ). |
+| – (neu) | – | **`productionDay`** int\|null, **1–7** | Tag in der Drehwoche, steuert die Zuschläge am 6. und 7. Tag (`WeekCalculator.php:46`). Lokal gab es das Feld nicht, die Migration sendet es nicht. Neues Eingabefeld „Drehtag der Woche (1–7, leer = automatisch)“. |
 | `extraPayCents` int | 0 | – | Bis D6 lokal lassen, danach `extraPayCents`. |
 | `note` string | `""` | string\|null, getrimmt, ≤ 500 | `""` ↔ `null`. Client: `maximumLength: 500`, trimmen. |
 
@@ -90,7 +91,7 @@ Reine Funktionen in `filmDays.js`: `toApiPatch(local, serverOrNull)` (liefert nu
 - **D4 S – in Arbeit**: 404 unterscheidbar (`code: no_engagement|unknown_project`), fehlendes `project` → 400.
 - **D5 M – später**: `GET /v1/days/{date}/summary` (netto, Zuschläge; füllt „Verdienst“ in der FilmDayView).
 - **D6 S – in Arbeit**: `extraPayCents` (Entity, Migration, Patch, JSON).
-- **D7 S – offen, Entscheidung Product Owner**: Semantik von `productionDay` (1–7 Wochentag in der Drehwoche vs. laufender Zähler in Plasmai). Entweder dokumentieren oder ein eigenes Feld anlegen.
+- **D7 S – entschieden, in Arbeit (PR #4)**: zwei Felder. `productionDay` (1–7) = Tag in der Drehwoche für die Zuschläge am 6. und 7. Tag; neu `shootingDayNumber` (1–999) = fortlaufender Drehtag der Produktion, rein informativ.
 
 ### Plugin-API-Voraussetzungen – MileageBundle
 - **M1 S – erledigt im Fix-PR**: `timesheet` in POST/PATCH `trips`.
@@ -106,7 +107,7 @@ Reine Funktionen in `filmDays.js`: `toApiPatch(local, serverOrNull)` (liefert nu
 - **P3 M** Neu `contents/code/filmDaySync.js`: Modusentscheidung, Laden, zweistufiges Speichern, `filmDaysPending`-Warteschlange. Aufrufer mit Callbacks sind `contents/ui/main.qml` (ersetzt 969-1060) und `app/qml/FilmDayPage.qml`. So entsteht die Orchestrierung nicht doppelt. Braucht P1 und P2.
 - **P4 M** UI in `contents/ui/FilmDayView.qml` **und** `app/qml/shared/FilmDayView.qml`:
   - Property `mode` (local/server/noEngagement/noPermission/offline) mit passendem Label (ersetzt das feste Info-Label Z. 282).
-  - Pause 0–720 mit „Standard“, Drehtag 1–7 im Server-Modus, `maximumLength` 500 bei der Notiz.
+  - Pause 0–720 mit „Standard“, zwei Felder „Drehtag der Woche (1–7)“ und „Drehtag der Produktion (1–999)“ im Server-Modus, `maximumLength` 500 bei der Notiz.
   - Zusatzgage als „nur auf diesem Gerät“ markiert, bis D6 da ist.
   - Kopfzeile mit `rulesetName`.
   - Braucht P3, für „Standard“ zusätzlich D2.
@@ -146,7 +147,7 @@ Reine Funktionen in `filmDays.js`: `toApiPatch(local, serverOrNull)` (liefert nu
 - **B2** ✅ behoben in `claude/plasmai-2.0-review-fixes`. `match = entries[0]` als Fallback (`main.qml:990`, `FilmDayPage.qml:40`). Damit wird ein fremder Eintrag (anderes Projekt, evtl. der laufende Timer ohne `end`) gewählt und beim Speichern überschrieben bzw. gestoppt.
 - **B3** Bei mehreren Einträgen pro Tag wird nur einer gepatcht, die übrigen bleiben liegen. Die Nettozeit ist falsch.
 - **B4** `breakSpin.to: 360` und `applyEntryFields` schneiden Serverwerte bis 720 still ab. Beim nächsten Speichern ist der Wert verloren.
-- **B5** `productionDay` hat lokal 0–999, der Server 1–7 und eine andere Bedeutung. PUT würde 400 liefern.
+- **B5** Lokal gibt es nur einen Zähler 0–999. Gelöst durch D7: Er wird zu `shootingDayNumber`; `productionDay` (1–7) kommt als neues Feld dazu. Der Wert 0 wird bei der Migration als leer behandelt.
 - **B6** Die Notiz hat lokal kein Limit, der Server 500 → 400.
 - **B7** `entryDefaults().breakMinutes = 45` wird immer explizit gespeichert. Ein Regelwerk-Default lässt sich nicht erkennen.
 - **B8** Der Schlüssel `projectId|date` enthält kein Profil bzw. keine Server-URL. Projekt-IDs verschiedener Kimai-Instanzen kollidieren.
