@@ -1051,6 +1051,247 @@ function detectHolidayPlugin(kimaiUrl, apiToken, callback) {
     })
 }
 
+// ── Plugin detection (generic, persistent per-profile cache) ──────────────
+//
+// detectPlugin() probes one GET path and returns a state:
+//   "present"   200 (and options.accept(body) is true, if given)
+//   "absent"    404, or 200 that options.accept() rejects
+//   "forbidden" 403 (plugin there, the token owner lacks the permission)
+//   "unknown"   network error, timeout, 401 or 5xx without a cached answer
+// Transient failures never overwrite a cached answer: an offline device keeps
+// the last known state (so the film day does not flip to local mode). The
+// cache is a plain map the caller persists (shared.json pluginProbesJson);
+// detectPlugin never writes it, it hands back `cacheEntry` to store.
+
+var PLUGIN_PROBE_TTL_MS = 24 * 3600 * 1000
+
+var PluginState = {
+    PRESENT: "present",
+    ABSENT: "absent",
+    FORBIDDEN: "forbidden",
+    UNKNOWN: "unknown"
+}
+
+/** Cache key: profile + server URL + plugin, so an edited profile URL re-probes. */
+function pluginCacheKey(profileId, kimaiUrl, plugin) {
+    return String(profileId || "") + "|" + normalizeUrl(kimaiUrl) + "|" + String(plugin || "")
+}
+
+/** State from one probe answer, or null when the answer is transient. */
+function pluginStateFromProbe(status, data, accept) {
+    if (status === 200) {
+        if (typeof accept === "function" && !accept(data)) {
+            return PluginState.ABSENT
+        }
+        return PluginState.PRESENT
+    }
+    if (status === 404) {
+        return PluginState.ABSENT
+    }
+    if (status === 403) {
+        return PluginState.FORBIDDEN
+    }
+    return null
+}
+
+function parsePluginCache(jsonStr) {
+    if (!jsonStr) {
+        return {}
+    }
+    var data = parseJson(jsonStr, {})
+    return (data && typeof data === "object" && !Array.isArray(data)) ? data : {}
+}
+
+/** Returns a copy of `cache` with `key` set (does not mutate the input). */
+function storePluginCache(cache, key, entry) {
+    var next = {}
+    for (var k in (cache || {})) {
+        next[k] = cache[k]
+    }
+    next[key] = entry
+    return next
+}
+
+/** { state, data, at, fresh } for a cached key, or null. */
+function cachedPluginState(cache, key, nowMs, ttlMs) {
+    var entry = cache ? cache[key] : null
+    if (!entry || typeof entry !== "object" || !entry.state) {
+        return null
+    }
+    var ttl = typeof ttlMs === "number" ? ttlMs : PLUGIN_PROBE_TTL_MS
+    var now = typeof nowMs === "number" ? nowMs : Date.now()
+    var at = Number(entry.at) || 0
+    return { state: entry.state, data: entry.data === undefined ? null : entry.data, at: at, fresh: now - at < ttl && now >= at }
+}
+
+/**
+ * options: { cache, key, nowMs, ttlMs, force, accept(body) -> bool }
+ * callback({ state, data, status, fromCache, cacheEntry })
+ * cacheEntry is non-null when the caller should store it under options.key.
+ */
+function detectPlugin(kimaiUrl, apiToken, path, options, callback) {
+    var o = options || {}
+    var now = typeof o.nowMs === "number" ? o.nowMs : Date.now()
+    var cached = o.key ? cachedPluginState(o.cache, o.key, now, o.ttlMs) : null
+    if (cached && cached.fresh && !o.force) {
+        callback({ state: cached.state, data: cached.data, status: 0, fromCache: true, cacheEntry: null })
+        return
+    }
+    getJson(kimaiUrl, apiToken, path, null, function(result) {
+        var status = result.ok ? 200 : ((result.error && result.error.status) || 0)
+        var data = result.ok ? result.data : null
+        var state = pluginStateFromProbe(status, data, o.accept)
+        if (state === null) {
+            if (cached) {
+                callback({ state: cached.state, data: cached.data, status: status, fromCache: true, cacheEntry: null })
+            } else {
+                callback({ state: PluginState.UNKNOWN, data: null, status: status, fromCache: false, cacheEntry: null })
+            }
+            return
+        }
+        var entry = { state: state, at: now, data: state === PluginState.PRESENT ? data : null }
+        callback({ state: state, data: entry.data, status: status, fromCache: false, cacheEntry: entry })
+    })
+}
+
+// ── kimai-drehzettel-bundle (/api/drehzettel) ─────────────────────────────
+// Only the token owner's data: the `user` parameter is never sent.
+
+var DREHZETTEL_PING_PATH = "/api/drehzettel/ping"
+var DREHZETTEL_PLUGIN = "drehzettel"
+
+/** ping answers v1 → usable. Older/newer plugins without v1 count as absent. */
+function drehzettelPingAccepts(data) {
+    return !!data && Array.isArray(data.apiVersions) && data.apiVersions.indexOf("v1") >= 0
+}
+
+/** Feature list of a ping body ("engagements", "defaults", "extraPay", …). */
+function drehzettelHasFeature(ping, feature) {
+    return !!ping && Array.isArray(ping.features) && ping.features.indexOf(feature) >= 0
+}
+
+/** permissions.view from ping; true when the plugin predates the permissions key. */
+function drehzettelCanView(ping) {
+    if (!ping || !ping.permissions || typeof ping.permissions !== "object") {
+        return true
+    }
+    return ping.permissions.view !== false
+}
+
+function detectDrehzettel(kimaiUrl, apiToken, options, callback) {
+    var o = {}
+    for (var k in (options || {})) {
+        o[k] = options[k]
+    }
+    o.accept = drehzettelPingAccepts
+    detectPlugin(kimaiUrl, apiToken, DREHZETTEL_PING_PATH, o, callback)
+}
+
+/** parseApiError plus the plugin's {error, code} body (code: no_engagement, …). */
+function drehzettelError(status, statusText, responseText) {
+    var err = parseApiError(status, statusText, responseText)
+    var body = parseJson(responseText, {})
+    err.code = (body && typeof body.code === "string") ? body.code : ""
+    if (body && typeof body.error === "string" && body.error) {
+        err.detail = body.error
+    }
+    return err
+}
+
+function drehzettelQuery(projectId, dateStr) {
+    var q = []
+    if (projectId !== null && projectId !== undefined && projectId !== "") {
+        q.push("project=" + encodeURIComponent(String(projectId)))
+    }
+    if (dateStr) {
+        q.push("date=" + encodeURIComponent(String(dateStr)))
+    }
+    return q.length ? "?" + q.join("&") : ""
+}
+
+function drehzettelRequest(method, kimaiUrl, apiToken, endpoint, body, callback) {
+    if (!kimaiUrl || !apiToken) {
+        callback(fail({ type: "config", status: 0, detail: "", code: "" }))
+        return
+    }
+    var xhr = createRequest(method, kimaiUrl, "/api/drehzettel" + endpoint, apiToken, body !== undefined)
+    runRequest(xhr, body === undefined ? undefined : JSON.stringify(body), function(status, responseText, statusText) {
+        if (status === 200) {
+            callback(ok(parseJson(responseText, null)))
+        } else {
+            callback(fail(drehzettelError(status, statusText, responseText)))
+        }
+    })
+}
+
+function isValidDateString(dateStr) {
+    return /^\d{4}-\d{2}-\d{2}$/.test(String(dateStr || ""))
+}
+
+/** D1: engagements active on dateStr: [{engagementId, projectId, projectName, rulesetName, …}]. */
+function fetchDrehzettelEngagements(kimaiUrl, apiToken, dateStr, callback) {
+    drehzettelRequest("GET", kimaiUrl, apiToken, "/v1/engagements" + drehzettelQuery(null, dateStr), undefined, function(result) {
+        if (result.ok && !Array.isArray(result.data)) {
+            result.data = []
+        }
+        callback(result)
+    })
+}
+
+/** {active, engagementId, toggleDefault, rulesetName}; no engagement is active:false, not 404. */
+function fetchEngagementStatus(kimaiUrl, apiToken, projectId, dateStr, callback) {
+    drehzettelRequest("GET", kimaiUrl, apiToken, "/v1/engagement-status" + drehzettelQuery(projectId, dateStr), undefined, callback)
+}
+
+function filmDayEndpoint(projectId, dateStr) {
+    return "/v1/film-days/" + encodeURIComponent(String(dateStr)) + drehzettelQuery(projectId, null)
+}
+
+function fetchFilmDay(kimaiUrl, apiToken, projectId, dateStr, callback) {
+    if (!isValidDateString(dateStr)) {
+        callback(fail({ type: "config", status: 0, detail: "invalid date", code: "invalid_date" }))
+        return
+    }
+    drehzettelRequest("GET", kimaiUrl, apiToken, filmDayEndpoint(projectId, dateStr), undefined, callback)
+}
+
+/** Partial update: only the keys in `patch` change on the server. Answers like GET. */
+function putFilmDay(kimaiUrl, apiToken, projectId, dateStr, patch, callback) {
+    if (!isValidDateString(dateStr)) {
+        callback(fail({ type: "config", status: 0, detail: "invalid date", code: "invalid_date" }))
+        return
+    }
+    drehzettelRequest("PUT", kimaiUrl, apiToken, filmDayEndpoint(projectId, dateStr), patch || {}, callback)
+}
+
+/** D5: calculated day (workMinutes, overtime, payCents, currency, …). */
+function fetchDaySummary(kimaiUrl, apiToken, projectId, dateStr, callback) {
+    if (!isValidDateString(dateStr)) {
+        callback(fail({ type: "config", status: 0, detail: "invalid date", code: "invalid_date" }))
+        return
+    }
+    drehzettelRequest("GET", kimaiUrl, apiToken,
+        "/v1/days/" + encodeURIComponent(String(dateStr)) + "/summary" + drehzettelQuery(projectId, null),
+        undefined, callback)
+}
+
+/** ISO currency code of the project's customer from the loaded catalog, or "". */
+function customerCurrencyOfProject(project, customers) {
+    if (!project) {
+        return ""
+    }
+    if (typeof project.customer === "object" && project.customer && project.customer.currency) {
+        return String(project.customer.currency)
+    }
+    var cid = customerIdOfProject(project)
+    for (var i = 0; i < (customers || []).length; i++) {
+        if (customers[i] && String(customers[i].id) === String(cid)) {
+            return customers[i].currency ? String(customers[i].currency) : ""
+        }
+    }
+    return ""
+}
+
 function fetchWorkContractAbsences(kimaiUrl, apiToken, beginDate, endDate, callback) {
     var begin = encodeURIComponent(localDateString(beginDate))
     var end = encodeURIComponent(localDateString(endDate))

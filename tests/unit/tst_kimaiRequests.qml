@@ -286,4 +286,182 @@ TestCase {
         compare(iv[0].startSec, 9 * 3600)
         compare(iv[0].endSec, 10 * 3600 + 30 * 60 + 15)
     }
+
+    // ── Plugin detection + Drehzettel API ──
+
+    function pingBody() {
+        return { installed: true, pluginVersion: "0.1.0", apiVersions: ["v1"],
+                 permissions: { view: true, manage: false },
+                 features: ["errorCodes", "engagements", "defaults", "extraPay", "daySummary", "shootingDayNumber"] }
+    }
+
+    function test_detectPresentReturnsCacheEntry() {
+        responses = [{ status: 200, body: pingBody() }]
+        var got = null
+        KimaiApi.detectDrehzettel("http://k/", "t", { cache: {}, key: "k1", nowMs: 1000 }, function(r) { got = r })
+        compare(requests[0].url, "http://k/api/drehzettel/ping")
+        compare(requests[0].headers["Authorization"], "Bearer t")
+        compare(got.state, "present")
+        verify(!got.fromCache)
+        compare(got.cacheEntry.state, "present")
+        compare(got.cacheEntry.at, 1000)
+        verify(KimaiApi.drehzettelHasFeature(got.data, "daySummary"))
+        verify(KimaiApi.drehzettelCanView(got.data))
+    }
+
+    function test_detectWithoutV1IsAbsent() {
+        responses = [{ status: 200, body: { installed: true, apiVersions: ["v2"] } }]
+        var got = null
+        KimaiApi.detectDrehzettel("http://k", "t", {}, function(r) { got = r })
+        compare(got.state, "absent")
+        compare(got.cacheEntry.data, null)
+    }
+
+    function test_detect404IsAbsent403Forbidden() {
+        responses = [{ status: 404, body: { code: 404, message: "Not Found" } },
+                     { status: 403, body: { code: 403, message: "Forbidden" } }]
+        var a = null, b = null
+        KimaiApi.detectDrehzettel("http://k", "t", {}, function(r) { a = r })
+        KimaiApi.detectDrehzettel("http://k", "t", {}, function(r) { b = r })
+        compare(a.state, "absent")
+        compare(b.state, "forbidden")
+        verify(b.cacheEntry !== null)
+    }
+
+    function test_detectUsesFreshCacheWithoutRequest() {
+        var cache = KimaiApi.storePluginCache({}, "k1", { state: "present", at: 1000, data: pingBody() })
+        var got = null
+        KimaiApi.detectDrehzettel("http://k", "t", { cache: cache, key: "k1", nowMs: 2000 }, function(r) { got = r })
+        compare(requests.length, 0)
+        compare(got.state, "present")
+        verify(got.fromCache)
+        compare(got.cacheEntry, null)
+    }
+
+    function test_detectStaleCacheReprobes() {
+        var cache = { k1: { state: "present", at: 0, data: pingBody() } }
+        responses = [{ status: 404, body: {} }]
+        var got = null
+        KimaiApi.detectDrehzettel("http://k", "t",
+            { cache: cache, key: "k1", nowMs: KimaiApi.PLUGIN_PROBE_TTL_MS + 1 }, function(r) { got = r })
+        compare(requests.length, 1)
+        compare(got.state, "absent")
+        compare(got.cacheEntry.state, "absent")
+    }
+
+    function test_detectOfflineKeepsCachedState() {
+        // Stale cache + network error: stay in server mode, do not flip to local.
+        var cache = { k1: { state: "present", at: 0, data: pingBody() } }
+        responses = [{ status: 0 }, { status: 503, body: {} }]
+        var got = null
+        KimaiApi.detectDrehzettel("http://k", "t",
+            { cache: cache, key: "k1", nowMs: KimaiApi.PLUGIN_PROBE_TTL_MS * 3 }, function(r) { got = r })
+        compare(got.state, "present")
+        verify(got.fromCache)
+        compare(got.cacheEntry, null)
+        var noCache = null
+        KimaiApi.detectDrehzettel("http://k", "t", { cache: {}, key: "k1" }, function(r) { noCache = r })
+        compare(noCache.state, "unknown")
+        compare(noCache.cacheEntry, null)
+    }
+
+    function test_detectForceIgnoresFreshCache() {
+        var cache = { k1: { state: "absent", at: 1000, data: null } }
+        responses = [{ status: 200, body: pingBody() }]
+        var got = null
+        KimaiApi.detectDrehzettel("http://k", "t", { cache: cache, key: "k1", nowMs: 1001, force: true }, function(r) { got = r })
+        compare(requests.length, 1)
+        compare(got.state, "present")
+    }
+
+    function test_pluginCacheKeyAndParse() {
+        compare(KimaiApi.pluginCacheKey("p1", "HTTPS://k/", "drehzettel"), "p1|https://k|drehzettel")
+        compare(Object.keys(KimaiApi.parsePluginCache("[1]")).length, 0)
+        compare(Object.keys(KimaiApi.parsePluginCache("nope")).length, 0)
+        compare(KimaiApi.parsePluginCache('{"a":{"state":"absent","at":1}}').a.state, "absent")
+    }
+
+    function test_drehzettelCanViewFalse() {
+        verify(!KimaiApi.drehzettelCanView({ permissions: { view: false } }))
+        verify(KimaiApi.drehzettelCanView({ apiVersions: ["v1"] }))
+    }
+
+    function test_fetchFilmDayRequest() {
+        responses = [{ status: 200, body: { date: "2026-09-14", breakMinutes: null } }]
+        var got = null
+        KimaiApi.fetchFilmDay("http://k", "t", 5, "2026-09-14", function(r) { got = r })
+        compare(requests[0].method, "GET")
+        compare(requests[0].url, "http://k/api/drehzettel/v1/film-days/2026-09-14?project=5")
+        verify(requests[0].url.indexOf("user=") < 0)
+        verify(got.ok)
+        compare(got.data.breakMinutes, null)
+    }
+
+    function test_fetchFilmDayRejectsBadDate() {
+        var got = null
+        KimaiApi.fetchFilmDay("http://k", "t", 5, "14.09.2026", function(r) { got = r })
+        compare(requests.length, 0)
+        verify(!got.ok)
+    }
+
+    function test_putFilmDaySendsOnlyPatch() {
+        responses = [{ status: 200, body: { date: "2026-09-14", note: "x", catering: true } }]
+        var got = null
+        KimaiApi.putFilmDay("http://k", "t", 5, "2026-09-14", { note: "x" }, function(r) { got = r })
+        compare(requests[0].method, "PUT")
+        compare(requests[0].headers["Content-Type"], "application/json")
+        compare(requests[0].url, "http://k/api/drehzettel/v1/film-days/2026-09-14?project=5")
+        compare(requests[0].body, '{"note":"x"}')
+        verify(got.ok)
+    }
+
+    function test_drehzettelErrorCodes() {
+        responses = [
+            { status: 404, body: { error: "No active engagement for this project, user and date.", code: "no_engagement" } },
+            { status: 403, body: { error: "Access denied.", code: "forbidden" } },
+            { status: 400, body: { error: "note: at most 500 characters", code: "invalid_value" } },
+            { status: 404, body: { code: 404, message: "Not Found" } }
+        ]
+        var r = []
+        KimaiApi.fetchFilmDay("http://k", "t", 5, "2026-09-14", function(x) { r.push(x) })
+        KimaiApi.fetchFilmDay("http://k", "t", 5, "2026-09-14", function(x) { r.push(x) })
+        KimaiApi.putFilmDay("http://k", "t", 5, "2026-09-14", { note: "x" }, function(x) { r.push(x) })
+        KimaiApi.fetchFilmDay("http://k", "t", 5, "2026-09-14", function(x) { r.push(x) })
+        compare(r[0].error.status, 404)
+        compare(r[0].error.code, "no_engagement")
+        compare(r[1].error.type, "forbidden")
+        compare(r[1].error.code, "forbidden")
+        compare(r[2].error.status, 400)
+        compare(r[2].error.code, "invalid_value")
+        compare(r[2].error.detail, "note: at most 500 characters")
+        compare(r[3].error.code, "")   // plain Kimai 404: no plugin code
+    }
+
+    function test_engagementEndpoints() {
+        responses = [
+            { status: 200, body: [{ engagementId: 1, projectId: 1, rulesetName: "TV-FFS 2025" }] },
+            { status: 200, body: { active: false, engagementId: null, toggleDefault: false, rulesetName: null } },
+            { status: 200, body: { hasEntry: false, payCents: null, currency: "EUR" } },
+            { status: 200, body: {} }
+        ]
+        var r = []
+        KimaiApi.fetchDrehzettelEngagements("http://k", "t", "2026-09-14", function(x) { r.push(x) })
+        KimaiApi.fetchEngagementStatus("http://k", "t", 2, "2026-09-14", function(x) { r.push(x) })
+        KimaiApi.fetchDaySummary("http://k", "t", 2, "2026-09-14", function(x) { r.push(x) })
+        KimaiApi.fetchDrehzettelEngagements("http://k", "t", "2026-09-14", function(x) { r.push(x) })
+        compare(requests[0].url, "http://k/api/drehzettel/v1/engagements?date=2026-09-14")
+        compare(requests[1].url, "http://k/api/drehzettel/v1/engagement-status?project=2&date=2026-09-14")
+        compare(requests[2].url, "http://k/api/drehzettel/v1/days/2026-09-14/summary?project=2")
+        compare(r[0].data[0].rulesetName, "TV-FFS 2025")
+        compare(r[1].data.active, false)
+        compare(r[2].data.currency, "EUR")
+        compare(r[3].data.length, 0)   // non-array answer normalized
+    }
+
+    function test_customerCurrencyOfProject() {
+        compare(KimaiApi.customerCurrencyOfProject({ customer: 3 }, [{ id: 3, currency: "CHF" }]), "CHF")
+        compare(KimaiApi.customerCurrencyOfProject({ customer: { id: 3, currency: "EUR" } }, []), "EUR")
+        compare(KimaiApi.customerCurrencyOfProject({ customer: 4 }, [{ id: 3, currency: "CHF" }]), "")
+        compare(KimaiApi.customerCurrencyOfProject(null, []), "")
+    }
 }

@@ -38,7 +38,12 @@ var PROVIDERS = [
             deleteEntry: true,
             editStopped: true,
             createEntities: true,
-            filmDays: true
+            filmDays: true,
+            // kimai-drehzettel-bundle JSON API (probed per profile, see
+            // KimaiApi.detectDrehzettel); film-day extras go to the server.
+            drehzettelApi: true,
+            // MileageBundle (Anfahrten); placeholder until the trip UI exists.
+            mileage: true
         }
     },
     {
@@ -150,7 +155,11 @@ function providerCapabilities(providerId) {
         createEntities: caps.createEntities === true,
         // Local-only extras UI (break, catering, day type, production day,
         // note); Kimai-only like color distinction and Maintenance.
-        filmDays: caps.filmDays === true
+        filmDays: caps.filmDays === true,
+        // Kimai plugins that may be installed; the UI still probes whether
+        // they actually are (KimaiApi.detectPlugin) before using them.
+        drehzettelApi: caps.drehzettelApi === true,
+        mileage: caps.mileage === true
     }
 }
 
