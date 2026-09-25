@@ -4,6 +4,8 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import "../contents/code/timeTracker.js" as TimeTracker
 import "../contents/code/kimaiApi.js" as KimaiApi
+import "../contents/code/mileage.js" as Mileage
+import "../contents/code/statsData.js" as StatsData
 import "shared"
 
 Kirigami.Page {
@@ -14,6 +16,19 @@ Kirigami.Page {
     property bool loading: false
     property var _rangeBeginMs: 0
     property var _rangeEndMs: 0
+    /** Trips of this week and month (kimai-anfahrten), null = no plugin / not loaded. */
+    property var trips: null
+
+    function loadTrips() {
+        if (!root.mileageAvailable) { trips = null; return }
+        var now = new Date()
+        var range = Mileage.hasFeature(root.mileagePing, "dateRange") ? StatsData.tripRangeFor(now) : { year: now.getFullYear() }
+        KimaiApi.fetchTrips(TimeTracker.resolveUrl(root.activeProfile), root.apiToken, range, function(r) {
+            page.trips = r.ok ? r.data : null
+        })
+    }
+
+    Component.onCompleted: loadTrips()
 
     function loadRange(rangeBegin, rangeEnd) {
         if (!root.apiToken) return
@@ -52,6 +67,7 @@ Kirigami.Page {
                 workDayBegin: root.workDayBegin
                 workDayEnd: root.workDayEnd
                 supportsBillableFilter: root.providerCapabilities.billableFilter
+                tripSummary: page.trips ? StatsData.tripKmSummary(page.trips, new Date()) : null
                 onNeedMoreHistory: function(rangeBegin, rangeEnd) { page.loadRange(rangeBegin, rangeEnd) }
             }
 

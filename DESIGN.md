@@ -280,6 +280,41 @@ typography stack, badge format, and social-preview spec.
 - Same-day begin/end only (no overnight span across midnight), matching the
   reference Android app's day screen.
 
+### Trips (kimai-anfahrten, Kimai only)
+
+- Gated by `providerCapabilities.mileage`, the `showTrips` setting (shared,
+  default on) and `GET /api/mileage/ping`: 200 with `v1` and
+  `permissions.view` → available; 404 → absent. The probe is cached 24 h per
+  profile in `pluginProbesJson` (key `profileId|url|mileage`) like the
+  Drehzettel probe. Writing needs `permissions.editOwn`, deleting `deleteOwn`.
+- Requests in `kimaiApi.js` (`fetchTrips`, `createTrip`, `patchTrip`,
+  `deleteTrip`, `fetchVehicles`, `fetchTripSuggestions`,
+  `acceptTripSuggestion`, `dismissTripSuggestion`, `fetchMileageMeta`); form,
+  bodies and totals in `mileage.js`, shared by both UIs. The `user` parameter
+  is never sent. A new trip sends every set field; an edit sends only the keys
+  that differ from the loaded trip. `timesheet` is only sent when the ping lists
+  `tripTimesheet`; accepting with project/distance/comment/timesheet needs
+  `acceptFields`; `from`/`to` queries need `dateRange` (else year/month).
+- Times: the plugin writes `departure`/`arrival` in the user's Kimai timezone
+  and reads "HH:MM" in it, so the form takes the literal "HH:MM" of the string
+  (no device-timezone conversion).
+- `TripSheet.qml` (Plasmoid `mainViewMode: "trip"`, app `TripEditPage`) is the
+  one form: date, purpose, means of travel (+ assigned vehicle when the user
+  has vehicles), one-way distance, round trip, from/to, optional times,
+  comment, linked time entry (can be unlinked). Plugin field errors
+  (`400 {"errors": {field: message}}`) show under the form. A detected trip
+  opens the same sheet read-only for date/route/times ("Edit and accept").
+- Entry points: header "Log trip", the running entry's trip button and the
+  Recent row menu (linked to that entry) on the Plasmoid; drawer "Trips"
+  (`TripsPage`: month logbook, detected trips, "Log trip", "Commute today"),
+  the running entry and the Recent menu in the app; after saving a travel film
+  day the app offers "Log trip" in the notification.
+- Detected trips (`TripSuggestionList.qml`) only when the profile has Dawarich
+  configured (`ping.profile.dawarichConfigured`); the Plasmoid loads them when
+  the popup opens, at most every 10 minutes, last 14 days, 2–3 rows.
+- Statistics show trip km this week/month (`StatsData.tripKmSummary`, the
+  plugin's `totalKm`, i.e. round trips count twice).
+
 ### Charts and sparkline
 
 - Sparkline is a 24h work-day bar (business hours from Kimai calendar when

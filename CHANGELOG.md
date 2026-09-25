@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Trips (kimai-anfahrten plugin, Desktop and app)
+- With the Anfahrten plugin (MileageBundle) on the Kimai server: log a trip from the header, from the running entry or from a Recent entry's menu (linked to that entry); edit and delete trips
+- Trips detected from Dawarich show above Recent (Desktop) and on the new Trips page (app): accept, edit and accept, or dismiss
+- App: Trips page with the month's logbook, "Log trip" and "Commute today"; after saving a travel day the film day page offers "Log trip"
+- Statistics show the trip km of this week and month
+- New setting "Trips" (on by default) to hide all of it
+
 ## 2.0.0
 
 ### Android / Plasma Mobile
