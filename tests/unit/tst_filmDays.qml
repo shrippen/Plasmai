@@ -118,4 +118,190 @@ TestCase {
         compare(FilmDays.saveTargetId({ id: 3, project: 5, end: null }, 5, projectOf), null)
         compare(FilmDays.saveTargetId(null, 5, projectOf), null)
     }
+
+    // ── Drehzettel API mapping ──
+
+    function serverDay(overrides) {
+        var d = {
+            date: "2026-09-14", engagementId: 1, breakMinutes: null, catering: false,
+            category: null, note: null, dayType: "workday", productionDay: null,
+            extraPayCents: 0, shootingDayNumber: null, defaultBreakMinutes: 45,
+            effectiveCategory: "workday"
+        }
+        for (var k in (overrides || {})) {
+            d[k] = overrides[k]
+        }
+        return d
+    }
+
+    function test_toApiMapsEveryField() {
+        var api = FilmDays.toApi({
+            breakMinutes: 30, catering: "yes", category: "", dayType: "travel",
+            productionDay: 37, consecutiveDay: 6, extraPayCents: 2500, note: "  Nacht  "
+        })
+        compare(api.breakMinutes, 30)
+        compare(api.catering, true)
+        compare(api.category, null)
+        compare(api.dayType, "travel")
+        compare(api.shootingDayNumber, 37)
+        compare(api.productionDay, 6)
+        compare(api.extraPayCents, 2500)
+        compare(api.note, "Nacht")
+    }
+
+    function test_toApiEmptyValues() {
+        var api = FilmDays.toApi({
+            breakMinutes: null, catering: "no", category: "holiday", dayType: "workday",
+            productionDay: 0, consecutiveDay: null, extraPayCents: 0, note: "   "
+        })
+        compare(api.breakMinutes, null)
+        compare(api.catering, false)
+        compare(api.category, "holiday")
+        compare(api.shootingDayNumber, null)   // local 0 = not set (B5)
+        compare(api.productionDay, null)
+        compare(api.note, null)
+    }
+
+    function test_toApiClampsRanges() {
+        var api = FilmDays.toApi({ breakMinutes: 900, productionDay: 5000, extraPayCents: -3,
+                                   note: new Array(600).join("x") })
+        compare(api.breakMinutes, 720)
+        compare(api.shootingDayNumber, 999)
+        compare(api.extraPayCents, 0)
+        compare(api.note.length, 500)
+    }
+
+    function test_fromApiRoundTrip() {
+        var local = FilmDays.fromApi(serverDay({ breakMinutes: 60, catering: true, category: "sunday",
+            dayType: "travel", shootingDayNumber: 12, productionDay: 3, extraPayCents: 999, note: "n" }))
+        compare(local.breakMinutes, 60)
+        compare(local.catering, "yes")
+        compare(local.category, "sunday")
+        compare(local.dayType, "travel")
+        compare(local.productionDay, 12)
+        compare(local.consecutiveDay, 3)
+        compare(local.extraPayCents, 999)
+        compare(local.note, "n")
+        compare(Object.keys(FilmDays.toApiPatch(local, serverDay({ breakMinutes: 60, catering: true,
+            category: "sunday", dayType: "travel", shootingDayNumber: 12, productionDay: 3,
+            extraPayCents: 999, note: "n" }))).length, 0)
+    }
+
+    function test_fromApiDefaults() {
+        var local = FilmDays.fromApi(serverDay())
+        compare(local.breakMinutes, null)   // null = ruleset default, not 45
+        compare(local.catering, "no")
+        compare(local.category, "")
+        compare(local.productionDay, null)
+        compare(local.note, "")
+    }
+
+    function test_fromApiKeepsLocalExtraPayForOldPlugin() {
+        var json = serverDay()
+        delete json.extraPayCents
+        compare(FilmDays.fromApi(json, { extraPayCents: 700 }).extraPayCents, 700)
+    }
+
+    function test_toApiPatchOnlyChangedKeys() {
+        var server = serverDay({ catering: true, note: "alt" })
+        var local = FilmDays.fromApi(server)
+        local.breakMinutes = 30
+        local.note = "neu"
+        var patch = FilmDays.toApiPatch(local, server)
+        compare(Object.keys(patch).sort().join(","), "breakMinutes,note")
+        compare(patch.breakMinutes, 30)
+        compare(patch.note, "neu")
+    }
+
+    function test_toApiPatchResetToDefaultSendsNull() {
+        var server = serverDay({ breakMinutes: 30, category: "holiday" })
+        var local = FilmDays.fromApi(server)
+        local.breakMinutes = null
+        local.category = ""
+        var patch = FilmDays.toApiPatch(local, server)
+        compare(patch.breakMinutes, null)
+        compare(patch.category, null)
+        compare(Object.keys(patch).length, 2)
+    }
+
+    function test_toApiPatchSkipsKeysUnknownToServer() {
+        var server = serverDay()
+        delete server.extraPayCents
+        delete server.shootingDayNumber
+        var patch = FilmDays.toApiPatch({ extraPayCents: 500, productionDay: 4, catering: "yes" }, server)
+        verify(!patch.hasOwnProperty("extraPayCents"))
+        verify(!patch.hasOwnProperty("shootingDayNumber"))
+        compare(patch.catering, true)
+    }
+
+    function test_toApiPatchWithoutServerSendsAll() {
+        compare(Object.keys(FilmDays.toApiPatch(FilmDays.entryDefaults(), null)).length,
+                FilmDays.API_FIELDS.length)
+    }
+
+    function test_isServerEmpty() {
+        verify(FilmDays.isServerEmpty(serverDay()))
+        verify(!FilmDays.isServerEmpty(serverDay({ catering: true })))
+        verify(!FilmDays.isServerEmpty(serverDay({ breakMinutes: 45 })))
+        verify(!FilmDays.isServerEmpty(serverDay({ dayType: "travel" })))
+        verify(!FilmDays.isServerEmpty(serverDay({ shootingDayNumber: 3 })))
+        verify(!FilmDays.isServerEmpty(serverDay({ note: "x" })))
+        verify(!FilmDays.isServerEmpty(serverDay({ extraPayCents: 1 })))
+    }
+
+    function test_baseAndServerMatch() {
+        var server = serverDay({ note: "a" })
+        var base = FilmDays.baseForPatch(server, { note: "b", catering: true })
+        compare(base.note, "a")
+        compare(base.catering, false)
+        verify(FilmDays.serverMatchesBase(server, base))
+        verify(!FilmDays.serverMatchesBase(serverDay({ note: "c" }), base))
+    }
+
+    // ── migration planner ──
+
+    function test_planMigrationFiltersAndSorts() {
+        var map = {}
+        map = FilmDays.set(map, 1, "2026-09-02", FilmDays.entryDefaults())
+        map = FilmDays.set(map, 1, "2026-09-01", FilmDays.entryDefaults())
+        map = FilmDays.set(map, 9, "2026-09-01", FilmDays.entryDefaults())    // other instance's project
+        map = FilmDays.set(map, "", "2026-09-01", FilmDays.entryDefaults())   // no project
+        map["1|garbage"] = {}
+        var plan = FilmDays.planMigration(map, [1, 2], "p|http://k")
+        compare(plan.length, 2)
+        compare(plan[0].date, "2026-09-01")
+        compare(plan[1].date, "2026-09-02")
+        compare(String(plan[0].projectId), "1")
+        compare(plan[0].entry.breakMinutes, 45)
+    }
+
+    function test_planMigrationSkipsMigratedForSameProfileOnly() {
+        var map = FilmDays.set({}, 1, "2026-09-01", FilmDays.entryDefaults())
+        map = FilmDays.markMigrated(map, "1|2026-09-01", "p|http://k", "pushed", "2026-09-25T10:00:00Z")
+        compare(FilmDays.planMigration(map, [1], "p|http://k").length, 0)
+        compare(FilmDays.planMigration(map, [1], "other|http://x").length, 1)
+        compare(map["1|2026-09-01"].migrated["p|http://k"].result, "pushed")
+        // local values stay (rollback possible)
+        compare(FilmDays.get(map, 1, "2026-09-01").breakMinutes, 45)
+    }
+
+    function test_planMigrationFlagsLongNote() {
+        var e = FilmDays.entryDefaults()
+        e.note = new Array(502).join("y")
+        var plan = FilmDays.planMigration(FilmDays.set({}, 1, "2026-09-01", e), [1], "p")
+        verify(plan[0].noteTruncated)
+    }
+
+    function test_migrationDecision() {
+        var local = FilmDays.entryDefaults()     // explicit 45 break (B7)
+        local.catering = "yes"
+        local.productionDay = 0                  // 0 = empty (B5)
+        var push = FilmDays.migrationDecision(local, serverDay())
+        compare(push.action, "push")
+        compare(push.patch.breakMinutes, 45)
+        compare(push.patch.catering, true)
+        verify(!push.patch.hasOwnProperty("shootingDayNumber"))
+        compare(FilmDays.migrationDecision(local, serverDay({ breakMinutes: 45, catering: true })).action, "same")
+        compare(FilmDays.migrationDecision(local, serverDay({ breakMinutes: 30 })).action, "conflict")
+    }
 }
