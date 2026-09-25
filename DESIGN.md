@@ -283,6 +283,16 @@ typography stack, badge format, and social-preview spec.
   one by one — server empty → PUT, equal → done, different → server wins and the
   local entry stays untouched, 404 → stays local. Each entry records
   `migrated[profileKey]`; nothing is deleted, so a rollback stays possible.
+- **Conflict review** (P6): days with result `conflict` are counted in the
+  view ("n film days differ … Review"). The review (`FilmDayConflicts.qml`;
+  Plasmoid `mainViewMode: "filmconflicts"`, app `FilmDayConflictsPage`) loads
+  each day from the server again and shows only the differing fields, this
+  device vs. server (`FilmDays.diffFields`). Per day: "Keep server values"
+  (result `resolvedServer`, no request) or "Use values from this device"
+  (fresh GET, then PUT of the keys that still differ; result `resolvedLocal`).
+  A day the server meanwhile holds identically becomes `same`; a 404 can only
+  be acknowledged. The conflict state lives in `migrated` (no separate
+  `filmDaysConflicts` key).
 - **Shared data maps** (`filmDaysJson`, `filmDaysPending`, `pluginProbesJson`,
   `SharedConfig.DATA_MAP_KEYS`) are written by the Plasmoid and the app. Never
   write them as a whole from memory: `Platform.patchShared(…, patch, bases)`

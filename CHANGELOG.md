@@ -13,6 +13,7 @@
 - Several entries of the same project on one day: the view says so and can merge them into one entry (the others are deleted after saving); before, only one was updated and the work time was wrong
 - Film days kept on the device (without the Drehzettel plugin) are stored per profile and Kimai server, so two servers with the same project id no longer share a day; older entries are still shown
 - The app and the Plasmoid no longer overwrite each other's film days on the same computer: film day data is merged into shared.json per day and reloaded when the view opens
+- Review of film days that differ between this device and the Drehzettel plugin after copying them to the server: both values side by side, per day keep the server values or send the ones from this device (before, the server values were kept without a choice)
 
 ## 2.0.0
 

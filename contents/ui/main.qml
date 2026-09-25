@@ -54,7 +54,7 @@ PlasmoidItem {
     property string apiToken: ""
     property bool tokenLoaded: false
     property bool isConfigured: apiToken.length > 0 && (!providerMeta.needsUrl || kimaiUrl.length > 0)
-    property string mainViewMode: "main"  // main | manual | stats | filmday | trip
+    property string mainViewMode: "main"  // main | manual | stats | filmday | filmconflicts | trip
     /** Inline editor for the running timesheet (start / project / activity). */
     property bool editingActiveEntry: false
     /** Stopped Recent timesheet currently in the Add-entry form (null = new entry). */
@@ -183,6 +183,10 @@ PlasmoidItem {
     property var filmDayMemo: ({})
     property bool filmDayMigrationDismissed: false
     property bool filmDayMigrating: false
+    /** P6 conflict review rows (FilmDaySync.loadConflicts) while mainViewMode is "filmconflicts". */
+    property var filmDayConflictItems: []
+    property bool filmDayConflictsLoading: false
+    property bool filmDayConflictBusy: false
     readonly property var filmDaysPendingMap: FilmDaySync.parsePending(plasmoid.configuration.filmDaysPending)
     readonly property var pluginProbeCache: KimaiApi.parsePluginCache(plasmoid.configuration.pluginProbesJson)
     // ── Trips (kimai-anfahrten / MileageBundle), see mileage.js ──
@@ -1217,6 +1221,69 @@ PlasmoidItem {
             if (view) view.showMigrationReport(report)
             loadFilmDayForDate(filmDaySelectedDate)
         })
+    }
+
+    /** Open migration conflicts of the active profile (0 outside server mode). */
+    function filmDayConflictCount() {
+        if (filmDayMode !== FilmDaySync.Mode.SERVER) {
+            return 0
+        }
+        return FilmDaySync.countConflicts(filmDayContext())
+    }
+
+    /** P6: side-by-side review of days whose server values differ from this device. */
+    function openFilmDayConflicts() {
+        if (filmDayMode !== FilmDaySync.Mode.SERVER) {
+            return
+        }
+        mainViewMode = "filmconflicts"
+        filmDayConflictItems = []
+        filmDayConflictsLoading = true
+        var ctx = filmDayContext()
+        FilmDaySync.loadConflicts(ctx, FilmDaySync.conflictCandidates(ctx), function(r) {
+            filmDayConflictsLoading = false
+            filmDayConflictItems = r.items
+            if (r.localMap) {
+                persistFilmDayKeys({ filmDaysJson: FilmDays.serialize(r.localMap) })
+            }
+        })
+    }
+
+    function resolveFilmDayConflict(item, useLocal) {
+        if (filmDayConflictBusy) {
+            return
+        }
+        filmDayConflictBusy = true
+        FilmDaySync.resolveConflict(filmDayContext(), item, useLocal, function(r) {
+            filmDayConflictBusy = false
+            if (!r.ok) {
+                userMessage = i18n("The film day could not be sent: %1",
+                                   (r.error && r.error.detail) || ApiErrors.text(r.error))
+                return
+            }
+            persistFilmDayKeys({ filmDaysJson: FilmDays.serialize(r.localMap) })
+            var next = []
+            for (var i = 0; i < filmDayConflictItems.length; i++) {
+                var it = filmDayConflictItems[i]
+                if (it.key === item.key) {
+                    var copy = {}
+                    for (var k in it) {
+                        copy[k] = it[k]
+                    }
+                    copy.state = useLocal ? "resolvedLocal" : "resolvedServer"
+                    next.push(copy)
+                } else {
+                    next.push(it)
+                }
+            }
+            filmDayConflictItems = next
+        })
+    }
+
+    function closeFilmDayConflicts() {
+        mainViewMode = "filmday"
+        filmDayConflictItems = []
+        loadFilmDayForDate(filmDaySelectedDate)
     }
 
     function saveFilmDay(projectId, activityId, beginText, endText, filmDayFields) {
@@ -3395,7 +3462,7 @@ PlasmoidItem {
                             Layout.fillWidth: true
                             level: 3
                             text: root.mainViewMode === "stats" ? i18n("Statistics")
-                                  : (root.mainViewMode === "filmday" ? i18n("Film day")
+                                  : ((root.mainViewMode === "filmday" || root.mainViewMode === "filmconflicts") ? i18n("Film day")
                                   : (root.mainViewMode === "trip" ? i18n("Trip")
                                   : (root.mainViewMode === "manual"
                                      ? (root.editingStoppedTimesheet ? i18n("Edit entry") : i18n("Add entry"))
@@ -3492,13 +3559,13 @@ PlasmoidItem {
 
                         PlasmaComponents3.ToolButton {
                             visible: root.mainViewMode === "manual" || root.mainViewMode === "stats"
-                                     || root.mainViewMode === "filmday" || root.mainViewMode === "trip"
+                                     || root.mainViewMode === "filmday" || root.mainViewMode === "filmconflicts" || root.mainViewMode === "trip"
                             icon.name: "go-previous"
                             text: i18n("Back")
                             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                             display: TouchUi.active ? QQC2.AbstractButton.TextBesideIcon
                                                     : QQC2.AbstractButton.IconOnly
-                            onClicked: root.returnToMainView()
+                            onClicked: root.mainViewMode === "filmconflicts" ? root.closeFilmDayConflicts() : root.returnToMainView()
                             PlasmaComponents3.ToolTip.text: i18n("Back to timer")
                             PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
                             PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
@@ -3655,11 +3722,32 @@ PlasmoidItem {
                     onCreateProjectRequested: root.openCreateEntity("project")
                     onCreateActivityRequested: root.openCreateEntity("activity")
                     onMigrationRequested: root.runFilmDayMigration()
+                    conflictCount: root.filmDayConflictCount()
+                    onConflictReviewRequested: root.openFilmDayConflicts()
                     onMigrationDismissed: {
                         root.filmDayMigrationDismissed = true
                         filmDayView.migrationCount = 0
                         filmDayView.migrationReport = ""
                     }
+                }
+
+                FilmDayConflicts {
+                    Layout.fillWidth: true
+                    visible: root.mainViewMode === "filmconflicts" && root.isConfigured
+                    items: root.filmDayConflictItems
+                    loading: root.filmDayConflictsLoading
+                    busy: root.isBusy || root.filmDayConflictBusy
+                    projectNameOf: function(projectId) {
+                        var p = root.projectOfId(projectId)
+                        return p ? String(p.name || "") : ""
+                    }
+                    currencyOf: function(projectId) {
+                        return KimaiApi.customerCurrencyOfProject(root.projectOfId(projectId), root.customers)
+                    }
+                    onResolveRequested: function(item, useLocal) {
+                        root.resolveFilmDayConflict(item, useLocal)
+                    }
+                    onCloseRequested: root.closeFilmDayConflicts()
                 }
 
                 TripSheet {

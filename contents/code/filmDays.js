@@ -563,3 +563,64 @@ function markMigrated(map, key, profileKey, result, atIso) {
     next[key] = copy
     return next
 }
+
+// ── Conflict review (P6) ─────────────────────────────────────────────────
+// A migration conflict leaves the local entry untouched and records
+// migrated[profileKey].result = "conflict". The review shows local and
+// server values side by side; the user keeps the server values
+// ("resolvedServer", nothing is sent) or sends the local ones
+// ("resolvedLocal", PUT of the differing keys). Local entries stay either way.
+
+var ConflictResult = {
+    OPEN: "conflict",
+    LOCAL: "resolvedLocal",
+    SERVER: "resolvedServer"
+}
+
+/** Open conflicts of one profile: [{ key, projectId, date, entry }], sorted by date. */
+function conflictsForProfile(map, profileKey) {
+    var out = []
+    for (var key in (map || {})) {
+        var stored = map[key] || {}
+        var mark = stored.migrated ? stored.migrated[profileKey] : null
+        if (!mark || mark.result !== ConflictResult.OPEN) {
+            continue
+        }
+        var i = String(key).lastIndexOf("|")
+        if (i < 0) {
+            continue
+        }
+        var head = String(key).substring(0, i)
+        var projectId = head.substring(head.lastIndexOf("|") + 1)
+        var date = String(key).substring(i + 1)
+        var entry = entryDefaults()
+        for (var field in entry) {
+            if (Object.prototype.hasOwnProperty.call(stored, field)) {
+                entry[field] = stored[field]
+            }
+        }
+        out.push({ key: key, projectId: projectId, date: date, entry: entry })
+    }
+    out.sort(function(a, b) {
+        return a.date < b.date ? -1 : (a.date > b.date ? 1 : (a.projectId < b.projectId ? -1 : 1))
+    })
+    return out
+}
+
+/**
+ * Fields where the local entry and the server differ, in API terms:
+ * [{ field, local, server }] (API_FIELDS order). Keys the server JSON does
+ * not have (older plugin) are left out, like toApiPatch.
+ */
+function diffFields(localEntry, serverJson) {
+    var patch = toApiPatch(localEntry, serverJson)
+    var norm = normalizeServer(serverJson)
+    var out = []
+    for (var i = 0; i < API_FIELDS.length; i++) {
+        var key = API_FIELDS[i]
+        if (Object.prototype.hasOwnProperty.call(patch, key)) {
+            out.push({ field: key, local: patch[key], server: Object.prototype.hasOwnProperty.call(norm, key) ? norm[key] : null })
+        }
+    }
+    return out
+}

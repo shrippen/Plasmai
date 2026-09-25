@@ -274,6 +274,12 @@ Kirigami.ApplicationWindow {
         return ids
     }
 
+    /** Open migration conflicts of the active profile (0 outside server mode). */
+    function filmDayConflictCount() {
+        if (filmDayMode !== FilmDaySync.Mode.SERVER) return 0
+        return FilmDaySync.countConflicts(filmDayContext())
+    }
+
     function filmDayMigrationCount() {
         if (filmDayMode !== FilmDaySync.Mode.SERVER || filmDayMigrationDismissed) return 0
         return FilmDaySync.migrationCandidates(filmDayContext(), projectIdsOfCatalog()).length
@@ -916,6 +922,7 @@ Kirigami.ApplicationWindow {
     Component { id: manualPageComponent; ManualEntryPage { } }
     Component { id: statsPageComponent; StatsPage { } }
     Component { id: filmDayPageComponent; FilmDayPage { } }
+    Component { id: filmDayConflictsPageComponent; FilmDayConflictsPage { } }
     Component { id: tripsPageComponent; TripsPage { } }
     Component { id: tripEditPageComponent; TripEditPage { } }
     Component { id: settingsComponent; SettingsPage { } }

@@ -603,3 +603,93 @@ function migrate(ctx, candidates, callback, progress) {
     }
     step()
 }
+
+// ── Conflict review (P6) ─────────────────────────────────────────────────
+
+/** Open migration conflicts of this profile (FilmDays.conflictsForProfile). */
+function conflictCandidates(ctx) {
+    return FilmDays.conflictsForProfile(ctx.localMap, ctx.profileKey)
+}
+
+function countConflicts(ctx) {
+    return conflictCandidates(ctx).length
+}
+
+/**
+ * Load the server side of each conflict, one by one:
+ *   [{ key, projectId, date, entry, server, diff, state, error }]
+ * state: "ready" (values differ), "same" (the server meanwhile holds the
+ * local values — nothing to decide), "noEngagement" (404), "error".
+ * `same` ones are marked resolved in the returned localMap (null when
+ * nothing changed). callback({ items, localMap }).
+ */
+function loadConflicts(ctx, conflicts, callback) {
+    var items = []
+    var map = ctx.localMap
+    var changed = false
+    var i = 0
+    function step() {
+        if (i >= (conflicts || []).length) {
+            callback({ items: items, localMap: changed ? map : null })
+            return
+        }
+        var c = conflicts[i++]
+        KimaiApi.fetchFilmDay(ctx.url, ctx.token, c.projectId, c.date, function(got) {
+            var item = { key: c.key, projectId: c.projectId, date: c.date, entry: c.entry,
+                         server: null, diff: [], state: "error", error: null }
+            if (!got.ok) {
+                item.error = got.error
+                item.state = got.error && got.error.status === 404 ? "noEngagement" : "error"
+            } else {
+                item.server = got.data
+                item.diff = FilmDays.diffFields(c.entry, got.data)
+                if (item.diff.length === 0) {
+                    item.state = "same"
+                    map = FilmDays.markMigrated(map, c.key, ctx.profileKey, "same", new Date(nowOf(ctx)).toISOString())
+                    changed = true
+                } else {
+                    item.state = "ready"
+                }
+            }
+            items.push(item)
+            step()
+        })
+    }
+    step()
+}
+
+/**
+ * Decide one conflict. useLocal false: keep the server values (no request).
+ * useLocal true: fetch the day again and PUT the local values where they
+ * still differ (the user chose them over whatever the server holds now).
+ * callback({ ok, localMap, server, error }); localMap is null when nothing
+ * was recorded (failure).
+ */
+function resolveConflict(ctx, item, useLocal, callback) {
+    function mark(result) {
+        return FilmDays.markMigrated(ctx.localMap, item.key, ctx.profileKey, result, new Date(nowOf(ctx)).toISOString())
+    }
+    if (!useLocal) {
+        callback({ ok: true, localMap: mark(FilmDays.ConflictResult.SERVER), server: item.server || null, error: null })
+        return
+    }
+    KimaiApi.fetchFilmDay(ctx.url, ctx.token, item.projectId, item.date, function(got) {
+        if (!got.ok) {
+            callback({ ok: false, localMap: null, server: null, error: got.error })
+            return
+        }
+        var patch = FilmDays.toApiPatch(item.entry, got.data)
+        if (FilmDays.isEmptyPatch(patch)) {
+            callback({ ok: true, localMap: mark(FilmDays.ConflictResult.LOCAL), server: got.data, error: null })
+            return
+        }
+        KimaiApi.putFilmDay(ctx.url, ctx.token, item.projectId, item.date, patch, function(put) {
+            if (!put.ok) {
+                callback({ ok: false, localMap: null, server: null, error: put.error })
+                return
+            }
+            memoOf(ctx).days[pendingKey(ctx.profileKey, item.projectId, item.date)] = put.data
+            callback({ ok: true, localMap: mark(FilmDays.ConflictResult.LOCAL), server: put.data, error: null })
+        })
+    })
+}
