@@ -44,6 +44,7 @@ var SHARED_KEYS = [
     "filmDaysJson",
     "filmDaysPending",
     "pluginProbesJson",
+    "showTrips",
     "locationName",
     "colorDistinctionEnabled",
     "colorSimilarityPercent",

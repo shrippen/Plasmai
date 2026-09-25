@@ -26,6 +26,8 @@ QQC2.ItemDelegate {
     property bool canDeleteEntry: false
     property bool canSplitEntry: false
     property bool canPin: false
+    /** Recent rows: "Log trip" for this entry (kimai-anfahrten plugin present). */
+    property bool canLogTrip: false
     property bool isPinned: false
     property bool ignoreNextRowClick: false
 
@@ -33,6 +35,7 @@ QQC2.ItemDelegate {
     signal deleteRequested()
     signal splitRequested()
     signal pinRequested()
+    signal tripRequested()
     /** Row body (not the overflow). Favorites and Recents bind onRowActivated. */
     signal rowActivated()
 
@@ -227,6 +230,13 @@ QQC2.ItemDelegate {
             text: i18n("Split entry")
             icon.name: "edit-cut"
             onTriggered: root.splitRequested()
+        }
+        QQC2.MenuItem {
+            visible: root.canLogTrip
+            height: visible ? implicitHeight : 0
+            text: i18n("Log trip")
+            icon.name: "mark-location"
+            onTriggered: root.tripRequested()
         }
         QQC2.MenuItem {
             visible: root.canDeleteEntry

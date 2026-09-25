@@ -37,6 +37,8 @@ ColumnLayout {
     property int pieWeekOffset: 0
     /** Hide billable segmented control when the provider has no billable flag. */
     property bool supportsBillableFilter: true
+    /** Trip km of the kimai-anfahrten plugin (StatsData.tripKmSummary), null = no plugin / not loaded. */
+    property var tripSummary: null
     readonly property var nowDate: new Date()
     readonly property var selectedDay: StatsData.addDays(StatsData.startOfDay(nowDate), dayOffset)
     readonly property var selectedWeekStart: StatsData.addDays(StatsData.startOfWeek(nowDate), weekOffset * 7)
@@ -225,6 +227,36 @@ ColumnLayout {
             horizontalAlignment: Text.AlignRight
             font.bold: true
             text: KimaiApi.formatDurationShort(root.filteredWeekSeconds)
+        }
+
+        PlasmaComponents3.Label {
+            visible: root.tripSummary !== null
+            text: i18n("Trips this week")
+            opacity: 0.7
+        }
+
+        PlasmaComponents3.Label {
+            visible: root.tripSummary !== null
+            Layout.fillWidth: true
+            horizontalAlignment: Text.AlignRight
+            font.bold: true
+            text: root.tripSummary ? i18n("%1 km", root.tripSummary.weekKm) : ""
+        }
+
+        PlasmaComponents3.Label {
+            visible: root.tripSummary !== null
+            text: i18n("Trips this month")
+            opacity: 0.7
+        }
+
+        PlasmaComponents3.Label {
+            visible: root.tripSummary !== null
+            Layout.fillWidth: true
+            horizontalAlignment: Text.AlignRight
+            font.bold: true
+            text: root.tripSummary
+                  ? i18np("%2 km (1 trip)", "%2 km (%1 trips)", root.tripSummary.monthCount, root.tripSummary.monthKm)
+                  : ""
         }
 
     }

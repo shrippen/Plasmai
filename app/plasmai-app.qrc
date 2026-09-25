@@ -8,6 +8,8 @@
         <file alias="qml/ManualEntryPage.qml">qml/ManualEntryPage.qml</file>
         <file alias="qml/StatsPage.qml">qml/StatsPage.qml</file>
         <file alias="qml/FilmDayPage.qml">qml/FilmDayPage.qml</file>
+        <file alias="qml/TripsPage.qml">qml/TripsPage.qml</file>
+        <file alias="qml/TripEditPage.qml">qml/TripEditPage.qml</file>
         <file alias="qml/SettingsPage.qml">qml/SettingsPage.qml</file>
         <file alias="qml/FavoritesPage.qml">qml/FavoritesPage.qml</file>
         <file alias="qml/MaintenancePage.qml">qml/MaintenancePage.qml</file>
@@ -36,6 +38,8 @@
         <file alias="qml/shared/ManualEntryView.qml">qml/shared/ManualEntryView.qml</file>
         <file alias="qml/shared/StatsView.qml">qml/shared/StatsView.qml</file>
         <file alias="qml/shared/FilmDayView.qml">qml/shared/FilmDayView.qml</file>
+        <file alias="qml/shared/TripSheet.qml">qml/shared/TripSheet.qml</file>
+        <file alias="qml/shared/TripSuggestionList.qml">qml/shared/TripSuggestionList.qml</file>
         <file alias="qml/shared/DaySparkline.qml">qml/shared/DaySparkline.qml</file>
         <file alias="contents/code/platform.js">../contents/code/platform.js</file>
         <file alias="contents/code/sharedConfig.js">../contents/code/sharedConfig.js</file>
@@ -45,6 +49,7 @@
         <file alias="contents/code/kimaiApi.js">../contents/code/kimaiApi.js</file>
         <file alias="contents/code/filmDays.js">../contents/code/filmDays.js</file>
         <file alias="contents/code/filmDaySync.js">../contents/code/filmDaySync.js</file>
+        <file alias="contents/code/mileage.js">../contents/code/mileage.js</file>
         <file alias="contents/code/profiles.js">../contents/code/profiles.js</file>
         <file alias="contents/code/favorites.js">../contents/code/favorites.js</file>
         <file alias="contents/code/colorDistinct.js">../contents/code/colorDistinct.js</file>

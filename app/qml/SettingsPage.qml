@@ -109,6 +109,13 @@ Kirigami.Page {
                 }
 
                 WrapCheckBox {
+                    Kirigami.FormData.label: i18n("Trips:")
+                    text: i18n("Log trips and show detected trips (Anfahrten plugin)")
+                    checked: root.showTrips
+                    onToggled: { root.showTrips = checked; page.saveSetting("showTrips", checked); root.resolveMileage(false) }
+                }
+
+                WrapCheckBox {
                     Kirigami.FormData.label: i18n("Confirmations:")
                     text: i18n("Confirm before stopping tracking")
                     checked: root.confirmBeforeStop

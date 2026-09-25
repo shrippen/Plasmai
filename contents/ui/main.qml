@@ -22,6 +22,8 @@ import "../code/buildInfo.js" as BuildInfo
 import "../code/timesheetFields.js" as TimesheetFields
 import "../code/filmDays.js" as FilmDays
 import "../code/filmDaySync.js" as FilmDaySync
+import "../code/mileage.js" as Mileage
+import "../code/statsData.js" as StatsData
 import "../code/providerUtil.js" as ProviderUtil
 import "."
 
@@ -52,7 +54,7 @@ PlasmoidItem {
     property string apiToken: ""
     property bool tokenLoaded: false
     property bool isConfigured: apiToken.length > 0 && (!providerMeta.needsUrl || kimaiUrl.length > 0)
-    property string mainViewMode: "main"  // main | manual | stats | filmday
+    property string mainViewMode: "main"  // main | manual | stats | filmday | trip
     /** Inline editor for the running timesheet (start / project / activity). */
     property bool editingActiveEntry: false
     /** Stopped Recent timesheet currently in the Add-entry form (null = new entry). */
@@ -183,6 +185,24 @@ PlasmoidItem {
     property bool filmDayMigrating: false
     readonly property var filmDaysPendingMap: FilmDaySync.parsePending(plasmoid.configuration.filmDaysPending)
     readonly property var pluginProbeCache: KimaiApi.parsePluginCache(plasmoid.configuration.pluginProbesJson)
+    // ── Trips (kimai-anfahrten / MileageBundle), see mileage.js ──
+    /** KimaiApi.PluginState of /api/mileage/ping for the active profile. */
+    property string mileageState: KimaiApi.PluginState.UNKNOWN
+    property var mileagePing: null
+    property var mileageMeta: null
+    property var mileageVehicles: []
+    /** Open trip suggestions (Dawarich), shown above Recent. */
+    property var tripSuggestions: []
+    property double tripSuggestionsLoadedAt: 0
+    property bool tripBusy: false
+    /** Suggestion being edited in the trip sheet before accepting it, or null. */
+    property var tripSheetSuggestion: null
+    /** Trips of this week and month for the statistics (null = not loaded / no plugin). */
+    property var statsTrips: null
+    readonly property bool mileageAvailable: isConfigured && providerCapabilities.mileage
+        && plasmoid.configuration.showTrips !== false
+        && mileageState === KimaiApi.PluginState.PRESENT && KimaiApi.mileageCanView(mileagePing)
+    readonly property bool canEditTrips: mileageAvailable && Mileage.can(mileagePing, "editOwn")
     readonly property string filmDayProfileKey: FilmDaySync.profileKey(activeProfile ? activeProfile.id : "", kimaiUrl)
     readonly property string workDayBegin: {
         var v = plasmoid.configuration.workDayBegin
@@ -932,6 +952,7 @@ PlasmoidItem {
         }
         mainViewMode = "stats"
         refreshWorkTotals()
+        loadStatsTrips()
         // Prefetch a few weeks so day/week switchers work immediately.
         var now = new Date()
         var begin = KimaiApi.startOfWeekMonday(now)
@@ -987,6 +1008,7 @@ PlasmoidItem {
         mainViewMode = "main"
         editingStoppedTimesheet = null
         filmDayTimesheet = null
+        tripSheetSuggestion = null
         dismissPickerPopups()
     }
 
@@ -1287,6 +1309,229 @@ PlasmoidItem {
         })
     }
 
+    // ── Trips (kimai-anfahrten) ──────────────────────────────────────────
+
+    /** Probe the plugin (cached 24 h per profile in pluginProbesJson), then load /meta and vehicles once. */
+    function resolveMileage(force, callback) {
+        if (!isConfigured || !providerCapabilities.mileage || plasmoid.configuration.showTrips === false) {
+            mileageState = KimaiApi.PluginState.UNKNOWN
+            mileagePing = null
+            if (callback) callback()
+            return
+        }
+        var profileId = activeProfile ? activeProfile.id : ""
+        var key = KimaiApi.pluginCacheKey(profileId, kimaiUrl, KimaiApi.MILEAGE_PLUGIN)
+        KimaiApi.detectMileage(kimaiUrl, apiToken, { cache: pluginProbeCache, key: key, force: !!force }, function(det) {
+            mileageState = det.state
+            mileagePing = det.data || null
+            if (det.cacheEntry) {
+                persistFilmDayKeys({ pluginProbesJson: JSON.stringify(KimaiApi.storePluginCache(pluginProbeCache, key, det.cacheEntry)) })
+            }
+            if (mileageAvailable && !mileageMeta) {
+                KimaiApi.fetchMileageMeta(kimaiUrl, apiToken, function(r) {
+                    if (r.ok) mileageMeta = r.data
+                })
+                KimaiApi.fetchVehicles(kimaiUrl, apiToken, function(r) {
+                    if (r.ok) mileageVehicles = r.data
+                })
+            }
+            if (callback) callback()
+        })
+    }
+
+    function resetMileageState() {
+        mileageState = KimaiApi.PluginState.UNKNOWN
+        mileagePing = null
+        mileageMeta = null
+        mileageVehicles = []
+        tripSuggestions = []
+        tripSuggestionsLoadedAt = 0
+        statsTrips = null
+    }
+
+    /** Open suggestions of the last 14 days, at most every 10 minutes unless forced (A5, lazy). */
+    function loadTripSuggestions(force) {
+        if (!canEditTrips || !Mileage.profileOf(mileagePing).dawarichConfigured) {
+            tripSuggestions = []
+            return
+        }
+        if (!force && Date.now() - tripSuggestionsLoadedAt < 10 * 60 * 1000) {
+            return
+        }
+        tripSuggestionsLoadedAt = Date.now()
+        var range = null
+        if (Mileage.hasFeature(mileagePing, "dateRange")) {
+            var from = new Date()
+            from.setDate(from.getDate() - 14)
+            range = { from: Mileage.dateString(from), to: Mileage.dateString(new Date()) }
+        }
+        KimaiApi.fetchTripSuggestions(kimaiUrl, apiToken, range, function(r) {
+            if (r.ok) {
+                tripSuggestions = r.data
+            }
+        })
+    }
+
+    function refreshMileage() {
+        resolveMileage(false, function() {
+            if (root.expanded) {
+                loadTripSuggestions(false)
+            }
+        })
+    }
+
+    function timesheetSummaryText(ts) {
+        if (!ts) {
+            return ""
+        }
+        var bits = [KimaiApi.displayProjectName(ts, root.projects),
+                    KimaiApi.displayActivityName(ts, root.allActivities, root.activitiesByProject)]
+        var begin = new Date(String(ts.begin || ""))
+        if (!isNaN(begin.getTime())) {
+            bits.push(begin.toLocaleDateString(Qt.locale(), Locale.ShortFormat) + " "
+                      + begin.toLocaleTimeString(Qt.locale(), Locale.ShortFormat))
+        }
+        return bits.filter(function(b) { return !!b }).join(" · ")
+    }
+
+    /** Show the trip sheet (mainViewMode "trip"). */
+    function openTripSheet(form, original, linkedText, suggestion) {
+        if (!mileageAvailable) {
+            return
+        }
+        editingActiveEntry = false
+        editingStoppedTimesheet = null
+        tripSheetSuggestion = suggestion || null
+        mainViewMode = "trip"
+        tripSheet.load(form, original || null, linkedText || "", !!suggestion)
+    }
+
+    function openNewTrip() {
+        openTripSheet(Mileage.emptyForm(mileagePing, Mileage.dateString(new Date())), null, "")
+    }
+
+    /** A3: trip linked to a Kimai entry (Recent row or the running entry). */
+    function openTripForTimesheet(ts) {
+        if (!ts) {
+            return
+        }
+        openTripSheet(Mileage.formForTimesheet(mileagePing, ts, KimaiApi.projectId), null, timesheetSummaryText(ts))
+    }
+
+    function tripSaved(message) {
+        tripBusy = false
+        tripSheetSuggestion = null
+        returnToMainView()
+        if (message) {
+            sendNotification(i18n("Trip saved"), message)
+        }
+        statsTrips = null
+        loadTripSuggestions(true)
+    }
+
+    function tripFailed(error) {
+        tripBusy = false
+        tripSheet.serverErrors = (error && error.fields) ? error.fields : ({})
+        tripSheet.errorText = (error && error.detail) ? error.detail : ApiErrors.text(error)
+    }
+
+    function saveTrip(body, tripId, form) {
+        if (!canEditTrips || tripBusy) {
+            return
+        }
+        tripBusy = true
+        if (tripSheetSuggestion) {
+            var sg = tripSheetSuggestion
+            KimaiApi.acceptTripSuggestion(kimaiUrl, apiToken, sg.id, Mileage.acceptBodyFromForm(mileagePing, form, sg), function(r) {
+                if (r.ok) {
+                    tripSaved(i18n("%1 km", Mileage.formatKm(Mileage.tripKm(r.data))))
+                } else {
+                    tripFailed(r.error)
+                }
+            })
+            return
+        }
+        if (tripId !== null && tripId !== undefined) {
+            if (Mileage.isEmptyBody(body)) {
+                tripSaved("")
+                return
+            }
+            KimaiApi.patchTrip(kimaiUrl, apiToken, tripId, body, function(r) {
+                if (r.ok) tripSaved(i18n("%1 km", Mileage.formatKm(Mileage.tripKm(r.data))))
+                else tripFailed(r.error)
+            })
+            return
+        }
+        KimaiApi.createTrip(kimaiUrl, apiToken, body, function(r) {
+            if (r.ok) tripSaved(i18n("%1 km", Mileage.formatKm(Mileage.tripKm(r.data))))
+            else tripFailed(r.error)
+        })
+    }
+
+    function deleteTrip(tripId) {
+        if (!mileageAvailable || tripBusy) {
+            return
+        }
+        tripBusy = true
+        KimaiApi.deleteTrip(kimaiUrl, apiToken, tripId, function(r) {
+            if (r.ok) {
+                tripSaved("")
+            } else {
+                tripFailed(r.error)
+            }
+        })
+    }
+
+    function removeSuggestion(sg) {
+        tripSuggestions = tripSuggestions.filter(function(x) { return x.id !== sg.id })
+    }
+
+    /** A5: accept a detected trip as suggested. */
+    function acceptTripSuggestion(sg) {
+        if (!canEditTrips || tripBusy || !sg) {
+            return
+        }
+        tripBusy = true
+        KimaiApi.acceptTripSuggestion(kimaiUrl, apiToken, sg.id, {}, function(r) {
+            tripBusy = false
+            if (r.ok || (r.error && r.error.status === 409)) {
+                // 409: accepted or dismissed elsewhere meanwhile.
+                removeSuggestion(sg)
+                statsTrips = null
+            } else {
+                userMessage = i18n("The trip could not be accepted: %1", (r.error && r.error.detail) || ApiErrors.text(r.error))
+            }
+        })
+    }
+
+    function dismissTripSuggestion(sg) {
+        if (!canEditTrips || tripBusy || !sg) {
+            return
+        }
+        tripBusy = true
+        KimaiApi.dismissTripSuggestion(kimaiUrl, apiToken, sg.id, function(r) {
+            tripBusy = false
+            if (r.ok) {
+                removeSuggestion(sg)
+            } else {
+                userMessage = i18n("The trip could not be dismissed: %1", (r.error && r.error.detail) || ApiErrors.text(r.error))
+            }
+        })
+    }
+
+    /** A6: trips of this week and month for the statistics summary. */
+    function loadStatsTrips() {
+        if (!mileageAvailable) {
+            statsTrips = null
+            return
+        }
+        var now = new Date()
+        var range = Mileage.hasFeature(mileagePing, "dateRange") ? StatsData.tripRangeFor(now) : { year: now.getFullYear() }
+        KimaiApi.fetchTrips(kimaiUrl, apiToken, range, function(r) {
+            statsTrips = r.ok ? r.data : null
+        })
+    }
+
     function createManualEntry(projectId, activityId, beginText, endText, description, billable, tags) {
         if (!isConfigured || isBusy) {
             return
@@ -1473,6 +1718,7 @@ PlasmoidItem {
     }
 
     function resetTrackingState() {
+        resetMileageState()
         isTracking = false
         editingActiveEntry = false
         editingStoppedTimesheet = null
@@ -2158,6 +2404,7 @@ PlasmoidItem {
         refreshRecentTimesheets(!!quiet)
         refreshProjects(!!quiet, !!forceCatalog)
         refreshWorkTotals()
+        refreshMileage()
     }
 
     function loadActivitiesForProject(projectId) {
@@ -3149,9 +3396,10 @@ PlasmoidItem {
                             level: 3
                             text: root.mainViewMode === "stats" ? i18n("Statistics")
                                   : (root.mainViewMode === "filmday" ? i18n("Film day")
+                                  : (root.mainViewMode === "trip" ? i18n("Trip")
                                   : (root.mainViewMode === "manual"
                                      ? (root.editingStoppedTimesheet ? i18n("Edit entry") : i18n("Add entry"))
-                                      : (BuildInfo.BUILD > 0 ? (i18n("Plasmai") + " #" + BuildInfo.BUILD) : i18n("Plasmai"))))
+                                      : (BuildInfo.BUILD > 0 ? (i18n("Plasmai") + " #" + BuildInfo.BUILD) : i18n("Plasmai")))))
                         }
 
                         RowLayout {
@@ -3229,8 +3477,22 @@ PlasmoidItem {
                         }
 
                         PlasmaComponents3.ToolButton {
+                            visible: root.isConfigured && root.mainViewMode === "main" && root.canEditTrips
+                            icon.name: "mark-location"
+                            text: i18n("Log trip")
+                            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+                            display: TouchUi.active ? QQC2.AbstractButton.TextBesideIcon
+                                                    : QQC2.AbstractButton.IconOnly
+                            enabled: !root.isBusy && !root.tripBusy && root.connectionState !== "error"
+                            onClicked: root.openNewTrip()
+                            PlasmaComponents3.ToolTip.text: i18n("Log a trip (Anfahrten plugin)")
+                            PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
+                            PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
+                        }
+
+                        PlasmaComponents3.ToolButton {
                             visible: root.mainViewMode === "manual" || root.mainViewMode === "stats"
-                                     || root.mainViewMode === "filmday"
+                                     || root.mainViewMode === "filmday" || root.mainViewMode === "trip"
                             icon.name: "go-previous"
                             text: i18n("Back")
                             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
@@ -3350,6 +3612,7 @@ PlasmoidItem {
                     workDayBegin: root.workDayBegin
                     workDayEnd: root.workDayEnd
                     supportsBillableFilter: root.providerCapabilities.billableFilter
+                    tripSummary: root.statsTrips ? StatsData.tripKmSummary(root.statsTrips, new Date()) : null
                     onBackRequested: root.returnToMainView()
                     onNeedMoreHistory: function(rangeBegin, rangeEnd) {
                         root.loadStatsRange(rangeBegin, rangeEnd)
@@ -3397,6 +3660,25 @@ PlasmoidItem {
                         filmDayView.migrationCount = 0
                         filmDayView.migrationReport = ""
                     }
+                }
+
+                TripSheet {
+                    id: tripSheet
+                    Layout.fillWidth: true
+                    visible: root.mainViewMode === "trip" && root.mileageAvailable
+                    busy: root.isBusy || root.tripBusy
+                    configured: root.isConfigured
+                    connectionOk: root.connectionState !== "error"
+                    ping: root.mileagePing
+                    meta: root.mileageMeta
+                    vehicles: root.mileageVehicles
+                    onSaveRequested: function(body, tripId, form) {
+                        root.saveTrip(body, tripId, form)
+                    }
+                    onDeleteRequested: function(tripId) {
+                        root.deleteTrip(tripId)
+                    }
+                    onCancelled: root.returnToMainView()
                 }
 
                 ColumnLayout {
@@ -3473,6 +3755,21 @@ PlasmoidItem {
                                 }
 
                                 Item { Layout.fillWidth: true }
+
+                                PlasmaComponents3.ToolButton {
+                                    id: tripHeaderButton
+                                    visible: root.canEditTrips && !!root.activeTimesheet
+                                    enabled: !root.isBusy && !root.tripBusy
+                                    text: i18n("Log trip")
+                                    icon.name: "mark-location"
+                                    display: QQC2.AbstractButton.IconOnly
+                                    onClicked: root.openTripForTimesheet(root.activeTimesheet)
+                                    PlasmaComponents3.ToolTip.text: i18n("Log a trip for this entry")
+                                    PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
+                                    PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
+                                    onWidthChanged: daySparkline.scheduleHeaderCutouts()
+                                    onHeightChanged: daySparkline.scheduleHeaderCutouts()
+                                }
 
                                 PlasmaComponents3.ToolButton {
                                     id: editHeaderButton
@@ -3967,6 +4264,28 @@ PlasmoidItem {
                     font.pointSize: Kirigami.Theme.smallFont.pointSize
                 }
 
+                // —— Detected trips (kimai-anfahrten, A5) ——
+                PlasmaExtras.Heading {
+                    Layout.fillWidth: true
+                    level: 4
+                    visible: root.canEditTrips && root.tripSuggestions.length > 0
+                    text: i18n("Detected trips")
+                }
+                TripSuggestionList {
+                    Layout.fillWidth: true
+                    visible: root.canEditTrips && root.tripSuggestions.length > 0
+                    suggestions: root.tripSuggestions
+                    maxRows: root.compactPopupLayout ? 2 : 3
+                    busy: root.isBusy || root.tripBusy
+                    canEdit: root.canEditTrips
+                    meta: root.mileageMeta
+                    onAcceptRequested: function(sg) { root.acceptTripSuggestion(sg) }
+                    onDismissRequested: function(sg) { root.dismissTripSuggestion(sg) }
+                    onEditRequested: function(sg) {
+                        root.openTripSheet(Mileage.formFromSuggestion(root.mileagePing, sg), null, "", sg)
+                    }
+                }
+
                 // —— Recent ——
                 PlasmaExtras.Heading {
                     Layout.fillWidth: true
@@ -4025,6 +4344,8 @@ PlasmoidItem {
                             canSplitEntry: root.providerCapabilities.editStopped
                                            && !!(root.recentTimesheets[index] && root.recentTimesheets[index].end)
                             canPin: true
+                            canLogTrip: root.canEditTrips
+                            onTripRequested: root.openTripForTimesheet(root.recentTimesheets[index])
                             isPinned: Favorites.isPinned(plasmoid.configuration.pinnedActivities, KimaiApi.projectId(root.recentTimesheets[index]), KimaiApi.activityId(root.recentTimesheets[index]))
                             onRowActivated: root.requestRestartFromRecent(root.recentTimesheets[index])
                             onEditRequested: root.openStoppedEdit(root.recentTimesheets[index])

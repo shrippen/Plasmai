@@ -116,22 +116,22 @@ Reine Funktionen in `filmDays.js`: `toApiPatch(local, serverOrNull)` (liefert nu
 - **P7 S ✅** Rechte: D3 auswerten, 403 → `noPermission`. Braucht D3 bzw. läuft ohne D3 über 403.
 
 ### Plasmai – Anfahrten (2.0-Struktur)
-- **A1 M** `kimaiApi.js`: `detectMileage` (`/meta` 200/403), `fetchMileageMeta`, `fetchTrips`, `createTrip`/`patchTrip` (mit `timesheet`), `fetchVehicles`, `fetchSuggestions`, `accept`/`dismiss`. Braucht G2.
-- **A2 M** `contents/ui/TripSheet.qml` plus Kopie `app/qml/shared/TripSheet.qml`: km, Zweck, Fahrzeug, Ziel, Hin/Rück, verknüpft mit einem Timesheet (M1).
-- **A3 S Desktop:** Overflow-Eintrag „Fahrt erfassen“ in `contents/ui/ActivityListRow.qml` (Recents) und am laufenden Eintrag. `mainViewMode: "trip"` in `contents/ui/main.qml`.
-- **A4 M Mobile:**
+- **A1 M ✅** `kimaiApi.js`: `detectMileage` (`/meta` 200/403), `fetchMileageMeta`, `fetchTrips`, `createTrip`/`patchTrip` (mit `timesheet`), `fetchVehicles`, `fetchSuggestions`, `accept`/`dismiss`. Braucht G2.
+- **A2 M ✅** `contents/ui/TripSheet.qml` plus Kopie `app/qml/shared/TripSheet.qml`: km, Zweck, Fahrzeug, Ziel, Hin/Rück, verknüpft mit einem Timesheet (M1).
+- **A3 S ✅ Desktop:** Overflow-Eintrag „Fahrt erfassen“ in `contents/ui/ActivityListRow.qml` (Recents) und am laufenden Eintrag. `mainViewMode: "trip"` in `contents/ui/main.qml`.
+- **A4 M ✅ Mobile:**
   - Neue Seite `app/qml/TripsPage.qml` (Monatsliste, Vorschläge, Aktion „Fahrt erfassen“, „Arbeitsweg heute“).
   - Drawer-Eintrag und Component in `app/qml/main.qml`.
   - Zeilenmenü in `app/qml/shared/ActivityListRow.qml` → öffnet TripSheet vorbelegt.
   - In `FilmDayPage` bei `dayType = travel` nach dem Speichern „Anfahrt erfassen“ anbieten.
   - Die Dawarich-Vorschläge gehören primär hierher.
-- **A5 S** Vorschläge-Zeile auf dem Desktop (`contents/ui/main.qml`), lazy geladen, per Schalter abschaltbar.
-- **A6 S** km-Kachel in `contents/code/statsData.js` sowie `contents/ui/StatsView.qml` und `app/qml/shared/StatsView.qml`.
+- **A5 S ✅** Vorschläge-Zeile auf dem Desktop (`contents/ui/main.qml`), lazy geladen, per Schalter abschaltbar.
+- **A6 S ✅** km-Kachel in `contents/code/statsData.js` sowie `contents/ui/StatsView.qml` und `app/qml/shared/StatsView.qml`.
 
 ### Gemeinsam
 - **G1 S ✅** `timeTracker.js`: Capabilities `drehzettelApi` und `mileage` (Kimai-only), `filmDays` bleibt. DESIGN.md-Liste ergänzen.
 - **G2 S ✅** `kimaiApi.js`: generischer `detectPlugin(url, token, path)` mit Profil-Cache. Einmal auch in `app/qml/main.qml` aufrufen, die App hat heute keine Probe.
-- **G3 S** Schalter „Anfahrten anzeigen“: Plasmoid über `contents/config/main.xml` + `ConfigDisplay.qml`, App über `app/qml/SettingsPage.qml`. Keys für beide in `contents/code/sharedConfig.js` (Liste Z. 44) aufnehmen, ebenso `filmDaysPending`, `filmDaysConflicts` und `drehzettelModeByProfile`.
+- **G3 S ✅ (Anfahrten)** Schalter „Anfahrten anzeigen“: Plasmoid über `contents/config/main.xml` + `ConfigDisplay.qml`, App über `app/qml/SettingsPage.qml`. Keys für beide in `contents/code/sharedConfig.js` (Liste Z. 44) aufnehmen, ebenso `filmDaysPending`, `filmDaysConflicts` und `drehzettelModeByProfile`.
 - **G4 S** i18n: `translate/extract.sh`, `fill_po.py`, App-Strings in `translate/langs/app_strings.py`, `po2json.py` für Android.
 - **G5 M** Tests: `tst_filmDays.qml`, `tst_kimaiApi.qml`, `tst_statsData.qml`, Viewer-Test ohne Plugins. Keine Live-Schreibtests.
 - **G6 S** Doku:
@@ -149,6 +149,13 @@ Reine Funktionen in `filmDays.js`: `toApiPatch(local, serverOrNull)` (liefert nu
 - P6 teilweise: Planer, Runner (`FilmDaySync.migrate`) und eine Inline-Bestätigung in der FilmDayView (beide UIs) mit Bericht. Konflikte bleiben lokal unangetastet und bekommen `migrated[profileKey].result = "conflict"`; eine Konfliktansicht mit „lokal übernehmen“ und `filmDaysConflicts` fehlt noch. Einträge ohne Engagement werden nicht erneut angeboten.
 - Getestet: Unit-Tests (`tst_filmDays`, `tst_kimaiRequests`, `tst_filmDaySync`) und Live-Replay der JS-Funktionen gegen Kimai 2.67 + Drehzettel (admin: Server-Modus, Speichern, nur geänderte Keys, 400, Warteschlange, Migration; user1: kein Engagement). Die QML-Views sind nur per qmllint geprüft, nicht gerendert.
 - §6: B3, B8, B9 erledigt (`claude/filmday-b3-b8-b9`).
+
+**Stand Anfahrten (`claude/anfahrten-mileage`):**
+- A1–A6 umgesetzt gegen `kimai-anfahrten@main` (Plugin 0.9.0, `/api/mileage`, Features `tripTimesheet`, `dateRange`, `acceptFields`, `commuteCheck`). Erkennung über `GET /api/mileage/ping` (404 = fehlt, `permissions.view`), Cache 24 h in `pluginProbesJson` (Schlüssel `profil|url|mileage`).
+- Logik in `contents/code/mileage.js` (Formular, Bodies, Validierung, Summen), Requests in `kimaiApi.js`. UI: `TripSheet.qml` und `TripSuggestionList.qml` (beide UIs), Plasmoid `mainViewMode: "trip"`, Header-Button, Button am laufenden Eintrag, Recent-Menü, Vorschläge über „Recent“; App: `TripsPage` (Drawer „Trips“), `TripEditPage`, Recent-Menü, Button am laufenden Eintrag, Angebot nach Reisetag in `FilmDayPage`. Statistik: km Woche/Monat.
+- G3 nur für Anfahrten: Schalter `showTrips` (shared, Plasmoid Anzeige-Seite, App Einstellungen). `filmDaysPending`/`pluginProbesJson` waren schon in `SHARED_KEYS`; `filmDaysConflicts` gibt es nicht (P6 speichert Konflikte in `migrated`).
+- Nicht umgesetzt: Steuerbericht (`/tax`), Belege, Vorschläge auf dem Desktop nur mit Dawarich im Profil. Plasmoid bietet nach einem Reisetag keine Fahrt an (nur die App).
+- Getestet: Unit-Tests (`tst_mileage.qml`, Mileage-Teil in `tst_kimaiRequests.qml`), Live-Replay gegen Kimai 2.67 + MileageBundle als user2 (anlegen mit Zeiteintrag, leerer PATCH bei unverändertem Formular, PATCH nur Distanz, Zeitraum-Abfrage, 400 für Pendelfahrt ohne Profil-Distanz, fremder Zeiteintrag, löschen). UI nicht gerendert.
 
 **Reihenfolge:** P2 und D-Punkte parallel → G1/G2 → P1 → P3 → P4/P5/P7 → P6. Danach A1 → A2 → A4 (mobil zuerst) → A3/A5/A6.
 
