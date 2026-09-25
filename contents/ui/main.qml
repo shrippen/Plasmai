@@ -1003,9 +1003,11 @@ PlasmoidItem {
         // Load only once the mode is known, so a cached "server" day never
         // flashes local values first.
         loadingFilmDay = true
-        resolveFilmDayMode(false, function() {
-            flushFilmDayPending()
-            loadFilmDayForDate(filmDaySelectedDate)
+        reloadFilmDayData(function() {
+            resolveFilmDayMode(false, function() {
+                flushFilmDayPending()
+                loadFilmDayForDate(filmDaySelectedDate)
+            })
         })
     }
 
@@ -1015,11 +1017,43 @@ PlasmoidItem {
         loadFilmDayForDate(next)
     }
 
+    /**
+     * Write film-day data maps (filmDaysJson, filmDaysPending,
+     * pluginProbesJson). They are merged onto shared.json key by key, so
+     * days the app saved meanwhile are kept (B9); the merged result becomes
+     * the in-memory value unless it changed again in between.
+     */
     function persistFilmDayKeys(patch) {
-        for (var key in patch) {
+        var bases = {}
+        var key
+        for (key in patch) {
+            bases[key] = plasmoid.configuration[key]
             plasmoid.configuration[key] = patch[key]
         }
-        Secret.persistSharedPatch(execSource, sharedConfigScript, plasmoid.configuration, patch)
+        Platform.patchShared(execSource, plasmoid.configuration, patch, bases).then(function(written) {
+            for (var k in written) {
+                if (plasmoid.configuration[k] === patch[k] && written[k] !== patch[k]) {
+                    plasmoid.configuration[k] = written[k]
+                }
+            }
+        }, function(err) {
+            console.warn("Plasmai: could not save film day data:", err)
+        })
+    }
+
+    /** Re-read the film-day data maps from shared.json (the app may have written them). */
+    function reloadFilmDayData(callback) {
+        Secret.loadSharedConfig(execSource, sharedConfigScript, function(shared) {
+            if (shared) {
+                for (var i = 0; i < SharedConfig.DATA_MAP_KEYS.length; i++) {
+                    var k = SharedConfig.DATA_MAP_KEYS[i]
+                    if (typeof shared[k] === "string" && plasmoid.configuration[k] !== shared[k]) {
+                        plasmoid.configuration[k] = shared[k]
+                    }
+                }
+            }
+            if (callback) callback()
+        })
     }
 
     /** Context for filmDaySync.js calls; maps are the current shared.json values. */
@@ -1119,6 +1153,7 @@ PlasmoidItem {
                 var match = FilmDays.pickDayEntry(entries, selectedProjectIdForDay, KimaiApi.projectId)
                 var dateStr = KimaiApi.localDateString(date)
                 var entryProjectId = match ? KimaiApi.projectId(match) : selectedProjectIdForDay
+                var others = FilmDays.otherDayEntries(entries, match, entryProjectId, KimaiApi.projectId)
                 // P5: the engagement is checked per project + day (film-day GET answers 404 without one).
                 FilmDaySync.loadDay(root.filmDayContext(), entryProjectId, dateStr, function(day) {
                     if (serial !== filmDayLoadSerial) {
@@ -1135,7 +1170,7 @@ PlasmoidItem {
                     }
                     filmDayView.applyLoadedDay(date, match, day,
                         KimaiApi.customerCurrencyOfProject(root.projectOfId(entryProjectId), root.customers),
-                        root.filmDayMigrationCount())
+                        root.filmDayMigrationCount(), others)
                 })
             })
     }
@@ -1189,6 +1224,8 @@ PlasmoidItem {
         var dateStr = KimaiApi.localDateString(root.filmDaySelectedDate)
         var view = (typeof filmDayView !== "undefined" && filmDayView) ? filmDayView : null
         var breakMinutes = (view && view.extrasVisible) ? view.effectiveBreakMinutes : 0
+        // B3: the other entries of the project on this day, deleted after a successful save.
+        var mergeIds = (view && view.mergeOthers) ? view.otherEntryIds() : []
         FilmDaySync.saveDay(filmDayContext(), {
             projectId: projectId,
             dateStr: dateStr,
@@ -1218,19 +1255,35 @@ PlasmoidItem {
             if (Object.keys(patch).length > 0) {
                 persistFilmDayKeys(patch)
             }
-            if (result.extras === "queued") {
-                userMessage = i18n("Begin and end were saved. The film day extras could not be sent and will be retried.")
-            } else if (result.extras === "rejected") {
-                userMessage = i18n("Begin and end were saved, but the server rejected the film day extras: %1",
-                                   (result.error && result.error.detail) || ApiErrors.text(result.error))
+            function finish(deleteReport) {
+                var messages = []
+                if (result.extras === "queued") {
+                    messages.push(i18n("Begin and end were saved. The film day extras could not be sent and will be retried."))
+                } else if (result.extras === "rejected") {
+                    messages.push(i18n("Begin and end were saved, but the server rejected the film day extras: %1",
+                                       (result.error && result.error.detail) || ApiErrors.text(result.error)))
+                }
+                if (deleteReport && deleteReport.failed.length > 0) {
+                    messages.push(i18np("%1 other entry of this day could not be deleted: %2",
+                                        "%1 other entries of this day could not be deleted: %2",
+                                        deleteReport.failed.length, ApiErrors.text(deleteReport.failed[0].error)))
+                }
+                if (messages.length > 0) {
+                    userMessage = messages.join(" ")
+                }
+                refreshRecentTimesheets()
+                refreshWorkTotals()
+                sendNotification(
+                    i18n("Shooting day saved"),
+                    KimaiApi.formatDuration(FilmDays.workSecondsFromSpan(
+                        beginDate.getTime(), endDate.getTime(), breakMinutes)))
+                loadFilmDayForDate(root.filmDaySelectedDate)
             }
-            refreshRecentTimesheets()
-            refreshWorkTotals()
-            sendNotification(
-                i18n("Shooting day saved"),
-                KimaiApi.formatDuration(FilmDays.workSecondsFromSpan(
-                    beginDate.getTime(), endDate.getTime(), breakMinutes)))
-            loadFilmDayForDate(root.filmDaySelectedDate)
+            if (mergeIds.length > 0) {
+                FilmDaySync.deleteEntries(filmDayContext(), mergeIds, finish)
+            } else {
+                finish(null)
+            }
         })
     }
 
@@ -1342,7 +1395,9 @@ PlasmoidItem {
         // This instance's configuration wins (used after a configure session).
         Platform.patchShared(
             execSource, plasmoid.configuration,
-            SharedConfig.fromConfiguration(plasmoid.configuration)
+            // Film-day data maps are written on their own (merged, B9); a
+            // stale copy here would drop what the app saved meanwhile.
+            SharedConfig.fromConfiguration(plasmoid.configuration, { withoutDataMaps: true })
         ).then(function() {
             if (callback) { callback() }
         })

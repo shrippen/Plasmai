@@ -237,7 +237,10 @@ typography stack, badge format, and social-preview spec.
   distinction and Maintenance, no parallel UI on other providers).
 - One shooting day = one Kimai timesheet entry for that calendar day (begin/end,
   created or patched like Add entry; only a stopped entry of the picked project is
-  reused). The film-specific extras — break, catering, day category, day type,
+  reused). If the project has more stopped entries that day, the view says so
+  (their total time) and offers "Merge into one entry": begin/end stretch over
+  all of them, and after a successful save the other entries are deleted
+  (`FilmDaySync.deleteEntries`; failures are reported, never retried silently). The film-specific extras — break, catering, day category, day type,
   production shooting day, surcharge day, extra pay, note — belong to
   [kimai-drehzettel-bundle](https://github.com/shrippen/kimai-drehzettel-bundle).
 - **Storage follows the plugin** (`filmDaySync.js`, shared by Plasmoid and app so
@@ -246,7 +249,10 @@ typography stack, badge format, and social-preview spec.
     truth; the view loads `GET /v1/film-days/{date}?project=` and never keeps a
     second local copy.
   - `ping` 404 (or no `v1`) → **local mode**: extras in `shared.json`
-    (`filmDaysJson`, keyed `projectId|date`), with an inline hint saying so.
+    (`filmDaysJson`, keyed `profileId|url|projectId|date`, see
+    `FilmDays.scopedDayKey`), with an inline hint saying so. Older keys
+    (`projectId|date`) are still read as a fallback for any profile but
+    never written; saving writes the profile's own key and leaves the old one.
   - Film-day GET 404 (`no_engagement`) → extras hidden, "only begin and end are
     saved". Missing `drehzettel` permission (`ping.permissions.view` false or 403)
     → same, with a permission hint. No local fallback in either case.
@@ -277,6 +283,14 @@ typography stack, badge format, and social-preview spec.
   one by one — server empty → PUT, equal → done, different → server wins and the
   local entry stays untouched, 404 → stays local. Each entry records
   `migrated[profileKey]`; nothing is deleted, so a rollback stays possible.
+- **Shared data maps** (`filmDaysJson`, `filmDaysPending`, `pluginProbesJson`,
+  `SharedConfig.DATA_MAP_KEYS`) are written by the Plasmoid and the app. Never
+  write them as a whole from memory: `Platform.patchShared(…, patch, bases)`
+  three-way merges each top-level key onto the file as loaded just now
+  (`SharedConfig.mergeMapJson`), writes are queued one at a time per process,
+  both UIs reload the maps when the film day view opens, and the Plasmoid's
+  settings-wide write (`fromConfiguration(…, { withoutDataMaps: true })`)
+  leaves them out.
 - Same-day begin/end only (no overnight span across midnight), matching the
   reference Android app's day screen.
 

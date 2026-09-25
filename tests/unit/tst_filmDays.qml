@@ -9,6 +9,51 @@ TestCase {
         compare(FilmDays.dayKey(12, "2026-09-23"), "12|2026-09-23")
     }
 
+    function test_scopedKeyAndParse() {
+        compare(FilmDays.scopedDayKey("p1|https://k", 12, "2026-09-23"), "p1|https://k|12|2026-09-23")
+        var scoped = FilmDays.parseDayKey("p1|https://k|12|2026-09-23")
+        verify(!scoped.legacy)
+        compare(scoped.profileKey, "p1|https://k")
+        compare(scoped.projectId, "12")
+        compare(scoped.date, "2026-09-23")
+        var legacy = FilmDays.parseDayKey("12|2026-09-23")
+        verify(legacy.legacy)
+        compare(legacy.profileKey, null)
+        compare(legacy.projectId, "12")
+    }
+
+    function test_scopedGetFallsBackToLegacy() {
+        var legacy = FilmDays.entryDefaults()
+        legacy.note = "legacy"
+        var map = FilmDays.set({}, 12, "2026-09-23", legacy)
+        compare(FilmDays.get(map, 12, "2026-09-23", "a|http://k").note, "legacy")
+        var own = FilmDays.entryDefaults()
+        own.note = "a"
+        map = FilmDays.set(map, 12, "2026-09-23", own, "a|http://k")
+        compare(FilmDays.get(map, 12, "2026-09-23", "a|http://k").note, "a")
+        compare(FilmDays.get(map, 12, "2026-09-23", "b|http://x").note, "legacy")
+        compare(FilmDays.get(map, 12, "2026-09-23").note, "legacy")
+        compare(Object.keys(map).length, 2)
+    }
+
+    function test_otherDayEntriesAndSpan() {
+        function pid(ts) { return ts.project }
+        var a = { id: 1, project: 5, begin: "2026-09-23T09:00:00+0200", end: "2026-09-23T12:00:00+0200" }
+        var b = { id: 2, project: 5, begin: "2026-09-23T13:00:00+0200", end: "2026-09-23T19:00:00+0200" }
+        var c = { id: 3, project: 6, begin: "2026-09-23T07:00:00+0200", end: "2026-09-23T08:00:00+0200" }
+        var running = { id: 4, project: 5, begin: "2026-09-23T20:00:00+0200", end: null }
+        var early = { id: 5, project: 5, begin: "2026-09-23T06:00:00+0200", end: "2026-09-23T07:00:00+0200" }
+        var others = FilmDays.otherDayEntries([a, b, c, running, early], a, 5, pid)
+        compare(others.length, 2)
+        compare(others[0].id, 5)    // sorted by begin
+        compare(others[1].id, 2)
+        compare(FilmDays.otherDayEntries([a, b], null, 5, pid).length, 0)
+        var span = FilmDays.daySpan([a, b])
+        compare(span.seconds, 9 * 3600)
+        compare(span.endMs - span.beginMs, 10 * 3600 * 1000)
+        verify(isNaN(FilmDays.daySpan([]).beginMs))
+    }
+
     function test_defaultsWhenMissing() {
         var entry = FilmDays.get({}, 12, "2026-09-23")
         compare(entry.breakMinutes, 45)
@@ -284,6 +329,25 @@ TestCase {
         compare(map["1|2026-09-01"].migrated["p|http://k"].result, "pushed")
         // local values stay (rollback possible)
         compare(FilmDays.get(map, 1, "2026-09-01").breakMinutes, 45)
+    }
+
+    function test_planMigrationScopedEntries() {
+        var own = FilmDays.entryDefaults()
+        own.note = "own"
+        var map = FilmDays.set({}, 1, "2026-09-01", FilmDays.entryDefaults())          // legacy
+        map = FilmDays.set(map, 1, "2026-09-01", own, "p|http://k")                     // own, same day
+        map = FilmDays.set(map, 3, "2026-09-02", own, "p|http://k")                     // own, not in catalog
+        map = FilmDays.set(map, 1, "2026-09-03", own, "q|http://x")                     // other profile
+        var plan = FilmDays.planMigration(map, [1], "p|http://k")
+        compare(plan.length, 2)
+        compare(plan[0].key, "p|http://k|1|2026-09-01")
+        compare(plan[0].entry.note, "own")
+        compare(plan[1].key, "p|http://k|3|2026-09-02")
+        // the other profile still sees the legacy entry, never p's own ones
+        var other = FilmDays.planMigration(map, [1], "q|http://x")
+        compare(other.length, 2)
+        compare(other[0].key, "1|2026-09-01")
+        compare(other[1].key, "q|http://x|1|2026-09-03")
     }
 
     function test_planMigrationFlagsLongNote() {

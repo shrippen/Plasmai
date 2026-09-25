@@ -103,13 +103,13 @@ Stand 2.0: Plasmoid (`contents/`) und App (`app/`, Android/Plasma Mobile) nutzen
 
 ### Filmtag – Drehzettel-API (`filmDaySync.js`, `todo-plugins.md` P1–P7)
 Nur Unit-Tests und Live-Replay der JS-Logik gegen Kimai 2.67 + Drehzettel (admin mit Engagement, user1 ohne); FilmDayView/FilmDayPage nicht gerendert (Plasmoid-Viewer/App-Build hier nicht verfügbar).
-- [ ] B3 Mehrere Einträge pro Tag: nur einer wird gepatcht
+- [x] B3 Mehrere Einträge pro Tag: nur einer wurde gepatcht. Jetzt: Hinweis mit Anzahl/Summe der übrigen Einträge des Projekts, Option „Zu einem Eintrag zusammenführen“ (Beginn/Ende über alle, danach werden die übrigen gelöscht; Fehler werden gemeldet)
 - [x] B4 Pause lokal max. 360 min, Server erlaubt 720 – jetzt 0–720 in beiden Modi
 - [x] B5 Lokaler Zähler 0–999 → `shootingDayNumber` (D7), 0 = leer; `productionDay` des Servers ist das neue Feld „Zuschlagstag (1–7)“
 - [x] B6 Notiz auf 500 Zeichen begrenzt, getrimmt
 - [x] B7 Server-Modus: Option „Standard (n min)“ = `null`; lokal bleibt 45 explizit (bei der Migration als 45 gesendet)
-- [ ] B8 Speicher-Key ohne Profil/Server-URL (lokaler Modus; Warteschlange, Probe-Cache und Migrationsmarken enthalten Profil+URL)
-- [ ] B9 App liest `filmDaysJson` nur beim Start und schreibt die ganze Map zurück (überschreibt Plasmoid-Änderungen)
+- [x] B8 Speicher-Key ohne Profil/Server-URL. Jetzt `profileId|url|projectId|date` (`FilmDays.scopedDayKey`); alte Keys werden als Fallback gelesen, nie geschrieben; Migration bietet eigene Keys und (bei Projekt im Katalog) alte Keys an
+- [x] B9 App las `filmDaysJson` nur beim Start und schrieb die ganze Map zurück. Jetzt: Drei-Wege-Merge pro Tag auf die frisch geladene shared.json (`SharedConfig.mergeMapJson`, auch `filmDaysPending`/`pluginProbesJson`), Schreibvorgänge nacheinander, Neuladen beim Öffnen der Ansicht (beide UIs); der Settings-Gesamtschreibvorgang des Plasmoids lässt die Daten-Maps aus
 - [x] B11 Zweistufiges Speichern: scheitert der PUT transient, landet der Patch in `filmDaysPending` und wird später gesendet (Server gewinnt bei Änderung dazwischen)
 - [ ] Nachtdrehs (Ende nach Mitternacht) sind nicht erfassbar (Ende muss nach Beginn am selben Tag liegen)
 
