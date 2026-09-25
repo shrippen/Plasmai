@@ -38,6 +38,7 @@ Kirigami.Page {
                 var match = FilmDays.pickDayEntry(entries, selectedProjectIdForDay, KimaiApi.projectId)
                 var dateStr = KimaiApi.localDateString(date)
                 var entryProjectId = match ? KimaiApi.projectId(match) : selectedProjectIdForDay
+                var others = FilmDays.otherDayEntries(entries, match, entryProjectId, KimaiApi.projectId)
                 // P5: the engagement is checked per project + day (film-day GET answers 404 without one).
                 FilmDaySync.loadDay(root.filmDayContext(), entryProjectId, dateStr, function(day) {
                     if (serial !== page.loadSerial) return
@@ -49,7 +50,7 @@ Kirigami.Page {
                     }
                     filmDayView.applyLoadedDay(date, match, day,
                         KimaiApi.customerCurrencyOfProject(root.projectById(entryProjectId), root.customers),
-                        root.filmDayMigrationCount())
+                        root.filmDayMigrationCount(), others)
                 })
             })
     }
@@ -95,6 +96,8 @@ Kirigami.Page {
         }
         page.saving = true
         var breakMinutes = filmDayView.extrasVisible ? filmDayView.effectiveBreakMinutes : 0
+        // B3: the other entries of the project on this day, deleted after a successful save.
+        var mergeIds = filmDayView.mergeOthers ? filmDayView.otherEntryIds() : []
         FilmDaySync.saveDay(root.filmDayContext(), {
             projectId: projectId,
             dateStr: KimaiApi.localDateString(page.selectedDate),
@@ -117,26 +120,41 @@ Kirigami.Page {
             if (result.localMap) patch.filmDaysJson = FilmDays.serialize(result.localMap)
             if (result.pendingMap) patch.filmDaysPending = FilmDaySync.serializePending(result.pendingMap)
             if (Object.keys(patch).length > 0) root.persistFilmDayKeys(patch)
-            if (result.extras === "queued") {
-                root.showPassiveNotification(i18n("Begin and end were saved. The film day extras could not be sent and will be retried."))
-            } else if (result.extras === "rejected") {
-                // Stay on the page so the field can be fixed.
-                root.showPassiveNotification(i18n("Begin and end were saved, but the server rejected the film day extras: %1",
-                                                  (result.error && result.error.detail) || ApiErrors.text(result.error)))
-                page.loadForDate(page.selectedDate)
-                return
+            function finish(deleteReport) {
+                if (deleteReport && deleteReport.failed.length > 0) {
+                    // Stay on the page: the day still has more than one entry.
+                    root.showPassiveNotification(i18np("%1 other entry of this day could not be deleted: %2",
+                                                       "%1 other entries of this day could not be deleted: %2",
+                                                       deleteReport.failed.length, ApiErrors.text(deleteReport.failed[0].error)))
+                    page.loadForDate(page.selectedDate)
+                    return
+                }
+                if (result.extras === "queued") {
+                    root.showPassiveNotification(i18n("Begin and end were saved. The film day extras could not be sent and will be retried."))
+                } else if (result.extras === "rejected") {
+                    // Stay on the page so the field can be fixed.
+                    root.showPassiveNotification(i18n("Begin and end were saved, but the server rejected the film day extras: %1",
+                                                      (result.error && result.error.detail) || ApiErrors.text(result.error)))
+                    page.loadForDate(page.selectedDate)
+                    return
+                }
+                root.sendNotification(
+                    i18n("Shooting day saved"),
+                    KimaiApi.formatDuration(FilmDays.workSecondsFromSpan(
+                        beginDate.getTime(), endDate.getTime(), breakMinutes)))
+                pageStack.pop()
+                // A4: a travel day usually comes with a trip; offer it linked to the saved entry.
+                var savedEntry = result.timesheet
+                if (filmDayFields && filmDayFields.dayType === FilmDays.DayType.TRAVEL && root.canEditTrips && savedEntry) {
+                    root.showPassiveNotification(i18n("Travel day saved."), "long", i18n("Log trip"), function() {
+                        root.openTripForTimesheet(savedEntry)
+                    })
+                }
             }
-            root.sendNotification(
-                i18n("Shooting day saved"),
-                KimaiApi.formatDuration(FilmDays.workSecondsFromSpan(
-                    beginDate.getTime(), endDate.getTime(), breakMinutes)))
-            pageStack.pop()
-            // A4: a travel day usually comes with a trip; offer it linked to the saved entry.
-            var savedEntry = result.timesheet
-            if (filmDayFields && filmDayFields.dayType === FilmDays.DayType.TRAVEL && root.canEditTrips && savedEntry) {
-                root.showPassiveNotification(i18n("Travel day saved."), "long", i18n("Log trip"), function() {
-                    root.openTripForTimesheet(savedEntry)
-                })
+            if (mergeIds.length > 0) {
+                FilmDaySync.deleteEntries(root.filmDayContext(), mergeIds, finish)
+            } else {
+                finish(null)
             }
         })
     }
@@ -146,9 +164,11 @@ Kirigami.Page {
             root.refreshAll()
         }
         page.loadingFilmDay = true
-        root.resolveFilmDayMode(false, function() {
-            root.flushFilmDayPending()
-            page.loadForDate(page.selectedDate)
+        root.reloadFilmDayData(function() {
+            root.resolveFilmDayMode(false, function() {
+                root.flushFilmDayPending()
+                page.loadForDate(page.selectedDate)
+            })
         })
     }
 

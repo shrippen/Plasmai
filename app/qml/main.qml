@@ -193,11 +193,36 @@ Kirigami.ApplicationWindow {
     property bool filmDayMigrationDismissed: false
     readonly property string filmDayProfileKey: FilmDaySync.profileKey(activeProfile ? activeProfile.id : "", TimeTracker.resolveUrl(activeProfile))
 
+    /**
+     * Write film-day data maps merged onto shared.json key by key, so film
+     * days the Plasmoid saved since the app loaded them are kept (B9).
+     */
     function persistFilmDayKeys(patch) {
+        var bases = {}
         for (var key in patch) {
+            bases[key] = root[key]
             root[key] = patch[key]
         }
-        Platform.patchShared(null, currentConfig(), patch)
+        Platform.patchShared(null, currentConfig(), patch, bases).then(function(written) {
+            for (var k in written) {
+                if (root[k] === patch[k] && written[k] !== patch[k]) root[k] = written[k]
+            }
+        }, function(err) {
+            console.warn("Plasmai: could not save film day data:", err)
+        })
+    }
+
+    /** Re-read the film-day data maps from shared.json (the Plasmoid may have written them). */
+    function reloadFilmDayData(callback) {
+        Platform.loadShared(null).then(function(shared) {
+            if (shared) {
+                for (var i = 0; i < SharedConfig.DATA_MAP_KEYS.length; i++) {
+                    var k = SharedConfig.DATA_MAP_KEYS[i]
+                    if (typeof shared[k] === "string" && root[k] !== shared[k]) root[k] = shared[k]
+                }
+            }
+            if (callback) callback()
+        })
     }
 
     function filmDayContext() {

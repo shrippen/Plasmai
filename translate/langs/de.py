@@ -423,6 +423,8 @@ T = {
     'Note': 'Notiz',
     '%1/%2': '%1/%2',
     'Note (optional)': 'Notiz (optional)',
+    # Film day: several entries per day (B3)
+    'Merge into one entry': 'Zu einem Eintrag zusammenführen',
 }
 
 PLURALS = {
@@ -442,4 +444,8 @@ PLURALS = {
     '%1 day was rejected by the server.': ['%1 Tag wurde vom Server abgelehnt.', '%1 Tage wurden vom Server abgelehnt.'],
     '%1 film day saved on this device can be copied to the Drehzettel plugin. Days that already have other values on the server keep the server values.': ['%1 auf diesem Gerät gespeicherter Drehtag kann ins Drehzettel-Plugin übertragen werden. Tage, die auf dem Server schon andere Werte haben, behalten die Serverwerte.', '%1 auf diesem Gerät gespeicherte Drehtage können ins Drehzettel-Plugin übertragen werden. Tage, die auf dem Server schon andere Werte haben, behalten die Serverwerte.'],
     '%1 minute': ['%1 Minute', '%1 Minuten'],
+    # Film day: several entries per day (B3)
+    'Saving sets this entry from begin to end and deletes the other entry of this project on this day (%2). Its description and tags are lost.': ['Beim Speichern reicht dieser Eintrag von Beginn bis Ende, der andere Eintrag dieses Projekts an diesem Tag (%2) wird gelöscht. Seine Beschreibung und Tags gehen verloren.', 'Beim Speichern reicht dieser Eintrag von Beginn bis Ende, die %1 anderen Einträge dieses Projekts an diesem Tag (%2) werden gelöscht. Ihre Beschreibungen und Tags gehen verloren.'],
+    'This project has %1 more entry on this day (%2). Saving only updates the entry shown; the work time above does not include the other one.': ['Dieses Projekt hat an diesem Tag %1 weiteren Eintrag (%2). Gespeichert wird nur der angezeigte Eintrag; die Arbeitszeit oben enthält den anderen nicht.', 'Dieses Projekt hat an diesem Tag %1 weitere Einträge (%2). Gespeichert wird nur der angezeigte Eintrag; die Arbeitszeit oben enthält die anderen nicht.'],
+    '%1 other entry of this day could not be deleted: %2': ['%1 anderer Eintrag dieses Tages konnte nicht gelöscht werden: %2', '%1 andere Einträge dieses Tages konnten nicht gelöscht werden: %2'],
 }

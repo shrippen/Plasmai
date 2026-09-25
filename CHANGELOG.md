@@ -9,6 +9,11 @@
 - Statistics show the trip km of this week and month
 - New setting "Trips" (on by default) to hide all of it
 
+### Film day (Desktop and app)
+- Several entries of the same project on one day: the view says so and can merge them into one entry (the others are deleted after saving); before, only one was updated and the work time was wrong
+- Film days kept on the device (without the Drehzettel plugin) are stored per profile and Kimai server, so two servers with the same project id no longer share a day; older entries are still shown
+- The app and the Plasmoid no longer overwrite each other's film days on the same computer: film day data is merged into shared.json per day and reloaded when the view opens
+
 ## 2.0.0
 
 ### Android / Plasma Mobile
