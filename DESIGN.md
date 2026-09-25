@@ -65,7 +65,13 @@ typography stack, badge format, and social-preview spec.
   “Create tag …” when the search has no match.
   New entries omit **billable** so Kimai auto-resolves it from the
   activity/project/customer settings; the checkbox only sends a value
-  when the user actively toggles it. Kimai writes (`POST`/`PATCH`) send tags as
+  when the user actively toggles it (edits: only when it differs from the
+  loaded value). `billable` needs Kimai's edit_billable permission; without
+  it Kimai answers "This form should not contain extra fields", so
+  `kimaiApi.js` retries once without it, remembers that per server/token,
+  and the UI says the billable change was not saved. `exported` is never
+  sent. Start omits `begin` so Kimai stamps "now" in the user's Kimai
+  timezone. Kimai writes (`POST`/`PATCH`) send tags as
   a comma-separated **string**; a JSON array is rejected as Validation
   Failed. Other providers keep tag arrays. Stopped Recents use the same
   use the same Add-entry form for edit; delete
@@ -92,7 +98,12 @@ typography stack, badge format, and social-preview spec.
   distinction inputs actually change.
 - Shell helpers are small executable scripts next to the JS that invokes them
   (`kwallet.sh`, `idle.sh`, `notify.sh`, `sharedConfig.sh`, `catalogCache.sh`).
-  Keep them POSIX `sh`, quote arguments with `secret.js` `shQuote`. Idle
+  Keep them POSIX `sh`, quote arguments with `secret.js` `shQuote`.
+  The executable engine runs `sh -c <command>`: that argv is world-readable
+  and capped at 128 KiB. Pass secrets as `NAME=… exec sh script` (the
+  `exec` drops the command line at once) and send large payloads (catalog
+  cache) in chunks (`catalogCache.sh append/commit`). Stores write through
+  `mktemp` + `mv`. Idle
   prefers the session idle hint on Wayland (`loginctl` /
   `org.freedesktop.ScreenSaver`) and `xprintidle` on X11.
 
