@@ -5,6 +5,7 @@ import org.kde.kirigami as Kirigami
 import "../contents/code/timeTracker.js" as TimeTracker
 import "../contents/code/kimaiApi.js" as KimaiApi
 import "../contents/code/filmDays.js" as FilmDays
+import "../contents/code/filmDaySync.js" as FilmDaySync
 import "shared"
 
 Kirigami.Page {
@@ -15,6 +16,8 @@ Kirigami.Page {
     property bool saving: false
     property var selectedDate: new Date()
     property var filmDayTimesheet: null
+    /** Film-day JSON the next save diffs against (server mode). */
+    property var filmDayServer: null
     property int loadSerial: 0
 
     function currentUrl() { return TimeTracker.resolveUrl(root.activeProfile) }
@@ -30,15 +33,24 @@ Kirigami.Page {
             page.currentUrl(), root.apiToken, KimaiApi.startOfLocalDay(date), KimaiApi.endOfLocalDay(date),
             function(result) {
                 if (serial !== page.loadSerial) return
-                page.loadingFilmDay = false
                 var entries = (result && result.ok) ? KimaiApi.hydrateTimesheets(
                     result.data || [], root.projects, root.activityCatalog(), root.activitiesByProject) : []
                 var match = FilmDays.pickDayEntry(entries, selectedProjectIdForDay, KimaiApi.projectId)
-                page.filmDayTimesheet = match
                 var dateStr = KimaiApi.localDateString(date)
                 var entryProjectId = match ? KimaiApi.projectId(match) : selectedProjectIdForDay
-                var filmEntry = FilmDays.get(root.filmDaysMap, entryProjectId, dateStr)
-                filmDayView.loadForDay(date, match, filmEntry)
+                // P5: the engagement is checked per project + day (film-day GET answers 404 without one).
+                FilmDaySync.loadDay(root.filmDayContext(), entryProjectId, dateStr, function(day) {
+                    if (serial !== page.loadSerial) return
+                    page.loadingFilmDay = false
+                    page.filmDayTimesheet = match
+                    page.filmDayServer = day.server
+                    if (day.mode === FilmDaySync.Mode.SERVER && root.filmDayMode === FilmDaySync.Mode.OFFLINE) {
+                        root.filmDayMode = FilmDaySync.Mode.SERVER
+                    }
+                    filmDayView.applyLoadedDay(date, match, day,
+                        KimaiApi.customerCurrencyOfProject(root.projectById(entryProjectId), root.customers),
+                        root.filmDayMigrationCount())
+                })
             })
     }
 
@@ -46,6 +58,20 @@ Kirigami.Page {
         var next = new Date(page.selectedDate)
         next.setDate(next.getDate() + deltaDays)
         loadForDate(next)
+    }
+
+    function runMigration() {
+        if (filmDayView.migrationBusy || root.filmDayMode !== FilmDaySync.Mode.SERVER) return
+        var ctx = root.filmDayContext()
+        var candidates = FilmDaySync.migrationCandidates(ctx, root.projectIdsOfCatalog())
+        if (candidates.length === 0) return
+        filmDayView.migrationBusy = true
+        FilmDaySync.migrate(ctx, candidates, function(report) {
+            filmDayView.migrationBusy = false
+            root.persistFilmDayKeys({ filmDaysJson: FilmDays.serialize(report.localMap) })
+            filmDayView.showMigrationReport(report)
+            page.loadForDate(page.selectedDate)
+        })
     }
 
     function doSave(projectId, activityId, beginText, endText, filmDayFields) {
@@ -68,39 +94,55 @@ Kirigami.Page {
             return
         }
         page.saving = true
-        var fields = {
-            begin: KimaiApi.localDateTimeString(beginDate),
-            end: KimaiApi.localDateTimeString(endDate),
-            project: projectId,
-            activity: activityId
-        }
-        var existingId = FilmDays.saveTargetId(page.filmDayTimesheet, projectId, KimaiApi.projectId)
-        function afterSave(result) {
+        var breakMinutes = filmDayView.extrasVisible ? filmDayView.effectiveBreakMinutes : 0
+        FilmDaySync.saveDay(root.filmDayContext(), {
+            projectId: projectId,
+            dateStr: KimaiApi.localDateString(page.selectedDate),
+            existingId: FilmDays.saveTargetId(page.filmDayTimesheet, projectId, KimaiApi.projectId),
+            timesheetFields: {
+                begin: KimaiApi.localDateTimeString(beginDate),
+                end: KimaiApi.localDateTimeString(endDate),
+                project: projectId,
+                activity: activityId
+            },
+            fields: filmDayFields,
+            server: page.filmDayServer
+        }, function(result) {
             page.saving = false
             if (!result.ok) {
                 root.showPassiveNotification(ApiErrors.text(result.error))
                 return
             }
-            var dateStr = KimaiApi.localDateString(page.selectedDate)
-            root.saveFilmDayEntry(projectId, dateStr, filmDayFields)
+            var patch = {}
+            if (result.localMap) patch.filmDaysJson = FilmDays.serialize(result.localMap)
+            if (result.pendingMap) patch.filmDaysPending = FilmDaySync.serializePending(result.pendingMap)
+            if (Object.keys(patch).length > 0) root.persistFilmDayKeys(patch)
+            if (result.extras === "queued") {
+                root.showPassiveNotification(i18n("Begin and end were saved. The film day extras could not be sent and will be retried."))
+            } else if (result.extras === "rejected") {
+                // Stay on the page so the field can be fixed.
+                root.showPassiveNotification(i18n("Begin and end were saved, but the server rejected the film day extras: %1",
+                                                  (result.error && result.error.detail) || ApiErrors.text(result.error)))
+                page.loadForDate(page.selectedDate)
+                return
+            }
             root.sendNotification(
                 i18n("Shooting day saved"),
                 KimaiApi.formatDuration(FilmDays.workSecondsFromSpan(
-                    beginDate.getTime(), endDate.getTime(), filmDayFields.breakMinutes)))
+                    beginDate.getTime(), endDate.getTime(), breakMinutes)))
             pageStack.pop()
-        }
-        if (existingId !== undefined && existingId !== null && existingId !== "") {
-            root.tracker.patchTimesheet(page.currentUrl(), root.apiToken, existingId, fields, afterSave)
-        } else {
-            root.tracker.createTimesheet(page.currentUrl(), root.apiToken, fields, afterSave)
-        }
+        })
     }
 
     Component.onCompleted: {
         if (root.projectPickerModel.length === 0) {
             root.refreshAll()
         }
-        loadForDate(page.selectedDate)
+        page.loadingFilmDay = true
+        root.resolveFilmDayMode(false, function() {
+            root.flushFilmDayPending()
+            page.loadForDate(page.selectedDate)
+        })
     }
 
     QQC2.ScrollView {
@@ -137,6 +179,12 @@ Kirigami.Page {
                     page.doSave(projectId, activityId, beginText, endText, filmDayFields)
                 }
                 onCancelled: pageStack.pop()
+                onMigrationRequested: page.runMigration()
+                onMigrationDismissed: {
+                    root.filmDayMigrationDismissed = true
+                    filmDayView.migrationCount = 0
+                    filmDayView.migrationReport = ""
+                }
                 onCreateProjectRequested: { createEntityDialog.customers = root.customers; createEntityDialog.resetForMode("project"); createEntityDialog.open() }
                 onCreateActivityRequested: {
                     createEntityDialog.selectedProjectId = filmDayView.projectCombo.currentItem ? filmDayView.projectCombo.currentItem.value.id : null

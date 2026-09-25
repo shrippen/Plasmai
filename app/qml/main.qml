@@ -9,6 +9,7 @@ import "../contents/code/timeTracker.js" as TimeTracker
 import "../contents/code/profiles.js" as Profiles
 import "../contents/code/kimaiApi.js" as KimaiApi
 import "../contents/code/filmDays.js" as FilmDays
+import "../contents/code/filmDaySync.js" as FilmDaySync
 import "../contents/code/favorites.js" as Favorites
 import "../contents/code/sharedConfig.js" as SharedConfig
 import "../contents/code/colorDistinct.js" as ColorDistinct
@@ -174,15 +175,82 @@ Kirigami.ApplicationWindow {
         startTracking(lastUsedProjectId, lastUsedActivityId, lastUsedProjectName, lastUsedActivityName, "")
     }
 
-    // ── Film day extras (break, catering, day type, …), see filmDays.js ──
-    // Synced through shared.json (filmDaysJson), same as the Plasmoid.
+    // ── Film day extras (break, catering, day type, …), see filmDaySync.js ──
+    // On the Drehzettel plugin when installed, else in shared.json
+    // (filmDaysJson), same as the Plasmoid. filmDaysPending holds patches the
+    // server has not accepted yet; pluginProbesJson the per-profile probe.
     property string filmDaysJson: ""
     readonly property var filmDaysMap: FilmDays.parse(filmDaysJson)
+    property string filmDaysPending: ""
+    readonly property var filmDaysPendingMap: FilmDaySync.parsePending(filmDaysPending)
+    property string pluginProbesJson: ""
+    readonly property var pluginProbeCache: KimaiApi.parsePluginCache(pluginProbesJson)
+    property string filmDayMode: FilmDaySync.Mode.LOCAL
+    property var filmDayPing: null
+    /** Plain cache handed to filmDaySync (last-seen days, engagement lists); not reactive. */
+    property var filmDayMemo: ({})
+    property bool filmDayMigrationDismissed: false
+    readonly property string filmDayProfileKey: FilmDaySync.profileKey(activeProfile ? activeProfile.id : "", TimeTracker.resolveUrl(activeProfile))
 
-    function saveFilmDayEntry(projectId, dateStr, fields) {
-        var nextMap = FilmDays.set(filmDaysMap, projectId, dateStr, fields)
-        filmDaysJson = FilmDays.serialize(nextMap)
-        Platform.patchShared(null, currentConfig(), { filmDaysJson: filmDaysJson })
+    function persistFilmDayKeys(patch) {
+        for (var key in patch) {
+            root[key] = patch[key]
+        }
+        Platform.patchShared(null, currentConfig(), patch)
+    }
+
+    function filmDayContext() {
+        return {
+            url: TimeTracker.resolveUrl(activeProfile),
+            token: apiToken,
+            profileKey: filmDayProfileKey,
+            mode: filmDayMode,
+            ping: filmDayPing,
+            localMap: filmDaysMap,
+            pendingMap: filmDaysPendingMap,
+            memo: filmDayMemo,
+            tracker: tracker
+        }
+    }
+
+    /** Probe the Drehzettel plugin (cached 24 h per profile in shared.json). */
+    function resolveFilmDayMode(force, callback) {
+        if (!apiToken || !providerCapabilities.drehzettelApi) {
+            filmDayMode = FilmDaySync.Mode.LOCAL
+            if (callback) callback()
+            return
+        }
+        FilmDaySync.resolveMode(TimeTracker.resolveUrl(activeProfile), apiToken, activeProfile ? activeProfile.id : "",
+                                pluginProbeCache, { force: !!force }, function(r) {
+            filmDayMode = r.mode
+            filmDayPing = r.ping
+            if (r.probeCache) persistFilmDayKeys({ pluginProbesJson: JSON.stringify(r.probeCache) })
+            if (callback) callback()
+        })
+    }
+
+    function flushFilmDayPending() {
+        if (filmDayMode !== FilmDaySync.Mode.SERVER
+            || FilmDaySync.countPending(filmDaysPendingMap, filmDayProfileKey) === 0) return
+        FilmDaySync.flushPending(filmDayContext(), function(report) {
+            if (report.pendingMap) persistFilmDayKeys({ filmDaysPending: FilmDaySync.serializePending(report.pendingMap) })
+            if (report.dropped > 0) {
+                showPassiveNotification(i18np("A queued film day change was dropped because the day was changed on the server meanwhile.",
+                                              "%1 queued film day changes were dropped because the days were changed on the server meanwhile.",
+                                              report.dropped))
+            }
+        })
+    }
+
+    function projectIdsOfCatalog() {
+        var ids = []
+        for (var i = 0; i < (projects || []).length; i++) ids.push(projects[i].id)
+        return ids
+    }
+
+    function filmDayMigrationCount() {
+        if (filmDayMode !== FilmDaySync.Mode.SERVER || filmDayMigrationDismissed) return 0
+        return FilmDaySync.migrationCandidates(filmDayContext(), projectIdsOfCatalog()).length
     }
 
     // ── Platform capability flags (native idle/notification bridge, Linux-only) ──
@@ -381,7 +449,7 @@ Kirigami.ApplicationWindow {
         if (!activeProfile) { apiToken = ""; tokenLoaded = true; return }
         Platform.loadToken(null, activeProfile.id).then(function(token) {
             apiToken = token || ""; tokenLoaded = true; connectionState = token ? "online" : "offline"
-            if (token) refreshAll()
+            if (token) { refreshAll(); resolveFilmDayMode(false, flushFilmDayPending) }
         }).catch(function() { apiToken = ""; tokenLoaded = true; connectionState = "error" })
     }
 
@@ -686,6 +754,8 @@ Kirigami.ApplicationWindow {
                 if (typeof shared.notifyForgotToStart === "boolean") notifyForgotToStart = shared.notifyForgotToStart
                 if (typeof shared.lastUsedProjectId === "string") lastUsedProjectId = shared.lastUsedProjectId
                 if (typeof shared.filmDaysJson === "string") filmDaysJson = shared.filmDaysJson
+                if (typeof shared.filmDaysPending === "string") filmDaysPending = shared.filmDaysPending
+                if (typeof shared.pluginProbesJson === "string") pluginProbesJson = shared.pluginProbesJson
                 if (typeof shared.lastUsedActivityId === "string") lastUsedActivityId = shared.lastUsedActivityId
                 if (typeof shared.lastUsedProjectName === "string") lastUsedProjectName = shared.lastUsedProjectName
                 if (typeof shared.lastUsedActivityName === "string") lastUsedActivityName = shared.lastUsedActivityName

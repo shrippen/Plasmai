@@ -21,6 +21,7 @@ import "../code/maintenanceCache.js" as CatalogCache
 import "../code/buildInfo.js" as BuildInfo
 import "../code/timesheetFields.js" as TimesheetFields
 import "../code/filmDays.js" as FilmDays
+import "../code/filmDaySync.js" as FilmDaySync
 import "../code/providerUtil.js" as ProviderUtil
 import "."
 
@@ -170,6 +171,19 @@ PlasmoidItem {
     property var filmDayTimesheet: null
     property bool loadingFilmDay: false
     property int filmDayLoadSerial: 0
+    /** Where film-day extras live for the active profile (FilmDaySync.Mode), see filmDaySync.js. */
+    property string filmDayMode: FilmDaySync.Mode.LOCAL
+    /** Last Drehzettel ping body (features, permissions), or null. */
+    property var filmDayPing: null
+    /** Film-day JSON the next save diffs against (server mode). */
+    property var filmDayServer: null
+    /** Plain cache handed to filmDaySync (last-seen days, engagement lists); not reactive. */
+    property var filmDayMemo: ({})
+    property bool filmDayMigrationDismissed: false
+    property bool filmDayMigrating: false
+    readonly property var filmDaysPendingMap: FilmDaySync.parsePending(plasmoid.configuration.filmDaysPending)
+    readonly property var pluginProbeCache: KimaiApi.parsePluginCache(plasmoid.configuration.pluginProbesJson)
+    readonly property string filmDayProfileKey: FilmDaySync.profileKey(activeProfile ? activeProfile.id : "", kimaiUrl)
     readonly property string workDayBegin: {
         var v = plasmoid.configuration.workDayBegin
         return (v && String(v).length > 0) ? String(v) : KimaiApi.DEFAULT_WORK_DAY_BEGIN
@@ -986,13 +1000,100 @@ PlasmoidItem {
         if (projectPickerModel.length === 0) {
             refreshProjects(false)
         }
-        loadFilmDayForDate(filmDaySelectedDate)
+        // Load only once the mode is known, so a cached "server" day never
+        // flashes local values first.
+        loadingFilmDay = true
+        resolveFilmDayMode(false, function() {
+            flushFilmDayPending()
+            loadFilmDayForDate(filmDaySelectedDate)
+        })
     }
 
     function stepFilmDay(deltaDays) {
         var next = new Date(filmDaySelectedDate)
         next.setDate(next.getDate() + deltaDays)
         loadFilmDayForDate(next)
+    }
+
+    function persistFilmDayKeys(patch) {
+        for (var key in patch) {
+            plasmoid.configuration[key] = patch[key]
+        }
+        Secret.persistSharedPatch(execSource, sharedConfigScript, plasmoid.configuration, patch)
+    }
+
+    /** Context for filmDaySync.js calls; maps are the current shared.json values. */
+    function filmDayContext() {
+        return {
+            url: kimaiUrl,
+            token: apiToken,
+            profileKey: filmDayProfileKey,
+            mode: filmDayMode,
+            ping: filmDayPing,
+            localMap: filmDaysMap,
+            pendingMap: filmDaysPendingMap,
+            memo: filmDayMemo,
+            tracker: tracker
+        }
+    }
+
+    /** Probe the Drehzettel plugin (cached 24 h per profile in shared.json). */
+    function resolveFilmDayMode(force, callback) {
+        if (!isConfigured || !providerCapabilities.drehzettelApi) {
+            filmDayMode = FilmDaySync.Mode.LOCAL
+            if (callback) callback()
+            return
+        }
+        FilmDaySync.resolveMode(kimaiUrl, apiToken, activeProfile ? activeProfile.id : "", pluginProbeCache,
+                                { force: !!force }, function(r) {
+            filmDayMode = r.mode
+            filmDayPing = r.ping
+            if (r.probeCache) {
+                persistFilmDayKeys({ pluginProbesJson: JSON.stringify(r.probeCache) })
+            }
+            if (callback) callback()
+        })
+    }
+
+    function flushFilmDayPending() {
+        if (filmDayMode !== FilmDaySync.Mode.SERVER
+            || FilmDaySync.countPending(filmDaysPendingMap, filmDayProfileKey) === 0) {
+            return
+        }
+        FilmDaySync.flushPending(filmDayContext(), function(report) {
+            if (report.pendingMap) {
+                persistFilmDayKeys({ filmDaysPending: FilmDaySync.serializePending(report.pendingMap) })
+            }
+            if (report.dropped > 0) {
+                userMessage = i18np("A queued film day change was dropped because the day was changed on the server meanwhile.",
+                                    "%1 queued film day changes were dropped because the days were changed on the server meanwhile.",
+                                    report.dropped)
+            }
+        })
+    }
+
+    function projectIdsOfCatalog() {
+        var ids = []
+        for (var i = 0; i < (projects || []).length; i++) {
+            ids.push(projects[i].id)
+        }
+        return ids
+    }
+
+    function projectOfId(projectId) {
+        for (var i = 0; i < (projects || []).length; i++) {
+            if (String(projects[i].id) === String(projectId)) {
+                return projects[i]
+            }
+        }
+        return null
+    }
+
+    function filmDayMigrationCount() {
+        if (filmDayMode !== FilmDaySync.Mode.SERVER || filmDayMigrationDismissed) {
+            return 0
+        }
+        return FilmDaySync.migrationCandidates(filmDayContext(), projectIdsOfCatalog()).length
     }
 
     /** Loads the Kimai entry and film-day extras for `date` into the Filmday view. */
@@ -1013,18 +1114,52 @@ PlasmoidItem {
                 if (serial !== filmDayLoadSerial) {
                     return
                 }
-                loadingFilmDay = false
                 var entries = (result && result.ok) ? KimaiApi.hydrateTimesheets(
                     result.data || [], root.projects, root.activityCatalog(), root.activitiesByProject) : []
                 var match = FilmDays.pickDayEntry(entries, selectedProjectIdForDay, KimaiApi.projectId)
-                filmDayTimesheet = match
                 var dateStr = KimaiApi.localDateString(date)
                 var entryProjectId = match ? KimaiApi.projectId(match) : selectedProjectIdForDay
-                var filmEntry = FilmDays.get(root.filmDaysMap, entryProjectId, dateStr)
-                if (typeof filmDayView !== "undefined" && filmDayView) {
-                    filmDayView.loadForDay(date, match, filmEntry)
-                }
+                // P5: the engagement is checked per project + day (film-day GET answers 404 without one).
+                FilmDaySync.loadDay(root.filmDayContext(), entryProjectId, dateStr, function(day) {
+                    if (serial !== filmDayLoadSerial) {
+                        return
+                    }
+                    loadingFilmDay = false
+                    filmDayTimesheet = match
+                    filmDayServer = day.server
+                    if (day.mode === FilmDaySync.Mode.SERVER && filmDayMode === FilmDaySync.Mode.OFFLINE) {
+                        filmDayMode = FilmDaySync.Mode.SERVER
+                    }
+                    if (typeof filmDayView === "undefined" || !filmDayView) {
+                        return
+                    }
+                    filmDayView.applyLoadedDay(date, match, day,
+                        KimaiApi.customerCurrencyOfProject(root.projectOfId(entryProjectId), root.customers),
+                        root.filmDayMigrationCount())
+                })
             })
+    }
+
+    /** Copy local film days of this profile to the Drehzettel plugin (after the user confirmed). */
+    function runFilmDayMigration() {
+        if (filmDayMigrating || filmDayMode !== FilmDaySync.Mode.SERVER) {
+            return
+        }
+        var ctx = filmDayContext()
+        var candidates = FilmDaySync.migrationCandidates(ctx, projectIdsOfCatalog())
+        if (candidates.length === 0) {
+            return
+        }
+        var view = (typeof filmDayView !== "undefined" && filmDayView) ? filmDayView : null
+        filmDayMigrating = true
+        if (view) view.migrationBusy = true
+        FilmDaySync.migrate(ctx, candidates, function(report) {
+            filmDayMigrating = false
+            if (view) view.migrationBusy = false
+            persistFilmDayKeys({ filmDaysJson: FilmDays.serialize(report.localMap) })
+            if (view) view.showMigrationReport(report)
+            loadFilmDayForDate(filmDaySelectedDate)
+        })
     }
 
     function saveFilmDay(projectId, activityId, beginText, endText, filmDayFields) {
@@ -1051,39 +1186,52 @@ PlasmoidItem {
         isBusy = true
         lastError = null
         userMessage = ""
-        var fields = {
-            begin: KimaiApi.localDateTimeString(beginDate),
-            end: KimaiApi.localDateTimeString(endDate),
-            project: projectId,
-            activity: activityId
-        }
-        var existingId = FilmDays.saveTargetId(filmDayTimesheet, projectId, KimaiApi.projectId)
-        function afterSave(result) {
+        var dateStr = KimaiApi.localDateString(root.filmDaySelectedDate)
+        var view = (typeof filmDayView !== "undefined" && filmDayView) ? filmDayView : null
+        var breakMinutes = (view && view.extrasVisible) ? view.effectiveBreakMinutes : 0
+        FilmDaySync.saveDay(filmDayContext(), {
+            projectId: projectId,
+            dateStr: dateStr,
+            existingId: FilmDays.saveTargetId(filmDayTimesheet, projectId, KimaiApi.projectId),
+            timesheetFields: {
+                begin: KimaiApi.localDateTimeString(beginDate),
+                end: KimaiApi.localDateTimeString(endDate),
+                project: projectId,
+                activity: activityId
+            },
+            fields: filmDayFields,
+            server: filmDayServer
+        }, function(result) {
             isBusy = false
             if (!result.ok) {
                 setError(result.error)
                 return
             }
             clearError()
-            var dateStr = KimaiApi.localDateString(root.filmDaySelectedDate)
-            var nextMap = FilmDays.set(root.filmDaysMap, projectId, dateStr, filmDayFields)
-            plasmoid.configuration.filmDaysJson = FilmDays.serialize(nextMap)
-            Secret.persistSharedPatch(execSource, sharedConfigScript, plasmoid.configuration, {
-                filmDaysJson: plasmoid.configuration.filmDaysJson
-            })
+            var patch = {}
+            if (result.localMap) {
+                patch.filmDaysJson = FilmDays.serialize(result.localMap)
+            }
+            if (result.pendingMap) {
+                patch.filmDaysPending = FilmDaySync.serializePending(result.pendingMap)
+            }
+            if (Object.keys(patch).length > 0) {
+                persistFilmDayKeys(patch)
+            }
+            if (result.extras === "queued") {
+                userMessage = i18n("Begin and end were saved. The film day extras could not be sent and will be retried.")
+            } else if (result.extras === "rejected") {
+                userMessage = i18n("Begin and end were saved, but the server rejected the film day extras: %1",
+                                   (result.error && result.error.detail) || ApiErrors.text(result.error))
+            }
             refreshRecentTimesheets()
             refreshWorkTotals()
             sendNotification(
                 i18n("Shooting day saved"),
                 KimaiApi.formatDuration(FilmDays.workSecondsFromSpan(
-                    beginDate.getTime(), endDate.getTime(), filmDayFields.breakMinutes)))
+                    beginDate.getTime(), endDate.getTime(), breakMinutes)))
             loadFilmDayForDate(root.filmDaySelectedDate)
-        }
-        if (existingId !== undefined && existingId !== null && existingId !== "") {
-            tracker.patchTimesheet(kimaiUrl, apiToken, existingId, fields, afterSave)
-        } else {
-            tracker.createTimesheet(kimaiUrl, apiToken, fields, afterSave)
-        }
+        })
     }
 
     function createManualEntry(projectId, activityId, beginText, endText, description, billable, tags) {
@@ -3188,6 +3336,12 @@ PlasmoidItem {
                     onCancelled: root.returnToMainView()
                     onCreateProjectRequested: root.openCreateEntity("project")
                     onCreateActivityRequested: root.openCreateEntity("activity")
+                    onMigrationRequested: root.runFilmDayMigration()
+                    onMigrationDismissed: {
+                        root.filmDayMigrationDismissed = true
+                        filmDayView.migrationCount = 0
+                        filmDayView.migrationReport = ""
+                    }
                 }
 
                 ColumnLayout {

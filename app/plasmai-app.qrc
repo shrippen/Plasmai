@@ -44,6 +44,7 @@
         <file alias="contents/code/timeTracker.js">../contents/code/timeTracker.js</file>
         <file alias="contents/code/kimaiApi.js">../contents/code/kimaiApi.js</file>
         <file alias="contents/code/filmDays.js">../contents/code/filmDays.js</file>
+        <file alias="contents/code/filmDaySync.js">../contents/code/filmDaySync.js</file>
         <file alias="contents/code/profiles.js">../contents/code/profiles.js</file>
         <file alias="contents/code/favorites.js">../contents/code/favorites.js</file>
         <file alias="contents/code/colorDistinct.js">../contents/code/colorDistinct.js</file>
