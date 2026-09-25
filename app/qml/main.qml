@@ -526,18 +526,25 @@ Kirigami.ApplicationWindow {
     /** Splits a stopped entry at splitDate: patches its end, creates a twin from there to the original end. */
     function splitEntry(ts, splitDate) {
         if (!ts || !ts.id || !splitDate) return
-        var originalEnd = ts.end
+        // Same as the Plasmoid: split must fall inside the entry; the twin
+        // keeps project/activity (write keys project/activity, not *Id),
+        // description, billable and tags, with a local end stamp.
+        var split = TimesheetFields.splitStoppedEntry(ts, splitDate)
+        if (!split.ok) { showPassiveNotification(i18n("Split time must be between begin and end.")); return }
         isBusy = true
         tracker.patchTimesheet(TimeTracker.resolveUrl(activeProfile), apiToken, ts.id,
-            { end: KimaiApi.localDateTimeString(splitDate) }, function(result) {
+            { end: KimaiApi.localDateTimeString(split.firstEnd) }, function(result) {
             if (!result.ok) { isBusy = false; return }
             var fields = {
-                projectId: KimaiApi.projectId(ts), activityId: KimaiApi.activityId(ts),
-                begin: KimaiApi.localDateTimeString(splitDate), description: ts.description || ""
+                project: KimaiApi.projectId(ts), activity: KimaiApi.activityId(ts),
+                begin: KimaiApi.localDateTimeString(split.secondBegin),
+                end: KimaiApi.localDateTimeString(split.secondEnd),
+                description: split.description, billable: split.billable, tags: split.tags
             }
-            if (originalEnd) fields.end = originalEnd
             tracker.createTimesheet(TimeTracker.resolveUrl(activeProfile), apiToken, fields, function(r2) {
-                isBusy = false; if (r2.ok) refreshAll()
+                isBusy = false
+                if (!r2.ok) { showPassiveNotification(i18n("The first half was saved, but the second half could not be created.")) }
+                refreshAll()
             })
         })
     }
