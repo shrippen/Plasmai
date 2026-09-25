@@ -1,5 +1,6 @@
 #!/bin/sh
 # Bump build, install plasmoid for current user, restart plasmashell.
+# Installs a slim package (metadata.json + contents/ only), not the whole repo.
 set -eu
 
 ROOT="$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)"
@@ -8,7 +9,14 @@ cd "$ROOT"
 BUILD="$("$ROOT/scripts/bump-build.sh")"
 VERSION="$(sed -n 's/.*"Version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' metadata.json | head -n1)"
 
-kpackagetool6 -t Plasma/Applet -u "$ROOT"
+# kpackagetool6 copies the whole directory it is given; the repo holds
+# hundreds of MB of Android build output, so stage only what Plasma needs.
+STAGE="$(mktemp -d)"
+trap 'rm -rf "$STAGE"' EXIT
+cp metadata.json "$STAGE/"
+cp -a contents "$STAGE/"
+
+kpackagetool6 -t Plasma/Applet -u "$STAGE"
 
 # Plasma sessions usually run `plasmashell --replace` outside
 # plasma-plasmashell.service. Restarting that unit starts a second

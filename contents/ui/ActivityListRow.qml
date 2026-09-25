@@ -25,11 +25,17 @@ QQC2.ItemDelegate {
     property bool canEditStopped: false
     property bool canDeleteEntry: false
     property bool canSplitEntry: false
+    property bool canPin: false
+    /** Recent rows: "Log trip" for this entry (kimai-anfahrten plugin present). */
+    property bool canLogTrip: false
+    property bool isPinned: false
     property bool ignoreNextRowClick: false
 
     signal editRequested()
     signal deleteRequested()
     signal splitRequested()
+    signal pinRequested()
+    signal tripRequested()
     /** Row body (not the overflow). Favorites and Recents bind onRowActivated. */
     signal rowActivated()
 
@@ -162,7 +168,7 @@ QQC2.ItemDelegate {
             property bool hovered: historyMouseArea.containsMouse
             property bool pressed: historyMouseArea.pressed
             visible: root.showHistoryActions
-                     && (root.canEditStopped || root.canDeleteEntry || root.canSplitEntry)
+                     && (root.canEditStopped || root.canDeleteEntry || root.canSplitEntry || root.canPin)
             Layout.alignment: Qt.AlignVCenter
             Layout.preferredWidth: TouchUi.iconSize + Kirigami.Units.smallSpacing * 2
             Layout.maximumWidth: TouchUi.iconSize + Kirigami.Units.smallSpacing * 2
@@ -205,6 +211,13 @@ QQC2.ItemDelegate {
     QQC2.Menu {
         id: historyMenu
         QQC2.MenuItem {
+            visible: root.canPin
+            height: visible ? implicitHeight : 0
+            text: root.isPinned ? i18n("Unpin from favorites") : i18n("Pin as favorite")
+            icon.name: root.isPinned ? "bookmarks" : "bookmark-new"
+            onTriggered: root.pinRequested()
+        }
+        QQC2.MenuItem {
             visible: root.canEditStopped
             height: visible ? implicitHeight : 0
             text: i18n("Edit entry")
@@ -217,6 +230,13 @@ QQC2.ItemDelegate {
             text: i18n("Split entry")
             icon.name: "edit-cut"
             onTriggered: root.splitRequested()
+        }
+        QQC2.MenuItem {
+            visible: root.canLogTrip
+            height: visible ? implicitHeight : 0
+            text: i18n("Log trip")
+            icon.name: "mark-location"
+            onTriggered: root.tripRequested()
         }
         QQC2.MenuItem {
             visible: root.canDeleteEntry

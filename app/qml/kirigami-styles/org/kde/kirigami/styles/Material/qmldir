@@ -1,0 +1,4 @@
+module org.kde.kirigami.styles.Material
+prefer :/qt/qml/org/kde/kirigami/styles/Material/
+Theme 2.0 Theme.qml
+InlineMessage 2.0 InlineMessage.qml

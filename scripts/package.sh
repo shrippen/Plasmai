@@ -16,7 +16,8 @@ if [ -x "$ROOT/translate/build.sh" ]; then
     "$ROOT/translate/build.sh"
 fi
 
-OUT="Plasmai-${VERSION}.plasmoid"
+mkdir -p "$ROOT/dist/plasmoid"
+OUT="dist/plasmoid/Plasmai-${VERSION}.plasmoid"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
@@ -35,4 +36,4 @@ rm -f "$OUT"
 )
 
 echo "Created $ROOT/$OUT"
-echo "Install with: kpackagetool6 -i \"$OUT\" -t Plasma/Applet"
+echo "Install with: kpackagetool6 -i \"$ROOT/$OUT\" -t Plasma/Applet"

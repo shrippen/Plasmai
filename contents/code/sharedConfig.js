@@ -41,6 +41,10 @@ var SHARED_KEYS = [
     "lastUsedActivityId",
     "lastUsedProjectName",
     "lastUsedActivityName",
+    "filmDaysJson",
+    "filmDaysPending",
+    "pluginProbesJson",
+    "showTrips",
     "locationName",
     "colorDistinctionEnabled",
     "colorSimilarityPercent",
@@ -82,14 +86,31 @@ function applyToConfiguration(config, shared) {
     return changed
 }
 
-function fromConfiguration(config) {
+/**
+ * Device data kept in shared.json as JSON maps (film days, queued film-day
+ * patches, plugin probes). The Plasmoid and the app both write them, so they
+ * are never written as a whole from a possibly stale in-memory copy: callers
+ * send them as a three-way merge (mergeDataPatch) and settings-wide writes
+ * leave them out (fromConfiguration(config, { withoutDataMaps: true })).
+ */
+var DATA_MAP_KEYS = ["filmDaysJson", "filmDaysPending", "pluginProbesJson"]
+
+function isDataMapKey(key) {
+    return DATA_MAP_KEYS.indexOf(key) >= 0
+}
+
+function fromConfiguration(config, options) {
     if (!config) {
         return {}
     }
+    var withoutDataMaps = !!(options && options.withoutDataMaps)
     var obj = {}
     var hasNonEmptyProfilesJson = (typeof config.profilesJson === "string" && config.profilesJson.length > 0)
     for (var i = 0; i < SHARED_KEYS.length; i++) {
         var key = SHARED_KEYS[i]
+        if (withoutDataMaps && isDataMapKey(key)) {
+            continue
+        }
         if (key === "profilesJson") {
             if (hasNonEmptyProfilesJson) {
                 obj[key] = config[key]
@@ -258,6 +279,75 @@ function merge(base, patch) {
         }
     }
     return obj
+}
+
+function parseMapJson(text) {
+    if (!text || typeof text !== "string") {
+        return {}
+    }
+    try {
+        var data = JSON.parse(text)
+        return (data && typeof data === "object" && !Array.isArray(data)) ? data : {}
+    } catch (e) {
+        return {}
+    }
+}
+
+/**
+ * Three-way merge of a JSON map (B9): the top-level keys that changed from
+ * baseJson (what this process last saw) to nextJson (what it wants to
+ * write) are applied onto freshJson (what is on disk now, possibly written
+ * by the other app). Keys nobody here touched keep the disk value, so a
+ * film day the Plasmoid saved is not lost when the app saves another one.
+ * Returns the merged JSON text.
+ */
+function mergeMapJson(freshJson, baseJson, nextJson) {
+    var fresh = parseMapJson(freshJson)
+    var base = parseMapJson(baseJson)
+    var next = parseMapJson(nextJson)
+    var out = {}
+    var k
+    for (k in fresh) {
+        out[k] = fresh[k]
+    }
+    var seen = {}
+    for (k in base) {
+        seen[k] = true
+    }
+    for (k in next) {
+        seen[k] = true
+    }
+    for (k in seen) {
+        var inBase = Object.prototype.hasOwnProperty.call(base, k)
+        var inNext = Object.prototype.hasOwnProperty.call(next, k)
+        if (inBase && inNext && JSON.stringify(base[k]) === JSON.stringify(next[k])) {
+            continue
+        }
+        if (inNext) {
+            out[k] = next[k]
+        } else {
+            delete out[k]
+        }
+    }
+    return JSON.stringify(out)
+}
+
+/**
+ * The patch to write onto `existing` (shared.json as loaded just now):
+ * data-map keys that have an entry in `bases` are three-way merged, every
+ * other key is taken as is.
+ */
+function mergeDataPatch(existing, bases, patch) {
+    var out = {}
+    for (var key in (patch || {})) {
+        if (isDataMapKey(key) && bases && Object.prototype.hasOwnProperty.call(bases, key)) {
+            var fresh = existing && typeof existing[key] === "string" ? existing[key] : ""
+            out[key] = mergeMapJson(fresh, bases[key], patch[key])
+        } else {
+            out[key] = patch[key]
+        }
+    }
+    return out
 }
 
 /** Parse KConfig / shared.json values for SpinBox and Int entries. */

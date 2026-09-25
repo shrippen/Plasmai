@@ -1,5 +1,6 @@
 .pragma library
 .import "./kimaiApi.js" as KimaiApi
+.import "./mileage.js" as Mileage
 
 /**
  * Stats aggregations for the secondary statistics view.
@@ -526,4 +527,34 @@ function sumSecondsInRange(entries, rangeStart, rangeEnd, nowMs) {
         total += overlapSeconds(entries[i], rangeStart, rangeEnd, nowMs)
     }
     return total
+}
+
+/**
+ * Trip totals (kimai-anfahrten) for the stats summary: today, this week and
+ * this month around nowDate. trips: /api/mileage/trips answers covering at
+ * least the month and the week. { todayKm, weekKm, monthKm, monthCount }.
+ */
+function tripKmSummary(trips, nowDate) {
+    var now = nowDate || new Date()
+    var today = Mileage.dateString(now)
+    var week = Mileage.weekRange(now)
+    var month = Mileage.monthRange(now)
+    var m = Mileage.summarize(trips, month.from, month.to)
+    return {
+        todayKm: Mileage.summarize(trips, today, today).km,
+        weekKm: Mileage.summarize(trips, week.from, week.to).km,
+        monthKm: m.km,
+        monthCount: m.count
+    }
+}
+
+/** { from, to } covering this week and this month (weeks can reach into the previous/next month). */
+function tripRangeFor(nowDate) {
+    var now = nowDate || new Date()
+    var week = Mileage.weekRange(now)
+    var month = Mileage.monthRange(now)
+    return {
+        from: week.from < month.from ? week.from : month.from,
+        to: week.to > month.to ? week.to : month.to
+    }
 }

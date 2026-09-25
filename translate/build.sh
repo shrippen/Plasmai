@@ -15,3 +15,6 @@ for po in *.po; do
     msgfmt -o "${outdir}/${DOMAIN}.mo" "$po"
     echo "Built ${lang} → contents/locale/${lang}/LC_MESSAGES/${DOMAIN}.mo"
 done
+
+# Android has no gettext runtime: bundle the same catalogs as JSON in the app QRC.
+python3 "$ROOT/translate/po2json.py"

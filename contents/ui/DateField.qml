@@ -58,6 +58,14 @@ RowLayout {
         suppressHandler = false
     }
 
+    /** Opens the calendar popup programmatically (e.g. from a custom big-text header). */
+    function openPicker() {
+        var d = DTF.coerceDate(root.selectedDate) || new Date()
+        root.calendarMonth = d.getMonth()
+        root.calendarYear = d.getFullYear()
+        calendarPopup.open()
+    }
+
     function selectSegment(index) {
         var segs = DTF.digitSegments(dateField.text)
         if (index < 0 || index >= segs.length) {
@@ -204,12 +212,7 @@ RowLayout {
         text: i18n("Pick date")
         display: QQC2.AbstractButton.IconOnly
         enabled: dateField.enabled
-        onClicked: {
-            var d = DTF.coerceDate(root.selectedDate) || new Date()
-            root.calendarMonth = d.getMonth()
-            root.calendarYear = d.getFullYear()
-            calendarPopup.open()
-        }
+        onClicked: root.openPicker()
         PlasmaComponents3.ToolTip.text: text
         PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
         PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay

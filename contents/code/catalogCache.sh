@@ -5,6 +5,10 @@
 # Subcommands:
 #   load  -> print JSON on stdout (exit 0). Exit 1 if missing.
 #   store -> write JSON from $PLASMAI_CATALOG_JSON env var.
+#   append <job>  -> append $PLASMAI_CATALOG_JSON to the part file of <job>.
+#   commit <job>  -> move the part file of <job> into place.
+# A shell command line is limited to 128 KiB (one argv string), so large
+# catalogs are sent in chunks with append + commit.
 
 set -eu
 
@@ -25,11 +29,34 @@ case "${1:-}" in
             exit 2
         fi
         mkdir -p "$DIR"
-        printf %s "$PLASMAI_CATALOG_JSON" > "$FILE.tmp"
-        mv "$FILE.tmp" "$FILE"
+        TMP=$(mktemp "$DIR/.catalog-cache.json.XXXXXX")
+        trap 'rm -f "$TMP"' EXIT
+        printf %s "$PLASMAI_CATALOG_JSON" > "$TMP"
+        mv "$TMP" "$FILE"
+        trap - EXIT
+        ;;
+    append|commit)
+        JOB=${2:-}
+        case "$JOB" in
+            ''|*[!A-Za-z0-9_-]*)
+                echo "error: invalid job id" >&2
+                exit 64
+                ;;
+        esac
+        mkdir -p "$DIR"
+        PART="$DIR/.catalog-cache.$JOB.part"
+        if [ "$1" = "append" ]; then
+            printf %s "${PLASMAI_CATALOG_JSON:-}" >> "$PART"
+        else
+            if [ ! -s "$PART" ]; then
+                echo "error: nothing to commit" >&2
+                exit 2
+            fi
+            mv "$PART" "$FILE"
+        fi
         ;;
     *)
-        echo "usage: $0 {load|store}" >&2
+        echo "usage: $0 {load|store|append <job>|commit <job>}" >&2
         exit 64
         ;;
 esac

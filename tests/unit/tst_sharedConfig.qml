@@ -198,4 +198,51 @@ TestCase {
         compare(SharedConfig.coerceInt(0, 15, 1, 240), 1)
         compare(SharedConfig.coerceInt(999, 15, 1, 240), 240)
     }
+
+    // ── B9: data maps are merged, not replaced ──
+
+    function test_mergeMapJsonKeepsOtherWriters() {
+        var base = JSON.stringify({ a: { n: 1 }, b: { n: 2 } })
+        var next = JSON.stringify({ a: { n: 10 }, b: { n: 2 } })          // this process changed a
+        var fresh = JSON.stringify({ a: { n: 1 }, b: { n: 2 }, c: { n: 3 } }) // the other app added c
+        var merged = JSON.parse(SharedConfig.mergeMapJson(fresh, base, next))
+        compare(merged.a.n, 10)
+        compare(merged.b.n, 2)
+        compare(merged.c.n, 3)
+    }
+
+    function test_mergeMapJsonDeletesAndKeepsUntouchedDiskValues() {
+        var base = JSON.stringify({ a: 1, b: 2 })
+        var next = JSON.stringify({ b: 2 })                // a removed here (e.g. queue flushed)
+        var fresh = JSON.stringify({ a: 1, b: 20 })        // b changed on disk meanwhile
+        var merged = JSON.parse(SharedConfig.mergeMapJson(fresh, base, next))
+        verify(!merged.hasOwnProperty("a"))
+        compare(merged.b, 20)
+        compare(SharedConfig.mergeMapJson("", "", JSON.stringify({ x: 1 })), '{"x":1}')
+        compare(SharedConfig.mergeMapJson("not json", "{}", "{}"), "{}")
+    }
+
+    function test_mergeDataPatchOnlyTouchesDataMaps() {
+        var existing = { filmDaysJson: JSON.stringify({ k1: 1 }), recentCount: 5 }
+        var patch = SharedConfig.mergeDataPatch(existing,
+            { filmDaysJson: "{}" },
+            { filmDaysJson: JSON.stringify({ k2: 2 }), recentCount: 7 })
+        compare(JSON.parse(patch.filmDaysJson).k1, 1)
+        compare(JSON.parse(patch.filmDaysJson).k2, 2)
+        compare(patch.recentCount, 7)
+        // without a base the value is written as is
+        var plain = SharedConfig.mergeDataPatch(existing, {}, { filmDaysJson: "{}" })
+        compare(plain.filmDaysJson, "{}")
+    }
+
+    function test_fromConfigurationWithoutDataMaps() {
+        var config = { recentCount: 3, filmDaysJson: "{}", filmDaysPending: "{}", pluginProbesJson: "{}" }
+        var all = SharedConfig.fromConfiguration(config)
+        compare(all.filmDaysJson, "{}")
+        var settings = SharedConfig.fromConfiguration(config, { withoutDataMaps: true })
+        compare(settings.recentCount, 3)
+        verify(!settings.hasOwnProperty("filmDaysJson"))
+        verify(!settings.hasOwnProperty("filmDaysPending"))
+        verify(!settings.hasOwnProperty("pluginProbesJson"))
+    }
 }

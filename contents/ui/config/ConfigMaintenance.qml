@@ -5,6 +5,7 @@ import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
 import org.kde.plasma.plasma5support as P5Support
 import "../../code/secret.js" as Secret
+import "../../code/platform.js" as Platform
 import "../../code/kimaiApi.js" as KimaiApi
 import "../../code/timeTracker.js" as TimeTracker
 import "../../code/profiles.js" as Profiles
@@ -15,9 +16,6 @@ import "../../code/maintenanceCache.js" as MaintenanceCache
 ConfigPage {
     id: page
 
-    readonly property string kwalletScript: Secret.fileUrlToPath(Qt.resolvedUrl("../../code/kwallet.sh"))
-    readonly property string sharedConfigScript: Secret.fileUrlToPath(Qt.resolvedUrl("../../code/sharedConfig.sh"))
-    readonly property string catalogCacheScript: Secret.fileUrlToPath(Qt.resolvedUrl("../../code/catalogCache.sh"))
     readonly property int pageMargin: Kirigami.Units.gridUnit
     /** Extra space so list text does not sit against the scrollbar. */
     readonly property int scrollGutter: Kirigami.Units.gridUnit
@@ -218,7 +216,7 @@ ConfigPage {
                 activity: page.effectiveActivityPct
             }
         })
-        Secret.saveCatalogCache(execSource, page.catalogCacheScript, MaintenanceCache.exportPayload())
+        Platform.saveCatalog(execSource, MaintenanceCache.exportPayload())
     }
 
     /**
@@ -269,7 +267,7 @@ ConfigPage {
             return
         }
 
-        Secret.loadCatalogCache(execSource, page.catalogCacheScript, function(payload) {
+        Platform.loadCatalog(execSource).then(function(payload) {
             if (payload && String(payload.profileId || "") === String(profileId)) {
                 MaintenanceCache.hydrate(payload)
             }
@@ -283,8 +281,8 @@ ConfigPage {
         }
 
         MaintenanceCache.setFetching(true)
-        Secret.load(execSource, page.kwalletScript, page.activeProfile.id, function(token, err) {
-            if (err || !token) {
+        Platform.loadToken(execSource, page.activeProfile.id).then(function(token) {
+            if (!token) {
                 MaintenanceCache.setFetching(false)
                 if (!hadCache) {
                     statusText = i18n("Save an API token on the Connection tab first.")
@@ -391,7 +389,7 @@ ConfigPage {
         if (!page.visible) {
             return
         }
-        Secret.loadSharedConfig(execSource, page.sharedConfigScript, function(shared) {
+        Platform.loadShared(execSource).then(function(shared) {
             if (shared) {
                 SharedConfig.applyToConfiguration(plasmoid.configuration, shared)
             }

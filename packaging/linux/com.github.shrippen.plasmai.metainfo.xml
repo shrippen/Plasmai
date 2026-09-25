@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.github.shrippen.plasmai</id>
+  <name>Plasmai</name>
+  <name xml:lang="de">Plasmai</name>
+  <summary>Track time with Kimai, Clockify, Toggl Track, or SolidTime</summary>
+  <summary xml:lang="de">Zeiterfassung mit Kimai, Clockify, Toggl Track oder SolidTime</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <developer id="com.github.shrippen">
+    <name>shrippen</name>
+  </developer>
+  <launchable type="desktop-id">com.github.shrippen.plasmai.desktop</launchable>
+  <url type="homepage">https://github.com/shrippen/Plasmai</url>
+  <url type="bugtracker">https://github.com/shrippen/Plasmai/issues</url>
+  <description>
+    <p>
+      Plasmai is a Kirigami app for time tracking, for Plasma Mobile and desktop Linux
+      (and, as a separate Android build, for Android). Start and stop timers, edit the
+      running entry, switch activities, add manual entries, browse statistics, pin
+      favorites, and see today/week totals against your work contract. Supports Kimai,
+      Clockify, Toggl Track, and SolidTime. API tokens are stored via the Secret Service
+      (QtKeychain).
+    </p>
+    <p xml:lang="de">
+      Plasmai ist eine Kirigami-App zur Zeiterfassung für Plasma Mobile und Desktop-Linux
+      (und, als separater Android-Build, für Android). Timer starten und stoppen, den
+      laufenden Eintrag bearbeiten, Tätigkeiten wechseln, manuelle Einträge hinzufügen,
+      Statistiken ansehen, Favoriten anpinnen und Tages-/Wochensummen gegen den
+      Arbeitsvertrag sehen. Unterstützt Kimai, Clockify, Toggl Track und SolidTime.
+      API-Tokens werden über den Secret Service (QtKeychain) gespeichert.
+    </p>
+  </description>
+  <categories>
+    <category>Utility</category>
+    <category>Office</category>
+  </categories>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="2.0.0" date="2026-09-22">
+      <description>
+        <p>First release of the Plasma Mobile / desktop Linux app, built from the same
+        codebase as the Android app and the Plasma Widget.</p>
+      </description>
+    </release>
+  </releases>
+</component>

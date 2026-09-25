@@ -36,86 +36,15 @@ ColumnLayout {
     property var pendingActivityId: null
     property bool suppressProjectSignal: false
 
-    /** Whether the Drehzettel plugin is installed on the active Kimai profile. */
-    property bool drehzettelAvailable: false
-
     readonly property alias projectCombo: pickers.projectCombo
     readonly property alias activityCombo: pickers.activityCombo
-    readonly property alias filmDay: filmDayFields.filmDay
-    readonly property alias filmDayEngagementActive: filmDayFields.engagementActive
 
     signal aboutToOpenPicker(var projectField, var activityField)
     signal projectChosen(var projectId)
-    /** project/activity + effective begin date changed - caller should refresh Drehzettel engagement status. */
-    signal entryContextChanged(var projectId, var activityId, string dateText)
-    signal saveRequested(var projectId, var activityId, string beginText, string endText, string description, bool billable, var tags, var filmDayFields)
+    signal saveRequested(var projectId, var activityId, string beginText, string endText, string description, var billable, var tags)
     signal cancelled()
     signal createProjectRequested()
     signal createActivityRequested()
-
-    /**
-     * filmDayData: { breakMinutes, catering, category, note } or null; status: { active, rulesetName };
-     * key: "engagementId|YYYY-MM-DD" of the loaded film day, or "".
-     */
-    function applyDrehzettelStatus(status, filmDayData, key) {
-        filmDayFields.loadFilmDay(filmDayData, status && status.active, status && status.rulesetName, key)
-    }
-
-    /** project|activity|day last sent via entryContextChanged - dedupes re-checks. */
-    property string lastContextKey: ""
-
-    /**
-     * Any change to the effective project/activity/day re-checks the engagement - user
-     * picks, programmatic selection (editing an entry, pending ids resolving) and picker
-     * model reloads alike. Debounced: a project change reloads the activity list and moves
-     * the activity selection right after, and only the settled selection should be sent.
-     */
-    function scheduleEntryContextCheck() {
-        contextCheckTimer.restart()
-    }
-
-    Timer {
-        id: contextCheckTimer
-        interval: 200
-        onTriggered: root.emitEntryContextChanged()
-    }
-
-    Connections {
-        target: root.projectCombo
-        function onCurrentIndexChanged() { root.scheduleEntryContextCheck() }
-    }
-
-    Connections {
-        target: root.activityCombo
-        function onCurrentIndexChanged() { root.scheduleEntryContextCheck() }
-    }
-
-    function currentProjectId() {
-        return (projectCombo.currentIndex >= 0 && projectCombo.currentItem)
-            ? projectCombo.currentItem.value.id : null
-    }
-
-    function currentActivityId() {
-        return (activityCombo.currentIndex >= 0 && activityCombo.currentItem)
-            ? activityCombo.currentItem.value.id : null
-    }
-
-    function emitEntryContextChanged() {
-        if (!root.visible) {
-            return
-        }
-        var pid = currentProjectId()
-        var aid = currentActivityId()
-        var stamp = root.stampText(beginDate, beginTime)
-        var key = (hasId(pid) ? pid : "") + "|" + (hasId(aid) ? aid : "") + "|" + stamp.slice(0, 10)
-        if (key === lastContextKey) {
-            return
-        }
-        lastContextKey = key
-        // Emitted even without a project, so the caller resets the fields and supersedes
-        // any request still in flight for the previous selection.
-        root.entryContextChanged(hasId(pid) ? pid : null, hasId(aid) ? aid : null, hasId(pid) ? stamp : "")
-    }
 
     function closePickers() {
         pickers.closePickers()
@@ -175,8 +104,6 @@ ColumnLayout {
         pendingProjectId = null
         pendingActivityId = null
         metaFields.resetDefaults()
-        filmDayFields.resetDefaults()
-        lastContextKey = ""
     }
 
     function hasId(value) {
@@ -243,7 +170,6 @@ ColumnLayout {
         pendingProjectId = null
         if (!suppressProjectSignal) {
             root.projectChosen(pid)
-            root.scheduleEntryContextCheck()
         }
     }
 
@@ -251,10 +177,6 @@ ColumnLayout {
         if (!ts) {
             return
         }
-        // A different entry may share engagement + day with the previous one - start clean
-        // so its unsaved film-day edits never carry over.
-        filmDayFields.resetDefaults()
-        lastContextKey = ""
         var begin = parseStampDate(ts.begin, new Date(Date.now() - 60 * 60 * 1000))
         var end = parseStampDate(ts.end, new Date())
         beginDate.setDate(begin)
@@ -280,15 +202,11 @@ ColumnLayout {
         }
         Qt.callLater(trySelectPendingActivity)
         metaFields.loadFromTimesheet(ts)
-        root.scheduleEntryContextCheck()
     }
 
     Component.onCompleted: resetDefaults()
 
     onVisibleChanged: {
-        if (visible) {
-            scheduleEntryContextCheck()
-        }
         if (visible && editingExisting && hasId(pendingProjectId)) {
             Qt.callLater(function() {
                 if (root.visible && root.editingExisting) {
@@ -300,7 +218,6 @@ ColumnLayout {
     }
 
     onProjectPickerModelChanged: {
-        scheduleEntryContextCheck()
         if (!visible || !editingExisting) {
             return
         }
@@ -311,7 +228,6 @@ ColumnLayout {
     }
 
     onActivityPickerModelChanged: {
-        scheduleEntryContextCheck()
         if (!visible || !editingExisting) {
             return
         }
@@ -328,127 +244,141 @@ ColumnLayout {
               : i18n("Create a finished entry with project, activity, and time range.")
     }
 
-    ProjectActivityPickers {
-        id: pickers
+    // Two columns once there's room: project/activity/range on the left,
+    // description and billable/tags details on the right. Below the threshold
+    // this reflows to a single stacked column, unchanged from before.
+    readonly property bool isWideLayout: width >= Kirigami.Units.gridUnit * 34
+
+    GridLayout {
         Layout.fillWidth: true
-        projectPickerModel: root.projectPickerModel
-        activityPickerModel: root.activityPickerModel
-        activitySectionTitles: root.activitySectionTitles
-        pickerOpenBelow: root.pickerOpenBelow
-        pickerViewport: root.pickerViewport
-        projectEnabled: root.configured && !root.busy && root.connectionOk
-        activityEnabled: root.configured && !root.busy && root.connectionOk
-        showCreateActions: root.showCreateActions
-        onAboutToOpenPicker: function(projectField, activityField) {
-            root.aboutToOpenPicker(projectField, activityField)
-        }
-        onProjectActivated: function(index) {
-            pendingProjectId = null
-            if (index < 0 || index >= pickers.projectPickerModel.length) {
-                root.projectChosen(null)
-                return
+        columns: root.isWideLayout ? 2 : 1
+        columnSpacing: Kirigami.Units.largeSpacing * 1.5
+        rowSpacing: Kirigami.Units.smallSpacing
+
+        // —— Column A: what & when ——
+        ColumnLayout {
+            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignTop
+            spacing: Kirigami.Units.smallSpacing
+
+            ProjectActivityPickers {
+                id: pickers
+                Layout.fillWidth: true
+                projectPickerModel: root.projectPickerModel
+                activityPickerModel: root.activityPickerModel
+                activitySectionTitles: root.activitySectionTitles
+                pickerOpenBelow: root.pickerOpenBelow
+                pickerViewport: root.pickerViewport
+                projectEnabled: root.configured && !root.busy && root.connectionOk
+                activityEnabled: root.configured && !root.busy && root.connectionOk
+                showCreateActions: root.showCreateActions
+                onAboutToOpenPicker: function(projectField, activityField) {
+                    root.aboutToOpenPicker(projectField, activityField)
+                }
+                onProjectActivated: function(index) {
+                    pendingProjectId = null
+                    if (index < 0 || index >= pickers.projectPickerModel.length) {
+                        root.projectChosen(null)
+                        return
+                    }
+                    root.projectChosen(pickers.projectPickerModel[index].value.id)
+                }
+                onCreateProjectRequested: root.createProjectRequested()
+                onCreateActivityRequested: root.createActivityRequested()
             }
-            root.projectChosen(pickers.projectPickerModel[index].value.id)
-            root.scheduleEntryContextCheck()
-        }
-        onActivityActivated: function(index) {
-            root.scheduleEntryContextCheck()
-        }
-        onCreateProjectRequested: root.createProjectRequested()
-        onCreateActivityRequested: root.createActivityRequested()
-    }
 
-    PlasmaComponents3.Label {
-        Layout.fillWidth: true
-        Layout.topMargin: Kirigami.Units.smallSpacing
-        text: i18n("Begin")
-        font.bold: true
-        opacity: 0.85
-    }
-
-    RowLayout {
-        Layout.fillWidth: true
-        spacing: Kirigami.Units.smallSpacing
-        DateField {
-            id: beginDate
-            Layout.fillWidth: true
-            Layout.preferredWidth: 1
-            enabled: root.configured && !root.busy
-            onDateEdited: root.scheduleEntryContextCheck()
-        }
-        TimeField {
-            id: beginTime
-            Layout.fillWidth: true
-            Layout.preferredWidth: 1
-            enabled: root.configured && !root.busy
-        }
-    }
-
-    PlasmaComponents3.Label {
-        Layout.fillWidth: true
-        text: i18n("End")
-        font.bold: true
-        opacity: 0.85
-    }
-
-    RowLayout {
-        Layout.fillWidth: true
-        spacing: Kirigami.Units.smallSpacing
-        DateField {
-            id: endDate
-            Layout.fillWidth: true
-            Layout.preferredWidth: 1
-            enabled: root.configured && !root.busy
-        }
-        TimeField {
-            id: endTime
-            Layout.fillWidth: true
-            Layout.preferredWidth: 1
-            enabled: root.configured && !root.busy
-        }
-    }
-
-    PlasmaComponents3.Label {
-        Layout.fillWidth: true
-        wrapMode: Text.WordWrap
-        font.pointSize: Kirigami.Theme.smallFont.pointSize
-        opacity: root.rangeValid ? 0.9 : 0.65
-        color: root.rangeValid ? Kirigami.Theme.textColor : Kirigami.Theme.neutralTextColor
-        text: {
-            if (root.durationSeconds > 0) {
-                return i18n("Duration: %1", KimaiApi.formatDuration(root.durationSeconds))
+            PlasmaComponents3.Label {
+                Layout.fillWidth: true
+                Layout.topMargin: Kirigami.Units.smallSpacing
+                text: i18n("Begin")
+                font.bold: true
+                opacity: 0.85
             }
-            if (beginDate.text.length === 0 && beginTime.text.length === 0
-                && endDate.text.length === 0 && endTime.text.length === 0) {
-                return i18n("Duration: —")
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Kirigami.Units.smallSpacing
+                DateField {
+                    id: beginDate
+                    Layout.fillWidth: true
+                    Layout.preferredWidth: 1
+                    enabled: root.configured && !root.busy
+                }
+                TimeField {
+                    id: beginTime
+                    Layout.fillWidth: true
+                    Layout.preferredWidth: 1
+                    enabled: root.configured && !root.busy
+                }
             }
-            return i18n("Duration: invalid range")
+
+            PlasmaComponents3.Label {
+                Layout.fillWidth: true
+                text: i18n("End")
+                font.bold: true
+                opacity: 0.85
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Kirigami.Units.smallSpacing
+                DateField {
+                    id: endDate
+                    Layout.fillWidth: true
+                    Layout.preferredWidth: 1
+                    enabled: root.configured && !root.busy
+                }
+                TimeField {
+                    id: endTime
+                    Layout.fillWidth: true
+                    Layout.preferredWidth: 1
+                    enabled: root.configured && !root.busy
+                }
+            }
+
+            PlasmaComponents3.Label {
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                opacity: root.rangeValid ? 0.9 : 0.65
+                color: root.rangeValid ? Kirigami.Theme.textColor : Kirigami.Theme.neutralTextColor
+                text: {
+                    if (root.durationSeconds > 0) {
+                        return i18n("Duration: %1", KimaiApi.formatDuration(root.durationSeconds))
+                    }
+                    if (beginDate.text.length === 0 && beginTime.text.length === 0
+                        && endDate.text.length === 0 && endTime.text.length === 0) {
+                        return i18n("Duration: —")
+                    }
+                    return i18n("Duration: invalid range")
+                }
+            }
         }
-    }
 
-    QQC2.TextField {
-        id: descriptionField
-        Layout.fillWidth: true
-        enabled: root.configured && !root.busy
-        placeholderText: i18n("Description (optional)")
-    }
+        // —— Column B: description & details ——
+        ColumnLayout {
+            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignTop
+            spacing: Kirigami.Units.smallSpacing
 
-    TimesheetMetaFields {
-        id: metaFields
-        Layout.fillWidth: true
-        showBillable: root.supportsBillableEdit
-        showTags: root.supportsTags
-        tagLookupUrl: root.tagLookupUrl
-        tagLookupToken: root.tagLookupToken
-        pickerViewport: root.pickerViewport
-        enabled: root.configured && !root.busy
-    }
+            QQC2.TextField {
+                id: descriptionField
+                Layout.fillWidth: true
+                enabled: root.configured && !root.busy
+                placeholderText: i18n("Description (optional)")
+            }
 
-    FilmDayFields {
-        id: filmDayFields
-        Layout.fillWidth: true
-        visible: root.drehzettelAvailable && engagementActive
-        enabled: root.configured && !root.busy
+            TimesheetMetaFields {
+                id: metaFields
+                Layout.fillWidth: true
+                showBillable: root.supportsBillableEdit
+                showTags: root.supportsTags
+                tagLookupUrl: root.tagLookupUrl
+                tagLookupToken: root.tagLookupToken
+                pickerViewport: root.pickerViewport
+                enabled: root.configured && !root.busy
+            }
+        }
     }
 
     RowLayout {
@@ -466,23 +396,14 @@ ColumnLayout {
             onClicked: {
                 var project = projectCombo.currentItem.value
                 var activity = activityCombo.currentItem.value
-                var filmDayPayload = (root.drehzettelAvailable && filmDayFields.visible && filmDayFields.filmDay)
-                    ? {
-                        breakMinutes: filmDayFields.breakMinutes,
-                        catering: filmDayFields.catering,
-                        category: filmDayFields.category,
-                        note: filmDayFields.note
-                    }
-                    : null
                 root.saveRequested(
                     project.id,
                     activity.id,
                     root.stampText(beginDate, beginTime),
                     root.stampText(endDate, endTime),
                     descriptionField.text,
-                    root.editingExisting ? metaFields.billable : metaFields.billableOrNull,
-                    metaFields.tags,
-                    filmDayPayload)
+                    metaFields.billableOrNull,
+                    metaFields.tags)
             }
         }
 

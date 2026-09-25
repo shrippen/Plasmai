@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-08-18 18:54+0200\n"
+"POT-Creation-Date: 2026-09-25 22:44+0000\n"
 "PO-Revision-Date: 2026-08-09 19:45+0200\n"
 "Last-Translator: Cursor Agent\n"
 "Language-Team: Japanese\n"
@@ -16,17 +16,1652 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: contents/config/config.qml:6 contents/ui/config/ConfigConnection.qml:367
+#: app/qml/ConnectionPage.qml:12 app/qml/main.qml:892
+#: contents/config/config.qml:6 contents/ui/config/ConfigConnection.qml:366
 msgid "Connection"
 msgstr "接続"
 
-#: contents/config/config.qml:11 contents/ui/config/ConfigDisplay.qml:869
-#: contents/ui/config/ConfigDisplay.qml:924
-#: contents/ui/config/ConfigFavorites.qml:507 contents/ui/main.qml:3439
+#: app/qml/ConnectionPage.qml:209 contents/ui/config/ConfigConnection.qml:388
+msgid "Profile:"
+msgstr "プロファイル:"
+
+#: app/qml/ConnectionPage.qml:223 contents/ui/config/ConfigConnection.qml:402
+msgid "Profile name:"
+msgstr "プロファイル名:"
+
+#: app/qml/ConnectionPage.qml:241
+msgid "Add"
+msgstr "追加"
+
+#: app/qml/ConnectionPage.qml:248 app/qml/ConnectionPage.qml:251
+#: contents/ui/config/ConfigConnection.qml:490
+#: contents/ui/config/ConfigConnection.qml:495
+msgid "Profile %1"
+msgstr "プロファイル %1"
+
+#: app/qml/ConnectionPage.qml:267 contents/ui/config/ConfigConnection.qml:509
+msgid "Remove"
+msgstr "削除"
+
+#: app/qml/ConnectionPage.qml:287
+msgid "Use this"
+msgstr "これを使用"
+
+#: app/qml/ConnectionPage.qml:299 contents/ui/config/ConfigConnection.qml:547
+msgid "none"
+msgstr "なし"
+
+#: app/qml/ConnectionPage.qml:299
+msgid "Active: %1"
+msgstr "有効: %1"
+
+#: app/qml/ConnectionPage.qml:310
+msgid "Provider:"
+msgstr "プロバイダー:"
+
+#: app/qml/ConnectionPage.qml:338 contents/ui/config/ConfigConnection.qml:74
+msgid "Server URL:"
+msgstr "サーバー URL:"
+
+#: app/qml/ConnectionPage.qml:340
+msgid "https://your-server.com"
+msgstr "https://your-server.com"
+
+#: app/qml/ConnectionPage.qml:351
+msgid "API Token:"
+msgstr "APIトークン:"
+
+#: app/qml/ConnectionPage.qml:353
+msgid "Token stored."
+msgstr "トークンは保存済みです。"
+
+#: app/qml/ConnectionPage.qml:353 app/qml/ConnectionPage.qml:427
+msgid "No token stored."
+msgstr "トークンが保存されていません。"
+
+#: app/qml/ConnectionPage.qml:361
+msgid "Enter API token…"
+msgstr "APIトークンを入力…"
+
+#: app/qml/ConnectionPage.qml:372 contents/ui/config/ConfigConnection.qml:560
+msgid "Saving…"
+msgstr "保存中…"
+
+#: app/qml/ConnectionPage.qml:372 contents/ui/config/ConfigConnection.qml:560
+msgid "Save token"
+msgstr "トークンを保存"
+
+#: app/qml/ConnectionPage.qml:384
+msgid "Token saved."
+msgstr "トークンを保存しました。"
+
+#: app/qml/ConnectionPage.qml:390
+msgid "Failed to save"
+msgstr "保存に失敗しました"
+
+#: app/qml/ConnectionPage.qml:396
+msgid "Clear"
+msgstr "クリア"
+
+#: app/qml/ConnectionPage.qml:404
+msgid "Token removed."
+msgstr "トークンを削除しました。"
+
+#: app/qml/ConnectionPage.qml:408 app/qml/ConnectionPage.qml:437
+#: app/qml/ConnectionPage.qml:440
+msgid "Failed"
+msgstr "失敗しました"
+
+#: app/qml/ConnectionPage.qml:414
+msgid "Test"
+msgstr "テスト"
+
+#: app/qml/ConnectionPage.qml:419
+msgid "Testing…"
+msgstr "テスト中…"
+
+#: app/qml/ConnectionPage.qml:430
+msgid "Testing… (%1)"
+msgstr "テスト中… (%1)"
+
+#: app/qml/ConnectionPage.qml:434
+msgid "Connection OK!"
+msgstr "接続OK！"
+
+#: app/qml/ConnectionPage.qml:439
+msgid "Missing URL or token (type: %1)"
+msgstr "URLまたはトークンがありません (種類: %1)"
+
+#: app/qml/FavoritesPage.qml:10 app/qml/TimerPage.qml:435 app/qml/main.qml:888
+#: contents/config/config.qml:11 contents/ui/config/ConfigDisplay.qml:877
+#: contents/ui/config/ConfigDisplay.qml:932
+#: contents/ui/config/ConfigFavorites.qml:505 contents/ui/main.qml:4238
 msgid "Favorites"
 msgstr "お気に入り"
 
-#: contents/config/config.qml:16 contents/ui/config/ConfigDisplay.qml:482
+#: app/qml/FavoritesPage.qml:43
+msgid "Tap a project to see its activities, then pin the ones you use often."
+msgstr "プロジェクトをタップしてアクティビティを表示し、よく使うものをピン留めします。"
+
+#: app/qml/FavoritesPage.qml:50
+msgid "Connect a time tracker first"
+msgstr "先に時間管理サービスを接続してください"
+
+#: app/qml/FilmDayConflictsPage.qml:17
+msgid "Review film days"
+msgstr ""
+
+#: app/qml/FilmDayConflictsPage.qml:41 contents/ui/main.qml:1260
+msgid "The film day could not be sent: %1"
+msgstr ""
+
+#: app/qml/FilmDayPage.qml:13 app/qml/TimerPage.qml:40
+#: contents/ui/main.qml:3465 contents/ui/main.qml:3535
+msgid "Film day"
+msgstr ""
+
+#: app/qml/FilmDayPage.qml:90 contents/ui/main.qml:1303
+#: contents/ui/main.qml:1617
+msgid "Enter valid begin and end date/time."
+msgstr "有効な開始・終了日時を入力してください。"
+
+#: app/qml/FilmDayPage.qml:94 contents/ui/main.qml:1307
+#: contents/ui/main.qml:1621
+msgid "End must be after begin."
+msgstr "終了は開始より後である必要があります。"
+
+#: app/qml/FilmDayPage.qml:126 contents/ui/main.qml:1356
+msgid "%1 other entry of this day could not be deleted: %2"
+msgid_plural "%1 other entries of this day could not be deleted: %2"
+msgstr[0] ""
+
+#: app/qml/FilmDayPage.qml:133 contents/ui/main.qml:1350
+msgid "Begin and end were saved. The film day extras could not be sent and will be retried."
+msgstr ""
+
+#: app/qml/FilmDayPage.qml:136 contents/ui/main.qml:1352
+msgid "Begin and end were saved, but the server rejected the film day extras: %1"
+msgstr ""
+
+#: app/qml/FilmDayPage.qml:142 contents/ui/main.qml:1366
+msgid "Shooting day saved"
+msgstr ""
+
+#: app/qml/FilmDayPage.qml:149
+msgid "Travel day saved."
+msgstr ""
+
+#: app/qml/FilmDayPage.qml:149 app/qml/TimerPage.qml:260
+#: app/qml/TripEditPage.qml:17 app/qml/TripsPage.qml:117
+#: app/qml/shared/ActivityListRow.qml:239 app/qml/shared/TripSheet.qml:201
+#: app/qml/shared/TripSheet.qml:402 contents/ui/ActivityListRow.qml:237
+#: contents/ui/TripSheet.qml:202 contents/ui/TripSheet.qml:403
+#: contents/ui/main.qml:3549 contents/ui/main.qml:3851
+msgid "Log trip"
+msgstr ""
+
+#: app/qml/MaintenancePage.qml:9 app/qml/main.qml:900
+msgid "Color maintenance"
+msgstr "色のメンテナンス"
+
+#: app/qml/MaintenancePage.qml:35 contents/ui/config/ConfigFavorites.qml:519
+msgid "Reload"
+msgstr "再読み込み"
+
+#: app/qml/MaintenancePage.qml:46 contents/ui/config/ConfigMaintenance.qml:419
+msgid "Color maintenance is for Kimai"
+msgstr "色のメンテナンスは Kimai 向けです"
+
+#: app/qml/MaintenancePage.qml:47
+msgid "Only Kimai provides customer/project/activity colors to distinguish."
+msgstr "区別できる顧客・プロジェクト・アクティビティの色を提供するのは Kimai のみです。"
+
+#: app/qml/MaintenancePage.qml:55
+msgid "Customers, projects and activities whose colors look too similar are grouped here. \"kept\" entries keep their color, \"shifted\" ones are shown in a distinct replacement color inside Plasmai only. Your Kimai data is not changed. Turn this on or off in Settings under Color distinction."
+msgstr "似た色の顧客・プロジェクト・アクティビティをここにまとめます。「維持」は色をそのまま使い、「シフト済み」は Plasmai 内だけで区別しやすい代替色で表示されます。Kimai のデータは変更されません。設定の「色の区別」でオン／オフを切り替えられます。"
+
+#: app/qml/MaintenancePage.qml:60 contents/ui/config/ConfigMaintenance.qml:476
+msgid "Customers"
+msgstr "顧客"
+
+#: app/qml/MaintenancePage.qml:61 contents/ui/config/ConfigFavorites.qml:514
+#: contents/ui/config/ConfigMaintenance.qml:549
+msgid "Projects"
+msgstr "プロジェクト"
+
+#: app/qml/MaintenancePage.qml:62 contents/ui/config/ConfigFavorites.qml:635
+#: contents/ui/config/ConfigMaintenance.qml:622
+msgid "Activities"
+msgstr "アクティビティ"
+
+#: app/qml/MaintenancePage.qml:94 contents/ui/config/ConfigMaintenance.qml:537
+#: contents/ui/config/ConfigMaintenance.qml:610
+#: contents/ui/config/ConfigMaintenance.qml:683
+msgid "kept"
+msgstr "維持"
+
+#: app/qml/MaintenancePage.qml:94 contents/ui/config/ConfigMaintenance.qml:538
+#: contents/ui/config/ConfigMaintenance.qml:611
+#: contents/ui/config/ConfigMaintenance.qml:684
+msgid "shifted"
+msgstr "シフト済み"
+
+#: app/qml/MaintenancePage.qml:108
+msgid "No color clashes detected."
+msgstr "色の競合は見つかりませんでした。"
+
+#: app/qml/ManualEntryPage.qml:11 app/qml/shared/ActivityListRow.qml:225
+#: contents/ui/ActivityListRow.qml:223 contents/ui/main.qml:3468
+msgid "Edit entry"
+msgstr "エントリを編集"
+
+#: app/qml/ManualEntryPage.qml:11 app/qml/TimerPage.qml:28
+#: contents/ui/main.qml:3468 contents/ui/main.qml:3505
+msgid "Add entry"
+msgstr "エントリを追加"
+
+#: app/qml/SettingsPage.qml:11 app/qml/main.qml:896
+msgid "Settings"
+msgstr "設定"
+
+#: app/qml/SettingsPage.qml:53 contents/config/config.qml:26
+#: contents/ui/config/ConfigBehavior.qml:243
+msgid "Behavior"
+msgstr "動作"
+
+#: app/qml/SettingsPage.qml:57
+msgid "Refresh interval:"
+msgstr "更新間隔:"
+
+#: app/qml/SettingsPage.qml:65
+msgid "Recent entries:"
+msgstr "最近のエントリ:"
+
+#: app/qml/SettingsPage.qml:72
+msgid "Timer view:"
+msgstr "タイマー表示:"
+
+#: app/qml/SettingsPage.qml:73
+msgid "Show work summary (today / week totals)"
+msgstr "作業サマリーを表示 (今日／週の合計)"
+
+#: app/qml/SettingsPage.qml:78
+msgid "Show recent entries"
+msgstr "最近のエントリを表示"
+
+#: app/qml/SettingsPage.qml:83
+msgid "Show favorites"
+msgstr "お気に入りを表示"
+
+#: app/qml/SettingsPage.qml:88
+msgid "Show \"Continue\" button"
+msgstr "「続ける」ボタンを表示"
+
+#: app/qml/SettingsPage.qml:93
+msgid "Show start / switch activity controls"
+msgstr "アクティビティの開始／切り替え操作を表示"
+
+#: app/qml/SettingsPage.qml:99
+msgid "Show day sparkline"
+msgstr "1日のグラフを表示"
+
+#: app/qml/SettingsPage.qml:106 contents/ui/config/ConfigDisplay.qml:644
+msgid "Show sun, moon, and work arcs"
+msgstr "太陽・月・勤務の弧を表示"
+
+#: app/qml/SettingsPage.qml:112 contents/ui/config/ConfigDisplay.qml:985
+msgid "Trips:"
+msgstr ""
+
+#: app/qml/SettingsPage.qml:113
+msgid "Log trips and show detected trips (Anfahrten plugin)"
+msgstr ""
+
+#: app/qml/SettingsPage.qml:119
+msgid "Confirmations:"
+msgstr "確認:"
+
+#: app/qml/SettingsPage.qml:120
+msgid "Confirm before stopping tracking"
+msgstr "計測を停止する前に確認する"
+
+#: app/qml/SettingsPage.qml:125 contents/ui/config/ConfigBehavior.qml:268
+msgid "Ask before a start that overlaps the previous entry"
+msgstr "開始が直前の記録と重なる場合は確認する"
+
+#: app/qml/SettingsPage.qml:132
+msgid "When editing the running timer, the previous entry's end is shown. Saving an earlier start asks for confirmation."
+msgstr "実行中のタイマーを編集すると、前のエントリの終了時刻が表示されます。より早い開始時刻を保存するときは確認が必要です。"
+
+#: app/qml/SettingsPage.qml:135 contents/ui/config/ConfigDisplay.qml:599
+msgid "Work hours"
+msgstr "勤務時間"
+
+#: app/qml/SettingsPage.qml:138
+msgid "Begin:"
+msgstr "開始:"
+
+#: app/qml/SettingsPage.qml:144
+msgid "End:"
+msgstr "終了:"
+
+#: app/qml/SettingsPage.qml:150
+msgid "Location (sun / moon accuracy)"
+msgstr "場所 (太陽／月の精度)"
+
+#: app/qml/SettingsPage.qml:153
+msgid "Current:"
+msgstr "現在:"
+
+#: app/qml/SettingsPage.qml:154
+msgid "%1, %2"
+msgstr "%1, %2"
+
+#: app/qml/SettingsPage.qml:160
+msgid "Search city:"
+msgstr "都市を検索:"
+
+#: app/qml/SettingsPage.qml:161
+msgid "Search for a city…"
+msgstr "都市を検索…"
+
+#: app/qml/SettingsPage.qml:192
+msgid "Color distinction"
+msgstr "色の区別"
+
+#: app/qml/SettingsPage.qml:196
+msgid "Kimai only:"
+msgstr "Kimai のみ:"
+
+#: app/qml/SettingsPage.qml:198
+msgid "Shift similar customer/project/activity colors apart"
+msgstr "似ている顧客・プロジェクト・アクティビティの色を離す"
+
+#: app/qml/SettingsPage.qml:203
+msgid "Similarity threshold:"
+msgstr "類似度のしきい値:"
+
+#: app/qml/SettingsPage.qml:211
+msgid "Idle detection"
+msgstr "アイドル検出"
+
+#: app/qml/SettingsPage.qml:213
+msgid "Enable:"
+msgstr "有効化:"
+
+#: app/qml/SettingsPage.qml:215
+msgid "Prompt after being idle while tracking"
+msgstr "計測中にアイドル状態になったら確認する"
+
+#: app/qml/SettingsPage.qml:220
+msgid "Idle after:"
+msgstr "アイドルになるまで:"
+
+#: app/qml/SettingsPage.qml:223
+msgid "%1 min"
+msgstr "%1分"
+
+#: app/qml/SettingsPage.qml:227
+msgid "Notifications"
+msgstr "通知"
+
+#: app/qml/SettingsPage.qml:229
+msgid "Notify on:"
+msgstr "通知するとき:"
+
+#: app/qml/SettingsPage.qml:231 app/qml/TimerPage.qml:548
+#: app/qml/shared/ActiveEditView.qml:282 contents/ui/ActiveEditView.qml:282
+#: contents/ui/main.qml:4548
+msgid "Start"
+msgstr "開始"
+
+#: app/qml/SettingsPage.qml:237 app/qml/TimerPage.qml:277
+#: contents/ui/main.qml:3887
+msgid "Stop"
+msgstr "停止"
+
+#: app/qml/SettingsPage.qml:243
+msgid "Idle stop"
+msgstr "アイドルによる停止"
+
+#: app/qml/SettingsPage.qml:249
+msgid "Forgot to start tracking"
+msgstr "計測の開始忘れ"
+
+#: app/qml/SettingsPage.qml:257
+msgid "Settings sync with the Plasma widget via shared.json on the same machine."
+msgstr "設定は同じマシン上の shared.json を介して Plasma ウィジェットと同期されます。"
+
+#: app/qml/StatsPage.qml:13 app/qml/TimerPage.qml:34 app/qml/main.qml:879
+#: contents/ui/main.qml:3464 contents/ui/main.qml:3520
+msgid "Statistics"
+msgstr "統計"
+
+#: app/qml/TimerPage.qml:12 app/qml/main.qml:345 app/qml/main.qml:865
+#: contents/ui/main.qml:364 contents/ui/main.qml:366 contents/ui/main.qml:2842
+#: contents/ui/main.qml:3469
+msgid "Plasmai"
+msgstr "Plasmai"
+
+#: app/qml/TimerPage.qml:49 contents/ui/main.qml:1934 contents/ui/main.qml:1957
+#: contents/ui/main.qml:3990
+msgid "Today %1"
+msgstr "今日 %1"
+
+#: app/qml/TimerPage.qml:50 contents/ui/main.qml:1935 contents/ui/main.qml:3992
+msgid "Week %1"
+msgstr "週 %1"
+
+#: app/qml/TimerPage.qml:136 contents/ui/main.qml:547
+msgid "Not configured"
+msgstr "未設定"
+
+#: app/qml/TimerPage.qml:137
+msgid "Connecting…"
+msgstr "接続中…"
+
+#: app/qml/TimerPage.qml:138 app/qml/TimerPage.qml:161 contents/ui/main.qml:553
+msgid "Connection problem"
+msgstr "接続の問題"
+
+#: app/qml/TimerPage.qml:141 contents/ui/main.qml:557
+msgid "Connected to %1 (%2)"
+msgstr "%1 (%2) に接続済み"
+
+#: app/qml/TimerPage.qml:141 contents/ui/main.qml:558
+msgid "Connected to %1"
+msgstr "%1 に接続済み"
+
+#: app/qml/TimerPage.qml:153 contents/ui/main.qml:3609
+msgid "Connect a time tracker"
+msgstr "時間記録サービスを接続"
+
+#: app/qml/TimerPage.qml:154
+msgid "Add your service, server URL (if needed), and API token to start tracking."
+msgstr "サービス、サーバーURL (必要な場合)、APIトークンを追加して計測を始めましょう。"
+
+#: app/qml/TimerPage.qml:155 contents/ui/main.qml:3612
+msgid "Configure Plasmai"
+msgstr "Plasmai を設定"
+
+#: app/qml/TimerPage.qml:163 contents/ui/main.qml:3625
+msgid "Retry"
+msgstr "再試行"
+
+#: app/qml/TimerPage.qml:164 contents/ui/main.qml:3630
+msgid "Configure"
+msgstr "設定"
+
+#: app/qml/TimerPage.qml:262 contents/ui/main.qml:3855
+msgid "Log a trip for this entry"
+msgstr ""
+
+#: app/qml/TimerPage.qml:268 contents/ui/main.qml:3865
+msgid "Edit"
+msgstr "編集"
+
+#: app/qml/TimerPage.qml:375
+msgid "Description…"
+msgstr "説明…"
+
+#: app/qml/TimerPage.qml:389 contents/ui/main.qml:4149
+msgid "Save description"
+msgstr "説明を保存"
+
+#: app/qml/TimerPage.qml:403
+msgid "No activity. Tap a favorite to start."
+msgstr "アクティビティがありません。お気に入りをタップして開始します。"
+
+#: app/qml/TimerPage.qml:403
+msgid "No activity."
+msgstr "アクティビティがありません。"
+
+#: app/qml/TimerPage.qml:417 contents/ui/main.qml:4204
+msgid "Continue · %1 · %2"
+msgstr "続行 · %1 · %2"
+
+#: app/qml/TimerPage.qml:418 contents/ui/main.qml:4216
+msgid "Start · %1 · %2"
+msgstr "開始 · %1 · %2"
+
+#: app/qml/TimerPage.qml:452 app/qml/TimerPage.qml:499
+#: contents/ui/main.qml:4280 contents/ui/main.qml:4419
+msgid "Already running."
+msgstr "すでに計測中です。"
+
+#: app/qml/TimerPage.qml:461
+msgid "Pin an entry from Recent to add it to your favorites."
+msgstr "「最近」からエントリをピン留めすると、お気に入りに追加されます。"
+
+#: app/qml/TimerPage.qml:468 contents/ui/main.qml:4383
+msgid "Recent"
+msgstr "最近"
+
+#: app/qml/TimerPage.qml:514 contents/ui/main.qml:4479
+msgid "Switch to another activity…"
+msgstr "別のアクティビティに切り替え…"
+
+#: app/qml/TimerPage.qml:514 contents/ui/main.qml:4479
+msgid "Start something else…"
+msgstr "別の作業を開始…"
+
+#: app/qml/TimerPage.qml:541 app/qml/shared/ManualEntryView.qml:367
+#: contents/ui/ManualEntryView.qml:368 contents/ui/main.qml:4534
+msgid "Description (optional)"
+msgstr "説明（任意）"
+
+#: app/qml/TimerPage.qml:548 contents/ui/main.qml:3156
+#: contents/ui/main.qml:4564
+msgid "Switch"
+msgstr "切り替え"
+
+#: app/qml/TimerPage.qml:558
+#: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/DatePopup.qml:87
+#: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/TimePopup.qml:46
+#: app/qml/shared/ActiveEditView.qml:364 app/qml/shared/ActiveEditView.qml:406
+#: app/qml/shared/FilmDayView.qml:1017 app/qml/shared/ManualEntryView.qml:411
+#: app/qml/shared/TripSheet.qml:441 contents/ui/ActiveEditView.qml:358
+#: contents/ui/ActiveEditView.qml:387 contents/ui/FilmDayView.qml:1018
+#: contents/ui/ManualEntryView.qml:412 contents/ui/TimeField.qml:259
+#: contents/ui/TripSheet.qml:442 contents/ui/main.qml:3162
+#: contents/ui/main.qml:4576
+msgid "Cancel"
+msgstr "キャンセル"
+
+#: app/qml/TimerPage.qml:569 contents/ui/main.qml:2989
+msgid "Stop tracking?"
+msgstr "記録を停止しますか？"
+
+#: app/qml/TimerPage.qml:570
+msgid "Stop %1 · %2?"
+msgstr "%1 · %2 を停止しますか？"
+
+#: app/qml/TimerPage.qml:577 contents/ui/main.qml:3177
+msgid "Delete entry?"
+msgstr "エントリを削除しますか？"
+
+#: app/qml/TimerPage.qml:578
+msgid "Really delete this entry?"
+msgstr "このエントリを本当に削除しますか？"
+
+#: app/qml/TimerPage.qml:584 contents/ui/main.qml:3013
+#: contents/ui/main.qml:4490
+msgid "Switch activity"
+msgstr "アクティビティを切り替え"
+
+#: app/qml/TimerPage.qml:585
+msgid "Switch to %1 · %2?"
+msgstr "%1 · %2 に切り替えますか？"
+
+#: app/qml/TimerPage.qml:596 app/qml/shared/ActivityListRow.qml:232
+#: contents/ui/ActivityListRow.qml:230 contents/ui/main.qml:3210
+msgid "Split entry"
+msgstr "エントリを分割"
+
+#: app/qml/TimerPage.qml:606
+msgid "Split at:"
+msgstr "分割位置:"
+
+#: app/qml/TimerPage.qml:631 contents/ui/main.qml:3316
+msgid "You were idle"
+msgstr "アイドル状態でした"
+
+#: app/qml/TimerPage.qml:640
+msgid "You were idle for %1. Keep this time, discard it, or discard and continue?"
+msgstr "%1 間アイドル状態でした。この時間を残しますか、破棄しますか、それとも破棄して続けますか？"
+
+#: app/qml/TimerPage.qml:642 contents/ui/main.qml:3343
+msgid "Keep time"
+msgstr "時間を残す"
+
+#: app/qml/TimerPage.qml:643 contents/ui/main.qml:3352
+msgid "Discard idle"
+msgstr "アイドルを破棄"
+
+#: app/qml/TimerPage.qml:644 contents/ui/main.qml:3361
+msgid "Discard and continue"
+msgstr "破棄して続ける"
+
+#: app/qml/TripEditPage.qml:17 app/qml/shared/TripSuggestionList.qml:69
+#: contents/ui/TripSuggestionList.qml:70
+msgid "Detected trip"
+msgstr ""
+
+#: app/qml/TripEditPage.qml:17 app/qml/shared/TripSheet.qml:201
+#: contents/ui/TripSheet.qml:202
+msgid "Edit trip"
+msgstr ""
+
+#: app/qml/TripEditPage.qml:32
+msgid "Trip saved: %1 km"
+msgstr ""
+
+#: app/qml/TripsPage.qml:16 app/qml/main.qml:883
+msgid "Trips"
+msgstr ""
+
+#: app/qml/TripsPage.qml:28 app/qml/shared/TripSheet.qml:53
+#: app/qml/shared/TripSuggestionList.qml:33 contents/ui/TripSheet.qml:54
+#: contents/ui/TripSuggestionList.qml:34
+msgid "Business trip"
+msgstr ""
+
+#: app/qml/TripsPage.qml:29 app/qml/shared/TripSheet.qml:54
+#: app/qml/shared/TripSuggestionList.qml:34 contents/ui/TripSheet.qml:55
+#: contents/ui/TripSuggestionList.qml:35
+msgid "Commute"
+msgstr ""
+
+#: app/qml/TripsPage.qml:30 app/qml/shared/TripSheet.qml:55
+#: app/qml/shared/TripSuggestionList.qml:35 contents/ui/TripSheet.qml:56
+#: contents/ui/TripSuggestionList.qml:36
+msgid "Private"
+msgstr ""
+
+#: app/qml/TripsPage.qml:44
+msgid "Trips could not be loaded: %1"
+msgstr ""
+
+#: app/qml/TripsPage.qml:79
+msgid "Commute logged: %1 km"
+msgstr ""
+
+#: app/qml/TripsPage.qml:93 contents/ui/main.qml:1569
+msgid "The trip could not be accepted: %1"
+msgstr ""
+
+#: app/qml/TripsPage.qml:106 contents/ui/main.qml:1584
+msgid "The trip could not be dismissed: %1"
+msgstr ""
+
+#: app/qml/TripsPage.qml:123
+msgid "Commute today"
+msgstr ""
+
+#: app/qml/TripsPage.qml:129
+msgid "Refresh"
+msgstr ""
+
+#: app/qml/TripsPage.qml:151 contents/ui/main.qml:4360
+msgid "Detected trips"
+msgstr ""
+
+#: app/qml/TripsPage.qml:170
+msgid "Previous month"
+msgstr ""
+
+#: app/qml/TripsPage.qml:182
+msgid "Next month"
+msgstr ""
+
+#: app/qml/TripsPage.qml:192
+msgid "%2 km in 1 trip"
+msgid_plural "%2 km in %1 trips"
+msgstr[0] ""
+
+#: app/qml/TripsPage.qml:193
+msgid "month closed"
+msgstr ""
+
+#: app/qml/TripsPage.qml:206
+msgid "No trips this month"
+msgstr ""
+
+#: app/qml/TripsPage.qml:215
+msgid "Time entry #%1"
+msgstr ""
+
+#: app/qml/TripsPage.qml:236
+msgid "round trip"
+msgstr ""
+
+#: app/qml/TripsPage.qml:243 app/qml/shared/StatsView.qml:259
+#: app/qml/shared/TripSuggestionList.qml:81 contents/ui/StatsView.qml:243
+#: contents/ui/TripSuggestionList.qml:82 contents/ui/main.qml:1514
+#: contents/ui/main.qml:1527 contents/ui/main.qml:1533
+msgid "%1 km"
+msgstr ""
+
+#: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/DatePopup.qml:99
+#: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/TimePopup.qml:57
+#: contents/ui/TimeField.qml:265
+msgid "Select"
+msgstr "選択"
+
+#: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/TimePicker.qml:97
+msgid "Hours"
+msgstr "時"
+
+#: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/TimePicker.qml:119
+msgid ":"
+msgstr ":"
+
+#: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/TimePicker.qml:134
+msgid "Minutes"
+msgstr "分"
+
+#: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/private/DatePicker.qml:275
+msgid "Day"
+msgstr "日"
+
+#: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/private/DatePicker.qml:278
+msgid "Month"
+msgstr "月"
+
+#: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/private/DatePicker.qml:281
+msgid "Year"
+msgstr "年"
+
+#: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/private/DatePicker.qml:366
+msgid "Go Previous"
+msgstr "前へ"
+
+#: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/private/DatePicker.qml:379
+msgid "Jump to today"
+msgstr "今日へ移動"
+
+#: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/private/DatePicker.qml:386
+msgid "Go Next"
+msgstr "次へ"
+
+#: app/qml/main.qml:264 contents/ui/main.qml:1128
+msgid "A queued film day change was dropped because the day was changed on the server meanwhile."
+msgstr ""
+
+#: app/qml/main.qml:408 contents/ui/main.qml:1920
+msgid "%1 left today"
+msgstr "今日あと %1"
+
+#: app/qml/main.qml:408 contents/ui/main.qml:1922
+msgid "%1 over today"
+msgstr "今日 %1 超過"
+
+#: app/qml/main.qml:409 contents/ui/main.qml:1927
+msgid "%1 left this week"
+msgstr "今週あと %1"
+
+#: app/qml/main.qml:409 contents/ui/main.qml:1929
+msgid "%1 over this week"
+msgstr "今週 %1 超過"
+
+#: app/qml/main.qml:484 contents/ui/main.qml:697
+msgid "Idle time discarded"
+msgstr "アイドル時間を破棄しました"
+
+#: app/qml/main.qml:497 contents/ui/main.qml:722
+msgid "Nothing is tracking"
+msgstr "何も計測していません"
+
+#: app/qml/main.qml:497
+msgid "Start tracking when you begin work."
+msgstr "作業を始めるときに計測を開始します。"
+
+#: app/qml/main.qml:500
+msgid "%1h %2m"
+msgstr "%1時間%2分"
+
+#: app/qml/main.qml:500
+msgid "%1m %2s"
+msgstr "%1分%2秒"
+
+#: app/qml/main.qml:639
+msgid "Stopped"
+msgstr "停止しました"
+
+#: app/qml/main.qml:654 contents/ui/main.qml:579
+msgid "Saved without the billable change: your Kimai account is not allowed to edit billable."
+msgstr ""
+
+#: app/qml/main.qml:686 contents/ui/main.qml:2793 contents/ui/main.qml:3303
+msgid "Split time must be between begin and end."
+msgstr "分割時刻は開始と終了の間である必要があります。"
+
+#: app/qml/main.qml:699 contents/ui/main.qml:2831
+msgid "The first half was saved, but the second half could not be created."
+msgstr "前半は保存されましたが、後半を作成できませんでした。"
+
+#: app/qml/main.qml:732
+msgid "Started"
+msgstr "開始しました"
+
+#: app/qml/main.qml:783 contents/ui/main.qml:512
+msgid "just now"
+msgstr "たった今"
+
+#: app/qml/main.qml:785
+msgid "%1m ago"
+msgstr "%1分前"
+
+#: app/qml/main.qml:787
+msgid "%1h ago"
+msgstr "%1時間前"
+
+#: app/qml/main.qml:789 contents/ui/main.qml:524
+msgid "yesterday"
+msgstr "昨日"
+
+#: app/qml/main.qml:790
+msgid "%1d ago"
+msgstr "%1日前"
+
+#: app/qml/main.qml:871
+msgid "Timer"
+msgstr "タイマー"
+
+#: app/qml/main.qml:875
+msgid "Add Entry"
+msgstr "エントリを追加"
+
+#: app/qml/shared/ActiveEditView.qml:250 contents/ui/ActiveEditView.qml:250
+msgid "Edit start, project, activity, billable, and tags for the running entry."
+msgstr "実行中エントリの開始・プロジェクト・アクティビティ・請求・タグを編集します。"
+
+#: app/qml/shared/ActiveEditView.qml:310 contents/ui/ActiveEditView.qml:310
+msgid "Previous entry ended at %1"
+msgstr "直前の記録は %1 に終了"
+
+#: app/qml/shared/ActiveEditView.qml:320 contents/ui/ActiveEditView.qml:320
+msgid "Elapsed time updates from the new start."
+msgstr "経過時間は新しい開始時刻から更新されます。"
+
+#: app/qml/shared/ActiveEditView.qml:321 contents/ui/ActiveEditView.qml:321
+msgid "Start must be a valid time not in the future."
+msgstr "開始は有効な時刻で、未来であってはなりません。"
+
+#: app/qml/shared/ActiveEditView.qml:348 contents/ui/ActiveEditView.qml:345
+msgid "Save"
+msgstr "保存"
+
+#: app/qml/shared/ActiveEditView.qml:373 contents/ui/ActiveEditView.qml:367
+msgid "Overlapping start"
+msgstr "開始が重複"
+
+#: app/qml/shared/ActiveEditView.qml:388 contents/ui/ActiveEditView.qml:375
+msgid "The new start is before the previous entry ended (%1). Set it anyway?"
+msgstr "新しい開始は直前の記録の終了（%1）より前です。それでも設定しますか？"
+
+#: app/qml/shared/ActiveEditView.qml:399 contents/ui/ActiveEditView.qml:381
+msgid "Set anyway"
+msgstr "それでも設定"
+
+#: app/qml/shared/ActivityListRow.qml:45 contents/ui/ActivityListRow.qml:46
+msgid "Starts or switches this activity"
+msgstr "このアクティビティを開始または切り替えます"
+
+#: app/qml/shared/ActivityListRow.qml:178
+#: app/qml/shared/ActivityListRow.qml:208 contents/ui/ActivityListRow.qml:178
+#: contents/ui/ActivityListRow.qml:206
+msgid "Entry actions"
+msgstr "エントリ操作"
+
+#: app/qml/shared/ActivityListRow.qml:218 contents/ui/ActivityListRow.qml:216
+msgid "Unpin from favorites"
+msgstr "お気に入りから外す"
+
+#: app/qml/shared/ActivityListRow.qml:218 contents/ui/ActivityListRow.qml:216
+msgid "Pin as favorite"
+msgstr "お気に入りにピン留め"
+
+#: app/qml/shared/ActivityListRow.qml:246 contents/ui/ActivityListRow.qml:244
+msgid "Delete entry"
+msgstr "エントリを削除"
+
+#: app/qml/shared/ApiErrors.qml:12 contents/ui/ApiErrors.qml:12
+msgid "Unknown error"
+msgstr "不明なエラー"
+
+#: app/qml/shared/ApiErrors.qml:16 contents/ui/ApiErrors.qml:16
+msgid "URL and API token are required"
+msgstr "URL と API トークンが必要です"
+
+#: app/qml/shared/ApiErrors.qml:17 contents/ui/ApiErrors.qml:17
+msgid "Configure your time tracker URL and API token"
+msgstr "時間記録サービスの URL と API トークンを設定してください"
+
+#: app/qml/shared/ApiErrors.qml:20 contents/ui/ApiErrors.qml:20
+msgid "This action is not supported for the selected service yet."
+msgstr "選択したサービスではこの操作はまだサポートされていません。"
+
+#: app/qml/shared/ApiErrors.qml:23 contents/ui/ApiErrors.qml:23
+msgid "Cannot reach the server. Check your network, URL, or TLS certificate."
+msgstr "サーバーに接続できません。ネットワーク、URL、TLS 証明書を確認してください。"
+
+#: app/qml/shared/ApiErrors.qml:26 contents/ui/ApiErrors.qml:26
+msgid "Authentication failed. Check your API token."
+msgstr "認証に失敗しました。API トークンを確認してください。"
+
+#: app/qml/shared/ApiErrors.qml:29 contents/ui/ApiErrors.qml:29
+msgid "Server not found. Check your URL."
+msgstr "サーバーが見つかりません。URL を確認してください。"
+
+#: app/qml/shared/ApiErrors.qml:32 contents/ui/ApiErrors.qml:32
+msgid "Access denied. Your token may lack required permissions."
+msgstr "アクセスが拒否されました。トークンに必要な権限がない可能性があります。"
+
+#: app/qml/shared/ApiErrors.qml:35 contents/ui/ApiErrors.qml:35
+msgid "Server error (%1)."
+msgstr "サーバーエラー (%1)。"
+
+#: app/qml/shared/ApiErrors.qml:38 contents/ui/ApiErrors.qml:38
+msgid "Request failed: %1"
+msgstr "リクエストに失敗しました: %1"
+
+#: app/qml/shared/ApiErrors.qml:40 contents/ui/ApiErrors.qml:40
+msgid "Request failed (%1)."
+msgstr "リクエストに失敗しました (%1)。"
+
+#: app/qml/shared/BarChart.qml:49 app/qml/shared/StackedBarChart.qml:49
+#: contents/ui/BarChart.qml:49 contents/ui/StackedBarChart.qml:49
+msgid "Time"
+msgstr "時間"
+
+#: app/qml/shared/CreateEntityDialog.qml:40
+#: app/qml/shared/CreateEntityDialog.qml:172
+#: contents/ui/CreateEntityDialog.qml:42 contents/ui/CreateEntityDialog.qml:174
+msgid "Create customer"
+msgstr "顧客を作成"
+
+#: app/qml/shared/CreateEntityDialog.qml:43
+#: app/qml/shared/ProjectActivityPickers.qml:97
+#: contents/ui/CreateEntityDialog.qml:45
+#: contents/ui/ProjectActivityPickers.qml:98
+msgid "Create activity"
+msgstr "アクティビティを作成"
+
+#: app/qml/shared/CreateEntityDialog.qml:45
+#: app/qml/shared/ProjectActivityPickers.qml:63
+#: contents/ui/CreateEntityDialog.qml:47
+#: contents/ui/ProjectActivityPickers.qml:64
+msgid "Create project"
+msgstr "プロジェクトを作成"
+
+#: app/qml/shared/CreateEntityDialog.qml:82
+#: contents/ui/CreateEntityDialog.qml:84
+msgid "Activity will be added to %1."
+msgstr "アクティビティは %1 に追加されます。"
+
+#: app/qml/shared/CreateEntityDialog.qml:87
+#: app/qml/shared/CreateEntityDialog.qml:95
+#: contents/ui/CreateEntityDialog.qml:89 contents/ui/CreateEntityDialog.qml:97
+msgid "Name"
+msgstr "名前"
+
+#: app/qml/shared/CreateEntityDialog.qml:102
+#: app/qml/shared/CreateEntityDialog.qml:113
+#: contents/ui/CreateEntityDialog.qml:104
+#: contents/ui/CreateEntityDialog.qml:115
+msgid "Customer"
+msgstr "顧客"
+
+#: app/qml/shared/CreateEntityDialog.qml:139
+#: contents/ui/CreateEntityDialog.qml:141
+msgid "Select customer…"
+msgstr "顧客を選択…"
+
+#: app/qml/shared/DateField.qml:207 contents/ui/DateField.qml:212
+msgid "Pick date"
+msgstr "日付を選択"
+
+#: app/qml/shared/DaySparkline.qml:498 contents/ui/DaySparkline.qml:491
+msgid "Today's tracked time"
+msgstr "今日の記録時間"
+
+#: app/qml/shared/FilmDayConflicts.qml:47 app/qml/shared/FilmDayView.qml:643
+#: contents/ui/FilmDayConflicts.qml:48 contents/ui/FilmDayView.qml:644
+msgid "Break"
+msgstr ""
+
+#: app/qml/shared/FilmDayConflicts.qml:48 app/qml/shared/FilmDayView.qml:788
+#: app/qml/shared/FilmDayView.qml:794 contents/ui/FilmDayConflicts.qml:49
+#: contents/ui/FilmDayView.qml:789 contents/ui/FilmDayView.qml:795
+msgid "Catering"
+msgstr ""
+
+#: app/qml/shared/FilmDayConflicts.qml:49 app/qml/shared/FilmDayView.qml:769
+#: contents/ui/FilmDayConflicts.qml:50 contents/ui/FilmDayView.qml:770
+msgid "Day category"
+msgstr ""
+
+#: app/qml/shared/FilmDayConflicts.qml:50 app/qml/shared/FilmDayView.qml:804
+#: contents/ui/FilmDayConflicts.qml:51 contents/ui/FilmDayView.qml:805
+msgid "Day type"
+msgstr ""
+
+#: app/qml/shared/FilmDayConflicts.qml:51 app/qml/shared/FilmDayView.qml:833
+#: app/qml/shared/FilmDayView.qml:845 contents/ui/FilmDayConflicts.qml:52
+#: contents/ui/FilmDayView.qml:834 contents/ui/FilmDayView.qml:846
+msgid "Production shooting day"
+msgstr ""
+
+#: app/qml/shared/FilmDayConflicts.qml:52 contents/ui/FilmDayConflicts.qml:53
+msgid "Surcharge day"
+msgstr ""
+
+#: app/qml/shared/FilmDayConflicts.qml:53 app/qml/shared/FilmDayView.qml:895
+#: contents/ui/FilmDayConflicts.qml:54 contents/ui/FilmDayView.qml:896
+msgid "Extra pay / expenses"
+msgstr ""
+
+#: app/qml/shared/FilmDayConflicts.qml:54 app/qml/shared/FilmDayView.qml:949
+#: contents/ui/FilmDayConflicts.qml:55 contents/ui/FilmDayView.qml:950
+msgid "Note"
+msgstr ""
+
+#: app/qml/shared/FilmDayConflicts.qml:61 contents/ui/FilmDayConflicts.qml:62
+msgid "Default"
+msgstr ""
+
+#: app/qml/shared/FilmDayConflicts.qml:61 app/qml/shared/FilmDayView.qml:665
+#: contents/ui/FilmDayConflicts.qml:62 contents/ui/FilmDayView.qml:666
+msgid "%1 minute"
+msgid_plural "%1 minutes"
+msgstr[0] ""
+
+#: app/qml/shared/FilmDayConflicts.qml:64 contents/ui/FilmDayConflicts.qml:65
+msgid "Yes"
+msgstr ""
+
+#: app/qml/shared/FilmDayConflicts.qml:64 contents/ui/FilmDayConflicts.qml:65
+msgid "No"
+msgstr ""
+
+#: app/qml/shared/FilmDayConflicts.qml:68 app/qml/shared/FilmDayView.qml:207
+#: contents/ui/FilmDayConflicts.qml:69 contents/ui/FilmDayView.qml:208
+msgid "Workday"
+msgstr ""
+
+#: app/qml/shared/FilmDayConflicts.qml:69 app/qml/shared/FilmDayView.qml:208
+#: contents/ui/FilmDayConflicts.qml:70 contents/ui/FilmDayView.qml:209
+msgid "Saturday"
+msgstr ""
+
+#: app/qml/shared/FilmDayConflicts.qml:70 app/qml/shared/FilmDayView.qml:209
+#: contents/ui/FilmDayConflicts.qml:71 contents/ui/FilmDayView.qml:210
+msgid "Sunday"
+msgstr ""
+
+#: app/qml/shared/FilmDayConflicts.qml:71 app/qml/shared/FilmDayView.qml:210
+#: contents/ui/FilmDayConflicts.qml:72 contents/ui/FilmDayView.qml:211
+msgid "Holiday"
+msgstr ""
+
+#: app/qml/shared/FilmDayConflicts.qml:73 app/qml/shared/FilmDayView.qml:206
+#: contents/ui/FilmDayConflicts.qml:74 contents/ui/FilmDayView.qml:207
+msgid "Auto (from weekday)"
+msgstr ""
+
+#: app/qml/shared/FilmDayConflicts.qml:76 app/qml/shared/FilmDayView.qml:214
+#: contents/ui/FilmDayConflicts.qml:77 contents/ui/FilmDayView.qml:215
+msgid "Travel day"
+msgstr ""
+
+#: app/qml/shared/FilmDayConflicts.qml:76 app/qml/shared/FilmDayView.qml:213
+#: contents/ui/FilmDayConflicts.qml:77 contents/ui/FilmDayView.qml:214
+msgid "Shooting day"
+msgstr ""
+
+#: app/qml/shared/FilmDayConflicts.qml:79 app/qml/shared/FilmDayView.qml:846
+#: contents/ui/FilmDayConflicts.qml:80 contents/ui/FilmDayView.qml:847
+msgid "Not set"
+msgstr ""
+
+#: app/qml/shared/FilmDayConflicts.qml:82 app/qml/shared/FilmDayView.qml:874
+#: contents/ui/FilmDayConflicts.qml:83 contents/ui/FilmDayView.qml:875
+msgid "Automatic"
+msgstr ""
+
+#: app/qml/shared/FilmDayConflicts.qml:106 contents/ui/FilmDayConflicts.qml:107
+msgid "Loading the server values…"
+msgstr ""
+
+#: app/qml/shared/FilmDayConflicts.qml:108 contents/ui/FilmDayConflicts.qml:109
+msgid "%1 film day has other values on the server than on this device. The server values are in use; pick per day which values to keep."
+msgstr ""
+
+#: app/qml/shared/FilmDayConflicts.qml:111 contents/ui/FilmDayConflicts.qml:112
+msgid "No differences left to review."
+msgstr ""
+
+#: app/qml/shared/FilmDayConflicts.qml:147 contents/ui/FilmDayConflicts.qml:148
+msgid "The server now has the same values. Nothing to decide."
+msgstr ""
+
+#: app/qml/shared/FilmDayConflicts.qml:148 contents/ui/FilmDayConflicts.qml:149
+msgid "No engagement for this project and day on the server any more. The values stay on this device."
+msgstr ""
+
+#: app/qml/shared/FilmDayConflicts.qml:149 contents/ui/FilmDayConflicts.qml:150
+msgid "The server values could not be loaded: %1"
+msgstr ""
+
+#: app/qml/shared/FilmDayConflicts.qml:150 contents/ui/FilmDayConflicts.qml:151
+msgid "The values from this device were sent to the server."
+msgstr ""
+
+#: app/qml/shared/FilmDayConflicts.qml:151 contents/ui/FilmDayConflicts.qml:152
+msgid "The server values are kept."
+msgstr ""
+
+#: app/qml/shared/FilmDayConflicts.qml:172 contents/ui/FilmDayConflicts.qml:173
+msgid "This device"
+msgstr ""
+
+#: app/qml/shared/FilmDayConflicts.qml:179 contents/ui/FilmDayConflicts.qml:180
+msgid "Server"
+msgstr ""
+
+#: app/qml/shared/FilmDayConflicts.qml:208 contents/ui/FilmDayConflicts.qml:209
+msgid "Use values from this device"
+msgstr ""
+
+#: app/qml/shared/FilmDayConflicts.qml:214 contents/ui/FilmDayConflicts.qml:215
+msgid "Keep server values"
+msgstr ""
+
+#: app/qml/shared/FilmDayConflicts.qml:214 contents/ui/FilmDayConflicts.qml:215
+msgid "OK"
+msgstr ""
+
+#: app/qml/shared/FilmDayConflicts.qml:226 contents/ui/FilmDayConflicts.qml:227
+msgid "Back to the film day"
+msgstr ""
+
+#: app/qml/shared/FilmDayView.qml:180 contents/ui/FilmDayView.qml:181
+msgid "The Drehzettel plugin is not installed on this Kimai server, so break, catering, day type, shooting day, extra pay, and the note are kept on this device only. Begin and end are saved to Kimai like any entry."
+msgstr ""
+
+#: app/qml/shared/FilmDayView.qml:183 contents/ui/FilmDayView.qml:184
+msgid "No active engagement for this project and day. Only begin and end are saved."
+msgstr ""
+
+#: app/qml/shared/FilmDayView.qml:186 contents/ui/FilmDayView.qml:187
+msgid "You lack the Drehzettel permission on this Kimai server. Only begin and end are saved."
+msgstr ""
+
+#: app/qml/shared/FilmDayView.qml:189 contents/ui/FilmDayView.qml:190
+msgid "Pick a project to load its film day."
+msgstr ""
+
+#: app/qml/shared/FilmDayView.qml:192 contents/ui/FilmDayView.qml:193
+msgid "The Drehzettel plugin cannot be reached. Showing the last known values; the film day extras can be edited again once the server answers."
+msgstr ""
+
+#: app/qml/shared/FilmDayView.qml:195 contents/ui/FilmDayView.qml:196
+msgid "Some changes of this day are not on the server yet. They are sent again automatically."
+msgstr ""
+
+#: app/qml/shared/FilmDayView.qml:342 contents/ui/FilmDayView.qml:343
+msgid "%1 film day copied to the server."
+msgid_plural "%1 film days copied to the server."
+msgstr[0] ""
+
+#: app/qml/shared/FilmDayView.qml:344 contents/ui/FilmDayView.qml:345
+msgid "%1 was already there."
+msgid_plural "%1 were already there."
+msgstr[0] ""
+
+#: app/qml/shared/FilmDayView.qml:351 contents/ui/FilmDayView.qml:352
+msgid "%1 day has other values on the server; the server values were kept and the local copy is unchanged: %2"
+msgstr ""
+
+#: app/qml/shared/FilmDayView.qml:354 contents/ui/FilmDayView.qml:355
+msgid "Use Review to choose per day which values to keep."
+msgstr ""
+
+#: app/qml/shared/FilmDayView.qml:357 contents/ui/FilmDayView.qml:358
+msgid "%1 day has no engagement and stays on this device."
+msgid_plural "%1 days have no engagement and stay on this device."
+msgstr[0] ""
+
+#: app/qml/shared/FilmDayView.qml:361 contents/ui/FilmDayView.qml:362
+msgid "%1 day was rejected by the server."
+msgid_plural "%1 days were rejected by the server."
+msgstr[0] ""
+
+#: app/qml/shared/FilmDayView.qml:364 contents/ui/FilmDayView.qml:365
+msgid "Stopped early because the server could not be reached; the rest is copied next time."
+msgstr ""
+
+#: app/qml/shared/FilmDayView.qml:450 contents/ui/FilmDayView.qml:451
+msgid "Film day · %1"
+msgstr ""
+
+#: app/qml/shared/FilmDayView.qml:474 contents/ui/FilmDayView.qml:475
+msgid "%1 film day saved on this device can be copied to the Drehzettel plugin. Days that already have other values on the server keep the server values."
+msgstr ""
+
+#: app/qml/shared/FilmDayView.qml:485 contents/ui/FilmDayView.qml:486
+msgid "Copy to server"
+msgstr ""
+
+#: app/qml/shared/FilmDayView.qml:492 contents/ui/FilmDayView.qml:493
+msgid "Not now"
+msgstr ""
+
+#: app/qml/shared/FilmDayView.qml:516 contents/ui/FilmDayView.qml:517
+msgid "%1 film day differs between this device and the server."
+msgid_plural "%1 film days differ between this device and the server."
+msgstr[0] ""
+
+#: app/qml/shared/FilmDayView.qml:520 contents/ui/FilmDayView.qml:521
+msgid "Review"
+msgstr ""
+
+#: app/qml/shared/FilmDayView.qml:535 app/qml/shared/StatsView.qml:315
+#: contents/ui/FilmDayView.qml:536 contents/ui/StatsView.qml:299
+msgid "Previous day"
+msgstr "前日"
+
+#: app/qml/shared/FilmDayView.qml:564 app/qml/shared/StatsView.qml:340
+#: contents/ui/FilmDayView.qml:565 contents/ui/StatsView.qml:324
+msgid "Next day"
+msgstr "翌日"
+
+#: app/qml/shared/FilmDayView.qml:616 app/qml/shared/ManualEntryView.qml:292
+#: contents/ui/FilmDayView.qml:617 contents/ui/ManualEntryView.qml:293
+msgid "Begin"
+msgstr "開始"
+
+#: app/qml/shared/FilmDayView.qml:664 contents/ui/FilmDayView.qml:665
+msgid "Default (%1 min)"
+msgstr ""
+
+#: app/qml/shared/FilmDayView.qml:690 app/qml/shared/ManualEntryView.qml:316
+#: contents/ui/FilmDayView.qml:691 contents/ui/ManualEntryView.qml:317
+msgid "End"
+msgstr "終了"
+
+#: app/qml/shared/FilmDayView.qml:718 contents/ui/FilmDayView.qml:719
+msgid "Work time: %1"
+msgstr ""
+
+#: app/qml/shared/FilmDayView.qml:719 contents/ui/FilmDayView.qml:720
+msgid "Work time: invalid range"
+msgstr ""
+
+#: app/qml/shared/FilmDayView.qml:734 contents/ui/FilmDayView.qml:735
+msgid "Saving sets this entry from begin to end and deletes the other entry of this project on this day (%2). Its description and tags are lost."
+msgstr ""
+
+#: app/qml/shared/FilmDayView.qml:737 contents/ui/FilmDayView.qml:738
+msgid "This project has %1 more entry on this day (%2). Saving only updates the entry shown; the work time above does not include the other one."
+msgstr ""
+
+#: app/qml/shared/FilmDayView.qml:747 contents/ui/FilmDayView.qml:748
+msgid "Merge into one entry"
+msgstr ""
+
+#: app/qml/shared/FilmDayView.qml:861 app/qml/shared/FilmDayView.qml:873
+#: contents/ui/FilmDayView.qml:862 contents/ui/FilmDayView.qml:874
+msgid "Surcharge day (1–7, empty = automatic)"
+msgstr ""
+
+#: app/qml/shared/FilmDayView.qml:895 contents/ui/FilmDayView.qml:896
+msgid "Extra pay / expenses (this device only)"
+msgstr ""
+
+#: app/qml/shared/FilmDayView.qml:925 contents/ui/FilmDayView.qml:926
+msgid "Earnings (non-binding)"
+msgstr ""
+
+#: app/qml/shared/FilmDayView.qml:934 contents/ui/FilmDayView.qml:935
+msgid "Day pay from the Drehzettel plugin (as saved on the server, without weekly overtime)"
+msgstr ""
+
+#: app/qml/shared/FilmDayView.qml:935 contents/ui/FilmDayView.qml:936
+msgid "Needs the Drehzettel plugin on the Kimai server"
+msgstr ""
+
+#: app/qml/shared/FilmDayView.qml:957 contents/ui/FilmDayView.qml:958
+msgid "%1/%2"
+msgstr ""
+
+#: app/qml/shared/FilmDayView.qml:968 contents/ui/FilmDayView.qml:969
+msgid "Note (optional)"
+msgstr ""
+
+#: app/qml/shared/FilmDayView.qml:998 contents/ui/FilmDayView.qml:999
+msgid "Save shooting day"
+msgstr ""
+
+#: app/qml/shared/ManualEntryView.qml:242 contents/ui/ManualEntryView.qml:243
+msgid "Change project, activity, range, billable, and tags for this finished entry."
+msgstr "この完了済みエントリのプロジェクト・アクティビティ・期間・請求・タグを変更します。"
+
+#: app/qml/shared/ManualEntryView.qml:243 contents/ui/ManualEntryView.qml:244
+msgid "Create a finished entry with project, activity, and time range."
+msgstr "プロジェクト、アクティビティ、時間範囲で完了済みのエントリを作成します。"
+
+#: app/qml/shared/ManualEntryView.qml:346 contents/ui/ManualEntryView.qml:347
+msgid "Duration: %1"
+msgstr "時間: %1"
+
+#: app/qml/shared/ManualEntryView.qml:350 contents/ui/ManualEntryView.qml:351
+msgid "Duration: —"
+msgstr "時間: —"
+
+#: app/qml/shared/ManualEntryView.qml:352 contents/ui/ManualEntryView.qml:353
+msgid "Duration: invalid range"
+msgstr "時間: 無効な範囲"
+
+#: app/qml/shared/ManualEntryView.qml:393 contents/ui/ManualEntryView.qml:394
+msgid "Save changes"
+msgstr "変更を保存"
+
+#: app/qml/shared/ManualEntryView.qml:393 contents/ui/ManualEntryView.qml:394
+msgid "Save entry"
+msgstr "エントリを保存"
+
+#: app/qml/shared/ProjectActivityPickers.qml:51
+#: contents/ui/ProjectActivityPickers.qml:52
+msgid "Select project…"
+msgstr "プロジェクトを選択…"
+
+#: app/qml/shared/ProjectActivityPickers.qml:87
+#: contents/ui/ProjectActivityPickers.qml:88
+msgid "Select activity…"
+msgstr "アクティビティを選択…"
+
+#: app/qml/shared/StatsView.qml:46 contents/ui/StatsView.qml:48
+msgid "All"
+msgstr "すべて"
+
+#: app/qml/shared/StatsView.qml:47 app/qml/shared/TimesheetMetaFields.qml:54
+#: contents/ui/StatsView.qml:49 contents/ui/TimesheetMetaFields.qml:54
+msgid "Billable"
+msgstr "請求対象"
+
+#: app/qml/shared/StatsView.qml:48 contents/ui/StatsView.qml:50
+msgid "Non-billable"
+msgstr "請求対象外"
+
+#: app/qml/shared/StatsView.qml:225 app/qml/shared/StatsView.qml:325
+#: app/qml/shared/StatsView.qml:374 contents/ui/StatsView.qml:209
+#: contents/ui/StatsView.qml:309 contents/ui/StatsView.qml:358
+msgid "Today"
+msgstr "今日"
+
+#: app/qml/shared/StatsView.qml:237 app/qml/shared/StatsView.qml:402
+#: app/qml/shared/StatsView.qml:462 app/qml/shared/StatsView.qml:546
+#: contents/ui/StatsView.qml:221 contents/ui/StatsView.qml:386
+#: contents/ui/StatsView.qml:446 contents/ui/StatsView.qml:530
+msgid "This week"
+msgstr "今週"
+
+#: app/qml/shared/StatsView.qml:250 contents/ui/StatsView.qml:234
+msgid "Trips this week"
+msgstr ""
+
+#: app/qml/shared/StatsView.qml:264 contents/ui/StatsView.qml:248
+msgid "Trips this month"
+msgstr ""
+
+#: app/qml/shared/StatsView.qml:274 contents/ui/StatsView.qml:258
+msgid "%2 km (1 trip)"
+msgid_plural "%2 km (%1 trips)"
+msgstr[0] ""
+
+#: app/qml/shared/StatsView.qml:304 contents/ui/StatsView.qml:288
+msgid "Time by hour"
+msgstr "時間帯別の時間"
+
+#: app/qml/shared/StatsView.qml:328 contents/ui/StatsView.qml:312
+msgid "Yesterday"
+msgstr "昨日"
+
+#: app/qml/shared/StatsView.qml:350 contents/ui/StatsView.qml:334
+msgid "No time logged this day"
+msgstr "この日の記録はありません"
+
+#: app/qml/shared/StatsView.qml:362 contents/ui/StatsView.qml:346
+msgid "Activity distribution"
+msgstr "アクティビティの分布"
+
+#: app/qml/shared/StatsView.qml:377 contents/ui/StatsView.qml:361
+msgid "No activities today"
+msgstr "今日のアクティビティはありません"
+
+#: app/qml/shared/StatsView.qml:392 app/qml/shared/StatsView.qml:452
+#: app/qml/shared/StatsView.qml:536 contents/ui/StatsView.qml:376
+#: contents/ui/StatsView.qml:436 contents/ui/StatsView.qml:520
+msgid "Previous week"
+msgstr "前週"
+
+#: app/qml/shared/StatsView.qml:414 app/qml/shared/StatsView.qml:474
+#: app/qml/shared/StatsView.qml:556 contents/ui/StatsView.qml:398
+#: contents/ui/StatsView.qml:458 contents/ui/StatsView.qml:540
+msgid "Next week"
+msgstr "翌週"
+
+#: app/qml/shared/StatsView.qml:425 contents/ui/StatsView.qml:409
+msgid "No activities this week"
+msgstr "今週のアクティビティはありません"
+
+#: app/qml/shared/StatsView.qml:441 contents/ui/StatsView.qml:425
+msgid "Projects by day"
+msgstr "日別プロジェクト"
+
+#: app/qml/shared/StatsView.qml:484 app/qml/shared/StatsView.qml:583
+#: contents/ui/StatsView.qml:468 contents/ui/StatsView.qml:567
+msgid "No time logged this week"
+msgstr "今週の記録はありません"
+
+#: app/qml/shared/StatsView.qml:527 contents/ui/StatsView.qml:511
+msgid "Projects by hour"
+msgstr "時間帯別プロジェクト"
+
+#: app/qml/shared/StatsView.qml:570 contents/ui/StatsView.qml:554
+msgid "Weekdays and weekend — segments placed by clock time."
+msgstr "平日と週末 — 時刻に沿ってセグメントを配置。"
+
+#: app/qml/shared/StatsView.qml:572 contents/ui/StatsView.qml:556
+msgid "Weekdays — segments placed by clock time. Weekend appears when tracked."
+msgstr "平日 — 時刻に沿ってセグメント。記録があれば週末も表示。"
+
+#: app/qml/shared/StatsView.qml:573 contents/ui/StatsView.qml:557
+msgid "Axis shows business hours (%1–%2); expands if work falls outside."
+msgstr "軸は勤務時間（%1–%2）を表示。範囲外の作業があれば拡張します。"
+
+#: app/qml/shared/TagPicker.qml:252 contents/ui/TagPicker.qml:253
+msgid "Add tag…"
+msgstr "タグを追加…"
+
+#: app/qml/shared/TagPicker.qml:253 contents/ui/TagPicker.qml:254
+msgid "Add tags…"
+msgstr "タグを追加…"
+
+#: app/qml/shared/TagPicker.qml:258 contents/ui/TagPicker.qml:259
+msgid "Tags"
+msgstr "タグ"
+
+#: app/qml/shared/TagPicker.qml:312 contents/ui/TagPicker.qml:313
+msgid "Loading tags…"
+msgstr "タグを読み込み中…"
+
+#: app/qml/shared/TagPicker.qml:313 contents/ui/TagPicker.qml:314
+msgid "No tags on the server yet."
+msgstr "サーバー上にまだタグがありません。"
+
+#: app/qml/shared/TagPicker.qml:366 contents/ui/TagPicker.qml:367
+msgid "Create tag “%1”"
+msgstr "タグ「%1」を作成"
+
+#: app/qml/shared/TimeField.qml:179 contents/ui/TimeField.qml:179
+msgid "Pick time"
+msgstr "時刻を選択"
+
+#: app/qml/shared/TripSheet.qml:58 contents/ui/TripSheet.qml:59
+msgid "Own car"
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:59 contents/ui/TripSheet.qml:60
+msgid "Rental car"
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:60 contents/ui/TripSheet.qml:61
+msgid "Company car"
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:61 contents/ui/TripSheet.qml:62
+msgid "Motorcycle / scooter"
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:62 contents/ui/TripSheet.qml:63
+msgid "Bicycle"
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:63 contents/ui/TripSheet.qml:64
+msgid "Public transport"
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:64 contents/ui/TripSheet.qml:65
+msgid "Other"
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:69 contents/ui/TripSheet.qml:70
+msgid "No specific vehicle"
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:177 contents/ui/TripSheet.qml:178
+msgid "This month of the logbook is closed."
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:180 contents/ui/TripSheet.qml:181
+msgid "Enter the distance."
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:183 contents/ui/TripSheet.qml:184
+msgid "Enter a distance between 0 and %1 km."
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:186 contents/ui/TripSheet.qml:187
+msgid "Arrival must be after departure."
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:189 contents/ui/TripSheet.qml:190
+msgid "At most %1 characters."
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:191 contents/ui/TripSheet.qml:192
+msgid "Invalid value."
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:200 contents/ui/TripSheet.qml:201
+msgid "Accept detected trip"
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:209 contents/ui/TripSheet.qml:210
+msgid "Date:"
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:223 contents/ui/TripSheet.qml:224
+msgid "Purpose:"
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:240 contents/ui/TripSheet.qml:241
+msgid "Means of travel:"
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:257 contents/ui/TripSheet.qml:258
+msgid "Vehicle:"
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:273 contents/ui/TripSheet.qml:274
+msgid "Distance (one way):"
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:285 contents/ui/TripSheet.qml:286
+msgid "%1 (from your profile)"
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:287 contents/ui/TripSheet.qml:288
+msgid "Distance in kilometers"
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:290 contents/ui/TripSheet.qml:291
+msgid "km"
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:303 contents/ui/TripSheet.qml:304
+msgid "Round trip (there and back)"
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:309 contents/ui/TripSheet.qml:310
+msgid "From:"
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:317 contents/ui/TripSheet.qml:318
+msgid "To:"
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:325 contents/ui/TripSheet.qml:326
+msgid "Departure and arrival times"
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:330 contents/ui/TripSheet.qml:331
+msgid "Departure / arrival:"
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:357 contents/ui/TripSheet.qml:358
+msgid "Comment:"
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:364 contents/ui/TripSheet.qml:365
+msgid "Time entry:"
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:374 contents/ui/TripSheet.qml:375
+msgid "Unlink"
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:378 contents/ui/TripSheet.qml:379
+msgid "Do not link this trip to the time entry"
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:402 app/qml/shared/TripSuggestionList.qml:92
+#: contents/ui/TripSheet.qml:403 contents/ui/TripSuggestionList.qml:93
+msgid "Accept"
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:402 contents/ui/TripSheet.qml:403
+msgid "Save trip"
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:420 contents/ui/TripSheet.qml:421
+msgid "Really delete?"
+msgstr ""
+
+#: app/qml/shared/TripSheet.qml:420 contents/ui/TripSheet.qml:421
+msgid "Delete"
+msgstr ""
+
+#: app/qml/shared/TripSuggestionList.qml:95
+#: contents/ui/TripSuggestionList.qml:96
+msgid "Add this trip to the logbook"
+msgstr ""
+
+#: app/qml/shared/TripSuggestionList.qml:103
+#: contents/ui/TripSuggestionList.qml:104
+msgid "Edit and accept"
+msgstr ""
+
+#: app/qml/shared/TripSuggestionList.qml:114
+#: contents/ui/TripSuggestionList.qml:115
+msgid "Dismiss"
+msgstr ""
+
+#: app/qml/shared/TripSuggestionList.qml:117
+#: contents/ui/TripSuggestionList.qml:118
+msgid "Dismiss this detected trip"
+msgstr ""
+
+#: app/qml/shared/TripSuggestionList.qml:129
+#: contents/ui/TripSuggestionList.qml:130
+msgid "+%1 more detected trip"
+msgid_plural "+%1 more detected trips"
+msgstr[0] ""
+
+#: contents/config/config.qml:16 contents/ui/config/ConfigDisplay.qml:490
 msgid "Display"
 msgstr "表示"
 
@@ -34,119 +1669,9 @@ msgstr "表示"
 msgid "Maintenance"
 msgstr "メンテナンス"
 
-#: contents/config/config.qml:26 contents/ui/config/ConfigBehavior.qml:243
-msgid "Behavior"
-msgstr "動作"
-
-#: contents/ui/ActiveEditView.qml:250
-msgid "Edit start, project, activity, billable, and tags for the running entry."
-msgstr "実行中エントリの開始・プロジェクト・アクティビティ・請求・タグを編集します。"
-
-#: contents/ui/ActiveEditView.qml:282 contents/ui/main.qml:3707
-msgid "Start"
-msgstr "開始"
-
-#: contents/ui/ActiveEditView.qml:310
-msgid "Previous entry ended at %1"
-msgstr "直前の記録は %1 に終了"
-
-#: contents/ui/ActiveEditView.qml:320
-msgid "Elapsed time updates from the new start."
-msgstr "経過時間は新しい開始時刻から更新されます。"
-
-#: contents/ui/ActiveEditView.qml:321
-msgid "Start must be a valid time not in the future."
-msgstr "開始は有効な時刻で、未来であってはなりません。"
-
-#: contents/ui/ActiveEditView.qml:345
-msgid "Save"
-msgstr "保存"
-
-#: contents/ui/ActiveEditView.qml:358 contents/ui/ActiveEditView.qml:387
-#: contents/ui/main.qml:2453 contents/ui/main.qml:3735
-#: contents/ui/ManualEntryView.qml:386 contents/ui/TimeField.qml:259
-msgid "Cancel"
-msgstr "キャンセル"
-
-#: contents/ui/ActiveEditView.qml:367
-msgid "Overlapping start"
-msgstr "開始が重複"
-
-#: contents/ui/ActiveEditView.qml:375
-msgid "The new start is before the previous entry ended (%1). Set it anyway?"
-msgstr "新しい開始は直前の記録の終了（%1）より前です。それでも設定しますか？"
-
-#: contents/ui/ActiveEditView.qml:381
-msgid "Set anyway"
-msgstr "それでも設定"
-
-#: contents/ui/ActivityListRow.qml:40
-msgid "Starts or switches this activity"
-msgstr "このアクティビティを開始または切り替えます"
-
-#: contents/ui/ActivityListRow.qml:172 contents/ui/ActivityListRow.qml:200
-msgid "Entry actions"
-msgstr "エントリ操作"
-
-#: contents/ui/ActivityListRow.qml:210 contents/ui/main.qml:2747
-msgid "Edit entry"
-msgstr "エントリを編集"
-
-#: contents/ui/ActivityListRow.qml:217 contents/ui/main.qml:2501
-msgid "Split entry"
-msgstr "エントリを分割"
-
-#: contents/ui/ActivityListRow.qml:224
-msgid "Delete entry"
-msgstr "エントリを削除"
-
-#: contents/ui/ApiErrors.qml:12
-msgid "Unknown error"
-msgstr "不明なエラー"
-
-#: contents/ui/ApiErrors.qml:16
-msgid "URL and API token are required"
-msgstr "URL と API トークンが必要です"
-
-#: contents/ui/ApiErrors.qml:17
-msgid "Configure your time tracker URL and API token"
-msgstr "時間記録サービスの URL と API トークンを設定してください"
-
-#: contents/ui/ApiErrors.qml:20
-msgid "This action is not supported for the selected service yet."
-msgstr "選択したサービスではこの操作はまだサポートされていません。"
-
-#: contents/ui/ApiErrors.qml:23
-msgid "Cannot reach the server. Check your network, URL, or TLS certificate."
-msgstr "サーバーに接続できません。ネットワーク、URL、TLS 証明書を確認してください。"
-
-#: contents/ui/ApiErrors.qml:26
-msgid "Authentication failed. Check your API token."
-msgstr "認証に失敗しました。API トークンを確認してください。"
-
-#: contents/ui/ApiErrors.qml:29
-msgid "Server not found. Check your URL."
-msgstr "サーバーが見つかりません。URL を確認してください。"
-
-#: contents/ui/ApiErrors.qml:32
-msgid "Access denied. Your token may lack required permissions."
-msgstr "アクセスが拒否されました。トークンに必要な権限がない可能性があります。"
-
-#: contents/ui/ApiErrors.qml:35
-msgid "Server error (%1)."
-msgstr "サーバーエラー (%1)。"
-
-#: contents/ui/ApiErrors.qml:38
-msgid "Request failed: %1"
-msgstr "リクエストに失敗しました: %1"
-
-#: contents/ui/ApiErrors.qml:40
-msgid "Request failed (%1)."
-msgstr "リクエストに失敗しました (%1)。"
-
-#: contents/ui/BarChart.qml:49 contents/ui/StackedBarChart.qml:49
-msgid "Time"
-msgstr "時間"
+#: contents/ui/TimeField.qml:209
+msgid "Hours : Minutes"
+msgstr "時 : 分"
 
 #: contents/ui/config/ConfigBehavior.qml:256
 msgid "Tracking:"
@@ -155,10 +1680,6 @@ msgstr "記録:"
 #: contents/ui/config/ConfigBehavior.qml:259
 msgid "Confirm before stopping the timer"
 msgstr "タイマー停止前に確認"
-
-#: contents/ui/config/ConfigBehavior.qml:268
-msgid "Ask before a start that overlaps the previous entry"
-msgstr "開始が直前の記録と重なる場合は確認する"
 
 #: contents/ui/config/ConfigBehavior.qml:279
 msgid "When editing the running timer, the previous entry’s end is shown. Saving an earlier start asks for confirmation."
@@ -200,1102 +1721,674 @@ msgstr "アイドルによる停止時に通知"
 msgid "Remind me once if nothing is tracking during work hours"
 msgstr "勤務時間中に何も計測していない場合、一度だけ通知する"
 
-#: contents/ui/config/ConfigConnection.qml:63
+#: contents/ui/config/ConfigConnection.qml:62
 msgid "Clockify cloud API is prefilled. Change only for a regional endpoint (e.g. euc1)."
 msgstr "ClockifyクラウドAPIは事前入力済みです。リージョン用エンドポイント（例: euc1）のときだけ変更してください。"
 
-#: contents/ui/config/ConfigConnection.qml:65
+#: contents/ui/config/ConfigConnection.qml:64
 msgid "Toggl Track cloud API is prefilled. Use your personal API token from Profile settings."
 msgstr "Toggl TrackクラウドAPIは事前入力済みです。プロフィール設定の個人APIトークンを使用してください。"
 
-#: contents/ui/config/ConfigConnection.qml:67
+#: contents/ui/config/ConfigConnection.qml:66
 msgid "SolidTime cloud API is prefilled. For self-hosting, replace with your instance base URL."
 msgstr "SolidTimeクラウドAPIは事前入力済みです。セルフホストの場合はインスタンスのベースURLに置き換えてください。"
 
-#: contents/ui/config/ConfigConnection.qml:70
+#: contents/ui/config/ConfigConnection.qml:69
 msgid "Self-hosted Kimai or the official hosted service (kimai.cloud). Paste the instance URL."
 msgstr "セルフホストのKimai、または公式ホストサービス（kimai.cloud）。インスタンスURLを貼り付けてください。"
 
-#: contents/ui/config/ConfigConnection.qml:74
+#: contents/ui/config/ConfigConnection.qml:73
 msgid "API URL:"
 msgstr "API URL:"
 
-#: contents/ui/config/ConfigConnection.qml:75
-msgid "Server URL:"
-msgstr "サーバー URL:"
-
-#: contents/ui/config/ConfigConnection.qml:83
+#: contents/ui/config/ConfigConnection.qml:82
 msgid "https://api.solidtime.io or https://time.example.com"
 msgstr "https://api.solidtime.io または https://time.example.com"
 
-#: contents/ui/config/ConfigConnection.qml:86
+#: contents/ui/config/ConfigConnection.qml:85
 msgid "https://kimai.example.com or https://www.kimai.cloud"
 msgstr "https://kimai.example.com または https://www.kimai.cloud"
 
-#: contents/ui/config/ConfigConnection.qml:92
+#: contents/ui/config/ConfigConnection.qml:91
 msgid "API key:"
 msgstr "APIキー:"
 
-#: contents/ui/config/ConfigConnection.qml:94
+#: contents/ui/config/ConfigConnection.qml:93
 msgid "API token:"
 msgstr "API トークン:"
 
-#: contents/ui/config/ConfigConnection.qml:377
+#: contents/ui/config/ConfigConnection.qml:376
 msgid "Configure a time-tracking profile. Choose Kimai, Clockify, Toggl Track, or SolidTime."
 msgstr "時間記録プロファイルを設定してください。Kimai、Clockify、Toggl Track、SolidTime から選択できます。"
 
-#: contents/ui/config/ConfigConnection.qml:389
-msgid "Profile:"
-msgstr "プロファイル:"
-
-#: contents/ui/config/ConfigConnection.qml:403
-msgid "Profile name:"
-msgstr "プロファイル名:"
-
-#: contents/ui/config/ConfigConnection.qml:411
+#: contents/ui/config/ConfigConnection.qml:410
 msgid "A profile named \"%1\" already exists."
 msgstr "「%1」という名前のプロファイルは既にあります。"
 
-#: contents/ui/config/ConfigConnection.qml:423
+#: contents/ui/config/ConfigConnection.qml:422
 msgid "Service:"
 msgstr "サービス:"
 
-#: contents/ui/config/ConfigConnection.qml:469
+#: contents/ui/config/ConfigConnection.qml:468
 msgid "Paste token to save in KWallet"
 msgstr "トークンを貼り付けて KWallet に保存"
 
-#: contents/ui/config/ConfigConnection.qml:482
+#: contents/ui/config/ConfigConnection.qml:481
 msgid "Add profile"
 msgstr "プロファイルを追加"
 
-#: contents/ui/config/ConfigConnection.qml:491
-#: contents/ui/config/ConfigConnection.qml:496
-msgid "Profile %1"
-msgstr "プロファイル %1"
-
-#: contents/ui/config/ConfigConnection.qml:510
-msgid "Remove"
-msgstr "削除"
-
-#: contents/ui/config/ConfigConnection.qml:532
+#: contents/ui/config/ConfigConnection.qml:531
 msgid "Use this profile"
 msgstr "このプロファイルを使用"
 
-#: contents/ui/config/ConfigConnection.qml:548
-msgid "none"
-msgstr "なし"
-
-#: contents/ui/config/ConfigConnection.qml:548
+#: contents/ui/config/ConfigConnection.qml:547
 msgid "Active profile: %1"
 msgstr "アクティブなプロファイル: %1"
 
-#: contents/ui/config/ConfigConnection.qml:561
-msgid "Saving…"
-msgstr "保存中…"
-
-#: contents/ui/config/ConfigConnection.qml:561
-msgid "Save token"
-msgstr "トークンを保存"
-
-#: contents/ui/config/ConfigConnection.qml:575
+#: contents/ui/config/ConfigConnection.qml:573
 msgid "Token saved to KWallet for this profile."
 msgstr "このプロファイルのトークンを KWallet に保存しました。"
 
-#: contents/ui/config/ConfigConnection.qml:577
+#: contents/ui/config/ConfigConnection.qml:576
 msgid "Failed to save token"
 msgstr "トークンの保存に失敗しました"
 
-#: contents/ui/config/ConfigConnection.qml:583
+#: contents/ui/config/ConfigConnection.qml:581
 msgid "Clear token"
 msgstr "トークンをクリア"
 
-#: contents/ui/config/ConfigConnection.qml:594
+#: contents/ui/config/ConfigConnection.qml:591
 msgid "Token removed from KWallet."
 msgstr "トークンを KWallet から削除しました。"
 
-#: contents/ui/config/ConfigConnection.qml:596
+#: contents/ui/config/ConfigConnection.qml:594
 msgid "Failed to clear token"
 msgstr "トークンのクリアに失敗しました"
 
-#: contents/ui/config/ConfigConnection.qml:602
+#: contents/ui/config/ConfigConnection.qml:599
 msgid "Test connection"
 msgstr "接続をテスト"
 
-#: contents/ui/config/ConfigConnection.qml:607
+#: contents/ui/config/ConfigConnection.qml:604
 msgid "Testing connection…"
 msgstr "接続をテスト中…"
 
-#: contents/ui/config/ConfigConnection.qml:621
+#: contents/ui/config/ConfigConnection.qml:613
 msgid "No API token stored. Save a token first."
 msgstr "API トークンが保存されていません。先にトークンを保存してください。"
 
-#: contents/ui/config/ConfigConnection.qml:629
+#: contents/ui/config/ConfigConnection.qml:621
 msgid "ok"
 msgstr "ok"
 
-#: contents/ui/config/ConfigConnection.qml:630
+#: contents/ui/config/ConfigConnection.qml:622
 msgid "Connected to %1 (%2)."
 msgstr "%1 (%2) に接続しました。"
 
-#: contents/ui/config/ConfigDisplay.qml:193
+#: contents/ui/config/ConfigDisplay.qml:195
 msgid "Enter a city or place name to search."
 msgstr "検索する都市または地名を入力してください。"
 
-#: contents/ui/config/ConfigDisplay.qml:197
-#: contents/ui/config/ConfigDisplay.qml:673
+#: contents/ui/config/ConfigDisplay.qml:199
+#: contents/ui/config/ConfigDisplay.qml:681
 msgid "Searching…"
 msgstr "検索中…"
 
-#: contents/ui/config/ConfigDisplay.qml:206
+#: contents/ui/config/ConfigDisplay.qml:208
 msgid "Location search failed. Check your network connection."
 msgstr "場所の検索に失敗しました。ネットワーク接続を確認してください。"
 
-#: contents/ui/config/ConfigDisplay.qml:211
+#: contents/ui/config/ConfigDisplay.qml:213
 msgid "No places found."
 msgstr "場所が見つかりませんでした。"
 
-#: contents/ui/config/ConfigDisplay.qml:213
+#: contents/ui/config/ConfigDisplay.qml:215
 msgid "%1 place found."
 msgid_plural "%1 places found."
 msgstr[0] "%1 件の場所が見つかりました。"
 
-#: contents/ui/config/ConfigDisplay.qml:496
+#: contents/ui/config/ConfigDisplay.qml:504
 msgid "Appearance"
 msgstr "外観"
 
-#: contents/ui/config/ConfigDisplay.qml:503
+#: contents/ui/config/ConfigDisplay.qml:511
 msgid "Touch optimization:"
 msgstr "タッチ最適化:"
 
-#: contents/ui/config/ConfigDisplay.qml:507
+#: contents/ui/config/ConfigDisplay.qml:515
 msgid "Automatic (follow Plasma tablet mode)"
 msgstr "自動（Plasmaタブレットモードに従う）"
 
-#: contents/ui/config/ConfigDisplay.qml:508
+#: contents/ui/config/ConfigDisplay.qml:516
 msgid "On"
 msgstr "オン"
 
-#: contents/ui/config/ConfigDisplay.qml:509
+#: contents/ui/config/ConfigDisplay.qml:517
 msgid "Off"
 msgstr "オフ"
 
-#: contents/ui/config/ConfigDisplay.qml:521
+#: contents/ui/config/ConfigDisplay.qml:529
 msgid "Larger tap targets for buttons, lists, pickers, and date/time controls."
 msgstr "ボタン、リスト、ピッカー、日付/時刻コントロールのタップ領域を拡大します。"
 
-#: contents/ui/config/ConfigDisplay.qml:526
+#: contents/ui/config/ConfigDisplay.qml:534
 msgid "Updates"
 msgstr "更新"
 
-#: contents/ui/config/ConfigDisplay.qml:532
+#: contents/ui/config/ConfigDisplay.qml:540
 msgid "Refresh interval (seconds):"
 msgstr "更新間隔（秒）:"
 
-#: contents/ui/config/ConfigDisplay.qml:542
+#: contents/ui/config/ConfigDisplay.qml:550
 msgid "Colors"
 msgstr "色"
 
-#: contents/ui/config/ConfigDisplay.qml:548
+#: contents/ui/config/ConfigDisplay.qml:556
 msgid "Distinction:"
 msgstr "区別:"
 
-#: contents/ui/config/ConfigDisplay.qml:552
+#: contents/ui/config/ConfigDisplay.qml:560
 msgid "Make similar colors distinctive within each category"
 msgstr "各カテゴリ内で似た色を区別しやすくする"
 
-#: contents/ui/config/ConfigDisplay.qml:558
+#: contents/ui/config/ConfigDisplay.qml:566
 msgid "Similarity threshold (%):"
 msgstr "類似度のしきい値 (%):"
 
-#: contents/ui/config/ConfigDisplay.qml:575
+#: contents/ui/config/ConfigDisplay.qml:583
 msgid "Higher similarity values treat more colors as too close. Clashing items get vivid, well-spaced replacement colors. See Maintenance for clash groups."
 msgstr "類似度を高くすると、より多くの色が近すぎると見なされます。衝突する項目は鮮やかで間隔の開いた色に置き換えられます。衝突グループはメンテナンスを参照。"
 
-#: contents/ui/config/ConfigDisplay.qml:586
+#: contents/ui/config/ConfigDisplay.qml:594
 msgid "Color distinction is available for Kimai profiles (per-customer / project / activity colors)."
 msgstr "色の区別は Kimai プロファイルで利用できます（顧客・プロジェクト・アクティビティごと）。"
 
-#: contents/ui/config/ConfigDisplay.qml:591
-msgid "Work hours"
-msgstr "勤務時間"
-
-#: contents/ui/config/ConfigDisplay.qml:597
+#: contents/ui/config/ConfigDisplay.qml:605
 msgid "Usual work day start:"
 msgstr "通常の勤務開始:"
 
-#: contents/ui/config/ConfigDisplay.qml:607
+#: contents/ui/config/ConfigDisplay.qml:615
 msgid "Usual work day end:"
 msgstr "通常の勤務終了:"
 
-#: contents/ui/config/ConfigDisplay.qml:622
+#: contents/ui/config/ConfigDisplay.qml:630
 msgid "Used for the sparkline zoom and remaining-time in the work summary."
 msgstr "スパークラインのズームと作業概要の残り時間に使います。"
 
-#: contents/ui/config/ConfigDisplay.qml:627
-#: contents/ui/config/ConfigDisplay.qml:861
-#: contents/ui/config/ConfigDisplay.qml:916
+#: contents/ui/config/ConfigDisplay.qml:635
+#: contents/ui/config/ConfigDisplay.qml:869
+#: contents/ui/config/ConfigDisplay.qml:924
 msgid "Day sparkline"
 msgstr "日次スパークライン"
 
-#: contents/ui/config/ConfigDisplay.qml:633
+#: contents/ui/config/ConfigDisplay.qml:641
 msgid "Arcs:"
 msgstr "弧:"
 
-#: contents/ui/config/ConfigDisplay.qml:636
-msgid "Show sun, moon, and work arcs"
-msgstr "太陽・月・勤務の弧を表示"
-
-#: contents/ui/config/ConfigDisplay.qml:647
+#: contents/ui/config/ConfigDisplay.qml:655
 msgid "Hide the whole sparkline under Panel flyout or Desktop widget below."
 msgstr "パネルのポップアップまたは下のデスクトップウィジェットでスパークライン全体を非表示にします。"
 
-#: contents/ui/config/ConfigDisplay.qml:651
+#: contents/ui/config/ConfigDisplay.qml:659
 msgid "Find location:"
 msgstr "場所を検索:"
 
-#: contents/ui/config/ConfigDisplay.qml:660
+#: contents/ui/config/ConfigDisplay.qml:668
 msgid "City, region, or address…"
 msgstr "都市、地域、または住所…"
 
-#: contents/ui/config/ConfigDisplay.qml:673
 #: contents/ui/config/ConfigDisplay.qml:681
+#: contents/ui/config/ConfigDisplay.qml:689
 msgid "Search"
 msgstr "検索"
 
-#: contents/ui/config/ConfigDisplay.qml:735
+#: contents/ui/config/ConfigDisplay.qml:743
 msgid "Using %1"
 msgstr "%1 を使用中"
 
-#: contents/ui/config/ConfigDisplay.qml:752
+#: contents/ui/config/ConfigDisplay.qml:760
 msgid "Current place: %1"
 msgstr "現在の場所: %1"
 
-#: contents/ui/config/ConfigDisplay.qml:757
+#: contents/ui/config/ConfigDisplay.qml:765
 msgid "Latitude:"
 msgstr "緯度:"
 
-#: contents/ui/config/ConfigDisplay.qml:772
+#: contents/ui/config/ConfigDisplay.qml:780
 msgid "Longitude:"
 msgstr "経度:"
 
-#: contents/ui/config/ConfigDisplay.qml:792
+#: contents/ui/config/ConfigDisplay.qml:800
 msgid "Search a place or enter coordinates for sunrise/sunset coloring. Powered by OpenStreetMap Nominatim."
 msgstr "場所を検索するか座標を入力して日の出・日の入りの色分けに使います。OpenStreetMap Nominatim を使用。"
 
-#: contents/ui/config/ConfigDisplay.qml:797
+#: contents/ui/config/ConfigDisplay.qml:805
 msgid "Panel (taskbar)"
 msgstr "パネル（タスクバー）"
 
-#: contents/ui/config/ConfigDisplay.qml:803
-#: contents/ui/config/ConfigDisplay.qml:850
-#: contents/ui/config/ConfigDisplay.qml:905
+#: contents/ui/config/ConfigDisplay.qml:811
+#: contents/ui/config/ConfigDisplay.qml:858
+#: contents/ui/config/ConfigDisplay.qml:913
 msgid "Show:"
 msgstr "表示:"
 
-#: contents/ui/config/ConfigDisplay.qml:806
+#: contents/ui/config/ConfigDisplay.qml:814
 msgid "Elapsed time"
 msgstr "経過時間"
 
-#: contents/ui/config/ConfigDisplay.qml:814
+#: contents/ui/config/ConfigDisplay.qml:822
 msgid "Project name"
 msgstr "プロジェクト名"
 
-#: contents/ui/config/ConfigDisplay.qml:822
+#: contents/ui/config/ConfigDisplay.qml:830
 msgid "Activity name"
 msgstr "アクティビティ名"
 
-#: contents/ui/config/ConfigDisplay.qml:830
+#: contents/ui/config/ConfigDisplay.qml:838
 msgid "Customer color pill"
 msgstr "顧客カラーピル"
 
-#: contents/ui/config/ConfigDisplay.qml:838
+#: contents/ui/config/ConfigDisplay.qml:846
 msgid "Project color pill"
 msgstr "プロジェクトカラーピル"
 
-#: contents/ui/config/ConfigDisplay.qml:844
+#: contents/ui/config/ConfigDisplay.qml:852
 msgid "Panel flyout"
 msgstr "パネルのフライアウト"
 
-#: contents/ui/config/ConfigDisplay.qml:853
-#: contents/ui/config/ConfigDisplay.qml:908
+#: contents/ui/config/ConfigDisplay.qml:861
+#: contents/ui/config/ConfigDisplay.qml:916
 msgid "Work summary (today / week / remaining)"
 msgstr "作業概要（今日 / 週 / 残り）"
 
-#: contents/ui/config/ConfigDisplay.qml:877
-#: contents/ui/config/ConfigDisplay.qml:932
-#: contents/ui/config/ConfigDisplay.qml:946
+#: contents/ui/config/ConfigDisplay.qml:885
+#: contents/ui/config/ConfigDisplay.qml:940
+#: contents/ui/config/ConfigDisplay.qml:954
 msgid "Recent list"
 msgstr "最近のリスト"
 
-#: contents/ui/config/ConfigDisplay.qml:885
+#: contents/ui/config/ConfigDisplay.qml:893
 msgid "Continue last activity"
 msgstr "前回のアクティビティを続行"
 
-#: contents/ui/config/ConfigDisplay.qml:893
+#: contents/ui/config/ConfigDisplay.qml:901
 msgid "Start / switch activity controls"
 msgstr "開始 / アクティビティ切り替えコントロール"
 
-#: contents/ui/config/ConfigDisplay.qml:899
+#: contents/ui/config/ConfigDisplay.qml:907
 msgid "Desktop widget"
 msgstr "デスクトップウィジェット"
 
-#: contents/ui/config/ConfigDisplay.qml:940
+#: contents/ui/config/ConfigDisplay.qml:948
 msgid "New activity picker"
 msgstr "新しいアクティビティ選択"
 
-#: contents/ui/config/ConfigDisplay.qml:952
+#: contents/ui/config/ConfigDisplay.qml:960
 msgid "Activities shown:"
 msgstr "表示するアクティビティ:"
 
-#: contents/ui/config/ConfigDisplay.qml:966
+#: contents/ui/config/ConfigDisplay.qml:974
 msgid "Applies to both the panel flyout and the desktop widget."
 msgstr "パネルのポップアップとデスクトップウィジェットの両方に適用されます。"
 
-#: contents/ui/config/ConfigFavorites.qml:86
-#: contents/ui/config/ConfigFavorites.qml:309
-#: contents/ui/config/ConfigFavorites.qml:321
+#: contents/ui/config/ConfigDisplay.qml:979
+msgid "Kimai plugins"
+msgstr ""
+
+#: contents/ui/config/ConfigDisplay.qml:988
+msgid "Log trips and show detected trips"
+msgstr ""
+
+#: contents/ui/config/ConfigDisplay.qml:999
+msgid "Only when the Anfahrten plugin (MileageBundle) is installed on the Kimai server and your account may use it."
+msgstr ""
+
+#: contents/ui/config/ConfigFavorites.qml:84
+#: contents/ui/config/ConfigFavorites.qml:307
+#: contents/ui/config/ConfigFavorites.qml:319
 msgid "Loading projects…"
 msgstr "プロジェクトを読み込み中…"
 
-#: contents/ui/config/ConfigFavorites.qml:107
-#: contents/ui/config/ConfigFavorites.qml:292
+#: contents/ui/config/ConfigFavorites.qml:105
+#: contents/ui/config/ConfigFavorites.qml:290
 msgid "Configure a Kimai URL on the Connection tab first."
 msgstr "先に「接続」タブで Kimai の URL を設定してください。"
 
-#: contents/ui/config/ConfigFavorites.qml:245
+#: contents/ui/config/ConfigFavorites.qml:243
 msgid "Loaded %1 projects."
 msgstr "%1 件のプロジェクトを読み込みました。"
 
-#: contents/ui/config/ConfigFavorites.qml:262
-#: contents/ui/config/ConfigFavorites.qml:266
+#: contents/ui/config/ConfigFavorites.qml:260
+#: contents/ui/config/ConfigFavorites.qml:264
 msgid "Select a project to pin activities."
 msgstr "アクティビティをピン留めするプロジェクトを選択してください。"
 
-#: contents/ui/config/ConfigFavorites.qml:327
-#: contents/ui/config/ConfigMaintenance.qml:290
+#: contents/ui/config/ConfigFavorites.qml:325
+#: contents/ui/config/ConfigMaintenance.qml:288
 msgid "Save an API token on the Connection tab first."
 msgstr "先に「接続」タブで API トークンを保存してください。"
 
-#: contents/ui/config/ConfigFavorites.qml:339
+#: contents/ui/config/ConfigFavorites.qml:337
 msgid "Failed to load projects."
 msgstr "プロジェクトの読み込みに失敗しました。"
 
-#: contents/ui/config/ConfigFavorites.qml:372
-#: contents/ui/config/ConfigFavorites.qml:409
+#: contents/ui/config/ConfigFavorites.qml:370
+#: contents/ui/config/ConfigFavorites.qml:407
 msgid "Loading activities…"
 msgstr "アクティビティを読み込み中…"
 
-#: contents/ui/config/ConfigFavorites.qml:396
-#: contents/ui/config/ConfigFavorites.qml:430
+#: contents/ui/config/ConfigFavorites.qml:394
+#: contents/ui/config/ConfigFavorites.qml:428
 msgid "%1 project-specific, %2 global"
 msgstr "プロジェクト専用 %1 件、グローバル %2 件"
 
-#: contents/ui/config/ConfigFavorites.qml:412
+#: contents/ui/config/ConfigFavorites.qml:410
 msgid "No API token available."
 msgstr "API トークンがありません。"
 
-#: contents/ui/config/ConfigFavorites.qml:434
+#: contents/ui/config/ConfigFavorites.qml:432
 msgid "Failed to load activities."
 msgstr "アクティビティの読み込みに失敗しました。"
 
-#: contents/ui/config/ConfigFavorites.qml:466 contents/ui/main.qml:248
+#: contents/ui/config/ConfigFavorites.qml:464 contents/ui/main.qml:301
 msgid "Project-specific"
 msgstr "プロジェクト専用"
 
-#: contents/ui/config/ConfigFavorites.qml:469 contents/ui/main.qml:249
+#: contents/ui/config/ConfigFavorites.qml:467 contents/ui/main.qml:302
 msgid "Global activities"
 msgstr "グローバルアクティビティ"
 
-#: contents/ui/config/ConfigFavorites.qml:516
-#: contents/ui/config/ConfigMaintenance.qml:551
-msgid "Projects"
-msgstr "プロジェクト"
-
-#: contents/ui/config/ConfigFavorites.qml:521
-msgid "Reload"
-msgstr "再読み込み"
-
-#: contents/ui/config/ConfigFavorites.qml:539
-#: contents/ui/config/ConfigFavorites.qml:618
+#: contents/ui/config/ConfigFavorites.qml:537
+#: contents/ui/config/ConfigFavorites.qml:616
 msgid "Loading projects"
 msgstr "プロジェクトを読み込み中"
 
-#: contents/ui/config/ConfigFavorites.qml:636
+#: contents/ui/config/ConfigFavorites.qml:634
 msgid "Activities — %1"
 msgstr "アクティビティ — %1"
 
-#: contents/ui/config/ConfigFavorites.qml:637
-#: contents/ui/config/ConfigMaintenance.qml:624
-msgid "Activities"
-msgstr "アクティビティ"
-
-#: contents/ui/config/ConfigMaintenance.qml:154
+#: contents/ui/config/ConfigMaintenance.qml:152
 msgid "Color distinction is off. Enable it in Display settings to see clash groups."
 msgstr "色の区別はオフです。衝突グループを見るには表示設定で有効にしてください。"
 
-#: contents/ui/config/ConfigMaintenance.qml:156
+#: contents/ui/config/ConfigMaintenance.qml:154
 msgid "Loaded %1 customers, %2 projects, %3 activities. No similar colors within a category."
 msgstr "%1件の顧客、%2件のプロジェクト、%3件のアクティビティを読み込みました。カテゴリ内に類似色はありません。"
 
-#: contents/ui/config/ConfigMaintenance.qml:159
-#: contents/ui/config/ConfigMaintenance.qml:186
+#: contents/ui/config/ConfigMaintenance.qml:157
+#: contents/ui/config/ConfigMaintenance.qml:184
 msgid "Loaded %1 customers, %2 projects, %3 activities. %4 clash group(s), %5 color(s) shifted."
 msgstr "%1件の顧客、%2件のプロジェクト、%3件のアクティビティを読み込みました。衝突グループ %4、色シフト %5。"
 
-#: contents/ui/config/ConfigMaintenance.qml:232
+#: contents/ui/config/ConfigMaintenance.qml:230
 msgid "Color distinction is only available for Kimai profiles."
 msgstr "色の区別は Kimai プロファイルでのみ利用できます。"
 
-#: contents/ui/config/ConfigMaintenance.qml:236
+#: contents/ui/config/ConfigMaintenance.qml:234
 msgid "Configure a server URL on the Connection tab first."
 msgstr "先に接続タブでサーバーURLを設定してください。"
 
-#: contents/ui/config/ConfigMaintenance.qml:282
+#: contents/ui/config/ConfigMaintenance.qml:280
 msgid "Loading customers, projects, and activities…"
 msgstr "顧客、プロジェクト、アクティビティを読み込み中…"
 
-#: contents/ui/config/ConfigMaintenance.qml:421
-msgid "Color maintenance is for Kimai"
-msgstr "色のメンテナンスは Kimai 向けです"
-
-#: contents/ui/config/ConfigMaintenance.qml:422
+#: contents/ui/config/ConfigMaintenance.qml:420
 msgid "Clockify, Toggl, and SolidTime do not expose Kimai-style customer / project / activity colors, so clash groups and color shifting are hidden for those profiles."
 msgstr "Clockify、Toggl、SolidTime は Kimai のような顧客・プロジェクト・アクティビティ色を提供しないため、これらのプロファイルでは衝突グループと色のシフトを非表示にします。"
 
-#: contents/ui/config/ConfigMaintenance.qml:429
+#: contents/ui/config/ConfigMaintenance.qml:427
 msgid "Only colors that clash within a category are listed. Each group starts with the entry that kept the Kimai color; shifted variants follow. Unique colors are hidden."
 msgstr "カテゴリ内で衝突する色のみ表示されます。各グループはKimaiの色を維持した項目から始まり、シフトされたものが続きます。一意な色は非表示です。"
 
-#: contents/ui/config/ConfigMaintenance.qml:436
+#: contents/ui/config/ConfigMaintenance.qml:434
 msgid "Reload from server"
 msgstr "サーバーから再読み込み"
 
-#: contents/ui/config/ConfigMaintenance.qml:455
+#: contents/ui/config/ConfigMaintenance.qml:453
 msgid "Distinction on · configured %1% · effective customers %2% / projects %3% / activities %4%"
 msgstr "区別オン · 設定 %1% · 実効 顧客 %2% / プロジェクト %3% / アクティビティ %4%"
 
-#: contents/ui/config/ConfigMaintenance.qml:460
+#: contents/ui/config/ConfigMaintenance.qml:458
 msgid "Distinction off — enable it in Display settings."
 msgstr "区別オフ — 表示設定で有効にしてください。"
 
-#: contents/ui/config/ConfigMaintenance.qml:478
-msgid "Customers"
-msgstr "顧客"
-
-#: contents/ui/config/ConfigMaintenance.qml:484
-#: contents/ui/config/ConfigMaintenance.qml:557
-#: contents/ui/config/ConfigMaintenance.qml:630
+#: contents/ui/config/ConfigMaintenance.qml:482
+#: contents/ui/config/ConfigMaintenance.qml:555
+#: contents/ui/config/ConfigMaintenance.qml:628
 msgid "No similar colors in this category."
 msgstr "このカテゴリに類似色はありません。"
 
-#: contents/ui/config/ConfigMaintenance.qml:539
-#: contents/ui/config/ConfigMaintenance.qml:612
-#: contents/ui/config/ConfigMaintenance.qml:685
-msgid "kept"
-msgstr "維持"
-
-#: contents/ui/config/ConfigMaintenance.qml:540
-#: contents/ui/config/ConfigMaintenance.qml:613
-#: contents/ui/config/ConfigMaintenance.qml:686
-msgid "shifted"
-msgstr "シフト済み"
-
-#: contents/ui/CreateEntityDialog.qml:42 contents/ui/CreateEntityDialog.qml:174
-msgid "Create customer"
-msgstr "顧客を作成"
-
-#: contents/ui/CreateEntityDialog.qml:45
-#: contents/ui/ProjectActivityPickers.qml:98
-msgid "Create activity"
-msgstr "アクティビティを作成"
-
-#: contents/ui/CreateEntityDialog.qml:47
-#: contents/ui/ProjectActivityPickers.qml:64
-msgid "Create project"
-msgstr "プロジェクトを作成"
-
-#: contents/ui/CreateEntityDialog.qml:84
-msgid "Activity will be added to %1."
-msgstr "アクティビティは %1 に追加されます。"
-
-#: contents/ui/CreateEntityDialog.qml:89 contents/ui/CreateEntityDialog.qml:97
-msgid "Name"
-msgstr "名前"
-
-#: contents/ui/CreateEntityDialog.qml:104
-#: contents/ui/CreateEntityDialog.qml:115
-msgid "Customer"
-msgstr "顧客"
-
-#: contents/ui/CreateEntityDialog.qml:141
-msgid "Select customer…"
-msgstr "顧客を選択…"
-
-#: contents/ui/DateField.qml:204
-msgid "Pick date"
-msgstr "日付を選択"
-
-#: contents/ui/DaySparkline.qml:491
-msgid "Today's tracked time"
-msgstr "今日の記録時間"
-
-#: contents/ui/main.qml:308 contents/ui/main.qml:310 contents/ui/main.qml:2161
-#: contents/ui/main.qml:2748
-msgid "Plasmai"
-msgstr "Plasmai"
-
-#: contents/ui/main.qml:314
+#: contents/ui/main.qml:370
 msgid "Loading…"
 msgstr "読み込み中…"
 
-#: contents/ui/main.qml:317
+#: contents/ui/main.qml:373
 msgid "Not configured — right-click to configure"
 msgstr "未設定 — 右クリックで設定"
 
-#: contents/ui/main.qml:441
-msgid "just now"
-msgstr "たった今"
-
-#: contents/ui/main.qml:445
+#: contents/ui/main.qml:516
 msgid "%1 minute ago"
 msgid_plural "%1 minutes ago"
 msgstr[0] "%1 分前"
 
-#: contents/ui/main.qml:449
+#: contents/ui/main.qml:520
 msgid "%1 hour ago"
 msgid_plural "%1 hours ago"
 msgstr[0] "%1 時間前"
 
-#: contents/ui/main.qml:453
-msgid "yesterday"
-msgstr "昨日"
-
-#: contents/ui/main.qml:456
+#: contents/ui/main.qml:527
 msgid "%1 day ago"
 msgid_plural "%1 days ago"
 msgstr[0] "%1 日前"
 
-#: contents/ui/main.qml:476
-msgid "Not configured"
-msgstr "未設定"
-
-#: contents/ui/main.qml:479
+#: contents/ui/main.qml:550
 msgid "Connecting to %1…"
 msgstr "%1 に接続中…"
 
-#: contents/ui/main.qml:482
-msgid "Connection problem"
-msgstr "接続の問題"
-
-#: contents/ui/main.qml:486
-msgid "Connected to %1 (%2)"
-msgstr "%1 (%2) に接続済み"
-
-#: contents/ui/main.qml:487
-msgid "Connected to %1"
-msgstr "%1 に接続済み"
-
-#: contents/ui/main.qml:611
-msgid "Idle time discarded"
-msgstr "アイドル時間を破棄しました"
-
-#: contents/ui/main.qml:636
-msgid "Nothing is tracking"
-msgstr "何も計測していません"
-
-#: contents/ui/main.qml:637
+#: contents/ui/main.qml:723
 msgid "Work hours have started. Start a timer when you begin."
 msgstr "勤務時間が始まりました。始めたらタイマーを開始してください。"
 
-#: contents/ui/main.qml:699
+#: contents/ui/main.qml:785
 msgid "Customer created"
 msgstr "顧客を作成しました"
 
-#: contents/ui/main.qml:716
+#: contents/ui/main.qml:802
 msgid "Project created"
 msgstr "プロジェクトを作成しました"
 
-#: contents/ui/main.qml:734
+#: contents/ui/main.qml:820
 msgid "Activity created"
 msgstr "アクティビティを作成しました"
 
-#: contents/ui/main.qml:818
+#: contents/ui/main.qml:904
 msgid "This provider cannot update the running entry."
 msgstr "このプロバイダーは実行中のエントリを更新できません。"
 
-#: contents/ui/main.qml:830
+#: contents/ui/main.qml:916
 msgid "Enter a valid start date/time."
 msgstr "有効な開始日時を入力してください。"
 
-#: contents/ui/main.qml:834
+#: contents/ui/main.qml:920
 msgid "Start must not be in the future."
 msgstr "開始は未来であってはなりません。"
 
-#: contents/ui/main.qml:944
-msgid "Enter valid begin and end date/time."
-msgstr "有効な開始・終了日時を入力してください。"
+#: contents/ui/main.qml:1493
+msgid "Trip saved"
+msgstr ""
 
-#: contents/ui/main.qml:948
-msgid "End must be after begin."
-msgstr "終了は開始より後である必要があります。"
-
-#: contents/ui/main.qml:973
+#: contents/ui/main.qml:1647
 msgid "Entry added"
 msgstr "エントリを追加しました"
 
-#: contents/ui/main.qml:973
+#: contents/ui/main.qml:1647
 msgid "Entry updated"
 msgstr "エントリを更新しました"
 
-#: contents/ui/main.qml:974
+#: contents/ui/main.qml:1648
 msgid "Manual time entry"
 msgstr "手動時間エントリ"
 
-#: contents/ui/main.qml:974
+#: contents/ui/main.qml:1648
 msgid "Timesheet updated"
 msgstr "タイムシートを更新しました"
 
-#: contents/ui/main.qml:982
+#: contents/ui/main.qml:1656
 msgid "This provider cannot update stopped entries."
 msgstr "このプロバイダーは停止済みエントリを更新できません。"
 
-#: contents/ui/main.qml:1180
+#: contents/ui/main.qml:1860
 msgid "Tracking in progress"
 msgstr "計測中"
 
-#: contents/ui/main.qml:1218
+#: contents/ui/main.qml:1898
 msgid "This provider cannot update descriptions."
 msgstr "このプロバイダーは説明を更新できません。"
 
-#: contents/ui/main.qml:1240
-msgid "%1 left today"
-msgstr "今日あと %1"
-
-#: contents/ui/main.qml:1242
-msgid "%1 over today"
-msgstr "今日 %1 超過"
-
-#: contents/ui/main.qml:1247
-msgid "%1 left this week"
-msgstr "今週あと %1"
-
-#: contents/ui/main.qml:1249
-msgid "%1 over this week"
-msgstr "今週 %1 超過"
-
-#: contents/ui/main.qml:1254 contents/ui/main.qml:1277
-#: contents/ui/main.qml:3122
-msgid "Today %1"
-msgstr "今日 %1"
-
-#: contents/ui/main.qml:1255 contents/ui/main.qml:3124
-msgid "Week %1"
-msgstr "週 %1"
-
-#: contents/ui/main.qml:1828 contents/ui/main.qml:1961
+#: contents/ui/main.qml:2509 contents/ui/main.qml:2642
 msgid "Tracking started"
 msgstr "記録を開始しました"
 
-#: contents/ui/main.qml:1868
+#: contents/ui/main.qml:2549
 msgid "Switched activity"
 msgstr "アクティビティを切り替えました"
 
-#: contents/ui/main.qml:1923
+#: contents/ui/main.qml:2604
 msgid "Tracking stopped (idle)"
 msgstr "記録を停止しました（アイドル）"
 
-#: contents/ui/main.qml:1927
+#: contents/ui/main.qml:2608
 msgid "Tracking stopped"
 msgstr "記録を停止しました"
 
-#: contents/ui/main.qml:2028
+#: contents/ui/main.qml:2709
 msgid "Could not resolve project or activity for that entry"
 msgstr "そのエントリのプロジェクトまたはアクティビティを解決できませんでした"
 
-#: contents/ui/main.qml:2067
+#: contents/ui/main.qml:2748
 msgid "This provider cannot delete entries."
 msgstr "このプロバイダーはエントリを削除できません。"
 
-#: contents/ui/main.qml:2080
+#: contents/ui/main.qml:2761
 msgid "Entry deleted"
 msgstr "エントリを削除しました"
 
-#: contents/ui/main.qml:2112 contents/ui/main.qml:2594
-msgid "Split time must be between begin and end."
-msgstr "分割時刻は開始と終了の間である必要があります。"
-
-#: contents/ui/main.qml:2117
+#: contents/ui/main.qml:2798
 msgid "This provider cannot split entries."
 msgstr "このプロバイダーはエントリを分割できません。"
 
-#: contents/ui/main.qml:2146
+#: contents/ui/main.qml:2827
 msgid "Entry split"
 msgstr "エントリを分割しました"
 
-#: contents/ui/main.qml:2150
-msgid "The first half was saved, but the second half could not be created."
-msgstr "前半は保存されましたが、後半を作成できませんでした。"
-
-#: contents/ui/main.qml:2162
+#: contents/ui/main.qml:2843
 msgid "Open or close the Plasmai popup"
 msgstr "Plasmai のポップアップを開くまたは閉じる"
 
-#: contents/ui/main.qml:2280
-msgid "Stop tracking?"
-msgstr "記録を停止しますか？"
-
-#: contents/ui/main.qml:2293
+#: contents/ui/main.qml:3002
 msgid "Stop tracking %1 · %2?"
 msgstr "%1 · %2 の記録を停止しますか？"
 
-#: contents/ui/main.qml:2304 contents/ui/main.qml:3649
-msgid "Switch activity"
-msgstr "アクティビティを切り替え"
-
-#: contents/ui/main.qml:2413
+#: contents/ui/main.qml:3122
 msgid "Current"
 msgstr "現在"
 
-#: contents/ui/main.qml:2434
+#: contents/ui/main.qml:3143
 msgid "Switch to"
 msgstr "切り替え先"
 
-#: contents/ui/main.qml:2447 contents/ui/main.qml:3723
-msgid "Switch"
-msgstr "切り替え"
-
-#: contents/ui/main.qml:2468
-msgid "Delete entry?"
-msgstr "エントリを削除しますか？"
-
-#: contents/ui/main.qml:2485
+#: contents/ui/main.qml:3194
 msgid "Delete this finished entry? This cannot be undone."
 msgstr "この完了済みエントリを削除しますか？元に戻せません。"
 
-#: contents/ui/main.qml:2487
+#: contents/ui/main.qml:3196
 msgid "Delete \"%1 · %2\"? This cannot be undone."
 msgstr "「%1 · %2」を削除しますか？元に戻せません。"
 
-#: contents/ui/main.qml:2552
+#: contents/ui/main.qml:3261
 msgid "The first half keeps the original start. The second half starts at the split time."
 msgstr "前半は元の開始時刻のままです。後半は分割時刻から始まります。"
 
-#: contents/ui/main.qml:2557
+#: contents/ui/main.qml:3266
 msgid "Split at"
 msgstr "分割時刻"
 
-#: contents/ui/main.qml:2593
+#: contents/ui/main.qml:3302
 msgid "Both halves will have a positive duration."
 msgstr "両方の半分は正の時間になります。"
 
-#: contents/ui/main.qml:2607
-msgid "You were idle"
-msgstr "アイドル状態でした"
-
-#: contents/ui/main.qml:2625
+#: contents/ui/main.qml:3334
 msgid "Keep the time, discard the idle gap, or discard and continue the same activity."
 msgstr "時間を残す、アイドル区間を破棄する、または破棄して同じアクティビティを続けます。"
 
-#: contents/ui/main.qml:2634
-msgid "Keep time"
-msgstr "時間を残す"
+#: contents/ui/main.qml:3466
+msgid "Trip"
+msgstr ""
 
-#: contents/ui/main.qml:2643
-msgid "Discard idle"
-msgstr "アイドルを破棄"
-
-#: contents/ui/main.qml:2652
-msgid "Discard and continue"
-msgstr "破棄して続ける"
-
-#: contents/ui/main.qml:2745 contents/ui/main.qml:2799
-msgid "Statistics"
-msgstr "統計"
-
-#: contents/ui/main.qml:2747 contents/ui/main.qml:2784
-msgid "Add entry"
-msgstr "エントリを追加"
-
-#: contents/ui/main.qml:2790
+#: contents/ui/main.qml:3511
 msgid "Add a manual time entry"
 msgstr "手動時間エントリを追加"
 
-#: contents/ui/main.qml:2805
+#: contents/ui/main.qml:3526
 msgid "Show statistics"
 msgstr "統計を表示"
 
-#: contents/ui/main.qml:2813
+#: contents/ui/main.qml:3541
+msgid "Log a shooting day"
+msgstr ""
+
+#: contents/ui/main.qml:3555
+msgid "Log a trip (Anfahrten plugin)"
+msgstr ""
+
+#: contents/ui/main.qml:3564
 msgid "Back"
 msgstr "戻る"
 
-#: contents/ui/main.qml:2818
+#: contents/ui/main.qml:3569
 msgid "Back to timer"
 msgstr "タイマーに戻る"
 
-#: contents/ui/main.qml:2855
-msgid "Connect a time tracker"
-msgstr "時間記録サービスを接続"
-
-#: contents/ui/main.qml:2856
+#: contents/ui/main.qml:3610
 msgid "Add your service, server URL (if needed), and API token to start tracking from the panel."
 msgstr "サービス、サーバー URL（必要な場合）、API トークンを追加してパネルから記録を開始します。"
 
-#: contents/ui/main.qml:2858
-msgid "Configure Plasmai"
-msgstr "Plasmai を設定"
-
-#: contents/ui/main.qml:2871
-msgid "Retry"
-msgstr "再試行"
-
-#: contents/ui/main.qml:2876
-msgid "Configure"
-msgstr "設定"
-
-#: contents/ui/main.qml:3021
-msgid "Not tracking"
-msgstr "記録していません"
-
-#: contents/ui/main.qml:3168 contents/ui/main.qml:3206
-msgid "Edit"
-msgstr "編集"
-
-#: contents/ui/main.qml:3180 contents/ui/main.qml:3219
+#: contents/ui/main.qml:3876
 msgid "Edit start, project, and activity"
 msgstr "開始・プロジェクト・アクティビティを編集"
 
-#: contents/ui/main.qml:3192 contents/ui/main.qml:3228
-msgid "Stop"
-msgstr "停止"
+#: contents/ui/main.qml:3898
+msgid "Not tracking"
+msgstr "記録していません"
 
-#: contents/ui/main.qml:3284
+#: contents/ui/main.qml:4078
 msgid "Description"
 msgstr "説明"
 
-#: contents/ui/main.qml:3355
-msgid "Save description"
-msgstr "説明を保存"
-
-#: contents/ui/main.qml:3410
-msgid "Continue · %1 · %2"
-msgstr "続行 · %1 · %2"
-
-#: contents/ui/main.qml:3422
-msgid "Start · %1 · %2"
-msgstr "開始 · %1 · %2"
-
-#: contents/ui/main.qml:3478 contents/ui/main.qml:3588
-msgid "Already running."
-msgstr "すでに計測中です。"
-
-#: contents/ui/main.qml:3513
+#: contents/ui/main.qml:4322
 msgid "No favorites yet"
 msgstr "お気に入りはまだありません"
 
-#: contents/ui/main.qml:3519
+#: contents/ui/main.qml:4328
 msgid "Pin frequent project/activity pairs in the widget settings."
 msgstr "よく使うプロジェクト/アクティビティの組み合わせをウィジェット設定でピン留めしてください。"
 
-#: contents/ui/main.qml:3525
+#: contents/ui/main.qml:4334
 msgid "Configure favorites"
 msgstr "お気に入りを設定"
 
-#: contents/ui/main.qml:3541
+#: contents/ui/main.qml:4350
 msgid "+%1 more in settings"
 msgstr "設定にあと %1 件"
 
-#: contents/ui/main.qml:3552
-msgid "Recent"
-msgstr "最近"
-
-#: contents/ui/main.qml:3626
+#: contents/ui/main.qml:4467
 msgid "No recent activities"
 msgstr "最近のアクティビティはありません"
 
-#: contents/ui/main.qml:3627
+#: contents/ui/main.qml:4468
 msgid "Start tracking to build your recent list."
 msgstr "記録を開始して最近のリストを作成してください。"
 
-#: contents/ui/main.qml:3638
-msgid "Switch to another activity…"
-msgstr "別のアクティビティに切り替え…"
-
-#: contents/ui/main.qml:3638
-msgid "Start something else…"
-msgstr "別の作業を開始…"
-
-#: contents/ui/main.qml:3649
+#: contents/ui/main.qml:4490
 msgid "New activity"
 msgstr "新しいアクティビティ"
-
-#: contents/ui/main.qml:3693 contents/ui/ManualEntryView.qml:344
-msgid "Description (optional)"
-msgstr "説明（任意）"
-
-#: contents/ui/ManualEntryView.qml:243
-msgid "Change project, activity, range, billable, and tags for this finished entry."
-msgstr "この完了済みエントリのプロジェクト・アクティビティ・期間・請求・タグを変更します。"
-
-#: contents/ui/ManualEntryView.qml:244
-msgid "Create a finished entry with project, activity, and time range."
-msgstr "プロジェクト、アクティビティ、時間範囲で完了済みのエントリを作成します。"
-
-#: contents/ui/ManualEntryView.qml:276
-msgid "Begin"
-msgstr "開始"
-
-#: contents/ui/ManualEntryView.qml:300
-msgid "End"
-msgstr "終了"
-
-#: contents/ui/ManualEntryView.qml:330
-msgid "Duration: %1"
-msgstr "時間: %1"
-
-#: contents/ui/ManualEntryView.qml:334
-msgid "Duration: —"
-msgstr "時間: —"
-
-#: contents/ui/ManualEntryView.qml:336
-msgid "Duration: invalid range"
-msgstr "時間: 無効な範囲"
-
-#: contents/ui/ManualEntryView.qml:368
-msgid "Save changes"
-msgstr "変更を保存"
-
-#: contents/ui/ManualEntryView.qml:368
-msgid "Save entry"
-msgstr "エントリを保存"
-
-#: contents/ui/ProjectActivityPickers.qml:52
-msgid "Select project…"
-msgstr "プロジェクトを選択…"
-
-#: contents/ui/ProjectActivityPickers.qml:88
-msgid "Select activity…"
-msgstr "アクティビティを選択…"
-
-#: contents/ui/StatsView.qml:46
-msgid "All"
-msgstr "すべて"
-
-#: contents/ui/StatsView.qml:47 contents/ui/TimesheetMetaFields.qml:43
-msgid "Billable"
-msgstr "請求対象"
-
-#: contents/ui/StatsView.qml:48
-msgid "Non-billable"
-msgstr "請求対象外"
-
-#: contents/ui/StatsView.qml:207 contents/ui/StatsView.qml:261
-#: contents/ui/StatsView.qml:501
-msgid "Today"
-msgstr "今日"
-
-#: contents/ui/StatsView.qml:219 contents/ui/StatsView.qml:318
-#: contents/ui/StatsView.qml:401 contents/ui/StatsView.qml:529
-msgid "This week"
-msgstr "今週"
-
-#: contents/ui/StatsView.qml:240
-msgid "Time by hour"
-msgstr "時間帯別の時間"
-
-#: contents/ui/StatsView.qml:251
-msgid "Previous day"
-msgstr "前日"
-
-#: contents/ui/StatsView.qml:264
-msgid "Yesterday"
-msgstr "昨日"
-
-#: contents/ui/StatsView.qml:276
-msgid "Next day"
-msgstr "翌日"
-
-#: contents/ui/StatsView.qml:286
-msgid "No time logged this day"
-msgstr "この日の記録はありません"
-
-#: contents/ui/StatsView.qml:297
-msgid "Projects by day"
-msgstr "日別プロジェクト"
-
-#: contents/ui/StatsView.qml:308 contents/ui/StatsView.qml:391
-#: contents/ui/StatsView.qml:519
-msgid "Previous week"
-msgstr "前週"
-
-#: contents/ui/StatsView.qml:330 contents/ui/StatsView.qml:411
-#: contents/ui/StatsView.qml:541
-msgid "Next week"
-msgstr "翌週"
-
-#: contents/ui/StatsView.qml:340 contents/ui/StatsView.qml:438
-msgid "No time logged this week"
-msgstr "今週の記録はありません"
-
-#: contents/ui/StatsView.qml:382
-msgid "Projects by hour"
-msgstr "時間帯別プロジェクト"
-
-#: contents/ui/StatsView.qml:425
-msgid "Weekdays and weekend — segments placed by clock time."
-msgstr "平日と週末 — 時刻に沿ってセグメントを配置。"
-
-#: contents/ui/StatsView.qml:427
-msgid "Weekdays — segments placed by clock time. Weekend appears when tracked."
-msgstr "平日 — 時刻に沿ってセグメント。記録があれば週末も表示。"
-
-#: contents/ui/StatsView.qml:428
-msgid "Axis shows business hours (%1–%2); expands if work falls outside."
-msgstr "軸は勤務時間（%1–%2）を表示。範囲外の作業があれば拡張します。"
-
-#: contents/ui/StatsView.qml:489
-msgid "Activity distribution"
-msgstr "アクティビティの分布"
-
-#: contents/ui/StatsView.qml:504
-msgid "No activities today"
-msgstr "今日のアクティビティはありません"
-
-#: contents/ui/StatsView.qml:552
-msgid "No activities this week"
-msgstr "今週のアクティビティはありません"
-
-#: contents/ui/TagPicker.qml:253
-msgid "Add tag…"
-msgstr "タグを追加…"
-
-#: contents/ui/TagPicker.qml:254
-msgid "Add tags…"
-msgstr "タグを追加…"
-
-#: contents/ui/TagPicker.qml:259
-msgid "Tags"
-msgstr "タグ"
-
-#: contents/ui/TagPicker.qml:313
-msgid "Loading tags…"
-msgstr "タグを読み込み中…"
-
-#: contents/ui/TagPicker.qml:314
-msgid "No tags on the server yet."
-msgstr "サーバー上にまだタグがありません。"
-
-#: contents/ui/TagPicker.qml:367
-msgid "Create tag “%1”"
-msgstr "タグ「%1」を作成"
-
-#: contents/ui/TimeField.qml:179
-msgid "Pick time"
-msgstr "時刻を選択"
-
-#: contents/ui/TimeField.qml:209
-msgid "Hours : Minutes"
-msgstr "時 : 分"
-
-#: contents/ui/TimeField.qml:265
-msgid "Select"
-msgstr "選択"

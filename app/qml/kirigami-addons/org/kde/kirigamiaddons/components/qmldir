@@ -1,0 +1,3 @@
+module org.kde.kirigamiaddons.components
+DialogRoundedBackground 1.0 DialogRoundedBackground.qml
+SegmentedButton 1.0 SegmentedButton.qml

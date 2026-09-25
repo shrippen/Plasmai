@@ -112,6 +112,26 @@
         <entry name="pinnedActivities" type="String">
             <default></default>
         </entry>
+        <!-- Filmday view extras (break, catering, day type/category, production
+             day, extra pay, note), keyed by project + date; see filmDays.js -->
+        <entry name="filmDaysJson" type="String">
+            <default></default>
+        </entry>
+        <!-- Film-day patches not yet accepted by the Drehzettel plugin (offline),
+             keyed by profile + project + date; see filmDaySync.js -->
+        <entry name="filmDaysPending" type="String">
+            <default></default>
+        </entry>
+        <!-- Kimai plugin probe results per profile + server (present/absent/…),
+             so offline starts keep the last known mode; see kimaiApi.js detectPlugin -->
+        <entry name="pluginProbesJson" type="String">
+            <default></default>
+        </entry>
+        <!-- Trips of the kimai-anfahrten plugin (MileageBundle): "Log trip" actions,
+             detected-trip row, km in statistics. Only when the plugin is there. -->
+        <entry name="showTrips" type="Bool">
+            <default>true</default>
+        </entry>
         <entry name="idleStopEnabled" type="Bool">
             <default>false</default>
         </entry>

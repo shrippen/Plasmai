@@ -2,9 +2,88 @@
 
 ## Unreleased
 
+### Trips (kimai-anfahrten plugin, Desktop and app)
+- With the Anfahrten plugin (MileageBundle) on the Kimai server: log a trip from the header, from the running entry or from a Recent entry's menu (linked to that entry); edit and delete trips
+- Trips detected from Dawarich show above Recent (Desktop) and on the new Trips page (app): accept, edit and accept, or dismiss
+- App: Trips page with the month's logbook, "Log trip" and "Commute today"; after saving a travel day the film day page offers "Log trip"
+- Statistics show the trip km of this week and month
+- New setting "Trips" (on by default) to hide all of it
+
+### Film day (Desktop and app)
+- Several entries of the same project on one day: the view says so and can merge them into one entry (the others are deleted after saving); before, only one was updated and the work time was wrong
+- Film days kept on the device (without the Drehzettel plugin) are stored per profile and Kimai server, so two servers with the same project id no longer share a day; older entries are still shown
+- The app and the Plasmoid no longer overwrite each other's film days on the same computer: film day data is merged into shared.json per day and reloaded when the view opens
+- Review of film days that differ between this device and the Drehzettel plugin after copying them to the server: both values side by side, per day keep the server values or send the ones from this device (before, the server values were kept without a choice)
+
+## 2.0.0
+
+### Android / Plasma Mobile
+- New: Plasmai is now also a standalone Kirigami app for Android and Plasma Mobile (KF6), built from `app/`, sharing the Kimai/Clockify/Toggl Track/SolidTime backend and QML components with the Plasmoid
+- Full timer flow: start/stop/switch activity, continue last entry, edit the running entry, add a manual entry, favorites (pin/unpin/start), recent entries with edit/split/delete, statistics, color maintenance, and settings — matching the Plasmoid's behavior
+- Kirigami pages, dialogs (`PromptDialog`/`Dialog`) and date/time pickers (vendored `kirigami-addons` `DatePopup`/`TimePopup`) replace bespoke controls
+- Breeze-Dark icon subset bundled for Android, which has no system icon theme
+- Translations: the 11 languages already shipped for the Plasmoid now also cover the app (Plasma Mobile via compiled `.mo` catalogs through KLocalizedString; Android, which has no gettext runtime, via bundled JSON catalogs)
+- Add entry now loads promptly — the date/time popups are built on first use instead of upfront
+- Timer card layout matches the Plasmoid's hero card (summary, continue button, and description all inside one bordered card)
+- Split works (the second half was never created); save errors on the Film day page are shown
+- Token loads for two profiles in flight no longer lose one; settings and cache files are written atomically
+
 ### Desktop
-- Kimai profiles with the kimai-drehzettel-bundle plugin installed show a "Film day" toggle in the manual entry form when the chosen project/activity/date fall inside an active engagement, with break/catering/category/note fields (Konzept A, inline expand). Saved alongside the timesheet entry via the plugin's `/api/drehzettel/v1/...` API; inert everywhere else.
-- Film day detection also refreshes on activity change, not just project/date - matches the plugin now letting an engagement restrict itself to specific activities (e.g. excluding a private "Anfahrt"/commute activity from the same project).
+- Redesigned icon: half-dial clock with a gold shard trail; the panel icon uses the mono variant (tinted by the theme) while idle, the store and Android icons use the colored version
+- Film day view (Kimai only): a shooting-day entry screen modeled on the Android TimeSheet app — begin/end/break, catering, day category/type, production shooting day, extra pay, note. Begin/end save to a normal Kimai entry; the film-specific extras go to kimai-drehzettel-bundle when it is installed (see below), else they stay on this device
+- Film day saves only update a finished entry of the picked project; other projects' entries and the running timer are left alone, and picking a project reloads that day
+
+### Film day and the Drehzettel plugin (Desktop and app)
+- With kimai-drehzettel-bundle on the server, break, catering, day category/type, shooting day, extra pay and note are stored in the plugin instead of on the device; without it nothing changes (local mode, with a hint)
+- The plugin is detected per profile and the answer is remembered, so an offline start does not fall back to local storage; the app now probes it too
+- Only changed fields are sent; if sending fails (offline), the change is queued and sent later unless the day was changed on the server meanwhile (the server wins)
+- Projects without an engagement for the day, or users without the Drehzettel permission, save begin and end only; the extras are hidden with a hint
+- Break up to 12 h with a "Default" option from the engagement's ruleset; new "Surcharge day (1–7, empty = automatic)" field for the 6th/7th-day surcharge; the old production-day counter is now "Production shooting day"; note limited to 500 characters; ruleset name in the header; extra pay in the customer's currency; earnings from the plugin's day summary
+- One-time offer to copy film days stored on this device to the plugin; days with other values on the server keep the server values, local copies are never deleted
+- German translation for the film day view
+
+### Kimai
+- Works for regular users (ROLE_USER) again: `exported` is no longer sent, and `billable` only when you change it; without the edit_billable permission the entry is saved without it and a hint is shown
+- Manual entries and running-entry edits no longer save as non-billable when the checkbox was left alone
+- Start lets Kimai set the begin time (Kimai timezone instead of the device clock)
+- Continue keeps the description and tags (`copy=all`)
+- Statistics/week totals no longer fail for ranges with exactly 100, 200 … entries
+- Customers, projects and activities load in one request (no duplicates above 500)
+- Hidden customers, projects and activities are no longer offered in the pickers
+- Requests are aborted after 30 s so the widget and app do not stay busy
+- Discarding idle time stops the entry where idle began, not where you clicked
+- Short absence durations in seconds are no longer read as hours; day sparkline is correct on DST days
+
+### Security and robustness (Desktop)
+- The API token no longer stays on the `sh -c` command line while it is stored
+- Large catalog caches and `shared.json` (>128 KiB, e.g. many film days) are saved in chunks; config/cache files are written via `mktemp`
+- Idle detection asks the ScreenSaver D-Bus when logind does not report idle
+- Notifications whose text starts with "-" are shown; widget paths with spaces work for the shell helpers
+
+## 1.x fixes on main (before the 2.0 merge, all included in 2.0.0)
+
+These landed on `main` for the 1.x line after 1.6.3 (not tagged separately) and are part of 2.0.0 above, there also for the app.
+
+### Kimai
+- Works for regular users (ROLE_USER) again: `exported` is no longer sent, and `billable` only when you change it; without the edit_billable permission the entry is saved without it and a hint is shown
+- Manual entries no longer save as non-billable when the checkbox was left alone
+- Start lets Kimai set the begin time (Kimai timezone instead of the desktop clock)
+- Continue keeps the description and tags (`copy=all`)
+- Statistics/week totals no longer fail for ranges with exactly 100, 200 … entries
+- Customers, projects and activities load in one request (no duplicates above 500)
+- Hidden customers, projects and activities are no longer offered in the pickers
+- Requests are aborted after 30 s so the widget does not stay busy
+
+### Desktop
+- Discarding idle time stops the entry where idle began, not where you clicked
+- Idle detection asks the ScreenSaver D-Bus when logind does not report idle
+- Notifications whose text starts with "-" are shown
+- Short absence durations in seconds are no longer read as hours; day sparkline is correct on DST days
+
+### Security and robustness
+- The API token no longer stays on the `sh -c` command line while it is stored
+- Large catalog caches (>128 KiB) are saved in chunks; config/cache files are written via `mktemp`
+- Widget paths with spaces work for the shell helpers
 
 ## 1.6.3
 
