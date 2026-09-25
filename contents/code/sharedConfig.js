@@ -42,6 +42,8 @@ var SHARED_KEYS = [
     "lastUsedProjectName",
     "lastUsedActivityName",
     "filmDaysJson",
+    "filmDaysPending",
+    "pluginProbesJson",
     "locationName",
     "colorDistinctionEnabled",
     "colorSimilarityPercent",

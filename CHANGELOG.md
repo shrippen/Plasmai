@@ -17,8 +17,17 @@
 
 ### Desktop
 - Redesigned icon: half-dial clock with a gold shard trail; the panel icon uses the mono variant (tinted by the theme) while idle, the store and Android icons use the colored version
-- Film day view (Kimai only): a shooting-day entry screen modeled on the Android TimeSheet app — begin/end/break, catering, day category/type, production-day counter, extra pay, note. Begin/end save to a normal Kimai entry; the film-specific extras are kept locally until kimai-drehzettel-bundle has an API for them
+- Film day view (Kimai only): a shooting-day entry screen modeled on the Android TimeSheet app — begin/end/break, catering, day category/type, production shooting day, extra pay, note. Begin/end save to a normal Kimai entry; the film-specific extras go to kimai-drehzettel-bundle when it is installed (see below), else they stay on this device
 - Film day saves only update a finished entry of the picked project; other projects' entries and the running timer are left alone, and picking a project reloads that day
+
+### Film day and the Drehzettel plugin (Desktop and app)
+- With kimai-drehzettel-bundle on the server, break, catering, day category/type, shooting day, extra pay and note are stored in the plugin instead of on the device; without it nothing changes (local mode, with a hint)
+- The plugin is detected per profile and the answer is remembered, so an offline start does not fall back to local storage; the app now probes it too
+- Only changed fields are sent; if sending fails (offline), the change is queued and sent later unless the day was changed on the server meanwhile (the server wins)
+- Projects without an engagement for the day, or users without the Drehzettel permission, save begin and end only; the extras are hidden with a hint
+- Break up to 12 h with a "Default" option from the engagement's ruleset; new "Surcharge day (1–7, empty = automatic)" field for the 6th/7th-day surcharge; the old production-day counter is now "Production shooting day"; note limited to 500 characters; ruleset name in the header; extra pay in the customer's currency; earnings from the plugin's day summary
+- One-time offer to copy film days stored on this device to the plugin; days with other values on the server keep the server values, local copies are never deleted
+- German translation for the film day view
 
 ### Kimai
 - Works for regular users (ROLE_USER) again: `exported` is no longer sent, and `billable` only when you change it; without the edit_billable permission the entry is saved without it and a hint is shown

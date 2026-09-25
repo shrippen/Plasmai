@@ -102,18 +102,18 @@ Reine Funktionen in `filmDays.js`: `toApiPatch(local, serverOrNull)` (liefert nu
 - **M6 M (optional)**: `GET /summary?from=&to=`.
 
 ### Plasmai – Drehzettel: Migration FilmDayView → Server-API
-- **P1 M** `contents/code/kimaiApi.js`: `detectDrehzettel` (ping, v1; persistenter Cache pro Profil), `fetchEngagementStatus`, `fetchEngagements(date)` (D1), `fetchFilmDay`, `putFilmDay`. Tests in `tests/unit/tst_kimaiApi.qml` (200/403/404/5xx, Body enthält nur geänderte Keys). Braucht G2.
-- **P2 S** `contents/code/filmDays.js`: Mapping aus §3 (`toApiPatch`, `fromApi`, `isServerEmpty`, `planMigration`) plus Tests in `tests/unit/tst_filmDays.qml`. Keine Abhängigkeit.
-- **P3 M** Neu `contents/code/filmDaySync.js`: Modusentscheidung, Laden, zweistufiges Speichern, `filmDaysPending`-Warteschlange. Aufrufer mit Callbacks sind `contents/ui/main.qml` (ersetzt 969-1060) und `app/qml/FilmDayPage.qml`. So entsteht die Orchestrierung nicht doppelt. Braucht P1 und P2.
-- **P4 M** UI in `contents/ui/FilmDayView.qml` **und** `app/qml/shared/FilmDayView.qml`:
+- **P1 M ✅** `contents/code/kimaiApi.js`: `detectDrehzettel` (ping, v1; persistenter Cache pro Profil), `fetchEngagementStatus`, `fetchEngagements(date)` (D1), `fetchFilmDay`, `putFilmDay`. Tests in `tests/unit/tst_kimaiApi.qml` (200/403/404/5xx, Body enthält nur geänderte Keys). Braucht G2.
+- **P2 S ✅** `contents/code/filmDays.js`: Mapping aus §3 (`toApiPatch`, `fromApi`, `isServerEmpty`, `planMigration`) plus Tests in `tests/unit/tst_filmDays.qml`. Keine Abhängigkeit.
+- **P3 M ✅** Neu `contents/code/filmDaySync.js`: Modusentscheidung, Laden, zweistufiges Speichern, `filmDaysPending`-Warteschlange. Aufrufer mit Callbacks sind `contents/ui/main.qml` (ersetzt 969-1060) und `app/qml/FilmDayPage.qml`. So entsteht die Orchestrierung nicht doppelt. Braucht P1 und P2.
+- **P4 M ✅** UI in `contents/ui/FilmDayView.qml` **und** `app/qml/shared/FilmDayView.qml`:
   - Property `mode` (local/server/noEngagement/noPermission/offline) mit passendem Label (ersetzt das feste Info-Label Z. 282).
   - Pause 0–720 mit „Standard“, zwei Felder „Drehtag der Woche (1–7)“ und „Drehtag der Produktion (1–999)“ im Server-Modus, `maximumLength` 500 bei der Notiz.
   - Zusatzgage als „nur auf diesem Gerät“ markiert, bis D6 da ist.
   - Kopfzeile mit `rulesetName`.
   - Braucht P3, für „Standard“ zusätzlich D2.
-- **P5 S** Engagement-Gating beim Projekt- und Datumswechsel: `onProjectChosen` lädt Status und Extras neu (behebt B1). Picker-Markierung per D1.
-- **P6 M** Migrationsdialog mit Bericht: Plasmoid als Overlay in `contents/ui/main.qml`, App als `Kirigami.PromptDialog` in `FilmDayPage.qml`. Konfliktliste mit „lokal übernehmen“. Braucht P3.
-- **P7 S** Rechte: D3 auswerten, 403 → `noPermission`. Braucht D3 bzw. läuft ohne D3 über 403.
+- **P5 S ✅** Engagement-Gating beim Projekt- und Datumswechsel: `onProjectChosen` lädt Status und Extras neu (behebt B1). Picker-Markierung per D1.
+- **P6 M ◐** Migrationsdialog mit Bericht: Plasmoid als Overlay in `contents/ui/main.qml`, App als `Kirigami.PromptDialog` in `FilmDayPage.qml`. Konfliktliste mit „lokal übernehmen“. Braucht P3.
+- **P7 S ✅** Rechte: D3 auswerten, 403 → `noPermission`. Braucht D3 bzw. läuft ohne D3 über 403.
 
 ### Plasmai – Anfahrten (2.0-Struktur)
 - **A1 M** `kimaiApi.js`: `detectMileage` (`/meta` 200/403), `fetchMileageMeta`, `fetchTrips`, `createTrip`/`patchTrip` (mit `timesheet`), `fetchVehicles`, `fetchSuggestions`, `accept`/`dismiss`. Braucht G2.
@@ -129,8 +129,8 @@ Reine Funktionen in `filmDays.js`: `toApiPatch(local, serverOrNull)` (liefert nu
 - **A6 S** km-Kachel in `contents/code/statsData.js` sowie `contents/ui/StatsView.qml` und `app/qml/shared/StatsView.qml`.
 
 ### Gemeinsam
-- **G1 S** `timeTracker.js`: Capabilities `drehzettelApi` und `mileage` (Kimai-only), `filmDays` bleibt. DESIGN.md-Liste ergänzen.
-- **G2 S** `kimaiApi.js`: generischer `detectPlugin(url, token, path)` mit Profil-Cache. Einmal auch in `app/qml/main.qml` aufrufen, die App hat heute keine Probe.
+- **G1 S ✅** `timeTracker.js`: Capabilities `drehzettelApi` und `mileage` (Kimai-only), `filmDays` bleibt. DESIGN.md-Liste ergänzen.
+- **G2 S ✅** `kimaiApi.js`: generischer `detectPlugin(url, token, path)` mit Profil-Cache. Einmal auch in `app/qml/main.qml` aufrufen, die App hat heute keine Probe.
 - **G3 S** Schalter „Anfahrten anzeigen“: Plasmoid über `contents/config/main.xml` + `ConfigDisplay.qml`, App über `app/qml/SettingsPage.qml`. Keys für beide in `contents/code/sharedConfig.js` (Liste Z. 44) aufnehmen, ebenso `filmDaysPending`, `filmDaysConflicts` und `drehzettelModeByProfile`.
 - **G4 S** i18n: `translate/extract.sh`, `fill_po.py`, App-Strings in `translate/langs/app_strings.py`, `po2json.py` für Android.
 - **G5 M** Tests: `tst_filmDays.qml`, `tst_kimaiApi.qml`, `tst_statsData.qml`, Viewer-Test ohne Plugins. Keine Live-Schreibtests.
@@ -138,6 +138,17 @@ Reine Funktionen in `filmDays.js`: `toApiPatch(local, serverOrNull)` (liefert nu
   - DESIGN.md §„Film day view“ neu schreiben (Modi, Migration, Gating).
   - ROADMAP.md:132-142 korrigieren.
   - README, CHANGELOG, app/BUILD.md (Migration pro Gerät).
+
+**Stand 2026-09-25 (`claude/plasmai-plugins`):**
+- G1, G2, P1–P5, P7 umgesetzt. Abweichungen vom Plan:
+  - Probe-Cache heißt `pluginProbesJson` (generisch, Schlüssel `profileId|url|plugin`, 24 h) statt `drehzettelModeByProfile`. Die Holiday-/WorkContract-Erkennung bleibt bei ihrem eigenen Stundencache (nicht umgebaut, zu riskant ohne Live-WorkContract).
+  - Engagement-Gating ohne eigenen `engagement-status`-Aufruf: das GET film-days ist die Prüfung (404 `no_engagement`). `rulesetName` kommt aus `/v1/engagements?date=` (1 h Cache pro Profil+Datum), bei alten Plugins aus `engagement-status`. Keine Picker-Markierung.
+  - `productionDay` = „Zuschlagstag (1–7, leer = automatisch)“ (Tag der TV-FFS-Kalenderwoche für die Zuschläge am 6./7. Tag; Streak-Modus „consecutive“ entfällt, `streakMode` wird nicht ausgewertet).
+  - Zusatzgage geht an den Server (`extraPayCents`); nur bei Plugins ohne `extraPay` bleibt sie lokal („nur auf diesem Gerät“).
+  - Verdienst aus `/v1/days/{date}/summary` (`payCents`, Währung).
+- P6 teilweise: Planer, Runner (`FilmDaySync.migrate`) und eine Inline-Bestätigung in der FilmDayView (beide UIs) mit Bericht. Konflikte bleiben lokal unangetastet und bekommen `migrated[profileKey].result = "conflict"`; eine Konfliktansicht mit „lokal übernehmen“ und `filmDaysConflicts` fehlt noch. Einträge ohne Engagement werden nicht erneut angeboten.
+- Getestet: Unit-Tests (`tst_filmDays`, `tst_kimaiRequests`, `tst_filmDaySync`) und Live-Replay der JS-Funktionen gegen Kimai 2.67 + Drehzettel (admin: Server-Modus, Speichern, nur geänderte Keys, 400, Warteschlange, Migration; user1: kein Engagement). Die QML-Views sind nur per qmllint geprüft, nicht gerendert.
+- Offen aus §6: B3, B8 (lokaler Modus), B9.
 
 **Reihenfolge:** P2 und D-Punkte parallel → G1/G2 → P1 → P3 → P4/P5/P7 → P6. Danach A1 → A2 → A4 (mobil zuerst) → A3/A5/A6.
 

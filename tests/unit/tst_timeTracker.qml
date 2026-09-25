@@ -30,6 +30,12 @@ TestCase {
         verify(TimeTracker.providerCapabilities("toggl").editStopped)
         verify(TimeTracker.providerCapabilities("kimai").createEntities)
         verify(TimeTracker.providerCapabilities("clockify").createEntities)
+        verify(TimeTracker.providerCapabilities("kimai").filmDays)
+        verify(TimeTracker.providerCapabilities("kimai").drehzettelApi)
+        verify(TimeTracker.providerCapabilities("kimai").mileage)
+        verify(!TimeTracker.providerCapabilities("clockify").drehzettelApi)
+        verify(!TimeTracker.providerCapabilities("toggl").mileage)
+        verify(!TimeTracker.providerCapabilities("solidtime").filmDays)
         verify(TimeTracker.isImplemented("kimai"))
     }
 

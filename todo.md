@@ -101,15 +101,16 @@ Stand 2.0: Plasmoid (`contents/`) und App (`app/`, Android/Plasma Mobile) nutzen
 - [x] B2 Fallback `entries[0]` griff fremde Einträge (auch den laufenden Timer) und überschrieb/stoppte sie. Jetzt: nur beendete Einträge des gewählten Projekts, sonst neuer Eintrag (`FilmDays.pickDayEntry`/`saveTargetId`)
 - [x] B10 App `FilmDayPage.doSave` schluckte Validierungs-/API-Fehler, kein Schutz gegen Doppel-Save – jetzt Passive Notification, Save-Guard
 
-### Filmtag – Migration (Server-API, separat)
+### Filmtag – Drehzettel-API (`filmDaySync.js`, `todo-plugins.md` P1–P7)
+Nur Unit-Tests und Live-Replay der JS-Logik gegen Kimai 2.67 + Drehzettel (admin mit Engagement, user1 ohne); FilmDayView/FilmDayPage nicht gerendert (Plasmoid-Viewer/App-Build hier nicht verfügbar).
 - [ ] B3 Mehrere Einträge pro Tag: nur einer wird gepatcht
-- [ ] B4 Pause lokal max. 360 min, Server erlaubt 720
-- [ ] B5 productionDay lokal 0–999, Server 1–7
-- [ ] B6 Notiz lokal unbegrenzt, Server 500 Zeichen
-- [ ] B7 Pause wird immer explizit (Default 45) gespeichert
-- [ ] B8 Speicher-Key ohne Profil/Server-URL
+- [x] B4 Pause lokal max. 360 min, Server erlaubt 720 – jetzt 0–720 in beiden Modi
+- [x] B5 Lokaler Zähler 0–999 → `shootingDayNumber` (D7), 0 = leer; `productionDay` des Servers ist das neue Feld „Zuschlagstag (1–7)“
+- [x] B6 Notiz auf 500 Zeichen begrenzt, getrimmt
+- [x] B7 Server-Modus: Option „Standard (n min)“ = `null`; lokal bleibt 45 explizit (bei der Migration als 45 gesendet)
+- [ ] B8 Speicher-Key ohne Profil/Server-URL (lokaler Modus; Warteschlange, Probe-Cache und Migrationsmarken enthalten Profil+URL)
 - [ ] B9 App liest `filmDaysJson` nur beim Start und schreibt die ganze Map zurück (überschreibt Plasmoid-Änderungen)
-- [ ] B11 Speichern ist zweistufig (Kimai-Eintrag, dann lokale Extras), nicht atomar
+- [x] B11 Zweistufiges Speichern: scheitert der PUT transient, landet der Patch in `filmDaysPending` und wird später gesendet (Server gewinnt bei Änderung dazwischen)
 - [ ] Nachtdrehs (Ende nach Mitternacht) sind nicht erfassbar (Ende muss nach Beginn am selben Tag liegen)
 
 Plan für die Anbindung der Plugins Drehzettel und Anfahrten: siehe `todo-plugins.md`.
