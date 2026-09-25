@@ -4,6 +4,10 @@
 # Subcommands:
 #   load  -> print shared JSON on stdout (exit 0). Exit 1 if missing.
 #   store -> write JSON from $KIMAI_SHARED_JSON env var.
+#   append <job>  -> append $KIMAI_SHARED_JSON to the part file of <job>.
+#   commit <job>  -> move the part file of <job> into place.
+# One argv string is limited to 128 KiB, so large JSON (film-day extras)
+# is sent in chunks with append + commit.
 
 set -eu
 
@@ -32,8 +36,28 @@ case "${1:-}" in
         mv "$TMP" "$FILE"
         trap - EXIT
         ;;
+    append|commit)
+        JOB=${2:-}
+        case "$JOB" in
+            ''|*[!A-Za-z0-9_-]*)
+                echo "error: invalid job id" >&2
+                exit 64
+                ;;
+        esac
+        mkdir -p "$DIR"
+        PART="$DIR/.shared.$JOB.part"
+        if [ "$1" = "append" ]; then
+            printf %s "${KIMAI_SHARED_JSON:-}" >> "$PART"
+        else
+            if [ ! -s "$PART" ]; then
+                echo "error: nothing to commit" >&2
+                exit 2
+            fi
+            mv "$PART" "$FILE"
+        fi
+        ;;
     *)
-        echo "usage: $0 {load|store}" >&2
+        echo "usage: $0 {load|store|append <job>|commit <job>}" >&2
         exit 64
         ;;
 esac
