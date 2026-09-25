@@ -54,6 +54,8 @@ ColumnLayout {
     property int migrationCount: 0
     property bool migrationBusy: false
     property string migrationReport: ""
+    /** Migrated days whose server values differ from this device, still to review (P6). */
+    property int conflictCount: 0
 
     readonly property bool serverMode: mode === "server" || mode === "offline"
     readonly property bool extrasVisible: mode === "local" || mode === "server" || mode === "offline"
@@ -86,6 +88,7 @@ ColumnLayout {
     signal createActivityRequested()
     signal migrationRequested()
     signal migrationDismissed()
+    signal conflictReviewRequested()
 
     function closePickers() {
         pickers.closePickers()
@@ -296,6 +299,7 @@ ColumnLayout {
             lines.push(i18np("%1 day has other values on the server; the server values were kept and the local copy is unchanged: %2",
                              "%1 days have other values on the server; the server values were kept and the local copies are unchanged: %2",
                              report.conflicts.length, dates.join(", ")))
+            lines.push(i18n("Use Review to choose per day which values to keep."))
         }
         if (report.noEngagement > 0) {
             lines.push(i18np("%1 day has no engagement and stays on this device.",
@@ -443,6 +447,28 @@ ColumnLayout {
                 Layout.preferredHeight: Kirigami.Units.iconSizes.small
                 Layout.preferredWidth: Kirigami.Units.iconSizes.small
             }
+        }
+    }
+
+    /** P6: days that differ between this device and the server after the migration. */
+    RowLayout {
+        Layout.fillWidth: true
+        visible: root.mode === "server" && root.conflictCount > 0
+        spacing: Kirigami.Units.smallSpacing
+
+        PlasmaComponents3.Label {
+            Layout.fillWidth: true
+            wrapMode: Text.WordWrap
+            font.pointSize: Kirigami.Theme.smallFont.pointSize
+            color: Kirigami.Theme.neutralTextColor
+            text: i18np("%1 film day differs between this device and the server.",
+                        "%1 film days differ between this device and the server.", root.conflictCount)
+        }
+        PlasmaComponents3.Button {
+            text: i18n("Review")
+            icon.name: "document-edit"
+            enabled: root.configured && !root.busy && !root.migrationBusy
+            onClicked: root.conflictReviewRequested()
         }
     }
 

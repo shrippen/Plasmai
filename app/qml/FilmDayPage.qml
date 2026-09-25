@@ -180,6 +180,11 @@ Kirigami.Page {
                 }
                 onCancelled: pageStack.pop()
                 onMigrationRequested: page.runMigration()
+                conflictCount: root.filmDayConflictCount()
+                onConflictReviewRequested: {
+                    var p = pageStack.push(filmDayConflictsPageComponent)
+                    if (p) p.closed.connect(function() { page.loadForDate(page.selectedDate) })
+                }
                 onMigrationDismissed: {
                     root.filmDayMigrationDismissed = true
                     filmDayView.migrationCount = 0

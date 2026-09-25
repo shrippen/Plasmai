@@ -112,7 +112,7 @@ Reine Funktionen in `filmDays.js`: `toApiPatch(local, serverOrNull)` (liefert nu
   - Kopfzeile mit `rulesetName`.
   - Braucht P3, für „Standard“ zusätzlich D2.
 - **P5 S ✅** Engagement-Gating beim Projekt- und Datumswechsel: `onProjectChosen` lädt Status und Extras neu (behebt B1). Picker-Markierung per D1.
-- **P6 M ◐** Migrationsdialog mit Bericht: Plasmoid als Overlay in `contents/ui/main.qml`, App als `Kirigami.PromptDialog` in `FilmDayPage.qml`. Konfliktliste mit „lokal übernehmen“. Braucht P3.
+- **P6 M ✅** Migrationsdialog mit Bericht: Plasmoid als Overlay in `contents/ui/main.qml`, App als `Kirigami.PromptDialog` in `FilmDayPage.qml`. Konfliktliste mit „lokal übernehmen“. Braucht P3.
 - **P7 S ✅** Rechte: D3 auswerten, 403 → `noPermission`. Braucht D3 bzw. läuft ohne D3 über 403.
 
 ### Plasmai – Anfahrten (2.0-Struktur)
@@ -146,7 +146,8 @@ Reine Funktionen in `filmDays.js`: `toApiPatch(local, serverOrNull)` (liefert nu
   - `productionDay` = „Zuschlagstag (1–7, leer = automatisch)“ (Tag der TV-FFS-Kalenderwoche für die Zuschläge am 6./7. Tag; Streak-Modus „consecutive“ entfällt, `streakMode` wird nicht ausgewertet).
   - Zusatzgage geht an den Server (`extraPayCents`); nur bei Plugins ohne `extraPay` bleibt sie lokal („nur auf diesem Gerät“).
   - Verdienst aus `/v1/days/{date}/summary` (`payCents`, Währung).
-- P6 teilweise: Planer, Runner (`FilmDaySync.migrate`) und eine Inline-Bestätigung in der FilmDayView (beide UIs) mit Bericht. Konflikte bleiben lokal unangetastet und bekommen `migrated[profileKey].result = "conflict"`; eine Konfliktansicht mit „lokal übernehmen“ und `filmDaysConflicts` fehlt noch. Einträge ohne Engagement werden nicht erneut angeboten.
+- P6: Planer, Runner (`FilmDaySync.migrate`) und eine Inline-Bestätigung in der FilmDayView (beide UIs) mit Bericht. Konflikte bleiben lokal unangetastet und bekommen `migrated[profileKey].result = "conflict"`. Einträge ohne Engagement werden nicht erneut angeboten.
+- P6 Konfliktansicht (`claude/filmday-conflict-review`): Hinweis „n Drehtage unterscheiden sich … Prüfen“ in der FilmDayView; Ansicht `FilmDayConflicts.qml` (Plasmoid `mainViewMode: "filmconflicts"`, App `FilmDayConflictsPage`) lädt jeden Tag neu vom Server und zeigt nur abweichende Felder (Gerät / Server, `FilmDays.diffFields`). Pro Tag „Serverwerte behalten“ (`resolvedServer`, kein Request) oder „Werte dieses Geräts verwenden“ (frisches GET, PUT der noch abweichenden Keys, `resolvedLocal`). Inzwischen gleiche Tage werden `same`. Statt `filmDaysConflicts` bleibt der Zustand in `migrated`. Live gegen Kimai 2.67 + Drehzettel geprüft (admin, Testtag 2031-05-06, danach zurückgesetzt); UI nicht gerendert.
 - Getestet: Unit-Tests (`tst_filmDays`, `tst_kimaiRequests`, `tst_filmDaySync`) und Live-Replay der JS-Funktionen gegen Kimai 2.67 + Drehzettel (admin: Server-Modus, Speichern, nur geänderte Keys, 400, Warteschlange, Migration; user1: kein Engagement). Die QML-Views sind nur per qmllint geprüft, nicht gerendert.
 - Offen aus §6: B3, B8 (lokaler Modus), B9.
 

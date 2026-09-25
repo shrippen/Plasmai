@@ -397,4 +397,90 @@ TestCase {
         c.localMap = got.localMap
         compare(Sync.migrationCandidates(c, [1]).length, 1)
     }
+
+    // ── P6 conflict review ──
+
+    function conflictMap() {
+        var e = FilmDays.entryDefaults()
+        e.catering = "yes"
+        e.note = "lokal"
+        var map = FilmDays.set({}, 1, "2026-09-03", e)
+        map = FilmDays.set(map, 1, "2026-09-04", e)
+        map = FilmDays.set(map, 1, "2026-09-05", e)
+        var pk = Sync.profileKey("p1", "http://k")
+        map = FilmDays.markMigrated(map, "1|2026-09-03", pk, "conflict", "x")
+        map = FilmDays.markMigrated(map, "1|2026-09-04", pk, "conflict", "x")
+        map = FilmDays.markMigrated(map, "1|2026-09-05", pk, "pushed", "x")
+        map = FilmDays.markMigrated(map, "1|2026-09-05", "other|http://x", "conflict", "x")
+        return map
+    }
+
+    function test_conflictCandidatesPerProfile() {
+        var c = ctx("server", { localMap: conflictMap() })
+        var list = Sync.conflictCandidates(c)
+        compare(list.length, 2)
+        compare(list[0].date, "2026-09-03")
+        compare(String(list[0].projectId), "1")
+        compare(list[0].entry.note, "lokal")
+        compare(Sync.countConflicts(ctx("server", { localMap: conflictMap(), profileKey: "other|http://x" })), 1)
+    }
+
+    function test_loadConflictsDiffAndSame() {
+        var c = ctx("server", { localMap: conflictMap() })
+        responses = [
+            { status: 200, body: serverDay({ breakMinutes: 30, note: "server" }) },            // 09-03 differs
+            { status: 200, body: serverDay({ breakMinutes: 45, catering: true, note: "lokal" }) } // 09-04 equal now
+        ]
+        var got = null
+        Sync.loadConflicts(c, Sync.conflictCandidates(c), function(r) { got = r })
+        compare(got.items.length, 2)
+        compare(got.items[0].state, "ready")
+        var fields = got.items[0].diff.map(function(d) { return d.field })
+        compare(fields.join(","), "breakMinutes,catering,note")
+        compare(got.items[0].diff[0].local, 45)
+        compare(got.items[0].diff[0].server, 30)
+        compare(got.items[1].state, "same")
+        verify(got.localMap !== null)
+        c.localMap = got.localMap
+        compare(Sync.countConflicts(c), 1)
+    }
+
+    function test_resolveConflictKeepServer() {
+        var c = ctx("server", { localMap: conflictMap() })
+        var item = Sync.conflictCandidates(c)[0]
+        var got = null
+        Sync.resolveConflict(c, item, false, function(r) { got = r })
+        compare(requests.length, 0)
+        verify(got.ok)
+        compare(got.localMap["1|2026-09-03"].migrated[c.profileKey].result, "resolvedServer")
+        compare(got.localMap["1|2026-09-03"].note, "lokal")   // local copy stays
+    }
+
+    function test_resolveConflictUseLocalSendsDiffAgainstFreshServer() {
+        var c = ctx("server", { localMap: conflictMap() })
+        var item = Sync.conflictCandidates(c)[0]
+        responses = [
+            { status: 200, body: serverDay({ breakMinutes: 45, catering: false, note: "neu" }) },
+            { status: 200, body: serverDay({ breakMinutes: 45, catering: true, note: "lokal" }) }
+        ]
+        var got = null
+        Sync.resolveConflict(c, item, true, function(r) { got = r })
+        compare(requests[1].method, "PUT")
+        compare(requests[1].body, '{"catering":true,"note":"lokal"}')
+        verify(got.ok)
+        compare(got.localMap["1|2026-09-03"].migrated[c.profileKey].result, "resolvedLocal")
+        c.localMap = got.localMap
+        compare(Sync.countConflicts(c), 1)
+    }
+
+    function test_resolveConflictUseLocalFailureKeepsOpen() {
+        var c = ctx("server", { localMap: conflictMap() })
+        var item = Sync.conflictCandidates(c)[0]
+        responses = [{ status: 200, body: serverDay() }, { status: 400, body: { error: "note: too long", code: "invalid_value" } }]
+        var got = null
+        Sync.resolveConflict(c, item, true, function(r) { got = r })
+        verify(!got.ok)
+        compare(got.localMap, null)
+        compare(got.error.detail, "note: too long")
+    }
 }

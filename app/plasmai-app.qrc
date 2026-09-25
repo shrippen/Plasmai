@@ -8,6 +8,7 @@
         <file alias="qml/ManualEntryPage.qml">qml/ManualEntryPage.qml</file>
         <file alias="qml/StatsPage.qml">qml/StatsPage.qml</file>
         <file alias="qml/FilmDayPage.qml">qml/FilmDayPage.qml</file>
+        <file alias="qml/FilmDayConflictsPage.qml">qml/FilmDayConflictsPage.qml</file>
         <file alias="qml/SettingsPage.qml">qml/SettingsPage.qml</file>
         <file alias="qml/FavoritesPage.qml">qml/FavoritesPage.qml</file>
         <file alias="qml/MaintenancePage.qml">qml/MaintenancePage.qml</file>
@@ -36,6 +37,7 @@
         <file alias="qml/shared/ManualEntryView.qml">qml/shared/ManualEntryView.qml</file>
         <file alias="qml/shared/StatsView.qml">qml/shared/StatsView.qml</file>
         <file alias="qml/shared/FilmDayView.qml">qml/shared/FilmDayView.qml</file>
+        <file alias="qml/shared/FilmDayConflicts.qml">qml/shared/FilmDayConflicts.qml</file>
         <file alias="qml/shared/DaySparkline.qml">qml/shared/DaySparkline.qml</file>
         <file alias="contents/code/platform.js">../contents/code/platform.js</file>
         <file alias="contents/code/sharedConfig.js">../contents/code/sharedConfig.js</file>

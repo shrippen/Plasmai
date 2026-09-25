@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Film day (Desktop and app)
+- Review of film days that differ between this device and the Drehzettel plugin after copying them to the server: both values side by side, per day keep the server values or send the ones from this device (before, the server values were kept without a choice)
+
 ## 2.0.0
 
 ### Android / Plasma Mobile
