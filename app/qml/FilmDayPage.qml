@@ -15,6 +15,7 @@ Kirigami.Page {
     property bool saving: false
     property var selectedDate: new Date()
     property var filmDayTimesheet: null
+    property int loadSerial: 0
 
     function currentUrl() { return TimeTracker.resolveUrl(root.activeProfile) }
 
@@ -23,23 +24,16 @@ Kirigami.Page {
         var selectedProjectIdForDay = (filmDayView.projectCombo.currentIndex >= 0)
             ? filmDayView.projectCombo.currentItem.value.id : null
         page.loadingFilmDay = true
+        // Only the latest load may fill the view (fast day steps / project picks).
+        var serial = ++page.loadSerial
         root.tracker.fetchTimesheetsRange(
             page.currentUrl(), root.apiToken, KimaiApi.startOfLocalDay(date), KimaiApi.endOfLocalDay(date),
             function(result) {
+                if (serial !== page.loadSerial) return
                 page.loadingFilmDay = false
                 var entries = (result && result.ok) ? KimaiApi.hydrateTimesheets(
                     result.data || [], root.projects, root.activityCatalog(), root.activitiesByProject) : []
-                var match = null
-                for (var i = 0; i < entries.length; i++) {
-                    if (selectedProjectIdForDay
-                        && String(KimaiApi.projectId(entries[i])) === String(selectedProjectIdForDay)) {
-                        match = entries[i]
-                        break
-                    }
-                }
-                if (!match && entries.length > 0) {
-                    match = entries[0]
-                }
+                var match = FilmDays.pickDayEntry(entries, selectedProjectIdForDay, KimaiApi.projectId)
                 page.filmDayTimesheet = match
                 var dateStr = KimaiApi.localDateString(date)
                 var entryProjectId = match ? KimaiApi.projectId(match) : selectedProjectIdForDay
@@ -55,6 +49,7 @@ Kirigami.Page {
     }
 
     function doSave(projectId, activityId, beginText, endText, filmDayFields) {
+        if (page.saving) return
         function parseLocalStamp(text) {
             var s = String(text || "").trim().replace(" ", "T")
             if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(s)) {
@@ -64,7 +59,12 @@ Kirigami.Page {
         }
         var beginDate = parseLocalStamp(beginText)
         var endDate = parseLocalStamp(endText)
-        if (isNaN(beginDate.getTime()) || isNaN(endDate.getTime()) || endDate.getTime() <= beginDate.getTime()) {
+        if (isNaN(beginDate.getTime()) || isNaN(endDate.getTime())) {
+            root.showPassiveNotification(i18n("Enter valid begin and end date/time."))
+            return
+        }
+        if (endDate.getTime() <= beginDate.getTime()) {
+            root.showPassiveNotification(i18n("End must be after begin."))
             return
         }
         page.saving = true
@@ -74,10 +74,11 @@ Kirigami.Page {
             project: projectId,
             activity: activityId
         }
-        var existingId = page.filmDayTimesheet && page.filmDayTimesheet.id
+        var existingId = FilmDays.saveTargetId(page.filmDayTimesheet, projectId, KimaiApi.projectId)
         function afterSave(result) {
             page.saving = false
             if (!result.ok) {
+                root.showPassiveNotification(ApiErrors.text(result.error))
                 return
             }
             var dateStr = KimaiApi.localDateString(page.selectedDate)
@@ -122,6 +123,9 @@ Kirigami.Page {
                 showCreateActions: root.providerCapabilities.createEntities
                 onProjectChosen: function(projectId) {
                     root.loadActivitiesForProject(projectId, function(model) { filmDayView.activityPickerModel = model })
+                }
+                onProjectPicked: function(projectId) {
+                    page.loadForDate(page.selectedDate)
                 }
                 onDayStepRequested: function(deltaDays) {
                     page.stepDay(deltaDays)

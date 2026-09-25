@@ -169,6 +169,7 @@ PlasmoidItem {
     /** The Kimai entry for filmDaySelectedDate + the picked project, if any. */
     property var filmDayTimesheet: null
     property bool loadingFilmDay: false
+    property int filmDayLoadSerial: 0
     readonly property string workDayBegin: {
         var v = plasmoid.configuration.workDayBegin
         return (v && String(v).length > 0) ? String(v) : KimaiApi.DEFAULT_WORK_DAY_BEGIN
@@ -1004,23 +1005,18 @@ PlasmoidItem {
             && filmDayView.projectCombo.currentIndex >= 0)
             ? filmDayView.projectCombo.currentItem.value.id : null
         loadingFilmDay = true
+        // Only the latest load may fill the view (fast day steps / project picks).
+        var serial = ++filmDayLoadSerial
         tracker.fetchTimesheetsRange(
             kimaiUrl, apiToken, KimaiApi.startOfLocalDay(date), KimaiApi.endOfLocalDay(date),
             function(result) {
+                if (serial !== filmDayLoadSerial) {
+                    return
+                }
                 loadingFilmDay = false
                 var entries = (result && result.ok) ? KimaiApi.hydrateTimesheets(
                     result.data || [], root.projects, root.activityCatalog(), root.activitiesByProject) : []
-                var match = null
-                for (var i = 0; i < entries.length; i++) {
-                    if (selectedProjectIdForDay
-                        && String(KimaiApi.projectId(entries[i])) === String(selectedProjectIdForDay)) {
-                        match = entries[i]
-                        break
-                    }
-                }
-                if (!match && entries.length > 0) {
-                    match = entries[0]
-                }
+                var match = FilmDays.pickDayEntry(entries, selectedProjectIdForDay, KimaiApi.projectId)
                 filmDayTimesheet = match
                 var dateStr = KimaiApi.localDateString(date)
                 var entryProjectId = match ? KimaiApi.projectId(match) : selectedProjectIdForDay
@@ -1061,7 +1057,7 @@ PlasmoidItem {
             project: projectId,
             activity: activityId
         }
-        var existingId = filmDayTimesheet && filmDayTimesheet.id
+        var existingId = FilmDays.saveTargetId(filmDayTimesheet, projectId, KimaiApi.projectId)
         function afterSave(result) {
             isBusy = false
             if (!result.ok) {
@@ -3176,6 +3172,9 @@ PlasmoidItem {
                     }
                     onProjectChosen: function(projectId) {
                         root.loadActivitiesForProject(projectId)
+                    }
+                    onProjectPicked: function(projectId) {
+                        root.loadFilmDayForDate(root.filmDaySelectedDate)
                     }
                     onDayStepRequested: function(deltaDays) {
                         root.stepFilmDay(deltaDays)

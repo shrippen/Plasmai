@@ -49,6 +49,8 @@ ColumnLayout {
 
     signal aboutToOpenPicker(var projectField, var activityField)
     signal projectChosen(var projectId)
+    /** User picked a project: the day's entry and extras belong to it, reload them. */
+    signal projectPicked(var projectId)
     signal dayStepRequested(int deltaDays)
     signal dayChosen(var date)
     signal saveRequested(var projectId, var activityId, string beginText, string endText, var filmDayFields)
@@ -351,6 +353,7 @@ ColumnLayout {
                 return
             }
             root.projectChosen(pickers.projectPickerModel[index].value.id)
+            root.projectPicked(pickers.projectPickerModel[index].value.id)
         }
         onCreateProjectRequested: root.createProjectRequested()
         onCreateActivityRequested: root.createActivityRequested()

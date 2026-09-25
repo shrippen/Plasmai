@@ -90,4 +90,32 @@ TestCase {
         compare(FilmDays.workSecondsFromSpan(100, 50, 0), 0)
         compare(FilmDays.workSecondsFromSpan(-1, 50, 0), 0)
     }
+
+    function projectOf(ts) {
+        return ts.project
+    }
+
+    function test_pickDayEntrySkipsRunningEntry() {
+        var running = { id: 1, project: 5, begin: "2026-09-23T09:00:00", end: null }
+        var stopped = { id: 2, project: 7, begin: "2026-09-23T08:00:00", end: "2026-09-23T08:30:00" }
+        var stoppedSame = { id: 3, project: 5, begin: "2026-09-23T07:00:00", end: "2026-09-23T08:00:00" }
+        compare(FilmDays.pickDayEntry([running, stopped], 5, projectOf), null)
+        compare(FilmDays.pickDayEntry([running, stopped, stoppedSame], 5, projectOf).id, 3)
+    }
+
+    function test_pickDayEntryOnlySameProject() {
+        var a = { id: 1, project: 7, end: "2026-09-23T10:00:00" }
+        var b = { id: 2, project: 5, end: "2026-09-23T18:00:00" }
+        compare(FilmDays.pickDayEntry([a, b], 5, projectOf).id, 2)
+        compare(FilmDays.pickDayEntry([a, b], null, projectOf), null)
+        compare(FilmDays.pickDayEntry([a], 5, projectOf), null)
+    }
+
+    function test_saveTargetIdOnlyForSameProject() {
+        var other = { id: 1, project: 7, end: "2026-09-23T10:00:00" }
+        compare(FilmDays.saveTargetId(other, 5, projectOf), null)
+        compare(FilmDays.saveTargetId(other, "7", projectOf), 1)
+        compare(FilmDays.saveTargetId({ id: 3, project: 5, end: null }, 5, projectOf), null)
+        compare(FilmDays.saveTargetId(null, 5, projectOf), null)
+    }
 }

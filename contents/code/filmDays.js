@@ -113,3 +113,40 @@ function workSecondsFromSpan(beginMs, endMs, breakMinutes) {
     var breakSeconds = Math.max(0, Number(breakMinutes) || 0) * 60
     return Math.max(0, spanSeconds - breakSeconds)
 }
+
+function isStopped(timesheet) {
+    return !!timesheet && !!timesheet.end
+}
+
+/**
+ * Kimai entry of projectId on the day: the first stopped one, else null
+ * (save creates a new entry). Entries of other projects and the running
+ * entry are never picked: saving would move them or stop the live timer.
+ */
+function pickDayEntry(entries, projectId, projectIdOf) {
+    if (projectId === null || projectId === undefined || projectId === "") {
+        return null
+    }
+    for (var i = 0; i < (entries || []).length; i++) {
+        var ts = entries[i]
+        if (isStopped(ts) && String(projectIdOf(ts)) === String(projectId)) {
+            return ts
+        }
+    }
+    return null
+}
+
+/**
+ * Entry id a save may PATCH, or null to create a new entry. Only a stopped
+ * entry of the saved project is reused; otherwise saving under another
+ * project would move an unrelated entry.
+ */
+function saveTargetId(timesheet, projectId, projectIdOf) {
+    if (!isStopped(timesheet) || timesheet.id === undefined || timesheet.id === null) {
+        return null
+    }
+    if (String(projectIdOf(timesheet)) !== String(projectId)) {
+        return null
+    }
+    return timesheet.id
+}
