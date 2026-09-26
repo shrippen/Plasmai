@@ -1,6 +1,8 @@
 # TODO: Plugins Drehzettel und Anfahrten in Plasmai 2.0
 
 > **Stand 2026-09-26:** Plasmai arbeitet nur mit Online-Daten. Lokaler Modus, `filmDaysJson`, `filmDaysPending`, Migration (P6) und Konfliktansicht sind wieder entfernt; die Abschnitte dazu unten sind Geschichte.
+>
+> **Stand 2026-09-27:** Drehzettel D1–D7 sind im Plugin fertig und werden von Plasmai live genutzt (Engagement-Liste, Tageszusammenfassung, Zusatzgage, Zuschlagstag, Drehtag der Produktion). Die Drehtag-Ansicht hat drei Zustände (vor Drehbeginn / läuft / beendet); der Drehtag der Produktion wird aus den Kimai-Einträgen des Engagements gezählt statt eingegeben. Offen sind nur noch M2, M3, M4, M6 (Anfahrten-Plugin) und Steuerbericht/Belege; die Gesamtliste steht in `todo.md`.
 
 Stand 2026-09-25. Plan für die Anbindung der Kimai-Plugins Drehzettel und Anfahrten (MileageBundle) in Plasmai 2.0.
 
@@ -87,13 +89,13 @@ Reine Funktionen in `filmDays.js`: `toApiPatch(local, serverOrNull)` (liefert nu
 ## 5. TODO (priorisiert)
 
 ### Plugin-API-Voraussetzungen – Drehzettel
-- **D1 M – in Arbeit** (`claude/plasmai-api`): `GET /v1/engagements?date=` → `DrehzettelApiController.php`. Keine Abhängigkeit.
-- **D2 S – in Arbeit**: Defaults in GET (`defaultBreakMinutes`, `effectiveCategory`).
-- **D3 S – in Arbeit**: `ping.permissions {view, manage}`.
-- **D4 S – in Arbeit**: 404 unterscheidbar (`code: no_engagement|unknown_project`), fehlendes `project` → 400.
-- **D5 M – später**: `GET /v1/days/{date}/summary` (netto, Zuschläge; füllt „Verdienst“ in der FilmDayView).
-- **D6 S – in Arbeit**: `extraPayCents` (Entity, Migration, Patch, JSON).
-- **D7 S – entschieden, in Arbeit (PR #4)**: zwei Felder. `productionDay` (1–7) = Tag in der Drehwoche für die Zuschläge am 6. und 7. Tag; neu `shootingDayNumber` (1–999) = fortlaufender Drehtag der Produktion, rein informativ.
+- **D1 M – erledigt** (`claude/plasmai-api`): `GET /v1/engagements?date=` → `DrehzettelApiController.php`. Keine Abhängigkeit.
+- **D2 S – erledigt**: Defaults in GET (`defaultBreakMinutes`, `effectiveCategory`).
+- **D3 S – erledigt**: `ping.permissions {view, manage}`.
+- **D4 S – erledigt**: 404 unterscheidbar (`code: no_engagement|unknown_project`), fehlendes `project` → 400.
+- **D5 M – erledigt**: `GET /v1/days/{date}/summary` (netto, Zuschläge; füllt „Verdienst“ in der FilmDayView).
+- **D6 S – erledigt**: `extraPayCents` (Entity, Migration, Patch, JSON).
+- **D7 S – erledigt**: zwei Felder. `productionDay` (1–7) = Tag in der Drehwoche für die Zuschläge am 6. und 7. Tag; neu `shootingDayNumber` (1–999) = fortlaufender Drehtag der Produktion, rein informativ.
 
 ### Plugin-API-Voraussetzungen – MileageBundle
 - **M1 S – erledigt im Fix-PR**: `timesheet` in POST/PATCH `trips`.
@@ -134,11 +136,11 @@ Reine Funktionen in `filmDays.js`: `toApiPatch(local, serverOrNull)` (liefert nu
 - **G1 S ✅** `timeTracker.js`: Capabilities `drehzettelApi` und `mileage` (Kimai-only), `filmDays` bleibt. DESIGN.md-Liste ergänzen.
 - **G2 S ✅** `kimaiApi.js`: generischer `detectPlugin(url, token, path)` mit Profil-Cache. Einmal auch in `app/qml/main.qml` aufrufen, die App hat heute keine Probe.
 - **G3 S ✅ (Anfahrten)** Schalter „Anfahrten anzeigen“: Plasmoid über `contents/config/main.xml` + `ConfigDisplay.qml`, App über `app/qml/SettingsPage.qml`. Keys für beide in `contents/code/sharedConfig.js` (Liste Z. 44) aufnehmen, ebenso `filmDaysPending`, `filmDaysConflicts` und `drehzettelModeByProfile`.
-- **G4 S** i18n: `translate/extract.sh`, `fill_po.py`, App-Strings in `translate/langs/app_strings.py`, `po2json.py` für Android.
-- **G5 M** Tests: `tst_filmDays.qml`, `tst_kimaiApi.qml`, `tst_statsData.qml`, Viewer-Test ohne Plugins. Keine Live-Schreibtests.
-- **G6 S** Doku:
+- **G4 S ✅** i18n: `translate/extract.sh`, `fill_po.py`, App-Strings in `translate/langs/app_strings.py`, `po2json.py` für Android.
+- **G5 M ✅** Tests: `tst_filmDays.qml`, `tst_kimaiApi.qml`, `tst_statsData.qml`, Viewer-Test ohne Plugins. Keine Live-Schreibtests.
+- **G6 S ✅** Doku:
   - DESIGN.md §„Film day view“ neu schreiben (Modi, Migration, Gating).
-  - ROADMAP.md:132-142 korrigieren.
+  - ROADMAP.md:132-142 korrigieren (ROADMAP neu geschrieben).
   - README, CHANGELOG, app/BUILD.md (Migration pro Gerät).
 
 **Stand 2026-09-25 (`claude/plasmai-plugins`):**
@@ -167,11 +169,11 @@ Reine Funktionen in `filmDays.js`: `toApiPatch(local, serverOrNull)` (liefert nu
 - **B1** ✅ behoben in `claude/plasmai-2.0-review-fixes`. Beim Projektwechsel werden die Extras und `filmDayTimesheet` nicht neu geladen. `onProjectChosen` lädt nur Aktivitäten (`contents/ui/main.qml:3147`, `FilmDayPage.qml:123`). Folge: Werte von Projekt A werden unter Projekt B gespeichert, und der Timesheet von A wird per PATCH auf B umgehängt.
 - **B2** ✅ behoben in `claude/plasmai-2.0-review-fixes`. `match = entries[0]` als Fallback (`main.qml:990`, `FilmDayPage.qml:40`). Damit wird ein fremder Eintrag (anderes Projekt, evtl. der laufende Timer ohne `end`) gewählt und beim Speichern überschrieben bzw. gestoppt.
 - **B3** ✅ Bei mehreren Einträgen pro Tag wird nur einer gepatcht, die übrigen bleiben liegen. Die Nettozeit ist falsch.
-- **B4** `breakSpin.to: 360` und `applyEntryFields` schneiden Serverwerte bis 720 still ab. Beim nächsten Speichern ist der Wert verloren.
-- **B5** Lokal gibt es nur einen Zähler 0–999. Gelöst durch D7: Er wird zu `shootingDayNumber`; `productionDay` (1–7) kommt als neues Feld dazu. Der Wert 0 wird bei der Migration als leer behandelt.
-- **B6** Die Notiz hat lokal kein Limit, der Server 500 → 400.
-- **B7** `entryDefaults().breakMinutes = 45` wird immer explizit gespeichert. Ein Regelwerk-Default lässt sich nicht erkennen.
+- **B4** ✅ `breakSpin.to: 360` und `applyEntryFields` schneiden Serverwerte bis 720 still ab. Beim nächsten Speichern ist der Wert verloren.
+- **B5** ✅ Lokal gibt es nur einen Zähler 0–999. Gelöst durch D7: Er wird zu `shootingDayNumber`; `productionDay` (1–7) kommt als neues Feld dazu. Der Wert 0 wird bei der Migration als leer behandelt.
+- **B6** ✅ Die Notiz hat lokal kein Limit, der Server 500 → 400.
+- **B7** ✅ `entryDefaults().breakMinutes = 45` wird immer explizit gespeichert. Ein Regelwerk-Default lässt sich nicht erkennen.
 - **B8** ✅ Der Schlüssel `projectId|date` enthält kein Profil bzw. keine Server-URL. Projekt-IDs verschiedener Kimai-Instanzen kollidieren.
 - **B9** ✅ Die App lädt `filmDaysJson` nur beim Start (`app/qml/main.qml:662`) und schreibt die ganze Map zurück. Auf dem Desktop überschreibt sie Einträge, die das Plasmoid inzwischen geschrieben hat (Last-Writer-Wins).
 - **B10** ✅ behoben in `claude/plasmai-2.0-review-fixes`. `FilmDayPage.doSave` ignoriert Validierungs- und API-Fehler ohne Meldung (`return` in Z. 68/81) und prüft keinen Busy-Zustand.
-- **B11** Das Speichern ist nicht atomar: Scheitert ein späterer PUT, sind Timesheet und Extras inkonsistent. Das wird mit P3 (Warteschlange) gelöst.
+- **B11** ✅ (Warteschlange später entfernt, ein gescheiterter PUT wird gemeldet) Das Speichern ist nicht atomar: Scheitert ein späterer PUT, sind Timesheet und Extras inkonsistent. Das wird mit P3 (Warteschlange) gelöst.

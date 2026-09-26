@@ -6,6 +6,7 @@ gegen das Plasmoid. Technische Details und Begründungen zu jedem Punkt hier ste
 `RELEASING.md`.
 
 ## Stand (schon erledigt, lokal, nichts veröffentlicht)
+- Stand 2026-09-27: noch kein Punkt unten erledigt, kein `v2.0.0`-Tag (letzter Tag `v1.6.2`). Seit dem ersten Stand sind Kante-Stil, Drehtag-Neugestaltung und Anfahrten dazugekommen; die Builds unten (APK, Tarball) sind deshalb veraltet und vor dem Release neu zu bauen. Gesamtliste aller offenen Punkte: `todo.md`.
 - Version überall auf 2.0.0 gesetzt (`metadata.json`, `app/CMakeLists.txt`,
   `app/android/AndroidManifest.xml`, `STORE.md`, `docs/index.html`), Übersetzungen neu gebaut.
 - `CHANGELOG.md`: Abschnitt „2.0.0" mit der Android/Plasma-Mobile-App als Hauptpunkt.

@@ -39,7 +39,8 @@ flowchart LR
 ### Android / Plasma Mobile app (`app/`)
 
 - Kirigami app sharing the provider layer (`contents/code/*`) and copies of the Plasmoid components (`app/qml/shared/`).
-- Timer, continue, switch, edit running, add entry, favorites, recents with edit/split/delete, statistics, settings, 11 languages.
+- Timer, continue, switch, edit running, add entry, favorites, recents with edit/split/delete (menu on long press), statistics, settings, 11 languages.
+- Optional Kante / Kante Light style from the shared Kante design system, in the app and the Plasmoid.
 - Tested on a Pixel 6 (Android) and offscreen with the KDE style (Plasma Mobile); no real Plasma Mobile device yet.
 - Desktop builds (Linux tarball, Flatpak manifest) exist for packaging; on the desktop the Plasmoid stays the product.
 
@@ -47,7 +48,8 @@ flowchart LR
 
 - `filmDaySync.js`: plugin probe per profile, engagement gating, only changed fields sent. Online only: no copy on the device, no queue.
 - All plugin fields: `breakMinutes`, `catering`, `category`, `note`, `dayType`, `productionDay` (1–7), `shootingDayNumber`, `extraPayCents`; earnings from the day summary.
-- Merge of several entries per day. The local mode, offline queue, migration and conflict review of the first 2.0 builds were removed again (online only).
+- Merge of several entries per day.
+- Three states: before the shoot (the day's engagement, “Start shooting day” with the main timer), running (begin editable, pay so far, stop), done (times and extras save directly). The production's shooting day is counted from the engagement's Kimai entries. The local mode, offline queue, migration and conflict review of the first 2.0 builds were removed again (online only).
 
 ### Trips with the Anfahrten plugin (MileageBundle, Plasmoid and app)
 
@@ -108,9 +110,9 @@ Clockify, Toggl Track and SolidTime are implemented against public APIs but stil
 
 The app lags the Plasmoid in features from 1.5/1.6:
 
-- Week remaining ignores absences and public holidays (no holiday / WorkContract probe in `app/qml/main.qml`).
+- Week remaining ignores absences and public holidays: the target comes from the user preferences only (no holiday / WorkContract probe in `app/qml/main.qml`).
 - No “Tracking in progress” notification at start.
-- Failed writes (stop, edit, delete, split) are mostly not shown.
+- Failed writes (stop, edit, delete) are mostly not shown; billable and split have messages.
 - Android has no idle detection; the idle dialog was never seen live on either app platform.
 
 The Plasmoid lags the app:
@@ -120,7 +122,7 @@ The Plasmoid lags the app:
 Both:
 
 - Component copies drift (`app/qml/shared/` vs `contents/ui/`: StatsView, FilmDayView, DaySparkline, ActiveEditView). Goal: one source.
-- Plugin views (film day, trips) are unit-tested and live-replayed but not yet checked rendered.
+- ~~Plugin views not checked rendered~~ — film day and trips are rendered and used in the Plasmoid, the app offscreen and on a Pixel 6.
 
 ### 4. Plasma extras — optional, not blocking
 
