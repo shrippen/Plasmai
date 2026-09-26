@@ -197,6 +197,63 @@ TestCase {
         compare(got.mode, "noProject")
     }
 
+    readonly property var ids: ({
+        projectOf: function(ts) { return ts.project },
+        activityOf: function(ts) { return ts.activity }
+    })
+
+    // One engagement per day: its project is the day's film-day project.
+    function test_dayEngagementProject() {
+        responses = [{ status: 200, body: [{ engagementId: 1, projectId: 155, rulesetName: "" }] },
+                     { status: 200, body: [] }]
+        var a, b
+        Sync.dayEngagementProject(ctx("server"), "2026-09-25", function(p) { a = p })
+        Sync.dayEngagementProject(ctx("server"), "2026-09-26", function(p) { b = p })
+        compare(a, 155)
+        compare(b, null)
+        var c = null
+        Sync.dayEngagementProject(ctx("server", { ping: ping(["errorCodes"]) }), "2026-09-25", function(p) { c = p })
+        compare(requests.length, 2)
+        compare(c, null)
+    }
+
+    // A day with travel entries and another project: no project picked, the
+    // engagement decides the project and the summary the entry.
+    function test_resolveDayFollowsEngagementAndSummary() {
+        var entries = [
+            { id: 4246, project: 155, activity: 12, begin: "2026-09-25T21:31:00+0200", end: "2026-09-25T21:56:00+0200" },
+            { id: 4245, project: 155, activity: 40, begin: "2026-09-25T13:15:00+0200", end: "2026-09-25T21:30:00+0200" },
+            { id: 4244, project: 155, activity: 12, begin: "2026-09-25T12:15:00+0200", end: "2026-09-25T12:45:00+0200" },
+            { id: 4243, project: 153, activity: 7, begin: "2026-09-25T09:59:00+0200", end: "2026-09-25T11:22:36+0200" }
+        ]
+        responses = [
+            { status: 200, body: [{ engagementId: 1, projectId: 155, rulesetName: "" }] },
+            { status: 200, body: serverDay({ date: "2026-09-25", catering: true }) },
+            { status: 200, body: { hasEntry: true, begin: "2026-09-25T13:15:00+02:00", end: "2026-09-25T21:30:00+02:00", payCents: 25500 } }
+        ]
+        var got = null
+        Sync.resolveDay(ctx("server"), entries, null, "2026-09-25", ids, function(r) { got = r })
+        compare(requests.length, 3)
+        compare(got.projectId, 155)
+        compare(got.match.id, 4245)
+        // the travel entries are another activity, no duplicate film day
+        compare(got.others.length, 0)
+        compare(got.day.mode, "server")
+        compare(got.day.fields.catering, "yes")
+    }
+
+    // No engagement on the day: the picked project stays.
+    function test_resolveDayKeepsPickedProjectWithoutEngagement() {
+        var entries = [{ id: 1, project: 7, begin: "2026-09-26T09:00:00+0200", end: "2026-09-26T10:00:00+0200" }]
+        responses = [{ status: 200, body: [] },
+                     { status: 404, body: { error: "x", code: "no_engagement" } }]
+        var got = null
+        Sync.resolveDay(ctx("server"), entries, 7, "2026-09-26", ids, function(r) { got = r })
+        compare(got.projectId, 7)
+        compare(got.match.id, 1)
+        compare(got.day.mode, "noEngagement")
+    }
+
     function test_loadOfflineHidesExtras() {
         var c = ctx("server", { ping: ping([]) })
         responses = [{ status: 200, body: serverDay({ note: "seen" }) },

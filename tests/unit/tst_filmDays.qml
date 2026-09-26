@@ -76,6 +76,42 @@ TestCase {
         compare(FilmDays.pickDayEntry([a], 5, projectOf), null)
     }
 
+    // A film day with travel entries (Kimai time format +0200).
+    function travelDay() {
+        return [
+            { id: 4246, project: 155, begin: "2026-09-25T21:31:00+0200", end: "2026-09-25T21:56:00+0200" },
+            { id: 4245, project: 155, begin: "2026-09-25T13:15:00+0200", end: "2026-09-25T21:30:00+0200" },
+            { id: 4244, project: 155, begin: "2026-09-25T12:15:00+0200", end: "2026-09-25T12:45:00+0200" },
+            { id: 4243, project: 153, begin: "2026-09-25T09:59:00+0200", end: "2026-09-25T11:22:36+0200" }
+        ]
+    }
+
+    // The plugin's day summary names the film day's span: that entry, not the first one.
+    function test_pickDayEntryMatchesSummarySpan() {
+        var span = { begin: "2026-09-25T13:15:00+02:00", end: "2026-09-25T21:30:00+02:00" }
+        compare(FilmDays.pickDayEntry(travelDay(), 155, projectOf, span).id, 4245)
+    }
+
+    // Without a summary the longest entry of the project is the film day.
+    function test_pickDayEntryLongestWithoutSpan() {
+        compare(FilmDays.pickDayEntry(travelDay(), 155, projectOf).id, 4245)
+        compare(FilmDays.pickDayEntry(travelDay(), 155, projectOf, null).id, 4245)
+    }
+
+    // Travel and other activities of the project are no film day of their own
+    // and must not be offered for merging: only the film day's activity counts.
+    function test_otherDayEntriesOnlySameActivity() {
+        var day = [
+            { id: 4246, project: 155, activity: 12, begin: "2026-09-25T21:31:00+0200", end: "2026-09-25T21:56:00+0200" },
+            { id: 4245, project: 155, activity: 40, begin: "2026-09-25T13:15:00+0200", end: "2026-09-25T21:30:00+0200" },
+            { id: 4244, project: 155, activity: 12, begin: "2026-09-25T12:15:00+0200", end: "2026-09-25T12:45:00+0200" },
+            { id: 4247, project: 155, activity: 40, begin: "2026-09-25T08:00:00+0200", end: "2026-09-25T09:00:00+0200" }
+        ]
+        var activityOf = function(ts) { return ts.activity }
+        var others = FilmDays.otherDayEntries(day, day[1], 155, projectOf, activityOf)
+        compare(others.map(function(o) { return o.id }), [4247])
+    }
+
     function test_saveTargetIdOnlyForSameProject() {
         var other = { id: 1, project: 7, end: "2026-09-23T10:00:00" }
         compare(FilmDays.saveTargetId(other, 5, projectOf), null)

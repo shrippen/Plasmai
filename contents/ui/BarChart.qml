@@ -2,6 +2,7 @@ import QtQuick
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
 import "../code/kimaiApi.js" as KimaiApi
+import "../code/statsData.js" as StatsData
 import "Kante"
 
 /**
@@ -24,6 +25,9 @@ Item {
         }
         return m
     }
+
+    /** Axis end: rounded up so the top and half-way labels are round values. */
+    readonly property int axisSeconds: StatsData.axisMaxSeconds(maxSeconds)
 
     readonly property int axisWidth: Kirigami.Units.gridUnit * 2.4
 
@@ -68,7 +72,7 @@ Item {
             font.pointSize: KanteStyle.smallFont.pointSize - 1
             opacity: 0.65
             elide: Text.ElideRight
-            text: KimaiApi.formatDurationShort(root.maxSeconds)
+            text: KimaiApi.formatDurationShort(root.axisSeconds)
         }
         PlasmaComponents3.Label {
             anchors.left: parent.left
@@ -78,7 +82,7 @@ Item {
             font.pointSize: KanteStyle.smallFont.pointSize - 1
             opacity: 0.65
             elide: Text.ElideRight
-            text: KimaiApi.formatDurationShort(Math.round(root.maxSeconds / 2))
+            text: KimaiApi.formatDurationShort(Math.round(root.axisSeconds / 2))
         }
         PlasmaComponents3.Label {
             anchors.left: parent.left
@@ -130,7 +134,7 @@ Item {
                         width: Math.max(2, parent.width * 0.7)
                         height: root.maxSeconds > 0
                                 ? Math.max(modelData.seconds > 0 ? 2 : 0,
-                                           Math.round(parent.height * (modelData.seconds / root.maxSeconds)))
+                                           Math.round(parent.height * (modelData.seconds / root.axisSeconds)))
                                 : 0
                         radius: 1
                         color: modelData.color || KanteStyle.highlightColor

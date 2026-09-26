@@ -5,6 +5,14 @@ import "../../contents/code/kimaiApi.js" as KimaiApi
 TestCase {
     name: "KimaiApi"
 
+    // Short durations drop "0m" on full hours ("14h", chart axes, work time).
+    function test_formatDurationShort() {
+        compare(KimaiApi.formatDurationShort(14 * 3600), "14h")
+        compare(KimaiApi.formatDurationShort(53 * 3600 + 21 * 60), "53h 21m")
+        compare(KimaiApi.formatDurationShort(45 * 60), "45m")
+        compare(KimaiApi.formatDurationShort(0), "0m")
+    }
+
     function test_normalizeUrl() {
         compare(KimaiApi.normalizeUrl("https://ki.example.com/"), "https://ki.example.com")
         compare(KimaiApi.normalizeUrl("https://ki.example.com///"), "https://ki.example.com")

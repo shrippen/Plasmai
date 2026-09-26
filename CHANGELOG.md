@@ -22,6 +22,8 @@
 - Android: kilometres use the local number format ("139,5 km"), like on the desktop, where the trip list also showed "23.2 km" before
 - Android: in Kante, filled fields no longer show their hint above the frame, and buttons fit their label ("VERWENDEN")
 - App settings: an unset location reads "Not set" instead of "0.00, 0.00"
+- App settings: section headings have space above them
+- Chart axes end on round values ("14h / 7h"); full hours read "14h" instead of "14h 0m"
 
 ### Translations
 - French, Spanish, Italian, Dutch, Brazilian Portuguese, Polish, Ukrainian, Russian, Japanese and Chinese now also cover the film day view, trips and the new settings (before, only German had them)
@@ -39,6 +41,10 @@
 - New setting "Trips" (on by default) to hide all of it
 
 ### Film day (Desktop and app)
+- A day has at most one engagement: switching to a day selects the engagement's project by itself (before, nothing loaded until a project was picked)
+- The film day is the entry the Drehzettel day summary counts (else the project's longest), no longer simply the first one; a travel entry after the shooting was shown instead of the shooting day
+- Travel and other activities of the day are no longer counted as "more entries" or offered for merging; only further entries of the film day's activity are
+- App on a phone: Begin and End side by side with Break below, the day numbers stacked, so times and values are no longer cut off; the note's hint sits inside the field again
 - Several entries of the same project on one day: the view says so and can merge them into one entry (the others are deleted after saving); before, only one was updated and the work time was wrong
 - If the film day extras cannot be saved, the view says so; save again
 

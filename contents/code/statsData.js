@@ -558,3 +558,21 @@ function tripRangeFor(nowDate) {
         to: week.to > month.to ? week.to : month.to
     }
 }
+
+// Half-way values of a chart axis; the axis ends at twice one of them.
+var AXIS_HALF_STEPS = [5, 10, 15, 20, 30, 45, 60, 90, 120, 180, 240, 300, 360, 420, 480, 600, 720, 960, 1200, 1440, 1800, 2400, 3000]
+
+/** Axis end for bars up to maxSeconds: round, with a round half-way line (0 for no data). */
+function axisMaxSeconds(maxSeconds) {
+    var max = Number(maxSeconds) || 0
+    if (max <= 0) {
+        return 0
+    }
+    for (var i = 0; i < AXIS_HALF_STEPS.length; i++) {
+        var top = AXIS_HALF_STEPS[i] * 60 * 2
+        if (top >= max) {
+            return top
+        }
+    }
+    return Math.ceil(max / 36000) * 36000
+}

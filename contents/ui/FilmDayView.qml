@@ -316,7 +316,7 @@ ColumnLayout {
      * Fill the view from a FilmDaySync.loadDay() result. `currency` is the
      * fallback when the day summary has none (customer currency from the catalog).
      */
-    function applyLoadedDay(date, timesheet, day, currency, otherEntries) {
+    function applyLoadedDay(date, timesheet, day, currency, otherEntries, projectId) {
         var summary = day.summary || null
         root.mode = day.mode
         root.defaultBreakMinutes = day.defaultBreakMinutes
@@ -326,11 +326,11 @@ ColumnLayout {
         root.extraPayAvailable = !!day.server && Object.prototype.hasOwnProperty.call(day.server, "extraPayCents")
         root.otherEntries = otherEntries || []
         mergeCheck.checked = false
-        root.loadForDay(date, timesheet, day.fields)
+        root.loadForDay(date, timesheet, day.fields, projectId)
     }
 
     /** Called by root after it loads the day's timesheet (if any) and film-day extras. */
-    function loadForDay(date, timesheet, filmEntry) {
+    function loadForDay(date, timesheet, filmEntry, projectId) {
         var d = date || new Date()
         suppressDayChosen = true
         dayField.setDate(d)
@@ -360,6 +360,9 @@ ColumnLayout {
                 root.projectChosen(pid)
             }
             Qt.callLater(trySelectPendingActivity)
+        } else if (hasId(projectId) && selectProjectId(projectId)) {
+            // No entry yet, but the day's engagement names the project.
+            root.projectChosen(projectId)
         }
     }
 

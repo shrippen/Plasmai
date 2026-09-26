@@ -1822,7 +1822,7 @@ function formatDurationShort(seconds) {
     var hours = Math.floor(total / 3600)
     var minutes = Math.floor((total % 3600) / 60)
     if (hours > 0) {
-        return hours + "h " + minutes + "m"
+        return minutes > 0 ? hours + "h " + minutes + "m" : hours + "h"
     }
     return minutes + "m"
 }

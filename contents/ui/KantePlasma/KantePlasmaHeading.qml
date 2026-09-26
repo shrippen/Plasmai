@@ -27,6 +27,8 @@ PlasmaExtras.Heading {
         visible: control.kanteDrawn
         anchors.left: parent.left
         anchors.verticalCenter: parent.verticalCenter
+        // centered on the text, not on the padded box
+        anchors.verticalCenterOffset: (control.topPadding - control.bottomPadding) / 2
         width: Math.min(implicitWidth, control.width)
         text: control.text
         font: control.sectionLabel ? KanteStyle.labelFont()
@@ -41,6 +43,8 @@ PlasmaExtras.Heading {
         width: Math.max(0, control.width - x)
         height: 1
         anchors.verticalCenter: parent.verticalCenter
+        // centered on the text, not on the padded box
+        anchors.verticalCenterOffset: (control.topPadding - control.bottomPadding) / 2
         color: KanteStyle.ruleColor
     }
 

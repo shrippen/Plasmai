@@ -110,39 +110,67 @@ function hasId(value) {
 }
 
 /**
- * Ruleset name of the project's engagement on dateStr, from the D1 list
- * (cached 1 h per profile+date) or engagement-status for older plugins.
+ * D1 engagement list of dateStr (cached 1 h per profile+date in memo).
+ * callback(list) or callback(null) without the "engagements" feature or on
+ * an error.
  */
-function loadRulesetName(ctx, projectId, dateStr, callback) {
-    var memo = memoOf(ctx)
-    var tracker = KimaiApi
-    function pick(list) {
-        for (var i = 0; i < (list || []).length; i++) {
-            if (list[i] && String(list[i].projectId) === String(projectId)) {
-                return list[i].rulesetName || ""
-            }
-        }
-        return ""
+function loadEngagements(ctx, dateStr, callback) {
+    if (!KimaiApi.drehzettelHasFeature(ctx.ping, "engagements")) {
+        callback(null)
+        return
     }
-    if (KimaiApi.drehzettelHasFeature(ctx.ping, "engagements")) {
-        var ekey = String(ctx.profileKey) + "|" + dateStr
-        var cached = memo.engagements[ekey]
-        if (cached && nowOf(ctx) - cached.at < ENGAGEMENT_CACHE_MS) {
-            callback(pick(cached.list))
+    var memo = memoOf(ctx)
+    var ekey = String(ctx.profileKey) + "|" + dateStr
+    var cached = memo.engagements[ekey]
+    if (cached && nowOf(ctx) - cached.at < ENGAGEMENT_CACHE_MS) {
+        callback(cached.list)
+        return
+    }
+    KimaiApi.fetchDrehzettelEngagements(ctx.url, ctx.token, dateStr, function(result) {
+        if (!result.ok) {
+            callback(null)
             return
         }
-        tracker.fetchDrehzettelEngagements(ctx.url, ctx.token, dateStr, function(result) {
-            if (!result.ok) {
-                callback("")
-                return
+        memo.engagements[ekey] = { at: nowOf(ctx), list: result.data }
+        callback(result.data)
+    })
+}
+
+/**
+ * Ruleset name of the project's engagement on dateStr, from the D1 list
+ * or engagement-status for older plugins.
+ */
+function loadRulesetName(ctx, projectId, dateStr, callback) {
+    if (KimaiApi.drehzettelHasFeature(ctx.ping, "engagements")) {
+        loadEngagements(ctx, dateStr, function(list) {
+            for (var i = 0; i < (list || []).length; i++) {
+                if (list[i] && String(list[i].projectId) === String(projectId)) {
+                    callback(list[i].rulesetName || "")
+                    return
+                }
             }
-            memo.engagements[ekey] = { at: nowOf(ctx), list: result.data }
-            callback(pick(result.data))
+            callback("")
         })
         return
     }
-    tracker.fetchEngagementStatus(ctx.url, ctx.token, projectId, dateStr, function(result) {
+    KimaiApi.fetchEngagementStatus(ctx.url, ctx.token, projectId, dateStr, function(result) {
         callback(result.ok && result.data && result.data.active ? (result.data.rulesetName || "") : "")
+    })
+}
+
+/**
+ * Project of the day's engagement (there is at most one engagement per day;
+ * entries of other activities that day belong to none). callback(projectId)
+ * or callback(null) without an engagement or without the D1 list.
+ */
+function dayEngagementProject(ctx, dateStr, callback) {
+    if (ctx.mode === Mode.NO_PLUGIN || ctx.mode === Mode.NO_PERMISSION) {
+        callback(null)
+        return
+    }
+    loadEngagements(ctx, dateStr, function(list) {
+        var first = (list && list.length) ? list[0] : null
+        callback(first && hasId(first.projectId) ? first.projectId : null)
     })
 }
 
@@ -222,6 +250,33 @@ function loadDay(ctx, projectId, dateStr, callback) {
                 done()
             })
         }
+    })
+}
+
+/**
+ * Everything the film-day view shows for dateStr, from the day's timesheets
+ * (`entries`, hydrated): the project is the day's engagement, else
+ * `selectedProjectId`; the entry is the one the plugin's day summary spans,
+ * else the project's longest. ids = { projectOf, activityOf } read an entry's
+ * project and activity id. callback({ projectId, match, others, day }) with
+ * `day` from loadDay(); `others` are further entries of the film day's
+ * activity only.
+ */
+function resolveDay(ctx, entries, selectedProjectId, dateStr, ids, callback) {
+    dayEngagementProject(ctx, dateStr, function(engaged) {
+        var projectId = hasId(engaged) ? engaged : selectedProjectId
+        loadDay(ctx, projectId, dateStr, function(day) {
+            var summary = day.summary
+            var span = (summary && summary.hasEntry !== false && summary.begin && summary.end)
+                ? { begin: summary.begin, end: summary.end } : null
+            var match = FilmDays.pickDayEntry(entries, projectId, ids.projectOf, span)
+            callback({
+                projectId: hasId(projectId) ? projectId : null,
+                match: match,
+                others: FilmDays.otherDayEntries(entries, match, projectId, ids.projectOf, ids.activityOf),
+                day: day
+            })
+        })
     })
 }
 

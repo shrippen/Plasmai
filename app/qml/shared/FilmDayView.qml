@@ -38,6 +38,8 @@ ColumnLayout {
     property bool pickerOpenBelow: true
     property Item pickerViewport: null
     property bool busy: false
+    /** Phone width: Begin / End side by side, Break and the day numbers each across the width. */
+    readonly property bool narrow: width < Kirigami.Units.gridUnit * 32
     property bool configured: true
     property bool connectionOk: true
     property bool showCreateActions: false
@@ -314,7 +316,7 @@ ColumnLayout {
      * Fill the view from a FilmDaySync.loadDay() result. `currency` is the
      * fallback when the day summary has none (customer currency from the catalog).
      */
-    function applyLoadedDay(date, timesheet, day, currency, otherEntries) {
+    function applyLoadedDay(date, timesheet, day, currency, otherEntries, projectId) {
         var summary = day.summary || null
         root.mode = day.mode
         root.defaultBreakMinutes = day.defaultBreakMinutes
@@ -324,11 +326,11 @@ ColumnLayout {
         root.extraPayAvailable = !!day.server && Object.prototype.hasOwnProperty.call(day.server, "extraPayCents")
         root.otherEntries = otherEntries || []
         mergeCheck.checked = false
-        root.loadForDay(date, timesheet, day.fields)
+        root.loadForDay(date, timesheet, day.fields, projectId)
     }
 
     /** Called by root after it loads the day's timesheet (if any) and film-day extras. */
-    function loadForDay(date, timesheet, filmEntry) {
+    function loadForDay(date, timesheet, filmEntry, projectId) {
         var d = date || new Date()
         suppressDayChosen = true
         dayField.setDate(d)
@@ -358,6 +360,9 @@ ColumnLayout {
                 root.projectChosen(pid)
             }
             Qt.callLater(trySelectPendingActivity)
+        } else if (hasId(projectId) && selectProjectId(projectId)) {
+            // No entry yet, but the day's engagement names the project.
+            root.projectChosen(projectId)
         }
     }
 
@@ -496,14 +501,22 @@ ColumnLayout {
         onCreateActivityRequested: root.createActivityRequested()
     }
 
-    /** Three-column Begin / Break / End header, modeled on the TimeSheet app's day screen. */
-    RowLayout {
+    /**
+     * Begin / Break / End, modeled on the TimeSheet app's day screen: three
+     * columns when wide; on a phone Begin and End side by side and Break below
+     * across the width (Material fields and spin boxes need the room).
+     */
+    GridLayout {
         Layout.fillWidth: true
         Layout.topMargin: Kirigami.Units.largeSpacing
-        spacing: Kirigami.Units.largeSpacing
+        columns: root.narrow ? 2 : 3
+        columnSpacing: Kirigami.Units.largeSpacing
+        rowSpacing: Kirigami.Units.largeSpacing
 
         ColumnLayout {
             Layout.fillWidth: true
+            Layout.row: 0
+            Layout.column: 0
             spacing: Kirigami.Units.smallSpacing / 2
 
             QQC2.Label {
@@ -530,6 +543,9 @@ ColumnLayout {
 
         ColumnLayout {
             Layout.fillWidth: true
+            Layout.row: root.narrow ? 1 : 0
+            Layout.column: root.narrow ? 0 : 1
+            Layout.columnSpan: root.narrow ? 2 : 1
             visible: root.extrasVisible
             spacing: Kirigami.Units.smallSpacing / 2
 
@@ -579,6 +595,8 @@ ColumnLayout {
 
         ColumnLayout {
             Layout.fillWidth: true
+            Layout.row: 0
+            Layout.column: root.narrow ? 1 : 2
             spacing: Kirigami.Units.smallSpacing / 2
 
             QQC2.Label {
@@ -719,12 +737,17 @@ ColumnLayout {
         }
     }
 
-    /** Production shooting day ("Drehtag 37", informational) and the surcharge-day override (day 1–7 of the TV FFS week). */
-    RowLayout {
+    /**
+     * Production shooting day ("Drehtag 37", informational) and the surcharge-day
+     * override (day 1–7 of the TV FFS week); stacked on a phone.
+     */
+    GridLayout {
         Layout.fillWidth: true
         Layout.topMargin: Kirigami.Units.smallSpacing
         visible: root.extrasVisible
-        spacing: Kirigami.Units.largeSpacing
+        columns: root.narrow ? 1 : 2
+        columnSpacing: Kirigami.Units.largeSpacing
+        rowSpacing: Kirigami.Units.smallSpacing
 
         ColumnLayout {
             Layout.fillWidth: true
@@ -881,6 +904,9 @@ ColumnLayout {
             }
         }
         background: Rectangle {
+            // Material centers the first line in the background's implicit height;
+            // without one its top padding turns negative (text above the field).
+            implicitHeight: Kirigami.Units.gridUnit * 2.5
             color: "transparent"
             border.width: 0
             Rectangle {

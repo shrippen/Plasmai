@@ -12,6 +12,8 @@ Kirigami.Page {
     KantePageTitle { page: page }
     title: i18n("Settings")
 
+    /** Space above a settings section, so a heading does not stick to the hint above it. */
+    readonly property int sectionGap: Kirigami.Units.largeSpacing * 2
     property string locationQuery: ""
     property var locationResults: []
     property bool locationSearching: false
@@ -74,7 +76,7 @@ Kirigami.Page {
                     text: i18n("Kante is Plasmai's own look: warm colors, square cut corners and monospace figures. It deliberately does not follow Breeze; dark or light still follows your theme. Kante Light keeps your theme's colors and controls and adds only Kante's shapes, titles and figures.")
                 }
 
-                KanteHeading { Kirigami.FormData.isSection: true; level: 4; text: i18n("Behavior") }
+                KanteHeading { Kirigami.FormData.isSection: true; topPadding: page.sectionGap; level: 4; text: i18n("Behavior") }
 
                 QQC2.SpinBox {
                     KanteFieldSkin { control: parent }
@@ -158,7 +160,7 @@ Kirigami.Page {
                     text: i18n("When editing the running timer, the previous entry's end is shown. Saving an earlier start asks for confirmation.")
                 }
 
-                KanteHeading { Kirigami.FormData.isSection: true; level: 4; text: i18n("Work hours") }
+                KanteHeading { Kirigami.FormData.isSection: true; topPadding: page.sectionGap; level: 4; text: i18n("Work hours") }
 
                 KanteTextField {
                     Kirigami.FormData.label: i18n("Begin:")
@@ -173,7 +175,7 @@ Kirigami.Page {
                     onEditingFinished: { root.workDayEnd = text; page.saveSetting("workDayEnd", text) }
                 }
 
-                KanteHeading { Kirigami.FormData.isSection: true; level: 4; text: i18n("Location (sun / moon accuracy)") }
+                KanteHeading { Kirigami.FormData.isSection: true; topPadding: page.sectionGap; level: 4; text: i18n("Location (sun / moon accuracy)") }
 
                 QQC2.Label {
                     Kirigami.FormData.label: i18n("Current:")
@@ -218,7 +220,7 @@ Kirigami.Page {
                     }
                 }
 
-                KanteHeading { Kirigami.FormData.isSection: true; level: 4; text: i18n("Idle detection"); visible: root.supportsIdleDetection }
+                KanteHeading { Kirigami.FormData.isSection: true; topPadding: page.sectionGap; level: 4; text: i18n("Idle detection"); visible: root.supportsIdleDetection }
                 WrapCheckBox {
                     Kirigami.FormData.label: i18n("Enable:")
                     visible: root.supportsIdleDetection
@@ -235,7 +237,7 @@ Kirigami.Page {
                     onValueChanged: { root.idleStopMinutes = value; page.saveSetting("idleStopMinutes", value) }
                 }
 
-                KanteHeading { Kirigami.FormData.isSection: true; level: 4; text: i18n("Notifications"); visible: root.supportsNotifications }
+                KanteHeading { Kirigami.FormData.isSection: true; topPadding: page.sectionGap; level: 4; text: i18n("Notifications"); visible: root.supportsNotifications }
                 WrapCheckBox {
                     Kirigami.FormData.label: i18n("Notify on:")
                     visible: root.supportsNotifications

@@ -73,21 +73,39 @@ function isStopped(timesheet) {
 }
 
 /**
- * Kimai entry of projectId on the day: the first stopped one, else null
- * (save creates a new entry). Entries of other projects and the running
- * entry are never picked: saving would move them or stop the live timer.
+ * The day's film-day entry of projectId: the stopped entry whose begin and end
+ * match `span` (the plugin's day summary), otherwise the longest one; null
+ * if there is none (save creates a new entry). Entries of other projects and
+ * the running entry are never picked: saving would move them or stop the
+ * live timer.
  */
-function pickDayEntry(entries, projectId, projectIdOf) {
+function pickDayEntry(entries, projectId, projectIdOf, span) {
     if (projectId === null || projectId === undefined || projectId === "") {
         return null
     }
+    var spanBegin = span ? stampMs(span.begin) : NaN
+    var spanEnd = span ? stampMs(span.end) : NaN
+    var best = null
+    var bestSeconds = -1
     for (var i = 0; i < (entries || []).length; i++) {
         var ts = entries[i]
-        if (isStopped(ts) && String(projectIdOf(ts)) === String(projectId)) {
+        if (!isStopped(ts) || String(projectIdOf(ts)) !== String(projectId)) {
+            continue
+        }
+        var begin = stampMs(ts.begin)
+        var end = stampMs(ts.end)
+        // The plugin's day summary names the film day's span: take that entry.
+        if (Math.abs(begin - spanBegin) < SPAN_TOLERANCE_MS && Math.abs(end - spanEnd) < SPAN_TOLERANCE_MS) {
             return ts
         }
+        // Otherwise the longest entry; travel and other short entries stay "others".
+        var seconds = (isNaN(begin) || isNaN(end)) ? 0 : (end - begin) / 1000
+        if (seconds > bestSeconds) {
+            best = ts
+            bestSeconds = seconds
+        }
     }
-    return null
+    return best
 }
 
 /**
@@ -105,23 +123,26 @@ function saveTargetId(timesheet, projectId, projectIdOf) {
     return timesheet.id
 }
 
+/** Entries count as the summary's span within a minute (seconds in Kimai stamps). */
+var SPAN_TOLERANCE_MS = 60 * 1000
+
 function stampMs(value) {
     if (!value) {
         return NaN
     }
-    var d = new Date(String(value))
-    if (isNaN(d.getTime())) {
-        d = new Date(String(value).replace(" ", "T"))
-    }
-    return d.getTime()
+    // Kimai writes the offset without a colon ("+0200").
+    var text = String(value).replace(" ", "T").replace(/([+-]\d{2})(\d{2})$/, "$1:$2")
+    return new Date(text).getTime()
 }
 
 /**
  * Stopped entries of projectId on the day other than `picked` (B3: a film
  * day is one entry; more entries of the same project make the shown work
- * time wrong). Sorted by begin. Running entries are never included.
+ * time wrong). With activityIdOf only entries of picked's activity count:
+ * travel and other activities that day are no second film day. Sorted by
+ * begin. Running entries are never included.
  */
-function otherDayEntries(entries, picked, projectId, projectIdOf) {
+function otherDayEntries(entries, picked, projectId, projectIdOf, activityIdOf) {
     if (!picked || projectId === null || projectId === undefined || projectId === "") {
         return []
     }
@@ -129,6 +150,9 @@ function otherDayEntries(entries, picked, projectId, projectIdOf) {
     for (var i = 0; i < (entries || []).length; i++) {
         var ts = entries[i]
         if (ts === picked || !isStopped(ts) || String(projectIdOf(ts)) !== String(projectId)) {
+            continue
+        }
+        if (activityIdOf && String(activityIdOf(ts)) !== String(activityIdOf(picked))) {
             continue
         }
         if (picked.id !== undefined && picked.id !== null && String(ts.id) === String(picked.id)) {

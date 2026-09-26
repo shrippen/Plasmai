@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
 import "../../contents/code/kimaiApi.js" as KimaiApi
+import "../../contents/code/statsData.js" as StatsData
 import "."
 import "../Kante"
 
@@ -24,6 +25,9 @@ Item {
         }
         return m
     }
+
+    /** Axis end: rounded up so the top and half-way labels are round values. */
+    readonly property int axisSeconds: StatsData.axisMaxSeconds(maxSeconds)
 
     readonly property int axisWidth: Kirigami.Units.gridUnit * 2.4
 
@@ -68,7 +72,7 @@ Item {
             font.pointSize: KanteStyle.smallFont.pointSize - 1
             opacity: 0.65
             elide: Text.ElideRight
-            text: KimaiApi.formatDurationShort(root.maxSeconds)
+            text: KimaiApi.formatDurationShort(root.axisSeconds)
         }
         QQC2.Label {
             anchors.left: parent.left
@@ -78,7 +82,7 @@ Item {
             font.pointSize: KanteStyle.smallFont.pointSize - 1
             opacity: 0.65
             elide: Text.ElideRight
-            text: KimaiApi.formatDurationShort(Math.round(root.maxSeconds / 2))
+            text: KimaiApi.formatDurationShort(Math.round(root.axisSeconds / 2))
         }
         QQC2.Label {
             anchors.left: parent.left
@@ -129,7 +133,7 @@ Item {
                     height: cols.height
 
                     readonly property int colHeight: root.maxSeconds > 0
-                        ? Math.round(height * ((day && day.totalSeconds) || 0) / root.maxSeconds)
+                        ? Math.round(height * ((day && day.totalSeconds) || 0) / root.axisSeconds)
                         : 0
 
                     readonly property var stackModel: {

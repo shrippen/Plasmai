@@ -5,6 +5,18 @@ import "../../contents/code/statsData.js" as StatsData
 TestCase {
     name: "StatsData"
 
+    // Chart axes end on round values; the half-way line is round too.
+    function test_axisMaxSeconds() {
+        var h = 3600, m = 60
+        compare(StatsData.axisMaxSeconds(0), 0)
+        compare(StatsData.axisMaxSeconds(12 * h + 21 * m), 14 * h)
+        compare(StatsData.axisMaxSeconds(12 * h), 12 * h)
+        compare(StatsData.axisMaxSeconds(50 * m), 1 * h)
+        compare(StatsData.axisMaxSeconds(7 * m), 10 * m)
+        compare(StatsData.axisMaxSeconds(30 * h), 32 * h)
+        compare(StatsData.axisMaxSeconds(100 * h), 100 * h)
+    }
+
     function test_filterBillable() {
         var entries = [
             { id: 1, billable: true },

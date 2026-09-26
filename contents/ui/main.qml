@@ -1111,17 +1111,17 @@ PlasmoidItem {
                 }
                 var entries = (result && result.ok) ? KimaiApi.hydrateTimesheets(
                     result.data || [], root.projects, root.activityCatalog(), root.activitiesByProject) : []
-                var match = FilmDays.pickDayEntry(entries, selectedProjectIdForDay, KimaiApi.projectId)
                 var dateStr = KimaiApi.localDateString(date)
-                var entryProjectId = match ? KimaiApi.projectId(match) : selectedProjectIdForDay
-                var others = FilmDays.otherDayEntries(entries, match, entryProjectId, KimaiApi.projectId)
-                // P5: the engagement is checked per project + day (film-day GET answers 404 without one).
-                FilmDaySync.loadDay(root.filmDayContext(), entryProjectId, dateStr, function(day) {
+                // One engagement per day: it decides the project; the plugin's day
+                // summary decides which of the project's entries is the film day.
+                FilmDaySync.resolveDay(root.filmDayContext(), entries, selectedProjectIdForDay, dateStr,
+                                       { projectOf: KimaiApi.projectId, activityOf: KimaiApi.activityId }, function(r) {
                     if (serial !== filmDayLoadSerial) {
                         return
                     }
+                    var day = r.day
                     loadingFilmDay = false
-                    filmDayTimesheet = match
+                    filmDayTimesheet = r.match
                     filmDayServer = day.server
                     filmDayLoadMode = day.mode
                     if (day.mode === FilmDaySync.Mode.SERVER && filmDayMode === FilmDaySync.Mode.OFFLINE) {
@@ -1130,9 +1130,9 @@ PlasmoidItem {
                     if (!root.filmDayViewRef) {
                         return
                     }
-                    root.filmDayViewRef.applyLoadedDay(date, match, day,
-                        KimaiApi.customerCurrencyOfProject(root.projectOfId(entryProjectId), root.customers),
-                        others)
+                    root.filmDayViewRef.applyLoadedDay(date, r.match, day,
+                        KimaiApi.customerCurrencyOfProject(root.projectOfId(r.projectId), root.customers),
+                        r.others, r.projectId)
                 })
             })
     }
@@ -1204,7 +1204,7 @@ PlasmoidItem {
                 refreshWorkTotals()
                 sendNotification(
                     i18n("Shooting day saved"),
-                    KimaiApi.formatDuration(FilmDays.workSecondsFromSpan(
+                    KimaiApi.formatDurationShort(FilmDays.workSecondsFromSpan(
                         beginDate.getTime(), endDate.getTime(), breakMinutes)))
                 loadFilmDayForDate(root.filmDaySelectedDate)
             }

@@ -38,23 +38,23 @@ Kirigami.Page {
                 if (serial !== page.loadSerial) return
                 var entries = (result && result.ok) ? KimaiApi.hydrateTimesheets(
                     result.data || [], root.projects, root.activityCatalog(), root.activitiesByProject) : []
-                var match = FilmDays.pickDayEntry(entries, selectedProjectIdForDay, KimaiApi.projectId)
                 var dateStr = KimaiApi.localDateString(date)
-                var entryProjectId = match ? KimaiApi.projectId(match) : selectedProjectIdForDay
-                var others = FilmDays.otherDayEntries(entries, match, entryProjectId, KimaiApi.projectId)
-                // P5: the engagement is checked per project + day (film-day GET answers 404 without one).
-                FilmDaySync.loadDay(root.filmDayContext(), entryProjectId, dateStr, function(day) {
+                // One engagement per day: it decides the project; the plugin's day
+                // summary decides which of the project's entries is the film day.
+                FilmDaySync.resolveDay(root.filmDayContext(), entries, selectedProjectIdForDay, dateStr,
+                                       { projectOf: KimaiApi.projectId, activityOf: KimaiApi.activityId }, function(r) {
                     if (serial !== page.loadSerial) return
+                    var day = r.day
                     page.loadingFilmDay = false
-                    page.filmDayTimesheet = match
+                    page.filmDayTimesheet = r.match
                     page.filmDayServer = day.server
                     page.filmDayLoadMode = day.mode
                     if (day.mode === FilmDaySync.Mode.SERVER && root.filmDayMode === FilmDaySync.Mode.OFFLINE) {
                         root.filmDayMode = FilmDaySync.Mode.SERVER
                     }
-                    filmDayView.applyLoadedDay(date, match, day,
-                        KimaiApi.customerCurrencyOfProject(root.projectById(entryProjectId), root.customers),
-                        others)
+                    filmDayView.applyLoadedDay(date, r.match, day,
+                        KimaiApi.customerCurrencyOfProject(root.projectById(r.projectId), root.customers),
+                        r.others, r.projectId)
                 })
             })
     }
@@ -125,7 +125,7 @@ Kirigami.Page {
                 }
                 root.sendNotification(
                     i18n("Shooting day saved"),
-                    KimaiApi.formatDuration(FilmDays.workSecondsFromSpan(
+                    KimaiApi.formatDurationShort(FilmDays.workSecondsFromSpan(
                         beginDate.getTime(), endDate.getTime(), breakMinutes)))
                 pageStack.pop()
                 // A4: a travel day usually comes with a trip; offer it linked to the saved entry.
