@@ -162,14 +162,23 @@ def test_favorites_shows_loading_and_kcm_stays_responsive(
                 "(BusyIndicator / 'Loading projects')"
             ) from exc
 
+        # Every AT-SPI lookup walks the whole accessibility tree, which takes
+        # seconds with this catalog. Compare the tab switch against a lookup
+        # once the KCM is idle, so only a blocked UI thread fails the test.
         started = time.time()
         atspi_clicks.click_named(
-            config_ui.CONNECTION_TAB, roles=config_ui.TAB_ROLES, timeout=4
+            config_ui.CONNECTION_TAB, roles=config_ui.TAB_ROLES, timeout=8
         )
-        _discard_unsaved_dialog()
         elapsed = time.time() - started
-        assert elapsed < 4.0, (
-            f"KCM froze switching away from Favorites ({elapsed:.2f}s)"
+        _discard_unsaved_dialog()
+        idle_started = time.time()
+        atspi_clicks.wait_named(
+            config_ui.CONNECTION_TAB, roles=config_ui.TAB_ROLES, timeout=8
+        )
+        idle_lookup = time.time() - idle_started
+        assert elapsed < idle_lookup + 2.5, (
+            f"KCM froze switching away from Favorites ({elapsed:.2f}s, "
+            f"idle lookup {idle_lookup:.2f}s)"
         )
 
         atspi_clicks.wait_named(

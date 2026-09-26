@@ -26,6 +26,14 @@ def _require_tools():
         pytest.skip("no DISPLAY / WAYLAND_DISPLAY")
 
 
+def _isolated_data(tmp_path: Path) -> dict[str, str]:
+    """Hide an installed Plasmai (~/.local/share/plasma/plasmoids) from the
+    viewer so only the repo copy is loaded and logged."""
+    data = tmp_path / "data"
+    data.mkdir(parents=True, exist_ok=True)
+    return {"XDG_DATA_HOME": str(data)}
+
+
 def _assert_no_fatals(viewer_lines: list[str], journal_lines: list[str], label: str) -> None:
     fatals = collect_fatals(viewer_lines) + collect_fatals(journal_lines, journal=True)
     assert not fatals, (
@@ -44,10 +52,10 @@ def _run_sweep(session: ViewerSession, *, wait: float = 2.5):
     return session.lines(), result
 
 
-def test_horizontal_popup_clicks_have_no_qml_errors(repo_root: Path):
+def test_horizontal_popup_clicks_have_no_qml_errors(repo_root: Path, tmp_path: Path):
     _require_tools()
     cursor = journal_mark()
-    with ViewerSession(repo_root, formfactor="horizontal", location="floating", size="560x80") as session:
+    with ViewerSession(repo_root, formfactor="horizontal", location="floating", size="560x80", extra_env=_isolated_data(tmp_path)) as session:
         viewer_lines, result = _run_sweep(session)
         # Always click-expand even if AT-SPI is empty so load errors still surface.
         if not result.atspi_available:
@@ -61,10 +69,10 @@ def test_horizontal_popup_clicks_have_no_qml_errors(repo_root: Path):
             pytest.fail(f"plasmoidviewer crashed with code {session.proc.returncode}")
 
 
-def test_desktop_widget_clicks_have_no_qml_errors(repo_root: Path):
+def test_desktop_widget_clicks_have_no_qml_errors(repo_root: Path, tmp_path: Path):
     _require_tools()
     cursor = journal_mark()
-    with ViewerSession(repo_root, formfactor="planar", location="desktop", size="420x640") as session:
+    with ViewerSession(repo_root, formfactor="planar", location="desktop", size="420x640", extra_env=_isolated_data(tmp_path)) as session:
         viewer_lines, result = _run_sweep(session, wait=3.0)
         journal_lines = journal_since(cursor)
         _assert_no_fatals(viewer_lines, journal_lines, "desktop widget")
@@ -72,11 +80,11 @@ def test_desktop_widget_clicks_have_no_qml_errors(repo_root: Path):
             pytest.fail(f"plasmoidviewer crashed with code {session.proc.returncode}")
 
 
-def test_configure_dialog_tabs_have_no_qml_errors(repo_root: Path):
+def test_configure_dialog_tabs_have_no_qml_errors(repo_root: Path, tmp_path: Path):
     """Open Plasmai settings from the placeholder / sweep and click config tabs."""
     _require_tools()
     cursor = journal_mark()
-    with ViewerSession(repo_root, formfactor="horizontal", location="floating", size="560x80") as session:
+    with ViewerSession(repo_root, formfactor="horizontal", location="floating", size="560x80", extra_env=_isolated_data(tmp_path)) as session:
         session.wait_alive()
         time.sleep(2.0)
         wid = session.focus()
@@ -88,11 +96,11 @@ def test_configure_dialog_tabs_have_no_qml_errors(repo_root: Path):
         _assert_no_fatals(session.lines(), journal_lines, "configure dialog")
 
 
-def test_viewer_load_logs_no_plasmai_errors(repo_root: Path):
+def test_viewer_load_logs_no_plasmai_errors(repo_root: Path, tmp_path: Path):
     """Load-only: applet must instantiate without TypeError even before clicks."""
     _require_tools()
     cursor = journal_mark()
-    with ViewerSession(repo_root, formfactor="horizontal", location="floating", size="480x72") as session:
+    with ViewerSession(repo_root, formfactor="horizontal", location="floating", size="480x72", extra_env=_isolated_data(tmp_path)) as session:
         session.wait_alive()
         time.sleep(2.5)
         journal_lines = journal_since(cursor)

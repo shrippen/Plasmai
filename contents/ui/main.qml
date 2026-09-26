@@ -91,6 +91,12 @@ PlasmoidItem {
     property var splitEntryDialogRef: null
     property var idleDialogRef: null
     property var createEntityDialogRef: null
+    property var switchPickersRef: null
+    property var manualEntryViewRef: null
+    property var tripSheetRef: null
+    property var activeEditViewRef: null
+    property var filmDayViewRef: null
+    property var descriptionFieldRef: null
     property int pendingIdleMs: 0
     // Wall-clock ms when the idle period began (detection time − idle ms).
     property double pendingIdleSince: 0
@@ -292,25 +298,25 @@ PlasmoidItem {
     readonly property bool showErrorState: errorMessage.length > 0 && connectionState === "error"
 
     function dismissPickerPopups() {
-        if (typeof switchPickers !== "undefined" && switchPickers) {
-            switchPickers.closePickers()
+        if (root.switchPickersRef) {
+            root.switchPickersRef.closePickers()
         }
-        if (typeof manualEntryView !== "undefined" && manualEntryView) {
-            manualEntryView.closePickers()
+        if (root.manualEntryViewRef) {
+            root.manualEntryViewRef.closePickers()
         }
-        if (typeof activeEditView !== "undefined" && activeEditView) {
-            activeEditView.closePickers()
+        if (root.activeEditViewRef) {
+            root.activeEditViewRef.closePickers()
         }
-        if (typeof filmDayView !== "undefined" && filmDayView) {
-            filmDayView.closePickers()
+        if (root.filmDayViewRef) {
+            root.filmDayViewRef.closePickers()
         }
     }
 
     function updatePickerOpenDirection(projectField, activityField) {
         var projectPicker = projectField
-            || (typeof switchPickers !== "undefined" && switchPickers ? switchPickers.projectCombo : null)
+            || (root.switchPickersRef ? root.switchPickersRef.projectCombo : null)
         var activityPicker = activityField
-            || (typeof switchPickers !== "undefined" && switchPickers ? switchPickers.activityCombo : null)
+            || (root.switchPickersRef ? root.switchPickersRef.activityCombo : null)
         if (!projectPicker || !activityPicker) {
             return
         }
@@ -741,8 +747,8 @@ PlasmoidItem {
             return
         }
         var projectName = ""
-        if (typeof switchPickers !== "undefined" && switchPickers && switchPickers.projectCombo.currentItem) {
-            projectName = switchPickers.projectCombo.currentItem.label || ""
+        if (root.switchPickersRef && root.switchPickersRef.projectCombo.currentItem) {
+            projectName = root.switchPickersRef.projectCombo.currentItem.label || ""
         }
         createEntityDialogRef.selectedProjectId = selectedProjectId
         createEntityDialogRef.selectedProjectName = projectName
@@ -826,8 +832,8 @@ PlasmoidItem {
         if (projectPickerModel.length === 0) {
             refreshProjects(false)
         }
-        if (typeof manualEntryView !== "undefined" && manualEntryView) {
-            manualEntryView.resetDefaults()
+        if (root.manualEntryViewRef) {
+            root.manualEntryViewRef.resetDefaults()
         }
     }
 
@@ -850,9 +856,9 @@ PlasmoidItem {
             refreshProjects(false)
         }
         Qt.callLater(function() {
-            if (typeof manualEntryView !== "undefined" && manualEntryView
+            if (root.manualEntryViewRef
                     && root.editingStoppedTimesheet) {
-                manualEntryView.loadFromTimesheet(root.editingStoppedTimesheet)
+                root.manualEntryViewRef.loadFromTimesheet(root.editingStoppedTimesheet)
             }
         })
     }
@@ -867,8 +873,8 @@ PlasmoidItem {
         }
         // Prefill once the editor is visible (also handled by ActiveEditView.onVisibleChanged).
         Qt.callLater(function() {
-            if (editingActiveEntry && typeof activeEditView !== "undefined" && activeEditView) {
-                activeEditView.loadFromTimesheet(root.activeTimesheet)
+            if (editingActiveEntry && root.activeEditViewRef) {
+                root.activeEditViewRef.loadFromTimesheet(root.activeTimesheet)
             }
         })
     }
@@ -1147,9 +1153,9 @@ PlasmoidItem {
         if (!isConfigured) {
             return
         }
-        var selectedProjectIdForDay = (typeof filmDayView !== "undefined" && filmDayView
-            && filmDayView.projectCombo.currentIndex >= 0)
-            ? filmDayView.projectCombo.currentItem.value.id : null
+        var selectedProjectIdForDay = (root.filmDayViewRef
+            && root.filmDayViewRef.projectCombo.currentIndex >= 0)
+            ? root.filmDayViewRef.projectCombo.currentItem.value.id : null
         loadingFilmDay = true
         // Only the latest load may fill the view (fast day steps / project picks).
         var serial = ++filmDayLoadSerial
@@ -1176,10 +1182,10 @@ PlasmoidItem {
                     if (day.mode === FilmDaySync.Mode.SERVER && filmDayMode === FilmDaySync.Mode.OFFLINE) {
                         filmDayMode = FilmDaySync.Mode.SERVER
                     }
-                    if (typeof filmDayView === "undefined" || !filmDayView) {
+                    if (!root.filmDayViewRef) {
                         return
                     }
-                    filmDayView.applyLoadedDay(date, match, day,
+                    root.filmDayViewRef.applyLoadedDay(date, match, day,
                         KimaiApi.customerCurrencyOfProject(root.projectOfId(entryProjectId), root.customers),
                         root.filmDayMigrationCount(), others)
                 })
@@ -1196,7 +1202,7 @@ PlasmoidItem {
         if (candidates.length === 0) {
             return
         }
-        var view = (typeof filmDayView !== "undefined" && filmDayView) ? filmDayView : null
+        var view = (root.filmDayViewRef) ? root.filmDayViewRef : null
         filmDayMigrating = true
         if (view) view.migrationBusy = true
         FilmDaySync.migrate(ctx, candidates, function(report) {
@@ -1296,7 +1302,7 @@ PlasmoidItem {
         lastError = null
         userMessage = ""
         var dateStr = KimaiApi.localDateString(root.filmDaySelectedDate)
-        var view = (typeof filmDayView !== "undefined" && filmDayView) ? filmDayView : null
+        var view = (root.filmDayViewRef) ? root.filmDayViewRef : null
         var breakMinutes = (view && view.extrasVisible) ? view.effectiveBreakMinutes : 0
         // B3: the other entries of the project on this day, deleted after a successful save.
         var mergeIds = (view && view.mergeOthers) ? view.otherEntryIds() : []
@@ -1455,7 +1461,9 @@ PlasmoidItem {
         editingStoppedTimesheet = null
         tripSheetSuggestion = suggestion || null
         mainViewMode = "trip"
-        tripSheet.load(form, original || null, linkedText || "", !!suggestion)
+        if (root.tripSheetRef) {
+            root.tripSheetRef.load(form, original || null, linkedText || "", !!suggestion)
+        }
     }
 
     function openNewTrip() {
@@ -1483,8 +1491,11 @@ PlasmoidItem {
 
     function tripFailed(error) {
         tripBusy = false
-        tripSheet.serverErrors = (error && error.fields) ? error.fields : ({})
-        tripSheet.errorText = (error && error.detail) ? error.detail : ApiErrors.text(error)
+        if (!root.tripSheetRef) {
+            return
+        }
+        root.tripSheetRef.serverErrors = (error && error.fields) ? error.fields : ({})
+        root.tripSheetRef.errorText = (error && error.detail) ? error.detail : ApiErrors.text(error)
     }
 
     function saveTrip(body, tripId, form) {
@@ -1981,18 +1992,25 @@ PlasmoidItem {
                 for (var a = 0; a < activityPickerModel.length; a++) {
                     if (activityPickerModel[a].value
                         && String(activityPickerModel[a].value.id) === String(activityIdToSelect)) {
-                        switchPickers.activityCombo.currentIndex = a
+                        setSwitchPickerIndex("activityCombo", a)
                         return
                     }
                 }
             }
-            switchPickers.activityCombo.currentIndex = -1
+            setSwitchPickerIndex("activityCombo", -1)
             return
         }
         setError(result.error)
         activities = []
         activityPickerModel = []
-        switchPickers.activityCombo.currentIndex = -1
+        setSwitchPickerIndex("activityCombo", -1)
+    }
+
+    /** The pickers live in fullRepresentation, which may not exist yet. */
+    function setSwitchPickerIndex(combo, index) {
+        if (root.switchPickersRef) {
+            root.switchPickersRef[combo].currentIndex = index
+        }
     }
 
     function selectProjectById(projectId, activityIdToSelect) {
@@ -2010,7 +2028,7 @@ PlasmoidItem {
         if (idx < 0) {
             return
         }
-        switchPickers.projectCombo.currentIndex = idx
+        setSwitchPickerIndex("projectCombo", idx)
         selectedProjectId = projectId
         tracker.loadActivities(kimaiUrl, apiToken, projectId, function(result) {
             applyActivitiesResult(projectId, result, activityIdToSelect)
@@ -2030,8 +2048,8 @@ PlasmoidItem {
             return
         }
         selectProjectById(pid, aid)
-        if (typeof descriptionField !== "undefined" && descriptionField && lastRecent) {
-            descriptionField.text = lastRecent.description || ""
+        if (root.descriptionFieldRef && lastRecent) {
+            root.descriptionFieldRef.text = lastRecent.description || ""
         }
     }
 
@@ -2255,8 +2273,8 @@ PlasmoidItem {
             currentCustomerColor = KimaiApi.customerColorFromTimesheet(activeTimesheet, customersById)
             if (editingActiveEntry) {
                 Qt.callLater(function() {
-                    if (editingActiveEntry && typeof activeEditView !== "undefined" && activeEditView) {
-                        activeEditView.loadFromTimesheet(root.activeTimesheet)
+                    if (editingActiveEntry && root.activeEditViewRef) {
+                        root.activeEditViewRef.loadFromTimesheet(root.activeTimesheet)
                     }
                 })
             }
@@ -2398,7 +2416,7 @@ PlasmoidItem {
         if (!isConfigured || !projectId) {
             activities = []
             activityPickerModel = []
-            switchPickers.activityCombo.currentIndex = -1
+            setSwitchPickerIndex("activityCombo", -1)
             return
         }
 
@@ -3541,6 +3559,12 @@ PlasmoidItem {
 
                 ManualEntryView {
                     id: manualEntryView
+                    Component.onCompleted: root.manualEntryViewRef = manualEntryView
+                    Component.onDestruction: {
+                        if (root.manualEntryViewRef === manualEntryView) {
+                            root.manualEntryViewRef = null
+                        }
+                    }
                     Layout.fillWidth: true
                     visible: root.mainViewMode === "manual" && root.isConfigured
                     projectPickerModel: root.projectPickerModel
@@ -3593,6 +3617,12 @@ PlasmoidItem {
 
                 FilmDayView {
                     id: filmDayView
+                    Component.onCompleted: root.filmDayViewRef = filmDayView
+                    Component.onDestruction: {
+                        if (root.filmDayViewRef === filmDayView) {
+                            root.filmDayViewRef = null
+                        }
+                    }
                     Layout.fillWidth: true
                     visible: root.mainViewMode === "filmday" && root.isConfigured
                              && root.providerCapabilities.filmDays
@@ -3657,6 +3687,12 @@ PlasmoidItem {
 
                 TripSheet {
                     id: tripSheet
+                    Component.onCompleted: root.tripSheetRef = tripSheet
+                    Component.onDestruction: {
+                        if (root.tripSheetRef === tripSheet) {
+                            root.tripSheetRef = null
+                        }
+                    }
                     Layout.fillWidth: true
                     visible: root.mainViewMode === "trip" && root.mileageAvailable
                     busy: root.isBusy || root.tripBusy
@@ -3933,6 +3969,12 @@ PlasmoidItem {
 
                             ActiveEditView {
                                 id: activeEditView
+                                Component.onCompleted: root.activeEditViewRef = activeEditView
+                                Component.onDestruction: {
+                                    if (root.activeEditViewRef === activeEditView) {
+                                        root.activeEditViewRef = null
+                                    }
+                                }
                                 Layout.fillWidth: true
                                 visible: root.isTracking && root.editingActiveEntry
                                 timesheet: root.activeTimesheet
@@ -4399,6 +4441,12 @@ PlasmoidItem {
 
                 ProjectActivityPickers {
                     id: switchPickers
+                    Component.onCompleted: root.switchPickersRef = switchPickers
+                    Component.onDestruction: {
+                        if (root.switchPickersRef === switchPickers) {
+                            root.switchPickersRef = null
+                        }
+                    }
                     Layout.fillWidth: true
                     visible: root.showNewActivityHere && root.showNewActivityForm && !root.loadingProjects
                     projectPickerModel: root.projectPickerModel
@@ -4428,6 +4476,12 @@ PlasmoidItem {
 
                 QQC2.TextField {
                     id: descriptionField
+                    Component.onCompleted: root.descriptionFieldRef = descriptionField
+                    Component.onDestruction: {
+                        if (root.descriptionFieldRef === descriptionField) {
+                            root.descriptionFieldRef = null
+                        }
+                    }
                     Layout.fillWidth: true
                     visible: root.showNewActivityHere && root.showNewActivityForm
                     enabled: root.isConfigured && !root.isBusy && root.connectionState !== "error"
