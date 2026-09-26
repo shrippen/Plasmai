@@ -29,6 +29,25 @@ ColumnLayout {
     Layout.fillWidth: true
     spacing: Kirigami.Units.smallSpacing
 
+    /** Kante time line: the shown Recent entries (indices) grouped by day. */
+    readonly property var recentDays: {
+        if (!KanteStyle.active) {
+            return []
+        }
+        var indices = []
+        for (var i = 0; i < widget.recentVisibleCount; i++) {
+            indices.push(i)
+        }
+        return DTF.groupByDay(indices, new Date(),
+                              function(i) { return widget.recentTimesheets[i].begin })
+    }
+
+    /** Begin of an entry as a local clock time ("07:42"). */
+    function beginClock(ts) {
+        var b = ts && ts.begin ? new Date(ts.begin) : null
+        return b && !isNaN(b.getTime()) ? DTF.formatLocaleTime(b.getHours(), b.getMinutes()) : ""
+    }
+
     // —— Favorites ——
     KantePlasmaHeading {
     Layout.fillWidth: true
@@ -193,69 +212,110 @@ ColumnLayout {
         visible: opacity > 0
         Behavior on opacity { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
 
+        // System: one flat list. Kante: the time line, grouped by day (variant B).
         Repeater {
-            model: widget.loadingRecent && widget.recentTimesheets.length === 0 ? 0 : widget.recentVisibleCount
-            delegate: ActivityListRow {
-                readonly property var ts: widget.recentTimesheets[index]
-                readonly property string tsKey: widget.switchHintKey(ts)
+            model: KanteStyle.active || (widget.loadingRecent && widget.recentTimesheets.length === 0) ? 0 : widget.recentVisibleCount
+            delegate: recentRow
+        }
+
+        Repeater {
+            model: KanteStyle.active && !(widget.loadingRecent && widget.recentTimesheets.length === 0) ? listSection.recentDays : []
+            delegate: ColumnLayout {
+                id: dayGroup
+                required property var modelData
                 Layout.fillWidth: true
-                readonly property var barInfo: KimaiApi.barColorInfoFromTimesheet(
-                    widget.recentTimesheets[index], widget.customersById)
-                customerColor: barInfo.color
-                titleText: KimaiApi.displayActivityName(
-                    widget.recentTimesheets[index], widget.allActivities, widget.activitiesByProject)
-                timeText: DTF.entryTimeLabel(ts.begin, ts.end, new Date(), i18n("now"))
-                durationText: {
-                    var secs = KimaiApi.timesheetDurationSeconds(ts)
-                    return secs > 0 ? DTF.hoursMinutes(secs) : ""
-                }
-                subtitleText: {
-                    var ts = widget.recentTimesheets[index]
-                    if (KanteStyle.active) {
-                        // Time and duration have their own columns in the Kante time line.
-                        return KimaiApi.displayProjectName(ts, widget.projects)
+                spacing: 0
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    Layout.topMargin: Kirigami.Units.smallSpacing
+                    spacing: Kirigami.Units.smallSpacing
+
+                    PlasmaComponents3.Label {
+                        text: DTF.dayHeaderLabel(dayGroup.modelData.date, new Date(), i18n("Today"), i18n("Yesterday"))
+                        font: KanteStyle.labelFont()
+                        color: KanteStyle.mutedTextColor
                     }
-                    var bits = [KimaiApi.displayProjectName(ts, widget.projects)]
-                    var secs = KimaiApi.timesheetDurationSeconds(ts)
-                    if (secs > 0) {
-                        bits.push(KimaiApi.formatDurationShort(secs))
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 1
+                        color: KanteStyle.ruleColor
                     }
-                    bits.push(widget.formatRelativeTime(ts.end || ts.begin))
-                    return bits.join(" · ")
                 }
-                rowEnabled: widget.isConfigured && !widget.isBusy && widget.connectionState !== "error"
-                runningHintVisible: widget.alreadyRunningHintKey === tsKey
-                runningHintText: i18n("Already running.")
-                runningHintCounterText: widget.isTracking
-                                        ? KimaiApi.formatDurationPanel(widget.elapsedSeconds)
-                                        : ""
-                showHistoryActions: {
-                    var sheet = widget.recentTimesheets[index]
-                    if (!sheet || !sheet.end || widget.timesheetIsRunning(sheet)) {
-                        return false
-                    }
-                    return true
-                }
-                canEditStopped: widget.providerCapabilities.editStopped
-                canDeleteEntry: widget.providerCapabilities.deleteEntry
-                canSplitEntry: widget.providerCapabilities.editStopped
-                               && !!(widget.recentTimesheets[index] && widget.recentTimesheets[index].end)
-                canPin: true
-                canLogTrip: widget.canEditTrips
-                onTripRequested: widget.openTripForTimesheet(widget.recentTimesheets[index])
-                isPinned: Favorites.isPinned(Plasmoid.configuration.pinnedActivities, KimaiApi.projectId(widget.recentTimesheets[index]), KimaiApi.activityId(widget.recentTimesheets[index]))
-                onRowActivated: widget.requestRestartFromRecent(widget.recentTimesheets[index])
-                onEditRequested: widget.openStoppedEdit(widget.recentTimesheets[index])
-                onDeleteRequested: widget.requestDeleteStopped(widget.recentTimesheets[index])
-                onSplitRequested: widget.requestSplitStopped(widget.recentTimesheets[index])
-                onPinRequested: {
-                    var ts = widget.recentTimesheets[index]
-                    Plasmoid.configuration.pinnedActivities = Favorites.togglePinned(
-                        Plasmoid.configuration.pinnedActivities,
-                        KimaiApi.projectId(ts), KimaiApi.activityId(ts))
-                    widget.refreshPinnedEntries(true)
+
+                Repeater {
+                    model: dayGroup.modelData.entries
+                    delegate: recentRow
                 }
             }
+        }
+
+        Component {
+            id: recentRow
+            ActivityListRow {
+                    required property var modelData
+                    /** Index into widget.recentTimesheets (Repeater count or group model). */
+                    readonly property int rowIndex: modelData
+                    readonly property var ts: widget.recentTimesheets[rowIndex]
+                    readonly property string tsKey: widget.switchHintKey(ts)
+                    Layout.fillWidth: true
+                    readonly property var barInfo: KimaiApi.barColorInfoFromTimesheet(
+                        widget.recentTimesheets[rowIndex], widget.customersById)
+                    customerColor: barInfo.color
+                    titleText: KimaiApi.displayActivityName(
+                        widget.recentTimesheets[rowIndex], widget.allActivities, widget.activitiesByProject)
+                    timeText: listSection.beginClock(ts)
+                    durationText: {
+                        var secs = KimaiApi.timesheetDurationSeconds(ts)
+                        return secs > 0 ? DTF.hoursMinutes(secs) : ""
+                    }
+                    subtitleText: {
+                        var ts = widget.recentTimesheets[rowIndex]
+                        if (KanteStyle.active) {
+                            // Time and duration have their own columns in the Kante time line.
+                            return KimaiApi.displayProjectName(ts, widget.projects)
+                        }
+                        var bits = [KimaiApi.displayProjectName(ts, widget.projects)]
+                        var secs = KimaiApi.timesheetDurationSeconds(ts)
+                        if (secs > 0) {
+                            bits.push(KimaiApi.formatDurationShort(secs))
+                        }
+                        bits.push(widget.formatRelativeTime(ts.end || ts.begin))
+                        return bits.join(" · ")
+                    }
+                    rowEnabled: widget.isConfigured && !widget.isBusy && widget.connectionState !== "error"
+                    runningHintVisible: widget.alreadyRunningHintKey === tsKey
+                    runningHintText: i18n("Already running.")
+                    runningHintCounterText: widget.isTracking
+                                            ? KimaiApi.formatDurationPanel(widget.elapsedSeconds)
+                                            : ""
+                    showHistoryActions: {
+                        var sheet = widget.recentTimesheets[rowIndex]
+                        if (!sheet || !sheet.end || widget.timesheetIsRunning(sheet)) {
+                            return false
+                        }
+                        return true
+                    }
+                    canEditStopped: widget.providerCapabilities.editStopped
+                    canDeleteEntry: widget.providerCapabilities.deleteEntry
+                    canSplitEntry: widget.providerCapabilities.editStopped
+                                   && !!(widget.recentTimesheets[rowIndex] && widget.recentTimesheets[rowIndex].end)
+                    canPin: true
+                    canLogTrip: widget.canEditTrips
+                    onTripRequested: widget.openTripForTimesheet(widget.recentTimesheets[rowIndex])
+                    isPinned: Favorites.isPinned(Plasmoid.configuration.pinnedActivities, KimaiApi.projectId(widget.recentTimesheets[rowIndex]), KimaiApi.activityId(widget.recentTimesheets[rowIndex]))
+                    onRowActivated: widget.requestRestartFromRecent(widget.recentTimesheets[rowIndex])
+                    onEditRequested: widget.openStoppedEdit(widget.recentTimesheets[rowIndex])
+                    onDeleteRequested: widget.requestDeleteStopped(widget.recentTimesheets[rowIndex])
+                    onSplitRequested: widget.requestSplitStopped(widget.recentTimesheets[rowIndex])
+                    onPinRequested: {
+                        var ts = widget.recentTimesheets[rowIndex]
+                        Plasmoid.configuration.pinnedActivities = Favorites.togglePinned(
+                            Plasmoid.configuration.pinnedActivities,
+                            KimaiApi.projectId(ts), KimaiApi.activityId(ts))
+                        widget.refreshPinnedEntries(true)
+                    }
+                }
         }
 
         ColumnLayout {

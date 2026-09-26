@@ -401,3 +401,56 @@ function entryTimeLabel(begin, end, now, nowLabel) {
     }
     return b.getDate() + " " + Qt.locale().standaloneMonthName(b.getMonth(), 1) + " " + clock(b)
 }
+
+/** Local midnight of a Date or ISO string; null if invalid. */
+function localDay(value) {
+    var d = value ? new Date(value) : null
+    if (!d || isNaN(d.getTime())) {
+        return null
+    }
+    d.setHours(0, 0, 0, 0)
+    return d
+}
+
+/** Whole local days between `value` and `now` (0 = same day). */
+function daysBefore(value, now) {
+    var day = localDay(value)
+    var today = localDay(now || new Date())
+    return day ? Math.round((today.getTime() - day.getTime()) / 86400000) : -1
+}
+
+/**
+ * Entries (newest first) grouped by local day of beginOf(entry):
+ *   [{ date, daysAgo, entries }]
+ * (Recent lists each activity once, so a group is no day total.)
+ */
+function groupByDay(entries, now, beginOf) {
+    var groups = []
+    for (var i = 0; i < (entries || []).length; i++) {
+        var day = localDay(beginOf(entries[i]))
+        if (!day) {
+            continue
+        }
+        var last = groups.length ? groups[groups.length - 1] : null
+        if (!last || last.date.getTime() !== day.getTime()) {
+            last = { date: day, daysAgo: daysBefore(day, now), entries: [] }
+            groups.push(last)
+        }
+        last.entries.push(entries[i])
+    }
+    return groups
+}
+
+/** Day header of the time line: todayLabel, yesterdayLabel, else "Friday, 25.09.26". */
+function dayHeaderLabel(date, now, todayLabel, yesterdayLabel) {
+    var ago = daysBefore(date, now)
+    if (ago === 0) {
+        return todayLabel
+    }
+    if (ago === 1) {
+        return yesterdayLabel
+    }
+    var d = localDay(date)
+    // 0 = QLocale::LongFormat (no Locale enum in a pragma library)
+    return Qt.locale().dayName(d.getDay(), 0) + ", " + formatLocaleDate(d)
+}

@@ -345,3 +345,57 @@ function fromApi(json) {
         note: n.note || ""
     }
 }
+
+/**
+ * State of the film day screen:
+ *   running  the timer runs on the film day's project today
+ *   done     the day has its entry
+ *   before   today or later without an entry (Start)
+ *   manual   a past day without an entry (enter begin and end)
+ * state = { running, match, daysFromToday } (days after today, negative = past).
+ */
+function phaseOf(state) {
+    if (state.running) {
+        return "running"
+    }
+    if (state.match) {
+        return "done"
+    }
+    return state.daysFromToday >= 0 ? "before" : "manual"
+}
+
+/** Activity of projectId's longest stopped entry in `entries` (the usual film activity), else null. */
+function suggestedActivityId(entries, projectId, projectIdOf, activityIdOf) {
+    var longest = pickDayEntry(entries, projectId, projectIdOf, null)
+    return longest ? activityIdOf(longest) : null
+}
+
+/** Local "YYYY-MM-DD" of a stamp ("+0200" offsets too); "" if invalid. */
+function localDateKey(value) {
+    var ms = stampMs(value)
+    if (isNaN(ms)) {
+        return ""
+    }
+    var d = new Date(ms)
+    var mm = d.getMonth() + 1
+    var dd = d.getDate()
+    return d.getFullYear() + "-" + (mm < 10 ? "0" : "") + mm + "-" + (dd < 10 ? "0" : "") + dd
+}
+
+/**
+ * Production shooting day: distinct days with entries up to dateStr.
+ * { count, includesDay } (includesDay: dateStr itself has an entry).
+ */
+function countShootingDays(entries, dateStr, beginOf) {
+    var days = {}
+    var count = 0
+    for (var i = 0; i < (entries || []).length; i++) {
+        var key = localDateKey(beginOf(entries[i]))
+        if (!key || key > dateStr || days[key]) {
+            continue
+        }
+        days[key] = true
+        count += 1
+    }
+    return { count: count, includesDay: !!days[dateStr] }
+}

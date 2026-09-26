@@ -241,7 +241,11 @@ for people who want Plasmai to look like Plasmai rather than like Breeze.
   lighter on glass (`#bdae93`).
 - **Main view:** timer card with the accent-colored timer, activity as the
   heading, a day strip when idle; favorites as tiles (two per row); Recent as
-  a time line (time · color bar · activity · project · duration).
+  a time line grouped by day (day header "Today" / "Yesterday" / weekday and
+  date; row: begin time · color bar · activity bold over project · duration).
+  The row menu opens on long press (right click on the desktop); Kante rows
+  have no menu button. Day totals are left out on purpose: Recent keeps one
+  entry per activity, so a sum would be wrong.
 - **Controls:** views use the wrappers `KanteButton` (with `emphasis` Primary /
   Destructive), `KanteToolButton`, `KanteTextField`, `KanteHeading`,
   `KanteDialog`; the widget uses `KantePlasmaButton`, `KantePlasmaToolButton`
@@ -319,6 +323,23 @@ read as Kante. It is the design system's `KanteStyle.Kind.KanteLight`:
 - `mainViewMode: "filmday"` (`FilmDayView.qml`; app: `FilmDayPage.qml` with the
   shared copy), gated by `providerCapabilities.filmDays` (Kimai only — no parallel
   UI on other providers).
+- **Three states** (`FilmDays.phaseOf`, `FilmDaySync.viewInfo`), the view is an
+  alternative to the timer page, not a separate tracker:
+  - *Before* (today, no entry): engagement card (project, activity · crew role,
+    customer · shooting day N) and "Start shooting day", which starts the same
+    timer as the timer page. "Enter times instead" opens the manual form.
+  - *Running* (the running entry is the engagement's film activity): begin
+    editable, end reads "running", break / work time / pay so far, "Stop
+    shooting day". The surcharge day is available from here on.
+  - *Done* (a stopped entry): begin and end edit in place and save directly
+    (debounced); the extras save directly as well.
+  - Past days without an entry show the manual form (Save / Cancel).
+- The engagement is the day's (D1 list, `?date=`); the pencil on the card picks
+  another engagement or any project and activity. The production's shooting day
+  is never entered: it is the count of distinct days with entries of the film
+  activity since the engagement's `validFrom` (`FilmDaySync.productionDay`,
+  cached briefly). That query also names the film activity (the activity of the
+  project's longest entry) when neither the day nor Recent does.
 - One shooting day = one Kimai timesheet entry for that calendar day (begin/end,
   created or patched like Add entry; only a stopped entry of the picked project is
   reused). If the project has more stopped entries that day, the view says so

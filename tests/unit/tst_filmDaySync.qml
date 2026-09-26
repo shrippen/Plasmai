@@ -254,6 +254,90 @@ TestCase {
         compare(got.day.mode, "noEngagement")
     }
 
+    // resolveDay hands the day's engagements and the one in use to the view;
+    // a picked project wins when asked to (the engagement chooser).
+    function test_resolveDayEngagements() {
+        var entries = [{ id: 1, project: 7, activity: 3, begin: "2026-09-26T09:00:00+0200", end: "2026-09-26T10:00:00+0200" }]
+        responses = [
+            { status: 200, body: [{ engagementId: 1, projectId: 155, crewRole: "1. Kameraassistenz" },
+                                  { engagementId: 2, projectId: 7, crewRole: "Kamera" }] },
+            { status: 200, body: serverDay({ date: "2026-09-26", engagementId: 2 }) },
+            { status: 200, body: { hasEntry: true, begin: "2026-09-26T09:00:00+02:00", end: "2026-09-26T10:00:00+02:00" } }
+        ]
+        var got = null
+        Sync.resolveDay(ctx("server"), entries, 7, "2026-09-26", ids, function(r) { got = r }, true)
+        compare(got.projectId, 7)
+        compare(got.engagements.length, 2)
+        compare(got.engagement.crewRole, "Kamera")
+        compare(got.match.id, 1)
+    }
+
+    // Production shooting day and the film activity from the engagement's
+    // entries (project filter, from the engagement's start to the day).
+    function test_productionDay() {
+        responses = [{ status: 200, body: [
+            { id: 1, project: 155, activity: 40, begin: "2026-09-10T08:00:00+0200", end: "2026-09-10T18:00:00+0200" },
+            { id: 2, project: 155, activity: 12, begin: "2026-09-24T07:00:00+0200", end: "2026-09-24T07:30:00+0200" },
+            { id: 3, project: 155, activity: 40, begin: "2026-09-24T11:50:00+0200", end: "2026-09-24T22:09:00+0200" },
+            { id: 4, project: 155, activity: 40, begin: "2026-09-25T13:15:00+0200", end: "2026-09-25T21:30:00+0200" }] }]
+        var got = null
+        // no activity known yet: the longest entry's activity is the film activity
+        Sync.productionDay(ctx("server"), 155, null, "2026-05-18", "2026-09-25", ids, function(r) { got = r })
+        verify(requests[0].url.indexOf("project=155") > 0)
+        verify(requests[0].url.indexOf("activity=") < 0)
+        compare(got.activityId, 40)
+        compare(got.count, 3)
+        verify(got.includesDay)
+    }
+
+    function travelDayEntries() {
+        return [
+            { id: 4246, project: 155, activity: 12, begin: "2026-09-25T21:31:00+0200", end: "2026-09-25T21:56:00+0200" },
+            { id: 4245, project: 155, activity: 40, begin: "2026-09-25T13:15:00+0200", end: "2026-09-25T21:30:00+0200" },
+            { id: 4243, project: 153, activity: 7, begin: "2026-09-25T09:59:00+0200", end: "2026-09-25T11:22:36+0200" }
+        ]
+    }
+
+    function viewOpts(extra) {
+        var o = { entries: travelDayEntries(), active: null, recent: travelDayEntries(), daysFromToday: -1, ids: ids,
+                  labelOf: function(ts) { return "a" + ts.activity }, timeOf: function(ts) { return String(ts.id) } }
+        for (var k in (extra || {})) o[k] = extra[k]
+        return o
+    }
+
+    // A past day with its entry: done; the other activities are listed for information.
+    function test_viewInfoDone() {
+        var e = travelDayEntries()
+        var v = Sync.viewInfo({ projectId: 155, match: e[1], others: [] }, viewOpts())
+        compare(v.phase, "done")
+        compare(v.timesheet.id, 4245)
+        compare(v.otherActivities.map(function(o) { return o.label }), ["a12", "a7"])
+    }
+
+    // Today before the start: the usual film activity is suggested.
+    function test_viewInfoBefore() {
+        var v = Sync.viewInfo({ projectId: 155, match: null, others: [] }, viewOpts({ entries: [], daysFromToday: 0 }))
+        compare(v.phase, "before")
+        compare(v.activityId, 40)
+        verify(v.isToday)
+        compare(v.timesheet, null)
+    }
+
+    // The main timer runs on the film activity: running, the running entry is shown.
+    function test_viewInfoRunning() {
+        var active = { id: 9, project: 155, activity: 40, begin: "2026-09-26T07:42:00+0200", end: null }
+        var v = Sync.viewInfo({ projectId: 155, match: null, others: [] },
+                              viewOpts({ entries: [active], active: active, daysFromToday: 0 }))
+        compare(v.phase, "running")
+        compare(v.timesheet.id, 9)
+        compare(v.otherActivities.length, 0)
+        // travel running on the same project is not the film day
+        var travel = { id: 10, project: 155, activity: 12, begin: "2026-09-26T07:00:00+0200", end: null }
+        v = Sync.viewInfo({ projectId: 155, match: null, others: [] },
+                          viewOpts({ entries: [travel], active: travel, daysFromToday: 0 }))
+        compare(v.phase, "before")
+    }
+
     function test_loadOfflineHidesExtras() {
         var c = ctx("server", { ping: ping([]) })
         responses = [{ status: 200, body: serverDay({ note: "seen" }) },

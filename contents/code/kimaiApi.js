@@ -1744,7 +1744,11 @@ function sumTimesheetDurations(entries, nowMs) {
     return total
 }
 
-function fetchTimesheetsRange(kimaiUrl, apiToken, beginDate, endDate, callback) {
+/**
+ * Timesheets from beginDate to endDate (all pages). filters: optional
+ * { project, activity } ids (Kimai's `project` / `activity` query filters).
+ */
+function fetchTimesheetsRange(kimaiUrl, apiToken, beginDate, endDate, callback, filters) {
     if (!kimaiUrl || !apiToken) {
         callback(fail({ type: "config", status: 0, detail: "" }))
         return
@@ -1755,10 +1759,18 @@ function fetchTimesheetsRange(kimaiUrl, apiToken, beginDate, endDate, callback) 
     var page = 1
     var size = 100
     var collected = []
+    var filterQuery = ""
+    if (filters && filters.project !== undefined && filters.project !== null && filters.project !== "") {
+        filterQuery += "&project=" + encodeURIComponent(String(filters.project))
+    }
+    if (filters && filters.activity !== undefined && filters.activity !== null && filters.activity !== "") {
+        filterQuery += "&activity=" + encodeURIComponent(String(filters.activity))
+    }
 
     function fetchPage() {
         var endpoint = "/api/timesheets?begin=" + begin + "&end=" + end
             + "&page=" + page + "&size=" + size + "&orderBy=begin&order=ASC&full=1"
+            + filterQuery
         var xhr = createRequest("GET", kimaiUrl, endpoint, apiToken, false)
         runRequest(xhr, undefined, function(status, responseText, statusText) {
             // Kimai answers 404 for a page past the end (e.g. exactly 100 entries).

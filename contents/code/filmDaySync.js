@@ -39,6 +39,7 @@ var Mode = {
 }
 
 var ENGAGEMENT_CACHE_MS = 3600 * 1000
+var PRODUCTION_DAY_CACHE_MS = 10 * 60 * 1000
 
 function profileKey(profileId, kimaiUrl) {
     return String(profileId || "") + "|" + KimaiApi.normalizeUrl(kimaiUrl)
@@ -58,6 +59,9 @@ function memoOf(ctx) {
     }
     if (!ctx.memo.engagements) {
         ctx.memo.engagements = {}
+    }
+    if (!ctx.memo.productionDays) {
+        ctx.memo.productionDays = {}
     }
     return ctx.memo
 }
@@ -158,19 +162,85 @@ function loadRulesetName(ctx, projectId, dateStr, callback) {
     })
 }
 
+/** The day's engagements (D1), [] without an engagement, the feature or the plugin. */
+function dayEngagements(ctx, dateStr, callback) {
+    if (ctx.mode === Mode.NO_PLUGIN || ctx.mode === Mode.NO_PERMISSION) {
+        callback([])
+        return
+    }
+    loadEngagements(ctx, dateStr, function(list) {
+        var out = []
+        for (var i = 0; i < (list || []).length; i++) {
+            if (list[i] && hasId(list[i].projectId)) {
+                out.push(list[i])
+            }
+        }
+        callback(out)
+    })
+}
+
+function engagementOf(engagements, projectId) {
+    for (var i = 0; i < (engagements || []).length; i++) {
+        if (String(engagements[i].projectId) === String(projectId)) {
+            return engagements[i]
+        }
+    }
+    return null
+}
+
+/**
+ * Production shooting day of the engagement on dateStr, and its film
+ * activity: the project's entries from fromDateStr (the engagement's start)
+ * to dateStr; the film activity is activityId, or else the activity of the
+ * longest of them; the count is the distinct days with entries of it.
+ * ids = { projectOf, activityOf }. callback({ count, includesDay, activityId })
+ * or callback(null) on an error. Cached per profile, project and day for 10 minutes.
+ */
+function productionDay(ctx, projectId, activityId, fromDateStr, dateStr, ids, callback) {
+    if (!hasId(projectId) || !fromDateStr) {
+        callback(null)
+        return
+    }
+    var memo = memoOf(ctx)
+    var key = [ctx.profileKey, projectId, dateStr].join("|")
+    function answer(entries) {
+        var activity = hasId(activityId) ? activityId
+            : FilmDays.suggestedActivityId(entries, projectId, ids.projectOf, ids.activityOf)
+        var film = []
+        for (var i = 0; i < entries.length; i++) {
+            if (hasId(activity) && String(ids.activityOf(entries[i])) === String(activity)) {
+                film.push(entries[i])
+            }
+        }
+        var count = FilmDays.countShootingDays(film, dateStr, function(ts) { return ts.begin })
+        count.activityId = hasId(activity) ? activity : null
+        callback(count)
+    }
+    var cached = memo.productionDays[key]
+    if (cached && nowOf(ctx) - cached.at < PRODUCTION_DAY_CACHE_MS) {
+        answer(cached.entries)
+        return
+    }
+    var from = new Date(fromDateStr + "T00:00:00")
+    var to = new Date(dateStr + "T23:59:59")
+    trackerOf(ctx).fetchTimesheetsRange(ctx.url, ctx.token, from, to, function(result) {
+        if (!result.ok) {
+            callback(null)
+            return
+        }
+        memo.productionDays[key] = { at: nowOf(ctx), entries: result.data || [] }
+        answer(result.data || [])
+    }, { project: projectId })
+}
+
 /**
  * Project of the day's engagement (there is at most one engagement per day;
  * entries of other activities that day belong to none). callback(projectId)
  * or callback(null) without an engagement or without the D1 list.
  */
 function dayEngagementProject(ctx, dateStr, callback) {
-    if (ctx.mode === Mode.NO_PLUGIN || ctx.mode === Mode.NO_PERMISSION) {
-        callback(null)
-        return
-    }
-    loadEngagements(ctx, dateStr, function(list) {
-        var first = (list && list.length) ? list[0] : null
-        callback(first && hasId(first.projectId) ? first.projectId : null)
+    dayEngagements(ctx, dateStr, function(list) {
+        callback(list.length ? list[0].projectId : null)
     })
 }
 
@@ -257,14 +327,16 @@ function loadDay(ctx, projectId, dateStr, callback) {
  * Everything the film-day view shows for dateStr, from the day's timesheets
  * (`entries`, hydrated): the project is the day's engagement, else
  * `selectedProjectId`; the entry is the one the plugin's day summary spans,
- * else the project's longest. ids = { projectOf, activityOf } read an entry's
- * project and activity id. callback({ projectId, match, others, day }) with
- * `day` from loadDay(); `others` are further entries of the film day's
- * activity only.
+ * else the project's longest. With preferSelected the chosen project wins (the
+ * engagement chooser). ids = { projectOf, activityOf } read an entry's project
+ * and activity id. callback({ projectId, engagement, engagements, match,
+ * others, day }): `engagement` is the D1 entry of projectId (or null), `day`
+ * from loadDay(), `others` further entries of the film day's activity only.
  */
-function resolveDay(ctx, entries, selectedProjectId, dateStr, ids, callback) {
-    dayEngagementProject(ctx, dateStr, function(engaged) {
-        var projectId = hasId(engaged) ? engaged : selectedProjectId
+function resolveDay(ctx, entries, selectedProjectId, dateStr, ids, callback, preferSelected) {
+    dayEngagements(ctx, dateStr, function(engagements) {
+        var engaged = engagements.length ? engagements[0].projectId : null
+        var projectId = (preferSelected && hasId(selectedProjectId)) || !hasId(engaged) ? selectedProjectId : engaged
         loadDay(ctx, projectId, dateStr, function(day) {
             var summary = day.summary
             var span = (summary && summary.hasEntry !== false && summary.begin && summary.end)
@@ -272,12 +344,48 @@ function resolveDay(ctx, entries, selectedProjectId, dateStr, ids, callback) {
             var match = FilmDays.pickDayEntry(entries, projectId, ids.projectOf, span)
             callback({
                 projectId: hasId(projectId) ? projectId : null,
+                engagement: engagementOf(engagements, projectId),
+                engagements: engagements,
                 match: match,
                 others: FilmDays.otherDayEntries(entries, match, projectId, ids.projectOf, ids.activityOf),
                 day: day
             })
         })
     })
+}
+
+/**
+ * What the film day screen shows, from resolveDay()'s result `r` and the main
+ * page's timer. opts = { entries (the day's), active (running entry or null),
+ * recent (recent entries, for the usual film activity), daysFromToday, ids,
+ * labelOf(ts), timeOf(ts) }. Returns { phase, isToday, timesheet, activityId,
+ * otherActivities: [{ label, timeText }] }.
+ */
+function viewInfo(r, opts) {
+    var ids = opts.ids
+    var filmActivity = r.match ? ids.activityOf(r.match)
+        : FilmDays.suggestedActivityId(opts.recent, r.projectId, ids.projectOf, ids.activityOf)
+    var active = opts.active
+    var running = !!active && opts.daysFromToday === 0 && hasId(r.projectId)
+        && String(ids.projectOf(active)) === String(r.projectId)
+        && (!hasId(filmActivity) || String(ids.activityOf(active)) === String(filmActivity))
+    var shown = running ? active : r.match
+    var skip = [shown].concat(r.others || [])
+    var otherActivities = []
+    for (var i = 0; i < (opts.entries || []).length; i++) {
+        var ts = opts.entries[i]
+        if (skip.indexOf(ts) >= 0 || (shown && hasId(ts.id) && String(ts.id) === String(shown.id))) {
+            continue
+        }
+        otherActivities.push({ label: opts.labelOf(ts), timeText: opts.timeOf(ts) })
+    }
+    return {
+        phase: FilmDays.phaseOf({ running: running, match: r.match, daysFromToday: opts.daysFromToday }),
+        isToday: opts.daysFromToday === 0,
+        timesheet: shown || null,
+        activityId: running ? ids.activityOf(active) : filmActivity,
+        otherActivities: otherActivities
+    }
 }
 
 /**

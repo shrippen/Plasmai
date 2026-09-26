@@ -112,6 +112,45 @@ TestCase {
         compare(others.map(function(o) { return o.id }), [4247])
     }
 
+    // The film day screen's state: running (the timer on this project today),
+    // done (an entry), before (today or later, nothing yet), manual (a past day).
+    function test_phaseOf() {
+        compare(FilmDays.phaseOf({ running: true, match: null, daysFromToday: 0 }), "running")
+        compare(FilmDays.phaseOf({ running: false, match: { id: 1 }, daysFromToday: -1 }), "done")
+        compare(FilmDays.phaseOf({ running: false, match: null, daysFromToday: 0 }), "before")
+        compare(FilmDays.phaseOf({ running: false, match: null, daysFromToday: 2 }), "before")
+        compare(FilmDays.phaseOf({ running: false, match: null, daysFromToday: -1 }), "manual")
+    }
+
+    // Before the first entry of the day: the project's usual film activity,
+    // i.e. the activity of its longest recent entry (not the travel).
+    function test_suggestedActivityId() {
+        var recent = [
+            { project: 155, activity: 12, begin: "2026-09-25T21:31:00+0200", end: "2026-09-25T21:56:00+0200" },
+            { project: 155, activity: 40, begin: "2026-09-25T13:15:00+0200", end: "2026-09-25T21:30:00+0200" },
+            { project: 153, activity: 7, begin: "2026-09-25T09:59:00+0200", end: "2026-09-25T18:22:36+0200" }
+        ]
+        var activityOf = function(ts) { return ts.activity }
+        compare(FilmDays.suggestedActivityId(recent, 155, projectOf, activityOf), 40)
+        compare(FilmDays.suggestedActivityId(recent, 999, projectOf, activityOf), null)
+    }
+
+    // Production shooting day: distinct days with entries up to the day.
+    function test_countShootingDays() {
+        var e = [
+            { begin: "2026-09-10T08:00:00+0200" }, { begin: "2026-09-10T14:00:00+0200" },
+            { begin: "2026-09-24T11:50:00+0200" }, { begin: "2026-09-25T13:15:00+0200" },
+            { begin: "2026-09-27T08:00:00+0200" }
+        ]
+        var beginOf = function(ts) { return ts.begin }
+        var r = FilmDays.countShootingDays(e, "2026-09-25", beginOf)
+        compare(r.count, 3)
+        verify(r.includesDay)
+        r = FilmDays.countShootingDays(e, "2026-09-26", beginOf)
+        compare(r.count, 3)
+        verify(!r.includesDay)
+    }
+
     function test_saveTargetIdOnlyForSameProject() {
         var other = { id: 1, project: 7, end: "2026-09-23T10:00:00" }
         compare(FilmDays.saveTargetId(other, 5, projectOf), null)

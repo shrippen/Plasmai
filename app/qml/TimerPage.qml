@@ -25,6 +25,18 @@ Kirigami.Page {
         desktop window) — below that threshold everything stacks in one scrolling column. */
     readonly property bool isWideLayout: width >= Kirigami.Units.gridUnit * 38
 
+    /** Kante time line: Recent grouped by day (variant B). */
+    readonly property var recentDays: KanteStyle.active
+        ? DTF.groupByDay(root.recentTimesheets || [], new Date(),
+                         function(ts) { return ts.begin })
+        : []
+
+    /** Begin of an entry as a local clock time ("07:42"). */
+    function beginClock(ts) {
+        var b = ts && ts.begin ? new Date(ts.begin) : null
+        return b && !isNaN(b.getTime()) ? DTF.formatLocaleTime(b.getHours(), b.getMinutes()) : ""
+    }
+
     actions: [
         Kirigami.Action {
             visible: root.isConfigured
@@ -576,44 +588,73 @@ Kirigami.Page {
             level: 4; text: i18n("Recent")
             visible: root.showRecent && root.recentTimesheets.length > 0
         }
+        // System: one flat list. Kante: the time line, grouped by day (variant B).
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: Kirigami.Units.largeSpacing
+            spacing: KanteStyle.active ? 0 : Kirigami.Units.largeSpacing
             Repeater {
-                model: root.showRecent ? root.recentTimesheets : []
-                delegate: ActivityListRow {
+                model: root.showRecent && !KanteStyle.active ? root.recentTimesheets : []
+                delegate: recentRow
+            }
+            Repeater {
+                model: root.showRecent && KanteStyle.active ? page.recentDays : []
+                delegate: ColumnLayout {
+                    id: dayGroup
                     required property var modelData
-                    property string tsKey: root.switchHintKey(modelData)
-                    readonly property var barColorInfo: KimaiApi.barColorInfoFromTimesheet(modelData, root.customersById)
-                    titleText: KimaiApi.displayActivityName(modelData, root.allActivities, root.activitiesByProject)
-                    timeText: DTF.entryTimeLabel(modelData.begin, modelData.end, new Date(), i18n("now"))
-                    durationText: (modelData.duration || 0) > 0 ? DTF.hoursMinutes(modelData.duration) : ""
-                    subtitleText: {
-                        // Kante: time and duration have their own columns in the time line.
-                        if (KanteStyle.active) return KimaiApi.displayProjectName(modelData, root.projects)
-                        var bits = [KimaiApi.displayProjectName(modelData, root.projects)]
-                        var secs = modelData.duration || 0
-                        if (secs > 0) bits.push(KimaiApi.formatDurationShort(secs))
-                        bits.push(root.formatRelativeTime(modelData.end || modelData.begin))
-                        return bits.join(" · ")
+                    Layout.fillWidth: true
+                    spacing: 0
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Layout.topMargin: Kirigami.Units.smallSpacing
+                        spacing: Kirigami.Units.smallSpacing
+                        QQC2.Label {
+                            text: DTF.dayHeaderLabel(dayGroup.modelData.date, new Date(), i18n("Today"), i18n("Yesterday"))
+                            font: KanteStyle.labelFont()
+                            color: KanteStyle.mutedTextColor
+                        }
+                        Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: KanteStyle.ruleColor }
                     }
-                    customerColor: barColorInfo.color || KimaiApi.DEFAULT_CUSTOMER_COLOR
-                    showHistoryActions: true
-                    canPin: true; isPinned: root.isPinned(KimaiApi.projectId(modelData), KimaiApi.activityId(modelData))
-                    canEditStopped: root.providerCapabilities.editStopped
-                    canSplitEntry: root.providerCapabilities.editStopped
-                    canDeleteEntry: root.providerCapabilities.deleteEntry
-                    canLogTrip: root.canEditTrips
-                    onTripRequested: root.openTripForTimesheet(modelData)
-                    runningHintVisible: root.alreadyRunningHintKey === tsKey
-                    runningHintText: i18n("Already running.")
-                    runningHintCounterText: KimaiApi.formatDurationShort(root.elapsedSeconds)
-                    onRowActivated: root.requestRestartFromRecent(modelData)
-                    onPinRequested: root.togglePin(KimaiApi.projectId(modelData), KimaiApi.activityId(modelData))
-                    onEditRequested: pageStack.push(manualPageComponent, { editTs: modelData })
-                    onDeleteRequested: { deleteDialog.target = modelData; deleteDialog.open() }
-                    onSplitRequested: { splitDialog.target = modelData; splitDialog.open() }
+                    Repeater {
+                        model: dayGroup.modelData.entries
+                        delegate: recentRow
+                    }
                 }
+            }
+            Component {
+                id: recentRow
+                ActivityListRow {
+                        required property var modelData
+                        property string tsKey: root.switchHintKey(modelData)
+                        readonly property var barColorInfo: KimaiApi.barColorInfoFromTimesheet(modelData, root.customersById)
+                        titleText: KimaiApi.displayActivityName(modelData, root.allActivities, root.activitiesByProject)
+                        timeText: page.beginClock(modelData)
+                        durationText: (modelData.duration || 0) > 0 ? DTF.hoursMinutes(modelData.duration) : ""
+                        subtitleText: {
+                            // Kante: time and duration have their own columns in the time line.
+                            if (KanteStyle.active) return KimaiApi.displayProjectName(modelData, root.projects)
+                            var bits = [KimaiApi.displayProjectName(modelData, root.projects)]
+                            var secs = modelData.duration || 0
+                            if (secs > 0) bits.push(KimaiApi.formatDurationShort(secs))
+                            bits.push(root.formatRelativeTime(modelData.end || modelData.begin))
+                            return bits.join(" · ")
+                        }
+                        customerColor: barColorInfo.color || KimaiApi.DEFAULT_CUSTOMER_COLOR
+                        showHistoryActions: true
+                        canPin: true; isPinned: root.isPinned(KimaiApi.projectId(modelData), KimaiApi.activityId(modelData))
+                        canEditStopped: root.providerCapabilities.editStopped
+                        canSplitEntry: root.providerCapabilities.editStopped
+                        canDeleteEntry: root.providerCapabilities.deleteEntry
+                        canLogTrip: root.canEditTrips
+                        onTripRequested: root.openTripForTimesheet(modelData)
+                        runningHintVisible: root.alreadyRunningHintKey === tsKey
+                        runningHintText: i18n("Already running.")
+                        runningHintCounterText: KimaiApi.formatDurationShort(root.elapsedSeconds)
+                        onRowActivated: root.requestRestartFromRecent(modelData)
+                        onPinRequested: root.togglePin(KimaiApi.projectId(modelData), KimaiApi.activityId(modelData))
+                        onEditRequested: pageStack.push(manualPageComponent, { editTs: modelData })
+                        onDeleteRequested: { deleteDialog.target = modelData; deleteDialog.open() }
+                        onSplitRequested: { splitDialog.target = modelData; splitDialog.open() }
+                    }
             }
         }
 

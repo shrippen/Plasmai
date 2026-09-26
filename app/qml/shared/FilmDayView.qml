@@ -9,11 +9,18 @@ import "."
 import "../Kante"
 
 /**
- * Shooting-day entry: one Kimai timesheet (begin/end for one calendar day)
- * plus film-specific extras (break, catering, day category/type, production
- * shooting day, surcharge day, extra pay, note). Modeled on the Android
- * TimeSheet app's day screen; see kimai-drehzettel-bundle's
- * research/timesheet-app-analyse.md for the reference layout.
+ * Shooting day: an alternative to the timer page for a film day. The day's
+ * engagement (at most one per day) names project and role; the screen has
+ * four states (`phase`, FilmDays.phaseOf):
+ *   before   Start the timer on the film activity (the timer of the main
+ *            page), or enter times instead
+ *   running  the running entry: begin (editable), elapsed time, Stop
+ *   done     begin – end of the day's entry, saved as soon as they change
+ *   manual   a past day without an entry: begin, end and Save
+ * plus the film-specific extras (break, catering, day category/type,
+ * surcharge day from "running" on, extra pay, note), saved directly. The
+ * production shooting day is counted from the engagement's entries, never
+ * typed.
  *
  * The extras live only in the Drehzettel plugin on the server; the caller
  * (filmDaySync.js) passes the state as `mode`. Only "server" shows them.
@@ -38,8 +45,6 @@ ColumnLayout {
     property bool pickerOpenBelow: true
     property Item pickerViewport: null
     property bool busy: false
-    /** Phone width: Begin / End side by side, Break and the day numbers each across the width. */
-    readonly property bool narrow: width < Kirigami.Units.gridUnit * 32
     property bool configured: true
     property bool connectionOk: true
     property bool showCreateActions: false
@@ -55,6 +60,28 @@ ColumnLayout {
     property real earningsCents: -1
     /** False for plugins without the extraPay feature: the field is hidden. */
     property bool extraPayAvailable: true
+
+    /** Screen state (FilmDays.phaseOf): before | running | done | manual. */
+    property string phase: "before"
+    /** The shown day is today (Start is offered only then). */
+    property bool isToday: true
+    /** "Enter times instead" on the Start screen. */
+    property bool manualRequested: false
+    readonly property string shownPhase: phase === "before" && manualRequested ? "manual" : phase
+    /** The day's engagement in use (D1 entry, or null) and all of the day's engagements. */
+    property var engagement: null
+    property var engagements: []
+    /** Production shooting day (the engagement's shooting days so far), 0 = unknown. */
+    property int productionDayNumber: 0
+    /** Engagement card: choose another engagement or project / activity. */
+    property bool chooserOpen: false
+    /** Running timer: seconds so far (from the main page's timer). */
+    property int elapsedSeconds: 0
+    /** Entries of other activities that day (travel …), for information only: [{ label, timeText }]. */
+    property var otherActivities: []
+    /** True while the view fills the extras (their change handlers must not save). */
+    property bool fillingExtras: false
+    readonly property bool hasFilmActivity: projectCombo.currentIndex >= 0 && activityCombo.currentIndex >= 0
 
     /**
      * B3: further stopped entries of the picked project on this day besides
@@ -92,6 +119,17 @@ ColumnLayout {
     signal dayChosen(var date)
     signal saveRequested(var projectId, var activityId, string beginText, string endText, var filmDayFields)
     signal cancelled()
+    /** Start the main page's timer on the film activity (begin now). */
+    signal startRequested(var projectId, var activityId, string projectLabel, string activityLabel)
+    signal stopRequested()
+    /** Begin of the running entry changed ("yyyy-MM-dd hh:mm"). */
+    signal runningBeginEdited(string beginText)
+    /** Begin / end of the day's entry changed (done): save them now. */
+    signal timesEdited(string beginText, string endText)
+    /** Extras changed (before, running, done): save them now. */
+    signal extrasEdited(var filmDayFields)
+    /** Engagement chooser: use this engagement's project. */
+    signal engagementPicked(var projectId)
     signal createProjectRequested()
     signal createActivityRequested()
 
@@ -217,7 +255,37 @@ ColumnLayout {
         return 0
     }
 
+    /** Production shooting day as loaded from the server (not edited here). */
+    property var serverProductionDay: null
+
+    /** A user change of an extra: save after a short pause (direct save). */
+    function extrasTouched() {
+        if (!root.fillingExtras && root.shownPhase !== "manual") {
+            extrasSaveTimer.restart()
+        }
+    }
+
+    Timer {
+        id: extrasSaveTimer
+        interval: 800
+        onTriggered: root.extrasEdited(root.currentEntryFields())
+    }
+
+    /** A user change of begin / end of a stopped entry: save after a short pause. */
+    function timesTouched() {
+        if (root.shownPhase === "done" && root.rangeValid) {
+            timesSaveTimer.restart()
+        }
+    }
+
+    Timer {
+        id: timesSaveTimer
+        interval: 800
+        onTriggered: root.timesEdited(root.stampText(root.selectedDay, beginTime), root.stampText(root.selectedDay, endTime))
+    }
+
     function applyEntryFields(entry) {
+        root.fillingExtras = true
         var e = entry || FilmDays.entryDefaults()
         if (e.breakMinutes === null || e.breakMinutes === undefined) {
             // null = ruleset default (server mode); locally there is no default to fall back to.
@@ -227,12 +295,14 @@ ColumnLayout {
         }
         breakSpin.previousValue = breakSpin.value
         cateringSwitch.checked = e.catering === FilmDays.Catering.YES
-        categorySlider.value = indexOfValue(root.categoryOptions, e.category || FilmDays.DayCategory.AUTO)
-        dayTypeSlider.value = indexOfValue(root.dayTypeOptions, e.dayType || FilmDays.DayType.WORKDAY)
-        productionDaySpin.value = e.productionDay || 0
+        categoryCombo.currentIndex = indexOfValue(root.categoryOptions, e.category || FilmDays.DayCategory.AUTO)
+        dayTypeCombo.currentIndex = indexOfValue(root.dayTypeOptions, e.dayType || FilmDays.DayType.WORKDAY)
+        // Counted from the engagement's entries, never typed: sent back unchanged.
+        root.serverProductionDay = e.productionDay || null
         surchargeDaySpin.value = e.surchargeDay || 0
         extraPayField.text = e.extraPayCents ? (e.extraPayCents / 100).toFixed(2) : ""
         noteField.text = String(e.note || "").substring(0, FilmDays.NOTE_MAX_LENGTH)
+        root.fillingExtras = false
     }
 
     function currentEntryFields() {
@@ -240,9 +310,9 @@ ColumnLayout {
         return {
             breakMinutes: breakSpin.value < 0 ? null : breakSpin.value,
             catering: cateringSwitch.checked ? FilmDays.Catering.YES : FilmDays.Catering.NO,
-            category: root.categoryOptions[Math.round(categorySlider.value)].value,
-            dayType: root.dayTypeOptions[Math.round(dayTypeSlider.value)].value,
-            productionDay: productionDaySpin.value > 0 ? productionDaySpin.value : null,
+            category: root.categoryOptions[Math.max(0, categoryCombo.currentIndex)].value,
+            dayType: root.dayTypeOptions[Math.max(0, dayTypeCombo.currentIndex)].value,
+            productionDay: root.serverProductionDay,
             surchargeDay: surchargeDaySpin.value > 0 ? surchargeDaySpin.value : null,
             extraPayCents: isNaN(extraPay) ? 0 : Math.max(0, Math.min(FilmDays.EXTRA_PAY_MAX_CENTS, Math.round(extraPay * 100))),
             note: String(noteField.text).trim()
@@ -316,7 +386,16 @@ ColumnLayout {
      * Fill the view from a FilmDaySync.loadDay() result. `currency` is the
      * fallback when the day summary has none (customer currency from the catalog).
      */
-    function applyLoadedDay(date, timesheet, day, currency, otherEntries, projectId) {
+    function applyLoadedDay(date, timesheet, day, currency, otherEntries, projectId, info) {
+        var i = info || {}
+        root.phase = i.phase || "before"
+        root.isToday = i.isToday !== false
+        root.manualRequested = false
+        root.chooserOpen = false
+        root.engagement = i.engagement || null
+        root.engagements = i.engagements || []
+        root.productionDayNumber = i.productionDay || 0
+        root.otherActivities = i.otherActivities || []
         var summary = day.summary || null
         root.mode = day.mode
         root.defaultBreakMinutes = day.defaultBreakMinutes
@@ -326,11 +405,11 @@ ColumnLayout {
         root.extraPayAvailable = !!day.server && Object.prototype.hasOwnProperty.call(day.server, "extraPayCents")
         root.otherEntries = otherEntries || []
         mergeCheck.checked = false
-        root.loadForDay(date, timesheet, day.fields, projectId)
+        root.loadForDay(date, timesheet, day.fields, projectId, i.activityId)
     }
 
     /** Called by root after it loads the day's timesheet (if any) and film-day extras. */
-    function loadForDay(date, timesheet, filmEntry, projectId) {
+    function loadForDay(date, timesheet, filmEntry, projectId, activityId) {
         var d = date || new Date()
         suppressDayChosen = true
         dayField.setDate(d)
@@ -360,9 +439,15 @@ ColumnLayout {
                 root.projectChosen(pid)
             }
             Qt.callLater(trySelectPendingActivity)
-        } else if (hasId(projectId) && selectProjectId(projectId)) {
-            // No entry yet, but the day's engagement names the project.
-            root.projectChosen(projectId)
+        } else if (hasId(projectId)) {
+            // No entry yet, but the day's engagement names the project; the
+            // activity is the project's usual film activity (or the running one).
+            // Both stay pending until the project list has loaded.
+            pendingProjectId = projectId
+            pendingActivityId = hasId(activityId) ? activityId : null
+            suppressProjectSignal = false
+            trySelectPendingProject()
+            Qt.callLater(trySelectPendingActivity)
         }
     }
 
@@ -409,16 +494,7 @@ ColumnLayout {
 
     QQC2.Label {
         Layout.fillWidth: true
-        visible: root.serverMode && root.rulesetName.length > 0
-        horizontalAlignment: Text.AlignHCenter
-        elide: Text.ElideRight
-        opacity: 0.85
-        text: i18n("Film day · %1", root.rulesetName)
-    }
-
-    QQC2.Label {
-        Layout.fillWidth: true
-        visible: text.length > 0
+        visible: text.length > 0 && root.mode !== "noProject"
         wrapMode: Text.WordWrap
         font.pointSize: KanteStyle.smallFont.pointSize
         opacity: 0.8
@@ -443,20 +519,33 @@ ColumnLayout {
             QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
         }
 
-        QQC2.Label {
+        ColumnLayout {
             Layout.fillWidth: true
-            horizontalAlignment: Text.AlignHCenter
-            font.bold: true
-            font.pointSize: KanteStyle.defaultFont.pointSize * 1.15
-            color: KanteStyle.highlightColor
-            wrapMode: Text.WordWrap
-            text: root.selectedDay.toLocaleDateString(Qt.locale(), Locale.LongFormat)
+            spacing: 0
 
-            MouseArea {
-                anchors.fill: parent
-                enabled: root.configured && !root.busy
-                cursorShape: Qt.PointingHandCursor
-                onClicked: dayField.openPicker()
+            QQC2.Label {
+                Layout.fillWidth: true
+                horizontalAlignment: Text.AlignHCenter
+                font.bold: true
+                font.pointSize: KanteStyle.defaultFont.pointSize * 1.15
+                color: KanteStyle.highlightColor
+                wrapMode: Text.WordWrap
+                text: root.selectedDay.toLocaleDateString(Qt.locale(), Locale.LongFormat)
+
+                MouseArea {
+                    anchors.fill: parent
+                    enabled: root.configured && !root.busy
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: dayField.openPicker()
+                }
+            }
+            QQC2.Label {
+                Layout.fillWidth: true
+                visible: root.isToday
+                horizontalAlignment: Text.AlignHCenter
+                text: i18n("Today")
+                font: KanteStyle.labelFont()
+                color: KanteStyle.mutedTextColor
             }
         }
 
@@ -473,172 +562,287 @@ ColumnLayout {
         }
     }
 
-    ProjectActivityPickers {
-        id: pickers
+    // ── Engagement: project, activity and role of the day ───────────────
+    Item {
+        id: engagementCard
         Layout.fillWidth: true
         Layout.topMargin: Kirigami.Units.smallSpacing
-        projectPickerModel: root.projectPickerModel
-        activityPickerModel: root.activityPickerModel
-        activitySectionTitles: root.activitySectionTitles
-        pickerOpenBelow: root.pickerOpenBelow
-        pickerViewport: root.pickerViewport
-        projectEnabled: root.configured && !root.busy && root.connectionOk
-        activityEnabled: root.configured && !root.busy && root.connectionOk
-        showCreateActions: root.showCreateActions
-        onAboutToOpenPicker: function(projectField, activityField) {
-            root.aboutToOpenPicker(projectField, activityField)
+        visible: root.engagement !== null || root.hasFilmActivity
+        implicitHeight: cardRow.implicitHeight + Kirigami.Units.largeSpacing * 2
+
+        KanteCard {
+            anchors.fill: parent
+            color: KanteStyle.cardColor
+            borderColor: KanteStyle.frameColor
+            barColor: root.shownPhase === "running" ? KanteStyle.accentColor : KanteStyle.frameColor
         }
-        onProjectActivated: function(index) {
-            pendingProjectId = null
-            if (index < 0 || index >= pickers.projectPickerModel.length) {
-                root.projectChosen(null)
-                return
+
+        RowLayout {
+            id: cardRow
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.margins: Kirigami.Units.largeSpacing
+            spacing: Kirigami.Units.smallSpacing
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: Kirigami.Units.smallSpacing / 2
+
+                QQC2.Label {
+                    text: root.engagement ? i18n("Engagement") : i18n("Project")
+                    font: KanteStyle.labelFont()
+                    color: KanteStyle.mutedTextColor
+                }
+                QQC2.Label {
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
+                    text: root.engagement && root.engagement.projectName ? root.engagement.projectName : root.projectCombo.currentLabel
+                    font: KanteStyle.titleFont(KanteStyle.defaultFont.pointSize * 1.3)
+                    color: KanteStyle.strongTextColor
+                }
+                QQC2.Label {
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
+                    text: [root.activityCombo.currentLabel || i18n("Pick an activity"),
+                           root.engagement && root.engagement.crewRole ? root.engagement.crewRole : ""]
+                          .filter(function(t) { return t.length > 0 }).join(" · ")
+                    color: KanteStyle.mutedTextColor
+                }
+                QQC2.Label {
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
+                    visible: text.length > 0
+                    text: [root.engagement && root.engagement.customerName ? root.engagement.customerName : "",
+                           root.productionDayNumber > 0 ? i18n("Shooting day %1", root.productionDayNumber) : "",
+                           root.rulesetName]
+                          .filter(function(t) { return t.length > 0 }).join(" · ")
+                    font.pointSize: KanteStyle.smallFont.pointSize
+                    color: KanteStyle.mutedTextColor
+                }
             }
-            root.projectChosen(pickers.projectPickerModel[index].value.id)
-            root.projectPicked(pickers.projectPickerModel[index].value.id)
+
+            KanteToolButton {
+                Layout.alignment: Qt.AlignTop
+                icon.name: "document-edit"
+                display: QQC2.AbstractButton.IconOnly
+                text: i18n("Change engagement")
+                Accessible.name: text
+                checkable: true
+                checked: root.chooserOpen
+                enabled: root.configured && !root.busy
+                onClicked: root.chooserOpen = !root.chooserOpen
+                QQC2.ToolTip.text: text
+                QQC2.ToolTip.visible: hovered && !TouchUi.active
+                QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
+            }
         }
-        onCreateProjectRequested: root.createProjectRequested()
-        onCreateActivityRequested: root.createActivityRequested()
     }
 
-    /**
-     * Begin / Break / End, modeled on the TimeSheet app's day screen: three
-     * columns when wide; on a phone Begin and End side by side and Break below
-     * across the width (Material fields and spin boxes need the room).
-     */
-    GridLayout {
+    // Other engagements of the day, or any project and activity.
+    ColumnLayout {
+        Layout.fillWidth: true
+        Layout.topMargin: Kirigami.Units.smallSpacing
+        visible: root.chooserOpen || !engagementCard.visible
+        spacing: Kirigami.Units.smallSpacing
+
+        Repeater {
+            model: root.engagements.length > 1 ? root.engagements : []
+            delegate: KanteButton {
+                required property var modelData
+                Layout.fillWidth: true
+                checkable: true
+                checked: root.engagement !== null && String(root.engagement.projectId) === String(modelData.projectId)
+                text: [modelData.projectName || "", modelData.crewRole || ""].filter(function(t) { return t.length > 0 }).join(" · ")
+                onClicked: {
+                    root.chooserOpen = false
+                    root.engagementPicked(modelData.projectId)
+                }
+            }
+        }
+
+        QQC2.Label {
+            Layout.fillWidth: true
+            visible: engagementCard.visible
+            wrapMode: Text.WordWrap
+            font.pointSize: KanteStyle.smallFont.pointSize
+            color: KanteStyle.mutedTextColor
+            text: i18n("Or pick another project and activity:")
+        }
+
+        ProjectActivityPickers {
+            id: pickers
+            Layout.fillWidth: true
+            projectPickerModel: root.projectPickerModel
+            activityPickerModel: root.activityPickerModel
+            activitySectionTitles: root.activitySectionTitles
+            pickerOpenBelow: root.pickerOpenBelow
+            pickerViewport: root.pickerViewport
+            projectEnabled: root.configured && !root.busy && root.connectionOk
+            activityEnabled: root.configured && !root.busy && root.connectionOk
+            showCreateActions: root.showCreateActions
+            onAboutToOpenPicker: function(projectField, activityField) {
+                root.aboutToOpenPicker(projectField, activityField)
+            }
+            onProjectActivated: function(index) {
+                pendingProjectId = null
+                if (index < 0 || index >= pickers.projectPickerModel.length) {
+                    root.projectChosen(null)
+                    return
+                }
+                root.projectChosen(pickers.projectPickerModel[index].value.id)
+                root.projectPicked(pickers.projectPickerModel[index].value.id)
+            }
+            onCreateProjectRequested: root.createProjectRequested()
+            onCreateActivityRequested: root.createActivityRequested()
+        }
+    }
+
+    // ── Before: start now, or enter times ───────────────────────────────
+    ColumnLayout {
         Layout.fillWidth: true
         Layout.topMargin: Kirigami.Units.largeSpacing
-        columns: root.narrow ? 2 : 3
-        columnSpacing: Kirigami.Units.largeSpacing
-        rowSpacing: Kirigami.Units.largeSpacing
+        visible: root.shownPhase === "before"
+        spacing: Kirigami.Units.smallSpacing
+
+        KanteButton {
+            Layout.fillWidth: true
+            Layout.preferredHeight: (TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight) * 1.4
+            visible: root.isToday
+            highlighted: true
+            emphasis: KanteButton.Emphasis.Primary
+            icon.name: "media-playback-start"
+            text: i18n("Start shooting day")
+            enabled: root.configured && !root.busy && root.connectionOk && root.hasFilmActivity
+            onClicked: root.startRequested(root.projectCombo.currentItem.value.id, root.activityCombo.currentItem.value.id,
+                                           root.projectCombo.currentLabel, root.activityCombo.currentLabel)
+        }
+        QQC2.Label {
+            Layout.fillWidth: true
+            visible: root.isToday
+            horizontalAlignment: Text.AlignHCenter
+            wrapMode: Text.WordWrap
+            font.pointSize: KanteStyle.smallFont.pointSize
+            color: KanteStyle.mutedTextColor
+            text: i18n("Begins now, with the timer of the main page.")
+        }
+        KanteButton {
+            Layout.fillWidth: true
+            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+            text: i18n("Enter times instead")
+            icon.name: "document-edit"
+            enabled: root.configured && !root.busy
+            onClicked: root.manualRequested = true
+        }
+    }
+
+    // ── Running: elapsed time of the main page's timer ──────────────────
+    QQC2.Label {
+        Layout.fillWidth: true
+        Layout.topMargin: Kirigami.Units.largeSpacing
+        visible: root.shownPhase === "running"
+        horizontalAlignment: Text.AlignHCenter
+        text: KimaiApi.formatDuration(root.elapsedSeconds)
+        font: KanteStyle.monoFont(KanteStyle.defaultFont.pointSize * 2.4, true)
+        color: KanteStyle.active ? KanteStyle.accentTextColor : KanteStyle.positiveTextColor
+    }
+
+    // ── Begin / end: one display each, edited in place ──────────────────
+    RowLayout {
+        Layout.fillWidth: true
+        Layout.topMargin: Kirigami.Units.largeSpacing
+        visible: root.shownPhase !== "before"
+        spacing: Kirigami.Units.largeSpacing
 
         ColumnLayout {
             Layout.fillWidth: true
-            Layout.row: 0
-            Layout.column: 0
+            Layout.preferredWidth: 1
             spacing: Kirigami.Units.smallSpacing / 2
-
             QQC2.Label {
-                Layout.fillWidth: true
-                horizontalAlignment: Text.AlignHCenter
-                opacity: 0.75
                 text: i18n("Begin")
-            }
-            QQC2.Label {
-                Layout.fillWidth: true
-                horizontalAlignment: Text.AlignHCenter
-                font.bold: true
-                font.pointSize: KanteStyle.defaultFont.pointSize * 1.6
-                color: KanteStyle.highlightColor
-                text: DTF.formatLocaleTime(beginTime.hours, beginTime.minutes)
+                font: KanteStyle.labelFont()
+                color: KanteStyle.mutedTextColor
             }
             TimeField {
                 id: beginTime
                 Layout.fillWidth: true
-                Layout.alignment: Qt.AlignHCenter
                 enabled: root.configured && !root.busy
-            }
-        }
-
-        ColumnLayout {
-            Layout.fillWidth: true
-            Layout.row: root.narrow ? 1 : 0
-            Layout.column: root.narrow ? 0 : 1
-            Layout.columnSpan: root.narrow ? 2 : 1
-            visible: root.extrasVisible
-            spacing: Kirigami.Units.smallSpacing / 2
-
-            QQC2.Label {
-                Layout.fillWidth: true
-                horizontalAlignment: Text.AlignHCenter
-                opacity: 0.75
-                text: i18n("Break")
-            }
-            QQC2.Label {
-                Layout.fillWidth: true
-                horizontalAlignment: Text.AlignHCenter
-                font.bold: true
-                font.pointSize: KanteStyle.defaultFont.pointSize * 1.6
-                color: KanteStyle.highlightColor
-                text: root.pad2(Math.floor(root.effectiveBreakMinutes / 60)) + ":" + root.pad2(root.effectiveBreakMinutes % 60)
-            }
-            QQC2.SpinBox {
-                KanteFieldSkin { control: parent }
-                id: breakSpin
-                Layout.fillWidth: true
-                // -1 = "Default": the ruleset's break (server mode only).
-                from: root.serverMode ? -1 : 0
-                to: FilmDays.BREAK_MAX_MINUTES
-                value: 45
-                stepSize: 15
-                editable: true
-                enabled: root.extrasEnabled
-                textFromValue: function(value) {
-                    return value < 0 ? i18n("Default (%1 min)", root.fallbackBreakMinutes)
-                                     : i18np("%1 minute", "%1 minutes", value)
-                }
-                valueFromText: function(text) {
-                    var n = parseInt(text, 10)
-                    return isNaN(n) ? (root.serverMode ? -1 : 0) : n
-                }
-                property int previousValue: 45
-                onValueModified: {
-                    // Stepping up from "Default" (-1) lands on 15, not 14.
-                    if (previousValue < 0 && value === 14) {
-                        value = 15
+                onTimeEdited: {
+                    if (root.shownPhase === "running") {
+                        root.runningBeginEdited(root.stampText(root.selectedDay, beginTime))
+                    } else {
+                        root.timesTouched()
                     }
-                    previousValue = value
                 }
             }
         }
 
         ColumnLayout {
             Layout.fillWidth: true
-            Layout.row: 0
-            Layout.column: root.narrow ? 1 : 2
+            Layout.preferredWidth: 1
             spacing: Kirigami.Units.smallSpacing / 2
-
             QQC2.Label {
-                Layout.fillWidth: true
-                horizontalAlignment: Text.AlignHCenter
-                opacity: 0.75
                 text: i18n("End")
-            }
-            QQC2.Label {
-                Layout.fillWidth: true
-                horizontalAlignment: Text.AlignHCenter
-                font.bold: true
-                font.pointSize: KanteStyle.defaultFont.pointSize * 1.6
-                color: KanteStyle.highlightColor
-                text: DTF.formatLocaleTime(endTime.hours, endTime.minutes)
+                font: KanteStyle.labelFont()
+                color: KanteStyle.mutedTextColor
             }
             TimeField {
                 id: endTime
                 Layout.fillWidth: true
-                Layout.alignment: Qt.AlignHCenter
+                visible: root.shownPhase !== "running"
                 enabled: root.configured && !root.busy
+                onTimeEdited: root.timesTouched()
+            }
+            QQC2.Label {
+                Layout.fillWidth: true
+                Layout.preferredHeight: beginTime.height
+                visible: root.shownPhase === "running"
+                verticalAlignment: Text.AlignVCenter
+                text: i18n("running")
+                color: KanteStyle.mutedTextColor
             }
         }
     }
 
     QQC2.Label {
         Layout.fillWidth: true
-        Layout.topMargin: Kirigami.Units.smallSpacing
-        horizontalAlignment: Text.AlignHCenter
+        visible: root.shownPhase !== "before"
         wrapMode: Text.WordWrap
         font.pointSize: KanteStyle.smallFont.pointSize
-        opacity: root.rangeValid ? 0.9 : 0.65
-        color: root.rangeValid ? KanteStyle.textColor : KanteStyle.neutralTextColor
-        text: root.rangeValid
-              ? i18n("Work time: %1", root.durationText(root.workSeconds))
-              : i18n("Work time: invalid range")
+        color: root.shownPhase === "running" || root.rangeValid ? KanteStyle.textColor : KanteStyle.neutralTextColor
+        text: {
+            var bits = []
+            if (root.extrasVisible) {
+                bits.push(i18n("Break %1", root.durationText(root.effectiveBreakMinutes * 60)))
+            }
+            if (root.shownPhase === "running") {
+                bits.push(i18n("Work time so far %1", root.durationText(Math.max(0, root.elapsedSeconds - root.effectiveBreakMinutes * 60))))
+            } else {
+                bits.push(root.rangeValid ? i18n("Work time %1", root.durationText(root.workSeconds)) : i18n("Work time: invalid range"))
+            }
+            if (root.earningsCents >= 0 && root.shownPhase === "done") {
+                bits.push(root.formatMoney(root.earningsCents))
+            }
+            return bits.join(" · ")
+        }
     }
 
-    /** B3: more than one entry of the project on this day. */
+    KanteButton {
+        Layout.fillWidth: true
+        Layout.topMargin: Kirigami.Units.smallSpacing
+        Layout.preferredHeight: (TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight) * 1.2
+        visible: root.shownPhase === "running"
+        emphasis: KanteButton.Emphasis.Destructive
+        icon.name: "media-playback-stop"
+        text: i18n("Stop shooting day")
+        enabled: root.configured && !root.busy
+        onClicked: root.stopRequested()
+    }
+
+    /** B3: more entries of the film day's activity on this day. */
     ColumnLayout {
         Layout.fillWidth: true
-        visible: root.otherEntries.length > 0
+        visible: root.otherEntries.length > 0 && root.shownPhase === "done"
         spacing: Kirigami.Units.smallSpacing / 2
 
         QQC2.Label {
@@ -646,12 +850,8 @@ ColumnLayout {
             wrapMode: Text.WordWrap
             font.pointSize: KanteStyle.smallFont.pointSize
             color: KanteStyle.neutralTextColor
-            text: root.mergeOthers
-                ? i18np("Saving sets this entry from begin to end and deletes the other entry of this project on this day (%2). Its description and tags are lost.",
-                        "Saving sets this entry from begin to end and deletes the %1 other entries of this project on this day (%2). Their descriptions and tags are lost.",
-                        root.otherEntries.length, root.durationText(root.otherSpan.seconds))
-                : i18np("This project has %1 more entry on this day (%2). Saving only updates the entry shown; the work time above does not include the other one.",
-                        "This project has %1 more entries on this day (%2). Saving only updates the entry shown; the work time above does not include the others.",
+            text: i18np("This activity has %1 more entry on this day (%2); the work time above does not include it.",
+                        "This activity has %1 more entries on this day (%2); the work time above does not include them.",
                         root.otherEntries.length, root.durationText(root.otherSpan.seconds))
         }
 
@@ -665,218 +865,164 @@ ColumnLayout {
             onToggled: {
                 if (checked) {
                     root.applyMergedSpan()
+                    root.saveRequested(root.projectCombo.currentItem.value.id, root.activityCombo.currentItem.value.id,
+                                       root.stampText(root.selectedDay, beginTime), root.stampText(root.selectedDay, endTime),
+                                       root.currentEntryFields())
                 }
             }
         }
     }
 
-    /** Day category / catering / day type, as snapping sliders and a switch (TimeSheet-app style). */
+    // Manual entry (a past day, or "Enter times instead"): explicit save.
     RowLayout {
         Layout.fillWidth: true
-        visible: root.extrasVisible
-        Layout.topMargin: Kirigami.Units.largeSpacing
-        spacing: Kirigami.Units.largeSpacing
+        Layout.topMargin: Kirigami.Units.smallSpacing
+        visible: root.shownPhase === "manual"
+        spacing: Kirigami.Units.smallSpacing
 
-        ColumnLayout {
+        KanteButton {
             Layout.fillWidth: true
-            spacing: Kirigami.Units.smallSpacing / 2
-            QQC2.Label {
-                Layout.fillWidth: true
-                horizontalAlignment: Text.AlignHCenter
-                text: i18n("Day category")
-            }
-            QQC2.Slider {
-                KanteSliderSkin { control: parent }
-                id: categorySlider
-                Layout.fillWidth: true
-                from: 0
-                to: root.categoryOptions.length - 1
-                stepSize: 1
-                snapMode: QQC2.Slider.SnapAlways
-                enabled: root.extrasEnabled
-                QQC2.ToolTip.text: root.categoryOptions[Math.round(categorySlider.value)].label
-                QQC2.ToolTip.visible: pressed
-            }
+            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+            highlighted: true
+            emphasis: KanteButton.Emphasis.Primary
+            enabled: root.configured && !root.busy && root.connectionOk && root.hasFilmActivity && root.rangeValid
+            text: i18n("Save shooting day")
+            icon.name: "document-save"
+            onClicked: root.saveRequested(root.projectCombo.currentItem.value.id, root.activityCombo.currentItem.value.id,
+                                          root.stampText(root.selectedDay, beginTime), root.stampText(root.selectedDay, endTime),
+                                          root.currentEntryFields())
         }
-
-        ColumnLayout {
-            spacing: Kirigami.Units.smallSpacing / 2
-            QQC2.Label {
-                Layout.alignment: Qt.AlignHCenter
-                text: i18n("Catering")
-            }
-            QQC2.Switch {
-                KanteCheckSkin { control: parent; shape: KanteCheckSkin.Shape.Switch }
-                id: cateringSwitch
-                Layout.alignment: Qt.AlignHCenter
-                enabled: root.extrasEnabled
-                Accessible.name: i18n("Catering")
-            }
-        }
-
-        ColumnLayout {
-            Layout.fillWidth: true
-            spacing: Kirigami.Units.smallSpacing / 2
-            QQC2.Label {
-                Layout.fillWidth: true
-                horizontalAlignment: Text.AlignHCenter
-                text: i18n("Day type")
-            }
-            QQC2.Slider {
-                KanteSliderSkin { control: parent }
-                id: dayTypeSlider
-                Layout.fillWidth: true
-                from: 0
-                to: root.dayTypeOptions.length - 1
-                stepSize: 1
-                snapMode: QQC2.Slider.SnapAlways
-                enabled: root.extrasEnabled
-                QQC2.ToolTip.text: root.dayTypeOptions[Math.round(dayTypeSlider.value)].label
-                QQC2.ToolTip.visible: pressed
-            }
+        KanteButton {
+            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+            visible: root.phase === "before"
+            text: i18n("Cancel")
+            onClicked: root.manualRequested = false
         }
     }
 
-    /**
-     * Production shooting day ("Drehtag 37", informational) and the surcharge-day
-     * override (day 1–7 of the TV FFS week); stacked on a phone.
-     */
+    // ── The day: film-day extras, saved directly ────────────────────────
+    KanteHeading {
+        Layout.fillWidth: true
+        Layout.topMargin: Kirigami.Units.largeSpacing
+        visible: root.extrasVisible
+        level: 4
+        text: i18n("Day")
+    }
+
     GridLayout {
         Layout.fillWidth: true
-        Layout.topMargin: Kirigami.Units.smallSpacing
         visible: root.extrasVisible
-        columns: root.narrow ? 1 : 2
+        columns: 2
         columnSpacing: Kirigami.Units.largeSpacing
         rowSpacing: Kirigami.Units.smallSpacing
 
-        ColumnLayout {
+        QQC2.Label { text: i18n("Day type") }
+        QQC2.ComboBox {
+            KanteFieldSkin { control: parent }
+            id: dayTypeCombo
             Layout.fillWidth: true
-            Layout.preferredWidth: 1
-            spacing: Kirigami.Units.smallSpacing / 2
-            QQC2.Label {
-                Layout.fillWidth: true
-                text: i18n("Production shooting day")
-                elide: Text.ElideRight
-                font.bold: true
-                opacity: 0.85
+            model: root.dayTypeOptions.map(function(o) { return o.label })
+            enabled: root.extrasEnabled
+            onActivated: root.extrasTouched()
+        }
+
+        QQC2.Label { text: i18n("Catering") }
+        QQC2.Switch {
+            KanteCheckSkin { control: parent; shape: KanteCheckSkin.Shape.Switch }
+            id: cateringSwitch
+            enabled: root.extrasEnabled
+            Accessible.name: i18n("Catering")
+            onToggled: root.extrasTouched()
+        }
+
+        QQC2.Label { text: i18n("Break") }
+        QQC2.SpinBox {
+            KanteFieldSkin { control: parent }
+            id: breakSpin
+            Layout.fillWidth: true
+            // -1 = "Default": the ruleset's break (server mode only).
+            from: root.serverMode ? -1 : 0
+            to: FilmDays.BREAK_MAX_MINUTES
+            value: 45
+            stepSize: 15
+            editable: true
+            enabled: root.extrasEnabled
+            textFromValue: function(value) {
+                return value < 0 ? i18n("Default (%1 min)", root.fallbackBreakMinutes)
+                                 : i18np("%1 minute", "%1 minutes", value)
             }
-            QQC2.SpinBox {
-                KanteFieldSkin { control: parent }
-                id: productionDaySpin
-                Layout.fillWidth: true
-                from: 0
-                to: FilmDays.DAY_NUMBER_MAX
-                editable: true
-                enabled: root.extrasEnabled
-                Accessible.name: i18n("Production shooting day")
-                textFromValue: function(value) { return value === 0 ? i18n("Not set") : String(value) }
-                valueFromText: function(text) {
-                    var n = parseInt(text, 10)
-                    return isNaN(n) ? 0 : n
+            valueFromText: function(text) {
+                var n = parseInt(text, 10)
+                return isNaN(n) ? (root.serverMode ? -1 : 0) : n
+            }
+            property int previousValue: 45
+            onValueModified: {
+                // Stepping up from "Default" (-1) lands on 15, not 14.
+                if (previousValue < 0 && value === 14) {
+                    value = 15
                 }
+                previousValue = value
+                root.extrasTouched()
             }
         }
 
-        ColumnLayout {
+        QQC2.Label { text: i18n("Day category") }
+        QQC2.ComboBox {
+            KanteFieldSkin { control: parent }
+            id: categoryCombo
             Layout.fillWidth: true
-            Layout.preferredWidth: 1
-            visible: root.serverMode
-            spacing: Kirigami.Units.smallSpacing / 2
-            QQC2.Label {
-                Layout.fillWidth: true
-                text: i18n("Surcharge day (1–7, empty = automatic)")
-                elide: Text.ElideRight
-                font.bold: true
-                opacity: 0.85
-            }
-            QQC2.SpinBox {
-                KanteFieldSkin { control: parent }
-                id: surchargeDaySpin
-                Layout.fillWidth: true
-                from: 0
-                to: FilmDays.SURCHARGE_DAY_MAX
-                editable: true
-                enabled: root.extrasEnabled
-                Accessible.name: i18n("Surcharge day (1–7, empty = automatic)")
-                textFromValue: function(value) { return value === 0 ? i18n("Automatic") : String(value) }
-                valueFromText: function(text) {
-                    var n = parseInt(text, 10)
-                    return isNaN(n) ? 0 : n
-                }
-            }
-        }
-    }
-
-    /** Extra pay (editable) next to the day's pay from the plugin's day summary. */
-    RowLayout {
-        Layout.fillWidth: true
-        visible: root.extrasVisible
-        Layout.topMargin: Kirigami.Units.largeSpacing
-        spacing: Kirigami.Units.largeSpacing
-
-        ColumnLayout {
-            Layout.fillWidth: true
-            visible: root.extraPayAvailable
-            spacing: Kirigami.Units.smallSpacing / 2
-            QQC2.Label {
-                Layout.fillWidth: true
-                text: i18n("Extra pay / expenses")
-                elide: Text.ElideRight
-                font.bold: true
-                opacity: 0.85
-            }
-            KanteTextField {
-                id: extraPayField
-                Layout.fillWidth: true
-                enabled: root.extrasEnabled
-                placeholderText: root.currency ? "0.00 " + root.currency : "0.00"
-                inputMethodHints: Qt.ImhFormattedNumbersOnly
-                validator: RegularExpressionValidator { regularExpression: /[0-9]*[.,]?[0-9]{0,2}/ }
-                background: Rectangle {
-                    color: "transparent"
-                    border.width: 0
-                    Rectangle {
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        anchors.bottom: parent.bottom
-                        height: 1
-                        color: extraPayField.activeFocus ? KanteStyle.highlightColor : KanteStyle.disabledTextColor
-                    }
-                }
-            }
+            model: root.categoryOptions.map(function(o) { return o.label })
+            enabled: root.extrasEnabled
+            onActivated: root.extrasTouched()
         }
 
-        ColumnLayout {
+        QQC2.Label {
+            visible: surchargeDaySpin.visible
+            text: i18n("Surcharge day")
+        }
+        QQC2.SpinBox {
+            KanteFieldSkin { control: parent }
+            id: surchargeDaySpin
             Layout.fillWidth: true
-            spacing: Kirigami.Units.smallSpacing / 2
-            QQC2.Label {
-                text: i18n("Earnings (non-binding)")
-                font.bold: true
-                opacity: 0.85
+            // Set once the day runs (1–7 of the TV FFS week; 0 = automatic).
+            visible: root.serverMode && (root.shownPhase === "running" || root.shownPhase === "done")
+            from: 0
+            to: FilmDays.SURCHARGE_DAY_MAX
+            editable: true
+            enabled: root.extrasEnabled
+            Accessible.name: i18n("Surcharge day")
+            textFromValue: function(value) { return value === 0 ? i18n("Automatic") : String(value) }
+            valueFromText: function(text) {
+                var n = parseInt(text, 10)
+                return isNaN(n) ? 0 : n
             }
-            QQC2.Label {
-                Layout.fillWidth: true
-                opacity: root.earningsCents >= 0 ? 0.9 : 0.55
-                text: root.earningsCents >= 0 ? root.formatMoney(root.earningsCents) : "—"
-                QQC2.ToolTip.text: root.serverMode
-                    ? i18n("Day pay from the Drehzettel plugin (as saved on the server, without weekly overtime)")
-                    : i18n("Needs the Drehzettel plugin on the Kimai server")
-                QQC2.ToolTip.visible: earningsHover.hovered
-                HoverHandler { id: earningsHover }
-            }
+            onValueModified: root.extrasTouched()
+        }
+
+        QQC2.Label {
+            visible: extraPayField.visible
+            text: i18n("Extra pay / expenses")
+        }
+        KanteTextField {
+            id: extraPayField
+            Layout.fillWidth: true
+            visible: root.extraPayAvailable && root.shownPhase !== "before"
+            enabled: root.extrasEnabled
+            placeholderText: root.currency ? "0.00 " + root.currency : "0.00"
+            inputMethodHints: Qt.ImhFormattedNumbersOnly
+            validator: RegularExpressionValidator { regularExpression: /[0-9]*[.,]?[0-9]{0,2}/ }
+            onEditingFinished: root.extrasTouched()
         }
     }
 
     RowLayout {
         Layout.fillWidth: true
-        Layout.topMargin: Kirigami.Units.largeSpacing
+        Layout.topMargin: Kirigami.Units.smallSpacing
         visible: root.extrasVisible
 
         QQC2.Label {
             Layout.fillWidth: true
             text: i18n("Note")
-            font.bold: true
-            opacity: 0.85
         }
         QQC2.Label {
             visible: noteField.length > FilmDays.NOTE_MAX_LENGTH - 100
@@ -902,6 +1048,7 @@ ColumnLayout {
                 text = text.substring(0, FilmDays.NOTE_MAX_LENGTH)
                 cursorPosition = Math.min(pos, length)
             }
+            root.extrasTouched()
         }
         background: Rectangle {
             // Material centers the first line in the background's implicit height;
@@ -919,37 +1066,31 @@ ColumnLayout {
         }
     }
 
-    RowLayout {
+    // ── Other activities of the day (travel …): information only ────────
+    KanteHeading {
         Layout.fillWidth: true
         Layout.topMargin: Kirigami.Units.largeSpacing
-        spacing: Kirigami.Units.smallSpacing
+        visible: root.otherActivities.length > 0
+        level: 4
+        text: i18n("Other activities")
+    }
 
-        KanteButton {
+    Repeater {
+        model: root.otherActivities
+        delegate: RowLayout {
+            required property var modelData
             Layout.fillWidth: true
-            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-            highlighted: true
-            emphasis: KanteButton.Emphasis.Primary
-            enabled: root.configured && !root.busy && root.connectionOk
-                     && projectCombo.currentIndex >= 0 && activityCombo.currentIndex >= 0
-                     && root.rangeValid
-            text: i18n("Save shooting day")
-            icon.name: "document-save"
-            onClicked: {
-                var project = projectCombo.currentItem.value
-                var activity = activityCombo.currentItem.value
-                root.saveRequested(
-                    project.id,
-                    activity.id,
-                    root.stampText(root.selectedDay, beginTime),
-                    root.stampText(root.selectedDay, endTime),
-                    root.currentEntryFields())
+            QQC2.Label {
+                Layout.fillWidth: true
+                text: modelData.label
+                elide: Text.ElideRight
+                color: KanteStyle.mutedTextColor
             }
-        }
-
-        KanteButton {
-            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-            text: i18n("Cancel")
-            onClicked: root.cancelled()
+            QQC2.Label {
+                text: modelData.timeText
+                font: KanteStyle.monoFont(KanteStyle.smallFont.pointSize, false)
+                color: KanteStyle.mutedTextColor
+            }
         }
     }
 }

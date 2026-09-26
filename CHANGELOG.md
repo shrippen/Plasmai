@@ -9,6 +9,14 @@
 - Kante comes from the shared Kante design system (the same style as the shrippen web pages); Plasmai no longer keeps its own copy
 - New style **Kante Light**: Kante's layouts, cut corners, titles and monospace figures with your theme's colors and controls; follows any Plasma color scheme, light or dark
 
+### Recent and film day
+- Kante: Recent is grouped by day ("Today", "Yesterday", weekday and date); each row shows the begin time, the activity in bold over the project, and the duration, so long names have room on the phone
+- The Recent row menu opens with a long press on the entry (right click on the desktop); Kante rows have no menu button any more
+- Film day: before the shoot the view shows the day's engagement and one button, "Start shooting day", which starts the timer of the main page; entering begin and end by hand stays available
+- Film day while running: begin can be corrected, end reads "running", break, work time and pay so far; "Stop shooting day" ends it. The surcharge day can be set from here on
+- Film day afterwards: begin, end and the extras save directly; begin and end no longer appear twice
+- Film day: the production's shooting day is counted from the engagement's entries in Kimai instead of being entered; a pencil on the engagement picks another engagement or project
+
 ### App
 - Pull to refresh on every page: timer, statistics, film day, trips, favorites, add entry, settings and connection reload their data
 

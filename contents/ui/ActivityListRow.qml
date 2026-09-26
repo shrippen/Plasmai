@@ -37,12 +37,31 @@ QQC2.ItemDelegate {
 
     /** Kante only: favorites as tiles, Recent as a time line. System ignores it. */
     property int presentation: ActivityListRow.Presentation.List
-    /** Kante time line: "07:42 – 09:40", "Yesterday 10:00", … ("" = none). */
+    /** Kante time line: begin time "07:42" ("" = none). */
     property string timeText: ""
     /** Kante time line: duration in h:mm ("" = none). */
     property string durationText: ""
     readonly property bool kanteTile: KanteStyle.active && presentation === ActivityListRow.Presentation.Tile
     readonly property bool kanteLine: KanteStyle.active && presentation === ActivityListRow.Presentation.List
+
+    readonly property bool hasHistoryActions: showHistoryActions
+                                              && (canEditStopped || canDeleteEntry || canSplitEntry || canPin)
+
+    /** Entry menu at (x, y) in the row: long press, right click (the ⋮ button outside the time line). */
+    function openHistoryMenu(x, y) {
+        if (!hasHistoryActions) {
+            return
+        }
+        historyMenu.popup(root, Math.min(x, root.width - historyMenu.implicitWidth), y)
+    }
+
+    onPressAndHold: openHistoryMenu(pressX, pressY)
+
+    MouseArea {
+        anchors.fill: parent
+        acceptedButtons: Qt.RightButton
+        onClicked: function(mouse) { root.openHistoryMenu(mouse.x, mouse.y) }
+    }
 
     signal editRequested()
     signal deleteRequested()
@@ -161,33 +180,20 @@ QQC2.ItemDelegate {
             PlasmaComponents3.Label {
                 Layout.fillWidth: true
                 Layout.preferredWidth: 0
-                visible: !root.kanteLine
                 text: root.titleText
-                font.weight: root.kanteTile ? Font.DemiBold : KanteStyle.defaultFont.weight
+                font.weight: root.kanteLine ? Font.Bold : (root.kanteTile ? Font.DemiBold : KanteStyle.defaultFont.weight)
+                color: root.kanteLine ? KanteStyle.strongTextColor : Kirigami.Theme.textColor
                 elide: Text.ElideRight
             }
 
             PlasmaComponents3.Label {
                 Layout.fillWidth: true
                 Layout.preferredWidth: 0
-                visible: root.subtitleText.length > 0 && !root.kanteLine
+                visible: root.subtitleText.length > 0
                 text: root.subtitleText
                 font.pointSize: KanteStyle.smallFont.pointSize
                 color: KanteStyle.active ? KanteStyle.mutedTextColor : Kirigami.Theme.textColor
                 opacity: KanteStyle.active ? 1 : 0.7
-                elide: Text.ElideRight
-            }
-
-            // Kante time line: "Activity · Project" on one line.
-            PlasmaComponents3.Label {
-                Layout.fillWidth: true
-                Layout.preferredWidth: 0
-                visible: root.kanteLine
-                textFormat: Text.StyledText
-                text: "<b>" + root.escaped(root.titleText) + "</b>"
-                    + (root.subtitleText.length > 0
-                       ? "<font color=\"" + KanteStyle.mutedTextColor + "\"> · " + root.escaped(root.subtitleText) + "</font>"
-                       : "")
                 elide: Text.ElideRight
             }
         }
@@ -253,8 +259,8 @@ QQC2.ItemDelegate {
             id: historyButton
             property bool hovered: historyMouseArea.containsMouse
             property bool pressed: historyMouseArea.pressed
-            visible: root.showHistoryActions
-                     && (root.canEditStopped || root.canDeleteEntry || root.canSplitEntry || root.canPin)
+            // Kante time line: no button, the menu opens on a long press (or right click).
+            visible: root.hasHistoryActions && !root.kanteLine
             Layout.alignment: Qt.AlignVCenter
             Layout.preferredWidth: TouchUi.iconSize + Kirigami.Units.smallSpacing * 2
             Layout.maximumWidth: TouchUi.iconSize + Kirigami.Units.smallSpacing * 2
@@ -294,11 +300,11 @@ QQC2.ItemDelegate {
         }
     }
 
-    // Widest time label, so the colored bars line up: "00:00 – 00:00".
+    // Widest time label (the time line shows the begin), so the colored bars line up.
     TextMetrics {
         id: timeMetrics
         font: KanteStyle.monoFont(KanteStyle.smallFont.pointSize, false)
-        text: "00:00 – 00:00"
+        text: "00:00"
     }
 
     function escaped(text) {

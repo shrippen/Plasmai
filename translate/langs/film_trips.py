@@ -9,6 +9,9 @@ Column order: fr, es, it, nl, pt_BR, pl, uk, ru, ja, zh_CN
 LANGS = ["fr", "es", "it", "nl", "pt_BR", "pl", "uk", "ru", "ja", "zh_CN"]
 
 ROWS = [
+    ("Surcharge day",
+     "Jour de majoration", "Día de recargo", "Giorno di maggiorazione", "Toeslagdag", "Dia de adicional",
+     "Dzień dodatku", "День надбавки", "День надбавки", "割増日", "加班补贴日"),
     ("Film day",
      "Journée de tournage", "Día de rodaje", "Giornata di riprese", "Draaidag", "Dia de filmagem",
      "Dzień zdjęciowy", "Знімальний день", "Съёмочный день", "撮影日", "拍摄日"),
@@ -428,6 +431,18 @@ ROWS = [
 
 # Plural forms per language: fr/es/it/nl/pt_BR 2, pl/uk/ru 3, ja/zh_CN 1.
 PLURALS = {
+    "This activity has %1 more entry on this day (%2); the work time above does not include it.": {
+        "fr": ["Cette activité a %1 autre entrée ce jour (%2) ; le temps de travail ci-dessus ne l’inclut pas.", "Cette activité a %1 autres entrées ce jour (%2) ; le temps de travail ci-dessus ne les inclut pas."],
+        "es": ["Esta actividad tiene %1 entrada más este día (%2); el tiempo de trabajo de arriba no la incluye.", "Esta actividad tiene %1 entradas más este día (%2); el tiempo de trabajo de arriba no las incluye."],
+        "it": ["Questa attività ha %1 altra voce in questo giorno (%2); il tempo di lavoro sopra non la include.", "Questa attività ha %1 altre voci in questo giorno (%2); il tempo di lavoro sopra non le include."],
+        "nl": ["Deze activiteit heeft op deze dag nog %1 invoer (%2); de werktijd hierboven telt die niet mee.", "Deze activiteit heeft op deze dag nog %1 invoeren (%2); de werktijd hierboven telt die niet mee."],
+        "pt_BR": ["Esta atividade tem mais %1 entrada neste dia (%2); o tempo de trabalho acima não a inclui.", "Esta atividade tem mais %1 entradas neste dia (%2); o tempo de trabalho acima não as inclui."],
+        "pl": ["Ta czynność ma tego dnia jeszcze %1 wpis (%2); czas pracy powyżej go nie obejmuje.", "Ta czynność ma tego dnia jeszcze %1 wpisy (%2); czas pracy powyżej ich nie obejmuje.", "Ta czynność ma tego dnia jeszcze %1 wpisów (%2); czas pracy powyżej ich nie obejmuje."],
+        "uk": ["Ця діяльність має цього дня ще %1 запис (%2); робочий час вище його не враховує.", "Ця діяльність має цього дня ще %1 записи (%2); робочий час вище їх не враховує.", "Ця діяльність має цього дня ще %1 записів (%2); робочий час вище їх не враховує."],
+        "ru": ["У этого вида деятельности в этот день есть ещё %1 запись (%2); рабочее время выше её не учитывает.", "У этого вида деятельности в этот день есть ещё %1 записи (%2); рабочее время выше их не учитывает.", "У этого вида деятельности в этот день есть ещё %1 записей (%2); рабочее время выше их не учитывает."],
+        "ja": ["この作業にはこの日さらに %1 件のエントリーがあります (%2)。上の作業時間には含まれません。"],
+        "zh_CN": ["此活动当天还有 %1 条记录 (%2);上面的工作时间不包含它们。"],
+    },
     "%1 other entry of this day could not be deleted: %2": {
         "fr": ["%1 autre entrée de ce jour n’a pas pu être supprimée : %2", "%1 autres entrées de ce jour n’ont pas pu être supprimées : %2"],
         "es": ["No se pudo eliminar %1 otra entrada de este día: %2", "No se pudieron eliminar %1 otras entradas de este día: %2"],

@@ -50,6 +50,33 @@ TestCase {
         compare(DateTimeFormat.hoursMinutes(-(15 * 3600 + 31 * 60)), "−15:31")
     }
 
+    // Recent entries grouped by local day for the Kante time line (variant B).
+    function test_groupByDay() {
+        var now = new Date(2026, 8, 26, 16, 0, 0)
+        var e = [
+            { id: 1, begin: new Date(2026, 8, 25, 21, 31).toISOString(), duration: 1500 },
+            { id: 2, begin: new Date(2026, 8, 25, 13, 15).toISOString(), duration: 29700 },
+            { id: 3, begin: new Date(2026, 8, 24, 11, 50).toISOString(), duration: 37140 },
+            { id: 4, begin: new Date(2026, 8, 23, 20, 19).toISOString(), duration: 5880 }
+        ]
+        var g = DateTimeFormat.groupByDay(e, now, function(x) { return x.begin })
+        compare(g.length, 3)
+        compare(g[0].daysAgo, 1)
+        compare(g[0].entries.map(function(x) { return x.id }), [1, 2])
+        compare(g[1].daysAgo, 2)
+        compare(g[2].entries.length, 1)
+        compare(DateTimeFormat.groupByDay([], now, function(x) { return x.begin }).length, 0)
+    }
+
+    function test_dayHeaderLabel() {
+        var now = new Date(2026, 8, 26, 16, 0, 0)
+        compare(DateTimeFormat.dayHeaderLabel(new Date(2026, 8, 26), now, "Today", "Yesterday"), "Today")
+        compare(DateTimeFormat.dayHeaderLabel(new Date(2026, 8, 25), now, "Today", "Yesterday"), "Yesterday")
+        var d = new Date(2026, 8, 23)
+        compare(DateTimeFormat.dayHeaderLabel(d, now, "Today", "Yesterday"),
+                Qt.locale().dayName(d.getDay(), 0) + ", " + DateTimeFormat.formatLocaleDate(d))
+    }
+
     function test_entryTimeLabel() {
         var now = new Date(2026, 8, 26, 16, 0, 0)
         var clock = function(h, m) { return DateTimeFormat.formatLocaleTime(h, m) }

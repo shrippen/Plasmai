@@ -6,6 +6,7 @@ import "../contents/code/timeTracker.js" as TimeTracker
 import "../contents/code/kimaiApi.js" as KimaiApi
 import "../contents/code/filmDays.js" as FilmDays
 import "../contents/code/filmDaySync.js" as FilmDaySync
+import "../contents/code/dateTimeFormat.js" as DTF
 import "shared"
 import "Kante"
 
@@ -25,7 +26,17 @@ Kirigami.Page {
 
     function currentUrl() { return TimeTracker.resolveUrl(root.activeProfile) }
 
-    function loadForDate(date) {
+    /** Shown entry's time label ("12:15–12:45") for the other activities. */
+    function spanText(ts) {
+        function clock(v) {
+            var d = v ? new Date(v) : null
+            return d && !isNaN(d.getTime()) ? DTF.formatLocaleTime(d.getHours(), d.getMinutes()) : "…"
+        }
+        return clock(ts.begin) + "–" + clock(ts.end)
+    }
+
+    /** preferSelected: the engagement chooser picked the project, it wins over the day's engagement. */
+    function loadForDate(date, preferSelected) {
         page.selectedDate = date
         var selectedProjectIdForDay = (filmDayView.projectCombo.currentIndex >= 0)
             ? filmDayView.projectCombo.currentItem.value.id : null
@@ -52,11 +63,78 @@ Kirigami.Page {
                     if (day.mode === FilmDaySync.Mode.SERVER && root.filmDayMode === FilmDaySync.Mode.OFFLINE) {
                         root.filmDayMode = FilmDaySync.Mode.SERVER
                     }
-                    filmDayView.applyLoadedDay(date, r.match, day,
+                    var daysFromToday = -DTF.daysBefore(date, new Date())
+                    var info = FilmDaySync.viewInfo(r, {
+                        entries: entries, active: root.isTracking ? root.activeTimesheet : null,
+                        recent: root.recentTimesheets, daysFromToday: daysFromToday,
+                        ids: { projectOf: KimaiApi.projectId, activityOf: KimaiApi.activityId },
+                        labelOf: function(ts) {
+                            return KimaiApi.displayActivityName(ts, root.allActivities, root.activitiesByProject)
+                                + " · " + KimaiApi.displayProjectName(ts, root.projects)
+                        },
+                        timeOf: page.spanText
+                    })
+                    page.filmDayTimesheet = r.match
+                    filmDayView.applyLoadedDay(date, info.timesheet, day,
                         KimaiApi.customerCurrencyOfProject(root.projectById(r.projectId), root.customers),
-                        r.others, r.projectId)
-                })
+                        r.others, r.projectId, {
+                            phase: info.phase, isToday: info.isToday, activityId: info.activityId,
+                            engagement: r.engagement, engagements: r.engagements,
+                            otherActivities: info.otherActivities
+                        })
+                    page.loadProductionDay(serial, r, info, dateStr)
+                }, !!preferSelected)
             })
+    }
+
+    /** Production shooting day of the engagement, filled in once counted. */
+    function loadProductionDay(serial, r, info, dateStr) {
+        if (!r.engagement || !r.engagement.validFrom) return
+        FilmDaySync.productionDay(root.filmDayContext(), r.projectId, info.activityId,
+                                  String(r.engagement.validFrom), dateStr,
+                                  { projectOf: KimaiApi.projectId, activityOf: KimaiApi.activityId }, function(count) {
+            if (serial !== page.loadSerial || !count) return
+            // A day without its entry yet (before the start) is the next shooting day.
+            var n = count.includesDay ? count.count : (info.phase === "before" ? count.count + 1 : 0)
+            filmDayView.productionDayNumber = n
+            // No activity from the day or Recent: the engagement's usual film activity.
+            if (filmDayView.activityCombo.currentIndex < 0 && count.activityId !== null) {
+                filmDayView.pendingActivityId = count.activityId
+                filmDayView.trySelectPendingActivity()
+            }
+        })
+    }
+
+    /** Direct save of the extras (no busy state: the fields stay usable). */
+    function saveExtrasNow(fields) {
+        var projectId = filmDayView.projectCombo.currentIndex >= 0 ? filmDayView.projectCombo.currentItem.value.id : null
+        var dateStr = KimaiApi.localDateString(page.selectedDate)
+        FilmDaySync.saveExtras(root.filmDayContext(), {
+            projectId: projectId, dateStr: dateStr, fields: fields,
+            server: page.filmDayServer, dayMode: page.filmDayLoadMode
+        }, function(result) {
+            if (result.extras === "failed") {
+                root.showPassiveNotification(i18n("The film day was not saved: %1",
+                                                  (result.error && result.error.detail) || ApiErrors.text(result.error)))
+                return
+            }
+            if (result.server) page.filmDayServer = result.server
+            if (result.extras === "saved" && KimaiApi.drehzettelHasFeature(root.filmDayContext().ping, "daySummary")) {
+                KimaiApi.fetchDaySummary(page.currentUrl(), root.apiToken, projectId, dateStr, function(sres) {
+                    if (sres.ok && sres.data && typeof sres.data.payCents === "number") {
+                        filmDayView.earningsCents = sres.data.payCents
+                    }
+                })
+            }
+        })
+    }
+
+    function parseLocalStamp(text) {
+        var s = String(text || "").trim().replace(" ", "T")
+        if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(s)) {
+            s += ":00"
+        }
+        return new Date(s)
     }
 
     function stepDay(deltaDays) {
@@ -65,17 +143,11 @@ Kirigami.Page {
         loadForDate(next)
     }
 
-    function doSave(projectId, activityId, beginText, endText, filmDayFields) {
+    /** Saves entry and extras. direct: begin / end of the shown entry changed (no message, fields stay usable). */
+    function doSave(projectId, activityId, beginText, endText, filmDayFields, direct) {
         if (page.saving) return
-        function parseLocalStamp(text) {
-            var s = String(text || "").trim().replace(" ", "T")
-            if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(s)) {
-                s += ":00"
-            }
-            return new Date(s)
-        }
-        var beginDate = parseLocalStamp(beginText)
-        var endDate = parseLocalStamp(endText)
+        var beginDate = page.parseLocalStamp(beginText)
+        var endDate = page.parseLocalStamp(endText)
         if (isNaN(beginDate.getTime()) || isNaN(endDate.getTime())) {
             root.showPassiveNotification(i18n("Enter valid begin and end date/time."))
             return
@@ -84,7 +156,7 @@ Kirigami.Page {
             root.showPassiveNotification(i18n("End must be after begin."))
             return
         }
-        page.saving = true
+        page.saving = !direct
         var breakMinutes = filmDayView.extrasVisible ? filmDayView.effectiveBreakMinutes : 0
         // B3: the other entries of the project on this day, deleted after a successful save.
         var mergeIds = filmDayView.mergeOthers ? filmDayView.otherEntryIds() : []
@@ -123,11 +195,13 @@ Kirigami.Page {
                     page.loadForDate(page.selectedDate)
                     return
                 }
-                root.sendNotification(
-                    i18n("Shooting day saved"),
-                    KimaiApi.formatDurationShort(FilmDays.workSecondsFromSpan(
-                        beginDate.getTime(), endDate.getTime(), breakMinutes)))
-                pageStack.pop()
+                if (!direct) {
+                    root.sendNotification(
+                        i18n("Shooting day saved"),
+                        KimaiApi.formatDurationShort(FilmDays.workSecondsFromSpan(
+                            beginDate.getTime(), endDate.getTime(), breakMinutes)))
+                }
+                page.loadForDate(page.selectedDate)
                 // A4: a travel day usually comes with a trip; offer it linked to the saved entry.
                 var savedEntry = result.timesheet
                 if (filmDayFields && filmDayFields.dayType === FilmDays.DayType.TRAVEL && root.canEditTrips && savedEntry) {
@@ -184,8 +258,25 @@ Kirigami.Page {
                 onDayChosen: function(date) {
                     page.loadForDate(date)
                 }
+                elapsedSeconds: root.elapsedSeconds
                 onSaveRequested: function(projectId, activityId, beginText, endText, filmDayFields) {
-                    page.doSave(projectId, activityId, beginText, endText, filmDayFields)
+                    page.doSave(projectId, activityId, beginText, endText, filmDayFields, false)
+                }
+                onTimesEdited: function(beginText, endText) {
+                    page.doSave(filmDayView.projectCombo.currentItem.value.id, filmDayView.activityCombo.currentItem.value.id,
+                                beginText, endText, filmDayView.currentEntryFields(), true)
+                }
+                onExtrasEdited: function(fields) { page.saveExtrasNow(fields) }
+                onStartRequested: function(projectId, activityId, projectLabel, activityLabel) {
+                    root.switchToActivity(projectId, activityId, projectLabel, activityLabel, "")
+                }
+                onStopRequested: root.stopTracking()
+                onRunningBeginEdited: function(beginText) {
+                    root.patchActiveEntry({ begin: KimaiApi.localDateTimeString(page.parseLocalStamp(beginText)) })
+                }
+                onEngagementPicked: function(projectId) {
+                    filmDayView.selectProjectId(projectId)
+                    page.loadForDate(page.selectedDate, true)
                 }
                 onCancelled: pageStack.pop()
                 onCreateProjectRequested: { createEntityDialog.customers = root.customers; createEntityDialog.resetForMode("project"); createEntityDialog.open() }
@@ -196,6 +287,12 @@ Kirigami.Page {
                 }
             }
         }
+    }
+
+    // The film day follows the main page's timer (Start, Stop, a switch elsewhere).
+    Connections {
+        target: root
+        function onIsTrackingChanged() { page.loadForDate(page.selectedDate) }
     }
 
     CreateEntityDialog {

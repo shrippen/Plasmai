@@ -21,6 +21,7 @@ import "../code/buildInfo.js" as BuildInfo
 import "../code/timesheetFields.js" as TimesheetFields
 import "../code/filmDays.js" as FilmDays
 import "../code/filmDaySync.js" as FilmDaySync
+import "../code/dateTimeFormat.js" as DTF
 import "../code/mileage.js" as Mileage
 import "../code/statsData.js" as StatsData
 import "../code/providerUtil.js" as ProviderUtil
@@ -1091,8 +1092,20 @@ PlasmoidItem {
         return null
     }
 
-    /** Loads the Kimai entry and film-day extras for `date` into the Filmday view. */
-    function loadFilmDayForDate(date) {
+    /** Time label of an entry ("12:15–12:45") for the film day's other activities. */
+    function filmDaySpanText(ts) {
+        function clock(v) {
+            var d = v ? new Date(v) : null
+            return d && !isNaN(d.getTime()) ? DTF.formatLocaleTime(d.getHours(), d.getMinutes()) : "…"
+        }
+        return clock(ts.begin) + "–" + clock(ts.end)
+    }
+
+    /**
+     * Loads the Kimai entry and film-day extras for `date` into the Filmday view.
+     * preferSelected: the engagement chooser picked the project, it wins over the day's engagement.
+     */
+    function loadFilmDayForDate(date, preferSelected) {
         filmDaySelectedDate = date
         if (!isConfigured) {
             return
@@ -1130,14 +1143,93 @@ PlasmoidItem {
                     if (!root.filmDayViewRef) {
                         return
                     }
-                    root.filmDayViewRef.applyLoadedDay(date, r.match, day,
+                    var info = FilmDaySync.viewInfo(r, {
+                        entries: entries, active: root.isTracking ? root.activeTimesheet : null,
+                        recent: root.recentTimesheets, daysFromToday: -DTF.daysBefore(date, new Date()),
+                        ids: { projectOf: KimaiApi.projectId, activityOf: KimaiApi.activityId },
+                        labelOf: function(ts) {
+                            return KimaiApi.displayActivityName(ts, root.allActivities, root.activitiesByProject)
+                                + " · " + KimaiApi.displayProjectName(ts, root.projects)
+                        },
+                        timeOf: root.filmDaySpanText
+                    })
+                    root.filmDayViewRef.applyLoadedDay(date, info.timesheet, day,
                         KimaiApi.customerCurrencyOfProject(root.projectOfId(r.projectId), root.customers),
-                        r.others, r.projectId)
-                })
+                        r.others, r.projectId, {
+                            phase: info.phase, isToday: info.isToday, activityId: info.activityId,
+                            engagement: r.engagement, engagements: r.engagements,
+                            otherActivities: info.otherActivities
+                        })
+                    loadFilmDayProductionDay(serial, r, info, dateStr)
+                }, !!preferSelected)
             })
     }
 
-    function saveFilmDay(projectId, activityId, beginText, endText, filmDayFields) {
+    /** Production shooting day of the engagement, filled in once counted. */
+    function loadFilmDayProductionDay(serial, r, info, dateStr) {
+        if (!r.engagement || !r.engagement.validFrom) {
+            return
+        }
+        FilmDaySync.productionDay(filmDayContext(), r.projectId, info.activityId,
+                                  String(r.engagement.validFrom), dateStr,
+                                  { projectOf: KimaiApi.projectId, activityOf: KimaiApi.activityId }, function(count) {
+            var view = root.filmDayViewRef
+            if (serial !== filmDayLoadSerial || !count || !view) {
+                return
+            }
+            // A day without its entry yet (before the start) is the next shooting day.
+            view.productionDayNumber = count.includesDay ? count.count
+                : (info.phase === "before" ? count.count + 1 : 0)
+            // No activity from the day or Recent: the engagement's usual film activity.
+            if (view.activityCombo.currentIndex < 0 && count.activityId !== null) {
+                view.pendingActivityId = count.activityId
+                view.trySelectPendingActivity()
+            }
+        })
+    }
+
+    /** Direct save of the film day's extras (no busy state: the fields stay usable). */
+    function saveFilmDayExtras(fields) {
+        var view = root.filmDayViewRef
+        if (!view) {
+            return
+        }
+        var projectId = view.projectCombo.currentIndex >= 0 ? view.projectCombo.currentItem.value.id : null
+        var dateStr = KimaiApi.localDateString(root.filmDaySelectedDate)
+        FilmDaySync.saveExtras(filmDayContext(), {
+            projectId: projectId, dateStr: dateStr, fields: fields,
+            server: filmDayServer, dayMode: filmDayLoadMode
+        }, function(result) {
+            if (result.extras === "failed") {
+                userMessage = i18n("The film day was not saved: %1",
+                                   (result.error && result.error.detail) || ApiErrors.text(result.error))
+                return
+            }
+            if (result.server) {
+                filmDayServer = result.server
+            }
+            if (result.extras === "saved" && KimaiApi.drehzettelHasFeature(filmDayContext().ping, "daySummary")) {
+                KimaiApi.fetchDaySummary(kimaiUrl, apiToken, projectId, dateStr, function(sres) {
+                    if (sres.ok && sres.data && typeof sres.data.payCents === "number" && root.filmDayViewRef) {
+                        root.filmDayViewRef.earningsCents = sres.data.payCents
+                    }
+                })
+            }
+        })
+    }
+
+    // The film day follows the timer (Start, Stop, a switch from the main view).
+    Connections {
+        target: root
+        function onIsTrackingChanged() {
+            if (root.mainViewMode === "filmday") {
+                root.loadFilmDayForDate(root.filmDaySelectedDate)
+            }
+        }
+    }
+
+    /** Saves entry and extras. direct: begin / end of the shown entry changed (no message, fields stay usable). */
+    function saveFilmDay(projectId, activityId, beginText, endText, filmDayFields, direct) {
         if (!isConfigured || isBusy) {
             return
         }
@@ -1158,7 +1250,7 @@ PlasmoidItem {
             userMessage = i18n("End must be after begin.")
             return
         }
-        isBusy = true
+        isBusy = !direct
         lastError = null
         userMessage = ""
         var dateStr = KimaiApi.localDateString(root.filmDaySelectedDate)
@@ -1202,10 +1294,12 @@ PlasmoidItem {
                 }
                 refreshRecentTimesheets()
                 refreshWorkTotals()
-                sendNotification(
-                    i18n("Shooting day saved"),
-                    KimaiApi.formatDurationShort(FilmDays.workSecondsFromSpan(
-                        beginDate.getTime(), endDate.getTime(), breakMinutes)))
+                if (!direct) {
+                    sendNotification(
+                        i18n("Shooting day saved"),
+                        KimaiApi.formatDurationShort(FilmDays.workSecondsFromSpan(
+                            beginDate.getTime(), endDate.getTime(), breakMinutes)))
+                }
                 loadFilmDayForDate(root.filmDaySelectedDate)
             }
             if (mergeIds.length > 0) {
@@ -3509,8 +3603,30 @@ PlasmoidItem {
                     onDayChosen: function(date) {
                         root.loadFilmDayForDate(date)
                     }
+                    elapsedSeconds: root.elapsedSeconds
                     onSaveRequested: function(projectId, activityId, beginText, endText, filmDayFields) {
-                        root.saveFilmDay(projectId, activityId, beginText, endText, filmDayFields)
+                        root.saveFilmDay(projectId, activityId, beginText, endText, filmDayFields, false)
+                    }
+                    onTimesEdited: function(beginText, endText) {
+                        root.saveFilmDay(filmDayView.projectCombo.currentItem.value.id, filmDayView.activityCombo.currentItem.value.id,
+                                         beginText, endText, filmDayView.currentEntryFields(), true)
+                    }
+                    onExtrasEdited: function(fields) {
+                        root.saveFilmDayExtras(fields)
+                    }
+                    onStartRequested: function(projectId, activityId, projectLabel, activityLabel) {
+                        root.switchToActivity(projectId, activityId, projectLabel, activityLabel, "")
+                    }
+                    onStopRequested: root.stopTracking(false)
+                    onRunningBeginEdited: function(beginText) {
+                        var ts = root.activeTimesheet
+                        if (ts) {
+                            root.saveActiveEdit(KimaiApi.projectId(ts), KimaiApi.activityId(ts), beginText, ts.billable, ts.tags || [])
+                        }
+                    }
+                    onEngagementPicked: function(projectId) {
+                        filmDayView.selectProjectId(projectId)
+                        root.loadFilmDayForDate(root.filmDaySelectedDate, true)
                     }
                     onCancelled: root.returnToMainView()
                     onCreateProjectRequested: root.openCreateEntity("project")
