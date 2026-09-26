@@ -11,11 +11,11 @@ Einzige Übersicht über das, was noch fehlt. Details stehen in der jeweiligen D
 - [ ] Keystore anlegen, CI auf GitHub laufen lassen, APK signieren, Flatpak bauen, aarch64-Tarball, GitHub-Release und Store-Listing
 
 **App ↔ Plasmoid**
-- [ ] App: Wochenrest ohne Abwesenheiten/Feiertage (Soll nur aus den User-Prefs, kein Holiday-/WorkContract-Probe)
-- [ ] App: keine „Tracking in progress“-Benachrichtigung beim Start
-- [ ] App: fehlgeschlagene Writes (Stop, Bearbeiten, Löschen) meist ohne Meldung; nur Billable und Split melden sich
+- [x] App: Wochen- und Tagesrest ziehen Abwesenheiten und Feiertage ab (wie Plasmoid)
+- [x] App: „Tracking in progress“ für Timer, die woanders oder vor dem App-Start gestartet wurden (nur mit „Beim Start benachrichtigen“)
+- [x] App: fehlgeschlagene Writes (Stop, Start, Fortsetzen, Wechsel, Bearbeiten, Löschen, Teilen, Idle-Verwerfen) melden sich
 - [ ] Android: keine Idle-Erkennung; Idle-Dialog auf keiner App-Plattform live gesehen
-- [ ] Plasmoid: bietet nach einem Reisetag keine Anfahrt an (nur die App)
+- [x] Drehtag: beendeter Reisetag bietet „Fahrt erfassen“ in der Ansicht an (Plasmoid und App)
 - [ ] Eine Quelle für `contents/ui/` und `app/qml/shared/` (Stand 27.09., abweichende Zeilen: StatsView 127, FilmDayView 104, DaySparkline 94, ActiveEditView 74, TripSheet 42, ActivityListRow 28)
 - [ ] Echtes Plasma-Mobile-Gerät (bisher nur offscreen mit KDE-Stil)
 

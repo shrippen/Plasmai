@@ -202,13 +202,6 @@ Kirigami.Page {
                             beginDate.getTime(), endDate.getTime(), breakMinutes)))
                 }
                 page.loadForDate(page.selectedDate)
-                // A4: a travel day usually comes with a trip; offer it linked to the saved entry.
-                var savedEntry = result.timesheet
-                if (filmDayFields && filmDayFields.dayType === FilmDays.DayType.TRAVEL && root.canEditTrips && savedEntry) {
-                    root.showPassiveNotification(i18n("Travel day saved."), "long", i18n("Log trip"), function() {
-                        root.openTripForTimesheet(savedEntry)
-                    })
-                }
             }
             if (mergeIds.length > 0) {
                 FilmDaySync.deleteEntries(root.filmDayContext(), mergeIds, finish)
@@ -274,6 +267,8 @@ Kirigami.Page {
                 onRunningBeginEdited: function(beginText) {
                     root.patchActiveEntry({ begin: KimaiApi.localDateTimeString(page.parseLocalStamp(beginText)) })
                 }
+                tripsAvailable: root.canEditTrips
+                onTripRequested: root.openTripForTimesheet(page.filmDayTimesheet)
                 onEngagementPicked: function(projectId) {
                     filmDayView.selectProjectId(projectId)
                     page.loadForDate(page.selectedDate, true)

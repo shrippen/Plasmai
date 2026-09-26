@@ -3629,6 +3629,8 @@ PlasmoidItem {
                         filmDayView.selectProjectId(projectId)
                         root.loadFilmDayForDate(root.filmDaySelectedDate, true)
                     }
+                    tripsAvailable: root.canEditTrips
+                    onTripRequested: root.openTripForTimesheet(root.filmDayTimesheet)
                     onCancelled: root.returnToMainView()
                     onCreateProjectRequested: root.openCreateEntity("project")
                     onCreateActivityRequested: root.openCreateEntity("activity")

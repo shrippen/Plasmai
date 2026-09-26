@@ -294,6 +294,18 @@ ROWS = [
      "Teilen bei:", "Diviser à :", "Dividir en:", "Dividi alle:", "Splitsen op:", "Dividir em:", "Podziel o:", "Розділити о:", "Разделить в:", "分割位置:", "拆分于:"),
     ("You were idle for %1. Keep this time, discard it, or discard and continue?",
      "Du warst %1 im Leerlauf. Zeit behalten, verwerfen oder verwerfen und weitermachen?", "Vous étiez inactif pendant %1. Garder ce temps, l’ignorer, ou l’ignorer et continuer ?", "Estuviste inactivo durante %1. ¿Conservar este tiempo, descartarlo o descartarlo y continuar?", "Sei stato inattivo per %1. Tenere questo tempo, scartarlo o scartarlo e continuare?", "Je was %1 inactief. Deze tijd behouden, verwerpen of verwerpen en doorgaan?", "Você ficou ocioso por %1. Manter esse tempo, descartá-lo ou descartar e continuar?", "Byłeś bezczynny przez %1. Zachować ten czas, odrzucić go czy odrzucić i kontynuować?", "Ви були бездіяльні %1. Залишити цей час, відкинути його чи відкинути й продовжити?", "Вы были неактивны %1. Оставить это время, отбросить его или отбросить и продолжить?", "%1 間アイドル状態でした。この時間を残しますか、破棄しますか、それとも破棄して続けますか？", "你已空闲 %1。保留这段时间、丢弃，还是丢弃并继续？"),
+    ("Could not stop tracking",
+     "Erfassung konnte nicht gestoppt werden", "Impossible d’arrêter le suivi", "No se pudo detener el registro", "Impossibile interrompere il tracciamento", "Registratie kon niet worden gestopt", "Não foi possível parar o registro", "Nie udało się zatrzymać rejestrowania", "Не вдалося зупинити облік", "Не удалось остановить учёт", "記録を停止できませんでした", "无法停止计时"),
+    ("Could not start tracking",
+     "Erfassung konnte nicht gestartet werden", "Impossible de démarrer le suivi", "No se pudo iniciar el registro", "Impossibile avviare il tracciamento", "Registratie kon niet worden gestart", "Não foi possível iniciar o registro", "Nie udało się rozpocząć rejestrowania", "Не вдалося почати облік", "Не удалось начать учёт", "記録を開始できませんでした", "无法开始计时"),
+    ("Could not save the entry",
+     "Eintrag konnte nicht gespeichert werden", "Impossible d’enregistrer l’entrée", "No se pudo guardar la entrada", "Impossibile salvare la voce", "Invoer kon niet worden opgeslagen", "Não foi possível salvar o registro", "Nie udało się zapisać wpisu", "Не вдалося зберегти запис", "Не удалось сохранить запись", "エントリを保存できませんでした", "无法保存条目"),
+    ("Could not delete the entry",
+     "Eintrag konnte nicht gelöscht werden", "Impossible de supprimer l’entrée", "No se pudo eliminar la entrada", "Impossibile eliminare la voce", "Invoer kon niet worden verwijderd", "Não foi possível excluir o registro", "Nie udało się usunąć wpisu", "Не вдалося видалити запис", "Не удалось удалить запись", "エントリを削除できませんでした", "无法删除条目"),
+    ("Could not split the entry",
+     "Eintrag konnte nicht geteilt werden", "Impossible de diviser l’entrée", "No se pudo dividir la entrada", "Impossibile dividere la voce", "Invoer kon niet worden gesplitst", "Não foi possível dividir o registro", "Nie udało się podzielić wpisu", "Не вдалося розділити запис", "Не удалось разделить запись", "エントリを分割できませんでした", "无法拆分条目"),
+    ("%1: %2",
+     "%1: %2", "%1 : %2", "%1: %2", "%1: %2", "%1: %2", "%1: %2", "%1: %2", "%1: %2", "%1: %2", "%1：%2", "%1：%2"),
 ]
 
 

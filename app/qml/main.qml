@@ -246,6 +246,9 @@ Kirigami.ApplicationWindow {
     property real todayTotalSeconds: 0; property real weekTotalSeconds: 0
     property real todayTargetSeconds: 0; property real weekTargetSeconds: 0
     property bool hasWorkContract: false
+    // Absences, public holidays and time tracked on them (holiday / WorkContract plugin), as in the Plasmoid.
+    property var workPrefs: ({}); property var weekAbsences: []; property var weekPublicHolidays: []; property var weekTimesheets: []
+    property real weekAbsenceCreditSeconds: 0; property real todayAbsenceCreditSeconds: 0
     property bool loadingActive: false
     property var todayTimesheets: []
     property int sparklineNowTick: 0
@@ -261,8 +264,8 @@ Kirigami.ApplicationWindow {
 
     readonly property real todayLiveSeconds: todayTotalSeconds + (isTracking ? elapsedSeconds : 0)
     readonly property real weekLiveSeconds: weekTotalSeconds + (isTracking ? elapsedSeconds : 0)
-    readonly property real remainingTodaySeconds: hasWorkContract ? (todayTargetSeconds - todayLiveSeconds) : 0
-    readonly property real remainingWeekSeconds: hasWorkContract ? (weekTargetSeconds - weekLiveSeconds) : 0
+    readonly property real remainingTodaySeconds: hasWorkContract ? (todayTargetSeconds - todayLiveSeconds + todayAbsenceCreditSeconds) : 0
+    readonly property real remainingWeekSeconds: hasWorkContract ? (weekTargetSeconds - weekLiveSeconds + weekAbsenceCreditSeconds) : 0
 
     function remainingTodayText() { return remainingTodaySeconds >= 0 ? i18n("%1 left today", KimaiApi.formatDurationShort(remainingTodaySeconds)) : i18n("%1 over today", KimaiApi.formatDurationShort(-remainingTodaySeconds)) }
     function remainingWeekText() { return remainingWeekSeconds >= 0 ? i18n("%1 left this week", KimaiApi.formatDurationShort(remainingWeekSeconds)) : i18n("%1 over this week", KimaiApi.formatDurationShort(-remainingWeekSeconds)) }
@@ -339,7 +342,7 @@ Kirigami.ApplicationWindow {
         tracker.patchTimesheet(TimeTracker.resolveUrl(activeProfile), apiToken, snap.timesheetId,
             { end: KimaiApi.localDateTimeString(endDate) }, function(result) {
             isBusy = false
-            if (!result.ok) return
+            if (!result.ok) { reportWriteError(result, i18n("Could not stop tracking")); return }
             applyActiveTimesheet(null); refreshAll()
             if (notifyOnIdleStop) sendNotification(i18n("Idle time discarded"), snap.projectName + " · " + snap.activityName)
             if (andContinue && snap.projectId && snap.activityId) {
@@ -431,16 +434,32 @@ Kirigami.ApplicationWindow {
             if (r.ok) { var d = r.data || []; var t = 0; for (var i = 0; i < d.length; i++) t += d[i].duration || 0; todayTotalSeconds = t; todayTimesheets = KimaiApi.hydrateTimesheets(d, projects, activityCatalog(), activitiesByProject) }
         })
         tracker.fetchTimesheetsRange(url, apiToken, wf, now, function(r) {
-            if (r.ok) { var t = 0; var d = r.data || []; for (var i = 0; i < d.length; i++) t += d[i].duration || 0; weekTotalSeconds = t }
+            if (r.ok) { var t = 0; var d = r.data || []; for (var i = 0; i < d.length; i++) t += d[i].duration || 0; weekTotalSeconds = t; weekTimesheets = d; applyAbsenceCredit() }
         })
         tracker.fetchCurrentUser(url, apiToken, function(result) {
             if (result.ok) {
-                var prefs = tracker.preferenceMap(result.data)
-                todayTargetSeconds = tracker.workDaySecondsFromPrefs(prefs, now)
-                weekTargetSeconds = tracker.workWeekSecondsFromPrefs(prefs, now)
+                workPrefs = tracker.preferenceMap(result.data)
+                todayTargetSeconds = tracker.workDaySecondsFromPrefs(workPrefs, now)
+                weekTargetSeconds = tracker.workWeekSecondsFromPrefs(workPrefs, now)
                 hasWorkContract = todayTargetSeconds > 0 || weekTargetSeconds > 0
-            } else { todayTargetSeconds = 0; weekTargetSeconds = 0; hasWorkContract = false }
+            } else { workPrefs = ({}); todayTargetSeconds = 0; weekTargetSeconds = 0; hasWorkContract = false }
+            if (!providerCapabilities.holidayBundle || !hasWorkContract) { weekAbsences = []; weekPublicHolidays = []; applyAbsenceCredit(); return }
+            KimaiApi.fetchContractAdjustments(url, apiToken, now, workPrefs, function(adj) {
+                var data = (adj && adj.ok && adj.data) ? adj.data : {}
+                weekAbsences = data.absences || []; weekPublicHolidays = data.publicHolidays || []
+                weekTargetSeconds = KimaiApi.effectiveWeekTargetSeconds(workPrefs, now, weekAbsences, weekPublicHolidays)
+                todayTargetSeconds = KimaiApi.effectiveDayTargetSeconds(workPrefs, now, weekAbsences, weekPublicHolidays)
+                applyAbsenceCredit()
+            })
         })
+    }
+
+    /** Time tracked on absence days does not use up the week (same rule as the Plasmoid). */
+    function applyAbsenceCredit() {
+        if (!providerCapabilities.holidayBundle || !hasWorkContract) { weekAbsenceCreditSeconds = 0; todayAbsenceCreditSeconds = 0; return }
+        var now = new Date()
+        weekAbsenceCreditSeconds = KimaiApi.absenceCreditSeconds(workPrefs, now, weekAbsences, weekPublicHolidays, weekTimesheets, now.getTime())
+        todayAbsenceCreditSeconds = KimaiApi.dayAbsenceCreditSeconds(workPrefs, now, weekAbsences, weekPublicHolidays, todayTimesheets, now.getTime())
     }
 
     function refreshPinnedEntries() {
@@ -480,6 +499,7 @@ Kirigami.ApplicationWindow {
     }
 
     function applyActiveTimesheet(ts) {
+        var wasTracking = isTracking
         if (!ts) { isTracking = false; currentTimesheetId = null; currentProject = ""; currentActivity = ""
             currentCustomer = ""; currentDescription = ""; activeTimesheet = null; elapsedSeconds = 0; return }
         isTracking = true; currentTimesheetId = ts.id; activeTimesheet = ts
@@ -489,6 +509,15 @@ Kirigami.ApplicationWindow {
         currentDescription = ts.description || ""; descriptionDraft = currentDescription
         var begin = new Date(ts.begin)
         if (!isNaN(begin.getTime())) elapsedSeconds = Math.max(0, Math.floor((Date.now() - begin.getTime()) / 1000))
+        // Starts from this app set isTracking before the refresh, so only foreign timers get here.
+        if (!wasTracking && notifyOnStart) sendNotification(i18n("Tracking in progress"), currentProject + " · " + currentActivity + " · " + KimaiApi.formatDurationShort(elapsedSeconds))
+    }
+
+    /** A write failed: say so instead of silently refreshing. */
+    function reportWriteError(result, what) {
+        if (!result || result.ok) return
+        var detail = (result.error && result.error.detail) || ApiErrors.text(result.error)
+        showPassiveNotification(detail ? i18n("%1: %2", what, detail) : what)
     }
 
     function stopTracking() {
@@ -497,7 +526,8 @@ Kirigami.ApplicationWindow {
         var summary = currentProject + " · " + currentActivity
         tracker.stopTracking(TimeTracker.resolveUrl(activeProfile), apiToken, currentTimesheetId, function(result) {
             isBusy = false
-            if (result.ok && notifyOnStop) sendNotification(i18n("Stopped"), summary)
+            if (!result.ok) { reportWriteError(result, i18n("Could not stop tracking")); refreshAll(); return }
+            if (notifyOnStop) sendNotification(i18n("Stopped"), summary)
             applyActiveTimesheet(null); refreshAll()
         })
     }
@@ -505,7 +535,10 @@ Kirigami.ApplicationWindow {
     function continueRecent(ts) {
         if (!ts) return; isBusy = true
         tracker.restartTimesheet(TimeTracker.resolveUrl(activeProfile), apiToken, ts.id, function(result) {
-            isBusy = false; if (result.ok) refreshAll()
+            isBusy = false; reportWriteError(result, i18n("Could not start tracking"))
+            // Set the new entry now, so the refresh does not report it as started elsewhere.
+            if (result.ok && result.data) applyActiveTimesheet(KimaiApi.hydrateTimesheets([result.data], projects, activityCatalog(), activitiesByProject)[0] || result.data)
+            refreshAll()
         })
     }
 
@@ -519,21 +552,21 @@ Kirigami.ApplicationWindow {
     function patchActiveEntry(fields) {
         if (!currentTimesheetId) return; isBusy = true
         tracker.patchTimesheet(TimeTracker.resolveUrl(activeProfile), apiToken, currentTimesheetId, fields, function(result) {
-            isBusy = false; if (result.ok) { noteDroppedFields(result); refreshAll() }
+            isBusy = false; reportWriteError(result, i18n("Could not save the entry")); if (result.ok) { noteDroppedFields(result); refreshAll() }
         })
     }
 
     function deleteEntry(ts) {
         if (!ts || !ts.id) return; isBusy = true
         tracker.deleteTimesheet(TimeTracker.resolveUrl(activeProfile), apiToken, ts.id, function(result) {
-            isBusy = false; if (result.ok) refreshAll()
+            isBusy = false; reportWriteError(result, i18n("Could not delete the entry")); if (result.ok) refreshAll()
         })
     }
 
     function editStoppedEntry(ts, fields) {
         if (!ts || !ts.id) return; isBusy = true
         tracker.patchTimesheet(TimeTracker.resolveUrl(activeProfile), apiToken, ts.id, fields, function(result) {
-            isBusy = false; if (result.ok) { noteDroppedFields(result); refreshAll() }
+            isBusy = false; reportWriteError(result, i18n("Could not save the entry")); if (result.ok) { noteDroppedFields(result); refreshAll() }
         })
     }
 
@@ -548,7 +581,7 @@ Kirigami.ApplicationWindow {
         isBusy = true
         tracker.patchTimesheet(TimeTracker.resolveUrl(activeProfile), apiToken, ts.id,
             { end: KimaiApi.localDateTimeString(split.firstEnd) }, function(result) {
-            if (!result.ok) { isBusy = false; return }
+            if (!result.ok) { isBusy = false; reportWriteError(result, i18n("Could not split the entry")); return }
             var fields = {
                 project: KimaiApi.projectId(ts), activity: KimaiApi.activityId(ts),
                 begin: KimaiApi.localDateTimeString(split.secondBegin),
@@ -589,6 +622,7 @@ Kirigami.ApplicationWindow {
         isBusy = true
         tracker.startTracking(TimeTracker.resolveUrl(activeProfile), apiToken, projectId, activityId, description || "", function(result) {
             isBusy = false
+            reportWriteError(result, i18n("Could not start tracking"))
             if (result.ok && result.data) {
                 if (notifyOnStart) sendNotification(i18n("Started"), (projectLabel || "") + " · " + (activityLabel || ""))
                 rememberLastUsed(projectId, activityId, projectLabel, activityLabel)
@@ -602,7 +636,7 @@ Kirigami.ApplicationWindow {
         if (!isTracking) { startTracking(projectId, activityId, projectLabel, activityLabel, description, extras); return }
         isBusy = true
         tracker.stopTracking(TimeTracker.resolveUrl(activeProfile), apiToken, currentTimesheetId, function(stopResult) {
-            if (!stopResult.ok) { isBusy = false; return }
+            if (!stopResult.ok) { isBusy = false; reportWriteError(stopResult, i18n("Could not stop tracking")); return }
             applyActiveTimesheet(null)
             tracker.startTracking(TimeTracker.resolveUrl(activeProfile), apiToken, projectId, activityId, description || "", function(startResult) {
                 isBusy = false
@@ -610,7 +644,7 @@ Kirigami.ApplicationWindow {
                     rememberLastUsed(projectId, activityId, projectLabel, activityLabel)
                     applyActiveTimesheet(KimaiApi.hydrateTimesheets([startResult.data], projects, activityCatalog(), activitiesByProject)[0] || startResult.data); refreshAll()
                 }
-                else refreshAll()
+                else { reportWriteError(startResult, i18n("Could not start tracking")); refreshAll() }
             }, extras || {})
         })
     }

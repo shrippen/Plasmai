@@ -48,6 +48,8 @@ ColumnLayout {
     property Item pickerViewport: null
     property bool busy: false
     property bool configured: true
+    /** The host can log trips (Anfahrten plugin); a finished travel day then offers one. */
+    property bool tripsAvailable: false
     property bool connectionOk: true
     property bool showCreateActions: false
 
@@ -132,6 +134,7 @@ ColumnLayout {
     signal extrasEdited(var filmDayFields)
     /** Engagement chooser: use this engagement's project. */
     signal engagementPicked(var projectId)
+    signal tripRequested()
     signal createProjectRequested()
     signal createActivityRequested()
 
@@ -839,6 +842,17 @@ ColumnLayout {
         text: i18n("Stop shooting day")
         enabled: root.configured && !root.busy
         onClicked: root.stopRequested()
+    }
+
+    // A travel day usually comes with a trip: offer one linked to the day's entry.
+    KantePlasmaButton {
+        Layout.fillWidth: true
+        visible: root.tripsAvailable && root.shownPhase === "done" && dayTypeCombo.currentIndex >= 0
+                 && root.dayTypeOptions[dayTypeCombo.currentIndex].value === FilmDays.DayType.TRAVEL
+        icon.name: "mark-location"
+        text: i18n("Log trip")
+        enabled: root.configured && !root.busy
+        onClicked: root.tripRequested()
     }
 
     /** B3: more entries of the film day's activity on this day. */

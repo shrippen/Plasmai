@@ -19,6 +19,10 @@
 - Film day: the production's shooting day is counted from the engagement's entries in Kimai instead of being entered; a pencil on the engagement picks another engagement or project
 
 ### App
+- Week and day remaining subtract approved absences and public holidays (holiday or WorkContract plugin), like the widget
+- "Tracking in progress" notification when a timer runs that was started elsewhere (web, another device) or was already running when the app started
+- Failed writes show a message: stop, start, continue, switch, edit, delete, split and idle discard no longer fail silently
+- Film day: a finished travel day offers "Log trip" in the view, in the widget as well as the app (before only the app offered it once, after saving)
 - Pull to refresh on every page: timer, statistics, film day, trips, favorites, add entry, settings and connection reload their data
 
 ### Polish

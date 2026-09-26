@@ -110,14 +110,12 @@ Clockify, Toggl Track and SolidTime are implemented against public APIs but stil
 
 The app lags the Plasmoid in features from 1.5/1.6:
 
-- Week remaining ignores absences and public holidays: the target comes from the user preferences only (no holiday / WorkContract probe in `app/qml/main.qml`).
-- No “Tracking in progress” notification at start.
-- Failed writes (stop, edit, delete) are mostly not shown; billable and split have messages.
+- ~~Week remaining without absences, no “Tracking in progress”, silent failed writes~~ — done.
 - Android has no idle detection; the idle dialog was never seen live on either app platform.
 
 The Plasmoid lags the app:
 
-- No trip offer after saving a travel day.
+- ~~No trip offer after a travel day~~ — both offer “Log trip” on a finished travel day.
 
 Both:
 
