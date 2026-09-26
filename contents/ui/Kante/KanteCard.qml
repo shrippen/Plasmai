@@ -11,11 +11,11 @@ import "."
 Item {
     id: card
 
-    property color color: Style.cardColor
+    property color color: KanteStyle.cardColor
     /** Accent bar on top; "transparent" for none. */
     property color barColor: "transparent"
     property int barHeight: 3
-    property int chamfer: Style.chamfer
+    property int chamfer: KanteStyle.chamfer
     property color borderColor: "transparent"
 
     Shape {

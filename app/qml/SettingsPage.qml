@@ -5,6 +5,7 @@ import org.kde.kirigami as Kirigami
 import "../contents/code/platform.js" as Platform
 import "../contents/code/geocode.js" as Geocode
 import "shared"
+import "Kante"
 
 Kirigami.Page {
     id: page
@@ -51,14 +52,14 @@ Kirigami.Page {
                 Layout.fillWidth: true
                 wideMode: form.width >= Kirigami.Units.gridUnit * 28
 
-                PHeading { Kirigami.FormData.isSection: true; level: 4; text: i18n("Appearance") }
+                KanteHeading { Kirigami.FormData.isSection: true; level: 4; text: i18n("Appearance") }
 
                 QQC2.ComboBox {
                     KanteFieldSkin { control: parent }
                     Kirigami.FormData.label: i18n("Style:")
                     Layout.fillWidth: true
                     Layout.maximumWidth: Kirigami.Units.gridUnit * 16
-                    model: [i18n("System (Plasma theme)"), i18n("Kante")]
+                    model: [i18n("System (Plasma theme)"), i18n("Kante"), i18n("Kante Light")]
                     // Bound after the model is set: assigning the model resets currentIndex.
                     Component.onCompleted: currentIndex = Qt.binding(function() { return root.visualStyle })
                     onActivated: function(index) { root.visualStyle = index; page.saveSetting("visualStyle", index) }
@@ -68,12 +69,12 @@ Kirigami.Page {
                     Layout.fillWidth: true
                     Layout.maximumWidth: Kirigami.Units.gridUnit * 20
                     wrapMode: Text.WordWrap
-                    font.pointSize: Style.smallFont.pointSize
+                    font.pointSize: KanteStyle.smallFont.pointSize
                     opacity: 0.7
-                    text: i18n("Kante is Plasmai's own look: warm colors, square cut corners and monospace figures. It deliberately does not follow Breeze; dark or light still follows your theme.")
+                    text: i18n("Kante is Plasmai's own look: warm colors, square cut corners and monospace figures. It deliberately does not follow Breeze; dark or light still follows your theme. Kante Light keeps your theme's colors and controls and adds only Kante's shapes, titles and figures.")
                 }
 
-                PHeading { Kirigami.FormData.isSection: true; level: 4; text: i18n("Behavior") }
+                KanteHeading { Kirigami.FormData.isSection: true; level: 4; text: i18n("Behavior") }
 
                 QQC2.SpinBox {
                     KanteFieldSkin { control: parent }
@@ -153,34 +154,34 @@ Kirigami.Page {
                 }
                 QQC2.Label {
                     Layout.fillWidth: true; wrapMode: Text.WordWrap
-                    opacity: 0.75; font.pointSize: Style.smallFont.pointSize
+                    opacity: 0.75; font.pointSize: KanteStyle.smallFont.pointSize
                     text: i18n("When editing the running timer, the previous entry's end is shown. Saving an earlier start asks for confirmation.")
                 }
 
-                PHeading { Kirigami.FormData.isSection: true; level: 4; text: i18n("Work hours") }
+                KanteHeading { Kirigami.FormData.isSection: true; level: 4; text: i18n("Work hours") }
 
-                PTextField {
+                KanteTextField {
                     Kirigami.FormData.label: i18n("Begin:")
                     text: root.workDayBegin
                     placeholderText: "09:00"
                     onEditingFinished: { root.workDayBegin = text; page.saveSetting("workDayBegin", text) }
                 }
-                PTextField {
+                KanteTextField {
                     Kirigami.FormData.label: i18n("End:")
                     text: root.workDayEnd
                     placeholderText: "17:00"
                     onEditingFinished: { root.workDayEnd = text; page.saveSetting("workDayEnd", text) }
                 }
 
-                PHeading { Kirigami.FormData.isSection: true; level: 4; text: i18n("Location (sun / moon accuracy)") }
+                KanteHeading { Kirigami.FormData.isSection: true; level: 4; text: i18n("Location (sun / moon accuracy)") }
 
                 QQC2.Label {
                     Kirigami.FormData.label: i18n("Current:")
                     text: root.locationName.length > 0 ? root.locationName : i18n("%1, %2", root.latitude.toFixed(2), root.longitude.toFixed(2))
-                    color: Qt.alpha(Style.textColor, 0.7)
+                    color: Qt.alpha(KanteStyle.textColor, 0.7)
                 }
 
-                PTextField {
+                KanteTextField {
                     id: locationField
                     Kirigami.FormData.label: i18n("Search city:")
                     placeholderText: i18n("Search for a city…")
@@ -215,7 +216,7 @@ Kirigami.Page {
                     }
                 }
 
-                PHeading { Kirigami.FormData.isSection: true; level: 4; text: i18n("Idle detection"); visible: root.supportsIdleDetection }
+                KanteHeading { Kirigami.FormData.isSection: true; level: 4; text: i18n("Idle detection"); visible: root.supportsIdleDetection }
                 WrapCheckBox {
                     Kirigami.FormData.label: i18n("Enable:")
                     visible: root.supportsIdleDetection
@@ -232,7 +233,7 @@ Kirigami.Page {
                     onValueChanged: { root.idleStopMinutes = value; page.saveSetting("idleStopMinutes", value) }
                 }
 
-                PHeading { Kirigami.FormData.isSection: true; level: 4; text: i18n("Notifications"); visible: root.supportsNotifications }
+                KanteHeading { Kirigami.FormData.isSection: true; level: 4; text: i18n("Notifications"); visible: root.supportsNotifications }
                 WrapCheckBox {
                     Kirigami.FormData.label: i18n("Notify on:")
                     visible: root.supportsNotifications
@@ -264,15 +265,15 @@ Kirigami.Page {
                 Layout.fillWidth: true; Layout.topMargin: Kirigami.Units.largeSpacing
                 text: i18n("Settings sync with the Plasma widget via shared.json on the same machine.")
                 wrapMode: Text.WordWrap
-                color: Style.disabledTextColor
+                color: KanteStyle.disabledTextColor
             }
 
             Item { Layout.fillHeight: true; Layout.minimumHeight: Kirigami.Units.largeSpacing }
         }
     }
 
-    // Pull to refresh (see shared/PullToRefresh.qml).
-    PullToRefresh {
+    // Pull to refresh (see shared/KantePullToRefresh.qml).
+    KantePullToRefresh {
         parent: pageScroll
         anchors.fill: parent
         z: 10

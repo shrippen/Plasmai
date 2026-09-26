@@ -6,6 +6,8 @@
 - Display settings (app: Settings) → Style: **Kante** is Plasmai's own look from the shrippen design: warm Gruvbox colors (light variant with a light theme), square controls, cards with a cut corner, Rajdhani titles and monospace figures. It deliberately does not follow Breeze; the default stays the Plasma theme and looks as before
 - Kante main view: the timer card shows the activity as the heading and today's strip when nothing runs; favorites are tiles, Recent is a time line with times and durations
 - The popup stays translucent: Kante only tints surfaces, Plasma's blur shows through
+- Kante comes from the shared Kante design system (the same style as the shrippen web pages); Plasmai no longer keeps its own copy
+- New style **Kante Light**: Kante's layouts, cut corners, titles and monospace figures with your theme's colors and controls; follows any Plasma color scheme, light or dark
 
 ### App
 - Pull to refresh on every page: timer, statistics, film day, trips, favorites, add entry, settings and connection reload their data

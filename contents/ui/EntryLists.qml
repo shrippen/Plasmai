@@ -10,6 +10,8 @@ import "../code/favorites.js" as Favorites
 import "../code/mileage.js" as Mileage
 import "../code/dateTimeFormat.js" as DTF
 import "."
+import "Kante"
+import "KantePlasma"
 
 /**
  * List part of the main view: favorites, detected trips, recent entries
@@ -28,7 +30,7 @@ ColumnLayout {
     spacing: Kirigami.Units.smallSpacing
 
     // —— Favorites ——
-    PHeading {
+    KantePlasmaHeading {
     Layout.fillWidth: true
         level: 4
         opacity: widget.showFavoritesHere ? 1 : 0
@@ -44,7 +46,7 @@ ColumnLayout {
         opacity: widget.showFavoritesHere && !widget.loadingPinned && widget.pinnedEntries.length > 0 ? 1 : 0
         visible: opacity > 0
         // Kante: two tiles per row (one when narrow).
-        columns: Style.kante
+        columns: KanteStyle.active
                  ? (width >= Kirigami.Units.gridUnit * 16 ? 2 : 1)
                  : Math.max(1, Math.floor(width / (Kirigami.Units.gridUnit * TouchUi.favoriteCellGu)))
         rowSpacing: TouchUi.smallSpacing
@@ -127,9 +129,9 @@ ColumnLayout {
             wrapMode: Text.WordWrap
             text: i18n("Pin frequent project/activity pairs in the widget settings.")
             opacity: 0.75
-            font.pointSize: Style.smallFont.pointSize
+            font.pointSize: KanteStyle.smallFont.pointSize
         }
-        PButton {
+        KantePlasmaButton {
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             text: i18n("Configure favorites")
             icon.name: "configure"
@@ -149,11 +151,11 @@ ColumnLayout {
                  && widget.pinnedEntries.length > widget.favoritesVisibleCount
         text: i18n("+%1 more in settings", widget.pinnedEntries.length - widget.favoritesVisibleCount)
         opacity: 0.7
-        font.pointSize: Style.smallFont.pointSize
+        font.pointSize: KanteStyle.smallFont.pointSize
     }
 
     // —— Detected trips (kimai-anfahrten, A5) ——
-    PHeading {
+    KantePlasmaHeading {
     Layout.fillWidth: true
         level: 4
         visible: widget.canEditTrips && widget.tripSuggestions.length > 0
@@ -175,7 +177,7 @@ ColumnLayout {
     }
 
     // —— Recent ——
-    PHeading {
+    KantePlasmaHeading {
     Layout.fillWidth: true
         level: 4
         opacity: widget.showRecentHere && widget.isConfigured ? 1 : 0
@@ -209,7 +211,7 @@ ColumnLayout {
                 }
                 subtitleText: {
                     var ts = widget.recentTimesheets[index]
-                    if (Style.kante) {
+                    if (KanteStyle.active) {
                         // Time and duration have their own columns in the Kante time line.
                         return KimaiApi.displayProjectName(ts, widget.projects)
                     }
@@ -277,7 +279,7 @@ ColumnLayout {
     }
 
     // —— New / switch ——
-    PButton {
+    KantePlasmaButton {
     Layout.fillWidth: true
         Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
         opacity: widget.showNewActivityHere && widget.isConfigured
@@ -289,7 +291,7 @@ ColumnLayout {
         Behavior on opacity { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
     }
 
-    PHeading {
+    KantePlasmaHeading {
     Layout.fillWidth: true
         level: 4
         opacity: widget.showNewActivityHere && widget.isConfigured && widget.showNewActivityForm ? 1 : 0
@@ -339,7 +341,7 @@ ColumnLayout {
         onCreateActivityRequested: widget.openCreateEntity("activity")
     }
 
-    PTextField {
+    KanteTextField {
         id: descriptionField
         Component.onCompleted: widget.descriptionFieldRef = descriptionField
         Component.onDestruction: {
@@ -358,7 +360,7 @@ ColumnLayout {
         visible: widget.showNewActivityHere && widget.showNewActivityForm
     spacing: Kirigami.Units.smallSpacing
 
-        PButton {
+        KantePlasmaButton {
             Layout.fillWidth: true
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             enabled: widget.isConfigured && !widget.isBusy && !widget.isTracking && widget.connectionState !== "error"
@@ -373,7 +375,7 @@ ColumnLayout {
             }
         }
 
-        PButton {
+        KantePlasmaButton {
             Layout.fillWidth: true
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             visible: widget.isTracking
@@ -389,7 +391,7 @@ ColumnLayout {
             }
         }
 
-        PButton {
+        KantePlasmaButton {
             visible: widget.compactPopupLayout
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             text: i18n("Cancel")

@@ -5,12 +5,14 @@ import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
 import "../code/kimaiApi.js" as KimaiApi
 import "."
+import "Kante"
+import "KantePlasma"
 
 /**
  * Overflow create dialog for customer / project / activity.
  * One form, mode switches fields; pickers stay the normal path.
  */
-PDialog {
+KanteDialog {
     id: root
 
     property string mode: "project" // customer | project | activity
@@ -91,7 +93,7 @@ PDialog {
             opacity: 0.85
         }
 
-        PTextField {
+        KanteTextField {
             id: nameField
             Layout.fillWidth: true
             Accessible.name: i18n("Name")
@@ -128,7 +130,7 @@ PDialog {
                                    ? root.customerRows[customerCombo.currentIndex].color
                                    : KimaiApi.DEFAULT_CUSTOMER_COLOR
                     label: visible ? root.customerRows[customerCombo.currentIndex].name : ""
-                    labelPointSize: Style.defaultFont.pointSize
+                    labelPointSize: KanteStyle.defaultFont.pointSize
                     labelBold: false
                     labelOpacity: 1.0
                 }
@@ -159,14 +161,14 @@ PDialog {
                     customerRole: true
                     customerColor: modelData.color || KimaiApi.DEFAULT_CUSTOMER_COLOR
                     label: modelData.name
-                    labelPointSize: Style.defaultFont.pointSize
+                    labelPointSize: KanteStyle.defaultFont.pointSize
                     labelBold: false
                     labelOpacity: 1.0
                 }
             }
         }
 
-        PButton {
+        KantePlasmaButton {
             visible: root.mode === "project"
             text: i18n("Create customer")
             icon.name: "list-add"

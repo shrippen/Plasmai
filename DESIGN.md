@@ -28,7 +28,7 @@ typography stack, badge format, and social-preview spec.
   components (`app/qml/shared/`), and should match the Plasmoid in features
   and look. On the desktop the Plasmoid stays the product; the app is not a
   desktop window or tray replacement.
-- App pages support pull to refresh (`app/qml/shared/PullToRefresh.qml`,
+- App pages support pull to refresh (`KantePullToRefresh` from the Kante module,
   attached to each page's scroll view, since the pages use Kirigami.Page +
   QQC2.ScrollView instead of Kirigami.ScrollablePage).
 - Capability target: Kemai-like time tracking from the panel, with one-click
@@ -210,21 +210,30 @@ typography stack, badge format, and social-preview spec.
 ### Kante (opt-in style that breaks with Breeze)
 
 The one deliberate exception to "theme, not a custom skin": an opt-in style
-built from the [shrippen Design Default](https://github.com/shrippen/shrippen.github.io)
+built from the [Kante design system](https://github.com/shrippen/shrippen.github.io)
 for people who want Plasmai to look like Plasmai rather than like Breeze.
 
+- **Module, not a copy.** Style, wrappers, skins and fonts come from the
+  design system's QML module, vendored by `scripts/sync-kante.sh` into
+  `contents/ui/Kante` (`KanteStyle`, QQC2 wrappers, skins, fonts) and
+  `contents/ui/KantePlasma` (PlasmaComponents3 wrappers of the widget). The
+  app takes `contents/ui/Kante` through its qrc (`qml/Kante`). Do not edit
+  the copies; change the design system and sync. Plasmai's own colors
+  (entity fallback, chart bars) live in `PlasmaiColors`. Import the module
+  by directory only (`import "Kante"`), so `KanteStyle` exists once.
+
 - **Opt-in, never default.** `visualStyle` 0 = System, 1 = Kante. Switching
-  back restores every Plasma value (`Binding` with `when: Style.kante`, no
+  back restores every Plasma value (`Binding` with `when: KanteStyle.active`, no
   one-way assignments).
 - **Palette:** Gruvbox dark; with a light Plasma theme the "Leinen" light
-  values (`Style.gruvbox` / `Style.leinen`). The app forces dark on Android
-  (`Style.preferDark`).
+  values (`KantePalette.dark` / `.light`). The app forces dark on Android
+  (`KanteStyle.preferDark`).
 - **Type:** uppercase Rajdhani for titles and buttons, JetBrains Mono for
   figures (timer, times, durations) and small section labels; body text
-  stays the system font. Fonts ship in `contents/fonts` (SIL OFL) and are
+  stays the system font. Fonts ship in `contents/ui/Kante/fonts` (SIL OFL) and are
   only loaded, never installed.
 - **Shape:** square controls; cards and dialogs cut the top-right corner
-  (`KanteCard`, `Style.chamfer`) and carry an accent bar on top.
+  (`KanteCard`, `KanteStyle.chamfer`) and carry an accent bar on top.
 - **Translucency:** Kante never paints the popup ground. Plasma's blur and
   transparency stay; surfaces are tints with alpha (card 60 %, sunken 50 %,
   dialog 97 %). Color only in small opaque areas (project bars, chart
@@ -233,13 +242,15 @@ for people who want Plasmai to look like Plasmai rather than like Breeze.
 - **Main view:** timer card with the accent-colored timer, activity as the
   heading, a day strip when idle; favorites as tiles (two per row); Recent as
   a time line (time · color bar · activity · project · duration).
-- **Controls:** views use the wrappers `PButton` (with `emphasis` Primary /
-  Destructive), `PToolButton`, `PTextField`, `PHeading`, `PDialog`. In the
+- **Controls:** views use the wrappers `KanteButton` (with `emphasis` Primary /
+  Destructive), `KanteToolButton`, `KanteTextField`, `KanteHeading`,
+  `KanteDialog`; the widget uses `KantePlasmaButton`, `KantePlasmaToolButton`
+  and `KantePlasmaHeading` instead of the first three. In the
   System style they are the plain Plasma / QQC2 controls. In Kante they hide
   the style's frame and content and draw their own, so disabled states fade
-  instead of taking the platform's disabled colors. `StyleScope` hands the
+  instead of taking the platform's disabled colors. `KanteScope` hands the
   Kante colors to `Kirigami.Theme` for everything else (labels, check boxes,
-  spin boxes); popups need their own (`PDialog`, app `KanteDialogSkin`).
+  spin boxes); popups need their own (`KanteDialog`, app `KanteDialogSkin`).
   Controls that keep their base type get a skin as a child instead:
   `KanteCheckSkin` (check boxes, switches), `KanteFieldSkin` (spin boxes,
   combo boxes, text areas), `KanteSliderSkin`, `KantePopupSkin` (menus),
@@ -247,6 +258,26 @@ for people who want Plasmai to look like Plasmai rather than like Breeze.
   Each hides the style's part and draws its own only while Kante is on.
 - **Panel chip:** keeps the Plasmai mark while tracking, tinted with the
   accent, square frame.
+
+### Kante Light (opt-in, Kante shapes on the platform look)
+
+`visualStyle` 2. For people who want Plasmai to sit with Breeze and still
+read as Kante. It is the design system's `KanteStyle.Kind.KanteLight`:
+
+- **Every color is the theme's.** `KanteStyle` roles forward
+  `Kirigami.Theme` live (Plasma theme in the widget, color scheme in the
+  app), so any scheme, light or dark, switched at runtime, just works. Never
+  hardcode or cache a color for this style.
+- **Controls stay the platform's.** Buttons, fields, check boxes, menus and
+  dialogs are the plain Plasma / Kirigami ones: the wrappers and skins only
+  draw in `KanteStyle.themed` (full Kante). The panel chip stays System.
+- **From Kante:** the Kante layouts (timer card, favorite tiles, Recent as
+  a time line, Kante statistics), cut corners and accent bars in the
+  highlight color, titles (level 1–2 headings, page titles) in uppercase
+  Rajdhani, figures and section labels in JetBrains Mono with a rule.
+  Card headings stay the system font.
+- Views branch on `KanteStyle.active` (Kante or Kante Light) for layout and
+  shape, on `KanteStyle.themed` only for palette-dependent spots.
 
 ### Hierarchy and color bars
 

@@ -4,6 +4,7 @@ import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
 import "../code/kimaiApi.js" as KimaiApi
 import "."
+import "Kante"
 
 /**
  * Kante day strip: today's entries as flat segments on one track, the work
@@ -70,13 +71,13 @@ ColumnLayout {
         id: track
         Layout.fillWidth: true
         Layout.preferredHeight: Math.round(Kirigami.Units.gridUnit * 0.55)
-        color: Style.sunkenColor
+        color: KanteStyle.sunkenColor
 
         Rectangle {
             x: strip.xOf(strip.workBegin)
             width: Math.max(0, strip.xOf(strip.workEnd) - x)
             height: parent.height
-            color: Style.tint(Style.textColor, 0.06)
+            color: KanteStyle.tint(KanteStyle.textColor, 0.06)
         }
 
         Repeater {
@@ -88,7 +89,7 @@ ColumnLayout {
                 x: strip.xOf(strip.hoursOfDay(begin))
                 width: Math.max(2, strip.xOf(strip.hoursOfDay(end)) - x)
                 height: parent.height
-                color: ts.end ? KimaiApi.barColorInfoFromTimesheet(ts, strip.customersById).color : Style.accentColor
+                color: ts.end ? KimaiApi.barColorInfoFromTimesheet(ts, strip.customersById).color : KanteStyle.accentColor
             }
         }
 
@@ -97,7 +98,7 @@ ColumnLayout {
             y: -2
             width: 1
             height: parent.height + 4
-            color: Style.textColor
+            color: KanteStyle.textColor
         }
     }
 
@@ -111,14 +112,14 @@ ColumnLayout {
                 readonly property int hour: strip.span.lo + index * 2
                 x: Math.min(strip.width - width, Math.max(0, strip.xOf(hour) - width / 2))
                 text: (hour < 10 ? "0" : "") + hour
-                font: Style.monoFont(Style.smallFont.pointSize * 0.85, false)
-                color: Style.mutedTextColor
+                font: KanteStyle.monoFont(KanteStyle.smallFont.pointSize * 0.85, false)
+                color: KanteStyle.mutedTextColor
             }
         }
 
         TextMetrics {
             id: tickMetrics
-            font: Style.monoFont(Style.smallFont.pointSize * 0.85, false)
+            font: KanteStyle.monoFont(KanteStyle.smallFont.pointSize * 0.85, false)
             text: "00"
         }
     }

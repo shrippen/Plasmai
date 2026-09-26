@@ -6,6 +6,8 @@ import org.kde.plasma.components as PlasmaComponents3
 import "../code/kimaiApi.js" as KimaiApi
 import "../code/dateTimeFormat.js" as DTF
 import "."
+import "Kante"
+import "KantePlasma"
 
 /**
  * Manual timesheet editor — project/activity pickers plus date/time fields
@@ -237,7 +239,7 @@ ColumnLayout {
     PlasmaComponents3.Label {
         Layout.fillWidth: true
         wrapMode: Text.WordWrap
-        font.pointSize: Style.smallFont.pointSize
+        font.pointSize: KanteStyle.smallFont.pointSize
         opacity: 0.8
         text: root.editingExisting
               ? i18n("Change project, activity, range, billable, and tags for this finished entry.")
@@ -339,9 +341,9 @@ ColumnLayout {
             PlasmaComponents3.Label {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
-                font.pointSize: Style.smallFont.pointSize
+                font.pointSize: KanteStyle.smallFont.pointSize
                 opacity: root.rangeValid ? 0.9 : 0.65
-                color: root.rangeValid ? Style.textColor : Style.neutralTextColor
+                color: root.rangeValid ? KanteStyle.textColor : KanteStyle.neutralTextColor
                 text: {
                     if (root.durationSeconds > 0) {
                         return i18n("Duration: %1", KimaiApi.formatDuration(root.durationSeconds))
@@ -361,7 +363,7 @@ ColumnLayout {
             Layout.alignment: Qt.AlignTop
             spacing: Kirigami.Units.smallSpacing
 
-            PTextField {
+            KanteTextField {
                 id: descriptionField
                 Layout.fillWidth: true
                 enabled: root.configured && !root.busy
@@ -385,7 +387,7 @@ ColumnLayout {
         Layout.fillWidth: true
         spacing: Kirigami.Units.smallSpacing
 
-        PButton {
+        KantePlasmaButton {
             Layout.fillWidth: true
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             enabled: root.configured && !root.busy && root.connectionOk
@@ -407,7 +409,7 @@ ColumnLayout {
             }
         }
 
-        PButton {
+        KantePlasmaButton {
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             text: i18n("Cancel")
             onClicked: root.cancelled()

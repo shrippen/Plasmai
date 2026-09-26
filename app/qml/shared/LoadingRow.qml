@@ -1,5 +1,6 @@
 import QtQuick
 import org.kde.kirigami as Kirigami
+import "../Kante"
 
 Row {
     id: root
@@ -29,7 +30,7 @@ Row {
             width: index === 0 ? root.width * 0.65 : root.width * 0.35
             height: Kirigami.Units.gridUnit
             radius: Kirigami.Units.smallSpacing / 2
-            color: Style.disabledTextColor
+            color: KanteStyle.disabledTextColor
         }
     }
 }

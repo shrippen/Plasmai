@@ -25,6 +25,8 @@ import "../code/mileage.js" as Mileage
 import "../code/statsData.js" as StatsData
 import "../code/providerUtil.js" as ProviderUtil
 import "."
+import "Kante"
+import "KantePlasma"
 
 PlasmoidItem {
     id: root
@@ -36,7 +38,7 @@ PlasmoidItem {
     }
 
     Binding {
-        target: Style
+        target: KanteStyle
         property: "kind"
         value: plasmoid.configuration.visualStyle
     }
@@ -139,16 +141,16 @@ PlasmoidItem {
     property bool descriptionFieldFocused: false
     /** High-chroma positive for the description-save check (theme hue, boosted sat). */
     readonly property color descriptionSaveSuccessColor: {
-        var base = Style.positiveTextColor
+        var base = KanteStyle.positiveTextColor
         var hue = (base.hslHue >= 0 && !isNaN(base.hslHue)) ? base.hslHue : 0.33
-        var lightBg = Style.backgroundColor.hslLightness > 0.5
+        var lightBg = KanteStyle.backgroundColor.hslLightness > 0.5
         return Qt.hsla(hue, 0.95, lightBg ? 0.34 : 0.62, 1)
     }
     /** Theme positive is already loud; the circle uses a desaturated sibling. */
     readonly property color descriptionSaveMutedColor: {
-        var base = Style.positiveTextColor
+        var base = KanteStyle.positiveTextColor
         var hue = (base.hslHue >= 0 && !isNaN(base.hslHue)) ? base.hslHue : 0.33
-        var lightBg = Style.backgroundColor.hslLightness > 0.5
+        var lightBg = KanteStyle.backgroundColor.hslLightness > 0.5
         return Qt.hsla(hue, 0.38, lightBg ? 0.36 : 0.46, 1)
     }
 
@@ -2633,12 +2635,12 @@ PlasmoidItem {
 
         onClicked: root.expanded = !root.expanded
 
-        // Tracking tint: theme positive (System) or the Kante accent, square in Kante.
-        readonly property color trackingColor: Style.kante ? Style.accentColor : Style.positiveTextColor
+        // Tracking tint: theme positive (System, Kante Light) or the Kante accent, square in Kante.
+        readonly property color trackingColor: KanteStyle.themed ? KanteStyle.accentColor : KanteStyle.positiveTextColor
 
         Rectangle {
             anchors.fill: parent
-            radius: Style.kante ? 0 : 3
+            radius: KanteStyle.themed ? 0 : 3
             color: root.isTracking
                    ? Qt.rgba(compactRoot.trackingColor.r,
                              compactRoot.trackingColor.g,
@@ -2660,10 +2662,10 @@ PlasmoidItem {
                 Layout.preferredHeight: TouchUi.compactIconSize
                 // Kante keeps the Plasmai mark while tracking, tinted with the accent.
                 source: root.connectionState === "error" ? "network-disconnect"
-                        : (root.isTracking && !Style.kante) ? "media-record" : Qt.resolvedUrl("../images/icon.svg")
-                isMask: root.connectionState !== "error" && (!root.isTracking || Style.kante)
+                        : (root.isTracking && !KanteStyle.themed) ? "media-record" : Qt.resolvedUrl("../images/icon.svg")
+                isMask: root.connectionState !== "error" && (!root.isTracking || KanteStyle.themed)
                 active: compactRoot.containsMouse
-                color: root.isTracking ? compactRoot.trackingColor : Style.textColor
+                color: root.isTracking ? compactRoot.trackingColor : KanteStyle.textColor
             }
 
             RowLayout {
@@ -2700,16 +2702,16 @@ PlasmoidItem {
                 elide: Text.ElideRight
                 maximumLineCount: 1
                 Layout.maximumWidth: Kirigami.Units.gridUnit * 10
-                font.pointSize: Style.smallFont.pointSize
+                font.pointSize: KanteStyle.smallFont.pointSize
             }
 
             PlasmaComponents3.Label {
                 visible: root.isTracking && plasmoid.configuration.showElapsedInPanel
                 text: KimaiApi.formatDurationPanel(root.elapsedSeconds)
-                font.family: Style.monoFamily
-                font.pointSize: Style.smallFont.pointSize
+                font.family: KanteStyle.monoFamily
+                font.pointSize: KanteStyle.smallFont.pointSize
                 font.bold: true
-                color: Style.kante ? compactRoot.trackingColor : Kirigami.Theme.textColor
+                color: KanteStyle.themed ? compactRoot.trackingColor : Kirigami.Theme.textColor
             }
         }
     }
@@ -2717,7 +2719,7 @@ PlasmoidItem {
     fullRepresentation: Item {
         id: popupRoot
 
-        StyleScope { target: popupRoot }
+        KanteScope { target: popupRoot }
         Layout.preferredWidth: Kirigami.Units.gridUnit * TouchUi.flyoutPreferredWidthGu
         Layout.preferredHeight: Kirigami.Units.gridUnit * TouchUi.flyoutPreferredHeightGu
         Layout.minimumWidth: Kirigami.Units.gridUnit * 16
@@ -2769,7 +2771,7 @@ PlasmoidItem {
             onTriggered: popupRoot.refreshSparkCutouts()
         }
 
-        PDialog {
+        KanteDialog {
             id: stopConfirmDialog
             parent: popupRoot
             anchors.centerIn: parent
@@ -2793,7 +2795,7 @@ PlasmoidItem {
             onAccepted: root.stopTracking(false)
         }
 
-        PDialog {
+        KanteDialog {
             id: switchRecentDialog
             parent: popupRoot
             anchors.centerIn: parent
@@ -2835,20 +2837,20 @@ PlasmoidItem {
 
                 radius: 6
                 color: emphasize
-                       ? Qt.rgba(Style.highlightColor.r,
-                                 Style.highlightColor.g,
-                                 Style.highlightColor.b, 0.12)
-                       : Qt.rgba(Style.textColor.r,
-                                 Style.textColor.g,
-                                 Style.textColor.b, 0.05)
+                       ? Qt.rgba(KanteStyle.highlightColor.r,
+                                 KanteStyle.highlightColor.g,
+                                 KanteStyle.highlightColor.b, 0.12)
+                       : Qt.rgba(KanteStyle.textColor.r,
+                                 KanteStyle.textColor.g,
+                                 KanteStyle.textColor.b, 0.05)
                 border.width: 1
                 border.color: emphasize
-                              ? Qt.rgba(Style.highlightColor.r,
-                                        Style.highlightColor.g,
-                                        Style.highlightColor.b, 0.35)
-                              : Qt.rgba(Style.textColor.r,
-                                        Style.textColor.g,
-                                        Style.textColor.b, 0.14)
+                              ? Qt.rgba(KanteStyle.highlightColor.r,
+                                        KanteStyle.highlightColor.g,
+                                        KanteStyle.highlightColor.b, 0.35)
+                              : Qt.rgba(KanteStyle.textColor.r,
+                                        KanteStyle.textColor.g,
+                                        KanteStyle.textColor.b, 0.14)
                 implicitHeight: cardColumn.implicitHeight + Kirigami.Units.smallSpacing * 2
 
                 ColumnLayout {
@@ -2860,7 +2862,7 @@ PlasmoidItem {
                     PlasmaComponents3.Label {
                         Layout.fillWidth: true
                         text: card.caption
-                        font.pointSize: Style.smallFont.pointSize
+                        font.pointSize: KanteStyle.smallFont.pointSize
                         opacity: 0.65
                         elide: Text.ElideRight
                     }
@@ -2913,7 +2915,7 @@ PlasmoidItem {
                     Layout.preferredWidth: Kirigami.Units.iconSizes.small
                     Layout.preferredHeight: Kirigami.Units.iconSizes.small
                     source: "go-down"
-                    color: Style.textColor
+                    color: KanteStyle.textColor
                     opacity: 0.55
                 }
 
@@ -2929,13 +2931,13 @@ PlasmoidItem {
             }
 
             footer: QQC2.DialogButtonBox {
-                PButton {
+                KantePlasmaButton {
                     text: i18n("Switch")
                     icon.name: "media-playback-start"
                     Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     QQC2.DialogButtonBox.buttonRole: QQC2.DialogButtonBox.AcceptRole
                 }
-                PButton {
+                KantePlasmaButton {
                     text: i18n("Cancel")
                     Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     QQC2.DialogButtonBox.buttonRole: QQC2.DialogButtonBox.RejectRole
@@ -2947,7 +2949,7 @@ PlasmoidItem {
             onDiscarded: root.pendingSwitchTimesheet = null
         }
 
-        PDialog {
+        KanteDialog {
             id: deleteConfirmDialog
             parent: popupRoot
             anchors.centerIn: parent
@@ -2980,7 +2982,7 @@ PlasmoidItem {
             onRejected: root.pendingDeleteTimesheet = null
         }
 
-        PDialog {
+        KanteDialog {
             id: splitEntryDialog
             parent: popupRoot
             anchors.centerIn: parent
@@ -3069,7 +3071,7 @@ PlasmoidItem {
                     color: {
                         var split = TimesheetFields.splitStoppedEntry(
                             root.pendingSplitTimesheet, splitEntryDialog.splitInstant())
-                        return split.ok ? Style.textColor : Style.neutralTextColor
+                        return split.ok ? KanteStyle.textColor : KanteStyle.neutralTextColor
                     }
                     text: {
                         var _tick = splitDate.selectedDateMs + splitTime.hours * 60 + splitTime.minutes
@@ -3086,7 +3088,7 @@ PlasmoidItem {
             onRejected: root.pendingSplitTimesheet = null
         }
 
-        PDialog {
+        KanteDialog {
             id: idleDialog
             parent: popupRoot
             anchors.centerIn: parent
@@ -3115,7 +3117,7 @@ PlasmoidItem {
             footer: RowLayout {
                 Layout.fillWidth: true
                 spacing: Kirigami.Units.smallSpacing
-                PButton {
+                KantePlasmaButton {
                     Layout.fillWidth: true
                     text: i18n("Keep time")
                     Accessible.name: text
@@ -3124,7 +3126,7 @@ PlasmoidItem {
                         idleDialog.close()
                     }
                 }
-                PButton {
+                KantePlasmaButton {
                     Layout.fillWidth: true
                     text: i18n("Discard idle")
                     Accessible.name: text
@@ -3133,7 +3135,7 @@ PlasmoidItem {
                         idleDialog.close()
                     }
                 }
-                PButton {
+                KantePlasmaButton {
                     Layout.fillWidth: true
                     text: i18n("Discard and continue")
                     Accessible.name: text
@@ -3209,7 +3211,7 @@ PlasmoidItem {
                 contentItem: Rectangle {
                     implicitWidth: 4
                     radius: 2
-                    color: Style.textColor
+                    color: KanteStyle.textColor
                     opacity: slimScrollBar.pressed ? 0.55
                              : (slimScrollBar.hovered ? 0.4 : 0.28)
                 }
@@ -3235,9 +3237,10 @@ PlasmoidItem {
                         Layout.fillWidth: true
                         spacing: 0
 
-                        PHeading {
+                        KantePlasmaHeading {
                             Layout.fillWidth: true
                             level: 3
+                            pageTitle: true
                             text: root.mainViewMode === "stats" ? i18n("Statistics")
                                   : (root.mainViewMode === "filmday" ? i18n("Film day")
                                   : (root.mainViewMode === "trip" ? i18n("Trip")
@@ -3259,7 +3262,7 @@ PlasmoidItem {
                             PlasmaComponents3.Label {
                                 Layout.fillWidth: true
                                 elide: Text.ElideRight
-                                font.pointSize: Style.smallFont.pointSize
+                                font.pointSize: KanteStyle.smallFont.pointSize
                                 text: root.connectionLabel()
                             }
 
@@ -3276,7 +3279,7 @@ PlasmoidItem {
                         Layout.alignment: Qt.AlignVCenter
                         spacing: 0
 
-                        PToolButton {
+                        KantePlasmaToolButton {
                             visible: root.isConfigured && root.mainViewMode === "main"
                             icon.name: "list-add"
                             text: i18n("Add entry")
@@ -3290,7 +3293,7 @@ PlasmoidItem {
                             PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
                         }
 
-                        PToolButton {
+                        KantePlasmaToolButton {
                             visible: root.isConfigured && root.mainViewMode === "main"
                                      && root.providerCapabilities.statistics
                             icon.name: "view-statistics"
@@ -3305,7 +3308,7 @@ PlasmoidItem {
                             PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
                         }
 
-                        PToolButton {
+                        KantePlasmaToolButton {
                             visible: root.isConfigured && root.mainViewMode === "main"
                                      && root.providerCapabilities.filmDays
                             icon.name: "view-calendar-day"
@@ -3320,7 +3323,7 @@ PlasmoidItem {
                             PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
                         }
 
-                        PToolButton {
+                        KantePlasmaToolButton {
                             visible: root.isConfigured && root.mainViewMode === "main" && root.canEditTrips
                             icon.name: "mark-location"
                             text: i18n("Log trip")
@@ -3334,7 +3337,7 @@ PlasmoidItem {
                             PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
                         }
 
-                        PToolButton {
+                        KantePlasmaToolButton {
                             visible: root.mainViewMode === "manual" || root.mainViewMode === "stats"
                                      || root.mainViewMode === "filmday" || root.mainViewMode === "trip"
                             icon.name: "go-previous"
@@ -3555,7 +3558,7 @@ PlasmoidItem {
                     id: heroCard
                     Layout.fillWidth: true
                     visible: item !== null && item.shown
-                    sourceComponent: Style.kante ? kanteTimerCard : systemTimerCard
+                    sourceComponent: KanteStyle.active ? kanteTimerCard : systemTimerCard
                 }
 
                 Component {

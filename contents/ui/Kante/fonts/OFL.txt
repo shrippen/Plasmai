@@ -1,4 +1,4 @@
-Fonts used by the optional "Kante" visual style.
+Fonts of Kante (headings: Rajdhani, figures and labels: JetBrains Mono).
 
 Rajdhani (Rajdhani-600.ttf, Rajdhani-700.ttf)
 Copyright 2014 Indian Type Foundry (info@indiantypefoundry.com)

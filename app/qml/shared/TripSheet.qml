@@ -5,6 +5,7 @@ import org.kde.kirigami as Kirigami
 import "../../contents/code/mileage.js" as Mileage
 import "../../contents/code/dateTimeFormat.js" as DTF
 import "."
+import "../Kante"
 
 /**
  * One trip of the Kimai MileageBundle (kimai-anfahrten): new, edit, or
@@ -214,7 +215,7 @@ ColumnLayout {
             visible: text.length > 0
             Layout.fillWidth: true
             wrapMode: Text.WordWrap
-            color: Style.negativeTextColor
+            color: KanteStyle.negativeTextColor
             text: root.errorFor("date")
         }
 
@@ -275,7 +276,7 @@ ColumnLayout {
         RowLayout {
             Kirigami.FormData.label: i18n("Distance (one way):")
             Layout.fillWidth: true
-            PTextField {
+            KanteTextField {
                 id: distanceField
                 Layout.fillWidth: true
                 enabled: root.fieldsEnabled
@@ -297,7 +298,7 @@ ColumnLayout {
             visible: text.length > 0
             Layout.fillWidth: true
             wrapMode: Text.WordWrap
-            color: Style.negativeTextColor
+            color: KanteStyle.negativeTextColor
             text: root.errorFor("distanceKm")
         }
 
@@ -308,7 +309,7 @@ ColumnLayout {
             enabled: root.fieldsEnabled && !root.suggestionMode
         }
 
-        PTextField {
+        KanteTextField {
             id: startField
             Kirigami.FormData.label: i18n("From:")
             Layout.fillWidth: true
@@ -316,7 +317,7 @@ ColumnLayout {
             maximumLength: 255
         }
 
-        PTextField {
+        KanteTextField {
             id: destinationField
             Kirigami.FormData.label: i18n("To:")
             Layout.fillWidth: true
@@ -353,11 +354,11 @@ ColumnLayout {
             visible: timesCheck.checked && text.length > 0
             Layout.fillWidth: true
             wrapMode: Text.WordWrap
-            color: Style.negativeTextColor
+            color: KanteStyle.negativeTextColor
             text: root.errorFor("arrival") || root.errorFor("departure")
         }
 
-        PTextField {
+        KanteTextField {
             id: commentField
             Kirigami.FormData.label: i18n("Comment:")
             Layout.fillWidth: true
@@ -374,7 +375,7 @@ ColumnLayout {
                 elide: Text.ElideRight
                 text: root.linkedText
             }
-            PToolButton {
+            KanteToolButton {
                 icon.name: "edit-clear"
                 text: i18n("Unlink")
                 display: QQC2.AbstractButton.IconOnly
@@ -390,7 +391,7 @@ ColumnLayout {
         Layout.fillWidth: true
         visible: text.length > 0
         wrapMode: Text.WordWrap
-        color: Style.negativeTextColor
+        color: KanteStyle.negativeTextColor
         text: root.errorText
     }
 
@@ -399,7 +400,7 @@ ColumnLayout {
         Layout.topMargin: Kirigami.Units.largeSpacing
         spacing: Kirigami.Units.smallSpacing
 
-        PButton {
+        KanteButton {
             Layout.fillWidth: true
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             highlighted: true
@@ -415,7 +416,7 @@ ColumnLayout {
             }
         }
 
-        PButton {
+        KanteButton {
             id: deleteButton
             visible: root.canDelete
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
@@ -439,7 +440,7 @@ ColumnLayout {
         }
     }
 
-    PButton {
+    KanteButton {
         Layout.alignment: Qt.AlignHCenter
         Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
         flat: true

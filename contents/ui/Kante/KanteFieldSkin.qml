@@ -15,17 +15,17 @@ Rectangle {
 
     z: -1
     anchors.fill: parent
-    visible: Style.kante
-    color: Style.sunkenColor
+    visible: KanteStyle.themed
+    color: KanteStyle.sunkenColor
     opacity: control && control.enabled ? 1 : 0.5
     border.width: 1
-    border.color: control && (control.activeFocus || control.visualFocus) ? Style.accentColor : Style.frameColor
+    border.color: control && (control.activeFocus || control.visualFocus) ? KanteStyle.accentColor : KanteStyle.frameColor
 
     Binding {
         target: skin.control ? skin.control.background : null
         property: "opacity"
         value: 0
-        when: Style.kante && skin.control !== null && skin.control.background !== null
+        when: KanteStyle.themed && skin.control !== null && skin.control.background !== null
         restoreMode: Binding.RestoreBindingOrValue
     }
     // Combo boxes: draw the shown value over the hidden content item instead of
@@ -33,19 +33,19 @@ Rectangle {
     readonly property bool comboBox: control !== null && control.displayText !== undefined
 
     Text {
-        visible: Style.kante && skin.comboBox && skin.control.contentItem !== null
+        visible: KanteStyle.themed && skin.comboBox && skin.control.contentItem !== null
         x: skin.control && skin.control.contentItem ? skin.control.contentItem.x + (skin.control.contentItem.leftPadding || 0) : 0
         width: skin.control && skin.control.contentItem ? skin.control.contentItem.width - (skin.control.contentItem.leftPadding || 0) : 0
         anchors.verticalCenter: parent.verticalCenter
         text: skin.comboBox ? skin.control.displayText : ""
-        font: skin.control ? skin.control.font : Style.defaultFont
-        color: Style.textColor
+        font: skin.control ? skin.control.font : KanteStyle.defaultFont
+        color: KanteStyle.textColor
         elide: Text.ElideRight
     }
 
     // Desktop styles paint the drop-down arrow into the hidden background: draw one.
     Kirigami.Icon {
-        visible: Style.kante && skin.comboBox && (!skin.control.indicator || !skin.control.indicator.visible)
+        visible: KanteStyle.themed && skin.comboBox && (!skin.control.indicator || !skin.control.indicator.visible)
         width: Kirigami.Units.iconSizes.small
         height: width
         anchors.right: parent.right
@@ -53,14 +53,14 @@ Rectangle {
         anchors.verticalCenter: parent.verticalCenter
         source: "arrow-down"
         isMask: true
-        color: Style.mutedTextColor
+        color: KanteStyle.mutedTextColor
     }
 
     Binding {
         target: skin.control ? skin.control.contentItem : null
         property: "opacity"
         value: 0
-        when: Style.kante && skin.comboBox && skin.control.contentItem !== null
+        when: KanteStyle.themed && skin.comboBox && skin.control.contentItem !== null
         restoreMode: Binding.RestoreBindingOrValue
     }
 }

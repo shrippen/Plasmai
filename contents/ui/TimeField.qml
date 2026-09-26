@@ -5,6 +5,8 @@ import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
 import "../code/dateTimeFormat.js" as DTF
 import "."
+import "Kante"
+import "KantePlasma"
 
 /**
  * Locale-formatted time field with click-to-select segments (hour/minute)
@@ -112,7 +114,7 @@ RowLayout {
         }
     }
 
-    PTextField {
+    KanteTextField {
         id: timeField
         Layout.fillWidth: true
         Layout.preferredHeight: Math.max(implicitHeight, TouchUi.controlMinHeight)
@@ -172,7 +174,7 @@ RowLayout {
         }
     }
 
-    PToolButton {
+    KantePlasmaToolButton {
         Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
         Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
         icon.name: "clock-symbolic"
@@ -205,7 +207,7 @@ RowLayout {
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
                 opacity: 0.75
-                font.pointSize: Style.smallFont.pointSize
+                font.pointSize: KanteStyle.smallFont.pointSize
                 text: i18n("Hours : Minutes")
             }
 
@@ -232,7 +234,7 @@ RowLayout {
                 PlasmaComponents3.Label {
                     text: ":"
                     font.bold: true
-                    font.pointSize: Style.defaultFont.pointSize + 2
+                    font.pointSize: KanteStyle.defaultFont.pointSize + 2
                 }
 
                 QQC2.Tumbler {
@@ -253,13 +255,13 @@ RowLayout {
 
             RowLayout {
                 Layout.fillWidth: true
-                PButton {
+                KantePlasmaButton {
                     Layout.fillWidth: true
                     Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     text: i18n("Cancel")
                     onClicked: timePopup.close()
                 }
-                PButton {
+                KantePlasmaButton {
                     Layout.fillWidth: true
                     Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     text: i18n("Select")

@@ -8,6 +8,8 @@ import "../code/kimaiApi.js" as KimaiApi
 import "../code/timesheetFields.js" as TimesheetFields
 import "../code/dateTimeFormat.js" as DTF
 import "."
+import "Kante"
+import "KantePlasma"
 
 /**
  * Timer card of the main view in the Kante style (see TimerCard.qml for
@@ -51,7 +53,7 @@ Item {
     KanteCard {
         id: card
         anchors.fill: parent
-        barColor: widget.isTracking ? Style.accentColor : Style.frameColor
+        barColor: widget.isTracking ? KanteStyle.accentColor : KanteStyle.frameColor
     }
 
     ColumnLayout {
@@ -75,12 +77,12 @@ Item {
                 text: widget.isTracking
                       ? (heroCard.beginClock.length > 0 ? i18n("Running since %1", heroCard.beginClock) : i18n("Running"))
                       : i18n("Not tracking")
-                font: Style.labelFont()
-                color: Style.mutedTextColor
+                font: KanteStyle.labelFont()
+                color: KanteStyle.mutedTextColor
                 elide: Text.ElideRight
             }
 
-            PToolButton {
+            KantePlasmaToolButton {
                 visible: widget.isTracking && widget.canEditTrips && !!widget.activeTimesheet
                 enabled: !widget.isBusy && !widget.tripBusy
                 text: i18n("Log trip")
@@ -92,7 +94,7 @@ Item {
                 PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
             }
 
-            PToolButton {
+            KantePlasmaToolButton {
                 visible: widget.isTracking
                 enabled: !widget.isBusy
                 text: i18n("Edit")
@@ -119,15 +121,15 @@ Item {
             PlasmaComponents3.Label {
                 Layout.fillWidth: true
                 text: widget.isTracking ? KimaiApi.formatDuration(widget.elapsedSeconds) : "00:00:00"
-                font: Style.monoFont(Style.defaultFont.pointSize * 2.6, true)
-                color: widget.isTracking ? Style.accentTextColor : Style.tint(Style.textColor, 0.3)
+                font: KanteStyle.monoFont(KanteStyle.defaultFont.pointSize * 2.6, true)
+                color: widget.isTracking ? KanteStyle.accentTextColor : KanteStyle.tint(KanteStyle.textColor, 0.3)
                 fontSizeMode: Text.HorizontalFit
-                minimumPointSize: Style.defaultFont.pointSize * 1.4
+                minimumPointSize: KanteStyle.defaultFont.pointSize * 1.4
             }
 
-            PButton {
+            KantePlasmaButton {
                 visible: widget.isTracking
-                emphasis: PButton.Emphasis.Destructive
+                emphasis: KantePlasmaButton.Emphasis.Destructive
                 Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                 enabled: !widget.isBusy
                 text: i18n("Stop")
@@ -141,8 +143,8 @@ Item {
             Layout.fillWidth: true
             visible: widget.isTracking
             text: widget.currentActivity
-            font: Style.headingFont(Style.defaultFont.pointSize * 1.3)
-            color: Style.strongTextColor
+            font: KanteStyle.headingFont(KanteStyle.defaultFont.pointSize * 1.3)
+            color: KanteStyle.strongTextColor
             elide: Text.ElideRight
         }
 
@@ -152,7 +154,7 @@ Item {
             text: widget.currentCustomer.length > 0
                   ? widget.currentProject + " · " + widget.currentCustomer
                   : widget.currentProject
-            color: Style.mutedTextColor
+            color: KanteStyle.mutedTextColor
             elide: Text.ElideRight
         }
 
@@ -217,10 +219,10 @@ Item {
             visible: widget.isTracking && !widget.editingActiveEntry
         }
 
-        PButton {
+        KantePlasmaButton {
             Layout.fillWidth: true
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-            emphasis: PButton.Emphasis.Primary
+            emphasis: KantePlasmaButton.Emphasis.Primary
             visible: widget.showContinueHere && !widget.isTracking && widget.lastRecent
             enabled: widget.isConfigured && !widget.isBusy && widget.connectionState !== "error"
             text: i18n("Continue · %1 · %2",
@@ -230,10 +232,10 @@ Item {
             onClicked: widget.continueLastActivity()
         }
 
-        PButton {
+        KantePlasmaButton {
             Layout.fillWidth: true
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-            emphasis: PButton.Emphasis.Primary
+            emphasis: KantePlasmaButton.Emphasis.Primary
             visible: widget.showContinueHere && !widget.isTracking && !widget.lastRecent && widget.hasLastUsed
             enabled: widget.isConfigured && !widget.isBusy && widget.connectionState !== "error"
             text: i18n("Start · %1 · %2",
@@ -251,13 +253,13 @@ Item {
 
             PlasmaComponents3.Label {
                 text: i18n("Today %1", DTF.hoursMinutes(widget.todayLiveSeconds))
-                font: Style.monoFont(Style.smallFont.pointSize, false)
-                color: Style.mutedTextColor
+                font: KanteStyle.monoFont(KanteStyle.smallFont.pointSize, false)
+                color: KanteStyle.mutedTextColor
             }
             PlasmaComponents3.Label {
                 text: i18n("Week %1", DTF.hoursMinutes(widget.weekLiveSeconds))
-                font: Style.monoFont(Style.smallFont.pointSize, false)
-                color: Style.mutedTextColor
+                font: KanteStyle.monoFont(KanteStyle.smallFont.pointSize, false)
+                color: KanteStyle.mutedTextColor
             }
             Item { Layout.fillWidth: true }
             PlasmaComponents3.Label {
@@ -265,8 +267,8 @@ Item {
                 text: widget.remainingWeekSeconds >= 0
                       ? i18n("%1 left", DTF.hoursMinutes(widget.remainingWeekSeconds))
                       : i18n("%1 over", DTF.hoursMinutes(-widget.remainingWeekSeconds))
-                font: Style.monoFont(Style.smallFont.pointSize, true)
-                color: widget.remainingWeekSeconds >= 0 ? Style.positiveTextColor : Style.neutralTextColor
+                font: KanteStyle.monoFont(KanteStyle.smallFont.pointSize, true)
+                color: widget.remainingWeekSeconds >= 0 ? KanteStyle.positiveTextColor : KanteStyle.neutralTextColor
             }
         }
     }

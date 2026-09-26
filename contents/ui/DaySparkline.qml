@@ -3,6 +3,7 @@ import "../code/solar.js" as Solar
 import Qt5Compat.GraphicalEffects as GE
 import QtQuick
 import org.kde.kirigami as Kirigami
+import "Kante"
 
 /**
  * Compact 24h sparkline (concept H): night/day bar with work + overtime
@@ -123,7 +124,7 @@ Item {
         Math.ceil(0.5 + Math.round(Kirigami.Units.gridUnit * 2.35) + workIconSize * 0.5 + skyIconPad))
     readonly property int skyHeight: root.showArcs ? skyHeightFull : 0
     readonly property int workUnderHeight: root.showArcs ? workUnderHeightFull : 0
-    readonly property int labelHeight: Math.max(12, Math.round(Style.smallFont.pixelSize + 2))
+    readonly property int labelHeight: Math.max(12, Math.round(KanteStyle.smallFont.pixelSize + 2))
     readonly property int peakSun: Math.max(12, skyHeightFull - Math.ceil(0.5 + workIconSize * 0.5 + skyIconPad))
     readonly property int peakMoon: Math.max(12, Math.round(peakSun * 1.12))
     /** Exact Y of the work stroke apex inside the under-bar band. */
@@ -140,21 +141,21 @@ Item {
     }
     readonly property real workArcCtrlY: (2 * workArcApexY) - 0.5
 
-    readonly property bool lightBg: Style.backgroundColor.hslLightness > 0.5
+    readonly property bool lightBg: KanteStyle.backgroundColor.hslLightness > 0.5
     readonly property color trackOutline: Qt.rgba(
-        Style.textColor.r, Style.textColor.g,
-        Style.textColor.b, lightBg ? 0.22 : 0.32)
+        KanteStyle.textColor.r, KanteStyle.textColor.g,
+        KanteStyle.textColor.b, lightBg ? 0.22 : 0.32)
     readonly property color sunStroke: Qt.rgba(1, 0.78, 0.28, lightBg ? 0.85 : 0.9)
     // Soft ribbons along arcs (not solid humps) so overlaps stay readable
     readonly property color sunRibbon: Qt.rgba(1, 0.78, 0.35, lightBg ? 0.28 : 0.35)
     readonly property color moonStroke: Qt.rgba(0.75, 0.82, 1, lightBg ? 0.75 : 0.85)
     readonly property color moonRibbon: Qt.rgba(0.6, 0.7, 1, lightBg ? 0.22 : 0.28)
     readonly property color workStroke: Qt.rgba(
-        Style.highlightColor.r, Style.highlightColor.g,
-        Style.highlightColor.b, lightBg ? 0.75 : 0.85)
+        KanteStyle.highlightColor.r, KanteStyle.highlightColor.g,
+        KanteStyle.highlightColor.b, lightBg ? 0.75 : 0.85)
     readonly property color workRibbon: Qt.rgba(
-        Style.highlightColor.r, Style.highlightColor.g,
-        Style.highlightColor.b, lightBg ? 0.2 : 0.26)
+        KanteStyle.highlightColor.r, KanteStyle.highlightColor.g,
+        KanteStyle.highlightColor.b, lightBg ? 0.2 : 0.26)
 
     /** Y center of an on-path icon on a sky arc (matches workArcApexY math). */
     function skyArcIconCenterY(containerHeight, peak, yNorm) {
@@ -234,9 +235,9 @@ Item {
         ctx.beginPath()
         ctx.arc(0, 0, s * 0.48, 0, Math.PI * 2)
         ctx.fillStyle = Qt.rgba(
-            Style.backgroundColor.r,
-            Style.backgroundColor.g,
-            Style.backgroundColor.b, 0.94)
+            KanteStyle.backgroundColor.r,
+            KanteStyle.backgroundColor.g,
+            KanteStyle.backgroundColor.b, 0.94)
         ctx.fill()
 
         // Outline stroke
@@ -272,9 +273,9 @@ Item {
         ctx.beginPath()
         ctx.arc(cx, cy, s * 0.48, 0, Math.PI * 2)
         ctx.fillStyle = Qt.rgba(
-            Style.backgroundColor.r,
-            Style.backgroundColor.g,
-            Style.backgroundColor.b, 0.94)
+            KanteStyle.backgroundColor.r,
+            KanteStyle.backgroundColor.g,
+            KanteStyle.backgroundColor.b, 0.94)
         ctx.fill()
 
         // Outer ring
@@ -779,9 +780,9 @@ Item {
                     ctx.beginPath()
                     ctx.arc(cx, cy, s * 0.48, 0, Math.PI * 2)
                     ctx.fillStyle = Qt.rgba(
-                        Style.backgroundColor.r,
-                        Style.backgroundColor.g,
-                        Style.backgroundColor.b, 0.94)
+                        KanteStyle.backgroundColor.r,
+                        KanteStyle.backgroundColor.g,
+                        KanteStyle.backgroundColor.b, 0.94)
                     ctx.fill()
                     ctx.strokeStyle = root.moonStroke
                     ctx.lineWidth = Math.max(1.2, s * 0.06)
@@ -918,9 +919,9 @@ Item {
                 anchors.bottom: parent.bottom
                 radius: Math.max(2, height / 2)
                 color: Qt.rgba(
-                    Style.highlightColor.r * 0.55 + 0.2,
-                    Style.highlightColor.g * 0.55 + 0.22,
-                    Style.highlightColor.b * 0.55 + 0.35,
+                    KanteStyle.highlightColor.r * 0.55 + 0.2,
+                    KanteStyle.highlightColor.g * 0.55 + 0.22,
+                    KanteStyle.highlightColor.b * 0.55 + 0.35,
                     root.lightBg ? 0.72 : 0.78)
             }
 
@@ -932,7 +933,7 @@ Item {
                     x: Math.round(root.mapX(modelData) * track.width)
                     width: 1
                     height: track.height
-                    color: Style.textColor
+                    color: KanteStyle.textColor
                     opacity: 0.2
                 }
             }
@@ -950,7 +951,7 @@ Item {
                     height: Math.max(3, Math.round(track.height * 0.5))
                     anchors.bottom: parent.bottom
                     radius: Math.max(1, height / 4)
-                    color: segOvertime ? Style.neutralTextColor : Style.positiveTextColor
+                    color: segOvertime ? KanteStyle.neutralTextColor : KanteStyle.positiveTextColor
                     opacity: segOvertime ? 0.92 : 0.9
                 }
             }
@@ -1084,9 +1085,9 @@ Item {
                     ctx.beginPath()
                     ctx.arc(cx, cy, s * 0.48, 0, Math.PI * 2)
                     ctx.fillStyle = Qt.rgba(
-                        Style.backgroundColor.r,
-                        Style.backgroundColor.g,
-                        Style.backgroundColor.b, 0.94)
+                        KanteStyle.backgroundColor.r,
+                        KanteStyle.backgroundColor.g,
+                        KanteStyle.backgroundColor.b, 0.94)
                     ctx.fill()
                     ctx.strokeStyle = root.workStroke
                     ctx.lineWidth = Math.max(1.2, s * 0.06)
@@ -1132,9 +1133,9 @@ Item {
                     ctx.moveTo(bx + 1, by + bh * 0.4)
                     ctx.lineTo(bx + bw - 1, by + bh * 0.4)
                     ctx.strokeStyle = Qt.rgba(
-                        Style.backgroundColor.r,
-                        Style.backgroundColor.g,
-                        Style.backgroundColor.b, 0.65)
+                        KanteStyle.backgroundColor.r,
+                        KanteStyle.backgroundColor.g,
+                        KanteStyle.backgroundColor.b, 0.65)
                     ctx.lineWidth = Math.max(1, s * 0.06)
                     ctx.stroke()
                 }
@@ -1176,7 +1177,7 @@ Item {
             width: root.nowStemWidth
             height: track.height + root.nowOverhang * 2
             radius: width / 2
-            color: Style.textColor
+            color: KanteStyle.textColor
         }
         Rectangle {
             anchors.horizontalCenter: parent.horizontalCenter
@@ -1184,7 +1185,7 @@ Item {
             width: root.nowKnobSize
             height: root.nowKnobSize
             radius: width / 2
-            color: Style.textColor
+            color: KanteStyle.textColor
             border.width: 1
             border.color: Qt.rgba(0, 0, 0, root.lightBg ? 0.35 : 0.55)
         }
@@ -1205,9 +1206,9 @@ Item {
             delegate: Text {
                 required property var modelData
                 text: modelData.text
-                color: Style.textColor
+                color: KanteStyle.textColor
                 opacity: 0.55
-                font.pixelSize: Math.max(9, Style.smallFont.pixelSize - 1)
+                font.pixelSize: Math.max(9, KanteStyle.smallFont.pixelSize - 1)
                 y: 0
                 x: {
                     var cx = root.mapX(modelData.frac) * labelRow.width

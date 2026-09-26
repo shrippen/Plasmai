@@ -6,6 +6,7 @@ import "../contents/code/timeTracker.js" as TimeTracker
 import "../contents/code/kimaiApi.js" as KimaiApi
 import "../contents/code/mileage.js" as Mileage
 import "shared"
+import "Kante"
 
 /**
  * One trip of the kimai-anfahrten plugin: new, edit (original set), linked
@@ -95,8 +96,8 @@ Kirigami.Page {
         }
     }
 
-    // Pull to refresh (see shared/PullToRefresh.qml).
-    PullToRefresh {
+    // Pull to refresh (see shared/KantePullToRefresh.qml).
+    KantePullToRefresh {
         parent: pageScroll
         anchors.fill: parent
         z: 10

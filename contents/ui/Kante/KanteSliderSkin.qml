@@ -12,7 +12,7 @@ Item {
 
     required property Item control
 
-    visible: Style.kante
+    visible: KanteStyle.themed
     anchors.fill: parent
     opacity: control && control.enabled ? 1 : 0.5
 
@@ -24,14 +24,14 @@ Item {
         target: skin.control ? skin.control.background : null
         property: "opacity"
         value: 0
-        when: Style.kante && skin.control !== null && skin.control.background !== null
+        when: KanteStyle.themed && skin.control !== null && skin.control.background !== null
         restoreMode: Binding.RestoreBindingOrValue
     }
     Binding {
         target: skin.control ? skin.control.handle : null
         property: "opacity"
         value: 0
-        when: Style.kante && skin.control !== null && skin.control.handle !== null
+        when: KanteStyle.themed && skin.control !== null && skin.control.handle !== null
         restoreMode: Binding.RestoreBindingOrValue
     }
 
@@ -40,12 +40,12 @@ Item {
         width: skin.trackWidth
         height: 4
         anchors.verticalCenter: parent.verticalCenter
-        color: Style.sunkenColor
+        color: KanteStyle.sunkenColor
 
         Rectangle {
             width: skin.control ? skin.control.visualPosition * parent.width : 0
             height: parent.height
-            color: Style.accentColor
+            color: KanteStyle.accentColor
         }
     }
 
@@ -54,8 +54,8 @@ Item {
         height: skin.handleSize
         anchors.verticalCenter: parent.verticalCenter
         x: skin.trackX + (skin.control ? skin.control.visualPosition : 0) * (skin.trackWidth - width)
-        color: Style.accentColor
+        color: KanteStyle.accentColor
         border.width: skin.control && skin.control.visualFocus ? 2 : 0
-        border.color: Style.strongTextColor
+        border.color: KanteStyle.strongTextColor
     }
 }

@@ -6,6 +6,7 @@ import org.kde.kirigami as Kirigami
 import org.kde.kirigamiaddons.dateandtime
 import "../../contents/code/dateTimeFormat.js" as DTF
 import "."
+import "../Kante"
 
 /**
  * Locale-formatted date field with click-to-select segments (day/month/year)
@@ -126,7 +127,7 @@ RowLayout {
         }
     }
 
-    PTextField {
+    KanteTextField {
         id: dateField
         Layout.fillWidth: true
         Layout.preferredHeight: Math.max(implicitHeight, TouchUi.controlMinHeight)
@@ -200,7 +201,7 @@ RowLayout {
         calendarLoader.item.open()
     }
 
-    PToolButton {
+    KanteToolButton {
         Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
         Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
         icon.name: "view-calendar"

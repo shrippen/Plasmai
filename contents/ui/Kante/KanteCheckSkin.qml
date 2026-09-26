@@ -21,7 +21,7 @@ Item {
 
     readonly property Item indicator: control ? control.indicator : null
 
-    visible: Style.kante && indicator !== null
+    visible: KanteStyle.themed && indicator !== null
     x: indicator ? indicator.x : 0
     y: indicator ? indicator.y : 0
     width: shape === KanteCheckSkin.Shape.Box ? Math.round(Kirigami.Units.gridUnit * 0.9) : Math.round(Kirigami.Units.gridUnit * 1.8)
@@ -33,7 +33,7 @@ Item {
         target: skin.indicator
         property: "opacity"
         value: 0
-        when: Style.kante && skin.indicator !== null
+        when: KanteStyle.themed && skin.indicator !== null
         restoreMode: Binding.RestoreBindingOrValue
     }
 
@@ -41,9 +41,9 @@ Item {
     Rectangle {
         anchors.fill: parent
         visible: skin.shape === KanteCheckSkin.Shape.Box
-        color: skin.control && skin.control.checked ? Style.accentColor : Style.sunkenColor
+        color: skin.control && skin.control.checked ? KanteStyle.accentColor : KanteStyle.sunkenColor
         border.width: 1
-        border.color: skin.control && (skin.control.checked || skin.control.visualFocus) ? Style.accentColor : Style.frameColor
+        border.color: skin.control && (skin.control.checked || skin.control.visualFocus) ? KanteStyle.accentColor : KanteStyle.frameColor
 
         Kirigami.Icon {
             anchors.centerIn: parent
@@ -52,7 +52,7 @@ Item {
             visible: skin.control && skin.control.checked
             source: "checkmark"
             isMask: true
-            color: Style.accentForegroundColor
+            color: KanteStyle.accentForegroundColor
         }
     }
 
@@ -60,16 +60,16 @@ Item {
     Rectangle {
         anchors.fill: parent
         visible: skin.shape === KanteCheckSkin.Shape.Switch
-        color: skin.control && skin.control.checked ? Style.accentColor : Style.sunkenColor
+        color: skin.control && skin.control.checked ? KanteStyle.accentColor : KanteStyle.sunkenColor
         border.width: 1
-        border.color: skin.control && skin.control.checked ? Style.accentColor : Style.frameColor
+        border.color: skin.control && skin.control.checked ? KanteStyle.accentColor : KanteStyle.frameColor
 
         Rectangle {
             width: parent.height - 6
             height: width
             y: 3
             x: skin.control && skin.control.checked ? parent.width - width - 3 : 3
-            color: skin.control && skin.control.checked ? Style.accentForegroundColor : Style.textColor
+            color: skin.control && skin.control.checked ? KanteStyle.accentForegroundColor : KanteStyle.textColor
             Behavior on x { NumberAnimation { duration: 120 } }
         }
     }

@@ -7,6 +7,8 @@ import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
 import org.kde.plasma.extras as PlasmaExtras
 import "."
+import "Kante"
+import "KantePlasma"
 
 /**
  * Statistics pane — hourly bars, weekly project stacks, week hour timeline,
@@ -56,7 +58,7 @@ ColumnLayout {
             out.push({
                 "label": (i % 3 === 0) ? buckets[i].label : "",
                 "seconds": buckets[i].seconds,
-                "color": Style.chartColor
+                "color": PlasmaiColors.chart
             });
         }
         return out;
@@ -164,10 +166,10 @@ ColumnLayout {
         // Kante: one frame around the three segments.
         Rectangle {
             anchors.fill: parent
-            visible: Style.kante
+            visible: KanteStyle.active
             color: "transparent"
             border.width: 1
-            border.color: Style.frameColor
+            border.color: KanteStyle.frameColor
         }
 
         RowLayout {
@@ -175,7 +177,7 @@ ColumnLayout {
             anchors.fill: parent
             spacing: 0
 
-            PToolButton {
+            KantePlasmaToolButton {
                 Layout.fillWidth: true
                 Layout.preferredWidth: 1
                 height: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
@@ -185,7 +187,7 @@ ColumnLayout {
                 text: root.filterAllLabel
                 onClicked: root.billableFilter = StatsData.BILLABLE_ALL
             }
-            PToolButton {
+            KantePlasmaToolButton {
                 Layout.fillWidth: true
                 Layout.preferredWidth: 1
                 height: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
@@ -195,7 +197,7 @@ ColumnLayout {
                 text: root.filterBillableLabel
                 onClicked: root.billableFilter = StatsData.BILLABLE_ONLY
             }
-            PToolButton {
+            KantePlasmaToolButton {
                 Layout.fillWidth: true
                 Layout.preferredWidth: 1
                 height: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
@@ -212,7 +214,7 @@ ColumnLayout {
     // Kante: sunken tiles with the figures in monospace.
     GridLayout {
         Layout.fillWidth: true
-        visible: Style.kante
+        visible: KanteStyle.active
         columns: 2
         columnSpacing: Kirigami.Units.smallSpacing
         rowSpacing: Kirigami.Units.smallSpacing
@@ -235,7 +237,7 @@ ColumnLayout {
                 Layout.fillWidth: true
                 Layout.preferredWidth: 1
                 implicitHeight: tileColumn.implicitHeight + Kirigami.Units.smallSpacing * 2
-                color: Style.sunkenColor
+                color: KanteStyle.sunkenColor
 
                 ColumnLayout {
                     id: tileColumn
@@ -247,17 +249,17 @@ ColumnLayout {
                     PlasmaComponents3.Label {
                         Layout.fillWidth: true
                         text: modelData.label
-                        font: Style.labelFont()
-                        color: Style.mutedTextColor
+                        font: KanteStyle.labelFont()
+                        color: KanteStyle.mutedTextColor
                         elide: Text.ElideRight
                     }
                     PlasmaComponents3.Label {
                         Layout.fillWidth: true
                         text: modelData.value
-                        font: Style.monoFont(Style.defaultFont.pointSize * 1.25, true)
-                        color: Style.strongTextColor
+                        font: KanteStyle.monoFont(KanteStyle.defaultFont.pointSize * 1.25, true)
+                        color: KanteStyle.strongTextColor
                         fontSizeMode: Text.HorizontalFit
-                        minimumPointSize: Style.smallFont.pointSize
+                        minimumPointSize: KanteStyle.smallFont.pointSize
                     }
                 }
             }
@@ -266,7 +268,7 @@ ColumnLayout {
 
     GridLayout {
         Layout.fillWidth: true
-        visible: !Style.kante
+        visible: !KanteStyle.active
         columns: 2
         columnSpacing: Kirigami.Units.largeSpacing
         rowSpacing: Kirigami.Units.smallSpacing
@@ -329,7 +331,7 @@ ColumnLayout {
 
     Kirigami.Separator {
         Layout.fillWidth: true
-        visible: !Style.kante
+        visible: !KanteStyle.active
     }
 
     // —— Two columns once there's room: "today" charts left, weekly trends right.
@@ -349,7 +351,7 @@ ColumnLayout {
             Layout.alignment: Qt.AlignTop
             spacing: Kirigami.Units.smallSpacing
 
-            PHeading {
+            KantePlasmaHeading {
                 Layout.fillWidth: true
                 level: 4
                 text: i18n("Time by hour")
@@ -358,7 +360,7 @@ ColumnLayout {
             RowLayout {
                 Layout.fillWidth: true
 
-                PToolButton {
+                KantePlasmaToolButton {
                     Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
                     Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     icon.name: "go-previous"
@@ -382,7 +384,7 @@ ColumnLayout {
                     }
                 }
 
-                PToolButton {
+                KantePlasmaToolButton {
                     Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
                     Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     icon.name: "go-next"
@@ -404,11 +406,11 @@ ColumnLayout {
             Kirigami.Separator {
                 Layout.fillWidth: true
                 Layout.topMargin: Kirigami.Units.smallSpacing
-                visible: !Style.kante
+                visible: !KanteStyle.active
             }
 
             // —— Activity pies ——
-            PHeading {
+            KantePlasmaHeading {
                 Layout.fillWidth: true
                 level: 4
                 text: i18n("Activity distribution")
@@ -436,7 +438,7 @@ ColumnLayout {
                     RowLayout {
                         Layout.fillWidth: true
 
-                        PToolButton {
+                        KantePlasmaToolButton {
                             Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
                             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                             icon.name: "go-previous"
@@ -457,7 +459,7 @@ ColumnLayout {
                             }
                         }
 
-                        PToolButton {
+                        KantePlasmaToolButton {
                             Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
                             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                             icon.name: "go-next"
@@ -487,7 +489,7 @@ ColumnLayout {
             Layout.alignment: Qt.AlignTop
             spacing: Kirigami.Units.smallSpacing
 
-            PHeading {
+            KantePlasmaHeading {
                 Layout.fillWidth: true
                 level: 4
                 text: i18n("Projects by day")
@@ -496,7 +498,7 @@ ColumnLayout {
             RowLayout {
                 Layout.fillWidth: true
 
-                PToolButton {
+                KantePlasmaToolButton {
                     Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
                     Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     icon.name: "go-previous"
@@ -517,7 +519,7 @@ ColumnLayout {
                     }
                 }
 
-                PToolButton {
+                KantePlasmaToolButton {
                     Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
                     Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     icon.name: "go-next"
@@ -557,7 +559,7 @@ ColumnLayout {
 
                         PlasmaComponents3.Label {
                             text: modelData.key === "_other" ? i18n("Other") : (modelData.name || "")
-                            font.pointSize: Style.smallFont.pointSize
+                            font.pointSize: KanteStyle.smallFont.pointSize
                             opacity: 0.8
                         }
 
@@ -570,11 +572,11 @@ ColumnLayout {
             Kirigami.Separator {
                 Layout.fillWidth: true
                 Layout.topMargin: Kirigami.Units.smallSpacing
-                visible: !Style.kante
+                visible: !KanteStyle.active
             }
 
             // —— Projects by hour (week timeline) ——
-            PHeading {
+            KantePlasmaHeading {
                 Layout.fillWidth: true
                 level: 4
                 text: i18n("Projects by hour")
@@ -583,7 +585,7 @@ ColumnLayout {
             RowLayout {
                 Layout.fillWidth: true
 
-                PToolButton {
+                KantePlasmaToolButton {
                     icon.name: "go-previous"
                     onClicked: root.shiftHourWeek(-1)
                     PlasmaComponents3.ToolTip.text: i18n("Previous week")
@@ -602,7 +604,7 @@ ColumnLayout {
                     }
                 }
 
-                PToolButton {
+                KantePlasmaToolButton {
                     icon.name: "go-next"
                     enabled: root.hourWeekOffset < 0
                     onClicked: root.shiftHourWeek(1)
@@ -615,7 +617,7 @@ ColumnLayout {
             PlasmaComponents3.Label {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
-                font.pointSize: Style.smallFont.pointSize
+                font.pointSize: KanteStyle.smallFont.pointSize
                 opacity: 0.7
                 text: {
                     var bits = [];
@@ -658,14 +660,14 @@ ColumnLayout {
                         PlasmaComponents3.Label {
                             anchors.verticalCenter: parent.verticalCenter
                             text: modelData.key === "_other" ? i18n("Other") : (modelData.name || "")
-                            font.pointSize: Style.smallFont.pointSize
+                            font.pointSize: KanteStyle.smallFont.pointSize
                             opacity: 0.8
                         }
 
                         PlasmaComponents3.Label {
                             anchors.verticalCenter: parent.verticalCenter
                             text: KimaiApi.formatDurationShort(modelData.seconds || 0)
-                            font.pointSize: Style.smallFont.pointSize
+                            font.pointSize: KanteStyle.smallFont.pointSize
                             font.bold: true
                             opacity: 0.9
                         }

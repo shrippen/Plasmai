@@ -3,11 +3,12 @@ import QtQuick.Layouts
 import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
 import "."
+import "../Kante"
 
 QQC2.ItemDelegate {
     id: root
 
-    property color customerColor: Style.entityFallbackColor
+    property color customerColor: PlasmaiColors.entityFallback
     property string titleText: ""
     property string subtitleText: ""
     property string tooltipText: ""
@@ -39,8 +40,8 @@ QQC2.ItemDelegate {
     property string timeText: ""
     /** Kante time line: duration in h:mm ("" = none). */
     property string durationText: ""
-    readonly property bool kanteTile: Style.kante && presentation === ActivityListRow.Presentation.Tile
-    readonly property bool kanteLine: Style.kante && presentation === ActivityListRow.Presentation.List
+    readonly property bool kanteTile: KanteStyle.active && presentation === ActivityListRow.Presentation.Tile
+    readonly property bool kanteLine: KanteStyle.active && presentation === ActivityListRow.Presentation.List
 
     signal editRequested()
     signal deleteRequested()
@@ -76,21 +77,21 @@ QQC2.ItemDelegate {
         z: -1
         anchors.fill: parent
         visible: root.kanteTile
-        color: root.hovered ? Style.sunkenColor : Style.cardColor
+        color: root.hovered ? KanteStyle.sunkenColor : KanteStyle.cardColor
         barColor: root.customerColor
-        chamfer: Style.smallChamfer
+        chamfer: KanteStyle.chamferSmall
     }
     Rectangle {
         z: -1
         anchors.fill: parent
         visible: root.kanteLine && (root.hovered || root.visualFocus)
-        color: Style.sunkenColor
+        color: KanteStyle.sunkenColor
     }
     Binding {
         target: root.background
         property: "opacity"
         value: 0
-        when: Style.kante && root.background !== null
+        when: KanteStyle.active && root.background !== null
         restoreMode: Binding.RestoreBindingOrValue
     }
     Binding {
@@ -117,8 +118,8 @@ QQC2.ItemDelegate {
             visible: root.kanteLine && root.timeText.length > 0
             Layout.preferredWidth: Math.ceil(timeMetrics.width) + Kirigami.Units.smallSpacing
             text: root.timeText
-            font: Style.monoFont(Style.smallFont.pointSize, false)
-            color: Style.mutedTextColor
+            font: KanteStyle.monoFont(KanteStyle.smallFont.pointSize, false)
+            color: KanteStyle.mutedTextColor
             elide: Text.ElideRight
         }
 
@@ -132,7 +133,7 @@ QQC2.ItemDelegate {
         }
 
         CustomerColorDot {
-            visible: !Style.kante
+            visible: !KanteStyle.active
             customerColor: root.customerColor
             sizeFactor: TouchUi.active ? 0.55 : 0.45
             Layout.preferredWidth: implicitWidth
@@ -147,7 +148,7 @@ QQC2.ItemDelegate {
             Layout.preferredWidth: Kirigami.Units.iconSizes.small
             Layout.preferredHeight: Kirigami.Units.iconSizes.small
             source: "media-playback-start"
-            color: Style.kante ? Style.positiveTextColor : "transparent"
+            color: KanteStyle.active ? KanteStyle.positiveTextColor : "transparent"
             opacity: root.enabled ? 1 : 0.5
         }
 
@@ -162,7 +163,7 @@ QQC2.ItemDelegate {
                 Layout.preferredWidth: 0
                 visible: !root.kanteLine
                 text: root.titleText
-                font.weight: root.kanteTile ? Font.DemiBold : Style.defaultFont.weight
+                font.weight: root.kanteTile ? Font.DemiBold : KanteStyle.defaultFont.weight
                 elide: Text.ElideRight
             }
 
@@ -171,9 +172,9 @@ QQC2.ItemDelegate {
                 Layout.preferredWidth: 0
                 visible: root.subtitleText.length > 0 && !root.kanteLine
                 text: root.subtitleText
-                font.pointSize: Style.smallFont.pointSize
-                color: Style.kante ? Style.mutedTextColor : Kirigami.Theme.textColor
-                opacity: Style.kante ? 1 : 0.7
+                font.pointSize: KanteStyle.smallFont.pointSize
+                color: KanteStyle.active ? KanteStyle.mutedTextColor : Kirigami.Theme.textColor
+                opacity: KanteStyle.active ? 1 : 0.7
                 elide: Text.ElideRight
             }
 
@@ -185,7 +186,7 @@ QQC2.ItemDelegate {
                 textFormat: Text.StyledText
                 text: "<b>" + root.escaped(root.titleText) + "</b>"
                     + (root.subtitleText.length > 0
-                       ? "<font color=\"" + Style.mutedTextColor + "\"> · " + root.escaped(root.subtitleText) + "</font>"
+                       ? "<font color=\"" + KanteStyle.mutedTextColor + "\"> · " + root.escaped(root.subtitleText) + "</font>"
                        : "")
                 elide: Text.ElideRight
             }
@@ -194,8 +195,8 @@ QQC2.ItemDelegate {
         QQC2.Label {
             visible: root.kanteLine && root.durationText.length > 0 && !root.runningHintVisible
             text: root.durationText
-            font: Style.monoFont(Style.smallFont.pointSize, false)
-            color: Style.textColor
+            font: KanteStyle.monoFont(KanteStyle.smallFont.pointSize, false)
+            color: KanteStyle.textColor
             horizontalAlignment: Text.AlignRight
         }
 
@@ -227,8 +228,8 @@ QQC2.ItemDelegate {
                     wrapMode: Text.NoWrap
                     text: runningHintText
                     font.bold: true
-                    font.pointSize: Style.smallFont.pointSize
-                    color: Style.positiveTextColor
+                    font.pointSize: KanteStyle.smallFont.pointSize
+                    color: KanteStyle.positiveTextColor
                     elide: Text.ElideRight
                 }
 
@@ -239,10 +240,10 @@ QQC2.ItemDelegate {
                     horizontalAlignment: Text.AlignRight
                     wrapMode: Text.NoWrap
                     text: runningHintCounterText
-                    font.family: Style.monoFamily
+                    font.family: KanteStyle.monoFamily
                     font.bold: true
-                    font.pointSize: Style.smallFont.pointSize
-                    color: Style.positiveTextColor
+                    font.pointSize: KanteStyle.smallFont.pointSize
+                    color: KanteStyle.positiveTextColor
                     elide: Text.ElideRight
                 }
             }
@@ -269,8 +270,8 @@ QQC2.ItemDelegate {
                 source: "overflow-menu"
                 opacity: root.rowEnabled ? 1.0 : 0.4
                 color: root.hovered || historyMouseArea.containsMouse
-                       ? Style.textColor
-                       : Style.disabledTextColor
+                       ? KanteStyle.textColor
+                       : KanteStyle.disabledTextColor
             }
 
             MouseArea {
@@ -298,7 +299,7 @@ QQC2.ItemDelegate {
     // Widest time label, so the colored bars line up: "00:00 – 00:00".
     TextMetrics {
         id: timeMetrics
-        font: Style.monoFont(Style.smallFont.pointSize, false)
+        font: KanteStyle.monoFont(KanteStyle.smallFont.pointSize, false)
         text: "00:00 – 00:00"
     }
 

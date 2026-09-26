@@ -16,32 +16,32 @@ Item {
 
     readonly property color tone: {
         if (!message) {
-            return Style.infoColor
+            return KanteStyle.infoColor
         }
         switch (message.type) {
         case Kirigami.MessageType.Error:
-            return Style.negativeTextColor
+            return KanteStyle.negativeTextColor
         case Kirigami.MessageType.Warning:
-            return Style.neutralTextColor
+            return KanteStyle.neutralTextColor
         case Kirigami.MessageType.Positive:
-            return Style.positiveTextColor
+            return KanteStyle.positiveTextColor
         default:
-            return Style.infoColor
+            return KanteStyle.infoColor
         }
     }
 
     // Not a child: only handed to `background` while Kante is on.
     readonly property Item kanteBackground: Rectangle {
-        color: Style.tint(skin.tone, 0.14)
+        color: KanteStyle.tint(skin.tone, 0.14)
         border.width: 1
-        border.color: Style.tint(skin.tone, 0.55)
+        border.color: KanteStyle.tint(skin.tone, 0.55)
     }
 
     Binding {
         target: skin.message
         property: "background"
         value: skin.kanteBackground
-        when: Style.kante && skin.message !== null
+        when: KanteStyle.themed && skin.message !== null
         restoreMode: Binding.RestoreBindingOrValue
     }
 }

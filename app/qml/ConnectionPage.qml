@@ -7,6 +7,7 @@ import "../contents/code/platform.js" as Platform
 import "../contents/code/timeTracker.js" as TimeTracker
 import "../contents/code/profiles.js" as Profiles
 import "../contents/code/kimaiApi.js" as KimaiApi
+import "Kante"
 
 Kirigami.Page {
     id: page
@@ -221,7 +222,7 @@ Kirigami.Page {
                     }
                 }
 
-                PTextField {
+                KanteTextField {
                     id: profileNameField
                     Kirigami.FormData.label: i18n("Profile name:")
                     Layout.fillWidth: true
@@ -243,7 +244,7 @@ Kirigami.Page {
                     Layout.preferredWidth: formCol.width
                     spacing: Kirigami.Units.smallSpacing
 
-                    PButton {
+                    KanteButton {
                         text: i18n("Add")
                         icon.name: "list-add"
                         onClicked: {
@@ -269,7 +270,7 @@ Kirigami.Page {
                         }
                     }
 
-                    PButton {
+                    KanteButton {
                         text: i18n("Remove")
                         icon.name: "list-remove"
                         enabled: page.profiles.length > 1
@@ -289,7 +290,7 @@ Kirigami.Page {
                         }
                     }
 
-                    PButton {
+                    KanteButton {
                         text: i18n("Use this")
                         icon.name: "emblem-default"
                         enabled: page.profiles.length > 0
@@ -304,8 +305,8 @@ Kirigami.Page {
                         var active = Profiles.profileById(page.profiles, activeProfileField.text || "default")
                         return i18n("Active: %1", active ? active.name : i18n("none"))
                     }
-                    color: Style.disabledTextColor
-                    font.pointSize: Style.smallFont.pointSize
+                    color: KanteStyle.disabledTextColor
+                    font.pointSize: KanteStyle.smallFont.pointSize
                 }
 
                 Kirigami.Separator { Kirigami.FormData.isSection: true; Layout.fillWidth: true }
@@ -340,7 +341,7 @@ Kirigami.Page {
                     }
                 }
 
-                PTextField {
+                KanteTextField {
                     id: urlField
                     Kirigami.FormData.label: i18n("Server URL:")
                     Layout.fillWidth: true
@@ -358,10 +359,10 @@ Kirigami.Page {
                     Kirigami.FormData.label: i18n("API Token:")
                     Layout.fillWidth: true
                     text: page.hasStoredToken ? i18n("Token stored.") : i18n("No token stored.")
-                    color: page.hasStoredToken ? Style.positiveTextColor : Style.disabledTextColor
+                    color: page.hasStoredToken ? KanteStyle.positiveTextColor : KanteStyle.disabledTextColor
                 }
 
-                PTextField {
+                KanteTextField {
                     id: tokenField
                     Kirigami.FormData.label: " "
                     Layout.fillWidth: true
@@ -378,7 +379,7 @@ Kirigami.Page {
                     Layout.preferredWidth: formCol.width
                     spacing: Kirigami.Units.smallSpacing
 
-                    PButton {
+                    KanteButton {
                         text: page.busy ? i18n("Saving…") : i18n("Save token")
                         icon.name: "document-save"
                         enabled: !page.busy && tokenField.text.length > 0 && page.profiles.length > 0
@@ -402,7 +403,7 @@ Kirigami.Page {
                         }
                     }
 
-                    PButton {
+                    KanteButton {
                         text: i18n("Clear")
                         icon.name: "edit-delete"
                         enabled: !page.busy && page.hasStoredToken
@@ -420,7 +421,7 @@ Kirigami.Page {
                         }
                     }
 
-                    PButton {
+                    KanteButton {
                         text: i18n("Test")
                         icon.name: "network-connect"
                         enabled: !page.busy && page.profiles.length > 0
@@ -461,25 +462,25 @@ Kirigami.Page {
 
             // ── Status message ──
             Rectangle { Layout.fillWidth: true; visible: page.statusMessage.length > 0; radius: Kirigami.Units.smallSpacing; height: statusLabel.implicitHeight + Kirigami.Units.smallSpacing * 2
-                color: page.statusIsError ? Qt.rgba(Style.negativeTextColor.r, Style.negativeTextColor.g, Style.negativeTextColor.b, 0.15) : Qt.rgba(Style.positiveTextColor.r, Style.positiveTextColor.g, Style.positiveTextColor.b, 0.15)
-                border.width: 1; border.color: page.statusIsError ? Style.negativeTextColor : Style.positiveTextColor
+                color: page.statusIsError ? Qt.rgba(KanteStyle.negativeTextColor.r, KanteStyle.negativeTextColor.g, KanteStyle.negativeTextColor.b, 0.15) : Qt.rgba(KanteStyle.positiveTextColor.r, KanteStyle.positiveTextColor.g, KanteStyle.positiveTextColor.b, 0.15)
+                border.width: 1; border.color: page.statusIsError ? KanteStyle.negativeTextColor : KanteStyle.positiveTextColor
                 QQC2.Label { id: statusLabel; anchors.fill: parent; anchors.margins: Kirigami.Units.smallSpacing
                     text: page.statusMessage; wrapMode: Text.WordWrap
-                    color: page.statusIsError ? Style.negativeTextColor : Style.positiveTextColor }
+                    color: page.statusIsError ? KanteStyle.negativeTextColor : KanteStyle.positiveTextColor }
             }
 
             // ── Hidden data fields (like desktop) ──
-            PTextField { id: profilesField; visible: false; text: "[{\"id\":\"default\",\"name\":\"Default\",\"url\":\"\",\"provider\":\"kimai\"}]"
+            KanteTextField { id: profilesField; visible: false; text: "[{\"id\":\"default\",\"name\":\"Default\",\"url\":\"\",\"provider\":\"kimai\"}]"
                 onTextChanged: { if (!page.syncing) page.parseProfiles() } }
-            PTextField { id: activeProfileField; visible: false; text: "default" }
+            KanteTextField { id: activeProfileField; visible: false; text: "default" }
 
         }
     }
 
     Component.onCompleted: loadSharedState()
 
-    // Pull to refresh (see shared/PullToRefresh.qml).
-    PullToRefresh {
+    // Pull to refresh (see shared/KantePullToRefresh.qml).
+    KantePullToRefresh {
         parent: pageScroll
         anchors.fill: parent
         z: 10

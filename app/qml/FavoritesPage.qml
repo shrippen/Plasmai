@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import "../contents/code/kimaiApi.js" as KimaiApi
 import "shared"
+import "Kante"
 
 Kirigami.Page {
     id: page
@@ -99,8 +100,8 @@ Kirigami.Page {
         }
     }
 
-    // Pull to refresh (see shared/PullToRefresh.qml).
-    PullToRefresh {
+    // Pull to refresh (see shared/KantePullToRefresh.qml).
+    KantePullToRefresh {
         parent: pageScroll
         anchors.fill: parent
         z: 10

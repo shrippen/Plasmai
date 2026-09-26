@@ -5,6 +5,7 @@ import org.kde.kirigami as Kirigami
 import "../contents/code/timeTracker.js" as TimeTracker
 import "../contents/code/kimaiApi.js" as KimaiApi
 import "shared"
+import "Kante"
 
 Kirigami.Page {
     id: page
@@ -76,12 +77,12 @@ Kirigami.Page {
             RowLayout { Layout.fillWidth: true; spacing: Kirigami.Units.smallSpacing
                 Kirigami.Icon {
                     source: !root.isConfigured ? "network-disconnect" : root.connectionState === "error" ? "network-disconnect" : "network-connect"
-                    color: !root.isConfigured ? Style.disabledTextColor : root.connectionState === "error" ? Style.negativeTextColor : Style.positiveTextColor
+                    color: !root.isConfigured ? KanteStyle.disabledTextColor : root.connectionState === "error" ? KanteStyle.negativeTextColor : KanteStyle.positiveTextColor
                     Layout.preferredWidth: Kirigami.Units.iconSizes.small; Layout.preferredHeight: Kirigami.Units.iconSizes.small
                 }
                 QQC2.Label {
                     text: root.activeProfile ? (root.activeProfile.url || root.activeProfile.provider || "") : ""
-                    color: Qt.alpha(Style.textColor, 0.7); elide: Text.ElideRight; Layout.fillWidth: true
+                    color: Qt.alpha(KanteStyle.textColor, 0.7); elide: Text.ElideRight; Layout.fillWidth: true
                 }
             }
 
@@ -128,8 +129,8 @@ Kirigami.Page {
         }
     }
 
-    // Pull to refresh (see shared/PullToRefresh.qml).
-    PullToRefresh {
+    // Pull to refresh (see shared/KantePullToRefresh.qml).
+    KantePullToRefresh {
         parent: pageScroll
         anchors.fill: parent
         z: 10

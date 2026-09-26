@@ -300,7 +300,7 @@ ConfigPageBase {
         touchModeCombo.currentIndex = SharedConfig.coerceInt(
             page.cfg_touchMode, page.cfg_touchModeDefault || 0, 0, 2)
         visualStyleCombo.currentIndex = SharedConfig.coerceInt(
-            page.cfg_visualStyle, page.cfg_visualStyleDefault || 0, 0, 1)
+            page.cfg_visualStyle, page.cfg_visualStyleDefault || 0, 0, 2)
         page.syncLocationFields()
         syncControlsToCfg()
         suppressNotify = false
@@ -360,7 +360,7 @@ ConfigPageBase {
         }
         if (typeof shared.visualStyle !== "undefined") {
             page.cfg_visualStyle = SharedConfig.coerceInt(
-                shared.visualStyle, visualStyleCombo.currentIndex, 0, 1)
+                shared.visualStyle, visualStyleCombo.currentIndex, 0, 2)
             visualStyleCombo.currentIndex = page.cfg_visualStyle
         }
         if (typeof shared.latitude !== "undefined") {
@@ -495,7 +495,8 @@ ConfigPageBase {
                     Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     model: [
                         i18n("System (Plasma theme)"),
-                        i18n("Kante")
+                        i18n("Kante"),
+                        i18n("Kante Light")
                     ]
                     onActivated: page.notifyEdited()
                 }
@@ -507,7 +508,7 @@ ConfigPageBase {
                     wrapMode: Text.WordWrap
                     opacity: 0.7
                     font.pointSize: Kirigami.Theme.smallFont.pointSize
-                    text: i18n("Kante is Plasmai's own look: warm colors, square cut corners and monospace figures. It deliberately does not follow Breeze; dark or light still follows your theme.")
+                    text: i18n("Kante is Plasmai's own look: warm colors, square cut corners and monospace figures. It deliberately does not follow Breeze; dark or light still follows your theme. Kante Light keeps your theme's colors and controls and adds only Kante's shapes, titles and figures.")
                 }
 
 

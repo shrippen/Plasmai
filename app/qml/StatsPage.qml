@@ -7,6 +7,7 @@ import "../contents/code/kimaiApi.js" as KimaiApi
 import "../contents/code/mileage.js" as Mileage
 import "../contents/code/statsData.js" as StatsData
 import "shared"
+import "Kante"
 
 Kirigami.Page {
     id: page
@@ -86,8 +87,8 @@ Kirigami.Page {
         }
     }
 
-    // Pull to refresh (see shared/PullToRefresh.qml).
-    PullToRefresh {
+    // Pull to refresh (see shared/KantePullToRefresh.qml).
+    KantePullToRefresh {
         parent: pageScroll
         anchors.fill: parent
         z: 10

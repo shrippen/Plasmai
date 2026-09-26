@@ -8,6 +8,7 @@ import "../contents/code/kimaiApi.js" as KimaiApi
 import "../contents/code/timesheetFields.js" as TimesheetFields
 import "../contents/code/dateTimeFormat.js" as DTF
 import "shared"
+import "Kante"
 
 Kirigami.Page {
     id: page
@@ -46,7 +47,7 @@ Kirigami.Page {
     ]
 
     function connIcon() { return !root.isConfigured ? "network-disconnect" : root.connectionState === "error" ? "network-disconnect" : root.connectionState === "connecting" ? "view-refresh" : "network-connect" }
-    function connColor() { return !root.isConfigured ? Style.disabledTextColor : root.connectionState === "error" ? Style.negativeTextColor : Style.positiveTextColor }
+    function connColor() { return !root.isConfigured ? KanteStyle.disabledTextColor : root.connectionState === "error" ? KanteStyle.negativeTextColor : KanteStyle.positiveTextColor }
     function workSummaryText() {
         var bits = []
         bits.push(i18n("Today %1", KimaiApi.formatDurationShort(root.todayLiveSeconds)))
@@ -143,7 +144,7 @@ Kirigami.Page {
                     var url = root.activeProfile ? root.activeProfile.url || "" : ""
                     return profileName.length > 0 ? i18n("Connected to %1 (%2)", url, profileName) : i18n("Connected to %1", url)
                 }
-                color: Qt.alpha(Style.textColor, 0.7); font.pointSize: Style.smallFont.pointSize; elide: Text.ElideRight
+                color: Qt.alpha(KanteStyle.textColor, 0.7); font.pointSize: KanteStyle.smallFont.pointSize; elide: Text.ElideRight
                 Layout.fillWidth: true; maximumLineCount: 1
             }
             QQC2.BusyIndicator { running: root.isBusy || root.connectionState === "connecting"; visible: running; Layout.preferredWidth: Kirigami.Units.iconSizes.small; Layout.preferredHeight: Kirigami.Units.iconSizes.small }
@@ -241,17 +242,17 @@ Kirigami.Page {
         Layout.fillWidth: true; Layout.topMargin: root.isConfigured ? Kirigami.Units.smallSpacing : 0
         visible: root.isConfigured
                 Material.theme: Material.Dark
-                radius: Style.kante ? 0 : Kirigami.Units.smallSpacing
+                radius: KanteStyle.active ? 0 : Kirigami.Units.smallSpacing
                 implicitHeight: heroCol.implicitHeight + Kirigami.Units.largeSpacing * 2
-                color: Style.kante ? "transparent"
-                       : (root.isTracking ? Qt.alpha(Style.positiveTextColor, 0.08) : Qt.alpha(Style.textColor, 0.05))
-                border.width: Style.kante ? 0 : (root.isTracking ? 2 : 1)
-                border.color: root.isTracking ? Qt.alpha(Style.positiveTextColor, 0.35) : Qt.alpha(Style.textColor, 0.14)
+                color: KanteStyle.active ? "transparent"
+                       : (root.isTracking ? Qt.alpha(KanteStyle.positiveTextColor, 0.08) : Qt.alpha(KanteStyle.textColor, 0.05))
+                border.width: KanteStyle.active ? 0 : (root.isTracking ? 2 : 1)
+                border.color: root.isTracking ? Qt.alpha(KanteStyle.positiveTextColor, 0.35) : Qt.alpha(KanteStyle.textColor, 0.14)
 
                 KanteCard {
                     anchors.fill: parent
-                    visible: Style.kante
-                    barColor: root.isTracking ? Style.accentColor : Style.frameColor
+                    visible: KanteStyle.active
+                    barColor: root.isTracking ? KanteStyle.accentColor : KanteStyle.frameColor
                 }
 
                 ColumnLayout { id: heroCol; anchors.fill: parent; anchors.margins: Kirigami.Units.largeSpacing; spacing: Kirigami.Units.smallSpacing
@@ -260,7 +261,7 @@ Kirigami.Page {
                     // trip and edit buttons, so the clock keeps the full width on phones.
                     RowLayout {
                         Layout.fillWidth: true
-                        visible: Style.kante
+                        visible: KanteStyle.active
                         spacing: Kirigami.Units.smallSpacing
                         QQC2.Label {
                             Layout.fillWidth: true
@@ -272,18 +273,18 @@ Kirigami.Page {
                             text: root.isTracking
                                   ? (beginClock.length > 0 ? i18n("Running since %1", beginClock) : i18n("Running"))
                                   : i18n("Not tracking")
-                            font: Style.labelFont()
-                            color: Style.mutedTextColor
+                            font: KanteStyle.labelFont()
+                            color: KanteStyle.mutedTextColor
                             elide: Text.ElideRight
                         }
-                        PToolButton {
+                        KanteToolButton {
                             visible: root.isTracking && root.canEditTrips && !!root.activeTimesheet
                             icon.name: "mark-location"
                             display: QQC2.AbstractButton.IconOnly
                             text: i18n("Log trip")
                             onClicked: root.openTripForTimesheet(root.activeTimesheet)
                         }
-                        PToolButton {
+                        KanteToolButton {
                             visible: root.isTracking
                             icon.name: "document-edit"
                             display: QQC2.AbstractButton.IconOnly
@@ -295,38 +296,38 @@ Kirigami.Page {
                     RowLayout { Layout.fillWidth: true; spacing: Kirigami.Units.largeSpacing
                         QQC2.Label {
                             text: KimaiApi.formatDuration(root.elapsedSeconds)
-                            font: Style.kante ? Style.monoFont(Style.defaultFont.pointSize * 2.4, true)
-                                              : Qt.font({ family: Style.monoFamily, pointSize: Style.defaultFont.pointSize + 12, bold: true })
-                            color: !Style.kante ? Style.positiveTextColor
-                                   : (root.isTracking ? Style.accentTextColor : Style.tint(Style.textColor, 0.3))
+                            font: KanteStyle.active ? KanteStyle.monoFont(KanteStyle.defaultFont.pointSize * 2.4, true)
+                                              : Qt.font({ family: KanteStyle.monoFamily, pointSize: KanteStyle.defaultFont.pointSize + 12, bold: true })
+                            color: !KanteStyle.active ? KanteStyle.positiveTextColor
+                                   : (root.isTracking ? KanteStyle.accentTextColor : KanteStyle.tint(KanteStyle.textColor, 0.3))
                             // Kante: the big mono clock shrinks to the width left next to the buttons (phones).
-                            Layout.minimumWidth: Style.kante ? 0 : implicitWidth
-                            Layout.fillWidth: Style.kante
-                            fontSizeMode: Style.kante ? Text.HorizontalFit : Text.FixedSize
-                            minimumPointSize: Style.defaultFont.pointSize * 1.4
+                            Layout.minimumWidth: KanteStyle.active ? 0 : implicitWidth
+                            Layout.fillWidth: KanteStyle.active
+                            fontSizeMode: KanteStyle.active ? Text.HorizontalFit : Text.FixedSize
+                            minimumPointSize: KanteStyle.defaultFont.pointSize * 1.4
                         }
-                        Item { Layout.fillWidth: !Style.kante }
-                        PToolButton {
-                            visible: !Style.kante && root.isTracking && root.canEditTrips && !!root.activeTimesheet
+                        Item { Layout.fillWidth: !KanteStyle.active }
+                        KanteToolButton {
+                            visible: !KanteStyle.active && root.isTracking && root.canEditTrips && !!root.activeTimesheet
                             icon.name: "mark-location"
                             display: QQC2.AbstractButton.IconOnly
                             text: i18n("Log trip")
                             onClicked: root.openTripForTimesheet(root.activeTimesheet)
                             QQC2.ToolTip.text: i18n("Log a trip for this entry"); QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile; QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
                         }
-                        PToolButton {
-                            visible: !Style.kante && root.isTracking
+                        KanteToolButton {
+                            visible: !KanteStyle.active && root.isTracking
                             icon.name: "document-edit"
                             display: QQC2.AbstractButton.IconOnly
                             text: i18n("Edit")
                             onClicked: page.openEdit()
                             QQC2.ToolTip.text: text; QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile; QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
                         }
-                        PButton {
+                        KanteButton {
                             Material.theme: Material.Dark
-                            Material.background: Qt.lighter(Style.backgroundColor, 1.7)
-                            Material.foreground: Style.textColor
-                            emphasis: PButton.Emphasis.Destructive
+                            Material.background: Qt.lighter(KanteStyle.backgroundColor, 1.7)
+                            Material.foreground: KanteStyle.textColor
+                            emphasis: KanteButton.Emphasis.Destructive
                             visible: root.isTracking
                             text: i18n("Stop")
                             icon.name: "media-playback-stop"
@@ -337,7 +338,7 @@ Kirigami.Page {
 
                     KanteDayStrip {
                         Layout.fillWidth: true; Layout.topMargin: Kirigami.Units.smallSpacing
-                        visible: Style.kante && root.isConfigured && !page.editingActive && root.showSparkline
+                        visible: KanteStyle.active && root.isConfigured && !page.editingActive && root.showSparkline
                         entries: root.todayTimesheets
                         customersById: root.customersById
                         workDayBegin: root.workDayBegin; workDayEnd: root.workDayEnd
@@ -346,7 +347,7 @@ Kirigami.Page {
 
                     DaySparkline {
                         Layout.fillWidth: true; Layout.topMargin: Kirigami.Units.smallSpacing
-                        visible: !Style.kante && root.isConfigured && !page.editingActive && root.showSparkline
+                        visible: !KanteStyle.active && root.isConfigured && !page.editingActive && root.showSparkline
                         entries: root.todayTimesheets
                         targetSeconds: root.todayTargetSeconds
                         workDayBegin: root.workDayBegin; workDayEnd: root.workDayEnd
@@ -359,32 +360,32 @@ Kirigami.Page {
                     // Kante: activity as the heading, project and customer below.
                     QQC2.Label {
                         Layout.fillWidth: true
-                        visible: Style.kante && root.isTracking && !page.editingActive
+                        visible: KanteStyle.active && root.isTracking && !page.editingActive
                         text: root.currentActivity || ""
-                        font: Style.headingFont(Style.defaultFont.pointSize * 1.3)
-                        color: Style.strongTextColor
+                        font: KanteStyle.headingFont(KanteStyle.defaultFont.pointSize * 1.3)
+                        color: KanteStyle.strongTextColor
                         elide: Text.ElideRight
                     }
                     QQC2.Label {
                         Layout.fillWidth: true
-                        visible: Style.kante && root.isTracking && !page.editingActive
+                        visible: KanteStyle.active && root.isTracking && !page.editingActive
                         text: root.currentCustomer.length > 0 ? (root.currentProject || "") + " · " + root.currentCustomer : (root.currentProject || "")
-                        color: Style.mutedTextColor
+                        color: KanteStyle.mutedTextColor
                         elide: Text.ElideRight
                     }
 
                     QQC2.Label {
                         Layout.fillWidth: true; Layout.topMargin: Kirigami.Units.smallSpacing
-                        visible: !Style.kante && root.isTracking && !page.editingActive && root.currentCustomer.length > 0
-                        text: root.currentCustomer || ""; color: Qt.alpha(Style.textColor, 0.7)
+                        visible: !KanteStyle.active && root.isTracking && !page.editingActive && root.currentCustomer.length > 0
+                        text: root.currentCustomer || ""; color: Qt.alpha(KanteStyle.textColor, 0.7)
                         elide: Text.ElideRight; maximumLineCount: 1
                     }
 
-                    RowLayout { visible: !Style.kante && root.isTracking && !page.editingActive; Layout.fillWidth: true; spacing: Kirigami.Units.smallSpacing
+                    RowLayout { visible: !KanteStyle.active && root.isTracking && !page.editingActive; Layout.fillWidth: true; spacing: Kirigami.Units.smallSpacing
                         CustomerColorDot { customerColor: root.currentCustomerColor; sizeFactor: 0.9 }
-                        QQC2.Label { text: root.currentProject || ""; color: Style.textColor; font.bold: true; elide: Text.ElideRight; maximumLineCount: 1; Layout.fillWidth: true; Layout.preferredWidth: 0; Layout.minimumWidth: 0 }
-                        QQC2.Label { text: "·"; color: Style.disabledTextColor; Layout.preferredWidth: 12 }
-                        QQC2.Label { text: root.currentActivity || ""; color: Qt.alpha(Style.textColor, 0.7); elide: Text.ElideRight; maximumLineCount: 1; Layout.fillWidth: true; Layout.preferredWidth: 0; Layout.minimumWidth: 0 }
+                        QQC2.Label { text: root.currentProject || ""; color: KanteStyle.textColor; font.bold: true; elide: Text.ElideRight; maximumLineCount: 1; Layout.fillWidth: true; Layout.preferredWidth: 0; Layout.minimumWidth: 0 }
+                        QQC2.Label { text: "·"; color: KanteStyle.disabledTextColor; Layout.preferredWidth: 12 }
+                        QQC2.Label { text: root.currentActivity || ""; color: Qt.alpha(KanteStyle.textColor, 0.7); elide: Text.ElideRight; maximumLineCount: 1; Layout.fillWidth: true; Layout.preferredWidth: 0; Layout.minimumWidth: 0 }
                     }
 
                     ActiveEditView {
@@ -424,28 +425,28 @@ Kirigami.Page {
                     // Kante: today · week · what is left of the week, in monospace.
                     RowLayout {
                         Layout.fillWidth: true
-                        visible: Style.kante && !page.editingActive
+                        visible: KanteStyle.active && !page.editingActive
                         spacing: Kirigami.Units.largeSpacing
-                        QQC2.Label { text: i18n("Today %1", DTF.hoursMinutes(root.todayLiveSeconds)); font: Style.monoFont(Style.smallFont.pointSize, false); color: Style.mutedTextColor }
-                        QQC2.Label { text: i18n("Week %1", DTF.hoursMinutes(root.weekLiveSeconds)); font: Style.monoFont(Style.smallFont.pointSize, false); color: Style.mutedTextColor }
+                        QQC2.Label { text: i18n("Today %1", DTF.hoursMinutes(root.todayLiveSeconds)); font: KanteStyle.monoFont(KanteStyle.smallFont.pointSize, false); color: KanteStyle.mutedTextColor }
+                        QQC2.Label { text: i18n("Week %1", DTF.hoursMinutes(root.weekLiveSeconds)); font: KanteStyle.monoFont(KanteStyle.smallFont.pointSize, false); color: KanteStyle.mutedTextColor }
                         Item { Layout.fillWidth: true }
                         QQC2.Label {
                             visible: root.hasWorkContract && root.weekTargetSeconds > 0
                             text: root.remainingWeekSeconds >= 0
                                   ? i18n("%1 left", DTF.hoursMinutes(root.remainingWeekSeconds))
                                   : i18n("%1 over", DTF.hoursMinutes(-root.remainingWeekSeconds))
-                            font: Style.monoFont(Style.smallFont.pointSize, true)
-                            color: root.remainingWeekSeconds >= 0 ? Style.positiveTextColor : Style.neutralTextColor
+                            font: KanteStyle.monoFont(KanteStyle.smallFont.pointSize, true)
+                            color: root.remainingWeekSeconds >= 0 ? KanteStyle.positiveTextColor : KanteStyle.neutralTextColor
                         }
                     }
 
-                    ColumnLayout { Layout.fillWidth: true; spacing: 0; visible: !Style.kante && !page.editingActive
-                        QQC2.Label { text: page.workSummaryText(); color: Qt.alpha(Style.textColor, 0.7); Layout.fillWidth: true; elide: Text.ElideRight }
+                    ColumnLayout { Layout.fillWidth: true; spacing: 0; visible: !KanteStyle.active && !page.editingActive
+                        QQC2.Label { text: page.workSummaryText(); color: Qt.alpha(KanteStyle.textColor, 0.7); Layout.fillWidth: true; elide: Text.ElideRight }
                         QQC2.Label {
                             visible: root.hasWorkContract
                             Layout.fillWidth: true
                             text: page.remainingText()
-                            color: page.isOverTime() ? Style.neutralTextColor : Qt.alpha(Style.textColor, 0.7)
+                            color: page.isOverTime() ? KanteStyle.neutralTextColor : Qt.alpha(KanteStyle.textColor, 0.7)
                             font.bold: page.isOverTime()
                             elide: Text.ElideRight
                         }
@@ -453,12 +454,12 @@ Kirigami.Page {
                     // ══════ DESCRIPTION FIELD ══════
                     Rectangle {
                         Layout.fillWidth: true; implicitHeight: descField.implicitHeight + Kirigami.Units.smallSpacing * 2
-                        radius: Style.kante ? 0 : Kirigami.Units.smallSpacing
-                        color: Style.kante ? "transparent" : Style.backgroundColor
-                        border.width: Style.kante ? 0 : 1
-                        border.color: descField.activeFocus ? Style.positiveTextColor : Qt.alpha(Style.textColor, 0.14)
+                        radius: KanteStyle.active ? 0 : Kirigami.Units.smallSpacing
+                        color: KanteStyle.active ? "transparent" : KanteStyle.backgroundColor
+                        border.width: KanteStyle.active ? 0 : 1
+                        border.color: descField.activeFocus ? KanteStyle.positiveTextColor : Qt.alpha(KanteStyle.textColor, 0.14)
                         visible: root.isTracking && !page.editingActive
-                        PTextField {
+                        KanteTextField {
                             id: descField; anchors.fill: parent; anchors.margins: Kirigami.Units.smallSpacing
                             rightPadding: descSaveButton.visible ? descSaveButton.width + Kirigami.Units.smallSpacing * 2 : leftPadding
                             text: root.isTracking ? root.descriptionDraft : ""
@@ -476,18 +477,18 @@ Kirigami.Page {
                         QQC2.Label {
                             text: i18n("Description…")
                             visible: descField.length === 0
-                            color: Qt.alpha(Style.textColor, 0.55)
+                            color: Qt.alpha(KanteStyle.textColor, 0.55)
                             anchors.left: descField.left; anchors.leftMargin: descField.leftPadding
                             anchors.verticalCenter: descField.verticalCenter
                         }
-                        PToolButton {
+                        KanteToolButton {
                             id: descSaveButton
                             anchors.right: parent.right; anchors.rightMargin: Kirigami.Units.smallSpacing / 2
                             anchors.verticalCenter: descField.verticalCenter
                             display: QQC2.AbstractButton.IconOnly
                             icon.name: root.descriptionSavedFlash ? "dialog-ok-apply"
                                        : (root.savingDescription ? "view-refresh" : "document-save")
-                            icon.color: root.descriptionSavedFlash ? Style.positiveTextColor : Style.textColor
+                            icon.color: root.descriptionSavedFlash ? KanteStyle.positiveTextColor : KanteStyle.textColor
                             text: i18n("Save description")
                             visible: root.descriptionSavedFlash || root.savingDescription
                                      || root.descriptionDraft !== root.currentDescription
@@ -503,15 +504,15 @@ Kirigami.Page {
                         Layout.fillWidth: true; Layout.topMargin: Kirigami.Units.largeSpacing
                         visible: root.isConfigured && !root.isTracking
                         text: root.pinnedEntries.length > 0 ? i18n("No activity. Tap a favorite to start.") : i18n("No activity.")
-                        color: Style.disabledTextColor; wrapMode: Text.WordWrap
+                        color: KanteStyle.disabledTextColor; wrapMode: Text.WordWrap
                     }
 
                     // ══════ CONTINUE BUTTON ══════
-                    PButton {
-                        emphasis: PButton.Emphasis.Primary
+                    KanteButton {
+                        emphasis: KanteButton.Emphasis.Primary
                     Material.theme: Material.Dark
-                    Material.background: Qt.lighter(Style.backgroundColor, 1.7)
-                    Material.foreground: Style.textColor
+                    Material.background: Qt.lighter(KanteStyle.backgroundColor, 1.7)
+                    Material.foreground: KanteStyle.textColor
                         Layout.fillWidth: true
                         visible: !root.isTracking && root.isConfigured && root.showContinue && (root.lastRecent || root.hasLastUsed)
                         enabled: !root.isBusy && root.connectionState !== "error"
@@ -533,15 +534,15 @@ Kirigami.Page {
         spacing: Kirigami.Units.smallSpacing
 
         // ══════ FAVORITES ══════
-        PHeading {
+        KanteHeading {
             Layout.fillWidth: true; Layout.topMargin: Kirigami.Units.smallSpacing
             level: 4; text: i18n("Favorites")
             visible: root.showFavorites && root.pinnedEntries.length > 0
         }
         GridLayout {
             Layout.fillWidth: true
-            columns: Style.kante && width >= Kirigami.Units.gridUnit * 16 ? 2 : 1
-            rowSpacing: Style.kante ? Kirigami.Units.smallSpacing : Kirigami.Units.largeSpacing
+            columns: KanteStyle.active && width >= Kirigami.Units.gridUnit * 16 ? 2 : 1
+            rowSpacing: KanteStyle.active ? Kirigami.Units.smallSpacing : Kirigami.Units.largeSpacing
             columnSpacing: Kirigami.Units.smallSpacing
             Repeater {
                 model: root.showFavorites ? root.pinnedEntries : []
@@ -566,11 +567,11 @@ Kirigami.Page {
         QQC2.Label {
             Layout.fillWidth: true; visible: root.isConfigured && root.showFavorites && root.pinnedEntries.length === 0
             text: i18n("Pin an entry from Recent to add it to your favorites.")
-            color: Style.disabledTextColor; wrapMode: Text.WordWrap
+            color: KanteStyle.disabledTextColor; wrapMode: Text.WordWrap
         }
 
         // ══════ RECENT ══════
-        PHeading {
+        KanteHeading {
             Layout.fillWidth: true; Layout.topMargin: Kirigami.Units.smallSpacing
             level: 4; text: i18n("Recent")
             visible: root.showRecent && root.recentTimesheets.length > 0
@@ -589,7 +590,7 @@ Kirigami.Page {
                     durationText: (modelData.duration || 0) > 0 ? DTF.hoursMinutes(modelData.duration) : ""
                     subtitleText: {
                         // Kante: time and duration have their own columns in the time line.
-                        if (Style.kante) return KimaiApi.displayProjectName(modelData, root.projects)
+                        if (KanteStyle.active) return KimaiApi.displayProjectName(modelData, root.projects)
                         var bits = [KimaiApi.displayProjectName(modelData, root.projects)]
                         var secs = modelData.duration || 0
                         if (secs > 0) bits.push(KimaiApi.formatDurationShort(secs))
@@ -617,7 +618,7 @@ Kirigami.Page {
         }
 
         // ══════ NEW / SWITCH ACTIVITY ══════
-        PButton {
+        KanteButton {
             Layout.fillWidth: true; Layout.topMargin: Kirigami.Units.smallSpacing
             visible: root.isConfigured && root.showNewActivity && !page.showNewActivityForm
             text: root.isTracking ? i18n("Switch to another activity…") : i18n("Start something else…")
@@ -645,14 +646,14 @@ Kirigami.Page {
                     createEntityDialog.resetForMode("activity"); createEntityDialog.open()
                 }
             }
-            PTextField {
+            KanteTextField {
                 Layout.fillWidth: true
                 placeholderText: i18n("Description (optional)")
                 text: page.newActivityDescription
                 onEditingFinished: page.newActivityDescription = text
             }
             RowLayout { Layout.fillWidth: true; spacing: Kirigami.Units.smallSpacing
-                PButton {
+                KanteButton {
                     Layout.fillWidth: true
                     text: root.isTracking ? i18n("Switch") : i18n("Start")
                     icon.name: root.isTracking ? "media-skip-forward" : "media-playback-start"
@@ -664,7 +665,7 @@ Kirigami.Page {
                         page.showNewActivityForm = false
                     }
                 }
-                PButton { text: i18n("Cancel"); onClicked: page.showNewActivityForm = false }
+                KanteButton { text: i18n("Cancel"); onClicked: page.showNewActivityForm = false }
             }
         }
 
@@ -773,14 +774,14 @@ Kirigami.Page {
                 Layout.fillWidth: true; wrapMode: Text.WordWrap
                 text: i18n("You were idle for %1. Keep this time, discard it, or discard and continue?", KimaiApi.formatDurationShort(Math.round(root.pendingIdleMs / 1000)))
             }
-            PButton { Layout.fillWidth: true; text: i18n("Keep time"); onClicked: root.keepIdleTime() }
-            PButton { Layout.fillWidth: true; text: i18n("Discard idle"); onClicked: root.discardIdleTime(false) }
-            PButton { Layout.fillWidth: true; text: i18n("Discard and continue"); onClicked: root.discardIdleTime(true) }
+            KanteButton { Layout.fillWidth: true; text: i18n("Keep time"); onClicked: root.keepIdleTime() }
+            KanteButton { Layout.fillWidth: true; text: i18n("Discard idle"); onClicked: root.discardIdleTime(false) }
+            KanteButton { Layout.fillWidth: true; text: i18n("Discard and continue"); onClicked: root.discardIdleTime(true) }
         }
     }
 
-    // Pull to refresh (see shared/PullToRefresh.qml).
-    PullToRefresh {
+    // Pull to refresh (see shared/KantePullToRefresh.qml).
+    KantePullToRefresh {
         parent: narrowScroll
         anchors.fill: parent
         z: 10
@@ -789,8 +790,8 @@ Kirigami.Page {
         onRefreshRequested: root.refreshAll()
     }
 
-    // Pull to refresh (see shared/PullToRefresh.qml).
-    PullToRefresh {
+    // Pull to refresh (see shared/KantePullToRefresh.qml).
+    KantePullToRefresh {
         parent: wideLeftScroll
         anchors.fill: parent
         z: 10
@@ -799,8 +800,8 @@ Kirigami.Page {
         onRefreshRequested: root.refreshAll()
     }
 
-    // Pull to refresh (see shared/PullToRefresh.qml).
-    PullToRefresh {
+    // Pull to refresh (see shared/KantePullToRefresh.qml).
+    KantePullToRefresh {
         parent: wideRightScroll
         anchors.fill: parent
         z: 10

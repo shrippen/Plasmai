@@ -16,35 +16,37 @@ import "../contents/code/sharedConfig.js" as SharedConfig
 import "../contents/code/providerUtil.js" as ProviderUtil
 import "../contents/code/timesheetFields.js" as TimesheetFields
 import "shared"
+import "Kante"
 
 Kirigami.ApplicationWindow {
     id: root
     signal switchConfirmRequested()
     Material.theme: Material.Dark
 
-    // ── Visual style (shared.json visualStyle: 0 System, 1 Kante), see shared/Style.qml ──
+    // ── Visual style (shared.json visualStyle: 0 System, 1 Kante, 2 Kante Light), see Kante/KanteStyle.qml ──
     property int visualStyle: 0
 
     Binding {
-        target: Style
+        target: KanteStyle
         property: "kind"
         value: root.visualStyle
     }
     Binding {
-        target: Style
+        target: KanteStyle
         property: "preferDark"
         // Android always runs Material Dark (main.cpp), whatever Kirigami reports.
         value: Qt.platform.os === "android"
     }
 
     // Kante: Gruvbox ground and accent for the window, Material (Android) and
-    // Kirigami (Plasma Mobile) controls. Restored when switched back.
-    StyleScope { target: root.contentItem }
-    Binding { target: root; property: "color"; value: Style.backgroundColor; when: Style.kante; restoreMode: Binding.RestoreBindingOrValue }
-    Binding { target: root.Material; property: "accent"; value: Style.accentColor; when: Style.kante; restoreMode: Binding.RestoreBindingOrValue }
-    Binding { target: root.Material; property: "background"; value: Style.backgroundColor; when: Style.kante; restoreMode: Binding.RestoreBindingOrValue }
-    Binding { target: root.Material; property: "foreground"; value: Style.textColor; when: Style.kante; restoreMode: Binding.RestoreBindingOrValue }
-    Binding { target: root.Material; property: "primary"; value: Style.backgroundColor; when: Style.kante; restoreMode: Binding.RestoreBindingOrValue }
+    // Kirigami (Plasma Mobile) controls. Restored when switched back; Kante Light
+    // keeps the platform colors.
+    KanteScope { target: root.contentItem }
+    Binding { target: root; property: "color"; value: KanteStyle.backgroundColor; when: KanteStyle.themed; restoreMode: Binding.RestoreBindingOrValue }
+    Binding { target: root.Material; property: "accent"; value: KanteStyle.accentColor; when: KanteStyle.themed; restoreMode: Binding.RestoreBindingOrValue }
+    Binding { target: root.Material; property: "background"; value: KanteStyle.backgroundColor; when: KanteStyle.themed; restoreMode: Binding.RestoreBindingOrValue }
+    Binding { target: root.Material; property: "foreground"; value: KanteStyle.textColor; when: KanteStyle.themed; restoreMode: Binding.RestoreBindingOrValue }
+    Binding { target: root.Material; property: "primary"; value: KanteStyle.backgroundColor; when: KanteStyle.themed; restoreMode: Binding.RestoreBindingOrValue }
 
     // ── Provider capabilities (tags, billable, statistics, …) ──
     readonly property var providerCapabilities: TimeTracker.providerCapabilities(providerId)

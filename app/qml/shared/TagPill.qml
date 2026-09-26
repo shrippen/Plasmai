@@ -10,7 +10,7 @@ Item {
     id: root
 
     property string tagName: ""
-    property color tagColor: Style.entityFallbackColor
+    property color tagColor: PlasmaiColors.entityFallback
     property bool removable: false
 
     signal removeRequested()

@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
 import "."
+import "../Kante"
 
 /**
  * Shared project + activity picker pair used across the main view, manual entry,
@@ -58,7 +59,7 @@ ColumnLayout {
             }
         }
 
-        PToolButton {
+        KanteToolButton {
             visible: root.showCreateActions
             text: i18n("Create project")
             icon.name: "list-add"
@@ -92,7 +93,7 @@ ColumnLayout {
             onAboutToOpen: root.aboutToOpenPicker(projectCombo, activityCombo)
         }
 
-        PToolButton {
+        KanteToolButton {
             visible: root.showCreateActions
             text: i18n("Create activity")
             icon.name: "list-add"

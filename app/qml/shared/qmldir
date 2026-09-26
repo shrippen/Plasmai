@@ -1,4 +1,4 @@
-singleton Style 1.0 Style.qml
+singleton PlasmaiColors 1.0 PlasmaiColors.qml
 singleton ApiErrors 1.0 ApiErrors.qml
 singleton TouchUi 1.0 TouchUi.qml
 ColorLabelRow 1.0 ColorLabelRow.qml

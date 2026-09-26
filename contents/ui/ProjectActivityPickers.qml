@@ -4,6 +4,7 @@ import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
 import "."
+import "KantePlasma"
 
 /**
  * Shared project + activity picker pair used across the main view, manual entry,
@@ -60,7 +61,7 @@ ColumnLayout {
             }
         }
 
-        PToolButton {
+        KantePlasmaToolButton {
             visible: root.showCreateActions
             text: i18n("Create project")
             icon.name: "list-add"
@@ -97,7 +98,7 @@ ColumnLayout {
             }
         }
 
-        PToolButton {
+        KantePlasmaToolButton {
             visible: root.showCreateActions
             text: i18n("Create activity")
             icon.name: "list-add"

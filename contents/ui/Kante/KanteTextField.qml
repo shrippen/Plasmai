@@ -4,7 +4,7 @@ import org.kde.kirigami as Kirigami
 import "."
 
 /**
- * Text field of the popup views.
+ * Text field.
  *   System  a plain text field (unchanged, including custom backgrounds).
  *   Kante   square sunken box with a thin frame; the frame turns accent on focus.
  */
@@ -17,46 +17,46 @@ QQC2.TextField {
     Rectangle {
         z: -1
         anchors.fill: parent
-        visible: Style.kante && control.kanteFrame
-        color: Style.sunkenColor
+        visible: KanteStyle.themed && control.kanteFrame
+        color: KanteStyle.sunkenColor
         opacity: control.enabled ? 1 : 0.5
         border.width: 1
-        border.color: control.activeFocus ? Style.accentColor : Style.frameColor
+        border.color: control.activeFocus ? KanteStyle.accentColor : KanteStyle.frameColor
     }
 
     Binding {
         target: control.background
         property: "opacity"
         value: 0
-        when: Style.kante && control.background !== null
+        when: KanteStyle.themed && control.background !== null
         restoreMode: Binding.RestoreBindingOrValue
     }
     Binding {
         target: control
         property: "color"
-        value: Style.textColor
-        when: Style.kante
+        value: KanteStyle.textColor
+        when: KanteStyle.themed
         restoreMode: Binding.RestoreBindingOrValue
     }
     Binding {
         target: control
         property: "placeholderTextColor"
-        value: Style.disabledTextColor
-        when: Style.kante
+        value: KanteStyle.disabledTextColor
+        when: KanteStyle.themed
         restoreMode: Binding.RestoreBindingOrValue
     }
     Binding {
         target: control
         property: "selectionColor"
-        value: Style.accentColor
-        when: Style.kante
+        value: KanteStyle.accentColor
+        when: KanteStyle.themed
         restoreMode: Binding.RestoreBindingOrValue
     }
     Binding {
         target: control
         property: "selectedTextColor"
-        value: Style.accentForegroundColor
-        when: Style.kante
+        value: KanteStyle.accentForegroundColor
+        when: KanteStyle.themed
         restoreMode: Binding.RestoreBindingOrValue
     }
 }

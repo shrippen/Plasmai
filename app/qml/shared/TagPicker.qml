@@ -5,6 +5,7 @@ import org.kde.kirigami as Kirigami
 import "../../contents/code/kimaiApi.js" as KimaiApi
 import "../../contents/code/timesheetFields.js" as Fields
 import "."
+import "../Kante"
 
 /**
  * Searchable multi-tag picker: Kimai tags as inline color pills, optional create.
@@ -192,18 +193,18 @@ ColumnLayout {
     Rectangle {
         id: fieldChrome
         Layout.fillWidth: true
-        radius: Style.kante ? 0 : Kirigami.Units.smallSpacing
-        color: Style.kante ? Style.sunkenColor
-                           : Qt.rgba(Style.textColor.r,
-                                     Style.textColor.g,
-                                     Style.textColor.b, 0.04)
-        border.width: searchField.activeFocus && !Style.kante ? 2 : 1
+        radius: KanteStyle.themed ? 0 : Kirigami.Units.smallSpacing
+        color: KanteStyle.themed ? KanteStyle.sunkenColor
+                           : Qt.rgba(KanteStyle.textColor.r,
+                                     KanteStyle.textColor.g,
+                                     KanteStyle.textColor.b, 0.04)
+        border.width: searchField.activeFocus && !KanteStyle.themed ? 2 : 1
         border.color: searchField.activeFocus
-                      ? Style.highlightColor
-                      : (Style.kante ? Style.frameColor
-                                     : Qt.rgba(Style.textColor.r,
-                                               Style.textColor.g,
-                                               Style.textColor.b, 0.18))
+                      ? KanteStyle.highlightColor
+                      : (KanteStyle.themed ? KanteStyle.frameColor
+                                     : Qt.rgba(KanteStyle.textColor.r,
+                                               KanteStyle.textColor.g,
+                                               KanteStyle.textColor.b, 0.18))
         implicitHeight: tagFlow.implicitHeight + Kirigami.Units.smallSpacing * 2
 
         // The search field is only as wide as its text; a tap on the rest of the frame must focus it too.
@@ -234,10 +235,10 @@ ColumnLayout {
                 delegate: Rectangle {
                     required property var modelData
                     readonly property color pillColor: Qt.color(modelData.color)
-                    radius: Style.kante ? 0 : Kirigami.Units.smallSpacing
-                    color: Qt.rgba(Style.textColor.r,
-                                   Style.textColor.g,
-                                   Style.textColor.b, 0.06)
+                    radius: KanteStyle.themed ? 0 : Kirigami.Units.smallSpacing
+                    color: Qt.rgba(KanteStyle.textColor.r,
+                                   KanteStyle.textColor.g,
+                                   KanteStyle.textColor.b, 0.06)
                     border.width: 1
                     border.color: Qt.rgba(pillColor.r, pillColor.g, pillColor.b, 0.45)
                     implicitWidth: pillRow.implicitWidth + Kirigami.Units.smallSpacing * 2
@@ -255,7 +256,7 @@ ColumnLayout {
                 }
             }
 
-            PTextField {
+            KanteTextField {
                 id: searchField
                 kanteFrame: false
                 width: Math.max(
@@ -265,9 +266,9 @@ ColumnLayout {
                 placeholderText: root.selectedTagEntries.length > 0
                                  ? i18n("Add tag…")
                                  : i18n("Add tags…")
-                placeholderTextColor: Qt.rgba(Style.textColor.r,
-                                              Style.textColor.g,
-                                              Style.textColor.b, 0.45)
+                placeholderTextColor: Qt.rgba(KanteStyle.textColor.r,
+                                              KanteStyle.textColor.g,
+                                              KanteStyle.textColor.b, 0.45)
                 background: Item {}
                 // Predictive keyboards deliver text as uncommitted preedit, so suggestions would only update after commit.
                 inputMethodHints: Qt.ImhNoPredictiveText | Qt.ImhNoAutoUppercase
@@ -323,7 +324,7 @@ ColumnLayout {
                         width: parent.width - Kirigami.Units.smallSpacing * 2
                         horizontalAlignment: Text.AlignHCenter
                         opacity: 0.75
-                        font.pointSize: Style.smallFont.pointSize
+                        font.pointSize: KanteStyle.smallFont.pointSize
                         text: root.loadingSuggestions
                               ? i18n("Loading tags…")
                               : i18n("No tags on the server yet.")

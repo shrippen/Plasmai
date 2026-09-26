@@ -4,6 +4,7 @@ import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
 import "../code/timesheetFields.js" as Fields
 import "."
+import "Kante"
 
 /**
  * Optional billable checkbox and searchable tag pills for create/edit.

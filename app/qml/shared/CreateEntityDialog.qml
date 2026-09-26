@@ -4,6 +4,7 @@ import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
 import "../../contents/code/kimaiApi.js" as KimaiApi
 import "."
+import "../Kante"
 
 /**
  * Overflow create dialog for customer / project / activity.
@@ -91,7 +92,7 @@ Kirigami.Dialog {
             opacity: 0.85
         }
 
-        PTextField {
+        KanteTextField {
             id: nameField
             Layout.fillWidth: true
             Accessible.name: i18n("Name")
@@ -126,7 +127,7 @@ Kirigami.Dialog {
                                    ? root.customerRows[customerCombo.currentIndex].color
                                    : KimaiApi.DEFAULT_CUSTOMER_COLOR
                     label: visible ? root.customerRows[customerCombo.currentIndex].name : ""
-                    labelPointSize: Style.defaultFont.pointSize
+                    labelPointSize: KanteStyle.defaultFont.pointSize
                     labelBold: false
                     labelOpacity: 1.0
                 }
@@ -157,14 +158,14 @@ Kirigami.Dialog {
                     customerRole: true
                     customerColor: modelData.color || KimaiApi.DEFAULT_CUSTOMER_COLOR
                     label: modelData.name
-                    labelPointSize: Style.defaultFont.pointSize
+                    labelPointSize: KanteStyle.defaultFont.pointSize
                     labelBold: false
                     labelOpacity: 1.0
                 }
             }
         }
 
-        PButton {
+        KanteButton {
             visible: root.mode === "project"
             text: i18n("Create customer")
             icon.name: "list-add"

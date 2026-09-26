@@ -6,6 +6,7 @@ import "../contents/code/timeTracker.js" as TimeTracker
 import "../contents/code/kimaiApi.js" as KimaiApi
 import "../contents/code/mileage.js" as Mileage
 import "shared"
+import "Kante"
 
 /**
  * Trips of the kimai-anfahrten plugin (A4): the month's logbook, detected
@@ -145,7 +146,7 @@ Kirigami.Page {
             width: pageScroll.availableWidth
             spacing: Kirigami.Units.smallSpacing
 
-            PHeading {
+            KanteHeading {
                 Layout.fillWidth: true
                 level: 4
                 visible: page.suggestions.length > 0
@@ -166,7 +167,7 @@ Kirigami.Page {
             RowLayout {
                 Layout.fillWidth: true
                 Layout.topMargin: Kirigami.Units.smallSpacing
-                PToolButton {
+                KanteToolButton {
                     icon.name: "go-previous"
                     text: i18n("Previous month")
                     display: QQC2.AbstractButton.IconOnly
@@ -178,7 +179,7 @@ Kirigami.Page {
                     font.bold: true
                     text: page.month.toLocaleDateString(Qt.locale(), "MMMM yyyy")
                 }
-                PToolButton {
+                KanteToolButton {
                     icon.name: "go-next"
                     text: i18n("Next month")
                     display: QQC2.AbstractButton.IconOnly
@@ -228,7 +229,7 @@ Kirigami.Page {
                             QQC2.Label {
                                 Layout.fillWidth: true
                                 elide: Text.ElideRight
-                                font.pointSize: Style.smallFont.pointSize
+                                font.pointSize: KanteStyle.smallFont.pointSize
                                 opacity: 0.7
                                 text: {
                                     var d = Mileage.parseDateString(modelData.date)
@@ -251,8 +252,8 @@ Kirigami.Page {
         }
     }
 
-    // Pull to refresh (see shared/PullToRefresh.qml).
-    PullToRefresh {
+    // Pull to refresh (see shared/KantePullToRefresh.qml).
+    KantePullToRefresh {
         parent: pageScroll
         anchors.fill: parent
         z: 10

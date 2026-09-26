@@ -8,6 +8,8 @@ import org.kde.kirigami as Kirigami
 import "../code/kimaiApi.js" as KimaiApi
 import "../code/timesheetFields.js" as TimesheetFields
 import "."
+import "Kante"
+import "KantePlasma"
 
 /**
  * Timer card of the main view: running entry (timer, edit, stop, description)
@@ -31,20 +33,20 @@ Rectangle {
     visible: shown
     radius: 6
     color: widget.isTracking
-           ? Qt.rgba(Style.positiveTextColor.r,
-                     Style.positiveTextColor.g,
-                     Style.positiveTextColor.b, 0.08)
-           : Qt.rgba(Style.textColor.r,
-                     Style.textColor.g,
-                     Style.textColor.b, 0.04)
+           ? Qt.rgba(KanteStyle.positiveTextColor.r,
+                     KanteStyle.positiveTextColor.g,
+                     KanteStyle.positiveTextColor.b, 0.08)
+           : Qt.rgba(KanteStyle.textColor.r,
+                     KanteStyle.textColor.g,
+                     KanteStyle.textColor.b, 0.04)
     border.width: 1
     border.color: widget.isTracking
-                  ? Qt.rgba(Style.positiveTextColor.r,
-                            Style.positiveTextColor.g,
-                            Style.positiveTextColor.b, 0.28)
-                  : Qt.rgba(Style.textColor.r,
-                            Style.textColor.g,
-                            Style.textColor.b, 0.12)
+                  ? Qt.rgba(KanteStyle.positiveTextColor.r,
+                            KanteStyle.positiveTextColor.g,
+                            KanteStyle.positiveTextColor.b, 0.28)
+                  : Qt.rgba(KanteStyle.textColor.r,
+                            KanteStyle.textColor.g,
+                            KanteStyle.textColor.b, 0.12)
     implicitHeight: heroColumn.implicitHeight + Kirigami.Units.smallSpacing * 2
 
     RowLayout {
@@ -79,17 +81,17 @@ Rectangle {
                     id: elapsedLabel
                     Layout.alignment: Qt.AlignVCenter
                     text: KimaiApi.formatDuration(widget.elapsedSeconds)
-                    font.family: Style.monoFamily
-                    font.pointSize: Style.defaultFont.pointSize + 6
+                    font.family: KanteStyle.monoFamily
+                    font.pointSize: KanteStyle.defaultFont.pointSize + 6
                     font.bold: true
-                    color: Style.positiveTextColor
+                    color: KanteStyle.positiveTextColor
                     onWidthChanged: daySparkline.scheduleHeaderCutouts()
                     onHeightChanged: daySparkline.scheduleHeaderCutouts()
                 }
 
                 Item { Layout.fillWidth: true }
 
-                PToolButton {
+                KantePlasmaToolButton {
                     id: tripHeaderButton
                     visible: widget.canEditTrips && !!widget.activeTimesheet
                     enabled: !widget.isBusy && !widget.tripBusy
@@ -104,7 +106,7 @@ Rectangle {
                     onHeightChanged: daySparkline.scheduleHeaderCutouts()
                 }
 
-                PToolButton {
+                KantePlasmaToolButton {
                     id: editHeaderButton
                     enabled: !widget.isBusy
                     text: i18n("Edit")
@@ -125,7 +127,7 @@ Rectangle {
                     onHeightChanged: daySparkline.scheduleHeaderCutouts()
                 }
 
-                PButton {
+                KantePlasmaButton {
                     id: stopHeaderButton
                     Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     enabled: !widget.isBusy
@@ -235,7 +237,7 @@ Rectangle {
                         text: i18n("Today %1", KimaiApi.formatDurationShort(widget.todayLiveSeconds))
                             + " · "
                             + i18n("Week %1", KimaiApi.formatDurationShort(widget.weekLiveSeconds))
-                        font.pointSize: Style.smallFont.pointSize
+                        font.pointSize: KanteStyle.smallFont.pointSize
                         opacity: 0.8
                         elide: Text.ElideRight
                     }
@@ -261,12 +263,12 @@ Rectangle {
                             }
                             return bits.join(" · ")
                         }
-                        font.pointSize: Style.smallFont.pointSize
+                        font.pointSize: KanteStyle.smallFont.pointSize
                         opacity: 0.75
                         elide: Text.ElideRight
                         color: (widget.remainingTodaySeconds < 0 || widget.remainingWeekSeconds < 0)
-                               ? Style.neutralTextColor
-                               : Style.textColor
+                               ? KanteStyle.neutralTextColor
+                               : KanteStyle.textColor
                     }
                 }
             }
@@ -320,8 +322,8 @@ Rectangle {
                 visible: widget.isTracking
             }
 
-            PButton {
-                emphasis: PButton.Emphasis.Primary
+            KantePlasmaButton {
+                emphasis: KantePlasmaButton.Emphasis.Primary
                 Layout.fillWidth: true
                 Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                 visible: widget.showContinueHere && !widget.isTracking && widget.lastRecent
@@ -333,7 +335,7 @@ Rectangle {
                 onClicked: widget.continueLastActivity()
             }
 
-            PButton {
+            KantePlasmaButton {
                 Layout.fillWidth: true
                 Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                 visible: widget.showContinueHere && !widget.isTracking && !widget.lastRecent && widget.hasLastUsed

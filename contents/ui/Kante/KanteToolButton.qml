@@ -6,7 +6,7 @@ import org.kde.kirigami as Kirigami
 import "."
 
 /**
- * Tool (icon) button of the app.
+ * Tool (icon) button.
  *   System  a plain tool button of the active style (unchanged).
  *   Kante   square; hover and pressed show the sunken tint, checked ones
  *           (segmented filters) the accent. Icon and text are drawn here.
@@ -14,19 +14,19 @@ import "."
 QQC2.ToolButton {
     id: control
 
-    readonly property color kanteInk: checked ? Style.accentForegroundColor : Style.textColor
+    readonly property color kanteInk: checked ? KanteStyle.accentForegroundColor : KanteStyle.textColor
 
     Rectangle {
         z: -1
         anchors.fill: parent
-        visible: Style.kante && (control.hovered || control.down || control.checked || control.visualFocus)
-        color: control.checked ? Style.accentColor : Style.sunkenColor
+        visible: KanteStyle.themed && (control.hovered || control.down || control.checked || control.visualFocus)
+        color: control.checked ? KanteStyle.accentColor : KanteStyle.sunkenColor
         border.width: control.visualFocus && !control.checked ? 1 : 0
-        border.color: Style.accentColor
+        border.color: KanteStyle.accentColor
     }
 
     RowLayout {
-        visible: Style.kante
+        visible: KanteStyle.themed
         x: control.leftPadding + Math.max(0, (control.availableWidth - width) / 2)
         y: control.topPadding
         width: Math.min(implicitWidth, control.availableWidth)
@@ -60,14 +60,14 @@ QQC2.ToolButton {
         target: control.background
         property: "opacity"
         value: 0
-        when: Style.kante && control.background !== null
+        when: KanteStyle.themed && control.background !== null
         restoreMode: Binding.RestoreBindingOrValue
     }
     Binding {
         target: control.contentItem
         property: "opacity"
         value: 0
-        when: Style.kante && control.contentItem !== null
+        when: KanteStyle.themed && control.contentItem !== null
         restoreMode: Binding.RestoreBindingOrValue
     }
 }

@@ -168,7 +168,7 @@
         <entry name="visualStyle" type="Int">
             <default>0</default>
             <min>0</min>
-            <max>1</max>
+            <max>2</max>
         </entry>
     </group>
 </kcfg>

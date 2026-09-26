@@ -6,6 +6,8 @@ import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
 import "../code/dateTimeFormat.js" as DTF
 import "."
+import "Kante"
+import "KantePlasma"
 
 /**
  * Locale-formatted date field with click-to-select segments (day/month/year)
@@ -138,7 +140,7 @@ RowLayout {
         }
     }
 
-    PTextField {
+    KanteTextField {
         id: dateField
         Layout.fillWidth: true
         Layout.preferredHeight: Math.max(implicitHeight, TouchUi.controlMinHeight)
@@ -205,7 +207,7 @@ RowLayout {
         }
     }
 
-    PToolButton {
+    KantePlasmaToolButton {
         Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
         Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
         icon.name: "view-calendar"
@@ -232,7 +234,7 @@ RowLayout {
 
             RowLayout {
                 Layout.fillWidth: true
-                PToolButton {
+                KantePlasmaToolButton {
                     Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
                     Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     icon.name: "go-previous"
@@ -251,7 +253,7 @@ RowLayout {
                     font.bold: true
                     text: Qt.locale().standaloneMonthName(root.calendarMonth) + " " + root.calendarYear
                 }
-                PToolButton {
+                KantePlasmaToolButton {
                     Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
                     Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     icon.name: "go-next"

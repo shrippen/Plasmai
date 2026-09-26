@@ -4,12 +4,21 @@ import org.kde.kirigami as Kirigami
 import "."
 
 /**
- * Pull to refresh for a page's scroll view (the pages use Kirigami.Page with
- * a QQC2.ScrollView, so Kirigami.ScrollablePage's built-in one is not there).
+ * Pull to refresh for a Kirigami.Page with a QQC2.ScrollView (a
+ * Kirigami.ScrollablePage has its own). Hang it onto the scroll view and
+ * pass the view's Flickable:
  *
- * Place it next to the scroll view, `anchors.fill` over it, and pass the
- * view's Flickable. Pulling the content down past `threshold` and letting go
- * emits refreshRequested(); the indicator stays until `busy` turns false.
+ *     KantePullToRefresh {
+ *         parent: pageScroll
+ *         anchors.fill: parent
+ *         z: 10
+ *         flickable: pageScroll.contentItem
+ *         busy: page.loading
+ *         onRefreshRequested: page.reload()
+ *     }
+ *
+ * Pulling the content down past `threshold` and letting go emits
+ * refreshRequested(); the indicator stays until `busy` turns false.
  *
  *     ┌──────────────┐
  *     │     (↻)      │  follows the pull, turns once armed
@@ -74,19 +83,19 @@ Item {
         // System: round, like the platform's own refresh bubbles.
         Rectangle {
             anchors.fill: parent
-            visible: !Style.kante
+            visible: !KanteStyle.active
             radius: width / 2
             color: Kirigami.Theme.backgroundColor
             border.width: 1
-            border.color: Style.tint(Style.textColor, 0.15)
+            border.color: KanteStyle.tint(KanteStyle.textColor, 0.15)
         }
         // Kante: square, accent frame.
         Rectangle {
             anchors.fill: parent
-            visible: Style.kante
-            color: Style.dialogColor
+            visible: KanteStyle.active
+            color: KanteStyle.dialogColor
             border.width: 1
-            border.color: pull.armed || pull.refreshing ? Style.accentColor : Style.frameColor
+            border.color: pull.armed || pull.refreshing ? KanteStyle.accentColor : KanteStyle.frameColor
         }
 
         QQC2.BusyIndicator {
@@ -104,7 +113,7 @@ Item {
             visible: !pull.refreshing
             source: "view-refresh"
             isMask: true
-            color: pull.armed ? Style.accentColor : Style.textColor
+            color: pull.armed ? KanteStyle.accentColor : KanteStyle.textColor
             rotation: indicator.progress * 270
         }
     }

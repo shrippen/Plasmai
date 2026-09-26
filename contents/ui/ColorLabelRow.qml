@@ -1,6 +1,7 @@
 import QtQuick
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
+import "Kante"
 
 /**
  * Color bar + label with hierarchy.
@@ -11,14 +12,14 @@ Item {
     id: root
 
     property bool customerRole: false
-    property color customerColor: Style.entityFallbackColor
+    property color customerColor: PlasmaiColors.entityFallback
     property bool showDot: true
     property string label: ""
     property bool labelBold: customerRole
     property real labelOpacity: customerRole ? 0.9 : 1.0
     property int labelPointSize: customerRole
-                                 ? Style.smallFont.pointSize
-                                 : Style.defaultFont.pointSize
+                                 ? KanteStyle.smallFont.pointSize
+                                 : KanteStyle.defaultFont.pointSize
 
     readonly property real slotSize: Kirigami.Units.iconSizes.small * 0.85
     /** Gap after the shared bar slot — larger for projects. */

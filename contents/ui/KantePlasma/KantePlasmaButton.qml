@@ -1,20 +1,21 @@
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Controls as QQC2
 import QtQuick.Templates as T
 import org.kde.kirigami as Kirigami
-import "."
+import org.kde.plasma.components as PlasmaComponents3
+import "../Kante"
 
 /**
- * Push button of the app (copy of contents/ui/PButton.qml on QQC2).
- *   System  a plain button of the active style (unchanged).
+ * Push button of a Plasma widget (PlasmaComponents3).
+ *   System  a plain Plasma button (unchanged).
  *   Kante   square, uppercase Rajdhani, thin frame; `emphasis` fills it with
  *           the accent (primary action) or the negative color (stop, delete).
  *
- * In Kante the style's frame and content stay (they size the button) but are
- * hidden; frame, icon and text are drawn here.
+ * In Kante the Plasma frame and content stay (they size the button) but are
+ * hidden; frame, icon and text are drawn here, so disabled buttons fade
+ * instead of taking the Plasma theme's disabled colors.
  */
-QQC2.Button {
+PlasmaComponents3.Button {
     id: control
 
     enum Emphasis {
@@ -23,30 +24,30 @@ QQC2.Button {
         Destructive
     }
 
-    property int emphasis: PButton.Emphasis.Normal
+    property int emphasis: KantePlasmaButton.Emphasis.Normal
 
-    readonly property bool filled: emphasis !== PButton.Emphasis.Normal
-    readonly property color kanteFill: emphasis === PButton.Emphasis.Primary ? Style.accentColor
-        : (emphasis === PButton.Emphasis.Destructive ? Style.negativeTextColor : "transparent")
-    readonly property color kanteInk: filled ? Style.accentForegroundColor : Style.textColor
+    readonly property bool filled: emphasis !== KantePlasmaButton.Emphasis.Normal
+    readonly property color kanteFill: emphasis === KantePlasmaButton.Emphasis.Primary ? KanteStyle.accentColor
+        : (emphasis === KantePlasmaButton.Emphasis.Destructive ? KanteStyle.negativeTextColor : "transparent")
+    readonly property color kanteInk: filled ? KanteStyle.accentForegroundColor : KanteStyle.textColor
 
     Rectangle {
         z: -1
         anchors.fill: parent
-        visible: Style.kante
+        visible: KanteStyle.themed
         opacity: control.enabled ? 1 : 0.45
         color: {
             if (control.filled) {
                 return control.down ? Qt.darker(control.kanteFill, 1.15) : control.kanteFill
             }
-            return (control.down || control.hovered || control.checked) ? Style.sunkenColor : "transparent"
+            return (control.down || control.hovered || control.checked) ? KanteStyle.sunkenColor : "transparent"
         }
         border.width: control.filled ? 0 : 1
-        border.color: control.visualFocus ? Style.accentColor : Style.frameColor
+        border.color: control.visualFocus ? KanteStyle.accentColor : KanteStyle.frameColor
     }
 
     RowLayout {
-        visible: Style.kante
+        visible: KanteStyle.themed
         x: control.leftPadding + Math.max(0, (control.availableWidth - width) / 2)
         y: control.topPadding
         width: Math.min(implicitWidth, control.availableWidth)
@@ -65,7 +66,7 @@ QQC2.Button {
             isMask: true
         }
 
-        QQC2.Label {
+        PlasmaComponents3.Label {
             visible: control.display !== T.AbstractButton.IconOnly && control.text.length > 0
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignVCenter
@@ -80,21 +81,21 @@ QQC2.Button {
         target: control.background
         property: "opacity"
         value: 0
-        when: Style.kante && control.background !== null
+        when: KanteStyle.themed && control.background !== null
         restoreMode: Binding.RestoreBindingOrValue
     }
     Binding {
         target: control.contentItem
         property: "opacity"
         value: 0
-        when: Style.kante && control.contentItem !== null
+        when: KanteStyle.themed && control.contentItem !== null
         restoreMode: Binding.RestoreBindingOrValue
     }
     Binding {
         target: control
         property: "font"
-        value: Style.headingFont(Style.defaultFont.pointSize)
-        when: Style.kante
+        value: KanteStyle.headingFont(KanteStyle.defaultFont.pointSize)
+        when: KanteStyle.themed
         restoreMode: Binding.RestoreBindingOrValue
     }
 }

@@ -6,6 +6,7 @@ import "../../contents/code/kimaiApi.js" as KimaiApi
 import "../../contents/code/filmDays.js" as FilmDays
 import "../../contents/code/dateTimeFormat.js" as DTF
 import "."
+import "../Kante"
 
 /**
  * Shooting-day entry: one Kimai timesheet (begin/end for one calendar day)
@@ -409,9 +410,9 @@ ColumnLayout {
         Layout.fillWidth: true
         visible: text.length > 0
         wrapMode: Text.WordWrap
-        font.pointSize: Style.smallFont.pointSize
+        font.pointSize: KanteStyle.smallFont.pointSize
         opacity: 0.8
-        color: root.mode === "offline" ? Style.neutralTextColor : Style.textColor
+        color: root.mode === "offline" ? KanteStyle.neutralTextColor : KanteStyle.textColor
         text: root.modeHint()
     }
 
@@ -420,7 +421,7 @@ ColumnLayout {
         Layout.topMargin: Kirigami.Units.smallSpacing
         spacing: Kirigami.Units.smallSpacing
 
-        PToolButton {
+        KanteToolButton {
             icon.name: "go-previous"
             display: QQC2.AbstractButton.IconOnly
             text: i18n("Previous day")
@@ -436,8 +437,8 @@ ColumnLayout {
             Layout.fillWidth: true
             horizontalAlignment: Text.AlignHCenter
             font.bold: true
-            font.pointSize: Style.defaultFont.pointSize * 1.15
-            color: Style.highlightColor
+            font.pointSize: KanteStyle.defaultFont.pointSize * 1.15
+            color: KanteStyle.highlightColor
             wrapMode: Text.WordWrap
             text: root.selectedDay.toLocaleDateString(Qt.locale(), Locale.LongFormat)
 
@@ -449,7 +450,7 @@ ColumnLayout {
             }
         }
 
-        PToolButton {
+        KanteToolButton {
             icon.name: "go-next"
             display: QQC2.AbstractButton.IconOnly
             text: i18n("Next day")
@@ -510,8 +511,8 @@ ColumnLayout {
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
                 font.bold: true
-                font.pointSize: Style.defaultFont.pointSize * 1.6
-                color: Style.highlightColor
+                font.pointSize: KanteStyle.defaultFont.pointSize * 1.6
+                color: KanteStyle.highlightColor
                 text: DTF.formatLocaleTime(beginTime.hours, beginTime.minutes)
             }
             TimeField {
@@ -537,8 +538,8 @@ ColumnLayout {
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
                 font.bold: true
-                font.pointSize: Style.defaultFont.pointSize * 1.6
-                color: Style.highlightColor
+                font.pointSize: KanteStyle.defaultFont.pointSize * 1.6
+                color: KanteStyle.highlightColor
                 text: root.pad2(Math.floor(root.effectiveBreakMinutes / 60)) + ":" + root.pad2(root.effectiveBreakMinutes % 60)
             }
             QQC2.SpinBox {
@@ -585,8 +586,8 @@ ColumnLayout {
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
                 font.bold: true
-                font.pointSize: Style.defaultFont.pointSize * 1.6
-                color: Style.highlightColor
+                font.pointSize: KanteStyle.defaultFont.pointSize * 1.6
+                color: KanteStyle.highlightColor
                 text: DTF.formatLocaleTime(endTime.hours, endTime.minutes)
             }
             TimeField {
@@ -603,9 +604,9 @@ ColumnLayout {
         Layout.topMargin: Kirigami.Units.smallSpacing
         horizontalAlignment: Text.AlignHCenter
         wrapMode: Text.WordWrap
-        font.pointSize: Style.smallFont.pointSize
+        font.pointSize: KanteStyle.smallFont.pointSize
         opacity: root.rangeValid ? 0.9 : 0.65
-        color: root.rangeValid ? Style.textColor : Style.neutralTextColor
+        color: root.rangeValid ? KanteStyle.textColor : KanteStyle.neutralTextColor
         text: root.rangeValid
               ? i18n("Work time: %1", KimaiApi.formatDuration(root.workSeconds))
               : i18n("Work time: invalid range")
@@ -620,8 +621,8 @@ ColumnLayout {
         QQC2.Label {
             Layout.fillWidth: true
             wrapMode: Text.WordWrap
-            font.pointSize: Style.smallFont.pointSize
-            color: Style.neutralTextColor
+            font.pointSize: KanteStyle.smallFont.pointSize
+            color: KanteStyle.neutralTextColor
             text: root.mergeOthers
                 ? i18np("Saving sets this entry from begin to end and deletes the other entry of this project on this day (%2). Its description and tags are lost.",
                         "Saving sets this entry from begin to end and deletes the %1 other entries of this project on this day (%2). Their descriptions and tags are lost.",
@@ -796,7 +797,7 @@ ColumnLayout {
                 font.bold: true
                 opacity: 0.85
             }
-            PTextField {
+            KanteTextField {
                 id: extraPayField
                 Layout.fillWidth: true
                 enabled: root.extrasEnabled
@@ -811,7 +812,7 @@ ColumnLayout {
                         anchors.right: parent.right
                         anchors.bottom: parent.bottom
                         height: 1
-                        color: extraPayField.activeFocus ? Style.highlightColor : Style.disabledTextColor
+                        color: extraPayField.activeFocus ? KanteStyle.highlightColor : KanteStyle.disabledTextColor
                     }
                 }
             }
@@ -851,7 +852,7 @@ ColumnLayout {
         }
         QQC2.Label {
             visible: noteField.length > FilmDays.NOTE_MAX_LENGTH - 100
-            font.pointSize: Style.smallFont.pointSize
+            font.pointSize: KanteStyle.smallFont.pointSize
             opacity: 0.7
             text: i18n("%1/%2", noteField.length, FilmDays.NOTE_MAX_LENGTH)
         }
@@ -882,12 +883,12 @@ ColumnLayout {
                 anchors.right: parent.right
                 anchors.bottom: parent.bottom
                 height: 1
-                color: noteField.activeFocus ? Style.highlightColor : Style.disabledTextColor
+                color: noteField.activeFocus ? KanteStyle.highlightColor : KanteStyle.disabledTextColor
             }
         }
     }
 
-    PButton {
+    KanteButton {
         Layout.fillWidth: true
         Layout.topMargin: Kirigami.Units.largeSpacing
         Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight * 1.3
@@ -909,7 +910,7 @@ ColumnLayout {
         }
     }
 
-    PButton {
+    KanteButton {
         Layout.alignment: Qt.AlignHCenter
         Layout.topMargin: Kirigami.Units.smallSpacing
         Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight

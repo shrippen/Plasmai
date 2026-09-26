@@ -5,6 +5,7 @@ import QtQuick.Window
 import org.kde.kirigami as Kirigami
 import "../../contents/code/kimaiApi.js" as KimaiApi
 import "."
+import "../Kante"
 
 Item {
     id: root
@@ -275,7 +276,7 @@ Item {
         }
     }
 
-    PTextField {
+    KanteTextField {
         id: field
         anchors.fill: parent
         enabled: root.enabled
@@ -380,7 +381,7 @@ Item {
                 contentItem: Rectangle {
                     implicitWidth: 4
                     radius: 2
-                    color: Style.textColor
+                    color: KanteStyle.textColor
                     opacity: pickerScrollBar.pressed ? 0.55
                              : (pickerScrollBar.hovered ? 0.4 : 0.28)
                 }

@@ -16,8 +16,8 @@ Item {
     readonly property Component kanteTitle: Component {
         QQC2.Label {
             text: skin.page ? skin.page.title : ""
-            font: Style.headingFont(Style.defaultFont.pointSize * 1.35)
-            color: Style.strongTextColor
+            font: KanteStyle.titleFont(KanteStyle.defaultFont.pointSize * 1.35)
+            color: KanteStyle.strongTextColor
             elide: Text.ElideRight
             verticalAlignment: Text.AlignVCenter
         }
@@ -27,7 +27,7 @@ Item {
         target: skin.page
         property: "titleDelegate"
         value: skin.kanteTitle
-        when: Style.kante && skin.page !== null
+        when: KanteStyle.active && skin.page !== null
         restoreMode: Binding.RestoreBindingOrValue
     }
 }

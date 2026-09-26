@@ -1,10 +1,10 @@
 import QtQuick
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
-import "."
+import "../Kante"
 
 /**
- * Tool (icon) button of the popup views.
+ * Tool (icon) button of a Plasma widget (PlasmaComponents3).
  *   System  a plain Plasma tool button (unchanged).
  *   Kante   square; hover and pressed show the sunken tint instead of the
  *           rounded Breeze highlight.
@@ -15,25 +15,25 @@ PlasmaComponents3.ToolButton {
     Rectangle {
         z: -1
         anchors.fill: parent
-        visible: Style.kante && (control.hovered || control.down || control.checked || control.visualFocus)
+        visible: KanteStyle.themed && (control.hovered || control.down || control.checked || control.visualFocus)
         // Checked (segmented filters): accent fill like a primary button.
-        color: control.checked ? Style.accentColor : Style.sunkenColor
+        color: control.checked ? KanteStyle.accentColor : KanteStyle.sunkenColor
         border.width: control.visualFocus && !control.checked ? 1 : 0
-        border.color: Style.accentColor
+        border.color: KanteStyle.accentColor
     }
 
     Binding {
         target: control.Kirigami.Theme
         property: "textColor"
-        value: Style.accentForegroundColor
-        when: Style.kante && control.checked
+        value: KanteStyle.accentForegroundColor
+        when: KanteStyle.themed && control.checked
         restoreMode: Binding.RestoreBindingOrValue
     }
     Binding {
         target: control.Kirigami.Theme
         property: "highlightedTextColor"
-        value: Style.accentForegroundColor
-        when: Style.kante && control.checked
+        value: KanteStyle.accentForegroundColor
+        when: KanteStyle.themed && control.checked
         restoreMode: Binding.RestoreBindingOrValue
     }
 
@@ -41,7 +41,7 @@ PlasmaComponents3.ToolButton {
         target: control.background
         property: "opacity"
         value: 0
-        when: Style.kante && control.background !== null
+        when: KanteStyle.themed && control.background !== null
         restoreMode: Binding.RestoreBindingOrValue
     }
 }

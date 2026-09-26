@@ -4,7 +4,7 @@ import org.kde.kirigami as Kirigami
 import "."
 
 /**
- * Dialog of the popup views.
+ * Dialog.
  *   System  a plain dialog (unchanged).
  *   Kante   nearly opaque panel with a cut top-right corner, an accent bar
  *           on top, an uppercase title, Kante colors inside and Kante
@@ -14,21 +14,21 @@ QQC2.Dialog {
     id: control
 
     /** Color of the bar on top in Kante (accent; negative for destructive questions). */
-    property color kanteBarColor: Style.accentColor
+    property color kanteBarColor: KanteStyle.accentColor
 
-    StyleScope { target: control.contentItem }
+    KanteScope { target: control.contentItem }
 
     // Not children: only handed to background/header/footer while Kante is on.
     readonly property Item kanteBackground: KanteCard {
-        color: Style.dialogColor
+        color: KanteStyle.dialogColor
         barColor: control.kanteBarColor
     }
 
     readonly property Item kanteHeader: QQC2.Label {
         visible: control.title.length > 0
         text: control.title
-        font: Style.headingFont(Style.defaultFont.pointSize * 1.2)
-        color: Style.strongTextColor
+        font: KanteStyle.headingFont(KanteStyle.defaultFont.pointSize * 1.2)
+        color: KanteStyle.strongTextColor
         elide: Text.ElideRight
         leftPadding: control.leftPadding
         rightPadding: control.rightPadding
@@ -42,9 +42,9 @@ QQC2.Dialog {
         spacing: Kirigami.Units.smallSpacing
         padding: control.padding
         background: null
-        delegate: PButton {
+        delegate: KanteButton {
             emphasis: QQC2.DialogButtonBox.buttonRole === QQC2.DialogButtonBox.AcceptRole
-                      ? PButton.Emphasis.Primary : PButton.Emphasis.Normal
+                      ? KanteButton.Emphasis.Primary : KanteButton.Emphasis.Normal
         }
     }
 
@@ -52,21 +52,21 @@ QQC2.Dialog {
         target: control
         property: "background"
         value: control.kanteBackground
-        when: Style.kante
+        when: KanteStyle.themed
         restoreMode: Binding.RestoreBindingOrValue
     }
     Binding {
         target: control
         property: "header"
         value: control.kanteHeader
-        when: Style.kante
+        when: KanteStyle.themed
         restoreMode: Binding.RestoreBindingOrValue
     }
     Binding {
         target: control
         property: "footer"
         value: control.kanteFooter
-        when: Style.kante
+        when: KanteStyle.themed
         restoreMode: Binding.RestoreBindingOrValue
     }
 }

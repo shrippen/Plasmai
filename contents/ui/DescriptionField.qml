@@ -4,6 +4,8 @@ import QtQuick.Shapes
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
 import "."
+import "Kante"
+import "KantePlasma"
 
 /**
  * Description of the running entry with its save button (saving, saved
@@ -20,7 +22,7 @@ Item {
     height: descriptionEdit.implicitHeight
     implicitHeight: descriptionEdit.implicitHeight
 
-    PTextField {
+    KanteTextField {
         id: descriptionEdit
         width: parent.width
         enabled: !widget.savingDescription
@@ -79,7 +81,7 @@ Item {
         }
     }
 
-    PToolButton {
+    KantePlasmaToolButton {
         id: descriptionSaveButton
         z: 10
         anchors.right: parent.right

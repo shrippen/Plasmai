@@ -7,6 +7,8 @@ import "../code/kimaiApi.js" as KimaiApi
 import "../code/dateTimeFormat.js" as DTF
 import "../code/timesheetFields.js" as TimesheetFields
 import "."
+import "Kante"
+import "KantePlasma"
 
 /**
  * Inline editor for the running timesheet: start time, project, and activity.
@@ -245,7 +247,7 @@ ColumnLayout {
     PlasmaComponents3.Label {
         Layout.fillWidth: true
         wrapMode: Text.WordWrap
-        font.pointSize: Style.smallFont.pointSize
+        font.pointSize: KanteStyle.smallFont.pointSize
         opacity: 0.8
         text: i18n("Edit start, project, activity, billable, and tags for the running entry.")
     }
@@ -305,7 +307,7 @@ ColumnLayout {
         Layout.fillWidth: true
         visible: root.overlapGuardEnabled && root.previousEndText.length > 0
         wrapMode: Text.WordWrap
-        font.pointSize: Style.smallFont.pointSize
+        font.pointSize: KanteStyle.smallFont.pointSize
         opacity: 0.75
         text: i18n("Previous entry ended at %1", root.previousEndText)
     }
@@ -313,9 +315,9 @@ ColumnLayout {
     PlasmaComponents3.Label {
         Layout.fillWidth: true
         wrapMode: Text.WordWrap
-        font.pointSize: Style.smallFont.pointSize
+        font.pointSize: KanteStyle.smallFont.pointSize
         opacity: 0.7
-        color: root.beginValid ? Style.textColor : Style.neutralTextColor
+        color: root.beginValid ? KanteStyle.textColor : KanteStyle.neutralTextColor
         text: root.beginValid
               ? i18n("Elapsed time updates from the new start.")
               : i18n("Start must be a valid time not in the future.")
@@ -336,7 +338,7 @@ ColumnLayout {
         Layout.fillWidth: true
         spacing: Kirigami.Units.smallSpacing
 
-        PButton {
+        KantePlasmaButton {
             Layout.fillWidth: true
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             enabled: root.configured && !root.busy && root.connectionOk
@@ -353,14 +355,14 @@ ColumnLayout {
             }
         }
 
-        PButton {
+        KantePlasmaButton {
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             text: i18n("Cancel")
             onClicked: root.cancelled()
         }
     }
 
-    PDialog {
+    KanteDialog {
         id: overlapDialog
         parent: root.dialogParent || root
         anchors.centerIn: parent
@@ -377,13 +379,13 @@ ColumnLayout {
         }
 
         footer: QQC2.DialogButtonBox {
-            PButton {
+            KantePlasmaButton {
                 text: i18n("Set anyway")
                 icon.name: "document-save"
                 Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                 QQC2.DialogButtonBox.buttonRole: QQC2.DialogButtonBox.AcceptRole
             }
-            PButton {
+            KantePlasmaButton {
                 text: i18n("Cancel")
                 Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                 QQC2.DialogButtonBox.buttonRole: QQC2.DialogButtonBox.RejectRole
