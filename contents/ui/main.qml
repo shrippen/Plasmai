@@ -3346,6 +3346,7 @@ PlasmoidItem {
                         RowLayout {
                             Layout.fillWidth: true
                             spacing: Kirigami.Units.smallSpacing / 2
+                            visible: Profiles.showsConnection(root.profiles, root.isConfigured, root.connectionState)
 
                             Kirigami.Icon {
                                 Layout.preferredWidth: Kirigami.Units.iconSizes.small

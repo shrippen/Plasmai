@@ -51,4 +51,15 @@ TestCase {
         compare(again[0].id, "x")
         compare(again[0].url, "https://u")
     }
+
+    function test_showsConnection() {
+        var one = Profiles.parseProfiles('[{"id":"a"}]', "")
+        var two = Profiles.parseProfiles('[{"id":"a"},{"id":"b"}]', "")
+        verify(!Profiles.showsConnection(one, true, "online"))
+        verify(Profiles.showsConnection(two, true, "online"))
+        verify(Profiles.showsConnection(one, false, "online"))
+        verify(Profiles.showsConnection(one, true, "error"))
+        verify(Profiles.showsConnection(one, true, "connecting"))
+        verify(Profiles.showsConnection(one, true, "offline"))
+    }
 }

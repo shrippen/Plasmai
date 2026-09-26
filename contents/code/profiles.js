@@ -36,6 +36,14 @@ function profileById(profiles, id) {
     return profiles[0]
 }
 
+/** Show the "Connected to …" line: only with several profiles, or while not connected. */
+function showsConnection(profiles, configured, state) {
+    if (!configured || state !== "online") {
+        return true
+    }
+    return (profiles || []).length > 1
+}
+
 function serializeProfiles(profiles) {
     return JSON.stringify(profiles || defaultProfiles())
 }

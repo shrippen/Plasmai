@@ -10,6 +10,7 @@
 - New style **Kante Light**: Kante's layouts, cut corners, titles and monospace figures with your theme's colors and controls; follows any Plasma color scheme, light or dark
 
 ### Recent and film day
+- The "Connected to …" line only shows with more than one profile; with one profile it appears only while connecting, on a connection problem or when nothing is set up
 - Kante: Recent is grouped by day ("Today", "Yesterday", weekday and date); each row shows the begin time, the activity in bold over the project, and the duration, so long names have room on the phone
 - The Recent row menu opens with a long press on the entry (right click on the desktop); Kante rows have no menu button any more
 - Film day: before the shoot the view shows the day's engagement and one button, "Start shooting day", which starts the timer of the main page; entering begin and end by hand stays available

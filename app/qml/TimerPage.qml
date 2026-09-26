@@ -7,6 +7,7 @@ import "../contents/code/timeTracker.js" as TimeTracker
 import "../contents/code/kimaiApi.js" as KimaiApi
 import "../contents/code/timesheetFields.js" as TimesheetFields
 import "../contents/code/dateTimeFormat.js" as DTF
+import "../contents/code/profiles.js" as Profiles
 import "shared"
 import "Kante"
 
@@ -146,6 +147,7 @@ Kirigami.Page {
         spacing: Kirigami.Units.smallSpacing
 
         RowLayout { Layout.fillWidth: true; spacing: Kirigami.Units.smallSpacing
+            visible: Profiles.showsConnection(root.profiles, root.isConfigured, root.connectionState)
             Kirigami.Icon { source: page.connIcon(); color: page.connColor(); Layout.preferredWidth: Kirigami.Units.iconSizes.small; Layout.preferredHeight: Kirigami.Units.iconSizes.small }
             QQC2.Label {
                 text: {
