@@ -13,8 +13,6 @@ Item {
 
     property bool customerRole: false
     property color customerColor: "#d2d6de"
-    property string colorCategory: ""
-    property var entityId: null
     property bool showDot: true
     property string label: ""
     property bool labelBold: customerRole
@@ -40,8 +38,6 @@ Item {
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         customerColor: root.customerColor
-        colorCategory: root.colorCategory
-        entityId: root.entityId
         showDot: root.showDot
         sizeFactor: root.customerRole ? 0.9 : 0.45
         slotSizeFactor: 0.85

@@ -63,8 +63,6 @@ Kirigami.Page {
                         contentItem: ColorLabelRow {
                             customerRole: false
                             customerColor: projectDelegate.modelData.rowColor || KimaiApi.DEFAULT_CUSTOMER_COLOR
-                            colorCategory: projectDelegate.modelData.rowColorCategory || ""
-                            entityId: projectDelegate.modelData.rowEntityId
                             label: (projectDelegate.modelData.section ? projectDelegate.modelData.section + " · " : "") + projectDelegate.modelData.label
                         }
                         onClicked: page.toggleExpanded(projectDelegate.modelData.value.id)

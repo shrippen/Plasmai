@@ -301,7 +301,7 @@ Kirigami.Page {
                     }
 
                     RowLayout { visible: root.isTracking && !page.editingActive; Layout.fillWidth: true; spacing: Kirigami.Units.smallSpacing
-                        CustomerColorDot { customerColor: root.currentCustomerColor; colorCategory: root.currentColorCategory; entityId: root.currentColorEntityId; sizeFactor: 0.9 }
+                        CustomerColorDot { customerColor: root.currentCustomerColor; sizeFactor: 0.9 }
                         QQC2.Label { text: root.currentProject || ""; color: Kirigami.Theme.textColor; font.bold: true; elide: Text.ElideRight; maximumLineCount: 1; Layout.fillWidth: true; Layout.preferredWidth: 0; Layout.minimumWidth: 0 }
                         QQC2.Label { text: "·"; color: Kirigami.Theme.disabledTextColor; Layout.preferredWidth: 12 }
                         QQC2.Label { text: root.currentActivity || ""; color: Qt.alpha(Kirigami.Theme.textColor, 0.7); elide: Text.ElideRight; maximumLineCount: 1; Layout.fillWidth: true; Layout.preferredWidth: 0; Layout.minimumWidth: 0 }
@@ -486,8 +486,6 @@ Kirigami.Page {
                         return bits.join(" · ")
                     }
                     customerColor: barColorInfo.color || KimaiApi.DEFAULT_CUSTOMER_COLOR
-                    colorCategory: barColorInfo.category || ""
-                    entityId: barColorInfo.id
                     showHistoryActions: true
                     canPin: true; isPinned: root.isPinned(KimaiApi.projectId(modelData), KimaiApi.activityId(modelData))
                     canEditStopped: root.providerCapabilities.editStopped

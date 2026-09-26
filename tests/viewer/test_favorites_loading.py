@@ -57,14 +57,6 @@ def _large_catalog() -> dict:
         "customers": customers,
         "projects": projects,
         "activities": activities,
-        "customerGroups": [],
-        "projectGroups": [],
-        "activityGroups": [],
-        "shiftedCount": 0,
-        "groupCount": 0,
-        "settingsKey": "",
-        "statusText": "",
-        "effectiveSimilarity": {"customer": 22, "project": 22, "activity": 22},
     }
 
 

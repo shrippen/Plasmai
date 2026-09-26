@@ -1,5 +1,4 @@
 .pragma library
-.import "./colorDistinct.js" as ColorDistinct
 .import "./timesheetFields.js" as Fields
 .import "./workContractAdjust.js" as WorkAdjust
 .import "./providerUtil.js" as ProviderUtil
@@ -181,22 +180,20 @@ function customerColorOnly(project, customersById) {
     return ""
 }
 
-/** Customer-category bar color (shifted), for section headers and customer pills. */
+/** Customer bar color, for section headers and customer pills. */
 function customerBarColor(project, customersById) {
-    var cid = customerIdOfProject(project)
-    var raw = customerColorOnly(project, customersById) || DEFAULT_CUSTOMER_COLOR
-    return ColorDistinct.adjust("customer", cid, raw)
+    return customerColorOnly(project, customersById) || DEFAULT_CUSTOMER_COLOR
 }
 
 /**
- * Resolve the hierarchy color for a bar: activity → project → customer → default,
- * each adjusted within its category. Returns { color, category, id }.
+ * Resolve the hierarchy color for a bar: activity → project → customer → default.
+ * Returns { color, category, id }.
  */
 function barColorInfo(activity, project, customersById) {
     var ac = activityColor(activity)
     if (ac && activity && activity.id !== null && activity.id !== undefined) {
         return {
-            color: ColorDistinct.adjust("activity", activity.id, ac),
+            color: ac,
             category: "activity",
             id: activity.id
         }
@@ -204,7 +201,7 @@ function barColorInfo(activity, project, customersById) {
     var pc = projectColor(project)
     if (pc && project && project.id !== null && project.id !== undefined) {
         return {
-            color: ColorDistinct.adjust("project", project.id, pc),
+            color: pc,
             category: "project",
             id: project.id
         }
@@ -212,7 +209,7 @@ function barColorInfo(activity, project, customersById) {
     var cid = customerIdOfProject(project)
     var cc = customerColorOnly(project, customersById) || DEFAULT_CUSTOMER_COLOR
     return {
-        color: ColorDistinct.adjust("customer", cid, cc),
+        color: cc,
         category: "customer",
         id: cid || null
     }
@@ -546,7 +543,7 @@ function projectsGroupedByCustomer(projects, customers) {
         var name = customerNameOfProject(project, customersById) || "Other"
         if (!groups[name]) {
             groups[name] = {
-                // Section bars always use the customer-category shifted color
+                // Section bars always use the customer color
                 color: customerBarColor(project, customersById),
                 customerId: customerIdOfProject(project),
                 projects: []
@@ -579,8 +576,6 @@ function projectsGroupedByCustomer(projects, customers) {
                 customerName: customerName,
                 customerId: group.customerId,
                 customerColor: group.color,
-                colorCategory: bar.category,
-                entityId: bar.id,
                 projectColor: bar.color,
                 project: proj
             })
@@ -638,13 +633,9 @@ function projectPickerItems(projects, customers) {
             label: projectName,
             searchText: customerName + " " + projectName,
             section: customerName,
-            // Section header uses customer-category color; row uses project cascade
+            // Section header uses customer color; row uses project cascade
             color: row.customerColor,
-            colorCategory: "customer",
-            entityId: row.customerId,
             rowColor: row.projectColor,
-            rowColorCategory: row.colorCategory,
-            rowEntityId: row.entityId,
             value: row.project
         })
     }
@@ -662,8 +653,6 @@ function activityPickerItems(activities, projectId, project, customersById) {
             searchText: (activity.name || activity.title || "") + " " + activity.id,
             section: rows[i].section,
             color: bar.color,
-            colorCategory: bar.category,
-            entityId: bar.id,
             value: activity
         })
     }

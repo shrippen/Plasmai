@@ -46,8 +46,6 @@ var SHARED_KEYS = [
     "pluginProbesJson",
     "showTrips",
     "locationName",
-    "colorDistinctionEnabled",
-    "colorSimilarityPercent",
     "touchMode"
 ]
 

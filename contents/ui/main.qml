@@ -16,8 +16,7 @@ import "../code/desktopBackend.js" as DesktopBackend
 import "../code/profiles.js" as Profiles
 import "../code/favorites.js" as Favorites
 import "../code/sharedConfig.js" as SharedConfig
-import "../code/colorDistinct.js" as ColorDistinct
-import "../code/maintenanceCache.js" as CatalogCache
+import "../code/catalogCache.js" as CatalogCache
 import "../code/buildInfo.js" as BuildInfo
 import "../code/timesheetFields.js" as TimesheetFields
 import "../code/filmDays.js" as FilmDays
@@ -155,8 +154,6 @@ PlasmoidItem {
     property bool hasWorkContract: false
     property int totalsElapsedAnchor: 0
     property string currentCustomerColor: KimaiApi.DEFAULT_CUSTOMER_COLOR
-    property string currentColorCategory: ""
-    property var currentColorEntityId: null
     property var workPrefs: ({})
     property var todayTimesheets: []
     /** Extended timesheet cache for the statistics view (multiple weeks). */
@@ -239,18 +236,6 @@ PlasmoidItem {
     readonly property bool showNewActivityHere: compactPopupLayout
         ? plasmoid.configuration.popupShowNewActivity
         : plasmoid.configuration.desktopShowNewActivity
-
-    /** Rebuild distinction maps when the Plasma color scheme accents change. */
-    readonly property string themePaletteKey: [
-        String(Kirigami.Theme.highlightColor),
-        String(Kirigami.Theme.positiveTextColor),
-        String(Kirigami.Theme.neutralTextColor),
-        String(Kirigami.Theme.negativeTextColor),
-        String(Kirigami.Theme.linkColor),
-        String(Kirigami.Theme.activeTextColor),
-        String(Kirigami.Theme.visitedLinkColor)
-    ].join("|")
-    onThemePaletteKeyChanged: root.rebuildColorMaps(true)
 
     readonly property string panelProjectLabel: {
         if (!isTracking) {
@@ -1796,8 +1781,6 @@ PlasmoidItem {
         currentDescription = ""
         activeTimesheet = null
         currentCustomerColor = KimaiApi.DEFAULT_CUSTOMER_COLOR
-        currentColorCategory = ""
-        currentColorEntityId = null
         elapsedSeconds = 0
         cancelDescriptionSavedFlash()
         descriptionDirty = false
@@ -1835,9 +1818,6 @@ PlasmoidItem {
         currentActivity = KimaiApi.displayActivityName(timesheet, allActivities, activitiesByProject)
         currentCustomer = KimaiApi.customerNameFromTimesheet(timesheet, customersById)
         currentCustomerColor = KimaiApi.customerColorFromTimesheet(timesheet, customersById)
-        var barInfo = KimaiApi.barColorInfoFromTimesheet(timesheet, customersById)
-        currentColorCategory = barInfo.category
-        currentColorEntityId = barInfo.id
         if (!compactPopupLayout) {
             showNewActivityForm = plasmoid.configuration.desktopShowNewActivity
         }
@@ -2243,66 +2223,7 @@ PlasmoidItem {
         })
     }
 
-    function applyThemeColorPalette() {
-        ColorDistinct.setThemePalette([
-            Kirigami.Theme.highlightColor,
-            Kirigami.Theme.positiveTextColor,
-            Kirigami.Theme.neutralTextColor,
-            Kirigami.Theme.negativeTextColor,
-            Kirigami.Theme.linkColor,
-            Kirigami.Theme.activeTextColor,
-            Kirigami.Theme.visitedLinkColor
-        ])
-    }
-
-    function rebuildColorMaps(force) {
-        root.applyThemeColorPalette()
-        var distinctionOn = providerCapabilities.colorDistinction
-            && plasmoid.configuration.colorDistinctionEnabled !== false
-        ColorDistinct.configure(
-            distinctionOn,
-            plasmoid.configuration.colorSimilarityPercent || 22
-        )
-        var extra = (allActivities || []).slice()
-        if (activities && activities.length) {
-            for (var ai = 0; ai < activities.length; ai++) {
-                extra.push(activities[ai])
-            }
-        }
-        var acts = ColorDistinct.flattenActivitiesByProject(activitiesByProject, extra)
-        ColorDistinct.rebuild(customers, projects, acts, !!force)
-        var storeGroups = providerCapabilities.colorDistinction
-            && (customers.length || projects.length || acts.length)
-        var cg = storeGroups ? ColorDistinct.maintenanceGroups("customer", customers) : []
-        var pg = storeGroups ? ColorDistinct.maintenanceGroups("project", projects) : []
-        var ag = storeGroups ? ColorDistinct.maintenanceGroups("activity", acts) : []
-        if (customers.length || projects.length || (allActivities || []).length) {
-            CatalogCache.store(activeProfile ? activeProfile.id : "", {
-                customers: customers,
-                projects: projects,
-                activities: allActivities,
-                customerGroups: cg,
-                projectGroups: pg,
-                activityGroups: ag,
-                shiftedCount: storeGroups
-                    ? (CatalogCache.countShifted(cg)
-                        + CatalogCache.countShifted(pg)
-                        + CatalogCache.countShifted(ag))
-                    : 0,
-                groupCount: cg.length + pg.length + ag.length,
-                settingsKey: [
-                    plasmoid.configuration.colorDistinctionEnabled !== false ? "1" : "0",
-                    String(plasmoid.configuration.colorSimilarityPercent || 22),
-                    root.themePaletteKey
-                ].join("|"),
-                effectiveSimilarity: {
-                    customer: ColorDistinct.effectiveSimilarityPercent("customer"),
-                    project: ColorDistinct.effectiveSimilarityPercent("project"),
-                    activity: ColorDistinct.effectiveSimilarityPercent("activity")
-                }
-            })
-            Platform.saveCatalog(execSource, CatalogCache.exportPayload())
-        }
+    function rebuildCatalogViews() {
         if (projects && projects.length) {
             projectPickerModel = KimaiApi.projectPickerItems(projects, customers)
         }
@@ -2332,9 +2253,6 @@ PlasmoidItem {
             currentActivity = KimaiApi.displayActivityName(activeTimesheet, allActivities, activitiesByProject)
             currentCustomer = KimaiApi.customerNameFromTimesheet(activeTimesheet, customersById)
             currentCustomerColor = KimaiApi.customerColorFromTimesheet(activeTimesheet, customersById)
-            var barInfo = KimaiApi.barColorInfoFromTimesheet(activeTimesheet, customersById)
-            currentColorCategory = barInfo.category
-            currentColorEntityId = barInfo.id
             if (editingActiveEntry) {
                 Qt.callLater(function() {
                     if (editingActiveEntry && typeof activeEditView !== "undefined" && activeEditView) {
@@ -2361,7 +2279,7 @@ PlasmoidItem {
         var profileId = activeProfile ? activeProfile.id : ""
         // Reuse in-process catalog when fresh (expand/poll paths); force after config/profile changes.
         if (!forceCatalog && CatalogCache.isFresh(profileId) && root.projects.length > 0) {
-            rebuildColorMaps()
+            rebuildCatalogViews()
             refreshPinnedEntries(true)
             return
         }
@@ -2384,7 +2302,8 @@ PlasmoidItem {
                     function afterActivities(acts) {
                         allActivities = acts || []
                         CatalogCache.storeEntities(profileId, customers, projects, allActivities)
-                        rebuildColorMaps()
+                        Platform.saveCatalog(execSource, CatalogCache.exportPayload())
+                        rebuildCatalogViews()
                         refreshPinnedEntries(true)
                         if (!isTracking) {
                             Qt.callLater(root.preloadLastActivity)
@@ -2892,8 +2811,6 @@ PlasmoidItem {
                     Layout.fillHeight: true
                     Layout.preferredWidth: implicitWidth
                     customerColor: root.panelPills.customerColor
-                    colorCategory: "customer"
-                    entityId: root.panelPills.customerId
                     sizeFactor: 0.9
                     slotSizeFactor: 0.7
                 }
@@ -2903,8 +2820,6 @@ PlasmoidItem {
                     Layout.fillHeight: true
                     Layout.preferredWidth: implicitWidth
                     customerColor: root.panelPills.projectColor
-                    colorCategory: "project"
-                    entityId: root.panelPills.projectId
                     sizeFactor: 0.45
                     slotSizeFactor: 0.7
                 }
@@ -3044,8 +2959,6 @@ PlasmoidItem {
                 property string projectName: ""
                 property string activityName: ""
                 property color accentColor: KimaiApi.DEFAULT_CUSTOMER_COLOR
-                property string colorCategory: ""
-                property var entityId: null
                 property bool emphasize: false
 
                 radius: 6
@@ -3085,8 +2998,6 @@ PlasmoidItem {
                         visible: card.customerName.length > 0
                         customerRole: true
                         customerColor: card.accentColor
-                        colorCategory: card.colorCategory
-                        entityId: card.entityId
                         label: card.customerName
                     }
 
@@ -3095,8 +3006,6 @@ PlasmoidItem {
                         visible: card.projectName.length > 0
                         customerRole: false
                         customerColor: card.accentColor
-                        colorCategory: card.colorCategory
-                        entityId: card.entityId
                         label: card.projectName
                     }
 
@@ -3124,8 +3033,6 @@ PlasmoidItem {
                     projectName: root.currentProject
                     activityName: root.currentActivity
                     accentColor: root.currentCustomerColor
-                    colorCategory: root.currentColorCategory
-                    entityId: root.currentColorEntityId
                     emphasize: false
                 }
 
@@ -3145,8 +3052,6 @@ PlasmoidItem {
                     projectName: switchRecentDialog.pendingProject
                     activityName: switchRecentDialog.pendingActivity
                     accentColor: switchRecentDialog.pendingBarInfo.color
-                    colorCategory: switchRecentDialog.pendingBarInfo.category || ""
-                    entityId: switchRecentDialog.pendingBarInfo.id
                     emphasize: true
                 }
             }
@@ -4256,9 +4161,6 @@ PlasmoidItem {
                             readonly property string pinKey: root.switchHintKey(pinSheet)
                             Layout.fillWidth: true
                             customerColor: root.pinnedEntries[index].customerColor || KimaiApi.DEFAULT_CUSTOMER_COLOR
-                            colorCategory: root.pinnedEntries[index].colorCategory || ""
-                            entityId: root.pinnedEntries[index].entityId !== undefined
-                                      ? root.pinnedEntries[index].entityId : null
                             titleText: root.pinnedEntries[index].activityName
                             subtitleText: {
                                 var entry = root.pinnedEntries[index]
@@ -4400,8 +4302,6 @@ PlasmoidItem {
                             readonly property var barInfo: KimaiApi.barColorInfoFromTimesheet(
                                 root.recentTimesheets[index], root.customersById)
                             customerColor: barInfo.color
-                            colorCategory: barInfo.category
-                            entityId: barInfo.id
                             titleText: KimaiApi.displayActivityName(
                                 root.recentTimesheets[index], root.allActivities, root.activitiesByProject)
                             subtitleText: {
@@ -4744,8 +4644,6 @@ PlasmoidItem {
 
         function onDesktopShowNewActivityChanged() { root.syncDisplayStateFromConfig() }
         function onPopupShowNewActivityChanged() { root.syncDisplayStateFromConfig() }
-        function onColorDistinctionEnabledChanged() { root.rebuildColorMaps(true) }
-        function onColorSimilarityPercentChanged() { root.rebuildColorMaps(true) }
     }
 
     Connections {

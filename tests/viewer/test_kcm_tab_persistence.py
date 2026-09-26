@@ -22,7 +22,7 @@ from lib.viewer import ViewerSession
 pytestmark = pytest.mark.viewer
 
 
-_KCM_TABS = ["Connection", "Favorites", "Display", "Maintenance", "Behavior"]
+_KCM_TABS = ["Connection", "Favorites", "Display", "Behavior"]
 
 # Stable test data (also used for AT-SPI lookups).
 _PROFILE_2_NAME = "Profile 2"
@@ -119,22 +119,13 @@ def _isolated_env(tmp_path: Path) -> dict[str, str]:
     (cache_dir / "catalog-cache.json").write_text(
         json.dumps(
             {
-                # Favorites/maintenance only need a non-empty catalog; the UI
+                # Favorites only needs a non-empty catalog; the UI
                 # will still load it even if the active profile-id is
                 # different (it is treated as a preloaded payload).
                 "profileId": "default",
                 "customers": [_TEST_CUSTOMER],
                 "projects": [_TEST_PROJECT],
                 "activities": [_TEST_ACTIVITY],
-                # Stored group data is optional (ColorDistinct can rebuild).
-                "customerGroups": [],
-                "projectGroups": [],
-                "activityGroups": [],
-                "shiftedCount": 0,
-                "groupCount": 0,
-                "settingsKey": "",
-                "statusText": "",
-                "effectiveSimilarity": {"customer": 22, "project": 22, "activity": 22},
                 # Let defaults / in-memory TTL logic decide freshness.
             }
         ),
@@ -409,9 +400,9 @@ def test_kcm_tab_option_persistence(repo_root: Path, tmp_path: Path):
         atspi_clicks.click_named(config_ui.APPLY, roles=config_ui.BUTTON_ROLES, timeout=8)
         time.sleep(0.8)
 
-        # Maintenance is mostly read-only, but switching tabs away/back still
-        # reproduces the “merge patch clobbered earlier keys” regression.
-        _click_tab("Maintenance")
+        # Switching tabs away/back reproduces the “merge patch clobbered
+        # earlier keys” regression.
+        _click_tab("Display")
         _click_tab("Behavior")
         deadline = time.time() + 12
         while time.time() < deadline:

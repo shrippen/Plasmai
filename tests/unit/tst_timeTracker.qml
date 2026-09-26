@@ -18,7 +18,6 @@ TestCase {
         compare(TimeTracker.normalizeProviderId(""), "kimai")
         compare(TimeTracker.providerMeta("kimai").needsUrl, true)
         compare(TimeTracker.providerMeta("clockify").needsUrl, false)
-        verify(TimeTracker.providerCapabilities("kimai").colorDistinction)
         verify(TimeTracker.providerCapabilities("kimai").tags)
         verify(TimeTracker.providerCapabilities("kimai").billableEdit)
         verify(TimeTracker.providerCapabilities("toggl").tags)

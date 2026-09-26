@@ -2,7 +2,6 @@
     <qresource prefix="/">
         <file alias="qml/main.qml">qml/main.qml</file>
         <file alias="qml/platform/appBackend.js">qml/platform/appBackend.js</file>
-        <file alias="qml/platform/colorWorker.js">qml/platform/colorWorker.js</file>
         <file alias="qml/ConnectionPage.qml">qml/ConnectionPage.qml</file>
         <file alias="qml/TimerPage.qml">qml/TimerPage.qml</file>
         <file alias="qml/ManualEntryPage.qml">qml/ManualEntryPage.qml</file>
@@ -13,12 +12,10 @@
         <file alias="qml/TripEditPage.qml">qml/TripEditPage.qml</file>
         <file alias="qml/SettingsPage.qml">qml/SettingsPage.qml</file>
         <file alias="qml/FavoritesPage.qml">qml/FavoritesPage.qml</file>
-        <file alias="qml/MaintenancePage.qml">qml/MaintenancePage.qml</file>
         <file alias="qml/shared/qmldir">qml/shared/qmldir</file>
         <file alias="qml/shared/ApiErrors.qml">qml/shared/ApiErrors.qml</file>
         <file alias="qml/shared/TouchUi.qml">qml/shared/TouchUi.qml</file>
         <file alias="qml/shared/WrapCheckBox.qml">qml/shared/WrapCheckBox.qml</file>
-        <file alias="qml/shared/ColorDistinctState.qml">qml/shared/ColorDistinctState.qml</file>
         <file alias="qml/shared/LoadingRow.qml">qml/shared/LoadingRow.qml</file>
         <file alias="qml/shared/CustomerColorDot.qml">qml/shared/CustomerColorDot.qml</file>
         <file alias="qml/shared/ColorLabelRow.qml">qml/shared/ColorLabelRow.qml</file>
@@ -54,7 +51,6 @@
         <file alias="contents/code/mileage.js">../contents/code/mileage.js</file>
         <file alias="contents/code/profiles.js">../contents/code/profiles.js</file>
         <file alias="contents/code/favorites.js">../contents/code/favorites.js</file>
-        <file alias="contents/code/colorDistinct.js">../contents/code/colorDistinct.js</file>
         <file alias="contents/code/providerUtil.js">../contents/code/providerUtil.js</file>
         <file alias="contents/code/timesheetFields.js">../contents/code/timesheetFields.js</file>
         <file alias="contents/code/workContractAdjust.js">../contents/code/workContractAdjust.js</file>
@@ -63,7 +59,6 @@
         <file alias="contents/code/solar.js">../contents/code/solar.js</file>
         <file alias="contents/code/dateTimeFormat.js">../contents/code/dateTimeFormat.js</file>
         <file alias="contents/code/geocode.js">../contents/code/geocode.js</file>
-        <file alias="contents/code/maintenanceCache.js">../contents/code/maintenanceCache.js</file>
         <file alias="contents/code/providers/_stub.js">../contents/code/providers/_stub.js</file>
         <file alias="contents/code/providers/clockify.js">../contents/code/providers/clockify.js</file>
         <file alias="contents/code/providers/toggl.js">../contents/code/providers/toggl.js</file>

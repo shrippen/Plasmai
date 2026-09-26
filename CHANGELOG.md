@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Removed
+- Color distinction and the Maintenance settings tab (app: "Color maintenance"): Plasmai now shows the Kimai colors as they are. Similar colors are handled by a separate Kimai plugin
+- The settings "Make similar colors distinctive" and "Similarity threshold" are gone
+
 ### Trips (kimai-anfahrten plugin, Desktop and app)
 - With the Anfahrten plugin (MileageBundle) on the Kimai server: log a trip from the header, from the running entry or from a Recent entry's menu (linked to that entry); edit and delete trips
 - Trips detected from Dawarich show above Recent (Desktop) and on the new Trips page (app): accept, edit and accept, or dismiss

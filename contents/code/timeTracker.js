@@ -29,7 +29,6 @@ var PROVIDERS = [
         hintKey: "kimai",
         capabilities: {
             statistics: true,
-            colorDistinction: true,
             billableFilter: true,
             billableEdit: true,
             tags: true,
@@ -55,11 +54,8 @@ var PROVIDERS = [
         urlPlaceholder: "https://api.clockify.me/api/v1",
         authLabelKey: "key",
         hintKey: "clockify",
-        // Project colors exist, but no Kimai-style customer/activity colors or
-        // global activity catalog — color distinction / Maintenance are Kimai-only.
         capabilities: {
             statistics: true,
-            colorDistinction: false,
             billableFilter: true,
             billableEdit: true,
             tags: false,
@@ -80,7 +76,6 @@ var PROVIDERS = [
         hintKey: "toggl",
         capabilities: {
             statistics: true,
-            colorDistinction: false,
             billableFilter: true,
             billableEdit: true,
             tags: true,
@@ -102,7 +97,6 @@ var PROVIDERS = [
         // No entity colors from the API; range stats still work.
         capabilities: {
             statistics: true,
-            colorDistinction: false,
             billableFilter: true,
             billableEdit: true,
             tags: false,
@@ -138,13 +132,12 @@ function providerMeta(providerId) {
     return PROVIDERS[0]
 }
 
-/** Feature flags for the active tracker (statistics, color distinction, …). */
+/** Feature flags for the active tracker (statistics, tags, …). */
 function providerCapabilities(providerId) {
     var meta = providerMeta(providerId)
     var caps = meta.capabilities || {}
     return {
         statistics: caps.statistics === true,
-        colorDistinction: caps.colorDistinction === true,
         billableFilter: caps.billableFilter === true,
         billableEdit: caps.billableEdit === true,
         tags: caps.tags === true,
@@ -154,7 +147,7 @@ function providerCapabilities(providerId) {
         editStopped: caps.editStopped === true,
         createEntities: caps.createEntities === true,
         // Local-only extras UI (break, catering, day type, production day,
-        // note); Kimai-only like color distinction and Maintenance.
+        // note); Kimai-only.
         filmDays: caps.filmDays === true,
         // Kimai plugins that may be installed; the UI still probes whether
         // they actually are (KimaiApi.detectPlugin) before using them.

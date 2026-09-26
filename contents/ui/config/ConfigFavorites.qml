@@ -11,8 +11,7 @@ import "../../code/timeTracker.js" as TimeTracker
 import "../../code/profiles.js" as Profiles
 import "../../code/favorites.js" as Favorites
 import "../../code/sharedConfig.js" as SharedConfig
-import "../../code/colorDistinct.js" as ColorDistinct
-import "../../code/maintenanceCache.js" as CatalogCache
+import "../../code/catalogCache.js" as CatalogCache
 import ".."
 
 ConfigPage {
@@ -180,65 +179,10 @@ ConfigPage {
 
     property var saveConfig: persistFavoritesConfig
 
-    Timer {
-        id: colorRebuildTimer
-        interval: 32
-        repeat: false
-        onTriggered: page.applySharedColors()
-    }
-
-    function themePaletteFromSettingsKey(settingsKey) {
-        var parts = String(settingsKey || "").split("|")
-        if (parts.length < 9) {
-            return null
-        }
-        return [parts[2], parts[3], parts[4], parts[5], parts[6], parts[7], parts[8]]
-    }
-
-    function applyColorOptions() {
-        var cached = CatalogCache.load()
-        var fromCache = page.themePaletteFromSettingsKey(cached.settingsKey)
-        if (fromCache) {
-            ColorDistinct.setThemePalette(fromCache)
-        } else {
-            ColorDistinct.setThemePalette([
-                Kirigami.Theme.highlightColor,
-                Kirigami.Theme.positiveTextColor,
-                Kirigami.Theme.neutralTextColor,
-                Kirigami.Theme.negativeTextColor,
-                Kirigami.Theme.linkColor,
-                Kirigami.Theme.activeTextColor,
-                Kirigami.Theme.visitedLinkColor
-            ])
-        }
-        ColorDistinct.configure(
-            page.providerCapabilities.colorDistinction
-                && plasmoid.configuration.colorDistinctionEnabled !== false,
-            plasmoid.configuration.colorSimilarityPercent || 22
-        )
-    }
-
-    function applySharedColors() {
-        page.applyColorOptions()
-        var cached = CatalogCache.load()
-        var hasGroups = (cached.customerGroups && cached.customerGroups.length)
-            || (cached.projectGroups && cached.projectGroups.length)
-            || (cached.activityGroups && cached.activityGroups.length)
-        if (hasGroups) {
-            ColorDistinct.hydrateMapsFromGroups(
-                page.customers, page.availableProjects, page.allActivities,
-                cached.customerGroups, cached.projectGroups, cached.activityGroups)
-        } else {
-            ColorDistinct.rebuild(page.customers, page.availableProjects, page.allActivities, false)
-        }
-        page.projectRows = KimaiApi.projectsGroupedByCustomer(page.availableProjects, page.customers)
-    }
-
     function applyCatalogEntities(customers, projects, activities) {
         page.customers = customers || []
         page.availableProjects = projects || []
         page.allActivities = activities || []
-        // Paint the list immediately — ColorDistinct.rebuild can wait a tick.
         page.projectRows = KimaiApi.projectsGroupedByCustomer(page.availableProjects, page.customers)
         page.projectsStatus = i18n("Loaded %1 projects.", page.availableProjects.length)
         page.loadingProjects = false
@@ -263,8 +207,6 @@ ConfigPage {
             page.activityRowModel = []
             page.activitiesStatus = i18n("Select a project to pin activities.")
         }
-        // Same display colors as Maintenance, from the catalog cache groups.
-        colorRebuildTimer.restart()
     }
 
     function applyPayloadIfUsable(payload) {
@@ -344,22 +286,7 @@ ConfigPage {
                     page.applyCatalogEntities(customers, projects, page.allActivities)
                     function persist(activities) {
                         page.applyCatalogEntities(customers, projects, activities)
-                        var prev = CatalogCache.load()
-                        CatalogCache.store(page.activeProfile.id, {
-                            customers: customers,
-                            projects: projects,
-                            activities: activities,
-                            entityFingerprint: CatalogCache.entityFingerprint(
-                                customers, projects, activities),
-                            customerGroups: prev.customerGroups,
-                            projectGroups: prev.projectGroups,
-                            activityGroups: prev.activityGroups,
-                            shiftedCount: prev.shiftedCount,
-                            groupCount: prev.groupCount,
-                            settingsKey: prev.settingsKey,
-                            statusText: prev.statusText,
-                            effectiveSimilarity: prev.effectiveSimilarity
-                        })
+                        CatalogCache.storeEntities(page.activeProfile.id, customers, projects, activities)
                         Platform.saveCatalog(execSource, CatalogCache.exportPayload())
                     }
                     if (typeof page.tracker.loadAllActivities === "function") {
@@ -478,15 +405,6 @@ ConfigPage {
         return KimaiApi.DEFAULT_CUSTOMER_COLOR
     }
 
-    function customerIdForSection(name) {
-        for (var i = 0; i < projectRows.length; i++) {
-            if (projectRows[i].customerName === name) {
-                return projectRows[i].customerId !== undefined ? projectRows[i].customerId : null
-            }
-        }
-        return null
-    }
-
     RowLayout {
         anchors {
             fill: parent
@@ -575,8 +493,6 @@ ConfigPage {
                             anchors.rightMargin: Kirigami.Units.smallSpacing
                             customerRole: true
                             customerColor: page.customerColorForSection(section)
-                            colorCategory: "customer"
-                            entityId: page.customerIdForSection(section)
                             label: section
                         }
                     }
@@ -598,8 +514,6 @@ ConfigPage {
                             width: parent ? parent.width : implicitWidth
                             customerRole: false
                             customerColor: modelData.projectColor || modelData.customerColor || KimaiApi.DEFAULT_CUSTOMER_COLOR
-                            colorCategory: modelData.colorCategory || ""
-                            entityId: modelData.entityId !== undefined ? modelData.entityId : null
                             label: modelData.project.name
                             labelBold: false
                         }

@@ -7,8 +7,6 @@ import org.kde.plasma.plasma5support as P5Support
 import "../../code/secret.js" as Secret
 import "../../code/platform.js" as Platform
 import "../../code/geocode.js" as Geocode
-import "../../code/profiles.js" as Profiles
-import "../../code/timeTracker.js" as TimeTracker
 import "../../code/sharedConfig.js" as SharedConfig
 
 ConfigPageBase {
@@ -77,8 +75,6 @@ ConfigPageBase {
     property var cfg_lastUsedActivityNameDefault
     property var cfg_locationName
     property var cfg_locationNameDefault
-    property var cfg_colorDistinctionEnabledDefault
-    property var cfg_colorSimilarityPercentDefault
     property var cfg_touchModeDefault
 
     // Aliases so Plasma's isConfigurationChanged / cfg_*Changed see toggles.
@@ -104,8 +100,6 @@ ConfigPageBase {
     property alias cfg_desktopShowFavorites: desktopFavoritesCheck.checked
     property alias cfg_desktopShowRecent: desktopRecentCheck.checked
     property alias cfg_desktopShowNewActivity: desktopNewActivityCheck.checked
-    property alias cfg_colorDistinctionEnabled: colorDistinctionCheck.checked
-    property alias cfg_colorSimilarityPercent: colorSimilaritySpin.value
     property alias cfg_touchMode: touchModeCombo.currentIndex
 
     readonly property int pageMargin: Kirigami.Units.gridUnit
@@ -121,14 +115,6 @@ ConfigPageBase {
         // Leave room for the label column + margins.
         return Math.max(Kirigami.Units.gridUnit * 10, formW - Kirigami.Units.gridUnit * 14)
     }
-
-    readonly property var activeProfile: Profiles.profileById(
-        Profiles.parseProfiles(plasmoid.configuration.profilesJson, plasmoid.configuration.kimaiUrl),
-        plasmoid.configuration.activeProfileId || "default"
-    )
-    readonly property var providerCapabilities: TimeTracker.providerCapabilities(
-        activeProfile && activeProfile.provider ? activeProfile.provider : "kimai")
-    readonly property bool supportsColorDistinction: providerCapabilities.colorDistinction
 
     property bool syncing: false
     property bool ready: false
@@ -245,8 +231,6 @@ ConfigPageBase {
             desktopShowRecent: desktopRecentCheck.checked,
             desktopShowNewActivity: desktopNewActivityCheck.checked,
             showFavorites: popupFavoritesCheck.checked || desktopFavoritesCheck.checked,
-            colorDistinctionEnabled: colorDistinctionCheck.checked,
-            colorSimilarityPercent: colorSimilaritySpin.value,
             touchMode: page.cfg_touchMode
         }
     }
@@ -275,8 +259,6 @@ ConfigPageBase {
         page.cfg_desktopShowRecent = desktopRecentCheck.checked
         page.cfg_desktopShowNewActivity = desktopNewActivityCheck.checked
         page.cfg_showFavorites = popupFavoritesCheck.checked || desktopFavoritesCheck.checked
-        page.cfg_colorDistinctionEnabled = colorDistinctionCheck.checked
-        page.cfg_colorSimilarityPercent = colorSimilaritySpin.value
         page.cfg_touchMode = touchModeCombo.currentIndex
     }
 
@@ -311,9 +293,6 @@ ConfigPageBase {
         desktopFavoritesCheck.checked = page.cfg_desktopShowFavorites !== false
         desktopRecentCheck.checked = page.cfg_desktopShowRecent !== false
         desktopNewActivityCheck.checked = page.cfg_desktopShowNewActivity !== false
-        colorDistinctionCheck.checked = page.cfg_colorDistinctionEnabled !== false
-        colorSimilaritySpin.value = SharedConfig.coerceInt(
-            page.cfg_colorSimilarityPercent, page.cfg_colorSimilarityPercentDefault || 22, 12, 80)
         touchModeCombo.currentIndex = SharedConfig.coerceInt(
             page.cfg_touchMode, page.cfg_touchModeDefault || 0, 0, 2)
         page.syncLocationFields()
@@ -367,13 +346,6 @@ ConfigPageBase {
         }
         if (typeof shared.workDayEnd === "string" && shared.workDayEnd.length > 0) {
             workDayEndField.text = shared.workDayEnd
-        }
-        if (typeof shared.colorDistinctionEnabled === "boolean") {
-            colorDistinctionCheck.checked = shared.colorDistinctionEnabled
-        }
-        if (typeof shared.colorSimilarityPercent !== "undefined") {
-            colorSimilaritySpin.value = SharedConfig.coerceInt(
-                shared.colorSimilarityPercent, colorSimilaritySpin.value, 12, 80)
         }
         if (typeof shared.touchMode !== "undefined") {
             page.cfg_touchMode = SharedConfig.coerceInt(
@@ -542,56 +514,6 @@ ConfigPageBase {
                     to: 300
                     stepSize: 5
                     onValueChanged: page.notifyEdited()
-                }
-
-                // —— Colors ——
-                Kirigami.Separator {
-                    visible: page.supportsColorDistinction
-                    Kirigami.FormData.label: i18n("Colors")
-                    Kirigami.FormData.isSection: true
-                }
-
-                QQC2.CheckBox {
-                    id: colorDistinctionCheck
-                    Kirigami.FormData.label: i18n("Distinction:")
-                    visible: page.supportsColorDistinction
-                    Layout.fillWidth: true
-                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
-                    text: i18n("Make similar colors distinctive within each category")
-                    onToggled: page.notifyEdited()
-                }
-
-                QQC2.SpinBox {
-                    id: colorSimilaritySpin
-                    Kirigami.FormData.label: i18n("Similarity threshold (%):")
-                    visible: page.supportsColorDistinction
-                    from: 12
-                    to: 80
-                    stepSize: 1
-                    enabled: colorDistinctionCheck.checked
-                    onValueChanged: page.notifyEdited()
-                }
-
-                PlasmaComponents3.Label {
-                    Kirigami.FormData.label: page.formWide ? " " : ""
-                    visible: page.supportsColorDistinction
-                    Layout.fillWidth: true
-                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
-                    wrapMode: Text.WordWrap
-                    font.pointSize: Kirigami.Theme.smallFont.pointSize
-                    opacity: 0.75
-                    text: i18n("Higher similarity values treat more colors as too close. Clashing items get vivid, well-spaced replacement colors. See Maintenance for clash groups.")
-                }
-
-                PlasmaComponents3.Label {
-                    Kirigami.FormData.label: page.formWide ? " " : ""
-                    visible: !page.supportsColorDistinction
-                    Layout.fillWidth: true
-                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
-                    wrapMode: Text.WordWrap
-                    font.pointSize: Kirigami.Theme.smallFont.pointSize
-                    opacity: 0.75
-                    text: i18n("Color distinction is available for Kimai profiles (per-customer / project / activity colors).")
                 }
 
                 // —— Work hours ——

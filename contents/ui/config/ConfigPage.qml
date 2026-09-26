@@ -89,10 +89,6 @@ ConfigPageBase {
     property var cfg_lastUsedActivityNameDefault
     property var cfg_locationName
     property var cfg_locationNameDefault
-    property var cfg_colorDistinctionEnabled
-    property var cfg_colorDistinctionEnabledDefault
-    property var cfg_colorSimilarityPercent
-    property var cfg_colorSimilarityPercentDefault
     property var cfg_touchMode
     property var cfg_touchModeDefault
 }

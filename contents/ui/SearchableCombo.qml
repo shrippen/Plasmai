@@ -59,25 +59,6 @@ Item {
         return ""
     }
 
-    function sectionColorCategory(section) {
-        for (var i = 0; i < items.length; i++) {
-            if (items[i].section === section && items[i].colorCategory) {
-                return String(items[i].colorCategory)
-            }
-        }
-        return ""
-    }
-
-    function sectionEntityId(section) {
-        for (var i = 0; i < items.length; i++) {
-            if (items[i].section === section
-                    && items[i].entityId !== null && items[i].entityId !== undefined) {
-                return items[i].entityId
-            }
-        }
-        return null
-    }
-
     function closePopup() {
         if (popup.opened) {
             popup.close()
@@ -152,10 +133,6 @@ Item {
                     label: item.label,
                     section: item.section || "",
                     color: item.rowColor || item.color || "",
-                    colorCategory: item.rowColorCategory || item.colorCategory || "",
-                    entityId: (item.rowEntityId !== undefined && item.rowEntityId !== null)
-                              ? item.rowEntityId
-                              : (item.entityId !== undefined ? item.entityId : null),
                     searchText: item.searchText || item.label
                 })
             }
@@ -415,8 +392,6 @@ Item {
                     customerRole: true
                     showDot: root.sectionColor(section).length > 0
                     customerColor: root.sectionColor(section) || KimaiApi.DEFAULT_CUSTOMER_COLOR
-                    colorCategory: root.sectionColorCategory(section)
-                    entityId: root.sectionEntityId(section)
                     label: root.sectionLabel(section)
                 }
             }
@@ -442,8 +417,6 @@ Item {
                     customerRole: false
                     showDot: modelData.color && String(modelData.color).length > 0
                     customerColor: modelData.color || KimaiApi.DEFAULT_CUSTOMER_COLOR
-                    colorCategory: modelData.colorCategory || ""
-                    entityId: modelData.entityId !== undefined ? modelData.entityId : null
                     label: modelData.label
                     labelBold: false
                 }

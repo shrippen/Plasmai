@@ -13,8 +13,6 @@ import "../contents/code/filmDaySync.js" as FilmDaySync
 import "../contents/code/mileage.js" as Mileage
 import "../contents/code/favorites.js" as Favorites
 import "../contents/code/sharedConfig.js" as SharedConfig
-import "../contents/code/colorDistinct.js" as ColorDistinct
-import "../contents/code/maintenanceCache.js" as CatalogCache
 import "../contents/code/providerUtil.js" as ProviderUtil
 import "../contents/code/timesheetFields.js" as TimesheetFields
 import "shared"
@@ -24,127 +22,8 @@ Kirigami.ApplicationWindow {
     signal switchConfirmRequested()
     Material.theme: Material.Dark
 
-    // ── Provider capabilities (tags, billable, statistics, color distinction, …) ──
+    // ── Provider capabilities (tags, billable, statistics, …) ──
     readonly property var providerCapabilities: TimeTracker.providerCapabilities(providerId)
-
-    // ── Color distinction (Kimai-only "power" feature, ported from the Plasmoid) ──
-    // The actual similarity computation (ColorDistinct.rebuild + maintenanceGroups)
-    // runs off the GUI thread in platform/colorWorker.js — it's an O(n²)-ish
-    // comparison over every customer/project/activity color and can be slow with
-    // a large catalog. Results come back via colorWorker.onMessage and are cached
-    // to disk (catalog.json via CatalogCache/Platform.saveCatalog) so the next
-    // launch can show distinguished colors instantly instead of waiting on a
-    // fresh computation — see loadSharedAndConnect()'s cache-hydrate step.
-    property bool colorDistinctionEnabled: true
-    property int colorSimilarityPercent: 22
-    property var customerColorGroups: []
-    property var projectColorGroups: []
-    property var activityColorGroups: []
-    property string _colorDispatchKey: ""
-    property int _colorRequestId: 0
-    readonly property string themePaletteKey: [
-        String(Kirigami.Theme.highlightColor),
-        String(Kirigami.Theme.positiveTextColor),
-        String(Kirigami.Theme.neutralTextColor),
-        String(Kirigami.Theme.negativeTextColor),
-        String(Kirigami.Theme.linkColor),
-        String(Kirigami.Theme.activeTextColor),
-        String(Kirigami.Theme.visitedLinkColor)
-    ].join("|")
-    onThemePaletteKeyChanged: root.rebuildColorMaps(true)
-
-    WorkerScript {
-        id: colorWorker
-        source: Qt.resolvedUrl("platform/colorWorker.js")
-        onMessage: function(msg) { root.applyColorWorkerResult(msg) }
-    }
-
-    function rebuildColorMaps(force) {
-        var extra = (allActivities || []).slice()
-        if (activities && activities.length) {
-            for (var ai = 0; ai < activities.length; ai++) extra.push(activities[ai])
-        }
-        var acts = ColorDistinct.flattenActivitiesByProject(activitiesByProject, extra)
-        var distinctionOn = root.providerCapabilities.colorDistinction && root.colorDistinctionEnabled
-        var dispatchKey = [
-            distinctionOn ? "1" : "0",
-            String(root.colorSimilarityPercent || 22),
-            root.themePaletteKey,
-            JSON.stringify(customers.map(function(c) { return [c.id, c.color] })),
-            JSON.stringify(projects.map(function(p) { return [p.id, p.color] })),
-            JSON.stringify(acts.map(function(a) { return [a.id, a.color] }))
-        ].join("|")
-        if (!force && dispatchKey === root._colorDispatchKey) return
-        root._colorDispatchKey = dispatchKey
-        root._colorRequestId += 1
-        var payload = {
-            requestId: root._colorRequestId,
-            customers: customers,
-            projects: projects,
-            activities: acts,
-            themePalette: [
-                String(Kirigami.Theme.highlightColor),
-                String(Kirigami.Theme.positiveTextColor),
-                String(Kirigami.Theme.neutralTextColor),
-                String(Kirigami.Theme.negativeTextColor),
-                String(Kirigami.Theme.linkColor),
-                String(Kirigami.Theme.activeTextColor),
-                String(Kirigami.Theme.visitedLinkColor)
-            ],
-            enabled: distinctionOn,
-            similarityPercent: root.colorSimilarityPercent || 22,
-            force: !!force
-        }
-        // Sending immediately can race WorkerScript's background-thread startup
-        // ("Attempt to send message before WorkerScript establishment") right
-        // after app launch; deferring one event-loop tick avoids it.
-        Qt.callLater(function() { colorWorker.sendMessage(payload) })
-    }
-
-    function applyColorWorkerResult(msg) {
-        if (msg.requestId !== root._colorRequestId) return // superseded by a newer dispatch
-        ColorDistinct.importMaps({ maps: msg.maps, originals: msg.originals, effectiveSimilarity: msg.effectiveSimilarity })
-        customerColorGroups = msg.customerGroups || []
-        projectColorGroups = msg.projectGroups || []
-        activityColorGroups = msg.activityGroups || []
-        ColorDistinctState.version += 1
-
-        if (customers.length || projects.length || (allActivities || []).length) {
-            CatalogCache.store(activeProfile ? activeProfile.id : "", {
-                customers: customers,
-                projects: projects,
-                activities: allActivities,
-                customerGroups: customerColorGroups,
-                projectGroups: projectColorGroups,
-                activityGroups: activityColorGroups,
-                shiftedCount: CatalogCache.countShifted(customerColorGroups)
-                    + CatalogCache.countShifted(projectColorGroups) + CatalogCache.countShifted(activityColorGroups),
-                groupCount: customerColorGroups.length + projectColorGroups.length + activityColorGroups.length,
-                settingsKey: [
-                    root.colorDistinctionEnabled ? "1" : "0",
-                    String(root.colorSimilarityPercent || 22),
-                    root.themePaletteKey
-                ].join("|"),
-                effectiveSimilarity: msg.effectiveSimilarity
-            })
-            Platform.saveCatalog(null, CatalogCache.exportPayload())
-        }
-    }
-
-    /** Seed colors instantly from the on-disk cache written by a previous run,
-     *  before any network data arrives or the (async) worker computation finishes. */
-    function hydrateColorMapsFromDiskCache() {
-        Platform.loadCatalog(null).then(function(payload) {
-            if (!payload || !CatalogCache.hydrate(payload)) return
-            ColorDistinct.hydrateMapsFromGroups(
-                payload.customers, payload.projects, payload.activities,
-                payload.customerGroups, payload.projectGroups, payload.activityGroups)
-            customerColorGroups = payload.customerGroups || []
-            projectColorGroups = payload.projectGroups || []
-            activityColorGroups = payload.activityGroups || []
-            ColorDistinctState.version += 1
-        })
-    }
 
     // ── Location (sun/moon accuracy for the day sparkline) ──
     property real latitude: 0
@@ -397,8 +276,6 @@ Kirigami.ApplicationWindow {
     readonly property var lastRecent: recentTimesheets.length > 0 ? recentTimesheets[0] : null
     readonly property var currentBarColorInfo: KimaiApi.barColorInfoFromTimesheet(activeTimesheet, customersById)
     readonly property color currentCustomerColor: currentBarColorInfo.color || KimaiApi.DEFAULT_CUSTOMER_COLOR
-    readonly property string currentColorCategory: currentBarColorInfo.category || ""
-    readonly property var currentColorEntityId: currentBarColorInfo.id !== undefined ? currentBarColorInfo.id : null
 
     readonly property real todayLiveSeconds: todayTotalSeconds + (isTracking ? elapsedSeconds : 0)
     readonly property real weekLiveSeconds: weekTotalSeconds + (isTracking ? elapsedSeconds : 0)
@@ -552,12 +429,12 @@ Kirigami.ApplicationWindow {
             var fresh = KimaiApi.hydrateTimesheets(KimaiApi.deduplicateRecent(result.data || []), projects, activityCatalog(), activitiesByProject)
             if (JSON.stringify(fresh) !== JSON.stringify(recentTimesheets)) recentTimesheets = fresh
         })
-        tracker.loadProjects(url, apiToken, function(result) { if (result.ok) { projects = result.data || []; root.rebuildColorMaps() } })
+        tracker.loadProjects(url, apiToken, function(result) { if (result.ok) { projects = result.data || [] } })
         tracker.loadCustomers(url, apiToken, function(result) {
-            if (result.ok) { customers = result.data || []; customersById = {}; for (var i = 0; i < customers.length; i++) customersById[String(customers[i].id)] = customers[i]; root.rebuildColorMaps() }
+            if (result.ok) { customers = result.data || []; customersById = {}; for (var i = 0; i < customers.length; i++) customersById[String(customers[i].id)] = customers[i] }
         })
         tracker.loadActivities(url, apiToken, null, function(result) {
-            if (result.ok) { activities = result.data || []; allActivities = result.data || []; root.rebuildColorMaps() }
+            if (result.ok) { activities = result.data || []; allActivities = result.data || [] }
         })
         refreshWorkTotals(); refreshPinnedEntries()
     }
@@ -825,8 +702,6 @@ Kirigami.ApplicationWindow {
                 if (typeof shared.workDayEnd === "string") workDayEnd = shared.workDayEnd
                 if (typeof shared.popupShowSparkline === "boolean") showSparkline = shared.popupShowSparkline
                 if (typeof shared.showSparklineArcs === "boolean") showSparklineArcs = shared.showSparklineArcs
-                if (typeof shared.colorDistinctionEnabled === "boolean") colorDistinctionEnabled = shared.colorDistinctionEnabled
-                if (typeof shared.colorSimilarityPercent === "number") colorSimilarityPercent = shared.colorSimilarityPercent
                 if (typeof shared.latitude === "number") latitude = shared.latitude
                 if (typeof shared.longitude === "number") longitude = shared.longitude
                 if (typeof shared.locationName === "string") locationName = shared.locationName
@@ -846,10 +721,6 @@ Kirigami.ApplicationWindow {
                 if (typeof shared.lastUsedProjectName === "string") lastUsedProjectName = shared.lastUsedProjectName
                 if (typeof shared.lastUsedActivityName === "string") lastUsedActivityName = shared.lastUsedActivityName
             }
-            // Instant seed from the last computed result (no catalog yet to rebuild from);
-            // refreshAll()'s catalog-load callbacks trigger the real (async) rebuild once
-            // live customers/projects/activities arrive.
-            root.hydrateColorMapsFromDiskCache()
             loadApiToken()
         })
     }
@@ -895,11 +766,6 @@ Kirigami.ApplicationWindow {
             Kirigami.Action {
                 text: i18n("Settings")
                 onTriggered: { root.navigateTo(settingsComponent); globalDrawer.close() }
-            },
-            Kirigami.Action {
-                text: i18n("Color maintenance")
-                visible: root.providerCapabilities.colorDistinction
-                onTriggered: { root.navigateTo(maintenanceComponent); globalDrawer.close() }
             }
         ]
     }
@@ -928,6 +794,5 @@ Kirigami.ApplicationWindow {
     Component { id: settingsComponent; SettingsPage { } }
     Component { id: connectionComponent; ConnectionPage { } }
     Component { id: favoritesComponent; FavoritesPage { } }
-    Component { id: maintenanceComponent; MaintenancePage { } }
 }
 

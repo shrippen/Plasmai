@@ -1,5 +1,5 @@
 #!/bin/sh
-# Disk cache for Kimai catalog + maintenance clash groups.
+# Disk cache for the Kimai catalog.
 # Shared between plasmashell (widget) and the settings dialog process.
 #
 # Subcommands:

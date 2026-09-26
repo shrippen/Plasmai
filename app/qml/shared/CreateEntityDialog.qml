@@ -124,8 +124,6 @@ Kirigami.Dialog {
                     customerColor: visible
                                    ? root.customerRows[customerCombo.currentIndex].color
                                    : KimaiApi.DEFAULT_CUSTOMER_COLOR
-                    colorCategory: "customer"
-                    entityId: visible ? root.customerRows[customerCombo.currentIndex].id : null
                     label: visible ? root.customerRows[customerCombo.currentIndex].name : ""
                     labelPointSize: Kirigami.Theme.defaultFont.pointSize
                     labelBold: false
@@ -157,8 +155,6 @@ Kirigami.Dialog {
                     width: parent ? parent.width : implicitWidth
                     customerRole: true
                     customerColor: modelData.color || KimaiApi.DEFAULT_CUSTOMER_COLOR
-                    colorCategory: "customer"
-                    entityId: modelData.id
                     label: modelData.name
                     labelPointSize: Kirigami.Theme.defaultFont.pointSize
                     labelBold: false

@@ -55,7 +55,7 @@ typography stack, badge format, and social-preview spec.
   `contents/code/providers/*.js`.
 - Do not fork the UI per provider. Gate features with
   `TimeTracker.providerCapabilities(providerId)` (`statistics`,
-  `colorDistinction`, `billableFilter`, `billableEdit`, `tags`,
+  `billableFilter`, `billableEdit`, `tags`,
   `workContract`, `holidayBundle`, `deleteEntry`, `editStopped`, `createEntities`,
   `filmDays`, `drehzettelApi`, `mileage`). The last two only say a Kimai
   plugin *may* be there; the UI still probes it (see "Kimai plugin
@@ -82,8 +82,9 @@ typography stack, badge format, and social-preview spec.
   `editStopped`. Creating a customer, project, or activity is an
   overflow on the pickers (`Create project` / `Create activity`), not a
   settings tab.
-- Color distinction, customer colors, and Maintenance clash groups are
-  **Kimai-only**. Other providers must not grow a parallel color UI.
+- Customer colors are **Kimai-only**. Other providers must not grow a
+  parallel color UI. Shown colors are the raw Kimai colors; fixing colors
+  that look too similar is the job of a separate Kimai plugin, not Plasmai.
 
 ### Persistence
 
@@ -94,11 +95,9 @@ typography stack, badge format, and social-preview spec.
   `sharedConfig.sh`). Instance config is a cache; edits persist a patch into
   the shared file.
 - **Catalog cache:** `~/.cache/com.github.shrippen.plasmai/catalog-cache.json`.
-  Favorites settings and Maintenance should read this cache, not hit the live
-  API on every open. “Reload from server” must **not** reshuffle assigned
-  colors: fingerprint entities (normalized hex, order-independent); keep the
-  widget-theme half of `settingsKey`; rebuild distinction only when the
-  distinction inputs actually change.
+  Favorites settings should read this cache, not hit the live API on every
+  open. The widget writes it only after a real catalog fetch, so the
+  `FRESH_MS` age check keeps working.
 - Shell helpers are small executable scripts next to the JS that invokes them
   (`kwallet.sh`, `idle.sh`, `notify.sh`, `sharedConfig.sh`, `catalogCache.sh`).
   Keep them POSIX `sh`, quote arguments with `secret.js` `shQuote`.
@@ -142,7 +141,7 @@ typography stack, badge format, and social-preview spec.
   becomes `visible`, run `resolveConnectionState` (shared over
   placeholders) **before** `ensureSelection` / `syncProfiles`, and never
   persist an empty `profilesJson` patch. Favorites, Display, Behavior,
-  and Maintenance persist on enter; Shortcuts and About do not — that is
+  persist on enter; Shortcuts and About do not — that is
   why only the first group used to reset Connection to Default. Other
   tabs persist **only their own keys**. `sanitizeProfilesForPersistence`
   must restore `profilesJson` / `activeProfileId` when the shared base
@@ -151,21 +150,16 @@ typography stack, badge format, and social-preview spec.
 - Favorites project rows need an accessible name so AT-SPI can select
   them. Activity `CheckDelegate`s must handle `Accessible.onToggleAction`
   (AT-SPI Toggle does not fire `onToggled`).
-- Tabs: Connection, Favorites, Display, Maintenance, Behavior — keep that
+- Tabs: Connection, Favorites, Display, Behavior — keep that
   split. Do not dump tracking actions into Display. Last-used
   project/activity ids are shared.json keys, not Display checkboxes.
   Forgot-to-start lives on Behavior, as does overlapping-start confirmation
-  for the running entry. Favorites and Maintenance load
-  `shared.json` first, then the catalog cache, only when their tab is
+  for the running entry. Favorites loads
+  `shared.json` first, then the catalog cache, only when its tab is
   visible — do not hit the API on every settings dialog open.
   Favorites must show a running `BusyIndicator` **before** catalog I/O.
   Parse `catalog-cache.json` off the UI thread (`WorkerScript`); never
   `JSON.parse` a large catalog on the same frame as becoming visible.
-  Favorites color pills use the same `ColorDistinct` maps as Maintenance.
-  Hydrate them from the catalog-cache clash groups Maintenance already
-  stored — do not recompute hues on Favorites open. Rebuild only when
-  those groups are missing. Apply the maps after the project list paints
-  so the KCM stays switchable.
 
 ---
 
@@ -199,10 +193,8 @@ typography stack, badge format, and social-preview spec.
   bold title. `ColorLabelRow` keeps a **fixed left slot** so thick customer
   bars and thin project bars share one vertical axis. Do not let bars jump
   horizontally between rows.
-- Color distinction shifts **within a category only** (customers vs
-  customers, not customer vs project). Same hex may still appear across
-  categories. Replacement hues bias toward the current Plasma theme palette,
-  skipping greys. Do not randomize on every refresh.
+- Bars show the Kimai colors unchanged. Do not re-add color shifting in
+  Plasmai; similar colors are fixed on the server by a separate Kimai plugin.
 
 ### Density and touch
 
@@ -233,8 +225,8 @@ typography stack, badge format, and social-preview spec.
 ### Film day view (Kimai only)
 
 - `mainViewMode: "filmday"` (`FilmDayView.qml`; app: `FilmDayPage.qml` with the
-  shared copy), gated by `providerCapabilities.filmDays` (Kimai only — like color
-  distinction and Maintenance, no parallel UI on other providers).
+  shared copy), gated by `providerCapabilities.filmDays` (Kimai only — no parallel
+  UI on other providers).
 - One shooting day = one Kimai timesheet entry for that calendar day (begin/end,
   created or patched like Add entry; only a stopped entry of the picked project is
   reused). If the project has more stopped entries that day, the view says so

@@ -110,7 +110,7 @@ Installiere Qt 6.8+ mit Android Kit via [Qt Online Installer](https://www.qt.io/
 Die App teilt sich `app/qml/shared/` (portierte Kopien der Plasmoid-Komponenten
 aus `contents/ui/`) und erreicht damit funktional/visuell weitgehend Parität:
 Tags, Billable, Split/Edit/Delete auf Recents, Favoriten-Verwaltung, volle
-Statistik-Charts, Farb-Distinction + Maintenance-Ansicht, Standortsuche für
+Statistik-Charts, Standortsuche für
 den Sparkline-Sonnenstand.
 
 - **Idle-Detection / native Benachrichtigungen**: plattform-adaptiv über

@@ -50,7 +50,7 @@ flowchart LR
 
 - Connection Apply, unique profile names, reusable “Profile N”, token-clear only when a token exists.
 - Connection profiles survive KCM tab switches (`shared.json` over `cfg_*` placeholders).
-- Favorites loading indicator; catalog JSON off the UI thread; colors from Maintenance cache groups.
+- Favorites loading indicator; catalog JSON off the UI thread.
 - Desktop blur via `StandardBackground`. Profile switcher on main + stats only.
 
 **Tried and dropped in 1.5:** Plasma global shortcuts and script/IPC control. Do not re-add without a new DESIGN.md decision.
@@ -150,7 +150,8 @@ Not required to call it 2.0.
 - **Invoicing, expenses, team dashboards**.
 - A **standalone window** or “minimize to tray” Kemai clone.
 - **Compiled binaries** in the Store plasmoid.
-- Per-provider color/Maintenance UI. Color distinction stays Kimai-only.
+- Per-provider color UI.
+- Color distinction / clash maintenance inside Plasmai. A separate Kimai plugin handles that now.
 - Global shortcuts / script control as they shipped-and-reverted in 1.5.
 - logind shutdown inhibit from the plasmoid as it shipped-and-reverted in 1.6.
 

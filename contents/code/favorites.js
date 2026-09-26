@@ -108,9 +108,7 @@ function resolvePinnedEntries(pinnedStr, projects, activitiesByProject, customer
             projectName: projectName,
             activityName: activityName,
             customerName: customerName,
-            customerColor: bar.color,
-            colorCategory: bar.category,
-            entityId: bar.id
+            customerColor: bar.color
         })
     }
     return result

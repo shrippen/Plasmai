@@ -1,24 +1,15 @@
 import QtQuick
 import org.kde.kirigami as Kirigami
-import "../code/colorDistinct.js" as ColorDistinct
 
 /**
  * Colored hierarchy marker as a short vertical pill.
- * Thickness encodes importance (sizeFactor). Optionally resolves
- * within-category color distinction via colorCategory + entityId so every
- * bar uses the same shifted palette as the rest of the plasmoid.
+ * Thickness encodes importance (sizeFactor).
  */
 Item {
     id: root
 
-    /** Raw or already-resolved Kimai/display color. */
+    /** Kimai/display color. */
     property color customerColor: "#d2d6de"
-    /**
-     * When set with entityId, color is passed through ColorDistinct.adjust
-     * ("customer" | "project" | "activity").
-     */
-    property string colorCategory: ""
-    property var entityId: null
     property bool showDot: true
     /**
      * Relative importance. Typical values:
@@ -28,14 +19,6 @@ Item {
     property real sizeFactor: 0.55
     /** Slot width uses the section size so bars share one vertical axis. */
     property real slotSizeFactor: 0.85
-
-    readonly property color displayColor: {
-        if (root.colorCategory.length > 0
-                && root.entityId !== null && root.entityId !== undefined && root.entityId !== "") {
-            return ColorDistinct.adjust(root.colorCategory, root.entityId, root.customerColor)
-        }
-        return root.customerColor
-    }
 
     readonly property real slotSize: Math.max(8, Kirigami.Units.iconSizes.small * slotSizeFactor)
     /** Thin ≈4–5px, thick ≈7–8px */
@@ -59,7 +42,7 @@ Item {
         }
         radius: height / 2
         visible: root.showDot
-        color: root.displayColor
+        color: root.customerColor
         border.width: 1
         border.color: Qt.rgba(0, 0, 0, 0.18)
     }

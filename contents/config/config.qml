@@ -18,11 +18,6 @@ ConfigModel {
         source: "config/ConfigDisplay.qml"
     }
     ConfigCategory {
-        name: i18n("Maintenance")
-        icon: "tools-wizard"
-        source: "config/ConfigMaintenance.qml"
-    }
-    ConfigCategory {
         name: i18n("Behavior")
         icon: "preferences-system"
         source: "config/ConfigBehavior.qml"

@@ -188,26 +188,6 @@ Kirigami.Page {
                     }
                 }
 
-                Kirigami.Heading {
-                    Kirigami.FormData.isSection: true; level: 4; text: i18n("Color distinction")
-                    visible: root.providerCapabilities.colorDistinction
-                }
-                WrapCheckBox {
-                    Kirigami.FormData.label: i18n("Kimai only:")
-                    visible: root.providerCapabilities.colorDistinction
-                    text: i18n("Shift similar customer/project/activity colors apart")
-                    checked: root.colorDistinctionEnabled
-                    onToggled: { root.colorDistinctionEnabled = checked; page.saveSetting("colorDistinctionEnabled", checked); root.rebuildColorMaps(true) }
-                }
-                QQC2.SpinBox {
-                    Kirigami.FormData.label: i18n("Similarity threshold:")
-                    visible: root.providerCapabilities.colorDistinction
-                    from: 12; to: 80; stepSize: 2
-                    value: root.colorSimilarityPercent
-                    textFromValue: function(v) { return v + "%" }
-                    onValueChanged: { root.colorSimilarityPercent = value; page.saveSetting("colorSimilarityPercent", value); root.rebuildColorMaps(true) }
-                }
-
                 Kirigami.Heading { Kirigami.FormData.isSection: true; level: 4; text: i18n("Idle detection"); visible: root.supportsIdleDetection }
                 WrapCheckBox {
                     Kirigami.FormData.label: i18n("Enable:")
