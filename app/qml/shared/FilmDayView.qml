@@ -48,6 +48,8 @@ ColumnLayout {
     property bool configured: true
     /** The host can log trips (Anfahrten plugin); a finished travel day then offers one. */
     property bool tripsAvailable: false
+    /** Labels of the day grid wrap, so the fields keep room on a phone. */
+    readonly property real formLabelWidth: Math.max(Kirigami.Units.gridUnit * 6.5, width * 0.28)
     property bool connectionOk: true
     property bool showCreateActions: false
 
@@ -930,7 +932,7 @@ ColumnLayout {
         columnSpacing: Kirigami.Units.largeSpacing
         rowSpacing: Kirigami.Units.smallSpacing
 
-        QQC2.Label { text: i18n("Day type") }
+        QQC2.Label { text: i18n("Day type"); Layout.maximumWidth: root.formLabelWidth; wrapMode: Text.WordWrap }
         QQC2.ComboBox {
             KanteFieldSkin { control: parent }
             id: dayTypeCombo
@@ -940,7 +942,7 @@ ColumnLayout {
             onActivated: root.extrasTouched()
         }
 
-        QQC2.Label { text: i18n("Catering") }
+        QQC2.Label { text: i18n("Catering"); Layout.maximumWidth: root.formLabelWidth; wrapMode: Text.WordWrap }
         QQC2.Switch {
             KanteCheckSkin { control: parent; shape: KanteCheckSkin.Shape.Switch }
             id: cateringSwitch
@@ -949,7 +951,7 @@ ColumnLayout {
             onToggled: root.extrasTouched()
         }
 
-        QQC2.Label { text: i18n("Break") }
+        QQC2.Label { text: i18n("Break"); Layout.maximumWidth: root.formLabelWidth; wrapMode: Text.WordWrap }
         QQC2.SpinBox {
             KanteFieldSkin { control: parent }
             id: breakSpin
@@ -962,7 +964,7 @@ ColumnLayout {
             editable: true
             enabled: root.extrasEnabled
             textFromValue: function(value) {
-                return value < 0 ? i18n("Default (%1 min)", root.fallbackBreakMinutes)
+                return value < 0 ? i18n("Default")
                                  : i18np("%1 minute", "%1 minutes", value)
             }
             valueFromText: function(text) {
@@ -980,7 +982,7 @@ ColumnLayout {
             }
         }
 
-        QQC2.Label { text: i18n("Day category") }
+        QQC2.Label { text: i18n("Day category"); Layout.maximumWidth: root.formLabelWidth; wrapMode: Text.WordWrap }
         QQC2.ComboBox {
             KanteFieldSkin { control: parent }
             id: categoryCombo
@@ -993,6 +995,8 @@ ColumnLayout {
         QQC2.Label {
             visible: surchargeDaySpin.visible
             text: i18n("Surcharge day")
+            Layout.maximumWidth: root.formLabelWidth
+            wrapMode: Text.WordWrap
         }
         QQC2.SpinBox {
             KanteFieldSkin { control: parent }
@@ -1016,6 +1020,8 @@ ColumnLayout {
         QQC2.Label {
             visible: extraPayField.visible
             text: i18n("Extra pay / expenses")
+            Layout.maximumWidth: root.formLabelWidth
+            wrapMode: Text.WordWrap
         }
         KanteTextField {
             id: extraPayField

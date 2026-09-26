@@ -44,6 +44,20 @@ function showsConnection(profiles, configured, state) {
     return (profiles || []).length > 1
 }
 
+/** Profiles plus the demo profile (id "demo"); an unused default profile without URL is dropped. */
+function withDemoProfile(profiles, demoUrl, name) {
+    var out = []
+    for (var i = 0; i < (profiles || []).length; i++) {
+        var p = profiles[i]
+        if (p.id === "demo" || (!p.url && p.id === "default")) {
+            continue
+        }
+        out.push(p)
+    }
+    out.push(normalizeProfile({ id: "demo", name: name, url: demoUrl, provider: "kimai" }))
+    return out
+}
+
 function serializeProfiles(profiles) {
     return JSON.stringify(profiles || defaultProfiles())
 }

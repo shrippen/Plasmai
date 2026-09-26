@@ -172,6 +172,22 @@ Kirigami.Page {
             explanation: i18n("Add your service, server URL (if needed), and API token to start tracking.")
             helpfulAction: Kirigami.Action { text: i18n("Configure Plasmai"); onTriggered: pageStack.push(connectionComponent) }
         }
+        KanteButton {
+            Layout.alignment: Qt.AlignHCenter
+            visible: !root.isConfigured
+            icon.name: "media-playback-start"
+            text: i18n("Try the demo")
+            onClicked: root.startDemo()
+        }
+        QQC2.Label {
+            Layout.fillWidth: true
+            visible: !root.isConfigured
+            horizontalAlignment: Text.AlignHCenter
+            wrapMode: Text.WordWrap
+            color: KanteStyle.neutralTextColor
+            font.pointSize: KanteStyle.smallFont.pointSize
+            text: i18n("Made-up data, kept only while the app runs. Switch profiles in Connection to leave it.")
+        }
         Kirigami.InlineMessage {
             KanteMessageSkin { message: parent }
             Layout.fillWidth: true

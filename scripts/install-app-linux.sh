@@ -31,16 +31,16 @@ SRC="$TMP/plasmai-app-${VERSION}"
 mkdir -p "$PREFIX/bin" "$PREFIX/share/applications" "$PREFIX/share/metainfo" \
     "$PREFIX/share/icons/hicolor/256x256/apps" "$PREFIX/share/locale"
 install -m755 "$SRC/bin/plasmai-app" "$PREFIX/bin/plasmai-app"
-install -m644 "$SRC/share/icons/hicolor/256x256/apps/com.github.shrippen.plasmai.png" \
-    "$PREFIX/share/icons/hicolor/256x256/apps/com.github.shrippen.plasmai.png"
-install -m644 "$SRC/share/metainfo/com.github.shrippen.plasmai.metainfo.xml" \
-    "$PREFIX/share/metainfo/com.github.shrippen.plasmai.metainfo.xml"
+install -m644 "$SRC/share/icons/hicolor/256x256/apps/io.github.shrippen.Plasmai.png" \
+    "$PREFIX/share/icons/hicolor/256x256/apps/io.github.shrippen.Plasmai.png"
+install -m644 "$SRC/share/metainfo/io.github.shrippen.Plasmai.metainfo.xml" \
+    "$PREFIX/share/metainfo/io.github.shrippen.Plasmai.metainfo.xml"
 [ -d "$SRC/share/locale" ] && cp -a "$SRC/share/locale/." "$PREFIX/share/locale/"
 
 # Point the launcher at the installed binary directly so it works even if $PREFIX/bin is not on PATH.
 sed "s#^Exec=plasmai-app#Exec=$PREFIX/bin/plasmai-app#" \
-    "$SRC/share/applications/com.github.shrippen.plasmai.desktop" \
-    > "$PREFIX/share/applications/com.github.shrippen.plasmai.desktop"
+    "$SRC/share/applications/io.github.shrippen.Plasmai.desktop" \
+    > "$PREFIX/share/applications/io.github.shrippen.Plasmai.desktop"
 
 command -v update-desktop-database >/dev/null && update-desktop-database "$PREFIX/share/applications" 2>/dev/null || true
 command -v gtk-update-icon-cache >/dev/null && gtk-update-icon-cache "$PREFIX/share/icons/hicolor" 2>/dev/null || true

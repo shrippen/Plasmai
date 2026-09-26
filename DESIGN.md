@@ -570,6 +570,16 @@ read as Kante. It is the design system's `KanteStyle.Kind.KanteLight`:
   `tests/viewer/test_favorites_loading.py`. WorkContractBundle remaining-
   hours math is fixture-tested from the public Absence/PublicHoliday JSON
   shape; there is no live paid-plugin call.
+- **Demo mode** (`contents/code/demoKimai.js`): an in-memory Kimai with the
+  Drehzettel and Anfahrten plugins behind the reserved address
+  `https://demo.invalid`, which no real server can have. `createRequest()`
+  hands requests to that address to the demo instead of the network, so the
+  whole app runs unchanged on made-up data (a camera assistant's engagement,
+  a web client, admin work, relative to today). Writes live until the app
+  closes; nothing is stored. The app offers "Try the demo" on the setup
+  screen (profile "Demo", no token in the keychain); in the widget the
+  address works as a profile URL with any token. Store screenshots are taken
+  from it (offscreen, with a fixed clock), never from real accounts.
 - Dev install: `./scripts/install-dev.sh` (build number bump, `kpackagetool6
   -u`, plasmashell restart). Store packages keep `Build: 0`.
 - Release: `./scripts/package.sh`, version in `metadata.json` + changelog

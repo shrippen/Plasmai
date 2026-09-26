@@ -12,17 +12,17 @@ intentional — see `RELEASE-TODO.md`.
 
 2.0.0 is set in: `metadata.json` (Plasmoid), `app/CMakeLists.txt` (project version + the
 `QT_ANDROID_VERSION_NAME`/`_CODE` and `KAboutData`/`app.setApplicationVersion` in
-`app/main.cpp`), `app/android/AndroidManifest.xml` (`versionCode="200"`,
+`app/main.cpp`), `app/android/AndroidManifest.xml` (`versionCode="20000"`,
 `versionName="2.0.0"`), `STORE.md`, `docs/index.html`. `contents/code/buildInfo.js` was
 regenerated via `./scripts/bump-build.sh` (reads the version from `metadata.json`, bumps
 `build.number`). Translation catalogs (`translate/*.po`, `contents/locale/*/*.mo`,
 `app/i18n/*.json`) were regenerated (`translate/extract.sh`, `python3 translate/fill_po.py`,
 `translate/build.sh`) so `Project-Id-Version` matches.
 
-versionCode 200 follows the existing `major*100 + minor*10 + patch` scheme (163 → 1.6.3). If
-you'd rather keep more headroom, e.g. for point releases without a version bump, switch to
-`major*10000 + minor*100 + patch` before publishing — versionCode can only increase over time
-on the Play Store / F-Droid, so decide before the first 2.x release goes out anywhere.
+versionCode is `major*10000 + minor*100 + patch` (2.0.0 → 20000), set in
+`app/CMakeLists.txt` (`QT_ANDROID_VERSION_CODE`) and `app/android/AndroidManifest.xml`. It
+replaced the 1.x scheme `major*100 + minor*10 + patch` before any APK was published; it can
+only increase from here (IzzyOnDroid, F-Droid, Play Store).
 
 ## 2. Changelog (done)
 
@@ -117,7 +117,21 @@ signing a broken build doesn't help.
 Once signed: attach `dist/android/plasmai-app-release.apk` (rename to something like
 `Plasmai-2.0.0.apk`) to the GitHub Release alongside the `.plasmoid` and the Linux app tarball.
 
-### 4.5 F-Droid
+### 4.5 IzzyOnDroid (chosen F-Droid route)
+
+[IzzyOnDroid](https://apt.izzysoft.de/fdroid/) is an F-Droid repository that takes the signed APK
+from the GitHub release, so Qt and OpenSSL need not be built from source. Needs:
+
+1. A signed release APK (4.3) attached to a GitHub release with a tag (`v2.0.0`).
+2. Store texts, icon and screenshots in `fastlane/metadata/android/<locale>/` (IzzyOnDroid reads
+   them from the repo): `title.txt`, `short_description.txt` (max. 80 characters),
+   `full_description.txt`, `changelogs/<versionCode>.txt`, `images/icon.png`,
+   `images/phoneScreenshots/*.png`.
+3. A request for inclusion (issue on IzzyOnDroid's GitLab repo, link to the GitHub repo).
+
+Every later release: raise `versionCode`, add `changelogs/<versionCode>.txt`, tag, attach the APK.
+
+### 4.6 Main F-Droid repository (later)
 
 F-Droid builds from source on their own infrastructure — you cannot upload a binary APK there
 (except in narrow, discouraged exceptions). Preparing this means submitting a recipe
@@ -165,7 +179,7 @@ already picks the right one via `uname -m`. I did not set up an aarch64 cross-bu
 
 ### 5.2 Flatpak (prepared, unverified)
 
-`packaging/flatpak/com.github.shrippen.plasmai.yml` — see its header comment for exactly what
+`packaging/flatpak/io.github.shrippen.Plasmai.yml` — see its header comment for exactly what
 to check (KDE runtime version, whether QtKeychain is already in the runtime, the pinned
 qtkeychain tag). **I could not build or run this** — no `flatpak-builder` and no
 `org.kde.Platform` runtime available in this environment, only the `flatpak` CLI itself. Before
@@ -173,17 +187,18 @@ trusting it:
 
 ```bash
 flatpak install flathub org.kde.Platform//6.9 org.kde.Sdk//6.9   # match the manifest
-flatpak-builder --user --install --force-clean build-dir packaging/flatpak/com.github.shrippen.plasmai.yml
-flatpak run com.github.shrippen.plasmai
+flatpak-builder --user --install --force-clean build-dir packaging/flatpak/io.github.shrippen.Plasmai.yml
+flatpak run io.github.shrippen.Plasmai
 ```
 
 Publishing to Flathub means a PR to
 [flathub/flathub](https://github.com/flathub/flathub) with this manifest (their bot builds and
-tests it, then a human reviewer approves). The app ID `com.github.shrippen.plasmai` mirrors the
-Plasmoid's KPackage ID and the Android package name for internal consistency; Flathub's own
-convention for GitHub-hosted projects is usually `io.github.<user>.<Name>`
-(`io.github.shrippen.Plasmai`) — decide which you want *before* the first Flathub submission,
-since the app ID can't be renamed afterwards without losing install history.
+tests it, then a human reviewer approves). The Linux app ID is `io.github.shrippen.Plasmai`
+(Flathub does not take new `com.github.*` IDs): file names under `packaging/`, the desktop file
+name (`KAboutData::setDesktopFileName`) and the Flatpak `app-id`. Internally the app keeps
+`com.github.shrippen.plasmai` as the keychain service and the config folder it shares with the
+widget, and Android keeps it as the package name. The manifest builds from the local checkout;
+for Flathub switch the `plasmai` source to `type: git` with the release tag and commit.
 
 ## 6. Tagging and publishing (not done — your call)
 

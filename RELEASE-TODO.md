@@ -26,17 +26,14 @@ gegen das Plasmoid. Technische Details und Begründungen zu jedem Punkt hier ste
   jetzt. Details und ein dabei gefundener Bug (fehlendes `libomp.so` in der APK, hätte auf dem
   Gerät gecrasht) in `RELEASING.md` §4.1.
 
-## Zu klären, bevor es weitergeht
-- [ ] **App-ID für Flatpak**: aktuell `com.github.shrippen.plasmai` (wie Plasmoid/Android).
-      Flathub-Konvention für GitHub-Projekte wäre eher `io.github.shrippen.Plasmai`. Die ID
-      lässt sich nach der ersten Flathub-Veröffentlichung nicht mehr ändern — vorher entscheiden.
-- [ ] **versionCode-Schema**: aktuell `Major*100+Minor*10+Patch` (200 für 2.0.0). Reicht das für
-      alle künftigen Patch-Releases, oder lieber mehr Spielraum (`Major*10000+Minor*100+Patch`)?
-      versionCode darf bei Play Store/F-Droid nie sinken — vor dem ersten 2.x-Release entscheiden.
-- [ ] **F-Droid überhaupt anstreben?** Der größte Unsicherheitsfaktor (KF6-für-Android-Toolchain)
-      ist jetzt gelöst und reproduzierbar (s. o.). Offen bleibt: F-Droids Sandbox erlaubt keinen
-      Live-Netzwerkzugriff beim Bauen — das `git clone` in `build-kf6-android.sh` muss als
-      F-Droid-`srclibs:`-Eintrag umgebaut werden. Machbar, aber noch nicht gemacht (Punkt 4).
+## Entschieden (2026-09-27)
+- [x] **Zweites Backend** ist kein 2.0-Kriterium mehr, sondern das Ziel für 3.0 (`ROADMAP.md`).
+- [x] **App-ID für Linux/Flathub**: `io.github.shrippen.Plasmai` (Dateien in `packaging/`, Desktop-Dateiname,
+      Flatpak-`app-id`). Intern bleibt `com.github.shrippen.plasmai` (Keychain, gemeinsamer Konfigordner mit dem
+      Widget, Android-Paketname).
+- [x] **versionCode**: `Major*10000+Minor*100+Patch`, 2.0.0 = 20000.
+- [x] **F-Droid-Weg**: IzzyOnDroid (nimmt die signierte APK aus dem GitHub-Release). Das Haupt-F-Droid-Repo
+      bleibt für später (Qt und OpenSSL müssten dort aus dem Quellcode gebaut werden, `RELEASING.md` §4.6).
 
 ## 1. Android-Keystore anlegen (ich habe das nicht gemacht — Passwort muss von dir kommen)
 - [ ] `keytool -genkeypair ...` (genauer Befehl in `RELEASING.md` §4.3), Passwort in einen
@@ -55,15 +52,19 @@ gegen das Plasmoid. Technische Details und Begründungen zu jedem Punkt hier ste
 - [ ] Signierte APK prüfen (`adb install -r`, kurzer Funktionstest wie in `todo.md`).
 - [ ] An GitHub Release anhängen (siehe Punkt 6).
 
-## 4. F-Droid-Recipe (nur falls Punkt „Zu klären" oben mit Ja beantwortet)
-- [ ] `RELEASING.md` §4.5 lesen, `srclibs:`-Umbau für den KF6-Teil, Recipe schreiben, PR gegen
-      `fdroiddata` öffnen.
+## 4. IzzyOnDroid
+- [x] Store-Texte und Icon in `fastlane/metadata/android/` (en-US, de-DE), Changelog `20000.txt`.
+- [x] Screenshots aus dem Demo-Modus (en-US, de-DE) in `fastlane/metadata/android/*/images/phoneScreenshots/`.
+- [ ] Nach dem GitHub-Release (Punkt 6): Aufnahme bei IzzyOnDroid beantragen (`RELEASING.md` §4.5).
 
 ## 5. Flatpak verifizieren
+- [x] Manifest korrigiert: baut jetzt aus dem ganzen Repo (`subdir: app`; vorher fehlten `contents/code` und `translate`), App-Icon statt Chronometer-Symbol, neue App-ID. Metainfo mit Mobil-Angaben (Touch, Mindestbreite 360 px), validiert mit `appstreamcli`.
 - [ ] `flatpak-builder` + `org.kde.Platform//6.9` + `org.kde.Sdk//6.9` installieren.
 - [ ] `packaging/flatpak/com.github.shrippen.plasmai.yml` bauen, App testen (genauer Ablauf in
       der Datei selbst und `RELEASING.md` §5.2). Manifest-Kommentare abarbeiten (Runtime-Version
       aktuell? QtKeychain schon in der Runtime? qtkeychain-Tag aktuell?).
+- [x] Screenshots in die Metainfo (`packaging/screenshots/`, per raw.githubusercontent.com verlinkt; erst nach dem Push erreichbar).
+- [ ] Quelle auf `type: git` mit Tag umstellen.
 - [ ] Falls gewünscht: PR gegen `flathub/flathub`.
 
 ## 6. GitHub Release erstellen

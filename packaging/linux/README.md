@@ -5,9 +5,9 @@ not the Plasmoid) is packaged for Linux:
 
 | File | Used by |
 |---|---|
-| `com.github.shrippen.plasmai.desktop` | tarball install, Flatpak |
-| `com.github.shrippen.plasmai.metainfo.xml` | tarball install, Flatpak (AppStream data) |
-| `com.github.shrippen.plasmai.png` | tarball install, Flatpak (256×256 app icon, from the Android launcher icon) |
+| `io.github.shrippen.Plasmai.desktop` | tarball install, Flatpak |
+| `io.github.shrippen.Plasmai.metainfo.xml` | tarball install, Flatpak (AppStream data) |
+| `io.github.shrippen.Plasmai.png` | tarball install, Flatpak (256×256 app icon, from the Android launcher icon) |
 
 ## Tarball (recommended default)
 
@@ -29,7 +29,7 @@ desktop or Plasma Mobile device.
 
 ## Flatpak
 
-`packaging/flatpak/com.github.shrippen.plasmai.yml` — see the comments at the top of that file
+`packaging/flatpak/io.github.shrippen.Plasmai.yml` — see the comments at the top of that file
 for what to check before building; it has not been built or run here (no `flatpak-builder` /
 KDE runtime available in this environment). Once verified, publishing to Flathub means opening
 a PR against [flathub/flathub](https://github.com/flathub/flathub) with this manifest; see

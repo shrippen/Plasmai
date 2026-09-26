@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-09-27 00:48+0200\n"
+"POT-Creation-Date: 2026-09-27 01:39+0200\n"
 "PO-Revision-Date: 2026-08-09 19:45+0200\n"
 "Last-Translator: Cursor Agent\n"
 "Language-Team: Simplified Chinese\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: app/qml/ConnectionPage.qml:15 app/qml/main.qml:780
+#: app/qml/ConnectionPage.qml:15 app/qml/main.qml:792
 #: contents/config/config.qml:6 contents/ui/config/ConfigConnection.qml:366
 msgid "Connection"
 msgstr "连接"
@@ -95,7 +95,7 @@ msgstr "保存令牌"
 msgid "Token saved."
 msgstr "令牌已保存。"
 
-#: app/qml/ConnectionPage.qml:401
+#: app/qml/ConnectionPage.qml:401 app/qml/main.qml:713
 msgid "Failed to save"
 msgstr "保存失败"
 
@@ -132,7 +132,7 @@ msgstr "连接正常！"
 msgid "Missing URL or token (type: %1)"
 msgstr "缺少 URL 或令牌（类型：%1）"
 
-#: app/qml/FavoritesPage.qml:12 app/qml/main.qml:776 app/qml/TimerPage.qml:553
+#: app/qml/FavoritesPage.qml:12 app/qml/main.qml:788 app/qml/TimerPage.qml:569
 #: contents/config/config.qml:11 contents/ui/config/ConfigDisplay.qml:833
 #: contents/ui/config/ConfigDisplay.qml:888
 #: contents/ui/config/ConfigFavorites.qml:423 contents/ui/EntryLists.qml:58
@@ -182,13 +182,13 @@ msgstr "已保存拍摄日"
 #: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/DatePopup.qml:87
 #: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/TimePopup.qml:46
 #: app/qml/shared/ActiveEditView.qml:365 app/qml/shared/ActiveEditView.qml:407
-#: app/qml/shared/CreateEntityDialog.qml:50 app/qml/shared/FilmDayView.qml:912
+#: app/qml/shared/CreateEntityDialog.qml:50 app/qml/shared/FilmDayView.qml:914
 #: app/qml/shared/ManualEntryView.qml:419 app/qml/shared/TripSheet.qml:423
-#: app/qml/TimerPage.qml:711 app/qml/TimerPage.qml:729
-#: app/qml/TimerPage.qml:743 app/qml/TimerPage.qml:756
-#: app/qml/TimerPage.qml:773 contents/ui/ActiveEditView.qml:360
+#: app/qml/TimerPage.qml:727 app/qml/TimerPage.qml:745
+#: app/qml/TimerPage.qml:759 app/qml/TimerPage.qml:772
+#: app/qml/TimerPage.qml:789 contents/ui/ActiveEditView.qml:360
 #: contents/ui/ActiveEditView.qml:389 contents/ui/EntryLists.qml:457
-#: contents/ui/FilmDayView.qml:914 contents/ui/main.qml:3035
+#: contents/ui/FilmDayView.qml:916 contents/ui/main.qml:3035
 #: contents/ui/ManualEntryView.qml:421 contents/ui/TimeField.qml:260
 #: contents/ui/TripSheet.qml:425
 msgid "Cancel"
@@ -201,7 +201,7 @@ msgid "Select"
 msgstr "选择"
 
 #: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/private/DatePicker.qml:275
-#: app/qml/shared/FilmDayView.qml:923 contents/ui/FilmDayView.qml:925
+#: app/qml/shared/FilmDayView.qml:925 contents/ui/FilmDayView.qml:927
 msgid "Day"
 msgstr "日"
 
@@ -237,139 +237,143 @@ msgstr ":"
 msgid "Minutes"
 msgstr "分钟"
 
-#: app/qml/main.qml:206 app/qml/main.qml:753 app/qml/TimerPage.qml:17
+#: app/qml/main.qml:207 app/qml/main.qml:765 app/qml/TimerPage.qml:17
 #: contents/ui/main.qml:354 contents/ui/main.qml:356 contents/ui/main.qml:2722
 #: contents/ui/main.qml:3343
 msgid "Plasmai"
 msgstr "Plasmai"
 
-#: app/qml/main.qml:270 contents/ui/main.qml:1854
+#: app/qml/main.qml:271 contents/ui/main.qml:1854
 msgid "%1 left today"
 msgstr "今日剩余 %1"
 
-#: app/qml/main.qml:270 contents/ui/main.qml:1856
+#: app/qml/main.qml:271 contents/ui/main.qml:1856
 msgid "%1 over today"
 msgstr "今日超出 %1"
 
-#: app/qml/main.qml:271 contents/ui/main.qml:1861
+#: app/qml/main.qml:272 contents/ui/main.qml:1861
 msgid "%1 left this week"
 msgstr "本周剩余 %1"
 
-#: app/qml/main.qml:271 contents/ui/main.qml:1863
+#: app/qml/main.qml:272 contents/ui/main.qml:1863
 msgid "%1 over this week"
 msgstr "本周超出 %1"
 
-#: app/qml/main.qml:345 app/qml/main.qml:529 app/qml/main.qml:639
+#: app/qml/main.qml:346 app/qml/main.qml:530 app/qml/main.qml:640
 msgid "Could not stop tracking"
 msgstr "无法停止计时"
 
-#: app/qml/main.qml:347 contents/ui/main.qml:687
+#: app/qml/main.qml:348 contents/ui/main.qml:687
 msgid "Idle time discarded"
 msgstr "已丢弃空闲时间"
 
-#: app/qml/main.qml:360 contents/ui/main.qml:712
+#: app/qml/main.qml:361 contents/ui/main.qml:712
 msgid "Nothing is tracking"
 msgstr "当前没有计时"
 
-#: app/qml/main.qml:360
+#: app/qml/main.qml:361
 msgid "Start tracking when you begin work."
 msgstr "开始工作时开始计时。"
 
-#: app/qml/main.qml:363
+#: app/qml/main.qml:364
 msgid "%1h %2m"
 msgstr "%1小时%2分"
 
-#: app/qml/main.qml:363
+#: app/qml/main.qml:364
 msgid "%1m %2s"
 msgstr "%1分%2秒"
 
-#: app/qml/main.qml:513 contents/ui/main.qml:1794
+#: app/qml/main.qml:514 contents/ui/main.qml:1794
 msgid "Tracking in progress"
 msgstr "正在计时"
 
-#: app/qml/main.qml:520
+#: app/qml/main.qml:521
 msgid "%1: %2"
 msgstr "%1：%2"
 
-#: app/qml/main.qml:530
+#: app/qml/main.qml:531
 msgid "Stopped"
 msgstr "已停止"
 
-#: app/qml/main.qml:538 app/qml/main.qml:625 app/qml/main.qml:647
+#: app/qml/main.qml:539 app/qml/main.qml:626 app/qml/main.qml:648
 msgid "Could not start tracking"
 msgstr "无法开始计时"
 
-#: app/qml/main.qml:548 contents/ui/main.qml:569
+#: app/qml/main.qml:549 contents/ui/main.qml:569
 msgid "Saved without the billable change: your Kimai account is not allowed to edit billable."
 msgstr "已保存，但未更改可计费: 你的 Kimai 账户无权编辑可计费。"
 
-#: app/qml/main.qml:555 app/qml/main.qml:569
+#: app/qml/main.qml:556 app/qml/main.qml:570
 msgid "Could not save the entry"
 msgstr "无法保存条目"
 
-#: app/qml/main.qml:562
+#: app/qml/main.qml:563
 msgid "Could not delete the entry"
 msgstr "无法删除条目"
 
-#: app/qml/main.qml:580 contents/ui/main.qml:2673 contents/ui/main.qml:3176
+#: app/qml/main.qml:581 contents/ui/main.qml:2673 contents/ui/main.qml:3176
 msgid "Split time must be between begin and end."
 msgstr "拆分时间必须介于开始和结束之间。"
 
-#: app/qml/main.qml:584
+#: app/qml/main.qml:585
 msgid "Could not split the entry"
 msgstr "无法拆分条目"
 
-#: app/qml/main.qml:593 contents/ui/main.qml:2711
+#: app/qml/main.qml:594 contents/ui/main.qml:2711
 msgid "The first half was saved, but the second half could not be created."
 msgstr "前半段已保存，但无法创建后半段。"
 
-#: app/qml/main.qml:627
+#: app/qml/main.qml:628
 msgid "Started"
 msgstr "已开始"
 
-#: app/qml/main.qml:678 contents/ui/main.qml:502
+#: app/qml/main.qml:679 contents/ui/main.qml:502
 msgid "just now"
 msgstr "刚刚"
 
-#: app/qml/main.qml:680
+#: app/qml/main.qml:681
 msgid "%1m ago"
 msgstr "%1分钟前"
 
-#: app/qml/main.qml:682
+#: app/qml/main.qml:683
 msgid "%1h ago"
 msgstr "%1小时前"
 
-#: app/qml/main.qml:684 contents/ui/main.qml:514
+#: app/qml/main.qml:685 contents/ui/main.qml:514
 msgid "yesterday"
 msgstr "昨天"
 
-#: app/qml/main.qml:685
+#: app/qml/main.qml:686
 msgid "%1d ago"
 msgstr "%1天前"
 
-#: app/qml/main.qml:759
+#: app/qml/main.qml:709
+msgid "Demo"
+msgstr "演示"
+
+#: app/qml/main.qml:771
 msgid "Timer"
 msgstr "计时器"
 
-#: app/qml/main.qml:763
+#: app/qml/main.qml:775
 msgid "Add Entry"
 msgstr "添加条目"
 
-#: app/qml/main.qml:767 app/qml/StatsPage.qml:15 app/qml/TimerPage.qml:51
+#: app/qml/main.qml:779 app/qml/StatsPage.qml:15 app/qml/TimerPage.qml:51
 #: contents/ui/main.qml:3338 contents/ui/main.qml:3395
 msgid "Statistics"
 msgstr "统计"
 
-#: app/qml/main.qml:771 app/qml/TripsPage.qml:18
+#: app/qml/main.qml:783 app/qml/TripsPage.qml:18
 msgid "Trips"
 msgstr "行程"
 
-#: app/qml/main.qml:784 app/qml/SettingsPage.qml:13
+#: app/qml/main.qml:796 app/qml/SettingsPage.qml:13
 msgid "Settings"
 msgstr "设置"
 
-#: app/qml/ManualEntryPage.qml:13 app/qml/shared/ActivityListRow.qml:330
-#: contents/ui/ActivityListRow.qml:328 contents/ui/main.qml:3342
+#: app/qml/ManualEntryPage.qml:13 app/qml/shared/ActivityListRow.qml:332
+#: contents/ui/ActivityListRow.qml:330 contents/ui/main.qml:3342
 msgid "Edit entry"
 msgstr "编辑条目"
 
@@ -536,13 +540,13 @@ msgid "Notify on:"
 msgstr "通知时机:"
 
 #: app/qml/SettingsPage.qml:244 app/qml/shared/ActiveEditView.qml:283
-#: app/qml/TimerPage.qml:701 contents/ui/ActiveEditView.qml:284
+#: app/qml/TimerPage.qml:717 contents/ui/ActiveEditView.qml:284
 #: contents/ui/EntryLists.qml:429
 msgid "Start"
 msgstr "开始"
 
-#: app/qml/SettingsPage.qml:250 app/qml/TimerPage.qml:346
-#: app/qml/TimerPage.qml:728 contents/ui/TimerCardKante.qml:135
+#: app/qml/SettingsPage.qml:250 app/qml/TimerPage.qml:362
+#: app/qml/TimerPage.qml:744 contents/ui/TimerCardKante.qml:135
 #: contents/ui/TimerCard.qml:134
 msgid "Stop"
 msgstr "停止"
@@ -592,42 +596,42 @@ msgstr "新的开始早于上一条记录的结束时间（%1）。仍要设置�
 msgid "Set anyway"
 msgstr "仍要设置"
 
-#: app/qml/shared/ActivityListRow.qml:77 contents/ui/ActivityListRow.qml:78
+#: app/qml/shared/ActivityListRow.qml:78 contents/ui/ActivityListRow.qml:79
 msgid "Starts or switches this activity"
 msgstr "开始或切换到此活动"
 
-#: app/qml/shared/ActivityListRow.qml:270
-#: app/qml/shared/ActivityListRow.qml:300 contents/ui/ActivityListRow.qml:270
-#: contents/ui/ActivityListRow.qml:298
+#: app/qml/shared/ActivityListRow.qml:271
+#: app/qml/shared/ActivityListRow.qml:301 contents/ui/ActivityListRow.qml:271
+#: contents/ui/ActivityListRow.qml:299
 msgid "Entry actions"
 msgstr "条目操作"
 
-#: app/qml/shared/ActivityListRow.qml:323 contents/ui/ActivityListRow.qml:321
+#: app/qml/shared/ActivityListRow.qml:325 contents/ui/ActivityListRow.qml:323
 msgid "Unpin from favorites"
 msgstr "取消固定收藏"
 
-#: app/qml/shared/ActivityListRow.qml:323 contents/ui/ActivityListRow.qml:321
+#: app/qml/shared/ActivityListRow.qml:325 contents/ui/ActivityListRow.qml:323
 msgid "Pin as favorite"
 msgstr "固定为收藏"
 
-#: app/qml/shared/ActivityListRow.qml:337 app/qml/TimerPage.qml:768
-#: app/qml/TimerPage.qml:772 contents/ui/ActivityListRow.qml:335
+#: app/qml/shared/ActivityListRow.qml:339 app/qml/TimerPage.qml:784
+#: app/qml/TimerPage.qml:788 contents/ui/ActivityListRow.qml:337
 #: contents/ui/main.qml:3083
 msgid "Split entry"
 msgstr "拆分条目"
 
-#: app/qml/shared/ActivityListRow.qml:344 app/qml/shared/FilmDayView.qml:851
+#: app/qml/shared/ActivityListRow.qml:346 app/qml/shared/FilmDayView.qml:853
 #: app/qml/shared/TripSheet.qml:203 app/qml/shared/TripSheet.qml:410
-#: app/qml/TimerPage.qml:298 app/qml/TimerPage.qml:328
+#: app/qml/TimerPage.qml:314 app/qml/TimerPage.qml:344
 #: app/qml/TripEditPage.qml:19 app/qml/TripsPage.qml:119
-#: contents/ui/ActivityListRow.qml:342 contents/ui/FilmDayView.qml:853
+#: contents/ui/ActivityListRow.qml:344 contents/ui/FilmDayView.qml:855
 #: contents/ui/main.qml:3424 contents/ui/TimerCardKante.qml:88
 #: contents/ui/TimerCard.qml:98 contents/ui/TripSheet.qml:205
 #: contents/ui/TripSheet.qml:412
 msgid "Log trip"
 msgstr "记录行程"
 
-#: app/qml/shared/ActivityListRow.qml:351 contents/ui/ActivityListRow.qml:349
+#: app/qml/shared/ActivityListRow.qml:353 contents/ui/ActivityListRow.qml:351
 msgid "Delete entry"
 msgstr "删除条目"
 
@@ -731,208 +735,208 @@ msgstr "选择日期"
 msgid "Today's tracked time"
 msgstr "今日已记录时间"
 
-#: app/qml/shared/FilmDayView.qml:218 contents/ui/FilmDayView.qml:220
+#: app/qml/shared/FilmDayView.qml:220 contents/ui/FilmDayView.qml:222
 msgid "The Drehzettel plugin is not installed on this Kimai server. Only begin and end are saved."
 msgstr "此 Kimai 服务器未安装 Drehzettel 插件。只保存开始和结束时间。"
 
-#: app/qml/shared/FilmDayView.qml:221 contents/ui/FilmDayView.qml:223
+#: app/qml/shared/FilmDayView.qml:223 contents/ui/FilmDayView.qml:225
 msgid "No active engagement for this project and day. Only begin and end are saved."
 msgstr "此项目当天没有有效聘用。只保存开始和结束时间。"
 
-#: app/qml/shared/FilmDayView.qml:224 contents/ui/FilmDayView.qml:226
+#: app/qml/shared/FilmDayView.qml:226 contents/ui/FilmDayView.qml:228
 msgid "You lack the Drehzettel permission on this Kimai server. Only begin and end are saved."
 msgstr "你在此 Kimai 服务器上没有 Drehzettel 权限。只保存开始和结束时间。"
 
-#: app/qml/shared/FilmDayView.qml:227 contents/ui/FilmDayView.qml:229
+#: app/qml/shared/FilmDayView.qml:229 contents/ui/FilmDayView.qml:231
 msgid "Pick a project to load its film day."
 msgstr "选择项目以加载其拍摄日。"
 
-#: app/qml/shared/FilmDayView.qml:230 contents/ui/FilmDayView.qml:232
+#: app/qml/shared/FilmDayView.qml:232 contents/ui/FilmDayView.qml:234
 msgid "The Drehzettel plugin cannot be reached. Only begin and end can be saved right now."
 msgstr "无法连接 Drehzettel 插件。目前只能保存开始和结束时间。"
 
-#: app/qml/shared/FilmDayView.qml:241 contents/ui/FilmDayView.qml:243
+#: app/qml/shared/FilmDayView.qml:243 contents/ui/FilmDayView.qml:245
 msgid "Auto (from weekday)"
 msgstr "自动 (按星期)"
 
-#: app/qml/shared/FilmDayView.qml:242 contents/ui/FilmDayView.qml:244
+#: app/qml/shared/FilmDayView.qml:244 contents/ui/FilmDayView.qml:246
 msgid "Workday"
 msgstr "工作日"
 
-#: app/qml/shared/FilmDayView.qml:243 contents/ui/FilmDayView.qml:245
+#: app/qml/shared/FilmDayView.qml:245 contents/ui/FilmDayView.qml:247
 msgid "Saturday"
 msgstr "星期六"
 
-#: app/qml/shared/FilmDayView.qml:244 contents/ui/FilmDayView.qml:246
+#: app/qml/shared/FilmDayView.qml:246 contents/ui/FilmDayView.qml:248
 msgid "Sunday"
 msgstr "星期日"
 
-#: app/qml/shared/FilmDayView.qml:245 contents/ui/FilmDayView.qml:247
+#: app/qml/shared/FilmDayView.qml:247 contents/ui/FilmDayView.qml:249
 msgid "Holiday"
 msgstr "节假日"
 
-#: app/qml/shared/FilmDayView.qml:248 contents/ui/FilmDayView.qml:250
+#: app/qml/shared/FilmDayView.qml:250 contents/ui/FilmDayView.qml:252
 msgid "Shooting day"
 msgstr "拍摄日"
 
-#: app/qml/shared/FilmDayView.qml:249 contents/ui/FilmDayView.qml:251
+#: app/qml/shared/FilmDayView.qml:251 contents/ui/FilmDayView.qml:253
 msgid "Travel day"
 msgstr "旅行日"
 
-#: app/qml/shared/FilmDayView.qml:516 app/qml/shared/StatsView.qml:384
-#: contents/ui/FilmDayView.qml:518 contents/ui/StatsView.qml:369
+#: app/qml/shared/FilmDayView.qml:518 app/qml/shared/StatsView.qml:409
+#: contents/ui/FilmDayView.qml:520 contents/ui/StatsView.qml:369
 msgid "Previous day"
 msgstr "上一天"
 
-#: app/qml/shared/FilmDayView.qml:549 app/qml/shared/StatsView.qml:241
-#: app/qml/shared/StatsView.qml:293 app/qml/shared/StatsView.qml:394
-#: app/qml/shared/StatsView.qml:444 app/qml/TimerPage.qml:613
-#: contents/ui/EntryLists.qml:235 contents/ui/FilmDayView.qml:551
+#: app/qml/shared/FilmDayView.qml:551 app/qml/shared/StatsView.qml:266
+#: app/qml/shared/StatsView.qml:318 app/qml/shared/StatsView.qml:419
+#: app/qml/shared/StatsView.qml:469 app/qml/TimerPage.qml:629
+#: contents/ui/EntryLists.qml:235 contents/ui/FilmDayView.qml:553
 #: contents/ui/StatsView.qml:226 contents/ui/StatsView.qml:278
 #: contents/ui/StatsView.qml:379 contents/ui/StatsView.qml:429
 msgid "Today"
 msgstr "今天"
 
-#: app/qml/shared/FilmDayView.qml:558 app/qml/shared/StatsView.qml:409
-#: contents/ui/FilmDayView.qml:560 contents/ui/StatsView.qml:394
+#: app/qml/shared/FilmDayView.qml:560 app/qml/shared/StatsView.qml:434
+#: contents/ui/FilmDayView.qml:562 contents/ui/StatsView.qml:394
 msgid "Next day"
 msgstr "下一天"
 
-#: app/qml/shared/FilmDayView.qml:596 contents/ui/FilmDayView.qml:598
+#: app/qml/shared/FilmDayView.qml:598 contents/ui/FilmDayView.qml:600
 msgid "Engagement"
 msgstr "聘用"
 
-#: app/qml/shared/FilmDayView.qml:596 contents/ui/FilmDayView.qml:598
+#: app/qml/shared/FilmDayView.qml:598 contents/ui/FilmDayView.qml:600
 msgid "Project"
 msgstr "项目"
 
-#: app/qml/shared/FilmDayView.qml:610 contents/ui/FilmDayView.qml:612
+#: app/qml/shared/FilmDayView.qml:612 contents/ui/FilmDayView.qml:614
 msgid "Pick an activity"
 msgstr "选择活动"
 
-#: app/qml/shared/FilmDayView.qml:620 contents/ui/FilmDayView.qml:622
+#: app/qml/shared/FilmDayView.qml:622 contents/ui/FilmDayView.qml:624
 msgid "Shooting day %1"
 msgstr "拍摄第 %1 天"
 
-#: app/qml/shared/FilmDayView.qml:632 contents/ui/FilmDayView.qml:634
+#: app/qml/shared/FilmDayView.qml:634 contents/ui/FilmDayView.qml:636
 msgid "Change engagement"
 msgstr "更换聘用"
 
-#: app/qml/shared/FilmDayView.qml:673 contents/ui/FilmDayView.qml:675
+#: app/qml/shared/FilmDayView.qml:675 contents/ui/FilmDayView.qml:677
 msgid "Or pick another project and activity:"
 msgstr "或选择其他项目和活动:"
 
-#: app/qml/shared/FilmDayView.qml:718 contents/ui/FilmDayView.qml:720
+#: app/qml/shared/FilmDayView.qml:720 contents/ui/FilmDayView.qml:722
 msgid "Start shooting day"
 msgstr "开始拍摄日"
 
-#: app/qml/shared/FilmDayView.qml:730 contents/ui/FilmDayView.qml:732
+#: app/qml/shared/FilmDayView.qml:732 contents/ui/FilmDayView.qml:734
 msgid "Begins now, with the timer of the main page."
 msgstr "现在开始,使用主页的计时器。"
 
-#: app/qml/shared/FilmDayView.qml:735 contents/ui/FilmDayView.qml:737
+#: app/qml/shared/FilmDayView.qml:737 contents/ui/FilmDayView.qml:739
 msgid "Enter times instead"
 msgstr "改为输入时间"
 
-#: app/qml/shared/FilmDayView.qml:765 app/qml/shared/ManualEntryView.qml:298
-#: contents/ui/FilmDayView.qml:767 contents/ui/ManualEntryView.qml:300
+#: app/qml/shared/FilmDayView.qml:767 app/qml/shared/ManualEntryView.qml:298
+#: contents/ui/FilmDayView.qml:769 contents/ui/ManualEntryView.qml:300
 msgid "Begin"
 msgstr "开始"
 
-#: app/qml/shared/FilmDayView.qml:788 app/qml/shared/ManualEntryView.qml:322
-#: contents/ui/FilmDayView.qml:790 contents/ui/ManualEntryView.qml:324
+#: app/qml/shared/FilmDayView.qml:790 app/qml/shared/ManualEntryView.qml:322
+#: contents/ui/FilmDayView.qml:792 contents/ui/ManualEntryView.qml:324
 msgid "End"
 msgstr "结束"
 
-#: app/qml/shared/FilmDayView.qml:804 contents/ui/FilmDayView.qml:806
+#: app/qml/shared/FilmDayView.qml:806 contents/ui/FilmDayView.qml:808
 msgid "running"
 msgstr "进行中"
 
-#: app/qml/shared/FilmDayView.qml:819 contents/ui/FilmDayView.qml:821
+#: app/qml/shared/FilmDayView.qml:821 contents/ui/FilmDayView.qml:823
 msgid "Break %1"
 msgstr "休息 %1"
 
-#: app/qml/shared/FilmDayView.qml:822 contents/ui/FilmDayView.qml:824
+#: app/qml/shared/FilmDayView.qml:824 contents/ui/FilmDayView.qml:826
 msgid "Work time so far %1"
 msgstr "目前工作时间 %1"
 
-#: app/qml/shared/FilmDayView.qml:824 contents/ui/FilmDayView.qml:826
+#: app/qml/shared/FilmDayView.qml:826 contents/ui/FilmDayView.qml:828
 msgid "Work time %1"
 msgstr "工作时间 %1"
 
-#: app/qml/shared/FilmDayView.qml:824 contents/ui/FilmDayView.qml:826
+#: app/qml/shared/FilmDayView.qml:826 contents/ui/FilmDayView.qml:828
 msgid "Work time: invalid range"
 msgstr "工作时间: 时间范围无效"
 
-#: app/qml/shared/FilmDayView.qml:840 contents/ui/FilmDayView.qml:842
+#: app/qml/shared/FilmDayView.qml:842 contents/ui/FilmDayView.qml:844
 msgid "Stop shooting day"
 msgstr "结束拍摄日"
 
-#: app/qml/shared/FilmDayView.qml:867 contents/ui/FilmDayView.qml:869
+#: app/qml/shared/FilmDayView.qml:869 contents/ui/FilmDayView.qml:871
 msgid "This activity has %1 more entry on this day (%2); the work time above does not include it."
 msgid_plural "This activity has %1 more entries on this day (%2); the work time above does not include them."
 msgstr[0] "此活动当天还有 %1 条记录 (%2);上面的工作时间不包含它们。"
 
-#: app/qml/shared/FilmDayView.qml:878 contents/ui/FilmDayView.qml:880
+#: app/qml/shared/FilmDayView.qml:880 contents/ui/FilmDayView.qml:882
 msgid "Merge into one entry"
 msgstr "合并为一条记录"
 
-#: app/qml/shared/FilmDayView.qml:903 contents/ui/FilmDayView.qml:905
+#: app/qml/shared/FilmDayView.qml:905 contents/ui/FilmDayView.qml:907
 msgid "Save shooting day"
 msgstr "保存拍摄日"
 
-#: app/qml/shared/FilmDayView.qml:933 contents/ui/FilmDayView.qml:935
+#: app/qml/shared/FilmDayView.qml:935 contents/ui/FilmDayView.qml:937
 msgid "Day type"
 msgstr "日期类型"
 
-#: app/qml/shared/FilmDayView.qml:943 app/qml/shared/FilmDayView.qml:948
-#: contents/ui/FilmDayView.qml:945 contents/ui/FilmDayView.qml:950
+#: app/qml/shared/FilmDayView.qml:945 app/qml/shared/FilmDayView.qml:950
+#: contents/ui/FilmDayView.qml:947 contents/ui/FilmDayView.qml:952
 msgid "Catering"
 msgstr "餐饮"
 
-#: app/qml/shared/FilmDayView.qml:952 contents/ui/FilmDayView.qml:954
+#: app/qml/shared/FilmDayView.qml:954 contents/ui/FilmDayView.qml:956
 msgid "Break"
 msgstr "休息"
 
-#: app/qml/shared/FilmDayView.qml:965 contents/ui/FilmDayView.qml:967
-msgid "Default (%1 min)"
-msgstr "默认 (%1 分钟)"
+#: app/qml/shared/FilmDayView.qml:967 contents/ui/FilmDayView.qml:969
+msgid "Default"
+msgstr "默认"
 
-#: app/qml/shared/FilmDayView.qml:966 contents/ui/FilmDayView.qml:968
+#: app/qml/shared/FilmDayView.qml:968 contents/ui/FilmDayView.qml:970
 msgid "%1 minute"
 msgid_plural "%1 minutes"
 msgstr[0] "%1 分钟"
 
-#: app/qml/shared/FilmDayView.qml:983 contents/ui/FilmDayView.qml:985
+#: app/qml/shared/FilmDayView.qml:985 contents/ui/FilmDayView.qml:987
 msgid "Day category"
 msgstr "日期类别"
 
-#: app/qml/shared/FilmDayView.qml:995 app/qml/shared/FilmDayView.qml:1007
-#: contents/ui/FilmDayView.qml:997 contents/ui/FilmDayView.qml:1009
+#: app/qml/shared/FilmDayView.qml:997 app/qml/shared/FilmDayView.qml:1011
+#: contents/ui/FilmDayView.qml:999 contents/ui/FilmDayView.qml:1013
 msgid "Surcharge day"
 msgstr "加班补贴日"
 
-#: app/qml/shared/FilmDayView.qml:1008 contents/ui/FilmDayView.qml:1010
+#: app/qml/shared/FilmDayView.qml:1012 contents/ui/FilmDayView.qml:1014
 msgid "Automatic"
 msgstr "自动"
 
-#: app/qml/shared/FilmDayView.qml:1018 contents/ui/FilmDayView.qml:1020
+#: app/qml/shared/FilmDayView.qml:1022 contents/ui/FilmDayView.qml:1024
 msgid "Extra pay / expenses"
 msgstr "额外报酬 / 开支"
 
-#: app/qml/shared/FilmDayView.qml:1039 contents/ui/FilmDayView.qml:1041
+#: app/qml/shared/FilmDayView.qml:1045 contents/ui/FilmDayView.qml:1047
 msgid "Note"
 msgstr "备注"
 
-#: app/qml/shared/FilmDayView.qml:1045 contents/ui/FilmDayView.qml:1047
+#: app/qml/shared/FilmDayView.qml:1051 contents/ui/FilmDayView.qml:1053
 msgid "%1/%2"
 msgstr "%1/%2"
 
-#: app/qml/shared/FilmDayView.qml:1057 contents/ui/FilmDayView.qml:1059
+#: app/qml/shared/FilmDayView.qml:1063 contents/ui/FilmDayView.qml:1065
 msgid "Note (optional)"
 msgstr "备注 (可选)"
 
-#: app/qml/shared/FilmDayView.qml:1089 contents/ui/FilmDayView.qml:1091
+#: app/qml/shared/FilmDayView.qml:1095 contents/ui/FilmDayView.qml:1097
 msgid "Other activities"
 msgstr "其他活动"
 
@@ -956,7 +960,7 @@ msgstr "时长：—"
 msgid "Duration: invalid range"
 msgstr "时长：无效范围"
 
-#: app/qml/shared/ManualEntryView.qml:373 app/qml/TimerPage.qml:694
+#: app/qml/shared/ManualEntryView.qml:373 app/qml/TimerPage.qml:710
 #: contents/ui/EntryLists.qml:415 contents/ui/ManualEntryView.qml:375
 msgid "Description (optional)"
 msgstr "描述（可选）"
@@ -969,8 +973,8 @@ msgstr "保存更改"
 msgid "Save entry"
 msgstr "保存条目"
 
-#: app/qml/shared/PieChart.qml:126 app/qml/shared/StatsView.qml:577
-#: app/qml/shared/StatsView.qml:678 app/qml/shared/TripSheet.qml:67
+#: app/qml/shared/PieChart.qml:126 app/qml/shared/StatsView.qml:602
+#: app/qml/shared/StatsView.qml:703 app/qml/shared/TripSheet.qml:67
 #: contents/ui/PieChart.qml:126 contents/ui/StatsView.qml:562
 #: contents/ui/StatsView.qml:663 contents/ui/TripSheet.qml:69
 msgid "Other"
@@ -999,20 +1003,20 @@ msgstr "可计费"
 msgid "Non-billable"
 msgstr "不可计费"
 
-#: app/qml/shared/StatsView.qml:242 app/qml/shared/StatsView.qml:305
-#: app/qml/shared/StatsView.qml:472 app/qml/shared/StatsView.qml:532
-#: app/qml/shared/StatsView.qml:617 contents/ui/StatsView.qml:227
+#: app/qml/shared/StatsView.qml:267 app/qml/shared/StatsView.qml:330
+#: app/qml/shared/StatsView.qml:497 app/qml/shared/StatsView.qml:557
+#: app/qml/shared/StatsView.qml:642 contents/ui/StatsView.qml:227
 #: contents/ui/StatsView.qml:290 contents/ui/StatsView.qml:457
 #: contents/ui/StatsView.qml:517 contents/ui/StatsView.qml:602
 msgid "This week"
 msgstr "本周"
 
-#: app/qml/shared/StatsView.qml:245 app/qml/shared/StatsView.qml:318
+#: app/qml/shared/StatsView.qml:270 app/qml/shared/StatsView.qml:343
 #: contents/ui/StatsView.qml:230 contents/ui/StatsView.qml:303
 msgid "Trips this week"
 msgstr "本周行程"
 
-#: app/qml/shared/StatsView.qml:245 app/qml/shared/StatsView.qml:327
+#: app/qml/shared/StatsView.qml:270 app/qml/shared/StatsView.qml:352
 #: app/qml/shared/TripSuggestionList.qml:82 app/qml/TripsPage.qml:245
 #: contents/ui/main.qml:1453 contents/ui/main.qml:1466
 #: contents/ui/main.qml:1472 contents/ui/StatsView.qml:230
@@ -1020,76 +1024,76 @@ msgstr "本周行程"
 msgid "%1 km"
 msgstr "%1 公里"
 
-#: app/qml/shared/StatsView.qml:246 app/qml/shared/StatsView.qml:332
+#: app/qml/shared/StatsView.qml:271 app/qml/shared/StatsView.qml:357
 #: contents/ui/StatsView.qml:231 contents/ui/StatsView.qml:317
 msgid "Trips this month"
 msgstr "本月行程"
 
-#: app/qml/shared/StatsView.qml:247 app/qml/shared/StatsView.qml:342
+#: app/qml/shared/StatsView.qml:272 app/qml/shared/StatsView.qml:367
 #: contents/ui/StatsView.qml:232 contents/ui/StatsView.qml:327
 msgid "%2 km (1 trip)"
 msgid_plural "%2 km (%1 trips)"
 msgstr[0] "%2 公里 (%1 次行程)"
 
-#: app/qml/shared/StatsView.qml:373 contents/ui/StatsView.qml:358
+#: app/qml/shared/StatsView.qml:398 contents/ui/StatsView.qml:358
 msgid "Time by hour"
 msgstr "按小时统计"
 
-#: app/qml/shared/StatsView.qml:397 app/qml/TimerPage.qml:613
+#: app/qml/shared/StatsView.qml:422 app/qml/TimerPage.qml:629
 #: contents/ui/EntryLists.qml:235 contents/ui/StatsView.qml:382
 msgid "Yesterday"
 msgstr "昨天"
 
-#: app/qml/shared/StatsView.qml:419 contents/ui/StatsView.qml:404
+#: app/qml/shared/StatsView.qml:444 contents/ui/StatsView.qml:404
 msgid "No time logged this day"
 msgstr "当天没有记录时间"
 
-#: app/qml/shared/StatsView.qml:432 contents/ui/StatsView.qml:417
+#: app/qml/shared/StatsView.qml:457 contents/ui/StatsView.qml:417
 msgid "Activity distribution"
 msgstr "活动分布"
 
-#: app/qml/shared/StatsView.qml:447 contents/ui/StatsView.qml:432
+#: app/qml/shared/StatsView.qml:472 contents/ui/StatsView.qml:432
 msgid "No activities today"
 msgstr "今天没有活动"
 
-#: app/qml/shared/StatsView.qml:462 app/qml/shared/StatsView.qml:522
-#: app/qml/shared/StatsView.qml:607 contents/ui/StatsView.qml:447
+#: app/qml/shared/StatsView.qml:487 app/qml/shared/StatsView.qml:547
+#: app/qml/shared/StatsView.qml:632 contents/ui/StatsView.qml:447
 #: contents/ui/StatsView.qml:507 contents/ui/StatsView.qml:592
 msgid "Previous week"
 msgstr "上一周"
 
-#: app/qml/shared/StatsView.qml:484 app/qml/shared/StatsView.qml:544
-#: app/qml/shared/StatsView.qml:627 contents/ui/StatsView.qml:469
+#: app/qml/shared/StatsView.qml:509 app/qml/shared/StatsView.qml:569
+#: app/qml/shared/StatsView.qml:652 contents/ui/StatsView.qml:469
 #: contents/ui/StatsView.qml:529 contents/ui/StatsView.qml:612
 msgid "Next week"
 msgstr "下一周"
 
-#: app/qml/shared/StatsView.qml:495 contents/ui/StatsView.qml:480
+#: app/qml/shared/StatsView.qml:520 contents/ui/StatsView.qml:480
 msgid "No activities this week"
 msgstr "本周没有活动"
 
-#: app/qml/shared/StatsView.qml:511 contents/ui/StatsView.qml:496
+#: app/qml/shared/StatsView.qml:536 contents/ui/StatsView.qml:496
 msgid "Projects by day"
 msgstr "按日项目"
 
-#: app/qml/shared/StatsView.qml:554 app/qml/shared/StatsView.qml:654
+#: app/qml/shared/StatsView.qml:579 app/qml/shared/StatsView.qml:679
 #: contents/ui/StatsView.qml:539 contents/ui/StatsView.qml:639
 msgid "No time logged this week"
 msgstr "本周没有记录时间"
 
-#: app/qml/shared/StatsView.qml:598 contents/ui/StatsView.qml:583
+#: app/qml/shared/StatsView.qml:623 contents/ui/StatsView.qml:583
 msgid "Projects by hour"
 msgstr "按小时项目"
 
-#: app/qml/shared/StatsView.qml:641 contents/ui/StatsView.qml:626
+#: app/qml/shared/StatsView.qml:666 contents/ui/StatsView.qml:626
 msgid "Weekdays and weekend — segments placed by clock time."
 msgstr "工作日与周末——按钟点放置时间段。"
 
-#: app/qml/shared/StatsView.qml:643 contents/ui/StatsView.qml:628
+#: app/qml/shared/StatsView.qml:668 contents/ui/StatsView.qml:628
 msgid "Weekdays — segments placed by clock time. Weekend appears when tracked."
 msgstr "工作日——按钟点放置时间段。有记录时显示周末。"
 
-#: app/qml/shared/StatsView.qml:644 contents/ui/StatsView.qml:629
+#: app/qml/shared/StatsView.qml:669 contents/ui/StatsView.qml:629
 msgid "Axis shows business hours (%1–%2); expands if work falls outside."
 msgstr "坐标轴显示工作时间（%1–%2）；若工作超出范围则扩展。"
 
@@ -1281,7 +1285,7 @@ msgstr "保存行程"
 msgid "Really delete?"
 msgstr "确定删除？"
 
-#: app/qml/shared/TripSheet.qml:437 app/qml/TimerPage.qml:742
+#: app/qml/shared/TripSheet.qml:437 app/qml/TimerPage.qml:758
 #: contents/ui/TripSheet.qml:439
 msgid "Delete"
 msgstr "删除"
@@ -1317,13 +1321,13 @@ msgid "+%1 more detected trip"
 msgid_plural "+%1 more detected trips"
 msgstr[0] "+ 另外 %1 个检测到的行程"
 
-#: app/qml/TimerPage.qml:66 app/qml/TimerPage.qml:444 contents/ui/main.qml:1868
+#: app/qml/TimerPage.qml:66 app/qml/TimerPage.qml:460 contents/ui/main.qml:1868
 #: contents/ui/main.qml:1891 contents/ui/TimerCardKante.qml:255
 #: contents/ui/TimerCard.qml:237
 msgid "Today %1"
 msgstr "今日 %1"
 
-#: app/qml/TimerPage.qml:67 app/qml/TimerPage.qml:445 contents/ui/main.qml:1869
+#: app/qml/TimerPage.qml:67 app/qml/TimerPage.qml:461 contents/ui/main.qml:1869
 #: contents/ui/TimerCardKante.qml:260 contents/ui/TimerCard.qml:239
 msgid "Week %1"
 msgstr "周 %1"
@@ -1336,7 +1340,7 @@ msgstr "未配置"
 msgid "Connecting…"
 msgstr "正在连接…"
 
-#: app/qml/TimerPage.qml:156 app/qml/TimerPage.qml:180 contents/ui/main.qml:543
+#: app/qml/TimerPage.qml:156 app/qml/TimerPage.qml:196 contents/ui/main.qml:543
 msgid "Connection problem"
 msgstr "连接问题"
 
@@ -1360,143 +1364,151 @@ msgstr "添加服务、服务器 URL（如需要）和 API 令牌即可开始计
 msgid "Configure Plasmai"
 msgstr "配置 Plasmai"
 
-#: app/qml/TimerPage.qml:182 contents/ui/main.qml:3502
+#: app/qml/TimerPage.qml:179
+msgid "Try the demo"
+msgstr "试用演示"
+
+#: app/qml/TimerPage.qml:189
+msgid "Made-up data, kept only while the app runs. Switch profiles in Connection to leave it."
+msgstr "虚构的数据，仅在应用运行期间保留。要退出，请在“连接”中切换配置文件。"
+
+#: app/qml/TimerPage.qml:198 contents/ui/main.qml:3502
 msgid "Retry"
 msgstr "重试"
 
-#: app/qml/TimerPage.qml:183 contents/ui/main.qml:3507
+#: app/qml/TimerPage.qml:199 contents/ui/main.qml:3507
 msgid "Configure"
 msgstr "配置"
 
-#: app/qml/TimerPage.qml:288 contents/ui/TimerCardKante.qml:78
+#: app/qml/TimerPage.qml:304 contents/ui/TimerCardKante.qml:78
 msgid "Running since %1"
 msgstr "自 %1 起计时"
 
-#: app/qml/TimerPage.qml:288 contents/ui/TimerCardKante.qml:78
+#: app/qml/TimerPage.qml:304 contents/ui/TimerCardKante.qml:78
 msgid "Running"
 msgstr "计时中"
 
-#: app/qml/TimerPage.qml:289 contents/ui/TimerCardKante.qml:79
+#: app/qml/TimerPage.qml:305 contents/ui/TimerCardKante.qml:79
 #: contents/ui/TimerCard.qml:145
 msgid "Not tracking"
 msgstr "未在计时"
 
-#: app/qml/TimerPage.qml:305 app/qml/TimerPage.qml:336
+#: app/qml/TimerPage.qml:321 app/qml/TimerPage.qml:352
 #: contents/ui/TimerCardKante.qml:100 contents/ui/TimerCard.qml:112
 msgid "Edit"
 msgstr "编辑"
 
-#: app/qml/TimerPage.qml:330 contents/ui/TimerCardKante.qml:92
+#: app/qml/TimerPage.qml:346 contents/ui/TimerCardKante.qml:92
 #: contents/ui/TimerCard.qml:102
 msgid "Log a trip for this entry"
 msgstr "为此记录添加行程"
 
-#: app/qml/TimerPage.qml:450 contents/ui/TimerCardKante.qml:268
+#: app/qml/TimerPage.qml:466 contents/ui/TimerCardKante.qml:268
 msgid "%1 left"
 msgstr "剩余 %1"
 
-#: app/qml/TimerPage.qml:451 contents/ui/TimerCardKante.qml:269
+#: app/qml/TimerPage.qml:467 contents/ui/TimerCardKante.qml:269
 msgid "%1 over"
 msgstr "超出 %1"
 
-#: app/qml/TimerPage.qml:492
+#: app/qml/TimerPage.qml:508
 msgid "Description…"
 msgstr "描述…"
 
-#: app/qml/TimerPage.qml:506 contents/ui/DescriptionField.qml:100
+#: app/qml/TimerPage.qml:522 contents/ui/DescriptionField.qml:100
 msgid "Save description"
 msgstr "保存描述"
 
-#: app/qml/TimerPage.qml:520
+#: app/qml/TimerPage.qml:536
 msgid "No activity. Tap a favorite to start."
 msgstr "无活动。点按收藏项即可开始。"
 
-#: app/qml/TimerPage.qml:520
+#: app/qml/TimerPage.qml:536
 msgid "No activity."
 msgstr "无活动。"
 
-#: app/qml/TimerPage.qml:535 contents/ui/TimerCardKante.qml:228
+#: app/qml/TimerPage.qml:551 contents/ui/TimerCardKante.qml:228
 #: contents/ui/TimerCard.qml:331
 msgid "Continue · %1 · %2"
 msgstr "继续 · %1 · %2"
 
-#: app/qml/TimerPage.qml:536 contents/ui/TimerCardKante.qml:241
+#: app/qml/TimerPage.qml:552 contents/ui/TimerCardKante.qml:241
 #: contents/ui/TimerCard.qml:343
 msgid "Start · %1 · %2"
 msgstr "开始 · %1 · %2"
 
-#: app/qml/TimerPage.qml:574 app/qml/TimerPage.qml:652
+#: app/qml/TimerPage.qml:590 app/qml/TimerPage.qml:668
 #: contents/ui/EntryLists.qml:101 contents/ui/EntryLists.qml:288
 msgid "Already running."
 msgstr "已在进行中。"
 
-#: app/qml/TimerPage.qml:583
+#: app/qml/TimerPage.qml:599
 msgid "Pin an entry from Recent to add it to your favorites."
 msgstr "在“最近”中固定条目即可将其加入收藏。"
 
-#: app/qml/TimerPage.qml:590 contents/ui/EntryLists.qml:204
+#: app/qml/TimerPage.qml:606 contents/ui/EntryLists.qml:204
 msgid "Recent"
 msgstr "最近"
 
-#: app/qml/TimerPage.qml:667 contents/ui/EntryLists.qml:348
+#: app/qml/TimerPage.qml:683 contents/ui/EntryLists.qml:348
 msgid "Switch to another activity…"
 msgstr "切换到其他活动…"
 
-#: app/qml/TimerPage.qml:667 contents/ui/EntryLists.qml:348
+#: app/qml/TimerPage.qml:683 contents/ui/EntryLists.qml:348
 msgid "Start something else…"
 msgstr "开始其他工作…"
 
-#: app/qml/TimerPage.qml:701 app/qml/TimerPage.qml:755
+#: app/qml/TimerPage.qml:717 app/qml/TimerPage.qml:771
 #: contents/ui/EntryLists.qml:445 contents/ui/main.qml:3029
 msgid "Switch"
 msgstr "切换"
 
-#: app/qml/TimerPage.qml:723 contents/ui/main.qml:2872
+#: app/qml/TimerPage.qml:739 contents/ui/main.qml:2872
 msgid "Stop tracking?"
 msgstr "停止计时？"
 
-#: app/qml/TimerPage.qml:724
+#: app/qml/TimerPage.qml:740
 msgid "Stop %1 · %2?"
 msgstr "停止 %1 · %2？"
 
-#: app/qml/TimerPage.qml:737 contents/ui/main.qml:3050
+#: app/qml/TimerPage.qml:753 contents/ui/main.qml:3050
 msgid "Delete entry?"
 msgstr "删除此条目？"
 
-#: app/qml/TimerPage.qml:738
+#: app/qml/TimerPage.qml:754
 msgid "Really delete this entry?"
 msgstr "确定要删除此条目吗？"
 
-#: app/qml/TimerPage.qml:750 contents/ui/EntryLists.qml:359
+#: app/qml/TimerPage.qml:766 contents/ui/EntryLists.qml:359
 #: contents/ui/main.qml:2896
 msgid "Switch activity"
 msgstr "切换活动"
 
-#: app/qml/TimerPage.qml:751
+#: app/qml/TimerPage.qml:767
 msgid "Switch to %1 · %2?"
 msgstr "切换到 %1 · %2？"
 
-#: app/qml/TimerPage.qml:783
+#: app/qml/TimerPage.qml:799
 msgid "Split at:"
 msgstr "拆分于:"
 
-#: app/qml/TimerPage.qml:809 contents/ui/main.qml:3189
+#: app/qml/TimerPage.qml:825 contents/ui/main.qml:3189
 msgid "You were idle"
 msgstr "你处于空闲状态"
 
-#: app/qml/TimerPage.qml:818
+#: app/qml/TimerPage.qml:834
 msgid "You were idle for %1. Keep this time, discard it, or discard and continue?"
 msgstr "你已空闲 %1。保留这段时间、丢弃，还是丢弃并继续？"
 
-#: app/qml/TimerPage.qml:820 contents/ui/main.qml:3216
+#: app/qml/TimerPage.qml:836 contents/ui/main.qml:3216
 msgid "Keep time"
 msgstr "保留时间"
 
-#: app/qml/TimerPage.qml:821 contents/ui/main.qml:3225
+#: app/qml/TimerPage.qml:837 contents/ui/main.qml:3225
 msgid "Discard idle"
 msgstr "丢弃空闲"
 
-#: app/qml/TimerPage.qml:822 contents/ui/main.qml:3234
+#: app/qml/TimerPage.qml:838 contents/ui/main.qml:3234
 msgid "Discard and continue"
 msgstr "丢弃并继续"
 

@@ -1,0 +1,18 @@
+Plasmai ist eine Zeiterfassungs-App für <b>Kimai</b>. Sie arbeitet nur mit den Daten auf deinem Server; auf dem Gerät bleibt nichts liegen. Handy, Plasma-Widget und Web zeigen deshalb immer dieselben Einträge.
+
+<b>Funktionen</b>
+<ul>
+<li>Timer starten, stoppen und wechseln; laufenden Eintrag bearbeiten</li>
+<li>Letzte Einträge nach Tagen; langes Drücken zum Bearbeiten, Teilen, Löschen und für Favoriten</li>
+<li>Favoriten und manuelle Einträge</li>
+<li>Heute und Woche gegen den Arbeitsvertrag, mit Abwesenheiten und Feiertagen</li>
+<li>Statistik</li>
+<li>Drehtag mit dem Kimai-Plugin Drehzettel: Drehtag starten, Verdienst bisher, Zuschlagstage</li>
+<li>Anfahrten mit dem Kimai-Plugin Anfahrten</li>
+<li>Optionaler Kante-Stil</li>
+<li>11 Sprachen</li>
+</ul>
+
+Clockify, Toggl Track und SolidTime werden experimentell unterstützt.
+
+Plasmai gibt es auch als Widget für den KDE-Plasma-Desktop und als App für Plasma Mobile.

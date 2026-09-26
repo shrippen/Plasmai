@@ -2,6 +2,7 @@
 .import "./timesheetFields.js" as Fields
 .import "./workContractAdjust.js" as WorkAdjust
 .import "./providerUtil.js" as ProviderUtil
+.import "./demoKimai.js" as DemoKimai
 
 var ErrorType = {
     Network: "network",
@@ -30,7 +31,9 @@ function setRequestFactory(factory) {
 }
 
 function createRequest(method, kimaiUrl, endpoint, apiToken, isJson) {
-    var xhr = requestFactory ? requestFactory() : new XMLHttpRequest()
+    // The demo address never reaches the network (demoKimai.js).
+    var xhr = requestFactory ? requestFactory()
+        : (DemoKimai.isDemoUrl(kimaiUrl) ? DemoKimai.request() : new XMLHttpRequest())
     xhr.open(method, normalizeUrl(kimaiUrl) + endpoint, true)
     xhr.setRequestHeader("Authorization", "Bearer " + apiToken)
     xhr.setRequestHeader("Accept", "application/json")

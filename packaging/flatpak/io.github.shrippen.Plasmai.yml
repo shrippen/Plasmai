@@ -3,19 +3,19 @@
 #
 # UNTESTED: written from the KDE Flatpak conventions without a local flatpak-builder / KDE
 # runtime to build against (see RELEASING.md before publishing). Check before shipping:
-#   - The KDE runtime version below (org.kde.Platform//6.9) against the current
+#   - The KDE runtime version below (org.kde.Platform//6.11) against the current
 #     https://api.kde.org/flatpak-kde-runtime — bump if a newer one is current.
 #   - Whether org.kde.Platform already bundles QtKeychain; if so, drop the qtkeychain module.
 #   - The qtkeychain tag/commit pinned below against https://github.com/frankosterfeld/qtkeychain/tags.
 #
 # Build (once flatpak-builder and the runtime/sdk below are installed):
-#   flatpak-builder --user --install --force-clean build-dir packaging/flatpak/com.github.shrippen.plasmai.yml
+#   flatpak-builder --user --install --force-clean build-dir packaging/flatpak/io.github.shrippen.Plasmai.yml
 # Run:
-#   flatpak run com.github.shrippen.plasmai
+#   flatpak run io.github.shrippen.Plasmai
 
-app-id: com.github.shrippen.plasmai
+app-id: io.github.shrippen.Plasmai
 runtime: org.kde.Platform
-runtime-version: '6.9'
+runtime-version: '6.11'
 sdk: org.kde.Sdk
 command: plasmai-app
 
@@ -37,24 +37,27 @@ modules:
     sources:
       - type: git
         url: https://github.com/frankosterfeld/qtkeychain.git
-        tag: 0.14.3   # verify against the repo's tags before building
+        tag: 0.15.0
+        commit: ad7344c45a86a4f66cbafc4b081b5f7b876cb0b7
 
   - name: plasmai
     buildsystem: cmake-ninja
+    # The app imports ../contents/code and ../translate, so the whole repo is the source.
+    subdir: app
     config-opts:
       - -DCMAKE_BUILD_TYPE=Release
     sources:
+      # Local builds. For Flathub replace with: type: git, url: https://github.com/shrippen/Plasmai.git, tag: v2.0.0, commit: <sha>
       - type: dir
-        path: ../../app
+        path: ../..
         skip:
-          - build
-          - build-android
-          - build-test
-      - type: dir
-        path: ../../translate
-        dest: ../translate
+          - .git
+          - dist
+          - app/build
+          - app/build-android
+          - app/build-test
     post-install:
       # metainfo/desktop/icon: see packaging/linux/ (same files the tarball install uses)
-      - install -Dm644 ../../packaging/linux/com.github.shrippen.plasmai.desktop /app/share/applications/com.github.shrippen.plasmai.desktop
-      - install -Dm644 ../../packaging/linux/com.github.shrippen.plasmai.metainfo.xml /app/share/metainfo/com.github.shrippen.plasmai.metainfo.xml
-      - install -Dm644 ../../app/icons/breeze-dark/actions/22/chronometer.svg /app/share/icons/hicolor/scalable/apps/com.github.shrippen.plasmai.svg
+      - install -Dm644 /run/build/plasmai/packaging/linux/io.github.shrippen.Plasmai.desktop /app/share/applications/io.github.shrippen.Plasmai.desktop
+      - install -Dm644 /run/build/plasmai/packaging/linux/io.github.shrippen.Plasmai.metainfo.xml /app/share/metainfo/io.github.shrippen.Plasmai.metainfo.xml
+      - install -Dm644 /run/build/plasmai/packaging/linux/io.github.shrippen.Plasmai.png /app/share/icons/hicolor/256x256/apps/io.github.shrippen.Plasmai.png

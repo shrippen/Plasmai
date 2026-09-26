@@ -19,6 +19,7 @@
 - Film day: the production's shooting day is counted from the engagement's entries in Kimai instead of being entered; a pencil on the engagement picks another engagement or project
 
 ### App
+- Demo mode: "Try the demo" on the setup screen shows the app with made-up data (film day, trips and statistics included), without a server; nothing is kept
 - Week and day remaining subtract approved absences and public holidays (holiday or WorkContract plugin), like the widget
 - "Tracking in progress" notification when a timer runs that was started elsewhere (web, another device) or was already running when the app started
 - Failed writes show a message: stop, start, continue, switch, edit, delete, split and idle discard no longer fail silently
@@ -26,6 +27,10 @@
 - Pull to refresh on every page: timer, statistics, film day, trips, favorites, add entry, settings and connection reload their data
 
 ### Polish
+- Film day: the shoot running after a finished commute shows as running, not the commute as the finished day
+- Film day: labels wrap between words, so the fields keep room on a phone; the default break reads "Default" (its minutes are in the line above)
+- Recent entries: the time column fits 12-hour times ("7:35 AM")
+- App in the Plasma / Plasma Mobile style: the statistics filter (All / Billable / Non-billable) showed an empty box
 - App on Plasma / Plasma Mobile (desktop style): text fields showed no text (times, dates, profile name, server URL, working hours); they do again
 - Add entry, film day and trip use the same action row: the primary Save button with Cancel next to it; Delete of a trip is a separate destructive button
 - Durations read "1h 0m" (Kante: "1:00") instead of "01:00:00" in Add entry and the film day

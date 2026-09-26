@@ -1,0 +1,1 @@
+Erste Version der Android-App: Timer, letzte Einträge nach Tagen, Favoriten, Statistik, Drehtag und Anfahrten für Kimai.

@@ -1,0 +1,1 @@
+First release of the Android app: timer, recent entries by day, favorites, statistics, film day and trips for Kimai.

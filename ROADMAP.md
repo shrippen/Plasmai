@@ -4,7 +4,7 @@ Where Plasmai is going. [DESIGN.md](DESIGN.md) is *how* Plasmai should look and 
 
 Last release: **1.6.2** (tagged). 1.6.3 and the 1.x Kimai 2.67 fixes landed on `main` untagged and are part of 2.0.0.
 
-In progress: **2.0.0** — the version is set everywhere (`metadata.json`, app, store, landing page), but **not tagged**. The tag waits for the 2.0 gate below.
+In progress: **2.0.0** — the version is set everywhere (`metadata.json`, app, store, landing page), but **not tagged**. The tag waits for the release chores (signed APK, IzzyOnDroid, Flatpak), not for a second backend any more.
 
 ---
 
@@ -12,13 +12,9 @@ In progress: **2.0.0** — the version is set everywhere (`metadata.json`, app, 
 
 1.5.0 closed the “Kemai-like timesheet in the panel” gap for Kimai: live timer, recents, favorites, continue, switch-while-running, edit running *and* stopped entries, tags, billable, create entities, stats, sparkline, work-contract remaining (with vacation/holidays), idle keep/discard/continue, forgot-to-start, multi-profile, KWallet.
 
-**2.0 is not more Display checkboxes.** It means:
+**2.0 is not more Display checkboxes.** It means **the same Plasmai on the phone**: the Kirigami app for Android and Plasma Mobile, with the film day and trips (built, see below). Kimai is the reference backend; Clockify, Toggl Track and SolidTime ship as experimental.
 
-1. **A second backend that is no longer experimental** — Clockify, Toggl Track or SolidTime verified with a live account, same UI, capabilities still gating missing APIs. **This is the release gate.**
-2. **The same Plasmai on the phone** — the Kirigami app for Android and Plasma Mobile (built, see below).
-3. **Provider gaps that 1.5 left explicit** — Clockify name-based tags, SolidTime tags, Toggl `#`/`@` in the description field only if they stay optional beside pickers.
-
-**The 2.0.0 tag is set only when Kimai remains the reference backend and at least one other backend is documented as production-tested** (README, DESIGN.md, landing page no longer call it experimental). Everything else in 2.0.0 is done or optional.
+**Decided 2026-09-27:** the second live-tested backend is no longer the 2.0 gate; it moved to **3.0** (see “Pillars for 3.0”). 2.0.0 is tagged once the release chores are done.
 
 Stay inside DESIGN.md: on the desktop a panel widget, QML-only Store package, features gated with `TimeTracker.providerCapabilities`.
 
@@ -27,9 +23,10 @@ flowchart LR
   v15[v1.5 timesheet completeness]
   v16[v1.6 WorkContract]
   app[2.0 app + film day + trips: built]
-  gate[2.0 gate: second backend live-tested]
+  chores[release chores: APK, IzzyOnDroid, Flatpak]
   tag[v2.0.0 tag]
-  v15 --> v16 --> app --> gate --> tag
+  gate[3.0: second backend live-tested]
+  v15 --> v16 --> app --> chores --> tag --> gate
 ```
 
 ---
@@ -89,9 +86,9 @@ flowchart LR
 
 ---
 
-## Pillars for 2.0
+## Pillars for 3.0 and later
 
-### 1. Second backend (the release gate) — open
+### 1. Second backend (the 3.0 gate) — open
 
 Clockify, Toggl Track and SolidTime are implemented against public APIs but still **experimental**.
 
@@ -129,7 +126,7 @@ Both:
 
 Constraint: panel click still must not start/stop. No tray app.
 
-### Release chores (see RELEASE-TODO.md)
+### Release chores for 2.0.0 (see RELEASE-TODO.md)
 
 Keystore, CI run on GitHub, signed APK, Flatpak build, aarch64 tarball, app ID and versionCode decisions, store listing.
 

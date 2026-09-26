@@ -338,6 +338,28 @@ TestCase {
         compare(v.phase, "before")
     }
 
+    // The shoot runs after a finished commute: running beats the shorter stopped entry;
+    // the drive home after a finished shoot does not.
+    function test_viewInfoRunningAfterCommute() {
+        var commute = { id: 1, project: 155, activity: 12, begin: "2026-09-23T06:55:00+0200", end: "2026-09-23T07:30:00+0200" }
+        var shoot = { id: 2, project: 155, activity: 40, begin: "2026-09-23T07:35:00+0200", end: null }
+        var v = Sync.viewInfo({ projectId: 155, match: commute, others: [] },
+                              viewOpts({ entries: [commute, shoot], active: shoot, recent: [], daysFromToday: 0,
+                                         nowMs: new Date("2026-09-23T14:20:00+0200").getTime() }))
+        compare(v.phase, "running")
+        compare(v.timesheet.id, 2)
+        compare(v.activityId, 40)
+        compare(v.otherActivities.map(function(o) { return o.label }), ["a12"])
+
+        var done = { id: 3, project: 155, activity: 40, begin: "2026-09-23T07:35:00+0200", end: "2026-09-23T18:45:00+0200" }
+        var home = { id: 4, project: 155, activity: 12, begin: "2026-09-23T18:50:00+0200", end: null }
+        v = Sync.viewInfo({ projectId: 155, match: done, others: [] },
+                          viewOpts({ entries: [done, home], active: home, recent: [], daysFromToday: 0,
+                                     nowMs: new Date("2026-09-23T19:10:00+0200").getTime() }))
+        compare(v.phase, "done")
+        compare(v.timesheet.id, 3)
+    }
+
     function test_loadOfflineHidesExtras() {
         var c = ctx("server", { ping: ping([]) })
         responses = [{ status: 200, body: serverDay({ note: "seen" }) },

@@ -22,12 +22,12 @@ STAGE="$(mktemp -d)"
 trap 'rm -rf "$STAGE"' EXIT
 
 install -Dm755 app/build/plasmai-app "$STAGE/plasmai-app-${VERSION}/bin/plasmai-app"
-install -Dm644 packaging/linux/com.github.shrippen.plasmai.desktop \
-    "$STAGE/plasmai-app-${VERSION}/share/applications/com.github.shrippen.plasmai.desktop"
-install -Dm644 packaging/linux/com.github.shrippen.plasmai.metainfo.xml \
-    "$STAGE/plasmai-app-${VERSION}/share/metainfo/com.github.shrippen.plasmai.metainfo.xml"
-install -Dm644 packaging/linux/com.github.shrippen.plasmai.png \
-    "$STAGE/plasmai-app-${VERSION}/share/icons/hicolor/256x256/apps/com.github.shrippen.plasmai.png"
+install -Dm644 packaging/linux/io.github.shrippen.Plasmai.desktop \
+    "$STAGE/plasmai-app-${VERSION}/share/applications/io.github.shrippen.Plasmai.desktop"
+install -Dm644 packaging/linux/io.github.shrippen.Plasmai.metainfo.xml \
+    "$STAGE/plasmai-app-${VERSION}/share/metainfo/io.github.shrippen.Plasmai.metainfo.xml"
+install -Dm644 packaging/linux/io.github.shrippen.Plasmai.png \
+    "$STAGE/plasmai-app-${VERSION}/share/icons/hicolor/256x256/apps/io.github.shrippen.Plasmai.png"
 cp -a app/build/locale "$STAGE/plasmai-app-${VERSION}/share/locale" 2>/dev/null || true
 install -Dm644 LICENSE "$STAGE/plasmai-app-${VERSION}/LICENSE" 2>/dev/null || true
 

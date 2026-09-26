@@ -366,6 +366,16 @@ function viewInfo(r, opts) {
     var filmActivity = r.match ? ids.activityOf(r.match)
         : FilmDays.suggestedActivityId(opts.recent, r.projectId, ids.projectOf, ids.activityOf)
     var active = opts.active
+    // The film day is the day's longest entry, the running one with its time so far:
+    // a shoot running after the commute counts, a drive home after the shoot does not.
+    if (active && r.match && opts.daysFromToday === 0 && String(ids.projectOf(active)) === String(r.projectId)) {
+        var now = opts.nowMs || Date.now()
+        var runningMs = now - FilmDays.stampMs(active.begin)
+        var matchMs = FilmDays.stampMs(r.match.end) - FilmDays.stampMs(r.match.begin)
+        if (runningMs > matchMs) {
+            filmActivity = ids.activityOf(active)
+        }
+    }
     var running = !!active && opts.daysFromToday === 0 && hasId(r.projectId)
         && String(ids.projectOf(active)) === String(r.projectId)
         && (!hasId(filmActivity) || String(ids.activityOf(active)) === String(filmActivity))

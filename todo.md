@@ -6,9 +6,13 @@ Stand: 2026-09-27, `main`. Ursprünglich 2026-09-21 auf `feature/android-plasmam
 Einzige Übersicht über das, was noch fehlt. Details stehen in der jeweiligen Datei.
 
 **Release 2.0.0** (`ROADMAP.md`, `RELEASE-TODO.md`)
-- [ ] Release-Gate: ein zweites Backend (Clockify, Toggl oder SolidTime) mit echtem Konto durchtesten, danach „experimentell“ entfernen
-- [ ] Entscheiden: Flatpak-App-ID, versionCode-Schema, F-Droid ja/nein
-- [ ] Keystore anlegen, CI auf GitHub laufen lassen, APK signieren, Flatpak bauen, aarch64-Tarball, GitHub-Release und Store-Listing
+- [x] Entschieden: zweites Backend erst für 3.0; App-ID `io.github.shrippen.Plasmai`; versionCode 20000; IzzyOnDroid
+- [x] Fastlane-Texte und Icon für IzzyOnDroid; Flatpak-Manifest und Metainfo korrigiert
+- [x] Demo-Modus und Screenshots daraus für IzzyOnDroid und Flathub
+- [ ] Keystore anlegen, CI auf GitHub laufen lassen, APK signieren, Flatpak bauen, aarch64-Tarball, GitHub-Release, IzzyOnDroid-Antrag, Store-Listing
+
+**3.0**
+- [ ] Zweites Backend (Clockify, Toggl oder SolidTime) mit echtem Konto durchtesten, danach „experimentell“ entfernen
 
 **App ↔ Plasmoid**
 - [x] App: Wochen- und Tagesrest ziehen Abwesenheiten und Feiertage ab (wie Plasmoid)

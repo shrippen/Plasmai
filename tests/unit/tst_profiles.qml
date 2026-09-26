@@ -62,4 +62,17 @@ TestCase {
         verify(Profiles.showsConnection(one, true, "connecting"))
         verify(Profiles.showsConnection(one, true, "offline"))
     }
+
+    function test_withDemoProfile() {
+        // The untouched default profile (no URL) makes way for the demo.
+        var list = Profiles.withDemoProfile(Profiles.defaultProfiles(), "https://demo.invalid", "Demo")
+        compare(list.length, 1)
+        compare(list[0].id, "demo")
+        compare(list[0].url, "https://demo.invalid")
+        // Real profiles stay; the demo is added once.
+        var real = Profiles.parseProfiles('[{"id":"a","url":"https://kimai.example"}]', "")
+        var both = Profiles.withDemoProfile(real, "https://demo.invalid", "Demo")
+        compare(both.length, 2)
+        compare(Profiles.withDemoProfile(both, "https://demo.invalid", "Demo").length, 2)
+    }
 }

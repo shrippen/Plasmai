@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.shrippen.Plasmai</id>
+  <name>Plasmai</name>
+  <name xml:lang="de">Plasmai</name>
+  <summary>Track time with Kimai, Clockify, Toggl Track, or SolidTime</summary>
+  <summary xml:lang="de">Zeiterfassung mit Kimai, Clockify, Toggl Track oder SolidTime</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <developer id="io.github.shrippen">
+    <name>shrippen</name>
+  </developer>
+  <launchable type="desktop-id">io.github.shrippen.Plasmai.desktop</launchable>
+  <url type="homepage">https://github.com/shrippen/Plasmai</url>
+  <url type="bugtracker">https://github.com/shrippen/Plasmai/issues</url>
+  <description>
+    <p>
+      Plasmai is a time tracking app for Kimai, made for Plasma Mobile and the Linux desktop.
+      It works with the data on your server only: nothing is kept on the device.
+    </p>
+    <p xml:lang="de">
+      Plasmai ist eine Zeiterfassungs-App für Kimai, gemacht für Plasma Mobile und den Linux-Desktop.
+      Sie arbeitet nur mit den Daten auf deinem Server; auf dem Gerät bleibt nichts liegen.
+    </p>
+    <ul>
+      <li>Start, stop and switch timers; edit the running entry</li>
+      <li xml:lang="de">Timer starten, stoppen und wechseln; laufenden Eintrag bearbeiten</li>
+      <li>Recent entries grouped by day, favorites, manual entries, split and delete</li>
+      <li xml:lang="de">Letzte Einträge nach Tagen, Favoriten, manuelle Einträge, Teilen und Löschen</li>
+      <li>Today and week against your work contract, with absences and public holidays</li>
+      <li xml:lang="de">Heute und Woche gegen den Arbeitsvertrag, mit Abwesenheiten und Feiertagen</li>
+      <li>Statistics</li>
+      <li xml:lang="de">Statistik</li>
+      <li>Film day and trips with the Drehzettel and Anfahrten Kimai plugins</li>
+      <li xml:lang="de">Drehtag und Anfahrten mit den Kimai-Plugins Drehzettel und Anfahrten</li>
+      <li>Optional Kante style</li>
+      <li xml:lang="de">Optionaler Kante-Stil</li>
+    </ul>
+    <p>
+      Clockify, Toggl Track and SolidTime are supported experimentally.
+      API tokens are stored in the Secret Service (QtKeychain).
+    </p>
+    <p xml:lang="de">
+      Clockify, Toggl Track und SolidTime werden experimentell unterstützt.
+      API-Tokens liegen im Secret Service (QtKeychain).
+    </p>
+  </description>
+  <categories>
+    <category>Office</category>
+    <category>ProjectManagement</category>
+  </categories>
+  <screenshots>
+    <screenshot type="default">
+      <caption>Timer, favorites and recent entries by day</caption>
+      <caption xml:lang="de">Timer, Favoriten und letzte Einträge nach Tagen</caption>
+      <image>https://raw.githubusercontent.com/shrippen/Plasmai/main/packaging/screenshots/1-main.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>A shooting day in progress</caption>
+      <caption xml:lang="de">Ein laufender Drehtag</caption>
+      <image>https://raw.githubusercontent.com/shrippen/Plasmai/main/packaging/screenshots/2-filmday-running.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>A finished shooting day with its extras</caption>
+      <caption xml:lang="de">Ein beendeter Drehtag mit seinen Angaben</caption>
+      <image>https://raw.githubusercontent.com/shrippen/Plasmai/main/packaging/screenshots/3-filmday-done.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Statistics</caption>
+      <caption xml:lang="de">Statistik</caption>
+      <image>https://raw.githubusercontent.com/shrippen/Plasmai/main/packaging/screenshots/4-stats.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Trips</caption>
+      <caption xml:lang="de">Fahrten</caption>
+      <image>https://raw.githubusercontent.com/shrippen/Plasmai/main/packaging/screenshots/5-trips.png</image>
+    </screenshot>
+  </screenshots>
+  <content_rating type="oars-1.1"/>
+  <supports>
+    <control>touch</control>
+    <control>pointing</control>
+    <control>keyboard</control>
+  </supports>
+  <requires>
+    <display_length compare="ge">360</display_length>
+  </requires>
+  <provides>
+    <binary>plasmai-app</binary>
+  </provides>
+  <releases>
+    <release version="2.0.0" date="2026-09-27">
+      <description>
+        <p>First release of the app for Plasma Mobile, the Linux desktop and Android,
+        built from the same code as the Plasma widget.</p>
+      </description>
+    </release>
+  </releases>
+</component>

@@ -45,7 +45,7 @@ if(ANDROID)
     set_target_properties(plasmai-app PROPERTIES
         QT_ANDROID_PACKAGE_NAME "com.github.shrippen.plasmai"
         QT_ANDROID_VERSION_NAME "2.0.0"
-        QT_ANDROID_VERSION_CODE "200"
+        QT_ANDROID_VERSION_CODE "20000"
         QT_ANDROID_MIN_SDK_VERSION "28"
         QT_ANDROID_TARGET_SDK_VERSION "34"
     )

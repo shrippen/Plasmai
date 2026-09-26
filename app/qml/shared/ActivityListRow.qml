@@ -4,6 +4,7 @@ import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
 import "."
 import "../Kante"
+import "../../contents/code/dateTimeFormat.js" as DTF
 
 QQC2.ItemDelegate {
     id: root
@@ -306,7 +307,8 @@ QQC2.ItemDelegate {
     TextMetrics {
         id: timeMetrics
         font: KanteStyle.monoFont(KanteStyle.smallFont.pointSize, false)
-        text: "00:00"
+        // The widest time in the user's format ("22:59", "10:59 PM").
+        text: DTF.formatLocaleTime(22, 59)
     }
 
     function escaped(text) {

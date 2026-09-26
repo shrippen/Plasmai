@@ -170,10 +170,35 @@ ColumnLayout {
             border.color: KanteStyle.frameColor
         }
 
+        // The desktop style draws a button's text in its background, so the
+        // segments with their own background are for Kante and Material only.
+        RowLayout {
+            anchors.fill: parent
+            spacing: Kirigami.Units.smallSpacing
+            visible: !filterButtonRow.visible
+
+            Repeater {
+                model: [[root.filterAllLabel, StatsData.BILLABLE_ALL],
+                        [root.filterBillableLabel, StatsData.BILLABLE_ONLY],
+                        [root.filterNonBillableLabel, StatsData.BILLABLE_NONE]]
+                QQC2.ToolButton {
+                    required property var modelData
+                    Layout.fillWidth: true
+                    Layout.preferredWidth: 1
+                    checkable: true
+                    autoExclusive: true
+                    checked: root.billableFilter === modelData[1]
+                    text: modelData[0]
+                    onClicked: root.billableFilter = modelData[1]
+                }
+            }
+        }
+
         RowLayout {
             id: filterButtonRow
             anchors.fill: parent
             spacing: 0
+            visible: KanteStyle.active || KanteStyle.materialStyle
 
             KanteToolButton {
                 Layout.fillWidth: true

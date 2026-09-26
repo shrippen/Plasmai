@@ -385,6 +385,8 @@ int main(int argc, char *argv[])
                          i18n("Time tracking with Kimai, Clockify, Toggl Track, or SolidTime"),
                          KAboutLicense::GPL_V3,
                          i18n("© 2025 Plasmai contributors"));
+    // Desktop identity (Flathub ID); APP_ID stays the keychain service and the config folder shared with the widget.
+    aboutData.setDesktopFileName(QStringLiteral("io.github.shrippen.Plasmai"));
     KAboutData::setApplicationData(aboutData);
 #else
     app.setApplicationName("Plasmai");
