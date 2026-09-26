@@ -87,16 +87,29 @@ def read_entries(text):
     return entries
 
 
+def _read_string(part, keyword):
+    """Value of `keyword "..."` plus any wrapped continuation lines ("...")."""
+    m = re.search(r'^' + keyword + r' "(.*)"$', part, re.M)
+    if not m:
+        return None
+    chunks = [unesc(m.group(1))]
+    for ln in part[m.end():].splitlines()[1:]:
+        if not ln.startswith('"'):
+            break
+        chunks.append(unesc(re.findall(r'"(.*)"', ln)[0]))
+    return "".join(chunks)
+
+
 def _read_msgid(block):
     head = re.split(r"\nmsgid_plural|\nmsgstr", block, maxsplit=1)[0]
-    if re.search(r'^msgid ""\s*$', head, re.M):
-        chunks = []
-        for ln in head.splitlines():
-            if ln.startswith('"'):
-                chunks.append(unesc(re.findall(r'"(.*)"', ln)[0]))
-        return "".join(chunks)
-    m = re.search(r'^msgid "(.*)"$', head, re.M)
-    return unesc(m.group(1)) if m else None
+    return _read_string(head, "msgid")
+
+
+def _read_msgid_plural(block):
+    part = block.split("\nmsgid_plural", 1)
+    if len(part) < 2:
+        return None
+    return _read_string("msgid_plural" + re.split(r"\nmsgstr", part[1], maxsplit=1)[0], "msgid_plural")
 
 
 def parse_po(text):
@@ -109,8 +122,7 @@ def parse_po(text):
         msgid = _read_msgid(block)
         if msgid is None:
             continue
-        mp = re.search(r'^msgid_plural "(.*)"$', block, re.M)
-        plural_id = unesc(mp.group(1)) if mp else None
+        plural_id = _read_msgid_plural(block)
         items.append((refs, msgid, plural_id))
     return items
 

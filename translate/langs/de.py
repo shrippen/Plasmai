@@ -288,6 +288,7 @@ T = {
     'All': 'Alle',
     'Billable': 'Abrechenbar',
     'Non-billable': 'Nicht abrechenbar',
+    'Saved without the billable change: your Kimai account is not allowed to edit billable.': 'Ohne die Änderung an „Abrechenbar“ gespeichert: Dein Kimai-Konto darf „Abrechenbar“ nicht bearbeiten.',
     'Today': 'Heute',
     'This week': 'Diese Woche',
     'Time by hour': 'Zeit nach Stunde',
