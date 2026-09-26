@@ -275,7 +275,7 @@ Item {
         }
     }
 
-    QQC2.TextField {
+    PTextField {
         id: field
         anchors.fill: parent
         enabled: root.enabled
@@ -380,7 +380,7 @@ Item {
                 contentItem: Rectangle {
                     implicitWidth: 4
                     radius: 2
-                    color: Kirigami.Theme.textColor
+                    color: Style.textColor
                     opacity: pickerScrollBar.pressed ? 0.55
                              : (pickerScrollBar.hovered ? 0.4 : 0.28)
                 }

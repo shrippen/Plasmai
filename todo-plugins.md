@@ -1,5 +1,7 @@
 # TODO: Plugins Drehzettel und Anfahrten in Plasmai 2.0
 
+> **Stand 2026-09-26:** Plasmai arbeitet nur mit Online-Daten. Lokaler Modus, `filmDaysJson`, `filmDaysPending`, Migration (P6) und Konfliktansicht sind wieder entfernt; die Abschnitte dazu unten sind Geschichte.
+
 Stand 2026-09-25. Plan für die Anbindung der Kimai-Plugins Drehzettel und Anfahrten (MileageBundle) in Plasmai 2.0.
 
 Neue Basis: `feature/android-plasmamobile` (2.0.0, `61268ca`). Gelesen: DESIGN.md, ROADMAP.md, CHANGELOG.md, README.md, todo.md, app/BUILD.md, FilmDayView/FilmDayPage/filmDays.js, beide `main.qml`. Die Plugin-APIs stammen aus `kimai-drehzettel-bundle@claude/kimai-plugins-code-review-yakjp9` (`Controller/Api/DrehzettelApiController.php`, `Domain/FilmDayPatch.php`) und `kimai-anfahrten@claude/plugin-ui-kit` (`API/MileageApiController.php`).

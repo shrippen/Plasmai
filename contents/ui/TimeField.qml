@@ -112,7 +112,7 @@ RowLayout {
         }
     }
 
-    QQC2.TextField {
+    PTextField {
         id: timeField
         Layout.fillWidth: true
         Layout.preferredHeight: Math.max(implicitHeight, TouchUi.controlMinHeight)
@@ -172,7 +172,7 @@ RowLayout {
         }
     }
 
-    PlasmaComponents3.ToolButton {
+    PToolButton {
         Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
         Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
         icon.name: "clock-symbolic"
@@ -205,7 +205,7 @@ RowLayout {
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
                 opacity: 0.75
-                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                font.pointSize: Style.smallFont.pointSize
                 text: i18n("Hours : Minutes")
             }
 
@@ -232,7 +232,7 @@ RowLayout {
                 PlasmaComponents3.Label {
                     text: ":"
                     font.bold: true
-                    font.pointSize: Kirigami.Theme.defaultFont.pointSize + 2
+                    font.pointSize: Style.defaultFont.pointSize + 2
                 }
 
                 QQC2.Tumbler {
@@ -253,13 +253,13 @@ RowLayout {
 
             RowLayout {
                 Layout.fillWidth: true
-                PlasmaComponents3.Button {
+                PButton {
                     Layout.fillWidth: true
                     Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     text: i18n("Cancel")
                     onClicked: timePopup.close()
                 }
-                PlasmaComponents3.Button {
+                PButton {
                     Layout.fillWidth: true
                     Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     text: i18n("Select")

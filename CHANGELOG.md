@@ -2,7 +2,19 @@
 
 ## Unreleased
 
+### New: optional style "Kante" (Desktop and app)
+- Display settings (app: Settings) → Style: **Kante** is Plasmai's own look from the shrippen design: warm Gruvbox colors (light variant with a light theme), square controls, cards with a cut corner, Rajdhani titles and monospace figures. It deliberately does not follow Breeze; the default stays the Plasma theme and looks as before
+- Kante main view: the timer card shows the activity as the heading and today's strip when nothing runs; favorites are tiles, Recent is a time line with times and durations
+- The popup stays translucent: Kante only tints surfaces, Plasma's blur shows through
+
+### App
+- Pull to refresh on every page: timer, statistics, film day, trips, favorites, add entry, settings and connection reload their data
+
+### Translations
+- French, Spanish, Italian, Dutch, Brazilian Portuguese, Polish, Ukrainian, Russian, Japanese and Chinese now also cover the film day view, trips and the new settings (before, only German had them)
+
 ### Removed
+- Film days are no longer kept on the device: without the Drehzettel plugin, without an engagement or while the server cannot be reached, the film day view saves begin and end only. The offline queue, the offer to copy local film days to the plugin and the review of differing days are gone (Plasmai works with online data only; this replaces the local mode described under 2.0.0)
 - Color distinction and the Maintenance settings tab (app: "Color maintenance"): Plasmai now shows the Kimai colors as they are. Similar colors are handled by a separate Kimai plugin
 - The settings "Make similar colors distinctive" and "Similarity threshold" are gone
 
@@ -15,9 +27,7 @@
 
 ### Film day (Desktop and app)
 - Several entries of the same project on one day: the view says so and can merge them into one entry (the others are deleted after saving); before, only one was updated and the work time was wrong
-- Film days kept on the device (without the Drehzettel plugin) are stored per profile and Kimai server, so two servers with the same project id no longer share a day; older entries are still shown
-- The app and the Plasmoid no longer overwrite each other's film days on the same computer: film day data is merged into shared.json per day and reloaded when the view opens
-- Review of film days that differ between this device and the Drehzettel plugin after copying them to the server: both values side by side, per day keep the server values or send the ones from this device (before, the server values were kept without a choice)
+- If the film day extras cannot be saved, the view says so; save again
 
 ## 2.0.0
 

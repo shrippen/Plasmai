@@ -41,4 +41,30 @@ TestCase {
         var segs = DateTimeFormat.digitSegments("13.08.2026")
         verify(segs.length >= 3)
     }
+
+    function test_hoursMinutes() {
+        compare(DateTimeFormat.hoursMinutes(0), "0:00")
+        compare(DateTimeFormat.hoursMinutes(5 * 60 + 59), "0:05")
+        compare(DateTimeFormat.hoursMinutes(88 * 60), "1:28")
+        compare(DateTimeFormat.hoursMinutes(50 * 3600 + 34 * 60), "50:34")
+        compare(DateTimeFormat.hoursMinutes(-(15 * 3600 + 31 * 60)), "−15:31")
+    }
+
+    function test_entryTimeLabel() {
+        var now = new Date(2026, 8, 26, 16, 0, 0)
+        var clock = function(h, m) { return DateTimeFormat.formatLocaleTime(h, m) }
+        // same day: begin – end, running: begin – now label
+        compare(DateTimeFormat.entryTimeLabel(new Date(2026, 8, 26, 7, 42), new Date(2026, 8, 26, 9, 40), now, "now"),
+                clock(7, 42) + " – " + clock(9, 40))
+        compare(DateTimeFormat.entryTimeLabel(new Date(2026, 8, 26, 7, 42), null, now, "now"),
+                clock(7, 42) + " – now")
+        // this week: short weekday + begin
+        compare(DateTimeFormat.entryTimeLabel(new Date(2026, 8, 24, 13, 20), new Date(2026, 8, 24, 14, 0), now, "now"),
+                Qt.locale().dayName(new Date(2026, 8, 24).getDay(), 1) + " " + clock(13, 20))
+        // older: day + short month + begin
+        compare(DateTimeFormat.entryTimeLabel(new Date(2026, 8, 12, 8, 5), new Date(2026, 8, 12, 9, 0), now, "now"),
+                "12 " + Qt.locale().standaloneMonthName(8, 1) + " " + clock(8, 5))
+        compare(DateTimeFormat.entryTimeLabel(null, null, now, "now"), "")
+        compare(DateTimeFormat.entryTimeLabel("not a date", null, now, "now"), "")
+    }
 }

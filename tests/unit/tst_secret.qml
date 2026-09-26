@@ -67,7 +67,7 @@ TestCase {
     }
 
     function test_sharedConfigLargeIsChunked() {
-        // Film-day extras live in shared.json and grow past one argv (128 KiB).
+        // shared.json can grow past one argv (128 KiB).
         var big = ""
         for (var i = 0; i < 200000; i++) {
             big += "x"

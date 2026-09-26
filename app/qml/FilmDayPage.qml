@@ -10,6 +10,7 @@ import "shared"
 
 Kirigami.Page {
     id: page
+    KantePageTitle { page: page }
     title: i18n("Film day")
 
     property bool loadingFilmDay: false
@@ -52,7 +53,7 @@ Kirigami.Page {
                     }
                     filmDayView.applyLoadedDay(date, match, day,
                         KimaiApi.customerCurrencyOfProject(root.projectById(entryProjectId), root.customers),
-                        root.filmDayMigrationCount(), others)
+                        others)
                 })
             })
     }
@@ -61,20 +62,6 @@ Kirigami.Page {
         var next = new Date(page.selectedDate)
         next.setDate(next.getDate() + deltaDays)
         loadForDate(next)
-    }
-
-    function runMigration() {
-        if (filmDayView.migrationBusy || root.filmDayMode !== FilmDaySync.Mode.SERVER) return
-        var ctx = root.filmDayContext()
-        var candidates = FilmDaySync.migrationCandidates(ctx, root.projectIdsOfCatalog())
-        if (candidates.length === 0) return
-        filmDayView.migrationBusy = true
-        FilmDaySync.migrate(ctx, candidates, function(report) {
-            filmDayView.migrationBusy = false
-            root.persistFilmDayKeys({ filmDaysJson: FilmDays.serialize(report.localMap) })
-            filmDayView.showMigrationReport(report)
-            page.loadForDate(page.selectedDate)
-        })
     }
 
     function doSave(projectId, activityId, beginText, endText, filmDayFields) {
@@ -119,10 +106,6 @@ Kirigami.Page {
                 root.showPassiveNotification(ApiErrors.text(result.error))
                 return
             }
-            var patch = {}
-            if (result.localMap) patch.filmDaysJson = FilmDays.serialize(result.localMap)
-            if (result.pendingMap) patch.filmDaysPending = FilmDaySync.serializePending(result.pendingMap)
-            if (Object.keys(patch).length > 0) root.persistFilmDayKeys(patch)
             function finish(deleteReport) {
                 if (deleteReport && deleteReport.failed.length > 0) {
                     // Stay on the page: the day still has more than one entry.
@@ -132,11 +115,9 @@ Kirigami.Page {
                     page.loadForDate(page.selectedDate)
                     return
                 }
-                if (result.extras === "queued") {
-                    root.showPassiveNotification(i18n("Begin and end were saved. The film day extras could not be sent and will be retried."))
-                } else if (result.extras === "rejected") {
-                    // Stay on the page so the field can be fixed.
-                    root.showPassiveNotification(i18n("Begin and end were saved, but the server rejected the film day extras: %1",
+                if (result.extras === "failed") {
+                    // Stay on the page so the field can be fixed or the save repeated.
+                    root.showPassiveNotification(i18n("Begin and end were saved, but the film day extras were not: %1",
                                                       (result.error && result.error.detail) || ApiErrors.text(result.error)))
                     page.loadForDate(page.selectedDate)
                     return
@@ -167,11 +148,8 @@ Kirigami.Page {
             root.refreshAll()
         }
         page.loadingFilmDay = true
-        root.reloadFilmDayData(function() {
-            root.resolveFilmDayMode(false, function() {
-                root.flushFilmDayPending()
-                page.loadForDate(page.selectedDate)
-            })
+        root.resolveFilmDayMode(false, function() {
+            page.loadForDate(page.selectedDate)
         })
     }
 
@@ -209,17 +187,6 @@ Kirigami.Page {
                     page.doSave(projectId, activityId, beginText, endText, filmDayFields)
                 }
                 onCancelled: pageStack.pop()
-                onMigrationRequested: page.runMigration()
-                conflictCount: root.filmDayConflictCount()
-                onConflictReviewRequested: {
-                    var p = pageStack.push(filmDayConflictsPageComponent)
-                    if (p) p.closed.connect(function() { page.loadForDate(page.selectedDate) })
-                }
-                onMigrationDismissed: {
-                    root.filmDayMigrationDismissed = true
-                    filmDayView.migrationCount = 0
-                    filmDayView.migrationReport = ""
-                }
                 onCreateProjectRequested: { createEntityDialog.customers = root.customers; createEntityDialog.resetForMode("project"); createEntityDialog.open() }
                 onCreateActivityRequested: {
                     createEntityDialog.selectedProjectId = filmDayView.projectCombo.currentItem ? filmDayView.projectCombo.currentItem.value.id : null
@@ -237,5 +204,15 @@ Kirigami.Page {
             else if (mode === "project") root.createProject(payload)
             else if (mode === "activity") root.createActivity(payload)
         }
+    }
+
+    // Pull to refresh (see shared/PullToRefresh.qml).
+    PullToRefresh {
+        parent: pageScroll
+        anchors.fill: parent
+        z: 10
+        flickable: pageScroll.contentItem
+        busy: page.loadingFilmDay
+        onRefreshRequested: { root.resolveFilmDayMode(true, function() { page.loadForDate(page.selectedDate) }) }
     }
 }

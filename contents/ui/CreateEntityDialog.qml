@@ -10,7 +10,7 @@ import "."
  * Overflow create dialog for customer / project / activity.
  * One form, mode switches fields; pickers stay the normal path.
  */
-QQC2.Dialog {
+PDialog {
     id: root
 
     property string mode: "project" // customer | project | activity
@@ -91,7 +91,7 @@ QQC2.Dialog {
             opacity: 0.85
         }
 
-        QQC2.TextField {
+        PTextField {
             id: nameField
             Layout.fillWidth: true
             Accessible.name: i18n("Name")
@@ -107,6 +107,7 @@ QQC2.Dialog {
         }
 
         QQC2.ComboBox {
+            KanteFieldSkin { control: parent }
             id: customerCombo
             Layout.fillWidth: true
             visible: root.mode === "project"
@@ -127,7 +128,7 @@ QQC2.Dialog {
                                    ? root.customerRows[customerCombo.currentIndex].color
                                    : KimaiApi.DEFAULT_CUSTOMER_COLOR
                     label: visible ? root.customerRows[customerCombo.currentIndex].name : ""
-                    labelPointSize: Kirigami.Theme.defaultFont.pointSize
+                    labelPointSize: Style.defaultFont.pointSize
                     labelBold: false
                     labelOpacity: 1.0
                 }
@@ -158,14 +159,14 @@ QQC2.Dialog {
                     customerRole: true
                     customerColor: modelData.color || KimaiApi.DEFAULT_CUSTOMER_COLOR
                     label: modelData.name
-                    labelPointSize: Kirigami.Theme.defaultFont.pointSize
+                    labelPointSize: Style.defaultFont.pointSize
                     labelBold: false
                     labelOpacity: 1.0
                 }
             }
         }
 
-        PlasmaComponents3.Button {
+        PButton {
             visible: root.mode === "project"
             text: i18n("Create customer")
             icon.name: "list-add"

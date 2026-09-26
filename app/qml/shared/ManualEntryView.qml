@@ -236,7 +236,7 @@ ColumnLayout {
     QQC2.Label {
         Layout.fillWidth: true
         wrapMode: Text.WordWrap
-        font.pointSize: Kirigami.Theme.smallFont.pointSize
+        font.pointSize: Style.smallFont.pointSize
         opacity: 0.8
         text: root.editingExisting
               ? i18n("Change project, activity, range, billable, and tags for this finished entry.")
@@ -338,9 +338,9 @@ ColumnLayout {
             QQC2.Label {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
-                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                font.pointSize: Style.smallFont.pointSize
                 opacity: root.rangeValid ? 0.9 : 0.65
-                color: root.rangeValid ? Kirigami.Theme.textColor : Kirigami.Theme.neutralTextColor
+                color: root.rangeValid ? Style.textColor : Style.neutralTextColor
                 text: {
                     if (root.durationSeconds > 0) {
                         return i18n("Duration: %1", KimaiApi.formatDuration(root.durationSeconds))
@@ -360,7 +360,7 @@ ColumnLayout {
             Layout.alignment: Qt.AlignTop
             spacing: Kirigami.Units.smallSpacing
 
-            QQC2.TextField {
+            PTextField {
                 id: descriptionField
                 Layout.fillWidth: true
                 enabled: root.configured && !root.busy
@@ -384,7 +384,7 @@ ColumnLayout {
         Layout.fillWidth: true
         spacing: Kirigami.Units.smallSpacing
 
-        QQC2.Button {
+        PButton {
             Layout.fillWidth: true
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             enabled: root.configured && !root.busy && root.connectionOk
@@ -406,7 +406,7 @@ ColumnLayout {
             }
         }
 
-        QQC2.Button {
+        PButton {
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             text: i18n("Cancel")
             onClicked: root.cancelled()

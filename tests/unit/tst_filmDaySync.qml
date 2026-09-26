@@ -5,7 +5,7 @@ import "../../contents/code/filmDays.js" as FilmDays
 import "../../contents/code/filmDaySync.js" as Sync
 
 /**
- * filmDaySync.js (mode, load, two-step save, pending queue, migration)
+ * filmDaySync.js (mode, load, two-step save; online only, nothing on the device)
  * against a fake XMLHttpRequest. Responses are consumed in request order.
  */
 TestCase {
@@ -95,7 +95,7 @@ TestCase {
 
     function ctx(mode, extra) {
         var c = { url: "http://k", token: "t", profileKey: Sync.profileKey("p1", "http://k"),
-                  mode: mode, ping: ping(), localMap: {}, pendingMap: {}, memo: {}, nowMs: 5000 }
+                  mode: mode, ping: ping(), memo: {}, nowMs: 5000 }
         for (var k in (extra || {})) c[k] = extra[k]
         return c
     }
@@ -115,7 +115,7 @@ TestCase {
         compare(again.probeCache, null)
     }
 
-    function test_resolveModeLocalNoPermissionOffline() {
+    function test_resolveModeNoPluginNoPermissionOffline() {
         responses = [{ status: 404, body: {} },
                      { status: 200, body: { apiVersions: ["v1"], permissions: { view: false, manage: false } } },
                      { status: 0 }]
@@ -123,20 +123,18 @@ TestCase {
         Sync.resolveMode("http://k", "t", "a", {}, {}, function(x) { r.push(x) })
         Sync.resolveMode("http://k", "t", "b", {}, {}, function(x) { r.push(x) })
         Sync.resolveMode("http://k", "t", "c", {}, {}, function(x) { r.push(x) })
-        compare(r[0].mode, "local")
+        compare(r[0].mode, "noPlugin")
         compare(r[1].mode, "noPermission")
         compare(r[2].mode, "offline")
         compare(r[2].probeCache, null)
     }
 
-    function test_loadLocal() {
-        var c = ctx("local", { localMap: FilmDays.set({}, 3, "2026-09-14", { breakMinutes: 20, catering: "yes" }) })
+    function test_loadNoPluginSkipsRequest() {
         var got = null
-        Sync.loadDay(c, 3, "2026-09-14", function(r) { got = r })
+        Sync.loadDay(ctx("noPlugin"), 3, "2026-09-14", function(r) { got = r })
         compare(requests.length, 0)
-        compare(got.mode, "local")
-        compare(got.fields.breakMinutes, 20)
-        compare(got.fields.catering, "yes")
+        compare(got.mode, "noPlugin")
+        verify(!Sync.extrasVisible(got.mode))
     }
 
     function test_loadServerWithRulesetAndSummary() {
@@ -199,7 +197,7 @@ TestCase {
         compare(got.mode, "noProject")
     }
 
-    function test_loadOfflineShowsLastSeen() {
+    function test_loadOfflineHidesExtras() {
         var c = ctx("server", { ping: ping([]) })
         responses = [{ status: 200, body: serverDay({ note: "seen" }) },
                      { status: 200, body: { active: true, rulesetName: "R" } },
@@ -209,25 +207,18 @@ TestCase {
         Sync.loadDay(c, 1, "2026-09-14", function(r) { second = r })
         compare(first.mode, "server")
         compare(second.mode, "offline")
-        compare(second.fields.note, "seen")
+        // online only: nothing seen earlier is shown again
+        compare(second.fields.note, "")
+        compare(second.server, null)
+        verify(second.error !== null)
+        verify(!Sync.extrasVisible(second.mode))
         verify(!Sync.extrasEditable(second.mode))
-        verify(Sync.extrasVisible(second.mode))
-    }
-
-    function test_loadShowsQueuedPatch() {
-        var c = ctx("server", { ping: ping([]) })
-        c.pendingMap[Sync.pendingKey(c.profileKey, 1, "2026-09-14")] = { patch: { note: "queued" }, base: { note: null } }
-        responses = [{ status: 200, body: serverDay() }, { status: 200, body: { active: true } }]
-        var got = null
-        Sync.loadDay(c, 1, "2026-09-14", function(r) { got = r })
-        verify(got.pending)
-        compare(got.fields.note, "queued")
     }
 
     function saveReq(fields, server, existingId) {
         return { projectId: 1, dateStr: "2026-09-14", existingId: existingId,
                  timesheetFields: { begin: "2026-09-14T09:00:00", end: "2026-09-14T18:00:00", project: 1, activity: 2 },
-                 fields: fields, server: server }
+                 fields: fields, server: server, dayMode: Sync.Mode.SERVER }
     }
 
     function test_saveServerTwoStepOnlyChangedKeys() {
@@ -245,7 +236,6 @@ TestCase {
         verify(got.ok)
         compare(got.extras, "saved")
         compare(got.server.note, "Nacht")
-        compare(got.localMap, null)
     }
 
     function test_saveUnchangedSkipsPut() {
@@ -267,33 +257,27 @@ TestCase {
         compare(got.stage, "timesheet")
     }
 
-    function test_saveTransientPutIsQueued() {
+    function test_saveTransientPutIsReported() {
         var server = serverDay()
         var fields = FilmDays.fromApi(server)
         fields.catering = "yes"
         responses = [{ status: 200, body: { id: 5 } }, { status: 0 }]
-        var c = ctx("server")
         var got = null
-        Sync.saveDay(c, saveReq(fields, server, 5), function(r) { got = r })
+        Sync.saveDay(ctx("server"), saveReq(fields, server, 5), function(r) { got = r })
         verify(got.ok)
-        compare(got.extras, "queued")
-        var q = got.pendingMap[Sync.pendingKey(c.profileKey, 1, "2026-09-14")]
-        compare(q.patch.catering, true)
-        compare(q.base.catering, false)
-        compare(Sync.countPending(got.pendingMap, c.profileKey), 1)
-        compare(Sync.countPending(got.pendingMap, "other"), 0)
+        compare(got.extras, "failed")
+        verify(!got.hasOwnProperty("pendingMap"))
     }
 
-    function test_save400IsRejectedNotQueued() {
+    function test_save400IsReported() {
         var server = serverDay()
         var fields = FilmDays.fromApi(server)
         fields.breakMinutes = 30
         responses = [{ status: 200, body: { id: 5 } }, { status: 400, body: { error: "bad", code: "invalid_value" } }]
         var got = null
         Sync.saveDay(ctx("server"), saveReq(fields, server, 5), function(r) { got = r })
-        compare(got.extras, "rejected")
+        compare(got.extras, "failed")
         compare(got.error.code, "invalid_value")
-        compare(got.pendingMap, null)
     }
 
     function test_saveNoEngagementSkipsExtras() {
@@ -309,37 +293,16 @@ TestCase {
         compare(got.extras, "skipped")
     }
 
-    function test_saveLocalMode() {
+    function test_saveNoPluginSkipsExtras() {
         responses = [{ status: 200, body: { id: 5 } }]
         var fields = FilmDays.entryDefaults()
         fields.note = "lokal"
+        var req = saveReq(fields, null, 5)
+        req.dayMode = Sync.Mode.NO_PLUGIN
         var got = null
-        var c = ctx("local")
-        Sync.saveDay(c, saveReq(fields, null, 5), function(r) { got = r })
+        Sync.saveDay(ctx("noPlugin"), req, function(r) { got = r })
         compare(requests.length, 1)
-        compare(got.extras, "local")
-        compare(FilmDays.get(got.localMap, 1, "2026-09-14", c.profileKey).note, "lokal")
-        // B8: stored under profile + server, not under the bare project id
-        verify(got.localMap["p1|http://k|1|2026-09-14"] !== undefined)
-        verify(got.localMap["1|2026-09-14"] === undefined)
-        compare(FilmDays.get(got.localMap, 1, "2026-09-14", Sync.profileKey("p2", "http://other")).note, "")
-    }
-
-    function test_loadLocalPrefersOwnOverLegacy() {
-        var legacy = FilmDays.entryDefaults()
-        legacy.note = "legacy"
-        var own = FilmDays.entryDefaults()
-        own.note = "own"
-        var map = FilmDays.set({}, 3, "2026-09-14", legacy)
-        var c = ctx("local", { localMap: map })
-        var got = null
-        Sync.loadDay(c, 3, "2026-09-14", function(r) { got = r })
-        compare(got.fields.note, "legacy")
-        c.localMap = FilmDays.set(map, 3, "2026-09-14", own, c.profileKey)
-        Sync.loadDay(c, 3, "2026-09-14", function(r) { got = r })
-        compare(got.fields.note, "own")
-        // the legacy entry stays for other profiles
-        compare(c.localMap["3|2026-09-14"].note, "legacy")
+        compare(got.extras, "skipped")
     }
 
     function test_deleteEntriesReportsFailures() {
@@ -355,181 +318,15 @@ TestCase {
         compare(got.failed[0].error.status, 403)
     }
 
-    function test_saveOldPluginKeepsExtraPayLocal() {
+    function test_saveOldPluginNeverSendsExtraPay() {
         var server = serverDay()
         delete server.extraPayCents
         var fields = FilmDays.fromApi(server)
         fields.extraPayCents = 1200
         responses = [{ status: 200, body: { id: 5 } }]
         var got = null
-        var c = ctx("server")
-        Sync.saveDay(c, saveReq(fields, server, 5), function(r) { got = r })
+        Sync.saveDay(ctx("server"), saveReq(fields, server, 5), function(r) { got = r })
         compare(requests.length, 1)
         compare(got.extras, "unchanged")
-        compare(FilmDays.get(got.localMap, 1, "2026-09-14", c.profileKey).extraPayCents, 1200)
-    }
-
-    function test_flushPendingSendsWhenBaseUnchanged() {
-        var c = ctx("server")
-        c.pendingMap[Sync.pendingKey(c.profileKey, 1, "2026-09-14")] = { patch: { catering: true }, base: { catering: false } }
-        c.pendingMap[Sync.pendingKey(c.profileKey, 1, "2026-09-15")] = { patch: { note: "mine" }, base: { note: null } }
-        c.pendingMap["other|http://x|1|2026-09-14"] = { patch: { note: "x" }, base: { note: null } }
-        responses = [
-            { status: 200, body: serverDay() },                          // 14th: unchanged → PUT
-            { status: 200, body: serverDay({ catering: true }) },
-            { status: 200, body: serverDay({ note: "theirs" }) }         // 15th: changed → server wins
-        ]
-        var got = null
-        Sync.flushPending(c, function(r) { got = r })
-        compare(requests.length, 3)
-        compare(requests[1].method, "PUT")
-        compare(requests[1].body, '{"catering":true}')
-        compare(got.sent, 1)
-        compare(got.dropped, 1)
-        compare(got.kept, 0)
-        verify(got.pendingMap["other|http://x|1|2026-09-14"] !== undefined)
-    }
-
-    function test_flushPendingStopsWhenOffline() {
-        var c = ctx("server")
-        c.pendingMap[Sync.pendingKey(c.profileKey, 1, "2026-09-14")] = { patch: { catering: true }, base: { catering: false } }
-        responses = [{ status: 0 }]
-        var got = null
-        Sync.flushPending(c, function(r) { got = r })
-        compare(got.kept, 1)
-        compare(got.pendingMap, null)
-    }
-
-    function test_migrateRules() {
-        var map = {}
-        var e = FilmDays.entryDefaults()
-        e.catering = "yes"
-        map = FilmDays.set(map, 1, "2026-09-01", e)   // server empty → push
-        map = FilmDays.set(map, 1, "2026-09-02", e)   // server equal → same
-        map = FilmDays.set(map, 1, "2026-09-03", e)   // server differs → conflict
-        map = FilmDays.set(map, 2, "2026-09-01", e)   // no engagement
-        var c = ctx("server", { localMap: map })
-        var plan = Sync.migrationCandidates(c, [1, 2])
-        compare(plan.length, 4)
-        responses = [
-            { status: 200, body: serverDay() },                                  // 1|09-01 GET
-            { status: 200, body: serverDay({ breakMinutes: 45, catering: true }) }, // 1|09-01 PUT
-            { status: 404, body: { error: "x", code: "no_engagement" } },         // 2|09-01
-            { status: 200, body: serverDay({ breakMinutes: 45, catering: true }) }, // 1|09-02
-            { status: 200, body: serverDay({ breakMinutes: 30 }) }                 // 1|09-03
-        ]
-        var got = null
-        Sync.migrate(c, plan, function(r) { got = r })
-        compare(requests[1].method, "PUT")
-        compare(JSON.parse(requests[1].body).breakMinutes, 45)
-        compare(got.pushed, 1)
-        compare(got.same, 1)
-        compare(got.conflicts.length, 1)
-        compare(got.conflicts[0].date, "2026-09-03")
-        compare(got.noEngagement, 1)
-        verify(!got.stopped)
-        c.localMap = got.localMap
-        compare(Sync.migrationCandidates(c, [1, 2]).length, 0)
-        // local values are kept
-        compare(FilmDays.get(got.localMap, 1, "2026-09-03").catering, "yes")
-    }
-
-    function test_migrateStopsOfflineAndResumes() {
-        var map = FilmDays.set({}, 1, "2026-09-01", FilmDays.entryDefaults())
-        map = FilmDays.set(map, 1, "2026-09-02", FilmDays.entryDefaults())
-        var c = ctx("server", { localMap: map })
-        responses = [{ status: 200, body: serverDay({ breakMinutes: 45 }) }, { status: 0 }]
-        var got = null
-        Sync.migrate(c, Sync.migrationCandidates(c, [1]), function(r) { got = r })
-        verify(got.stopped)
-        compare(got.same, 1)
-        c.localMap = got.localMap
-        compare(Sync.migrationCandidates(c, [1]).length, 1)
-    }
-
-    // ── P6 conflict review ──
-
-    function conflictMap() {
-        var e = FilmDays.entryDefaults()
-        e.catering = "yes"
-        e.note = "lokal"
-        var map = FilmDays.set({}, 1, "2026-09-03", e)
-        map = FilmDays.set(map, 1, "2026-09-04", e)
-        map = FilmDays.set(map, 1, "2026-09-05", e)
-        var pk = Sync.profileKey("p1", "http://k")
-        map = FilmDays.markMigrated(map, "1|2026-09-03", pk, "conflict", "x")
-        map = FilmDays.markMigrated(map, "1|2026-09-04", pk, "conflict", "x")
-        map = FilmDays.markMigrated(map, "1|2026-09-05", pk, "pushed", "x")
-        map = FilmDays.markMigrated(map, "1|2026-09-05", "other|http://x", "conflict", "x")
-        return map
-    }
-
-    function test_conflictCandidatesPerProfile() {
-        var c = ctx("server", { localMap: conflictMap() })
-        var list = Sync.conflictCandidates(c)
-        compare(list.length, 2)
-        compare(list[0].date, "2026-09-03")
-        compare(String(list[0].projectId), "1")
-        compare(list[0].entry.note, "lokal")
-        compare(Sync.countConflicts(ctx("server", { localMap: conflictMap(), profileKey: "other|http://x" })), 1)
-    }
-
-    function test_loadConflictsDiffAndSame() {
-        var c = ctx("server", { localMap: conflictMap() })
-        responses = [
-            { status: 200, body: serverDay({ breakMinutes: 30, note: "server" }) },            // 09-03 differs
-            { status: 200, body: serverDay({ breakMinutes: 45, catering: true, note: "lokal" }) } // 09-04 equal now
-        ]
-        var got = null
-        Sync.loadConflicts(c, Sync.conflictCandidates(c), function(r) { got = r })
-        compare(got.items.length, 2)
-        compare(got.items[0].state, "ready")
-        var fields = got.items[0].diff.map(function(d) { return d.field })
-        compare(fields.join(","), "breakMinutes,catering,note")
-        compare(got.items[0].diff[0].local, 45)
-        compare(got.items[0].diff[0].server, 30)
-        compare(got.items[1].state, "same")
-        verify(got.localMap !== null)
-        c.localMap = got.localMap
-        compare(Sync.countConflicts(c), 1)
-    }
-
-    function test_resolveConflictKeepServer() {
-        var c = ctx("server", { localMap: conflictMap() })
-        var item = Sync.conflictCandidates(c)[0]
-        var got = null
-        Sync.resolveConflict(c, item, false, function(r) { got = r })
-        compare(requests.length, 0)
-        verify(got.ok)
-        compare(got.localMap["1|2026-09-03"].migrated[c.profileKey].result, "resolvedServer")
-        compare(got.localMap["1|2026-09-03"].note, "lokal")   // local copy stays
-    }
-
-    function test_resolveConflictUseLocalSendsDiffAgainstFreshServer() {
-        var c = ctx("server", { localMap: conflictMap() })
-        var item = Sync.conflictCandidates(c)[0]
-        responses = [
-            { status: 200, body: serverDay({ breakMinutes: 45, catering: false, note: "neu" }) },
-            { status: 200, body: serverDay({ breakMinutes: 45, catering: true, note: "lokal" }) }
-        ]
-        var got = null
-        Sync.resolveConflict(c, item, true, function(r) { got = r })
-        compare(requests[1].method, "PUT")
-        compare(requests[1].body, '{"catering":true,"note":"lokal"}')
-        verify(got.ok)
-        compare(got.localMap["1|2026-09-03"].migrated[c.profileKey].result, "resolvedLocal")
-        c.localMap = got.localMap
-        compare(Sync.countConflicts(c), 1)
-    }
-
-    function test_resolveConflictUseLocalFailureKeepsOpen() {
-        var c = ctx("server", { localMap: conflictMap() })
-        var item = Sync.conflictCandidates(c)[0]
-        responses = [{ status: 200, body: serverDay() }, { status: 400, body: { error: "note: too long", code: "invalid_value" } }]
-        var got = null
-        Sync.resolveConflict(c, item, true, function(r) { got = r })
-        verify(!got.ok)
-        compare(got.localMap, null)
-        compare(got.error.detail, "note: too long")
     }
 }

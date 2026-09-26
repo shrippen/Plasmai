@@ -11,14 +11,14 @@ Item {
     id: root
 
     property bool customerRole: false
-    property color customerColor: "#d2d6de"
+    property color customerColor: Style.entityFallbackColor
     property bool showDot: true
     property string label: ""
     property bool labelBold: customerRole
     property real labelOpacity: customerRole ? 0.9 : 1.0
     property int labelPointSize: customerRole
-                                 ? Kirigami.Theme.smallFont.pointSize
-                                 : Kirigami.Theme.defaultFont.pointSize
+                                 ? Style.smallFont.pointSize
+                                 : Style.defaultFont.pointSize
 
     readonly property real slotSize: Kirigami.Units.iconSizes.small * 0.85
     /** Gap after the shared bar slot — larger for projects. */

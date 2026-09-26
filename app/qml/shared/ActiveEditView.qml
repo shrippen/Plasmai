@@ -245,7 +245,7 @@ ColumnLayout {
     QQC2.Label {
         Layout.fillWidth: true
         wrapMode: Text.WordWrap
-        font.pointSize: Kirigami.Theme.smallFont.pointSize
+        font.pointSize: Style.smallFont.pointSize
         opacity: 0.8
         text: i18n("Edit start, project, activity, billable, and tags for the running entry.")
     }
@@ -305,7 +305,7 @@ ColumnLayout {
         Layout.fillWidth: true
         visible: root.overlapGuardEnabled && root.previousEndText.length > 0
         wrapMode: Text.WordWrap
-        font.pointSize: Kirigami.Theme.smallFont.pointSize
+        font.pointSize: Style.smallFont.pointSize
         opacity: 0.75
         text: i18n("Previous entry ended at %1", root.previousEndText)
     }
@@ -313,9 +313,9 @@ ColumnLayout {
     QQC2.Label {
         Layout.fillWidth: true
         wrapMode: Text.WordWrap
-        font.pointSize: Kirigami.Theme.smallFont.pointSize
+        font.pointSize: Style.smallFont.pointSize
         opacity: 0.7
-        color: root.beginValid ? Kirigami.Theme.textColor : Kirigami.Theme.neutralTextColor
+        color: root.beginValid ? Style.textColor : Style.neutralTextColor
         text: root.beginValid
               ? i18n("Elapsed time updates from the new start.")
               : i18n("Start must be a valid time not in the future.")
@@ -336,10 +336,10 @@ ColumnLayout {
         Layout.fillWidth: true
         spacing: Kirigami.Units.smallSpacing
 
-        QQC2.Button {
+        PButton {
             Material.theme: Material.Dark
-            Material.background: Qt.lighter(Kirigami.Theme.backgroundColor, 1.7)
-            Material.foreground: Kirigami.Theme.textColor
+            Material.background: Qt.lighter(Style.backgroundColor, 1.7)
+            Material.foreground: Style.textColor
             Layout.fillWidth: true
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             enabled: root.configured && !root.busy && root.connectionOk
@@ -356,17 +356,17 @@ ColumnLayout {
             }
         }
 
-        QQC2.Button {
+        PButton {
             Material.theme: Material.Dark
-            Material.background: Qt.lighter(Kirigami.Theme.backgroundColor, 1.7)
-            Material.foreground: Kirigami.Theme.textColor
+            Material.background: Qt.lighter(Style.backgroundColor, 1.7)
+            Material.foreground: Style.textColor
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             text: i18n("Cancel")
             onClicked: root.cancelled()
         }
     }
 
-    QQC2.Dialog {
+    PDialog {
         id: overlapDialog
         parent: root.dialogParent || root
         anchors.centerIn: parent
@@ -393,14 +393,14 @@ ColumnLayout {
                 Layout.fillWidth: true
                 spacing: Kirigami.Units.smallSpacing
 
-                QQC2.Button {
+                PButton {
                     Layout.fillWidth: true
                     Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     text: i18n("Set anyway")
                     icon.name: "document-save"
                     onClicked: overlapDialog.accept()
                 }
-                QQC2.Button {
+                PButton {
                     Layout.fillWidth: true
                     Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     text: i18n("Cancel")

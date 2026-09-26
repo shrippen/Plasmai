@@ -91,4 +91,6 @@ ConfigPageBase {
     property var cfg_locationNameDefault
     property var cfg_touchMode
     property var cfg_touchModeDefault
+    property var cfg_visualStyle
+    property var cfg_visualStyleDefault
 }

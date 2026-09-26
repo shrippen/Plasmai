@@ -41,12 +41,11 @@ var SHARED_KEYS = [
     "lastUsedActivityId",
     "lastUsedProjectName",
     "lastUsedActivityName",
-    "filmDaysJson",
-    "filmDaysPending",
     "pluginProbesJson",
     "showTrips",
     "locationName",
-    "touchMode"
+    "touchMode",
+    "visualStyle"
 ]
 
 function applyToConfiguration(config, shared) {
@@ -85,13 +84,13 @@ function applyToConfiguration(config, shared) {
 }
 
 /**
- * Device data kept in shared.json as JSON maps (film days, queued film-day
- * patches, plugin probes). The Plasmoid and the app both write them, so they
+ * Data kept in shared.json as JSON maps (plugin probes). The Plasmoid and
+ * the app both write them, so they
  * are never written as a whole from a possibly stale in-memory copy: callers
  * send them as a three-way merge (mergeDataPatch) and settings-wide writes
  * leave them out (fromConfiguration(config, { withoutDataMaps: true })).
  */
-var DATA_MAP_KEYS = ["filmDaysJson", "filmDaysPending", "pluginProbesJson"]
+var DATA_MAP_KEYS = ["pluginProbesJson"]
 
 function isDataMapKey(key) {
     return DATA_MAP_KEYS.indexOf(key) >= 0

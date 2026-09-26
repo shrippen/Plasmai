@@ -28,6 +28,9 @@ typography stack, badge format, and social-preview spec.
   components (`app/qml/shared/`), and should match the Plasmoid in features
   and look. On the desktop the Plasmoid stays the product; the app is not a
   desktop window or tray replacement.
+- App pages support pull to refresh (`app/qml/shared/PullToRefresh.qml`,
+  attached to each page's scroll view, since the pages use Kirigami.Page +
+  QQC2.ScrollView instead of Kirigami.ScrollablePage).
 - Capability target: Kemai-like time tracking from the panel, with one-click
   recents/favorites and deeper Plasma integration (notifications, idle stop,
   blur, translations).
@@ -175,7 +178,19 @@ typography stack, badge format, and social-preview spec.
 - Use Kirigami / Plasma tokens: `Kirigami.Theme.textColor`, `highlightColor`,
   `positiveTextColor`, `negativeTextColor`, `neutralTextColor`,
   `backgroundColor`, `Kirigami.Units.*`, `Kirigami.Theme.smallFont`.
-- No hardcoded brand palette for chrome. Customer/project colors come from
+- **Visual style:** popup views (`contents/ui/*.qml`) and the app
+  (`app/qml`) read colors, fonts and shapes from the `Style` singleton, not
+  from `Kirigami.Theme` directly. Settings pages (`contents/ui/config`)
+  keep `Kirigami.Theme`. Units and spacing stay `Kirigami.Units` / `TouchUi`.
+  The setting `visualStyle` (shared.json, Display page / app settings)
+  picks one of two styles; the System style is the default and must stay
+  pixel-identical to the plain Plasma look (see "Kante" below).
+- The main view is `TimerCard.qml` / `TimerCardKante.qml` (timer card,
+  loaded by style) plus `EntryLists.qml` (favorites, detected trips, recent,
+  start/switch form). They only lay out state and call actions of the widget
+  root (`widget`); logic stays in `main.qml`.
+- No hardcoded brand palette for chrome in the System style (Kante below is
+  the opt-in exception). Customer/project colors come from
   Kimai (or the distinction map). Default placeholder color is
   `KimaiApi.DEFAULT_CUSTOMER_COLOR` (`#d2d6de`).
 - Brand accent (`#E8DCC4` warm cream from DesignDefault) is used only for
@@ -191,6 +206,47 @@ typography stack, badge format, and social-preview spec.
 - Desktop-widget blur is handled by the Plasma containment via
   `StandardBackground` (the default). Do not set `TranslucentBackground` —
   it bypasses the containment’s blur pipeline.
+
+### Kante (opt-in style that breaks with Breeze)
+
+The one deliberate exception to "theme, not a custom skin": an opt-in style
+built from the [shrippen Design Default](https://github.com/shrippen/shrippen.github.io)
+for people who want Plasmai to look like Plasmai rather than like Breeze.
+
+- **Opt-in, never default.** `visualStyle` 0 = System, 1 = Kante. Switching
+  back restores every Plasma value (`Binding` with `when: Style.kante`, no
+  one-way assignments).
+- **Palette:** Gruvbox dark; with a light Plasma theme the "Leinen" light
+  values (`Style.gruvbox` / `Style.leinen`). The app forces dark on Android
+  (`Style.preferDark`).
+- **Type:** uppercase Rajdhani for titles and buttons, JetBrains Mono for
+  figures (timer, times, durations) and small section labels; body text
+  stays the system font. Fonts ship in `contents/fonts` (SIL OFL) and are
+  only loaded, never installed.
+- **Shape:** square controls; cards and dialogs cut the top-right corner
+  (`KanteCard`, `Style.chamfer`) and carry an accent bar on top.
+- **Translucency:** Kante never paints the popup ground. Plasma's blur and
+  transparency stay; surfaces are tints with alpha (card 60 %, sunken 50 %,
+  dialog 97 %). Color only in small opaque areas (project bars, chart
+  segments, the gold timer, primary buttons). Muted text is one step
+  lighter on glass (`#bdae93`).
+- **Main view:** timer card with the accent-colored timer, activity as the
+  heading, a day strip when idle; favorites as tiles (two per row); Recent as
+  a time line (time · color bar · activity · project · duration).
+- **Controls:** views use the wrappers `PButton` (with `emphasis` Primary /
+  Destructive), `PToolButton`, `PTextField`, `PHeading`, `PDialog`. In the
+  System style they are the plain Plasma / QQC2 controls. In Kante they hide
+  the style's frame and content and draw their own, so disabled states fade
+  instead of taking the platform's disabled colors. `StyleScope` hands the
+  Kante colors to `Kirigami.Theme` for everything else (labels, check boxes,
+  spin boxes); popups need their own (`PDialog`, app `KanteDialogSkin`).
+  Controls that keep their base type get a skin as a child instead:
+  `KanteCheckSkin` (check boxes, switches), `KanteFieldSkin` (spin boxes,
+  combo boxes, text areas), `KanteSliderSkin`, `KantePopupSkin` (menus),
+  `KanteMessageSkin` (inline messages), app `KantePageTitle` (page header).
+  Each hides the style's part and draws its own only while Kante is on.
+- **Panel chip:** keeps the Plasmai mark while tracking, tinted with the
+  accent, square frame.
 
 ### Hierarchy and color bars
 
@@ -240,64 +296,41 @@ typography stack, badge format, and social-preview spec.
   (`FilmDaySync.deleteEntries`; failures are reported, never retried silently). The film-specific extras — break, catering, day category, day type,
   production shooting day, surcharge day, extra pay, note — belong to
   [kimai-drehzettel-bundle](https://github.com/shrippen/kimai-drehzettel-bundle).
-- **Storage follows the plugin** (`filmDaySync.js`, shared by Plasmoid and app so
-  the orchestration exists once):
-  - Plugin answers `ping` with `v1` → **server mode**: the server is the source of
-    truth; the view loads `GET /v1/film-days/{date}?project=` and never keeps a
-    second local copy.
-  - `ping` 404 (or no `v1`) → **local mode**: extras in `shared.json`
-    (`filmDaysJson`, keyed `profileId|url|projectId|date`, see
-    `FilmDays.scopedDayKey`), with an inline hint saying so. Older keys
-    (`projectId|date`) are still read as a fallback for any profile but
-    never written; saving writes the profile's own key and leaves the old one.
-  - Film-day GET 404 (`no_engagement`) → extras hidden, "only begin and end are
-    saved". Missing `drehzettel` permission (`ping.permissions.view` false or 403)
-    → same, with a permission hint. No local fallback in either case.
-  - Network/5xx → last-seen server values, extras disabled, hint.
+- **Online only** (`filmDaySync.js`, shared by Plasmoid and app so the
+  orchestration exists once): the extras live only in the plugin; Plasmai keeps
+  no copy on the device, queues nothing and never compares device and server
+  values.
+  - Plugin answers `ping` with `v1` → **server mode**: the view loads
+    `GET /v1/film-days/{date}?project=` and shows the extras.
+  - `ping` 404 (or no `v1`) → no plugin: extras hidden, "only begin and end are
+    saved".
+  - Film-day GET 404 (`no_engagement`) → extras hidden, same hint. Missing
+    `drehzettel` permission (`ping.permissions.view` false or 403) → same, with
+    a permission hint.
+  - Network/5xx → extras hidden, "only begin and end can be saved right now".
   - Project or day change reloads the day, which is also the engagement check.
     The `user` parameter is never sent (own data only).
 - **Save is two-step**: timesheet first, then `PUT` with **only the keys that differ
   from the loaded server JSON** (`FilmDays.toApiPatch`; keys the server JSON does
-  not have — an older plugin — are never sent). A transient PUT failure queues the
-  patch in `shared.json` `filmDaysPending` (key `profile|url|project|date`) together
-  with the server values it was made against; the queue is retried when the view
-  opens and a patch is only sent if the server still holds those base values —
-  otherwise the server wins and the patch is dropped. A 400/403/404 is shown, not
-  queued.
+  not have — an older plugin — are never sent, so extra pay is hidden there). A
+  failed PUT is reported ("begin and end were saved, the extras were not"); the
+  user saves again.
 - Field mapping (decision D7): Plasmai's old "production day" counter is the
   production's running shooting day → `shootingDayNumber` ("Production shooting
   day"). The server's `productionDay` is a separate override for the day of the
   TV FFS calendar week that drives the 6th/7th-day surcharge ("Surcharge day
-  (1–7, empty = automatic)"), server mode only. Unknown response keys (e.g.
+  (1–7, empty = automatic)"). Unknown response keys (e.g.
   `streakMode`) are ignored. Break 0–720 with a
-  "Default (n min)" option (`null`, the ruleset's `defaultBreakMinutes`); locally
-  there is no ruleset, so 45 is stored explicitly. `catering` yes/no ↔ bool,
+  "Default (n min)" option (`null`, the ruleset's `defaultBreakMinutes`). `catering` yes/no ↔ bool,
   category `""` ↔ `null`, note trimmed, max 500.
 - Earnings show the plugin's day summary (`payCents`, customer currency); Plasmai
   never computes pay itself. Extra pay is entered in the customer's currency.
-- **Migration** (one time per profile and device, after the user confirms in the
-  view): local entries whose project is in the active profile's catalog are sent
-  one by one — server empty → PUT, equal → done, different → server wins and the
-  local entry stays untouched, 404 → stays local. Each entry records
-  `migrated[profileKey]`; nothing is deleted, so a rollback stays possible.
-- **Conflict review** (P6): days with result `conflict` are counted in the
-  view ("n film days differ … Review"). The review (`FilmDayConflicts.qml`;
-  Plasmoid `mainViewMode: "filmconflicts"`, app `FilmDayConflictsPage`) loads
-  each day from the server again and shows only the differing fields, this
-  device vs. server (`FilmDays.diffFields`). Per day: "Keep server values"
-  (result `resolvedServer`, no request) or "Use values from this device"
-  (fresh GET, then PUT of the keys that still differ; result `resolvedLocal`).
-  A day the server meanwhile holds identically becomes `same`; a 404 can only
-  be acknowledged. The conflict state lives in `migrated` (no separate
-  `filmDaysConflicts` key).
-- **Shared data maps** (`filmDaysJson`, `filmDaysPending`, `pluginProbesJson`,
-  `SharedConfig.DATA_MAP_KEYS`) are written by the Plasmoid and the app. Never
-  write them as a whole from memory: `Platform.patchShared(…, patch, bases)`
-  three-way merges each top-level key onto the file as loaded just now
-  (`SharedConfig.mergeMapJson`), writes are queued one at a time per process,
-  both UIs reload the maps when the film day view opens, and the Plasmoid's
-  settings-wide write (`fromConfiguration(…, { withoutDataMaps: true })`)
-  leaves them out.
+- **Shared data maps** (`pluginProbesJson`, `SharedConfig.DATA_MAP_KEYS`) are
+  written by the Plasmoid and the app. Never write them as a whole from memory:
+  `Platform.patchShared(…, patch, bases)` three-way merges each top-level key
+  onto the file as loaded just now (`SharedConfig.mergeMapJson`), writes are
+  queued one at a time per process, and the Plasmoid's settings-wide write
+  (`fromConfiguration(…, { withoutDataMaps: true })`) leaves them out.
 - Same-day begin/end only (no overnight span across midnight), matching the
   reference Android app's day screen.
 

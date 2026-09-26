@@ -8,6 +8,7 @@ import "shared"
 
 Kirigami.Page {
     id: page
+    KantePageTitle { page: page }
     title: page.editMode ? i18n("Edit entry") : i18n("Add entry")
 
     property bool busy: false
@@ -75,12 +76,12 @@ Kirigami.Page {
             RowLayout { Layout.fillWidth: true; spacing: Kirigami.Units.smallSpacing
                 Kirigami.Icon {
                     source: !root.isConfigured ? "network-disconnect" : root.connectionState === "error" ? "network-disconnect" : "network-connect"
-                    color: !root.isConfigured ? Kirigami.Theme.disabledTextColor : root.connectionState === "error" ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.positiveTextColor
+                    color: !root.isConfigured ? Style.disabledTextColor : root.connectionState === "error" ? Style.negativeTextColor : Style.positiveTextColor
                     Layout.preferredWidth: Kirigami.Units.iconSizes.small; Layout.preferredHeight: Kirigami.Units.iconSizes.small
                 }
                 QQC2.Label {
                     text: root.activeProfile ? (root.activeProfile.url || root.activeProfile.provider || "") : ""
-                    color: Qt.alpha(Kirigami.Theme.textColor, 0.7); elide: Text.ElideRight; Layout.fillWidth: true
+                    color: Qt.alpha(Style.textColor, 0.7); elide: Text.ElideRight; Layout.fillWidth: true
                 }
             }
 
@@ -125,5 +126,15 @@ Kirigami.Page {
             else if (mode === "project") root.createProject(payload)
             else if (mode === "activity") root.createActivity(payload)
         }
+    }
+
+    // Pull to refresh (see shared/PullToRefresh.qml).
+    PullToRefresh {
+        parent: pageScroll
+        anchors.fill: parent
+        z: 10
+        flickable: pageScroll.contentItem
+        busy: root.isBusy
+        onRefreshRequested: root.refreshAll()
     }
 }

@@ -22,6 +22,30 @@ Kirigami.ApplicationWindow {
     signal switchConfirmRequested()
     Material.theme: Material.Dark
 
+    // ── Visual style (shared.json visualStyle: 0 System, 1 Kante), see shared/Style.qml ──
+    property int visualStyle: 0
+
+    Binding {
+        target: Style
+        property: "kind"
+        value: root.visualStyle
+    }
+    Binding {
+        target: Style
+        property: "preferDark"
+        // Android always runs Material Dark (main.cpp), whatever Kirigami reports.
+        value: Qt.platform.os === "android"
+    }
+
+    // Kante: Gruvbox ground and accent for the window, Material (Android) and
+    // Kirigami (Plasma Mobile) controls. Restored when switched back.
+    StyleScope { target: root.contentItem }
+    Binding { target: root; property: "color"; value: Style.backgroundColor; when: Style.kante; restoreMode: Binding.RestoreBindingOrValue }
+    Binding { target: root.Material; property: "accent"; value: Style.accentColor; when: Style.kante; restoreMode: Binding.RestoreBindingOrValue }
+    Binding { target: root.Material; property: "background"; value: Style.backgroundColor; when: Style.kante; restoreMode: Binding.RestoreBindingOrValue }
+    Binding { target: root.Material; property: "foreground"; value: Style.textColor; when: Style.kante; restoreMode: Binding.RestoreBindingOrValue }
+    Binding { target: root.Material; property: "primary"; value: Style.backgroundColor; when: Style.kante; restoreMode: Binding.RestoreBindingOrValue }
+
     // ── Provider capabilities (tags, billable, statistics, …) ──
     readonly property var providerCapabilities: TimeTracker.providerCapabilities(providerId)
 
@@ -56,27 +80,21 @@ Kirigami.ApplicationWindow {
     }
 
     // ── Film day extras (break, catering, day type, …), see filmDaySync.js ──
-    // On the Drehzettel plugin when installed, else in shared.json
-    // (filmDaysJson), same as the Plasmoid. filmDaysPending holds patches the
-    // server has not accepted yet; pluginProbesJson the per-profile probe.
-    property string filmDaysJson: ""
-    readonly property var filmDaysMap: FilmDays.parse(filmDaysJson)
-    property string filmDaysPending: ""
-    readonly property var filmDaysPendingMap: FilmDaySync.parsePending(filmDaysPending)
+    // Only on the Drehzettel plugin (online only); pluginProbesJson holds the
+    // per-profile probe.
     property string pluginProbesJson: ""
     readonly property var pluginProbeCache: KimaiApi.parsePluginCache(pluginProbesJson)
-    property string filmDayMode: FilmDaySync.Mode.LOCAL
+    property string filmDayMode: FilmDaySync.Mode.NO_PLUGIN
     property var filmDayPing: null
-    /** Plain cache handed to filmDaySync (last-seen days, engagement lists); not reactive. */
+    /** Plain cache handed to filmDaySync (engagement lists); not reactive. */
     property var filmDayMemo: ({})
-    property bool filmDayMigrationDismissed: false
     readonly property string filmDayProfileKey: FilmDaySync.profileKey(activeProfile ? activeProfile.id : "", TimeTracker.resolveUrl(activeProfile))
 
     /**
-     * Write film-day data maps merged onto shared.json key by key, so film
-     * days the Plasmoid saved since the app loaded them are kept (B9).
+     * Write data maps (pluginProbesJson) merged onto shared.json key by key,
+     * so entries the Plasmoid wrote since the app loaded them are kept (B9).
      */
-    function persistFilmDayKeys(patch) {
+    function persistDataMaps(patch) {
         var bases = {}
         for (var key in patch) {
             bases[key] = root[key]
@@ -87,20 +105,7 @@ Kirigami.ApplicationWindow {
                 if (root[k] === patch[k] && written[k] !== patch[k]) root[k] = written[k]
             }
         }, function(err) {
-            console.warn("Plasmai: could not save film day data:", err)
-        })
-    }
-
-    /** Re-read the film-day data maps from shared.json (the Plasmoid may have written them). */
-    function reloadFilmDayData(callback) {
-        Platform.loadShared(null).then(function(shared) {
-            if (shared) {
-                for (var i = 0; i < SharedConfig.DATA_MAP_KEYS.length; i++) {
-                    var k = SharedConfig.DATA_MAP_KEYS[i]
-                    if (typeof shared[k] === "string" && root[k] !== shared[k]) root[k] = shared[k]
-                }
-            }
-            if (callback) callback()
+            console.warn("Plasmai: could not save plugin probes:", err)
         })
     }
 
@@ -111,8 +116,6 @@ Kirigami.ApplicationWindow {
             profileKey: filmDayProfileKey,
             mode: filmDayMode,
             ping: filmDayPing,
-            localMap: filmDaysMap,
-            pendingMap: filmDaysPendingMap,
             memo: filmDayMemo,
             tracker: tracker
         }
@@ -121,7 +124,7 @@ Kirigami.ApplicationWindow {
     /** Probe the Drehzettel plugin (cached 24 h per profile in shared.json). */
     function resolveFilmDayMode(force, callback) {
         if (!apiToken || !providerCapabilities.drehzettelApi) {
-            filmDayMode = FilmDaySync.Mode.LOCAL
+            filmDayMode = FilmDaySync.Mode.NO_PLUGIN
             if (callback) callback()
             return
         }
@@ -129,39 +132,9 @@ Kirigami.ApplicationWindow {
                                 pluginProbeCache, { force: !!force }, function(r) {
             filmDayMode = r.mode
             filmDayPing = r.ping
-            if (r.probeCache) persistFilmDayKeys({ pluginProbesJson: JSON.stringify(r.probeCache) })
+            if (r.probeCache) persistDataMaps({ pluginProbesJson: JSON.stringify(r.probeCache) })
             if (callback) callback()
         })
-    }
-
-    function flushFilmDayPending() {
-        if (filmDayMode !== FilmDaySync.Mode.SERVER
-            || FilmDaySync.countPending(filmDaysPendingMap, filmDayProfileKey) === 0) return
-        FilmDaySync.flushPending(filmDayContext(), function(report) {
-            if (report.pendingMap) persistFilmDayKeys({ filmDaysPending: FilmDaySync.serializePending(report.pendingMap) })
-            if (report.dropped > 0) {
-                showPassiveNotification(i18np("A queued film day change was dropped because the day was changed on the server meanwhile.",
-                                              "%1 queued film day changes were dropped because the days were changed on the server meanwhile.",
-                                              report.dropped))
-            }
-        })
-    }
-
-    function projectIdsOfCatalog() {
-        var ids = []
-        for (var i = 0; i < (projects || []).length; i++) ids.push(projects[i].id)
-        return ids
-    }
-
-    /** Open migration conflicts of the active profile (0 outside server mode). */
-    function filmDayConflictCount() {
-        if (filmDayMode !== FilmDaySync.Mode.SERVER) return 0
-        return FilmDaySync.countConflicts(filmDayContext())
-    }
-
-    function filmDayMigrationCount() {
-        if (filmDayMode !== FilmDaySync.Mode.SERVER || filmDayMigrationDismissed) return 0
-        return FilmDaySync.migrationCandidates(filmDayContext(), projectIdsOfCatalog()).length
     }
 
     // ── Trips (kimai-anfahrten / MileageBundle), see mileage.js ──
@@ -191,7 +164,7 @@ Kirigami.ApplicationWindow {
         KimaiApi.detectMileage(url, apiToken, { cache: pluginProbeCache, key: key, force: !!force }, function(det) {
             mileageState = det.state
             mileagePing = det.data || null
-            if (det.cacheEntry) persistFilmDayKeys({ pluginProbesJson: JSON.stringify(KimaiApi.storePluginCache(pluginProbeCache, key, det.cacheEntry)) })
+            if (det.cacheEntry) persistDataMaps({ pluginProbesJson: JSON.stringify(KimaiApi.storePluginCache(pluginProbeCache, key, det.cacheEntry)) })
             if (mileageAvailable && !mileageMeta) {
                 KimaiApi.fetchMileageMeta(url, apiToken, function(r) { if (r.ok) mileageMeta = r.data })
                 KimaiApi.fetchVehicles(url, apiToken, function(r) { if (r.ok) mileageVehicles = r.data })
@@ -412,7 +385,7 @@ Kirigami.ApplicationWindow {
         if (!activeProfile) { apiToken = ""; tokenLoaded = true; return }
         Platform.loadToken(null, activeProfile.id).then(function(token) {
             apiToken = token || ""; tokenLoaded = true; connectionState = token ? "online" : "offline"
-            if (token) { refreshAll(); resolveFilmDayMode(false, flushFilmDayPending); resolveMileage(false) }
+            if (token) { refreshAll(); resolveFilmDayMode(false); resolveMileage(false) }
         }).catch(function() { apiToken = ""; tokenLoaded = true; connectionState = "error" })
     }
 
@@ -715,10 +688,9 @@ Kirigami.ApplicationWindow {
                 if (typeof shared.notifyOnIdleStop === "boolean") notifyOnIdleStop = shared.notifyOnIdleStop
                 if (typeof shared.notifyForgotToStart === "boolean") notifyForgotToStart = shared.notifyForgotToStart
                 if (typeof shared.lastUsedProjectId === "string") lastUsedProjectId = shared.lastUsedProjectId
-                if (typeof shared.filmDaysJson === "string") filmDaysJson = shared.filmDaysJson
-                if (typeof shared.filmDaysPending === "string") filmDaysPending = shared.filmDaysPending
                 if (typeof shared.pluginProbesJson === "string") pluginProbesJson = shared.pluginProbesJson
                 if (typeof shared.showTrips === "boolean") showTrips = shared.showTrips
+                if (typeof shared.visualStyle === "number") visualStyle = shared.visualStyle
                 if (typeof shared.lastUsedActivityId === "string") lastUsedActivityId = shared.lastUsedActivityId
                 if (typeof shared.lastUsedProjectName === "string") lastUsedProjectName = shared.lastUsedProjectName
                 if (typeof shared.lastUsedActivityName === "string") lastUsedActivityName = shared.lastUsedActivityName
@@ -790,7 +762,6 @@ Kirigami.ApplicationWindow {
     Component { id: manualPageComponent; ManualEntryPage { } }
     Component { id: statsPageComponent; StatsPage { } }
     Component { id: filmDayPageComponent; FilmDayPage { } }
-    Component { id: filmDayConflictsPageComponent; FilmDayConflictsPage { } }
     Component { id: tripsPageComponent; TripsPage { } }
     Component { id: tripEditPageComponent; TripEditPage { } }
     Component { id: settingsComponent; SettingsPage { } }

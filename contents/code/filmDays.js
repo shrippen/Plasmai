@@ -2,12 +2,9 @@
 
 /**
  * Film-day extras (break, catering, day category/type, production shooting
- * day, extra pay, note) for the Filmday view. With kimai-drehzettel-bundle
- * installed they live on the server (mapping below, orchestration in
- * filmDaySync.js); without it they stay in shared.json (filmDaysJson), keyed
- * by profile + server + project + date ("<profileId>|<url>|<projectId>|<date>",
- * see scopedDayKey). Older keys have no profile
- * ("<projectId>|<date>"); they are still read as a fallback but never written.
+ * day, extra pay, note) for the Filmday view. They live only in
+ * kimai-drehzettel-bundle on the server (mapping below, orchestration in
+ * filmDaySync.js); Plasmai keeps no copy on the device.
  * Values mirror the plugin's enum strings.
  */
 
@@ -29,59 +26,6 @@ var Catering = {
     NO: "no"
 }
 
-/** Legacy key without profile (B8): only read, never written by the app. */
-function dayKey(projectId, dateStr) {
-    return String(projectId || "") + "|" + String(dateStr || "")
-}
-
-/**
- * Key scoped to one profile and Kimai server (B8): project ids of two
- * Kimai instances must not share a film day. profKey is
- * FilmDaySync.profileKey(profileId, url), the same prefix the pending
- * queue uses.
- */
-function scopedDayKey(profKey, projectId, dateStr) {
-    return String(profKey || "") + "|" + dayKey(projectId, dateStr)
-}
-
-/**
- * { profileKey, projectId, date, legacy } of a filmDaysJson key. Legacy keys
- * ("<projectId>|<date>") have profileKey null.
- */
-function parseDayKey(key) {
-    var parts = String(key || "").split("|")
-    if (parts.length < 2) {
-        return { profileKey: null, projectId: "", date: "", legacy: true }
-    }
-    var date = parts[parts.length - 1]
-    var projectId = parts[parts.length - 2]
-    if (parts.length === 2) {
-        return { profileKey: null, projectId: projectId, date: date, legacy: true }
-    }
-    return { profileKey: parts.slice(0, parts.length - 2).join("|"), projectId: projectId, date: date, legacy: false }
-}
-
-/**
- * The key an entry of (profKey, projectId, date) is read from: the scoped
- * key when it exists, else the legacy key when that exists, else the
- * scoped key (where a save would put it). Without profKey: the legacy key.
- */
-function storedKey(map, projectId, dateStr, profKey) {
-    var legacy = dayKey(projectId, dateStr)
-    if (profKey === undefined || profKey === null) {
-        return legacy
-    }
-    var scoped = scopedDayKey(profKey, projectId, dateStr)
-    var m = map || {}
-    if (Object.prototype.hasOwnProperty.call(m, scoped)) {
-        return scoped
-    }
-    if (Object.prototype.hasOwnProperty.call(m, legacy)) {
-        return legacy
-    }
-    return scoped
-}
-
 function entryDefaults() {
     return {
         breakMinutes: 45,
@@ -93,62 +37,6 @@ function entryDefaults() {
         extraPayCents: 0,
         note: ""
     }
-}
-
-function parse(jsonStr) {
-    if (!jsonStr) {
-        return {}
-    }
-    try {
-        var data = JSON.parse(jsonStr)
-        return (data && typeof data === "object") ? data : {}
-    } catch (e) {
-        return {}
-    }
-}
-
-function serialize(map) {
-    return JSON.stringify(map || {})
-}
-
-/**
- * Entry of (projectId, dateStr) with defaults filled in. With profKey the
- * profile's own entry wins, a legacy entry is the fallback (see storedKey).
- */
-function get(map, projectId, dateStr, profKey) {
-    var key = storedKey(map, projectId, dateStr, profKey)
-    return entryFromStored((map || {})[key])
-}
-
-/** Stored map value → entry with defaults for missing fields (bookkeeping keys dropped). */
-function entryFromStored(stored) {
-    var entry = entryDefaults()
-    if (!stored) {
-        return entry
-    }
-    for (var field in entry) {
-        if (Object.prototype.hasOwnProperty.call(stored, field)) {
-            entry[field] = stored[field]
-        }
-    }
-    return entry
-}
-
-/**
- * Returns a new map with the entry set (does not mutate the input). With
- * profKey it goes to the scoped key; a legacy entry of the same project
- * and day stays untouched (it may belong to another profile).
- */
-function set(map, projectId, dateStr, entry, profKey) {
-    var next = {}
-    var key
-    for (key in (map || {})) {
-        next[key] = map[key]
-    }
-    var target = (profKey === undefined || profKey === null)
-        ? dayKey(projectId, dateStr) : scopedDayKey(profKey, projectId, dateStr)
-    next[target] = entry
-    return next
 }
 
 /** ISO weekday (1=Monday..7=Sunday) as used by KimaiApi.kimaiWeekday. */
@@ -417,12 +305,11 @@ function isEmptyPatch(patch) {
 }
 
 /**
- * Server JSON → local/form entry. `localExtras` supplies fields an older
- * plugin does not store (extraPayCents without the extraPay feature).
+ * Server JSON → form entry. Fields an older plugin does not store
+ * (extraPayCents without the extraPay feature) get their defaults.
  */
-function fromApi(json, localExtras) {
+function fromApi(json) {
     var n = normalizeServer(json)
-    var fallback = localExtras || entryDefaults()
     return {
         breakMinutes: n.hasOwnProperty("breakMinutes") ? n.breakMinutes : null,
         catering: n.catering ? Catering.YES : Catering.NO,
@@ -430,197 +317,7 @@ function fromApi(json, localExtras) {
         dayType: n.dayType || DayType.WORKDAY,
         productionDay: n.shootingDayNumber || null,
         surchargeDay: n.productionDay || null,
-        extraPayCents: n.hasOwnProperty("extraPayCents") ? n.extraPayCents : (Number(fallback.extraPayCents) || 0),
+        extraPayCents: n.hasOwnProperty("extraPayCents") ? n.extraPayCents : 0,
         note: n.note || ""
     }
-}
-
-/** Server has nothing stored for the day (all defaults): safe to push local values. */
-function isServerEmpty(json) {
-    var n = normalizeServer(json)
-    return (n.breakMinutes === null || n.breakMinutes === undefined)
-        && !n.catering
-        && !n.category
-        && (n.dayType === undefined || n.dayType === DayType.WORKDAY)
-        && !n.shootingDayNumber
-        && !n.productionDay
-        && !n.extraPayCents
-        && !n.note
-}
-
-/** Values of `server` for the keys of `patch` (the base a queued patch was made against). */
-function baseForPatch(server, patch) {
-    var norm = normalizeServer(server)
-    var base = {}
-    for (var k in (patch || {})) {
-        base[k] = Object.prototype.hasOwnProperty.call(norm, k) ? norm[k] : null
-    }
-    return base
-}
-
-/** True when the server still holds `base` for every key (nobody changed it meanwhile). */
-function serverMatchesBase(server, base) {
-    var norm = normalizeServer(server)
-    for (var k in (base || {})) {
-        var v = Object.prototype.hasOwnProperty.call(norm, k) ? norm[k] : null
-        if (v !== base[k]) {
-            return false
-        }
-    }
-    return true
-}
-
-/**
- * Local film days that could move to the server for one profile, sorted by
- * date, without a migration result for `profileKey` yet:
- *   - the profile's own (scoped) entries;
- *   - legacy entries without profile (B8) whose project id is in
- *     `projectIds` (the active profile's catalog), unless the profile has
- *     its own entry for that project and day. Two Kimai instances with the
- *     same project id both see such an entry; the server-wins rule keeps
- *     that safe.
- * Other profiles' scoped entries are never offered.
- */
-function planMigration(map, projectIds, profileKey) {
-    var known = {}
-    var i
-    for (i = 0; i < (projectIds || []).length; i++) {
-        known[String(projectIds[i])] = true
-    }
-    var m = map || {}
-    var out = []
-    for (var key in m) {
-        var parts = parseDayKey(key)
-        if (!parts.projectId || !/^\d{4}-\d{2}-\d{2}$/.test(parts.date)) {
-            continue
-        }
-        if (parts.legacy) {
-            if (!known[parts.projectId]
-                || Object.prototype.hasOwnProperty.call(m, scopedDayKey(profileKey, parts.projectId, parts.date))) {
-                continue
-            }
-        } else if (parts.profileKey !== String(profileKey)) {
-            continue
-        }
-        var stored = m[key] || {}
-        if (stored.migrated && stored.migrated[profileKey]) {
-            continue
-        }
-        var entry = entryFromStored(stored)
-        out.push({
-            key: key,
-            projectId: parts.projectId,
-            date: parts.date,
-            entry: entry,
-            noteTruncated: String(entry.note || "").trim().length > NOTE_MAX_LENGTH
-        })
-    }
-    out.sort(function(a, b) {
-        return a.date < b.date ? -1 : (a.date > b.date ? 1 : (a.projectId < b.projectId ? -1 : 1))
-    })
-    return out
-}
-
-/**
- * What migrating one local entry against the server's GET answer does:
- *   { action: "push", patch }  server empty → PUT the local values
- *   { action: "same" }         server already equal
- *   { action: "conflict" }     server has other values → server wins
- * A local break of 45 is sent as explicit 45 (B7: locally a default cannot be
- * told from a deliberate value). A local productionDay 0 is empty (B5).
- */
-function migrationDecision(localEntry, serverJson) {
-    var patch = toApiPatch(localEntry, serverJson)
-    if (isEmptyPatch(patch)) {
-        return { action: "same", patch: {} }
-    }
-    if (isServerEmpty(serverJson)) {
-        return { action: "push", patch: patch }
-    }
-    return { action: "conflict", patch: patch }
-}
-
-/** Returns a new map with the migration result recorded on `key` for `profileKey`. */
-function markMigrated(map, key, profileKey, result, atIso) {
-    var next = {}
-    for (var k in (map || {})) {
-        next[k] = map[k]
-    }
-    var stored = next[key]
-    if (!stored) {
-        return next
-    }
-    var copy = {}
-    for (var f in stored) {
-        copy[f] = stored[f]
-    }
-    var migrated = {}
-    for (var p in (stored.migrated || {})) {
-        migrated[p] = stored.migrated[p]
-    }
-    migrated[profileKey] = { result: String(result), at: String(atIso || "") }
-    copy.migrated = migrated
-    next[key] = copy
-    return next
-}
-
-// ── Conflict review (P6) ─────────────────────────────────────────────────
-// A migration conflict leaves the local entry untouched and records
-// migrated[profileKey].result = "conflict". The review shows local and
-// server values side by side; the user keeps the server values
-// ("resolvedServer", nothing is sent) or sends the local ones
-// ("resolvedLocal", PUT of the differing keys). Local entries stay either way.
-
-var ConflictResult = {
-    OPEN: "conflict",
-    LOCAL: "resolvedLocal",
-    SERVER: "resolvedServer"
-}
-
-/** Open conflicts of one profile: [{ key, projectId, date, entry }], sorted by date. */
-function conflictsForProfile(map, profileKey) {
-    var out = []
-    for (var key in (map || {})) {
-        var stored = map[key] || {}
-        var mark = stored.migrated ? stored.migrated[profileKey] : null
-        if (!mark || mark.result !== ConflictResult.OPEN) {
-            continue
-        }
-        var i = String(key).lastIndexOf("|")
-        if (i < 0) {
-            continue
-        }
-        var head = String(key).substring(0, i)
-        var projectId = head.substring(head.lastIndexOf("|") + 1)
-        var date = String(key).substring(i + 1)
-        var entry = entryDefaults()
-        for (var field in entry) {
-            if (Object.prototype.hasOwnProperty.call(stored, field)) {
-                entry[field] = stored[field]
-            }
-        }
-        out.push({ key: key, projectId: projectId, date: date, entry: entry })
-    }
-    out.sort(function(a, b) {
-        return a.date < b.date ? -1 : (a.date > b.date ? 1 : (a.projectId < b.projectId ? -1 : 1))
-    })
-    return out
-}
-
-/**
- * Fields where the local entry and the server differ, in API terms:
- * [{ field, local, server }] (API_FIELDS order). Keys the server JSON does
- * not have (older plugin) are left out, like toApiPatch.
- */
-function diffFields(localEntry, serverJson) {
-    var patch = toApiPatch(localEntry, serverJson)
-    var norm = normalizeServer(serverJson)
-    var out = []
-    for (var i = 0; i < API_FIELDS.length; i++) {
-        var key = API_FIELDS[i]
-        if (Object.prototype.hasOwnProperty.call(patch, key)) {
-            out.push({ field: key, local: patch[key], server: Object.prototype.hasOwnProperty.call(norm, key) ? norm[key] : null })
-        }
-    }
-    return out
 }

@@ -11,6 +11,7 @@ import "."
  */
 Kirigami.Dialog {
     id: root
+    KanteDialogSkin { dialog: root }
 
     property string mode: "project" // customer | project | activity
     property var customers: []
@@ -90,7 +91,7 @@ Kirigami.Dialog {
             opacity: 0.85
         }
 
-        QQC2.TextField {
+        PTextField {
             id: nameField
             Layout.fillWidth: true
             Accessible.name: i18n("Name")
@@ -105,6 +106,7 @@ Kirigami.Dialog {
         }
 
         QQC2.ComboBox {
+            KanteFieldSkin { control: parent }
             id: customerCombo
             Layout.fillWidth: true
             visible: root.mode === "project"
@@ -124,7 +126,7 @@ Kirigami.Dialog {
                                    ? root.customerRows[customerCombo.currentIndex].color
                                    : KimaiApi.DEFAULT_CUSTOMER_COLOR
                     label: visible ? root.customerRows[customerCombo.currentIndex].name : ""
-                    labelPointSize: Kirigami.Theme.defaultFont.pointSize
+                    labelPointSize: Style.defaultFont.pointSize
                     labelBold: false
                     labelOpacity: 1.0
                 }
@@ -155,14 +157,14 @@ Kirigami.Dialog {
                     customerRole: true
                     customerColor: modelData.color || KimaiApi.DEFAULT_CUSTOMER_COLOR
                     label: modelData.name
-                    labelPointSize: Kirigami.Theme.defaultFont.pointSize
+                    labelPointSize: Style.defaultFont.pointSize
                     labelBold: false
                     labelOpacity: 1.0
                 }
             }
         }
 
-        QQC2.Button {
+        PButton {
             visible: root.mode === "project"
             text: i18n("Create customer")
             icon.name: "list-add"

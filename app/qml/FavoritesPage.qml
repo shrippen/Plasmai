@@ -7,6 +7,7 @@ import "shared"
 
 Kirigami.Page {
     id: page
+    KantePageTitle { page: page }
     title: i18n("Favorites")
 
     property var expandedProjectId: null
@@ -96,5 +97,15 @@ Kirigami.Page {
 
             Item { Layout.fillHeight: true; Layout.minimumHeight: Kirigami.Units.largeSpacing }
         }
+    }
+
+    // Pull to refresh (see shared/PullToRefresh.qml).
+    PullToRefresh {
+        parent: pageScroll
+        anchors.fill: parent
+        z: 10
+        flickable: pageScroll.contentItem
+        busy: root.isBusy
+        onRefreshRequested: root.refreshAll()
     }
 }

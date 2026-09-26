@@ -43,7 +43,7 @@ Item {
         width: root.axisWidth
         visible: root.maxSeconds > 0
         horizontalAlignment: Text.AlignRight
-        font.pointSize: Kirigami.Theme.smallFont.pointSize - 1
+        font.pointSize: Style.smallFont.pointSize - 1
         opacity: 0.55
         elide: Text.ElideRight
         text: i18n("Time")
@@ -64,7 +64,7 @@ Item {
             anchors.right: parent.right
             anchors.top: parent.top
             horizontalAlignment: Text.AlignRight
-            font.pointSize: Kirigami.Theme.smallFont.pointSize - 1
+            font.pointSize: Style.smallFont.pointSize - 1
             opacity: 0.65
             elide: Text.ElideRight
             text: KimaiApi.formatDurationShort(root.maxSeconds)
@@ -74,7 +74,7 @@ Item {
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
             horizontalAlignment: Text.AlignRight
-            font.pointSize: Kirigami.Theme.smallFont.pointSize - 1
+            font.pointSize: Style.smallFont.pointSize - 1
             opacity: 0.65
             elide: Text.ElideRight
             text: KimaiApi.formatDurationShort(Math.round(root.maxSeconds / 2))
@@ -84,7 +84,7 @@ Item {
             anchors.right: parent.right
             anchors.bottom: parent.bottom
             horizontalAlignment: Text.AlignRight
-            font.pointSize: Kirigami.Theme.smallFont.pointSize - 1
+            font.pointSize: Style.smallFont.pointSize - 1
             opacity: 0.65
             text: "0"
         }
@@ -106,7 +106,7 @@ Item {
                 width: plot.width
                 height: 1
                 y: plot.height * (index / root.gridLineCount)
-                color: Kirigami.Theme.textColor
+                color: Style.textColor
                 opacity: index === root.gridLineCount ? 0.22 : 0.1
             }
         }
@@ -164,7 +164,7 @@ Item {
                                     anchors.fill: parent
                                     color: (stackSeg.stack && stackSeg.stack.color)
                                            ? stackSeg.stack.color
-                                           : Kirigami.Theme.highlightColor
+                                           : Style.highlightColor
                                 }
 
                                 MouseArea {
@@ -200,7 +200,7 @@ Item {
                         anchors.horizontalCenter: parent.horizontalCenter
                         width: parent.width
                         horizontalAlignment: Text.AlignHCenter
-                        font.pointSize: Kirigami.Theme.smallFont.pointSize - 1
+                        font.pointSize: Style.smallFont.pointSize - 1
                         opacity: 0.7
                         text: (dayCol.day && dayCol.day.label) ? dayCol.day.label : ""
                     }

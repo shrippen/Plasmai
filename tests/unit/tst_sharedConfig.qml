@@ -223,26 +223,30 @@ TestCase {
     }
 
     function test_mergeDataPatchOnlyTouchesDataMaps() {
-        var existing = { filmDaysJson: JSON.stringify({ k1: 1 }), recentCount: 5 }
+        var existing = { pluginProbesJson: JSON.stringify({ k1: 1 }), recentCount: 5 }
         var patch = SharedConfig.mergeDataPatch(existing,
-            { filmDaysJson: "{}" },
-            { filmDaysJson: JSON.stringify({ k2: 2 }), recentCount: 7 })
-        compare(JSON.parse(patch.filmDaysJson).k1, 1)
-        compare(JSON.parse(patch.filmDaysJson).k2, 2)
+            { pluginProbesJson: "{}" },
+            { pluginProbesJson: JSON.stringify({ k2: 2 }), recentCount: 7 })
+        compare(JSON.parse(patch.pluginProbesJson).k1, 1)
+        compare(JSON.parse(patch.pluginProbesJson).k2, 2)
         compare(patch.recentCount, 7)
         // without a base the value is written as is
-        var plain = SharedConfig.mergeDataPatch(existing, {}, { filmDaysJson: "{}" })
-        compare(plain.filmDaysJson, "{}")
+        var plain = SharedConfig.mergeDataPatch(existing, {}, { pluginProbesJson: "{}" })
+        compare(plain.pluginProbesJson, "{}")
     }
 
     function test_fromConfigurationWithoutDataMaps() {
-        var config = { recentCount: 3, filmDaysJson: "{}", filmDaysPending: "{}", pluginProbesJson: "{}" }
+        var config = { recentCount: 3, pluginProbesJson: "{}" }
         var all = SharedConfig.fromConfiguration(config)
-        compare(all.filmDaysJson, "{}")
+        compare(all.pluginProbesJson, "{}")
         var settings = SharedConfig.fromConfiguration(config, { withoutDataMaps: true })
         compare(settings.recentCount, 3)
-        verify(!settings.hasOwnProperty("filmDaysJson"))
-        verify(!settings.hasOwnProperty("filmDaysPending"))
         verify(!settings.hasOwnProperty("pluginProbesJson"))
+    }
+
+    function test_filmDayMapsAreNoLongerShared() {
+        // Online only: film days are never kept in shared.json.
+        verify(SharedConfig.SHARED_KEYS.indexOf("filmDaysJson") < 0)
+        verify(SharedConfig.SHARED_KEYS.indexOf("filmDaysPending") < 0)
     }
 }

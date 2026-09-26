@@ -45,9 +45,9 @@ flowchart LR
 
 ### Film day view with the Drehzettel plugin (Plasmoid and app)
 
-- `filmDaySync.js`: plugin probe per profile, engagement gating, only changed fields sent, offline queue (`filmDaysPending`), server wins.
+- `filmDaySync.js`: plugin probe per profile, engagement gating, only changed fields sent. Online only: no copy on the device, no queue.
 - All plugin fields: `breakMinutes`, `catering`, `category`, `note`, `dayType`, `productionDay` (1–7), `shootingDayNumber`, `extraPayCents`; earnings from the day summary.
-- Migration of local days, conflict review (keep server / use this device), merge of several entries per day, per-profile local keys.
+- Merge of several entries per day. The local mode, offline queue, migration and conflict review of the first 2.0 builds were removed again (online only).
 
 ### Trips with the Anfahrten plugin (MileageBundle, Plasmoid and app)
 
@@ -120,7 +120,7 @@ The Plasmoid lags the app:
 Both:
 
 - Component copies drift (`app/qml/shared/` vs `contents/ui/`: StatsView, FilmDayView, DaySparkline, ActiveEditView). Goal: one source.
-- Plugin views (film day, conflicts, trips) are unit-tested and live-replayed but not yet checked rendered.
+- Plugin views (film day, trips) are unit-tested and live-replayed but not yet checked rendered.
 
 ### 4. Plasma extras — optional, not blocking
 
@@ -185,7 +185,7 @@ Not required for 2.0.
 - Compact **week timesheet grid** as another `mainViewMode` (SolidTime / Clockify), same density as stats.
 - Map **KDE Activities** to a default project (easy to get wrong).
 - **Pomodoro** as a Behavior option — not a second product.
-- Offline **queue** of start/stop if the API is down (film-day extras already queue). Do not fake local timesheets.
+- ~~Offline queue~~ — won't do: Plasmai works with online data only.
 - “Template” / reload last timesheet without starting (Kemai).
 - Anfahrten: tax report (`/tax`), receipts.
 - Desktop-widget blur already follows the containment; theme-specific `blurred` prefixes stay a Plasma theme concern.

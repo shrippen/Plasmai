@@ -46,6 +46,7 @@ ColumnLayout {
     }
 
     QQC2.CheckBox {
+        KanteCheckSkin { control: parent }
         id: billableCheck
         visible: root.showBillable
         Layout.fillWidth: true

@@ -66,7 +66,7 @@ ColumnLayout {
                     }
                     ctx.beginPath()
                     ctx.moveTo(cx, cy)
-                    ctx.fillStyle = rows[i].color || "#3584e4"
+                    ctx.fillStyle = rows[i].color || Style.chartColor
                     ctx.arc(cx, cy, r, start, start + slice, false)
                     ctx.closePath()
                     ctx.fill()
@@ -74,7 +74,7 @@ ColumnLayout {
                 }
                 // Donut hole for readability in a small plasmoid
                 ctx.beginPath()
-                ctx.fillStyle = Kirigami.Theme.backgroundColor
+                ctx.fillStyle = Style.backgroundColor
                 ctx.arc(cx, cy, r * 0.45, 0, Math.PI * 2, false)
                 ctx.fill()
             }
@@ -84,7 +84,7 @@ ColumnLayout {
             anchors.centerIn: parent
             visible: root.totalSeconds > 0
             horizontalAlignment: Text.AlignHCenter
-            font.pointSize: Kirigami.Theme.smallFont.pointSize
+            font.pointSize: Style.smallFont.pointSize
             font.bold: true
             text: KimaiApi.formatDurationShort(root.totalSeconds)
         }
@@ -120,12 +120,12 @@ ColumnLayout {
                 QQC2.Label {
                     Layout.fillWidth: true
                     elide: Text.ElideRight
-                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    font.pointSize: Style.smallFont.pointSize
                     // statsData.js has no i18n; its catch-all row is keyed "_other".
                     text: modelData.key === "_other" ? i18n("Other") : modelData.name
                 }
                 QQC2.Label {
-                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    font.pointSize: Style.smallFont.pointSize
                     opacity: 0.75
                     text: KimaiApi.formatDurationShort(modelData.seconds)
                 }

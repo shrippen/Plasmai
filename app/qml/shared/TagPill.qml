@@ -10,7 +10,7 @@ Item {
     id: root
 
     property string tagName: ""
-    property color tagColor: "#d2d6de"
+    property color tagColor: Style.entityFallbackColor
     property bool removable: false
 
     signal removeRequested()

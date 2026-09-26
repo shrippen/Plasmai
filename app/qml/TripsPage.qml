@@ -13,6 +13,7 @@ import "shared"
  */
 Kirigami.Page {
     id: page
+    KantePageTitle { page: page }
     title: i18n("Trips")
 
     property var month: Mileage.addMonths(new Date(), 0)
@@ -144,7 +145,7 @@ Kirigami.Page {
             width: pageScroll.availableWidth
             spacing: Kirigami.Units.smallSpacing
 
-            Kirigami.Heading {
+            PHeading {
                 Layout.fillWidth: true
                 level: 4
                 visible: page.suggestions.length > 0
@@ -165,7 +166,7 @@ Kirigami.Page {
             RowLayout {
                 Layout.fillWidth: true
                 Layout.topMargin: Kirigami.Units.smallSpacing
-                QQC2.ToolButton {
+                PToolButton {
                     icon.name: "go-previous"
                     text: i18n("Previous month")
                     display: QQC2.AbstractButton.IconOnly
@@ -177,7 +178,7 @@ Kirigami.Page {
                     font.bold: true
                     text: page.month.toLocaleDateString(Qt.locale(), "MMMM yyyy")
                 }
-                QQC2.ToolButton {
+                PToolButton {
                     icon.name: "go-next"
                     text: i18n("Next month")
                     display: QQC2.AbstractButton.IconOnly
@@ -227,7 +228,7 @@ Kirigami.Page {
                             QQC2.Label {
                                 Layout.fillWidth: true
                                 elide: Text.ElideRight
-                                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                                font.pointSize: Style.smallFont.pointSize
                                 opacity: 0.7
                                 text: {
                                     var d = Mileage.parseDateString(modelData.date)
@@ -248,5 +249,15 @@ Kirigami.Page {
 
             Item { Layout.fillHeight: true; Layout.minimumHeight: Kirigami.Units.largeSpacing }
         }
+    }
+
+    // Pull to refresh (see shared/PullToRefresh.qml).
+    PullToRefresh {
+        parent: pageScroll
+        anchors.fill: parent
+        z: 10
+        flickable: pageScroll.contentItem
+        busy: page.loading
+        onRefreshRequested: { root.resolveMileage(true); page.reload() }
     }
 }

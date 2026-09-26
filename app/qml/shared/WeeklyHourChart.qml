@@ -82,7 +82,7 @@ ColumnLayout {
                     }
                     return parent.width * labelData.ratio - width / 2
                 }
-                font.pointSize: Kirigami.Theme.smallFont.pointSize - 1
+                font.pointSize: Style.smallFont.pointSize - 1
                 opacity: 0.65
                 text: labelData.text
             }
@@ -101,7 +101,7 @@ ColumnLayout {
                 Layout.preferredWidth: root.labelWidth
                 Layout.maximumWidth: root.labelWidth
                 elide: Text.ElideRight
-                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                font.pointSize: Style.smallFont.pointSize
                 opacity: 0.8
                 text: (dayRow.day && dayRow.day.label) ? dayRow.day.label : ""
             }
@@ -117,7 +117,7 @@ ColumnLayout {
                         width: 1
                         height: track.height
                         x: track.width * (index / root.gridLineCount)
-                        color: Kirigami.Theme.textColor
+                        color: Style.textColor
                         opacity: index === 0 || index === root.gridLineCount ? 0.18 : 0.08
                     }
                 }
@@ -127,7 +127,7 @@ ColumnLayout {
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
                     height: 1
-                    color: Kirigami.Theme.textColor
+                    color: Style.textColor
                     opacity: 0.12
                 }
 
@@ -146,7 +146,7 @@ ColumnLayout {
                             radius: height / 2
                             color: (segItem.seg && segItem.seg.color)
                                    ? segItem.seg.color
-                                   : Kirigami.Theme.highlightColor
+                                   : Style.highlightColor
                             opacity: 0.92
                         }
 
@@ -172,7 +172,7 @@ ColumnLayout {
             QQC2.Label {
                 Layout.preferredWidth: Kirigami.Units.gridUnit * 2.2
                 horizontalAlignment: Text.AlignRight
-                font.pointSize: Kirigami.Theme.smallFont.pointSize - 1
+                font.pointSize: Style.smallFont.pointSize - 1
                 opacity: 0.7
                 text: dayRow.day && dayRow.day.totalSeconds > 0
                       ? KimaiApi.formatDurationShort(dayRow.day.totalSeconds)

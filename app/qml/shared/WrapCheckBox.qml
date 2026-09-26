@@ -8,6 +8,7 @@ import org.kde.kirigami as Kirigami
  * translations) otherwise run out of the page on narrow phone screens.
  */
 QQC2.CheckBox {
+    KanteCheckSkin { control: parent }
     id: control
 
     Layout.fillWidth: true

@@ -215,11 +215,12 @@ ColumnLayout {
             visible: text.length > 0
             Layout.fillWidth: true
             wrapMode: Text.WordWrap
-            color: Kirigami.Theme.negativeTextColor
+            color: Style.negativeTextColor
             text: root.errorFor("date")
         }
 
         QQC2.ComboBox {
+            KanteFieldSkin { control: parent }
             id: purposeCombo
             Kirigami.FormData.label: i18n("Purpose:")
             Layout.fillWidth: true
@@ -237,6 +238,7 @@ ColumnLayout {
         }
 
         QQC2.ComboBox {
+            KanteFieldSkin { control: parent }
             id: vehicleCombo
             Kirigami.FormData.label: i18n("Means of travel:")
             Layout.fillWidth: true
@@ -254,6 +256,7 @@ ColumnLayout {
         }
 
         QQC2.ComboBox {
+            KanteFieldSkin { control: parent }
             id: assignedCombo
             Kirigami.FormData.label: i18n("Vehicle:")
             Layout.fillWidth: true
@@ -273,7 +276,7 @@ ColumnLayout {
         RowLayout {
             Kirigami.FormData.label: i18n("Distance (one way):")
             Layout.fillWidth: true
-            QQC2.TextField {
+            PTextField {
                 id: distanceField
                 Layout.fillWidth: true
                 enabled: root.fieldsEnabled
@@ -295,17 +298,18 @@ ColumnLayout {
             visible: text.length > 0
             Layout.fillWidth: true
             wrapMode: Text.WordWrap
-            color: Kirigami.Theme.negativeTextColor
+            color: Style.negativeTextColor
             text: root.errorFor("distanceKm")
         }
 
         PlasmaComponents3.CheckBox {
+            KanteCheckSkin { control: parent }
             id: roundTripCheck
             text: i18n("Round trip (there and back)")
             enabled: root.fieldsEnabled && !root.suggestionMode
         }
 
-        QQC2.TextField {
+        PTextField {
             id: startField
             Kirigami.FormData.label: i18n("From:")
             Layout.fillWidth: true
@@ -313,7 +317,7 @@ ColumnLayout {
             maximumLength: 255
         }
 
-        QQC2.TextField {
+        PTextField {
             id: destinationField
             Kirigami.FormData.label: i18n("To:")
             Layout.fillWidth: true
@@ -322,6 +326,7 @@ ColumnLayout {
         }
 
         PlasmaComponents3.CheckBox {
+            KanteCheckSkin { control: parent }
             id: timesCheck
             text: i18n("Departure and arrival times")
             enabled: root.fieldsEnabled && !root.suggestionMode
@@ -349,11 +354,11 @@ ColumnLayout {
             visible: timesCheck.checked && text.length > 0
             Layout.fillWidth: true
             wrapMode: Text.WordWrap
-            color: Kirigami.Theme.negativeTextColor
+            color: Style.negativeTextColor
             text: root.errorFor("arrival") || root.errorFor("departure")
         }
 
-        QQC2.TextField {
+        PTextField {
             id: commentField
             Kirigami.FormData.label: i18n("Comment:")
             Layout.fillWidth: true
@@ -370,7 +375,7 @@ ColumnLayout {
                 elide: Text.ElideRight
                 text: root.linkedText
             }
-            PlasmaComponents3.ToolButton {
+            PToolButton {
                 icon.name: "edit-clear"
                 text: i18n("Unlink")
                 display: QQC2.AbstractButton.IconOnly
@@ -386,7 +391,7 @@ ColumnLayout {
         Layout.fillWidth: true
         visible: text.length > 0
         wrapMode: Text.WordWrap
-        color: Kirigami.Theme.negativeTextColor
+        color: Style.negativeTextColor
         text: root.errorText
     }
 
@@ -395,7 +400,7 @@ ColumnLayout {
         Layout.topMargin: Kirigami.Units.largeSpacing
         spacing: Kirigami.Units.smallSpacing
 
-        PlasmaComponents3.Button {
+        PButton {
             Layout.fillWidth: true
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             highlighted: true
@@ -411,7 +416,7 @@ ColumnLayout {
             }
         }
 
-        PlasmaComponents3.Button {
+        PButton {
             id: deleteButton
             visible: root.canDelete
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
@@ -435,7 +440,7 @@ ColumnLayout {
         }
     }
 
-    PlasmaComponents3.Button {
+    PButton {
         Layout.alignment: Qt.AlignHCenter
         Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
         flat: true

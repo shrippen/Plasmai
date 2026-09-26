@@ -76,6 +76,7 @@ ConfigPageBase {
     property var cfg_locationName
     property var cfg_locationNameDefault
     property var cfg_touchModeDefault
+    property var cfg_visualStyleDefault
 
     // Aliases so Plasma's isConfigurationChanged / cfg_*Changed see toggles.
     property alias cfg_refreshInterval: refreshIntervalSpin.value
@@ -101,6 +102,7 @@ ConfigPageBase {
     property alias cfg_desktopShowRecent: desktopRecentCheck.checked
     property alias cfg_desktopShowNewActivity: desktopNewActivityCheck.checked
     property alias cfg_touchMode: touchModeCombo.currentIndex
+    property alias cfg_visualStyle: visualStyleCombo.currentIndex
 
     readonly property int pageMargin: Kirigami.Units.gridUnit
     /** Stack FormLayout labels above fields when the config window is narrow. */
@@ -231,7 +233,8 @@ ConfigPageBase {
             desktopShowRecent: desktopRecentCheck.checked,
             desktopShowNewActivity: desktopNewActivityCheck.checked,
             showFavorites: popupFavoritesCheck.checked || desktopFavoritesCheck.checked,
-            touchMode: page.cfg_touchMode
+            touchMode: page.cfg_touchMode,
+            visualStyle: page.cfg_visualStyle
         }
     }
 
@@ -260,6 +263,7 @@ ConfigPageBase {
         page.cfg_desktopShowNewActivity = desktopNewActivityCheck.checked
         page.cfg_showFavorites = popupFavoritesCheck.checked || desktopFavoritesCheck.checked
         page.cfg_touchMode = touchModeCombo.currentIndex
+        page.cfg_visualStyle = visualStyleCombo.currentIndex
     }
 
     function applyCfgToControls() {
@@ -295,6 +299,8 @@ ConfigPageBase {
         desktopNewActivityCheck.checked = page.cfg_desktopShowNewActivity !== false
         touchModeCombo.currentIndex = SharedConfig.coerceInt(
             page.cfg_touchMode, page.cfg_touchModeDefault || 0, 0, 2)
+        visualStyleCombo.currentIndex = SharedConfig.coerceInt(
+            page.cfg_visualStyle, page.cfg_visualStyleDefault || 0, 0, 1)
         page.syncLocationFields()
         syncControlsToCfg()
         suppressNotify = false
@@ -351,6 +357,11 @@ ConfigPageBase {
             page.cfg_touchMode = SharedConfig.coerceInt(
                 shared.touchMode, touchModeCombo.currentIndex, 0, 2)
             touchModeCombo.currentIndex = page.cfg_touchMode
+        }
+        if (typeof shared.visualStyle !== "undefined") {
+            page.cfg_visualStyle = SharedConfig.coerceInt(
+                shared.visualStyle, visualStyleCombo.currentIndex, 0, 1)
+            visualStyleCombo.currentIndex = page.cfg_visualStyle
         }
         if (typeof shared.latitude !== "undefined") {
             page.cfg_latitude = Number(shared.latitude)
@@ -475,6 +486,28 @@ ConfigPageBase {
                 Kirigami.Separator {
                     Kirigami.FormData.label: i18n("Appearance")
                     Kirigami.FormData.isSection: true
+                }
+
+                QQC2.ComboBox {
+                    id: visualStyleCombo
+                    Kirigami.FormData.label: i18n("Style:")
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
+                    model: [
+                        i18n("System (Plasma theme)"),
+                        i18n("Kante")
+                    ]
+                    onActivated: page.notifyEdited()
+                }
+
+                PlasmaComponents3.Label {
+                    Kirigami.FormData.label: page.formWide ? " " : ""
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
+                    wrapMode: Text.WordWrap
+                    opacity: 0.7
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    text: i18n("Kante is Plasmai's own look: warm colors, square cut corners and monospace figures. It deliberately does not follow Breeze; dark or light still follows your theme.")
                 }
 
 

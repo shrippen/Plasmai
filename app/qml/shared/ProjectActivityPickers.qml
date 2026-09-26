@@ -58,7 +58,7 @@ ColumnLayout {
             }
         }
 
-        QQC2.ToolButton {
+        PToolButton {
             visible: root.showCreateActions
             text: i18n("Create project")
             icon.name: "list-add"
@@ -92,7 +92,7 @@ ColumnLayout {
             onAboutToOpen: root.aboutToOpenPicker(projectCombo, activityCombo)
         }
 
-        QQC2.ToolButton {
+        PToolButton {
             visible: root.showCreateActions
             text: i18n("Create activity")
             icon.name: "list-add"

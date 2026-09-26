@@ -8,6 +8,7 @@ import "shared"
 
 Kirigami.Page {
     id: page
+    KantePageTitle { page: page }
     title: i18n("Settings")
 
     property string locationQuery: ""
@@ -50,9 +51,32 @@ Kirigami.Page {
                 Layout.fillWidth: true
                 wideMode: form.width >= Kirigami.Units.gridUnit * 28
 
-                Kirigami.Heading { Kirigami.FormData.isSection: true; level: 4; text: i18n("Behavior") }
+                PHeading { Kirigami.FormData.isSection: true; level: 4; text: i18n("Appearance") }
+
+                QQC2.ComboBox {
+                    KanteFieldSkin { control: parent }
+                    Kirigami.FormData.label: i18n("Style:")
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: Kirigami.Units.gridUnit * 16
+                    model: [i18n("System (Plasma theme)"), i18n("Kante")]
+                    // Bound after the model is set: assigning the model resets currentIndex.
+                    Component.onCompleted: currentIndex = Qt.binding(function() { return root.visualStyle })
+                    onActivated: function(index) { root.visualStyle = index; page.saveSetting("visualStyle", index) }
+                }
+
+                QQC2.Label {
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: Kirigami.Units.gridUnit * 20
+                    wrapMode: Text.WordWrap
+                    font.pointSize: Style.smallFont.pointSize
+                    opacity: 0.7
+                    text: i18n("Kante is Plasmai's own look: warm colors, square cut corners and monospace figures. It deliberately does not follow Breeze; dark or light still follows your theme.")
+                }
+
+                PHeading { Kirigami.FormData.isSection: true; level: 4; text: i18n("Behavior") }
 
                 QQC2.SpinBox {
+                    KanteFieldSkin { control: parent }
                     id: refreshSpin
                     Kirigami.FormData.label: i18n("Refresh interval:")
                     from: 5; to: 300; stepSize: 5
@@ -62,6 +86,7 @@ Kirigami.Page {
                 }
 
                 QQC2.SpinBox {
+                    KanteFieldSkin { control: parent }
                     Kirigami.FormData.label: i18n("Recent entries:")
                     from: 3; to: 50; value: root.recentCount
                     textFromValue: function(v) { return v }
@@ -128,34 +153,34 @@ Kirigami.Page {
                 }
                 QQC2.Label {
                     Layout.fillWidth: true; wrapMode: Text.WordWrap
-                    opacity: 0.75; font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    opacity: 0.75; font.pointSize: Style.smallFont.pointSize
                     text: i18n("When editing the running timer, the previous entry's end is shown. Saving an earlier start asks for confirmation.")
                 }
 
-                Kirigami.Heading { Kirigami.FormData.isSection: true; level: 4; text: i18n("Work hours") }
+                PHeading { Kirigami.FormData.isSection: true; level: 4; text: i18n("Work hours") }
 
-                QQC2.TextField {
+                PTextField {
                     Kirigami.FormData.label: i18n("Begin:")
                     text: root.workDayBegin
                     placeholderText: "09:00"
                     onEditingFinished: { root.workDayBegin = text; page.saveSetting("workDayBegin", text) }
                 }
-                QQC2.TextField {
+                PTextField {
                     Kirigami.FormData.label: i18n("End:")
                     text: root.workDayEnd
                     placeholderText: "17:00"
                     onEditingFinished: { root.workDayEnd = text; page.saveSetting("workDayEnd", text) }
                 }
 
-                Kirigami.Heading { Kirigami.FormData.isSection: true; level: 4; text: i18n("Location (sun / moon accuracy)") }
+                PHeading { Kirigami.FormData.isSection: true; level: 4; text: i18n("Location (sun / moon accuracy)") }
 
                 QQC2.Label {
                     Kirigami.FormData.label: i18n("Current:")
                     text: root.locationName.length > 0 ? root.locationName : i18n("%1, %2", root.latitude.toFixed(2), root.longitude.toFixed(2))
-                    color: Qt.alpha(Kirigami.Theme.textColor, 0.7)
+                    color: Qt.alpha(Style.textColor, 0.7)
                 }
 
-                QQC2.TextField {
+                PTextField {
                     id: locationField
                     Kirigami.FormData.label: i18n("Search city:")
                     placeholderText: i18n("Search for a city…")
@@ -190,7 +215,7 @@ Kirigami.Page {
                     }
                 }
 
-                Kirigami.Heading { Kirigami.FormData.isSection: true; level: 4; text: i18n("Idle detection"); visible: root.supportsIdleDetection }
+                PHeading { Kirigami.FormData.isSection: true; level: 4; text: i18n("Idle detection"); visible: root.supportsIdleDetection }
                 WrapCheckBox {
                     Kirigami.FormData.label: i18n("Enable:")
                     visible: root.supportsIdleDetection
@@ -199,6 +224,7 @@ Kirigami.Page {
                     onToggled: { root.idleStopEnabled = checked; page.saveSetting("idleStopEnabled", checked) }
                 }
                 QQC2.SpinBox {
+                    KanteFieldSkin { control: parent }
                     Kirigami.FormData.label: i18n("Idle after:")
                     visible: root.supportsIdleDetection
                     from: 3; to: 120; value: root.idleStopMinutes
@@ -206,7 +232,7 @@ Kirigami.Page {
                     onValueChanged: { root.idleStopMinutes = value; page.saveSetting("idleStopMinutes", value) }
                 }
 
-                Kirigami.Heading { Kirigami.FormData.isSection: true; level: 4; text: i18n("Notifications"); visible: root.supportsNotifications }
+                PHeading { Kirigami.FormData.isSection: true; level: 4; text: i18n("Notifications"); visible: root.supportsNotifications }
                 WrapCheckBox {
                     Kirigami.FormData.label: i18n("Notify on:")
                     visible: root.supportsNotifications
@@ -238,10 +264,20 @@ Kirigami.Page {
                 Layout.fillWidth: true; Layout.topMargin: Kirigami.Units.largeSpacing
                 text: i18n("Settings sync with the Plasma widget via shared.json on the same machine.")
                 wrapMode: Text.WordWrap
-                color: Kirigami.Theme.disabledTextColor
+                color: Style.disabledTextColor
             }
 
             Item { Layout.fillHeight: true; Layout.minimumHeight: Kirigami.Units.largeSpacing }
         }
+    }
+
+    // Pull to refresh (see shared/PullToRefresh.qml).
+    PullToRefresh {
+        parent: pageScroll
+        anchors.fill: parent
+        z: 10
+        flickable: pageScroll.contentItem
+        busy: root.isBusy
+        onRefreshRequested: root.refreshAll()
     }
 }

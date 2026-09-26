@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
+import "shared"
 import "../contents/code/platform.js" as Platform
 import "../contents/code/timeTracker.js" as TimeTracker
 import "../contents/code/profiles.js" as Profiles
@@ -9,6 +10,7 @@ import "../contents/code/kimaiApi.js" as KimaiApi
 
 Kirigami.Page {
     id: page
+    KantePageTitle { page: page }
     title: i18n("Connection")
 
     property var profiles: []
@@ -205,6 +207,7 @@ Kirigami.Page {
 
                 // ── Profile selector ──
                 QQC2.ComboBox {
+                    KanteFieldSkin { control: parent }
                     id: profileCombo
                     Kirigami.FormData.label: i18n("Profile:")
                     Layout.fillWidth: true
@@ -218,7 +221,7 @@ Kirigami.Page {
                     }
                 }
 
-                QQC2.TextField {
+                PTextField {
                     id: profileNameField
                     Kirigami.FormData.label: i18n("Profile name:")
                     Layout.fillWidth: true
@@ -240,7 +243,7 @@ Kirigami.Page {
                     Layout.preferredWidth: formCol.width
                     spacing: Kirigami.Units.smallSpacing
 
-                    QQC2.Button {
+                    PButton {
                         text: i18n("Add")
                         icon.name: "list-add"
                         onClicked: {
@@ -266,7 +269,7 @@ Kirigami.Page {
                         }
                     }
 
-                    QQC2.Button {
+                    PButton {
                         text: i18n("Remove")
                         icon.name: "list-remove"
                         enabled: page.profiles.length > 1
@@ -286,7 +289,7 @@ Kirigami.Page {
                         }
                     }
 
-                    QQC2.Button {
+                    PButton {
                         text: i18n("Use this")
                         icon.name: "emblem-default"
                         enabled: page.profiles.length > 0
@@ -301,14 +304,15 @@ Kirigami.Page {
                         var active = Profiles.profileById(page.profiles, activeProfileField.text || "default")
                         return i18n("Active: %1", active ? active.name : i18n("none"))
                     }
-                    color: Kirigami.Theme.disabledTextColor
-                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    color: Style.disabledTextColor
+                    font.pointSize: Style.smallFont.pointSize
                 }
 
                 Kirigami.Separator { Kirigami.FormData.isSection: true; Layout.fillWidth: true }
 
                 // ── Provider ──
                 QQC2.ComboBox {
+                    KanteFieldSkin { control: parent }
                     id: providerCombo
                     Kirigami.FormData.label: i18n("Provider:")
                     Layout.fillWidth: true
@@ -336,7 +340,7 @@ Kirigami.Page {
                     }
                 }
 
-                QQC2.TextField {
+                PTextField {
                     id: urlField
                     Kirigami.FormData.label: i18n("Server URL:")
                     Layout.fillWidth: true
@@ -354,10 +358,10 @@ Kirigami.Page {
                     Kirigami.FormData.label: i18n("API Token:")
                     Layout.fillWidth: true
                     text: page.hasStoredToken ? i18n("Token stored.") : i18n("No token stored.")
-                    color: page.hasStoredToken ? Kirigami.Theme.positiveTextColor : Kirigami.Theme.disabledTextColor
+                    color: page.hasStoredToken ? Style.positiveTextColor : Style.disabledTextColor
                 }
 
-                QQC2.TextField {
+                PTextField {
                     id: tokenField
                     Kirigami.FormData.label: " "
                     Layout.fillWidth: true
@@ -374,7 +378,7 @@ Kirigami.Page {
                     Layout.preferredWidth: formCol.width
                     spacing: Kirigami.Units.smallSpacing
 
-                    QQC2.Button {
+                    PButton {
                         text: page.busy ? i18n("Saving…") : i18n("Save token")
                         icon.name: "document-save"
                         enabled: !page.busy && tokenField.text.length > 0 && page.profiles.length > 0
@@ -398,7 +402,7 @@ Kirigami.Page {
                         }
                     }
 
-                    QQC2.Button {
+                    PButton {
                         text: i18n("Clear")
                         icon.name: "edit-delete"
                         enabled: !page.busy && page.hasStoredToken
@@ -416,7 +420,7 @@ Kirigami.Page {
                         }
                     }
 
-                    QQC2.Button {
+                    PButton {
                         text: i18n("Test")
                         icon.name: "network-connect"
                         enabled: !page.busy && page.profiles.length > 0
@@ -457,20 +461,30 @@ Kirigami.Page {
 
             // ── Status message ──
             Rectangle { Layout.fillWidth: true; visible: page.statusMessage.length > 0; radius: Kirigami.Units.smallSpacing; height: statusLabel.implicitHeight + Kirigami.Units.smallSpacing * 2
-                color: page.statusIsError ? Qt.rgba(Kirigami.Theme.negativeTextColor.r, Kirigami.Theme.negativeTextColor.g, Kirigami.Theme.negativeTextColor.b, 0.15) : Qt.rgba(Kirigami.Theme.positiveTextColor.r, Kirigami.Theme.positiveTextColor.g, Kirigami.Theme.positiveTextColor.b, 0.15)
-                border.width: 1; border.color: page.statusIsError ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.positiveTextColor
+                color: page.statusIsError ? Qt.rgba(Style.negativeTextColor.r, Style.negativeTextColor.g, Style.negativeTextColor.b, 0.15) : Qt.rgba(Style.positiveTextColor.r, Style.positiveTextColor.g, Style.positiveTextColor.b, 0.15)
+                border.width: 1; border.color: page.statusIsError ? Style.negativeTextColor : Style.positiveTextColor
                 QQC2.Label { id: statusLabel; anchors.fill: parent; anchors.margins: Kirigami.Units.smallSpacing
                     text: page.statusMessage; wrapMode: Text.WordWrap
-                    color: page.statusIsError ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.positiveTextColor }
+                    color: page.statusIsError ? Style.negativeTextColor : Style.positiveTextColor }
             }
 
             // ── Hidden data fields (like desktop) ──
-            QQC2.TextField { id: profilesField; visible: false; text: "[{\"id\":\"default\",\"name\":\"Default\",\"url\":\"\",\"provider\":\"kimai\"}]"
+            PTextField { id: profilesField; visible: false; text: "[{\"id\":\"default\",\"name\":\"Default\",\"url\":\"\",\"provider\":\"kimai\"}]"
                 onTextChanged: { if (!page.syncing) page.parseProfiles() } }
-            QQC2.TextField { id: activeProfileField; visible: false; text: "default" }
+            PTextField { id: activeProfileField; visible: false; text: "default" }
 
         }
     }
 
     Component.onCompleted: loadSharedState()
+
+    // Pull to refresh (see shared/PullToRefresh.qml).
+    PullToRefresh {
+        parent: pageScroll
+        anchors.fill: parent
+        z: 10
+        flickable: pageScroll.contentItem
+        busy: false
+        onRefreshRequested: page.loadSharedState()
+    }
 }

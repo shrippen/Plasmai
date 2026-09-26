@@ -362,3 +362,42 @@ function datePlaceholder() {
 function timePlaceholder() {
     return formatLocaleTime(23, 59)
 }
+
+/** Duration as h:mm ("1:28", "50:34"); negative values get a leading minus sign. */
+function hoursMinutes(seconds) {
+    var minutes = Math.floor(Math.abs(seconds || 0) / 60)
+    var sign = seconds < 0 ? "−" : ""
+    return sign + Math.floor(minutes / 60) + ":" + pad2(minutes % 60)
+}
+
+/**
+ * Time line label of an entry (Kante style), relative to `now`:
+ *   same day      "07:42 – 09:40", without end "07:42 – <nowLabel>"
+ *   last 6 days   "Thu 13:20"
+ *   older         "12 Sep 08:05"
+ * begin/end: Date or ISO string; "" for a missing or invalid begin.
+ */
+function entryTimeLabel(begin, end, now, nowLabel) {
+    var b = begin ? new Date(begin) : null
+    if (!b || isNaN(b.getTime())) {
+        return ""
+    }
+    var clock = function(d) {
+        return formatLocaleTime(d.getHours(), d.getMinutes())
+    }
+    var today = new Date(now || new Date())
+    today.setHours(0, 0, 0, 0)
+    var day = new Date(b)
+    day.setHours(0, 0, 0, 0)
+    var daysAgo = Math.round((today.getTime() - day.getTime()) / 86400000)
+
+    if (daysAgo <= 0) {
+        var e = end ? new Date(end) : null
+        return clock(b) + " – " + (e && !isNaN(e.getTime()) ? clock(e) : nowLabel)
+    }
+    // 1 = QLocale::ShortFormat (no Locale enum in a pragma library)
+    if (daysAgo < 7) {
+        return Qt.locale().dayName(b.getDay(), 1) + " " + clock(b)
+    }
+    return b.getDate() + " " + Qt.locale().standaloneMonthName(b.getMonth(), 1) + " " + clock(b)
+}

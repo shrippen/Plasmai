@@ -112,18 +112,8 @@
         <entry name="pinnedActivities" type="String">
             <default></default>
         </entry>
-        <!-- Filmday view extras (break, catering, day type/category, production
-             day, extra pay, note), keyed by project + date; see filmDays.js -->
-        <entry name="filmDaysJson" type="String">
-            <default></default>
-        </entry>
-        <!-- Film-day patches not yet accepted by the Drehzettel plugin (offline),
-             keyed by profile + project + date; see filmDaySync.js -->
-        <entry name="filmDaysPending" type="String">
-            <default></default>
-        </entry>
         <!-- Kimai plugin probe results per profile + server (present/absent/…),
-             so offline starts keep the last known mode; see kimaiApi.js detectPlugin -->
+             so a start does not probe again within 24 h; see kimaiApi.js detectPlugin -->
         <entry name="pluginProbesJson" type="String">
             <default></default>
         </entry>
@@ -173,6 +163,12 @@
             <default>0</default>
             <min>0</min>
             <max>2</max>
+        </entry>
+        <!-- Visual style of the popup: 0=System (Plasma theme), 1=Kante (opt-in, see Style.qml) -->
+        <entry name="visualStyle" type="Int">
+            <default>0</default>
+            <min>0</min>
+            <max>1</max>
         </entry>
     </group>
 </kcfg>

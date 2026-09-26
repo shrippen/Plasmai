@@ -54,7 +54,7 @@ ColumnLayout {
             out.push({
                 "label": (i % 3 === 0) ? buckets[i].label : "",
                 "seconds": buckets[i].seconds,
-                "color": "#3584e4"
+                "color": Style.chartColor
             });
         }
         return out;
@@ -159,12 +159,21 @@ ColumnLayout {
                                 : filterButtonRow.implicitHeight
         visible: root.supportsBillableFilter
 
+        // Kante: one frame around the three segments.
+        Rectangle {
+            anchors.fill: parent
+            visible: Style.kante
+            color: "transparent"
+            border.width: 1
+            border.color: Style.frameColor
+        }
+
         RowLayout {
             id: filterButtonRow
             anchors.fill: parent
             spacing: 0
 
-            QQC2.ToolButton {
+            PToolButton {
                 Layout.fillWidth: true
                 Layout.preferredWidth: 1
                 height: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
@@ -172,15 +181,15 @@ ColumnLayout {
                 autoExclusive: true
                 background: Rectangle {
                     radius: Kirigami.Units.smallSpacing
-                    color: parent.checked ? Qt.rgba(Kirigami.Theme.highlightColor.r, Kirigami.Theme.highlightColor.g, Kirigami.Theme.highlightColor.b, 0.18) : "transparent"
+                    color: parent.checked ? Qt.rgba(Style.highlightColor.r, Style.highlightColor.g, Style.highlightColor.b, 0.18) : "transparent"
                     border.width: parent.checked ? 1 : 0
-                    border.color: Kirigami.Theme.highlightColor
+                    border.color: Style.highlightColor
                 }
                 checked: root.billableFilter === StatsData.BILLABLE_ALL
                 text: root.filterAllLabel
                 onClicked: root.billableFilter = StatsData.BILLABLE_ALL
             }
-            QQC2.ToolButton {
+            PToolButton {
                 Layout.fillWidth: true
                 Layout.preferredWidth: 1
                 height: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
@@ -188,15 +197,15 @@ ColumnLayout {
                 autoExclusive: true
                 background: Rectangle {
                     radius: Kirigami.Units.smallSpacing
-                    color: parent.checked ? Qt.rgba(Kirigami.Theme.highlightColor.r, Kirigami.Theme.highlightColor.g, Kirigami.Theme.highlightColor.b, 0.18) : "transparent"
+                    color: parent.checked ? Qt.rgba(Style.highlightColor.r, Style.highlightColor.g, Style.highlightColor.b, 0.18) : "transparent"
                     border.width: parent.checked ? 1 : 0
-                    border.color: Kirigami.Theme.highlightColor
+                    border.color: Style.highlightColor
                 }
                 checked: root.billableFilter === StatsData.BILLABLE_ONLY
                 text: root.filterBillableLabel
                 onClicked: root.billableFilter = StatsData.BILLABLE_ONLY
             }
-            QQC2.ToolButton {
+            PToolButton {
                 Layout.fillWidth: true
                 Layout.preferredWidth: 1
                 height: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
@@ -204,9 +213,9 @@ ColumnLayout {
                 autoExclusive: true
                 background: Rectangle {
                     radius: Kirigami.Units.smallSpacing
-                    color: parent.checked ? Qt.rgba(Kirigami.Theme.highlightColor.r, Kirigami.Theme.highlightColor.g, Kirigami.Theme.highlightColor.b, 0.18) : "transparent"
+                    color: parent.checked ? Qt.rgba(Style.highlightColor.r, Style.highlightColor.g, Style.highlightColor.b, 0.18) : "transparent"
                     border.width: parent.checked ? 1 : 0
-                    border.color: Kirigami.Theme.highlightColor
+                    border.color: Style.highlightColor
                 }
                 checked: root.billableFilter === StatsData.BILLABLE_NONE
                 text: root.filterNonBillableLabel
@@ -216,8 +225,64 @@ ColumnLayout {
     }
 
     // —— Summary ——
+    // Kante: sunken tiles with the figures in monospace.
     GridLayout {
         Layout.fillWidth: true
+        visible: Style.kante
+        columns: 2
+        columnSpacing: Kirigami.Units.smallSpacing
+        rowSpacing: Kirigami.Units.smallSpacing
+
+        Repeater {
+            model: {
+                var tiles = [
+                    { label: i18n("Today"), value: KimaiApi.formatDurationShort(root.filteredTodaySeconds) },
+                    { label: i18n("This week"), value: KimaiApi.formatDurationShort(root.filteredWeekSeconds) }
+                ]
+                if (root.tripSummary !== null) {
+                    tiles.push({ label: i18n("Trips this week"), value: i18n("%1 km", root.tripSummary.weekKm) })
+                    tiles.push({ label: i18n("Trips this month"),
+                                 value: i18np("%2 km (1 trip)", "%2 km (%1 trips)",
+                                              root.tripSummary.monthCount, root.tripSummary.monthKm) })
+                }
+                return tiles
+            }
+            delegate: Rectangle {
+                Layout.fillWidth: true
+                Layout.preferredWidth: 1
+                implicitHeight: tileColumn.implicitHeight + Kirigami.Units.smallSpacing * 2
+                color: Style.sunkenColor
+
+                ColumnLayout {
+                    id: tileColumn
+                    anchors.fill: parent
+                    anchors.margins: Kirigami.Units.smallSpacing
+                    anchors.leftMargin: Kirigami.Units.largeSpacing
+                    spacing: 0
+
+                    QQC2.Label {
+                        Layout.fillWidth: true
+                        text: modelData.label
+                        font: Style.labelFont()
+                        color: Style.mutedTextColor
+                        elide: Text.ElideRight
+                    }
+                    QQC2.Label {
+                        Layout.fillWidth: true
+                        text: modelData.value
+                        font: Style.monoFont(Style.defaultFont.pointSize * 1.25, true)
+                        color: Style.strongTextColor
+                        fontSizeMode: Text.HorizontalFit
+                        minimumPointSize: Style.smallFont.pointSize
+                    }
+                }
+            }
+        }
+    }
+
+    GridLayout {
+        Layout.fillWidth: true
+        visible: !Style.kante
         columns: 2
         columnSpacing: Kirigami.Units.largeSpacing
         rowSpacing: Kirigami.Units.smallSpacing
@@ -280,6 +345,7 @@ ColumnLayout {
 
     Kirigami.Separator {
         Layout.fillWidth: true
+        visible: !Style.kante
     }
 
     // —— Two columns once there's room: "today" charts left, weekly trends right.
@@ -299,7 +365,7 @@ ColumnLayout {
             Layout.alignment: Qt.AlignTop
             spacing: Kirigami.Units.smallSpacing
 
-            Kirigami.Heading {
+            PHeading {
                 Layout.fillWidth: true
                 level: 4
                 text: i18n("Time by hour")
@@ -308,7 +374,7 @@ ColumnLayout {
             RowLayout {
                 Layout.fillWidth: true
 
-                QQC2.ToolButton {
+                PToolButton {
                     Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
                     Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     icon.name: "go-previous"
@@ -332,7 +398,7 @@ ColumnLayout {
                     }
                 }
 
-                QQC2.ToolButton {
+                PToolButton {
                     Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
                     Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     icon.name: "go-next"
@@ -354,10 +420,11 @@ ColumnLayout {
             Kirigami.Separator {
                 Layout.fillWidth: true
                 Layout.topMargin: Kirigami.Units.smallSpacing
+                visible: !Style.kante
             }
 
             // —— Activity pies ——
-            Kirigami.Heading {
+            PHeading {
                 Layout.fillWidth: true
                 level: 4
                 text: i18n("Activity distribution")
@@ -385,7 +452,7 @@ ColumnLayout {
                     RowLayout {
                         Layout.fillWidth: true
 
-                        QQC2.ToolButton {
+                        PToolButton {
                             Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
                             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                             icon.name: "go-previous"
@@ -406,7 +473,7 @@ ColumnLayout {
                             }
                         }
 
-                        QQC2.ToolButton {
+                        PToolButton {
                             Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
                             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                             icon.name: "go-next"
@@ -436,7 +503,7 @@ ColumnLayout {
             Layout.alignment: Qt.AlignTop
             spacing: Kirigami.Units.smallSpacing
 
-            Kirigami.Heading {
+            PHeading {
                 Layout.fillWidth: true
                 level: 4
                 text: i18n("Projects by day")
@@ -445,7 +512,7 @@ ColumnLayout {
             RowLayout {
                 Layout.fillWidth: true
 
-                QQC2.ToolButton {
+                PToolButton {
                     Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
                     Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     icon.name: "go-previous"
@@ -466,7 +533,7 @@ ColumnLayout {
                     }
                 }
 
-                QQC2.ToolButton {
+                PToolButton {
                     Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
                     Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     icon.name: "go-next"
@@ -506,7 +573,7 @@ ColumnLayout {
 
                         QQC2.Label {
                             text: modelData.key === "_other" ? i18n("Other") : (modelData.name || "")
-                            font.pointSize: Kirigami.Theme.smallFont.pointSize
+                            font.pointSize: Style.smallFont.pointSize
                             opacity: 0.8
                         }
 
@@ -519,10 +586,11 @@ ColumnLayout {
             Kirigami.Separator {
                 Layout.fillWidth: true
                 Layout.topMargin: Kirigami.Units.smallSpacing
+                visible: !Style.kante
             }
 
             // —— Projects by hour (week timeline) ——
-            Kirigami.Heading {
+            PHeading {
                 Layout.fillWidth: true
                 level: 4
                 text: i18n("Projects by hour")
@@ -531,7 +599,7 @@ ColumnLayout {
             RowLayout {
                 Layout.fillWidth: true
 
-                QQC2.ToolButton {
+                PToolButton {
                     icon.name: "go-previous"
                     onClicked: root.shiftHourWeek(-1)
                     QQC2.ToolTip.text: i18n("Previous week")
@@ -550,7 +618,7 @@ ColumnLayout {
                     }
                 }
 
-                QQC2.ToolButton {
+                PToolButton {
                     icon.name: "go-next"
                     enabled: root.hourWeekOffset < 0
                     onClicked: root.shiftHourWeek(1)
@@ -563,7 +631,7 @@ ColumnLayout {
             QQC2.Label {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
-                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                font.pointSize: Style.smallFont.pointSize
                 opacity: 0.7
                 text: {
                     var bits = [];
@@ -606,14 +674,14 @@ ColumnLayout {
                         QQC2.Label {
                             anchors.verticalCenter: parent.verticalCenter
                             text: modelData.key === "_other" ? i18n("Other") : (modelData.name || "")
-                            font.pointSize: Kirigami.Theme.smallFont.pointSize
+                            font.pointSize: Style.smallFont.pointSize
                             opacity: 0.8
                         }
 
                         QQC2.Label {
                             anchors.verticalCenter: parent.verticalCenter
                             text: KimaiApi.formatDurationShort(modelData.seconds || 0)
-                            font.pointSize: Kirigami.Theme.smallFont.pointSize
+                            font.pointSize: Style.smallFont.pointSize
                             font.bold: true
                             opacity: 0.9
                         }

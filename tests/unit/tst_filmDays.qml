@@ -5,37 +5,6 @@ import "../../contents/code/filmDays.js" as FilmDays
 TestCase {
     name: "FilmDays"
 
-    function test_dayKey() {
-        compare(FilmDays.dayKey(12, "2026-09-23"), "12|2026-09-23")
-    }
-
-    function test_scopedKeyAndParse() {
-        compare(FilmDays.scopedDayKey("p1|https://k", 12, "2026-09-23"), "p1|https://k|12|2026-09-23")
-        var scoped = FilmDays.parseDayKey("p1|https://k|12|2026-09-23")
-        verify(!scoped.legacy)
-        compare(scoped.profileKey, "p1|https://k")
-        compare(scoped.projectId, "12")
-        compare(scoped.date, "2026-09-23")
-        var legacy = FilmDays.parseDayKey("12|2026-09-23")
-        verify(legacy.legacy)
-        compare(legacy.profileKey, null)
-        compare(legacy.projectId, "12")
-    }
-
-    function test_scopedGetFallsBackToLegacy() {
-        var legacy = FilmDays.entryDefaults()
-        legacy.note = "legacy"
-        var map = FilmDays.set({}, 12, "2026-09-23", legacy)
-        compare(FilmDays.get(map, 12, "2026-09-23", "a|http://k").note, "legacy")
-        var own = FilmDays.entryDefaults()
-        own.note = "a"
-        map = FilmDays.set(map, 12, "2026-09-23", own, "a|http://k")
-        compare(FilmDays.get(map, 12, "2026-09-23", "a|http://k").note, "a")
-        compare(FilmDays.get(map, 12, "2026-09-23", "b|http://x").note, "legacy")
-        compare(FilmDays.get(map, 12, "2026-09-23").note, "legacy")
-        compare(Object.keys(map).length, 2)
-    }
-
     function test_otherDayEntriesAndSpan() {
         function pid(ts) { return ts.project }
         var a = { id: 1, project: 5, begin: "2026-09-23T09:00:00+0200", end: "2026-09-23T12:00:00+0200" }
@@ -52,55 +21,6 @@ TestCase {
         compare(span.seconds, 9 * 3600)
         compare(span.endMs - span.beginMs, 10 * 3600 * 1000)
         verify(isNaN(FilmDays.daySpan([]).beginMs))
-    }
-
-    function test_defaultsWhenMissing() {
-        var entry = FilmDays.get({}, 12, "2026-09-23")
-        compare(entry.breakMinutes, 45)
-        compare(entry.catering, FilmDays.Catering.NO)
-        compare(entry.category, FilmDays.DayCategory.AUTO)
-        compare(entry.dayType, FilmDays.DayType.WORKDAY)
-        compare(entry.productionDay, null)
-        compare(entry.extraPayCents, 0)
-        compare(entry.note, "")
-    }
-
-    function test_setThenGetRoundTrips() {
-        var map = FilmDays.set({}, 12, "2026-09-23", {
-            breakMinutes: 30,
-            catering: FilmDays.Catering.YES,
-            category: FilmDays.DayCategory.HOLIDAY,
-            dayType: FilmDays.DayType.TRAVEL,
-            productionDay: 6,
-            extraPayCents: 1500,
-            note: "Night exteriors"
-        })
-        var entry = FilmDays.get(map, 12, "2026-09-23")
-        compare(entry.breakMinutes, 30)
-        compare(entry.catering, FilmDays.Catering.YES)
-        compare(entry.category, FilmDays.DayCategory.HOLIDAY)
-        compare(entry.dayType, FilmDays.DayType.TRAVEL)
-        compare(entry.productionDay, 6)
-        compare(entry.extraPayCents, 1500)
-        compare(entry.note, "Night exteriors")
-    }
-
-    function test_setDoesNotMutateInput() {
-        var base = {}
-        var next = FilmDays.set(base, 12, "2026-09-23", FilmDays.entryDefaults())
-        compare(Object.keys(base).length, 0)
-        compare(Object.keys(next).length, 1)
-    }
-
-    function test_serializeRoundTrip() {
-        var map = FilmDays.set({}, 12, "2026-09-23", FilmDays.entryDefaults())
-        var again = FilmDays.parse(FilmDays.serialize(map))
-        compare(again["12|2026-09-23"].breakMinutes, 45)
-    }
-
-    function test_parseInvalidJsonFallsBack() {
-        compare(Object.keys(FilmDays.parse("{not json")).length, 0)
-        compare(Object.keys(FilmDays.parse("")).length, 0)
     }
 
     function test_categoryFromWeekday() {
@@ -242,10 +162,10 @@ TestCase {
         compare(local.note, "")
     }
 
-    function test_fromApiKeepsLocalExtraPayForOldPlugin() {
+    function test_fromApiOldPluginHasNoExtraPay() {
         var json = serverDay()
         delete json.extraPayCents
-        compare(FilmDays.fromApi(json, { extraPayCents: 700 }).extraPayCents, 700)
+        compare(FilmDays.fromApi(json).extraPayCents, 0)
     }
 
     function test_toApiPatchOnlyChangedKeys() {
@@ -283,90 +203,5 @@ TestCase {
     function test_toApiPatchWithoutServerSendsAll() {
         compare(Object.keys(FilmDays.toApiPatch(FilmDays.entryDefaults(), null)).length,
                 FilmDays.API_FIELDS.length)
-    }
-
-    function test_isServerEmpty() {
-        verify(FilmDays.isServerEmpty(serverDay()))
-        verify(!FilmDays.isServerEmpty(serverDay({ catering: true })))
-        verify(!FilmDays.isServerEmpty(serverDay({ breakMinutes: 45 })))
-        verify(!FilmDays.isServerEmpty(serverDay({ dayType: "travel" })))
-        verify(!FilmDays.isServerEmpty(serverDay({ shootingDayNumber: 3 })))
-        verify(!FilmDays.isServerEmpty(serverDay({ note: "x" })))
-        verify(!FilmDays.isServerEmpty(serverDay({ extraPayCents: 1 })))
-    }
-
-    function test_baseAndServerMatch() {
-        var server = serverDay({ note: "a" })
-        var base = FilmDays.baseForPatch(server, { note: "b", catering: true })
-        compare(base.note, "a")
-        compare(base.catering, false)
-        verify(FilmDays.serverMatchesBase(server, base))
-        verify(!FilmDays.serverMatchesBase(serverDay({ note: "c" }), base))
-    }
-
-    // ── migration planner ──
-
-    function test_planMigrationFiltersAndSorts() {
-        var map = {}
-        map = FilmDays.set(map, 1, "2026-09-02", FilmDays.entryDefaults())
-        map = FilmDays.set(map, 1, "2026-09-01", FilmDays.entryDefaults())
-        map = FilmDays.set(map, 9, "2026-09-01", FilmDays.entryDefaults())    // other instance's project
-        map = FilmDays.set(map, "", "2026-09-01", FilmDays.entryDefaults())   // no project
-        map["1|garbage"] = {}
-        var plan = FilmDays.planMigration(map, [1, 2], "p|http://k")
-        compare(plan.length, 2)
-        compare(plan[0].date, "2026-09-01")
-        compare(plan[1].date, "2026-09-02")
-        compare(String(plan[0].projectId), "1")
-        compare(plan[0].entry.breakMinutes, 45)
-    }
-
-    function test_planMigrationSkipsMigratedForSameProfileOnly() {
-        var map = FilmDays.set({}, 1, "2026-09-01", FilmDays.entryDefaults())
-        map = FilmDays.markMigrated(map, "1|2026-09-01", "p|http://k", "pushed", "2026-09-25T10:00:00Z")
-        compare(FilmDays.planMigration(map, [1], "p|http://k").length, 0)
-        compare(FilmDays.planMigration(map, [1], "other|http://x").length, 1)
-        compare(map["1|2026-09-01"].migrated["p|http://k"].result, "pushed")
-        // local values stay (rollback possible)
-        compare(FilmDays.get(map, 1, "2026-09-01").breakMinutes, 45)
-    }
-
-    function test_planMigrationScopedEntries() {
-        var own = FilmDays.entryDefaults()
-        own.note = "own"
-        var map = FilmDays.set({}, 1, "2026-09-01", FilmDays.entryDefaults())          // legacy
-        map = FilmDays.set(map, 1, "2026-09-01", own, "p|http://k")                     // own, same day
-        map = FilmDays.set(map, 3, "2026-09-02", own, "p|http://k")                     // own, not in catalog
-        map = FilmDays.set(map, 1, "2026-09-03", own, "q|http://x")                     // other profile
-        var plan = FilmDays.planMigration(map, [1], "p|http://k")
-        compare(plan.length, 2)
-        compare(plan[0].key, "p|http://k|1|2026-09-01")
-        compare(plan[0].entry.note, "own")
-        compare(plan[1].key, "p|http://k|3|2026-09-02")
-        // the other profile still sees the legacy entry, never p's own ones
-        var other = FilmDays.planMigration(map, [1], "q|http://x")
-        compare(other.length, 2)
-        compare(other[0].key, "1|2026-09-01")
-        compare(other[1].key, "q|http://x|1|2026-09-03")
-    }
-
-    function test_planMigrationFlagsLongNote() {
-        var e = FilmDays.entryDefaults()
-        e.note = new Array(502).join("y")
-        var plan = FilmDays.planMigration(FilmDays.set({}, 1, "2026-09-01", e), [1], "p")
-        verify(plan[0].noteTruncated)
-    }
-
-    function test_migrationDecision() {
-        var local = FilmDays.entryDefaults()     // explicit 45 break (B7)
-        local.catering = "yes"
-        local.productionDay = 0                  // 0 = empty (B5)
-        var push = FilmDays.migrationDecision(local, serverDay())
-        compare(push.action, "push")
-        compare(push.patch.breakMinutes, 45)
-        compare(push.patch.catering, true)
-        verify(!push.patch.hasOwnProperty("shootingDayNumber"))
-        compare(FilmDays.migrationDecision(local, serverDay({ breakMinutes: 45, catering: true })).action, "same")
-        compare(FilmDays.migrationDecision(local, serverDay({ breakMinutes: 30 })).action, "conflict")
     }
 }

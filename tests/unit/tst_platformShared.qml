@@ -28,32 +28,32 @@ TestCase {
     }
 
     function init() {
-        disk = { recentCount: 5, filmDaysJson: JSON.stringify({ app: 1 }) }
+        disk = { recentCount: 5, pluginProbesJson: JSON.stringify({ app: 1 }) }
         pendingLoads = []
         Platform.setBackend(fakeBackend())
     }
 
     function test_dataMapMergedWithOtherWriter() {
         // This process last saw {app:1}; the Plasmoid has added "widget" on disk since.
-        disk.filmDaysJson = JSON.stringify({ app: 1, widget: 2 })
+        disk.pluginProbesJson = JSON.stringify({ app: 1, widget: 2 })
         var written = null
-        Platform.patchShared(null, {}, { filmDaysJson: JSON.stringify({ app: 1, mine: 3 }) },
-                             { filmDaysJson: JSON.stringify({ app: 1 }) }).then(function(w) { written = w })
+        Platform.patchShared(null, {}, { pluginProbesJson: JSON.stringify({ app: 1, mine: 3 }) },
+                             { pluginProbesJson: JSON.stringify({ app: 1 }) }).then(function(w) { written = w })
         release()
         tryVerify(function() { return written !== null })
-        var map = JSON.parse(disk.filmDaysJson)
+        var map = JSON.parse(disk.pluginProbesJson)
         compare(map.widget, 2)
         compare(map.mine, 3)
         compare(disk.recentCount, 5)
-        compare(written.filmDaysJson, disk.filmDaysJson)
+        compare(written.pluginProbesJson, disk.pluginProbesJson)
     }
 
     function test_patchesRunOneAfterAnother() {
         var done = 0
-        Platform.patchShared(null, {}, { filmDaysJson: JSON.stringify({ app: 1, a: 1 }) },
-                             { filmDaysJson: JSON.stringify({ app: 1 }) }).then(function() { done++ })
-        Platform.patchShared(null, {}, { filmDaysJson: JSON.stringify({ app: 1, a: 1, b: 2 }) },
-                             { filmDaysJson: JSON.stringify({ app: 1, a: 1 }) }).then(function() { done++ })
+        Platform.patchShared(null, {}, { pluginProbesJson: JSON.stringify({ app: 1, a: 1 }) },
+                             { pluginProbesJson: JSON.stringify({ app: 1 }) }).then(function() { done++ })
+        Platform.patchShared(null, {}, { pluginProbesJson: JSON.stringify({ app: 1, a: 1, b: 2 }) },
+                             { pluginProbesJson: JSON.stringify({ app: 1, a: 1 }) }).then(function() { done++ })
         // The second load must wait until the first save is done.
         tryVerify(function() { return pendingLoads.length === 1 })
         wait(20)
@@ -61,7 +61,7 @@ TestCase {
         release()
         release()
         tryVerify(function() { return done === 2 })
-        var map = JSON.parse(disk.filmDaysJson)
+        var map = JSON.parse(disk.pluginProbesJson)
         compare(map.a, 1)
         compare(map.b, 2)
     }

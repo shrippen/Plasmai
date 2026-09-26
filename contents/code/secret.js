@@ -169,7 +169,7 @@ function loadSharedConfig(dataSource, scriptPath, callback) {
 }
 
 function saveSharedConfig(dataSource, scriptPath, sharedObj, callback) {
-    // Film-day extras (filmDaysJson) make shared.json grow past one argv.
+    // Profiles, favorites and plugin probes can grow shared.json past one argv.
     storeJson(dataSource, scriptPath, "KIMAI_SHARED_JSON", JSON.stringify(sharedObj || {}),
               "sharedConfig.sh", callback)
 }

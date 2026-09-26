@@ -10,6 +10,7 @@ import "shared"
 
 Kirigami.Page {
     id: page
+    KantePageTitle { page: page }
     title: i18n("Statistics")
 
     property var timesheets: []
@@ -29,6 +30,16 @@ Kirigami.Page {
     }
 
     Component.onCompleted: loadTrips()
+
+    /** Pull to refresh: forget the loaded range and fetch it, trips and totals again. */
+    function reloadAll() {
+        _rangeBeginMs = 0
+        _rangeEndMs = 0
+        timesheets = []
+        statsView.ensureRangeForOffsets()
+        loadTrips()
+        root.refreshAll()
+    }
 
     function loadRange(rangeBegin, rangeEnd) {
         if (!root.apiToken) return
@@ -73,5 +84,15 @@ Kirigami.Page {
 
             Item { Layout.fillHeight: true; Layout.minimumHeight: Kirigami.Units.largeSpacing }
         }
+    }
+
+    // Pull to refresh (see shared/PullToRefresh.qml).
+    PullToRefresh {
+        parent: pageScroll
+        anchors.fill: parent
+        z: 10
+        flickable: pageScroll.contentItem
+        busy: page.loading
+        onRefreshRequested: page.reloadAll()
     }
 }

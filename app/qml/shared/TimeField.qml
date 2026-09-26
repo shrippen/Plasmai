@@ -112,7 +112,7 @@ RowLayout {
         }
     }
 
-    QQC2.TextField {
+    PTextField {
         id: timeField
         Layout.fillWidth: true
         Layout.preferredHeight: Math.max(implicitHeight, TouchUi.controlMinHeight)
@@ -172,7 +172,7 @@ RowLayout {
         }
     }
 
-    QQC2.ToolButton {
+    PToolButton {
         Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
         Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
         icon.name: "clock-symbolic"

@@ -146,8 +146,7 @@ function providerCapabilities(providerId) {
         deleteEntry: caps.deleteEntry === true,
         editStopped: caps.editStopped === true,
         createEntities: caps.createEntities === true,
-        // Local-only extras UI (break, catering, day type, production day,
-        // note); Kimai-only.
+        // Film day view (begin/end; extras via the Drehzettel plugin); Kimai-only.
         filmDays: caps.filmDays === true,
         // Kimai plugins that may be installed; the UI still probes whether
         // they actually are (KimaiApi.detectPlugin) before using them.

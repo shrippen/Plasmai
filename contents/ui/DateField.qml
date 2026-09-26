@@ -138,7 +138,7 @@ RowLayout {
         }
     }
 
-    QQC2.TextField {
+    PTextField {
         id: dateField
         Layout.fillWidth: true
         Layout.preferredHeight: Math.max(implicitHeight, TouchUi.controlMinHeight)
@@ -205,7 +205,7 @@ RowLayout {
         }
     }
 
-    PlasmaComponents3.ToolButton {
+    PToolButton {
         Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
         Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
         icon.name: "view-calendar"
@@ -232,7 +232,7 @@ RowLayout {
 
             RowLayout {
                 Layout.fillWidth: true
-                PlasmaComponents3.ToolButton {
+                PToolButton {
                     Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
                     Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     icon.name: "go-previous"
@@ -251,7 +251,7 @@ RowLayout {
                     font.bold: true
                     text: Qt.locale().standaloneMonthName(root.calendarMonth) + " " + root.calendarYear
                 }
-                PlasmaComponents3.ToolButton {
+                PToolButton {
                     Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
                     Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     icon.name: "go-next"

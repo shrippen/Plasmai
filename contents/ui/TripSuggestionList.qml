@@ -72,7 +72,7 @@ ColumnLayout {
                 PlasmaComponents3.Label {
                     Layout.fillWidth: true
                     elide: Text.ElideRight
-                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    font.pointSize: Style.smallFont.pointSize
                     opacity: 0.7
                     text: {
                         if (!s) {
@@ -86,7 +86,7 @@ ColumnLayout {
                 }
             }
 
-            PlasmaComponents3.ToolButton {
+            PToolButton {
                 visible: root.canEdit
                 enabled: !root.busy
                 icon.name: "dialog-ok-apply"
@@ -97,7 +97,7 @@ ColumnLayout {
                 PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
                 PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
             }
-            PlasmaComponents3.ToolButton {
+            PToolButton {
                 visible: root.canEdit
                 enabled: !root.busy
                 icon.name: "document-edit"
@@ -108,7 +108,7 @@ ColumnLayout {
                 PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
                 PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
             }
-            PlasmaComponents3.ToolButton {
+            PToolButton {
                 visible: root.canEdit
                 enabled: !root.busy
                 icon.name: "edit-delete"
@@ -125,7 +125,7 @@ ColumnLayout {
     PlasmaComponents3.Label {
         Layout.fillWidth: true
         visible: root.maxRows > 0 && root.suggestions.length > root.maxRows
-        font.pointSize: Kirigami.Theme.smallFont.pointSize
+        font.pointSize: Style.smallFont.pointSize
         opacity: 0.7
         text: i18np("+%1 more detected trip", "+%1 more detected trips", root.suggestions.length - root.maxRows)
     }

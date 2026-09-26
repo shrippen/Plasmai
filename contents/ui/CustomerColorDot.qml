@@ -9,7 +9,7 @@ Item {
     id: root
 
     /** Kimai/display color. */
-    property color customerColor: "#d2d6de"
+    property color customerColor: Style.entityFallbackColor
     property bool showDot: true
     /**
      * Relative importance. Typical values:

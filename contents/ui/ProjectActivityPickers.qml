@@ -60,7 +60,7 @@ ColumnLayout {
             }
         }
 
-        PlasmaComponents3.ToolButton {
+        PToolButton {
             visible: root.showCreateActions
             text: i18n("Create project")
             icon.name: "list-add"
@@ -97,7 +97,7 @@ ColumnLayout {
             }
         }
 
-        PlasmaComponents3.ToolButton {
+        PToolButton {
             visible: root.showCreateActions
             text: i18n("Create activity")
             icon.name: "list-add"

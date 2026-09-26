@@ -15,12 +15,12 @@ import "."
  * TimeSheet app's day screen; see kimai-drehzettel-bundle's
  * research/timesheet-app-analyse.md for the reference layout.
  *
- * Where the extras live is decided by the caller (filmDaySync.js) and passed
- * in as `mode`: on the Drehzettel plugin's server ("server"), in shared.json
- * when the plugin is not installed ("local"), or not at all when the project
- * has no engagement / the user lacks the permission (extras hidden, only
- * begin and end are saved). The earnings figure comes from the plugin's day
- * summary; it is never calculated client-side.
+ * The extras live only in the Drehzettel plugin on the server; the caller
+ * (filmDaySync.js) passes the state as `mode`. Only "server" shows them.
+ * Without the plugin, without an engagement or permission, or while the
+ * server cannot be reached, only begin and end are saved. The earnings
+ * figure comes from the plugin's day summary; it is never calculated
+ * client-side.
  */
 ColumnLayout {
     id: root
@@ -37,8 +37,8 @@ ColumnLayout {
     property bool connectionOk: true
     property bool showCreateActions: false
 
-    /** filmDaySync.js Mode: local | server | noProject | noEngagement | noPermission | offline */
-    property string mode: "local"
+    /** filmDaySync.js Mode: noPlugin | server | noProject | noEngagement | noPermission | offline */
+    property string mode: "noPlugin"
     /** Ruleset default break from the server (-1 = unknown); shown as the "Default" break option. */
     property int defaultBreakMinutes: -1
     property string rulesetName: ""
@@ -46,16 +46,8 @@ ColumnLayout {
     property string currency: ""
     /** Day pay from the plugin's day summary in cents, -1 = none. */
     property real earningsCents: -1
-    /** Server mode without the plugin's extraPay feature: extra pay stays on this device. */
-    property bool extraPayLocalOnly: false
-    /** Changes of this day are queued and not on the server yet. */
-    property bool pendingSync: false
-    /** Local film days that could be copied to the server (P6), 0 = no offer. */
-    property int migrationCount: 0
-    property bool migrationBusy: false
-    property string migrationReport: ""
-    /** Migrated days whose server values differ from this device, still to review (P6). */
-    property int conflictCount: 0
+    /** False for plugins without the extraPay feature: the field is hidden. */
+    property bool extraPayAvailable: true
 
     /**
      * B3: further stopped entries of the picked project on this day besides
@@ -66,9 +58,9 @@ ColumnLayout {
     readonly property var otherSpan: FilmDays.daySpan(otherEntries)
     readonly property bool mergeOthers: otherEntries.length > 0 && mergeable && mergeCheck.checked
 
-    readonly property bool serverMode: mode === "server" || mode === "offline"
-    readonly property bool extrasVisible: mode === "local" || mode === "server" || mode === "offline"
-    readonly property bool extrasEnabled: configured && !busy && (mode === "local" || mode === "server")
+    readonly property bool serverMode: mode === "server"
+    readonly property bool extrasVisible: serverMode
+    readonly property bool extrasEnabled: configured && !busy && serverMode
     readonly property int fallbackBreakMinutes: defaultBreakMinutes >= 0 ? defaultBreakMinutes : FilmDays.DEFAULT_BREAK_MINUTES
     /** Break that applies: the chosen minutes, or the ruleset default when "Default" is picked. */
     readonly property int effectiveBreakMinutes: !extrasVisible ? 0
@@ -95,9 +87,6 @@ ColumnLayout {
     signal cancelled()
     signal createProjectRequested()
     signal createActivityRequested()
-    signal migrationRequested()
-    signal migrationDismissed()
-    signal conflictReviewRequested()
 
     function closePickers() {
         pickers.closePickers()
@@ -177,8 +166,8 @@ ColumnLayout {
         : 0
 
     function modeHint() {
-        if (mode === "local") {
-            return i18n("The Drehzettel plugin is not installed on this Kimai server, so break, catering, day type, shooting day, extra pay, and the note are kept on this device only. Begin and end are saved to Kimai like any entry.")
+        if (mode === "noPlugin") {
+            return i18n("The Drehzettel plugin is not installed on this Kimai server. Only begin and end are saved.")
         }
         if (mode === "noEngagement") {
             return i18n("No active engagement for this project and day. Only begin and end are saved.")
@@ -190,10 +179,7 @@ ColumnLayout {
             return i18n("Pick a project to load its film day.")
         }
         if (mode === "offline") {
-            return i18n("The Drehzettel plugin cannot be reached. Showing the last known values; the film day extras can be edited again once the server answers.")
-        }
-        if (pendingSync) {
-            return i18n("Some changes of this day are not on the server yet. They are sent again automatically.")
+            return i18n("The Drehzettel plugin cannot be reached. Only begin and end can be saved right now.")
         }
         return ""
     }
@@ -323,48 +309,17 @@ ColumnLayout {
      * Fill the view from a FilmDaySync.loadDay() result. `currency` is the
      * fallback when the day summary has none (customer currency from the catalog).
      */
-    function applyLoadedDay(date, timesheet, day, currency, migrationCount, otherEntries) {
+    function applyLoadedDay(date, timesheet, day, currency, otherEntries) {
         var summary = day.summary || null
         root.mode = day.mode
         root.defaultBreakMinutes = day.defaultBreakMinutes
         root.rulesetName = day.rulesetName || ""
         root.currency = (summary && summary.currency) ? String(summary.currency) : (currency || "")
         root.earningsCents = (summary && typeof summary.payCents === "number") ? summary.payCents : -1
-        root.extraPayLocalOnly = !!day.server && !Object.prototype.hasOwnProperty.call(day.server, "extraPayCents")
-        root.pendingSync = !!day.pending
-        root.migrationCount = migrationCount || 0
+        root.extraPayAvailable = !!day.server && Object.prototype.hasOwnProperty.call(day.server, "extraPayCents")
         root.otherEntries = otherEntries || []
         mergeCheck.checked = false
         root.loadForDay(date, timesheet, day.fields)
-    }
-
-    /** Summary line for a FilmDaySync.migrate() report. */
-    function showMigrationReport(report) {
-        var lines = [i18np("%1 film day copied to the server.", "%1 film days copied to the server.", report.pushed)]
-        if (report.same > 0) {
-            lines.push(i18np("%1 was already there.", "%1 were already there.", report.same))
-        }
-        if (report.conflicts.length > 0) {
-            var dates = []
-            for (var i = 0; i < report.conflicts.length; i++) {
-                dates.push(report.conflicts[i].date)
-            }
-            lines.push(i18np("%1 day has other values on the server; the server values were kept and the local copy is unchanged: %2",
-                             "%1 days have other values on the server; the server values were kept and the local copies are unchanged: %2",
-                             report.conflicts.length, dates.join(", ")))
-            lines.push(i18n("Use Review to choose per day which values to keep."))
-        }
-        if (report.noEngagement > 0) {
-            lines.push(i18np("%1 day has no engagement and stays on this device.",
-                             "%1 days have no engagement and stay on this device.", report.noEngagement))
-        }
-        if (report.rejected > 0) {
-            lines.push(i18np("%1 day was rejected by the server.", "%1 days were rejected by the server.", report.rejected))
-        }
-        if (report.stopped) {
-            lines.push(i18n("Stopped early because the server could not be reached; the rest is copied next time."))
-        }
-        root.migrationReport = lines.join(" ")
     }
 
     /** Called by root after it loads the day's timesheet (if any) and film-day extras. */
@@ -455,74 +410,10 @@ ColumnLayout {
         Layout.fillWidth: true
         visible: text.length > 0
         wrapMode: Text.WordWrap
-        font.pointSize: Kirigami.Theme.smallFont.pointSize
+        font.pointSize: Style.smallFont.pointSize
         opacity: 0.8
-        color: root.mode === "offline" || root.pendingSync ? Kirigami.Theme.neutralTextColor : Kirigami.Theme.textColor
+        color: root.mode === "offline" ? Style.neutralTextColor : Style.textColor
         text: root.modeHint()
-    }
-
-    /** One-time offer to copy local film days to the plugin (server wins on conflicts). */
-    ColumnLayout {
-        Layout.fillWidth: true
-        visible: root.mode === "server" && (root.migrationCount > 0 || root.migrationReport.length > 0)
-        spacing: Kirigami.Units.smallSpacing
-
-        PlasmaComponents3.Label {
-            Layout.fillWidth: true
-            wrapMode: Text.WordWrap
-            font.pointSize: Kirigami.Theme.smallFont.pointSize
-            text: root.migrationReport.length > 0 ? root.migrationReport
-                : i18np("%1 film day saved on this device can be copied to the Drehzettel plugin. Days that already have other values on the server keep the server values.",
-                        "%1 film days saved on this device can be copied to the Drehzettel plugin. Days that already have other values on the server keep the server values.",
-                        root.migrationCount)
-        }
-
-        RowLayout {
-            Layout.fillWidth: true
-            visible: root.migrationCount > 0
-            spacing: Kirigami.Units.smallSpacing
-
-            PlasmaComponents3.Button {
-                text: i18n("Copy to server")
-                icon.name: "cloud-upload"
-                enabled: root.configured && !root.busy && !root.migrationBusy
-                onClicked: root.migrationRequested()
-            }
-            PlasmaComponents3.Button {
-                flat: true
-                text: i18n("Not now")
-                enabled: !root.migrationBusy
-                onClicked: root.migrationDismissed()
-            }
-            PlasmaComponents3.BusyIndicator {
-                visible: root.migrationBusy
-                running: visible
-                Layout.preferredHeight: Kirigami.Units.iconSizes.small
-                Layout.preferredWidth: Kirigami.Units.iconSizes.small
-            }
-        }
-    }
-
-    /** P6: days that differ between this device and the server after the migration. */
-    RowLayout {
-        Layout.fillWidth: true
-        visible: root.mode === "server" && root.conflictCount > 0
-        spacing: Kirigami.Units.smallSpacing
-
-        PlasmaComponents3.Label {
-            Layout.fillWidth: true
-            wrapMode: Text.WordWrap
-            font.pointSize: Kirigami.Theme.smallFont.pointSize
-            color: Kirigami.Theme.neutralTextColor
-            text: i18np("%1 film day differs between this device and the server.",
-                        "%1 film days differ between this device and the server.", root.conflictCount)
-        }
-        PlasmaComponents3.Button {
-            text: i18n("Review")
-            icon.name: "document-edit"
-            enabled: root.configured && !root.busy && !root.migrationBusy
-            onClicked: root.conflictReviewRequested()
-        }
     }
 
     RowLayout {
@@ -530,7 +421,7 @@ ColumnLayout {
         Layout.topMargin: Kirigami.Units.smallSpacing
         spacing: Kirigami.Units.smallSpacing
 
-        PlasmaComponents3.ToolButton {
+        PToolButton {
             icon.name: "go-previous"
             display: QQC2.AbstractButton.IconOnly
             text: i18n("Previous day")
@@ -546,8 +437,8 @@ ColumnLayout {
             Layout.fillWidth: true
             horizontalAlignment: Text.AlignHCenter
             font.bold: true
-            font.pointSize: Kirigami.Theme.defaultFont.pointSize * 1.15
-            color: Kirigami.Theme.highlightColor
+            font.pointSize: Style.defaultFont.pointSize * 1.15
+            color: Style.highlightColor
             wrapMode: Text.WordWrap
             text: root.selectedDay.toLocaleDateString(Qt.locale(), Locale.LongFormat)
 
@@ -559,7 +450,7 @@ ColumnLayout {
             }
         }
 
-        PlasmaComponents3.ToolButton {
+        PToolButton {
             icon.name: "go-next"
             display: QQC2.AbstractButton.IconOnly
             text: i18n("Next day")
@@ -620,8 +511,8 @@ ColumnLayout {
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
                 font.bold: true
-                font.pointSize: Kirigami.Theme.defaultFont.pointSize * 1.6
-                color: Kirigami.Theme.highlightColor
+                font.pointSize: Style.defaultFont.pointSize * 1.6
+                color: Style.highlightColor
                 text: DTF.formatLocaleTime(beginTime.hours, beginTime.minutes)
             }
             TimeField {
@@ -647,11 +538,12 @@ ColumnLayout {
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
                 font.bold: true
-                font.pointSize: Kirigami.Theme.defaultFont.pointSize * 1.6
-                color: Kirigami.Theme.highlightColor
+                font.pointSize: Style.defaultFont.pointSize * 1.6
+                color: Style.highlightColor
                 text: root.pad2(Math.floor(root.effectiveBreakMinutes / 60)) + ":" + root.pad2(root.effectiveBreakMinutes % 60)
             }
             QQC2.SpinBox {
+                KanteFieldSkin { control: parent }
                 id: breakSpin
                 Layout.fillWidth: true
                 // -1 = "Default": the ruleset's break (server mode only).
@@ -694,8 +586,8 @@ ColumnLayout {
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
                 font.bold: true
-                font.pointSize: Kirigami.Theme.defaultFont.pointSize * 1.6
-                color: Kirigami.Theme.highlightColor
+                font.pointSize: Style.defaultFont.pointSize * 1.6
+                color: Style.highlightColor
                 text: DTF.formatLocaleTime(endTime.hours, endTime.minutes)
             }
             TimeField {
@@ -712,9 +604,9 @@ ColumnLayout {
         Layout.topMargin: Kirigami.Units.smallSpacing
         horizontalAlignment: Text.AlignHCenter
         wrapMode: Text.WordWrap
-        font.pointSize: Kirigami.Theme.smallFont.pointSize
+        font.pointSize: Style.smallFont.pointSize
         opacity: root.rangeValid ? 0.9 : 0.65
-        color: root.rangeValid ? Kirigami.Theme.textColor : Kirigami.Theme.neutralTextColor
+        color: root.rangeValid ? Style.textColor : Style.neutralTextColor
         text: root.rangeValid
               ? i18n("Work time: %1", KimaiApi.formatDuration(root.workSeconds))
               : i18n("Work time: invalid range")
@@ -729,8 +621,8 @@ ColumnLayout {
         PlasmaComponents3.Label {
             Layout.fillWidth: true
             wrapMode: Text.WordWrap
-            font.pointSize: Kirigami.Theme.smallFont.pointSize
-            color: Kirigami.Theme.neutralTextColor
+            font.pointSize: Style.smallFont.pointSize
+            color: Style.neutralTextColor
             text: root.mergeOthers
                 ? i18np("Saving sets this entry from begin to end and deletes the other entry of this project on this day (%2). Its description and tags are lost.",
                         "Saving sets this entry from begin to end and deletes the %1 other entries of this project on this day (%2). Their descriptions and tags are lost.",
@@ -741,6 +633,7 @@ ColumnLayout {
         }
 
         PlasmaComponents3.CheckBox {
+            KanteCheckSkin { control: parent }
             id: mergeCheck
             Layout.fillWidth: true
             visible: root.mergeable
@@ -770,6 +663,7 @@ ColumnLayout {
                 text: i18n("Day category")
             }
             QQC2.Slider {
+                KanteSliderSkin { control: parent }
                 id: categorySlider
                 Layout.fillWidth: true
                 from: 0
@@ -789,6 +683,7 @@ ColumnLayout {
                 text: i18n("Catering")
             }
             QQC2.Switch {
+                KanteCheckSkin { control: parent; shape: KanteCheckSkin.Shape.Switch }
                 id: cateringSwitch
                 Layout.alignment: Qt.AlignHCenter
                 enabled: root.extrasEnabled
@@ -805,6 +700,7 @@ ColumnLayout {
                 text: i18n("Day type")
             }
             QQC2.Slider {
+                KanteSliderSkin { control: parent }
                 id: dayTypeSlider
                 Layout.fillWidth: true
                 from: 0
@@ -837,6 +733,7 @@ ColumnLayout {
                 opacity: 0.85
             }
             QQC2.SpinBox {
+                KanteFieldSkin { control: parent }
                 id: productionDaySpin
                 Layout.fillWidth: true
                 from: 0
@@ -865,6 +762,7 @@ ColumnLayout {
                 opacity: 0.85
             }
             QQC2.SpinBox {
+                KanteFieldSkin { control: parent }
                 id: surchargeDaySpin
                 Layout.fillWidth: true
                 from: 0
@@ -890,15 +788,16 @@ ColumnLayout {
 
         ColumnLayout {
             Layout.fillWidth: true
+            visible: root.extraPayAvailable
             spacing: Kirigami.Units.smallSpacing / 2
             PlasmaComponents3.Label {
                 Layout.fillWidth: true
-                text: root.extraPayLocalOnly ? i18n("Extra pay / expenses (this device only)") : i18n("Extra pay / expenses")
+                text: i18n("Extra pay / expenses")
                 elide: Text.ElideRight
                 font.bold: true
                 opacity: 0.85
             }
-            QQC2.TextField {
+            PTextField {
                 id: extraPayField
                 Layout.fillWidth: true
                 enabled: root.extrasEnabled
@@ -913,7 +812,7 @@ ColumnLayout {
                         anchors.right: parent.right
                         anchors.bottom: parent.bottom
                         height: 1
-                        color: extraPayField.activeFocus ? Kirigami.Theme.highlightColor : Kirigami.Theme.disabledTextColor
+                        color: extraPayField.activeFocus ? Style.highlightColor : Style.disabledTextColor
                     }
                 }
             }
@@ -953,13 +852,14 @@ ColumnLayout {
         }
         PlasmaComponents3.Label {
             visible: noteField.length > FilmDays.NOTE_MAX_LENGTH - 100
-            font.pointSize: Kirigami.Theme.smallFont.pointSize
+            font.pointSize: Style.smallFont.pointSize
             opacity: 0.7
             text: i18n("%1/%2", noteField.length, FilmDays.NOTE_MAX_LENGTH)
         }
     }
 
     QQC2.TextArea {
+        KanteFieldSkin { control: parent }
         id: noteField
         Layout.fillWidth: true
         Layout.preferredHeight: Kirigami.Units.gridUnit * 3
@@ -983,12 +883,12 @@ ColumnLayout {
                 anchors.right: parent.right
                 anchors.bottom: parent.bottom
                 height: 1
-                color: noteField.activeFocus ? Kirigami.Theme.highlightColor : Kirigami.Theme.disabledTextColor
+                color: noteField.activeFocus ? Style.highlightColor : Style.disabledTextColor
             }
         }
     }
 
-    PlasmaComponents3.Button {
+    PButton {
         Layout.fillWidth: true
         Layout.topMargin: Kirigami.Units.largeSpacing
         Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight * 1.3
@@ -1010,7 +910,7 @@ ColumnLayout {
         }
     }
 
-    PlasmaComponents3.Button {
+    PButton {
         Layout.alignment: Qt.AlignHCenter
         Layout.topMargin: Kirigami.Units.smallSpacing
         Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight

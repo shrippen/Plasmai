@@ -14,6 +14,7 @@ import "shared"
  */
 Kirigami.Page {
     id: page
+    KantePageTitle { page: page }
     title: page.suggestion ? i18n("Detected trip") : (page.original ? i18n("Edit trip") : i18n("Log trip"))
 
     property var form: null
@@ -92,5 +93,15 @@ Kirigami.Page {
 
             Item { Layout.fillHeight: true; Layout.minimumHeight: Kirigami.Units.largeSpacing }
         }
+    }
+
+    // Pull to refresh (see shared/PullToRefresh.qml).
+    PullToRefresh {
+        parent: pageScroll
+        anchors.fill: parent
+        z: 10
+        flickable: pageScroll.contentItem
+        busy: false
+        onRefreshRequested: root.resolveMileage(true)
     }
 }

@@ -29,7 +29,7 @@ Row {
             width: index === 0 ? root.width * 0.65 : root.width * 0.35
             height: Kirigami.Units.gridUnit
             radius: Kirigami.Units.smallSpacing / 2
-            color: Kirigami.Theme.disabledTextColor
+            color: Style.disabledTextColor
         }
     }
 }

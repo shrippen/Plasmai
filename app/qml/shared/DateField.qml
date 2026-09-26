@@ -126,7 +126,7 @@ RowLayout {
         }
     }
 
-    QQC2.TextField {
+    PTextField {
         id: dateField
         Layout.fillWidth: true
         Layout.preferredHeight: Math.max(implicitHeight, TouchUi.controlMinHeight)
@@ -200,7 +200,7 @@ RowLayout {
         calendarLoader.item.open()
     }
 
-    QQC2.ToolButton {
+    PToolButton {
         Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
         Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
         icon.name: "view-calendar"
