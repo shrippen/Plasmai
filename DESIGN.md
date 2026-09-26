@@ -23,6 +23,11 @@ typography stack, badge format, and social-preview spec.
 - Native Plasma panel widget, not a standalone app. It should feel like a
   first-class applet: compact representation in the panel, Kirigami-styled
   popup, standard Configure / context menu, KWallet for secrets.
+- Phone companion: a Kirigami app (`app/`) for Android and Plasma Mobile. It
+  reuses the provider layer (`contents/code/*`) and copies of the Plasmoid
+  components (`app/qml/shared/`), and should match the Plasmoid in features
+  and look. On the desktop the Plasmoid stays the product; the app is not a
+  desktop window or tray replacement.
 - Capability target: Kemai-like time tracking from the panel, with one-click
   recents/favorites and deeper Plasma integration (notifications, idle stop,
   blur, translations).
