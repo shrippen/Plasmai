@@ -47,6 +47,16 @@ QtObject {
     /** Force the dark palette (e.g. an Android app that always runs Material Dark). */
     property bool preferDark: false
 
+    /**
+     * The app runs the Material style (Android). Kirigami then derives its
+     * colors from the Material attached properties, so the app hands Kante's
+     * colors to those (on its window) and KanteScope leaves Kirigami.Theme
+     * alone: Kirigami's Material bridge would write Material.theme Light and
+     * fixed colors onto every item whose Kirigami colors change, which cannot
+     * be undone when Kante is switched off.
+     */
+    property bool materialStyle: false
+
     /** Leinen when the platform theme is light, unless preferDark. */
     readonly property bool light: !preferDark && Kirigami.Theme.backgroundColor.hslLightness > 0.5
     readonly property QtObject palette: light ? KantePalette.light : KantePalette.dark

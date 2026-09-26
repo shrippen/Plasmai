@@ -25,6 +25,11 @@ import "../Kante"
 ColumnLayout {
     id: root
 
+    /** Duration label: h:mm in Kante (mono figures), "1h 5m" otherwise. */
+    function durationText(seconds) {
+        return KanteStyle.active ? DTF.hoursMinutes(seconds) : KimaiApi.formatDurationShort(seconds)
+    }
+
     width: parent ? parent.width : implicitWidth
 
     property var projectPickerModel: []
@@ -608,7 +613,7 @@ ColumnLayout {
         opacity: root.rangeValid ? 0.9 : 0.65
         color: root.rangeValid ? KanteStyle.textColor : KanteStyle.neutralTextColor
         text: root.rangeValid
-              ? i18n("Work time: %1", KimaiApi.formatDuration(root.workSeconds))
+              ? i18n("Work time: %1", root.durationText(root.workSeconds))
               : i18n("Work time: invalid range")
     }
 
@@ -626,10 +631,10 @@ ColumnLayout {
             text: root.mergeOthers
                 ? i18np("Saving sets this entry from begin to end and deletes the other entry of this project on this day (%2). Its description and tags are lost.",
                         "Saving sets this entry from begin to end and deletes the %1 other entries of this project on this day (%2). Their descriptions and tags are lost.",
-                        root.otherEntries.length, KimaiApi.formatDuration(root.otherSpan.seconds))
+                        root.otherEntries.length, root.durationText(root.otherSpan.seconds))
                 : i18np("This project has %1 more entry on this day (%2). Saving only updates the entry shown; the work time above does not include the other one.",
                         "This project has %1 more entries on this day (%2). Saving only updates the entry shown; the work time above does not include the others.",
-                        root.otherEntries.length, KimaiApi.formatDuration(root.otherSpan.seconds))
+                        root.otherEntries.length, root.durationText(root.otherSpan.seconds))
         }
 
         QQC2.CheckBox {
@@ -888,34 +893,37 @@ ColumnLayout {
         }
     }
 
-    KanteButton {
+    RowLayout {
         Layout.fillWidth: true
         Layout.topMargin: Kirigami.Units.largeSpacing
-        Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight * 1.3
-        highlighted: true
-        enabled: root.configured && !root.busy && root.connectionOk
-                 && projectCombo.currentIndex >= 0 && activityCombo.currentIndex >= 0
-                 && root.rangeValid
-        text: i18n("Save shooting day")
-        icon.name: "document-save"
-        onClicked: {
-            var project = projectCombo.currentItem.value
-            var activity = activityCombo.currentItem.value
-            root.saveRequested(
-                project.id,
-                activity.id,
-                root.stampText(root.selectedDay, beginTime),
-                root.stampText(root.selectedDay, endTime),
-                root.currentEntryFields())
-        }
-    }
+        spacing: Kirigami.Units.smallSpacing
 
-    KanteButton {
-        Layout.alignment: Qt.AlignHCenter
-        Layout.topMargin: Kirigami.Units.smallSpacing
-        Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-        flat: true
-        text: i18n("Cancel")
-        onClicked: root.cancelled()
+        KanteButton {
+            Layout.fillWidth: true
+            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+            highlighted: true
+            emphasis: KanteButton.Emphasis.Primary
+            enabled: root.configured && !root.busy && root.connectionOk
+                     && projectCombo.currentIndex >= 0 && activityCombo.currentIndex >= 0
+                     && root.rangeValid
+            text: i18n("Save shooting day")
+            icon.name: "document-save"
+            onClicked: {
+                var project = projectCombo.currentItem.value
+                var activity = activityCombo.currentItem.value
+                root.saveRequested(
+                    project.id,
+                    activity.id,
+                    root.stampText(root.selectedDay, beginTime),
+                    root.stampText(root.selectedDay, endTime),
+                    root.currentEntryFields())
+            }
+        }
+
+        KanteButton {
+            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+            text: i18n("Cancel")
+            onClicked: root.cancelled()
+        }
     }
 }

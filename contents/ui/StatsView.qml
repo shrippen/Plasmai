@@ -1,5 +1,6 @@
 import "../code/kimaiApi.js" as KimaiApi
 import "../code/statsData.js" as StatsData
+import "../code/mileage.js" as Mileage
 import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
@@ -226,10 +227,10 @@ ColumnLayout {
                     { label: i18n("This week"), value: KimaiApi.formatDurationShort(root.filteredWeekSeconds) }
                 ]
                 if (root.tripSummary !== null) {
-                    tiles.push({ label: i18n("Trips this week"), value: i18n("%1 km", root.tripSummary.weekKm) })
+                    tiles.push({ label: i18n("Trips this week"), value: i18n("%1 km", Mileage.displayKm(root.tripSummary.weekKm)) })
                     tiles.push({ label: i18n("Trips this month"),
                                  value: i18np("%2 km (1 trip)", "%2 km (%1 trips)",
-                                              root.tripSummary.monthCount, root.tripSummary.monthKm) })
+                                              root.tripSummary.monthCount, Mileage.displayKm(root.tripSummary.monthKm)) })
                 }
                 return tiles
             }
@@ -308,7 +309,7 @@ ColumnLayout {
             Layout.fillWidth: true
             horizontalAlignment: Text.AlignRight
             font.bold: true
-            text: root.tripSummary ? i18n("%1 km", root.tripSummary.weekKm) : ""
+            text: root.tripSummary ? i18n("%1 km", Mileage.displayKm(root.tripSummary.weekKm)) : ""
         }
 
         PlasmaComponents3.Label {
@@ -323,7 +324,7 @@ ColumnLayout {
             horizontalAlignment: Text.AlignRight
             font.bold: true
             text: root.tripSummary
-                  ? i18np("%2 km (1 trip)", "%2 km (%1 trips)", root.tripSummary.monthCount, root.tripSummary.monthKm)
+                  ? i18np("%2 km (1 trip)", "%2 km (%1 trips)", root.tripSummary.monthCount, Mileage.displayKm(root.tripSummary.monthKm))
                   : ""
         }
 

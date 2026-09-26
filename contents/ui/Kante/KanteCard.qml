@@ -17,6 +17,8 @@ Item {
     property int barHeight: 3
     property int chamfer: KanteStyle.chamfer
     property color borderColor: "transparent"
+    /** Square: styles that read background.radius (Material menus, dialogs) get 0. */
+    readonly property int radius: 0
 
     Shape {
         anchors.fill: parent

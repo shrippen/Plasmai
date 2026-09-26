@@ -13,7 +13,6 @@ Item {
     property var items: []
     property int currentIndex: -1
     property string placeholderText: ""
-    property bool enabled: true
     property int highlightedIndex: -1
     property var sectionTitleMap: ({})
     /**

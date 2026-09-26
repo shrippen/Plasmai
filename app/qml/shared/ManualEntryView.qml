@@ -14,6 +14,11 @@ import "../Kante"
 ColumnLayout {
     id: root
 
+    /** Duration label: h:mm in Kante (mono figures), "1h 5m" otherwise. */
+    function durationText(seconds) {
+        return KanteStyle.active ? DTF.hoursMinutes(seconds) : KimaiApi.formatDurationShort(seconds)
+    }
+
     width: parent ? parent.width : implicitWidth
 
     property var projectPickerModel: []
@@ -344,7 +349,7 @@ ColumnLayout {
                 color: root.rangeValid ? KanteStyle.textColor : KanteStyle.neutralTextColor
                 text: {
                     if (root.durationSeconds > 0) {
-                        return i18n("Duration: %1", KimaiApi.formatDuration(root.durationSeconds))
+                        return i18n("Duration: %1", root.durationText(root.durationSeconds))
                     }
                     if (beginDate.text.length === 0 && beginTime.text.length === 0
                         && endDate.text.length === 0 && endTime.text.length === 0) {
@@ -391,6 +396,8 @@ ColumnLayout {
             enabled: root.configured && !root.busy && root.connectionOk
                      && projectCombo.currentIndex >= 0 && activityCombo.currentIndex >= 0
                      && root.rangeValid
+            highlighted: true
+            emphasis: KanteButton.Emphasis.Primary
             text: root.editingExisting ? i18n("Save changes") : i18n("Save entry")
             icon.name: "document-save"
             onClicked: {

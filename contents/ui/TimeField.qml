@@ -15,7 +15,6 @@ import "KantePlasma"
 RowLayout {
     id: root
 
-    property alias enabled: timeField.enabled
     property alias text: timeField.text
     property int hours: 0
     property int minutes: 0

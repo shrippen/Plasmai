@@ -12,6 +12,17 @@
 ### App
 - Pull to refresh on every page: timer, statistics, film day, trips, favorites, add entry, settings and connection reload their data
 
+### Polish
+- App on Plasma / Plasma Mobile (desktop style): text fields showed no text (times, dates, profile name, server URL, working hours); they do again
+- Add entry, film day and trip use the same action row: the primary Save button with Cancel next to it; Delete of a trip is a separate destructive button
+- Durations read "1h 0m" (Kante: "1:00") instead of "01:00:00" in Add entry and the film day
+- The trip form no longer shows "Enter the distance." before you typed; its title moved into the header instead of repeating it above the form
+- Kante: drop-down lists always show their arrow; spin boxes keep their own value
+- Android: after switching away from Kante, buttons were light with white text and drop-downs and hints were hard to read until the app restarted; switching styles now takes effect cleanly
+- Android: kilometres use the local number format ("139,5 km"), like on the desktop, where the trip list also showed "23.2 km" before
+- Android: in Kante, filled fields no longer show their hint above the frame, and buttons fit their label ("VERWENDEN")
+- App settings: an unset location reads "Not set" instead of "0.00, 0.00"
+
 ### Translations
 - French, Spanish, Italian, Dutch, Brazilian Portuguese, Polish, Ukrainian, Russian, Japanese and Chinese now also cover the film day view, trips and the new settings (before, only German had them)
 

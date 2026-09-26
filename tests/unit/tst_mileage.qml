@@ -25,6 +25,17 @@ TestCase {
         return t
     }
 
+    // Shown km follow the locale (the Android i18n shim does not format numbers).
+    function test_displayKm() {
+        compare(Mileage.displayKm(139.5, Qt.locale("de_DE")), "139,5")
+        compare(Mileage.displayKm(139.5, Qt.locale("en_US")), "139.5")
+        compare(Mileage.displayKm(47, Qt.locale("de_DE")), "47")
+        compare(Mileage.displayKm(1234.56, Qt.locale("de_DE")), "1.234,6")
+        compare(Mileage.displayKm("x", Qt.locale("de_DE")), "")
+        // form values stay machine-readable
+        compare(Mileage.formatKm(139.5), "139.5")
+    }
+
     function test_ranges() {
         var r = Mileage.monthRange(new Date(2026, 1, 10))
         compare(r.from, "2026-02-01")

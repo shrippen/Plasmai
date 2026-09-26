@@ -81,7 +81,7 @@ ColumnLayout {
                             return ""
                         }
                         var bits = [root.timeText(s.start),
-                                    i18n("%1 km", Mileage.formatKm(s.distanceKm)),
+                                    i18n("%1 km", Mileage.displayKm(s.distanceKm)),
                                     Mileage.labelOf(root.meta ? root.meta.purposes : null, s.purpose, root.purposeFallback)]
                         return bits.filter(function(b) { return b.length > 0 }).join(" · ")
                     }

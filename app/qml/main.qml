@@ -37,6 +37,13 @@ Kirigami.ApplicationWindow {
         // Android always runs Material Dark (main.cpp), whatever Kirigami reports.
         value: Qt.platform.os === "android"
     }
+    Binding {
+        target: KanteStyle
+        property: "materialStyle"
+        // Android runs the Material style (main.cpp): Kante reaches Kirigami
+        // through the Material colors below, not through Kirigami.Theme.
+        value: Qt.platform.os === "android"
+    }
 
     // Kante: Gruvbox ground and accent for the window, Material (Android) and
     // Kirigami (Plasma Mobile) controls. Restored when switched back; Kante Light

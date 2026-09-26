@@ -34,6 +34,8 @@ ColumnLayout {
     /** Plugin field errors of the last save: { field: message }. */
     property var serverErrors: ({})
     property string errorText: ""
+    /** The distance was edited; before that a missing distance is not reported. */
+    property bool distanceTouched: false
     /** Human-readable Kimai entry the trip is linked to ("" = none). */
     property string linkedText: ""
 
@@ -103,6 +105,7 @@ ColumnLayout {
         root.linkedText = linked || ""
         root.serverErrors = ({})
         root.errorText = ""
+        root.distanceTouched = false
         var f = root.baseForm
         var d = Mileage.parseDateString(f.date) || new Date()
         dateField.setDate(d)
@@ -180,10 +183,11 @@ ColumnLayout {
             return i18n("This month of the logbook is closed.")
         }
         if (field === "distanceKm" && code === "required") {
-            return i18n("Enter the distance.")
+            // Not before the user typed: an empty new form is not an error yet.
+            return root.distanceTouched ? i18n("Enter the distance.") : ""
         }
         if (field === "distanceKm") {
-            return i18n("Enter a distance between 0 and %1 km.", Mileage.MAX_DISTANCE_KM)
+            return i18n("Enter a distance between 0 and %1 km.", Mileage.displayKm(Mileage.MAX_DISTANCE_KM))
         }
         if (field === "arrival" && code === "beforeDeparture") {
             return i18n("Arrival must be after departure.")
@@ -196,13 +200,9 @@ ColumnLayout {
 
     readonly property bool fieldsEnabled: configured && !busy
 
-    PlasmaComponents3.Label {
-        Layout.fillWidth: true
-        wrapMode: Text.WordWrap
-        font.bold: true
-        text: root.suggestionMode ? i18n("Accept detected trip")
-            : (root.editing ? i18n("Edit trip") : i18n("Log trip"))
-    }
+    /** Heading for the host (Plasmoid header, app page). */
+    readonly property string title: root.suggestionMode ? i18n("Accept detected trip")
+        : (root.editing ? i18n("Edit trip") : i18n("Log trip"))
 
     Kirigami.FormLayout {
         Layout.fillWidth: true
@@ -288,9 +288,10 @@ ColumnLayout {
                     var km = Mileage.commuteKm(root.ping)
                     var p = root.purposeOptions[purposeCombo.currentIndex]
                     return (!root.editing && km !== null && p && p.value === Mileage.Purpose.COMMUTE)
-                        ? i18n("%1 (from your profile)", Mileage.formatKm(km)) : ""
+                        ? i18n("%1 (from your profile)", Mileage.displayKm(km)) : ""
                 }
                 Accessible.name: i18n("Distance in kilometers")
+                onTextEdited: root.distanceTouched = true
             }
             PlasmaComponents3.Label {
                 text: i18n("km")
@@ -406,6 +407,7 @@ ColumnLayout {
             Layout.fillWidth: true
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             highlighted: true
+            emphasis: KantePlasmaButton.Emphasis.Primary
             enabled: root.fieldsEnabled && root.connectionOk && root.formValid
             text: root.suggestionMode ? i18n("Accept") : (root.editing ? i18n("Save trip") : i18n("Log trip"))
             icon.name: "document-save"
@@ -419,34 +421,34 @@ ColumnLayout {
         }
 
         KantePlasmaButton {
-            id: deleteButton
-            visible: root.canDelete
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-            enabled: root.fieldsEnabled && root.connectionOk
-            // Two steps instead of a dialog: the sheet lives in the Plasmoid popup and on a phone page.
-            property bool armed: false
-            text: armed ? i18n("Really delete?") : i18n("Delete")
-            icon.name: "edit-delete"
-            onClicked: {
-                if (!armed) {
-                    armed = true
-                    return
-                }
-                armed = false
-                root.deleteRequested(root.original.id)
-            }
-            Connections {
-                target: root
-                function onOriginalChanged() { deleteButton.armed = false }
-            }
+            text: i18n("Cancel")
+            onClicked: root.cancelled()
         }
     }
 
     KantePlasmaButton {
-        Layout.alignment: Qt.AlignHCenter
+        id: deleteButton
+        visible: root.canDelete
+        Layout.alignment: Qt.AlignLeft
+        emphasis: KantePlasmaButton.Emphasis.Destructive
         Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-        flat: true
-        text: i18n("Cancel")
-        onClicked: root.cancelled()
+        enabled: root.fieldsEnabled && root.connectionOk
+        // Two steps instead of a dialog: the sheet lives in the Plasmoid popup and on a phone page.
+        property bool armed: false
+        text: armed ? i18n("Really delete?") : i18n("Delete")
+        icon.name: "edit-delete"
+        onClicked: {
+            if (!armed) {
+                armed = true
+                return
+            }
+            armed = false
+            root.deleteRequested(root.original.id)
+        }
+        Connections {
+            target: root
+            function onOriginalChanged() { deleteButton.armed = false }
+        }
     }
 }

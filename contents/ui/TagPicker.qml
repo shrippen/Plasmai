@@ -17,7 +17,6 @@ ColumnLayout {
     property var selectedTagEntries: []
     property string kimaiUrl: ""
     property string apiToken: ""
-    property bool enabled: true
     property Item pickerViewport: null
 
     /** Name list for timesheet writes (unchanged API for callers). */

@@ -16,7 +16,6 @@ import "KantePlasma"
 RowLayout {
     id: root
 
-    property alias enabled: dateField.enabled
     /** Keep as JS Date (var). QML `date` type often lacks getTime() across item boundaries. */
     property var selectedDate: new Date()
     readonly property real selectedDateMs: {

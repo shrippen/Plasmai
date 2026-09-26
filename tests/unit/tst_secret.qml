@@ -74,7 +74,7 @@ TestCase {
         }
         var ds = fakeSource()
         var saved = null
-        Secret.saveSharedConfig(ds, "/p/sharedConfig.sh", { filmDaysJson: big }, function(ok) { saved = ok })
+        Secret.saveSharedConfig(ds, "/p/sharedConfig.sh", { pluginProbesJson: big }, function(ok) { saved = ok })
         var n = answerAll(ds)
         verify(n > 2)
         for (i = 0; i < n - 1; i++) {

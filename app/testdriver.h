@@ -10,7 +10,7 @@
 //   text STRING     type text into the focused item
 //   key NAME        Return, Escape, Backspace, Tab, Down, Up
 //   scroll X Y DY   mouse wheel (positive = up)
-//   js EXPR         evaluate a JavaScript expression with the root window as context object
+//   js EXPR         evaluate a JavaScript expression in main.qml's context (ids resolve)
 //   quit
 #include <QCoreApplication>
 #include <QFile>
@@ -18,7 +18,9 @@
 #include <QKeyEvent>
 #include <QMouseEvent>
 #include <QObject>
+#include <QQmlContext>
 #include <QQmlExpression>
+#include <QtQml/qqml.h>
 #include <QQuickItem>
 #include <QQuickWindow>
 #include <QTimer>
@@ -71,7 +73,9 @@ private:
                            Qt::NoModifier, Qt::NoScrollPhase, false);
             QCoreApplication::sendEvent(m_window, &ev);
         } else if (cmd == QLatin1String("js")) {
-            QQmlExpression expr(m_engine->rootContext(), m_window, arg);
+            // The window's own context, so ids declared in main.qml resolve.
+            QQmlContext *context = qmlContext(m_window);
+            QQmlExpression expr(context ? context : m_engine->rootContext(), m_window, arg);
             expr.evaluate();
             if (expr.hasError()) qWarning() << "js:" << expr.error().toString();
         } else if (cmd == QLatin1String("quit")) {

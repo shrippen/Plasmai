@@ -46,6 +46,7 @@ QQC2.Button {
     }
 
     RowLayout {
+        id: kanteContent
         visible: KanteStyle.themed
         x: control.leftPadding + Math.max(0, (control.availableWidth - width) / 2)
         y: control.topPadding
@@ -76,6 +77,15 @@ QQC2.Button {
         }
     }
 
+    // Kante's uppercase label is wider than the style's: size for it.
+    Binding {
+        target: control
+        property: "implicitWidth"
+        value: Math.max(control.implicitBackgroundWidth + control.leftInset + control.rightInset,
+                        kanteContent.implicitWidth + control.leftPadding + control.rightPadding)
+        when: KanteStyle.themed
+        restoreMode: Binding.RestoreBindingOrValue
+    }
     Binding {
         target: control.background
         property: "opacity"

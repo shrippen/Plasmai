@@ -8,18 +8,24 @@ import "."
  * background and draws a square sunken box whose frame turns accent on
  * focus. Nothing in the System style.
  */
-Rectangle {
+Item {
     id: skin
 
     required property Item control
 
+    // Stays visible, only its content hides: org.kde.desktop does not draw the
+    // text of a text area over a hidden item with z < 0.
     z: -1
     anchors.fill: parent
-    visible: KanteStyle.themed
-    color: KanteStyle.sunkenColor
-    opacity: control && control.enabled ? 1 : 0.5
-    border.width: 1
-    border.color: control && (control.activeFocus || control.visualFocus) ? KanteStyle.accentColor : KanteStyle.frameColor
+
+    Rectangle {
+        anchors.fill: parent
+        visible: KanteStyle.themed
+        color: KanteStyle.sunkenColor
+        opacity: skin.control && skin.control.enabled ? 1 : 0.5
+        border.width: 1
+        border.color: skin.control && (skin.control.activeFocus || skin.control.visualFocus) ? KanteStyle.accentColor : KanteStyle.frameColor
+    }
 
     Binding {
         target: skin.control ? skin.control.background : null
@@ -30,7 +36,8 @@ Rectangle {
     }
     // Combo boxes: draw the shown value over the hidden content item instead of
     // recoloring it, so switching back to System leaves the style's text untouched.
-    readonly property bool comboBox: control !== null && control.displayText !== undefined
+    // (SpinBox has displayText too; only a combo box has a popup.)
+    readonly property bool comboBox: control !== null && control.displayText !== undefined && control.popup !== undefined
 
     Text {
         visible: KanteStyle.themed && skin.comboBox && skin.control.contentItem !== null
@@ -43,9 +50,10 @@ Rectangle {
         elide: Text.ElideRight
     }
 
-    // Desktop styles paint the drop-down arrow into the hidden background: draw one.
+    // The style's arrow lives in the indicator or, with desktop styles, in the
+    // hidden background: hide the indicator and always draw one.
     Kirigami.Icon {
-        visible: KanteStyle.themed && skin.comboBox && (!skin.control.indicator || !skin.control.indicator.visible)
+        visible: KanteStyle.themed && skin.comboBox
         width: Kirigami.Units.iconSizes.small
         height: width
         anchors.right: parent.right
@@ -57,7 +65,25 @@ Rectangle {
     }
 
     Binding {
-        target: skin.control ? skin.control.contentItem : null
+        target: skin.comboBox ? skin.control.indicator : null
+        property: "opacity"
+        value: 0
+        when: KanteStyle.themed && skin.comboBox && skin.control.indicator !== null
+        restoreMode: Binding.RestoreBindingOrValue
+    }
+
+    // Text areas: Material floats the placeholder above filled text, over the frame.
+    readonly property bool textArea: control !== null && control.placeholderText !== undefined && control.text !== undefined
+    Binding {
+        target: skin.textArea ? skin.control : null
+        property: "placeholderText"
+        value: ""
+        when: KanteStyle.themed && skin.textArea && skin.control.text.length > 0
+        restoreMode: Binding.RestoreBindingOrValue
+    }
+
+    Binding {
+        target: skin.comboBox ? skin.control.contentItem : null
         property: "opacity"
         value: 0
         when: KanteStyle.themed && skin.comboBox && skin.control.contentItem !== null

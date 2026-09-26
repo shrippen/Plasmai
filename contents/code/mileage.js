@@ -160,6 +160,17 @@ function formatKm(km) {
     return String(rounded)
 }
 
+/** Km for display, locale formatted ("139,5", "1.234,6", "47"); forms use formatKm. */
+function displayKm(km, locale) {
+    var n = Number(km)
+    if (km === "" || km === null || km === undefined || !isFinite(n)) {
+        return ""
+    }
+    var rounded = Math.round(n * 10) / 10
+    var decimals = rounded % 1 === 0 ? 0 : 1
+    return rounded.toLocaleString(locale || Qt.locale(), "f", decimals)
+}
+
 /** API trip JSON → form. */
 function formFromTrip(trip) {
     var t = trip || {}

@@ -1356,7 +1356,7 @@ PlasmoidItem {
             var sg = tripSheetSuggestion
             KimaiApi.acceptTripSuggestion(kimaiUrl, apiToken, sg.id, Mileage.acceptBodyFromForm(mileagePing, form, sg), function(r) {
                 if (r.ok) {
-                    tripSaved(i18n("%1 km", Mileage.formatKm(Mileage.tripKm(r.data))))
+                    tripSaved(i18n("%1 km", Mileage.displayKm(Mileage.tripKm(r.data))))
                 } else {
                     tripFailed(r.error)
                 }
@@ -1369,13 +1369,13 @@ PlasmoidItem {
                 return
             }
             KimaiApi.patchTrip(kimaiUrl, apiToken, tripId, body, function(r) {
-                if (r.ok) tripSaved(i18n("%1 km", Mileage.formatKm(Mileage.tripKm(r.data))))
+                if (r.ok) tripSaved(i18n("%1 km", Mileage.displayKm(Mileage.tripKm(r.data))))
                 else tripFailed(r.error)
             })
             return
         }
         KimaiApi.createTrip(kimaiUrl, apiToken, body, function(r) {
-            if (r.ok) tripSaved(i18n("%1 km", Mileage.formatKm(Mileage.tripKm(r.data))))
+            if (r.ok) tripSaved(i18n("%1 km", Mileage.displayKm(Mileage.tripKm(r.data))))
             else tripFailed(r.error)
         })
     }
@@ -3243,7 +3243,7 @@ PlasmoidItem {
                             pageTitle: true
                             text: root.mainViewMode === "stats" ? i18n("Statistics")
                                   : (root.mainViewMode === "filmday" ? i18n("Film day")
-                                  : (root.mainViewMode === "trip" ? i18n("Trip")
+                                  : (root.mainViewMode === "trip" ? (root.tripSheetRef ? root.tripSheetRef.title : i18n("Trip"))
                                   : (root.mainViewMode === "manual"
                                      ? (root.editingStoppedTimesheet ? i18n("Edit entry") : i18n("Add entry"))
                                       : (BuildInfo.BUILD > 0 ? (i18n("Plasmai") + " #" + BuildInfo.BUILD) : i18n("Plasmai")))))

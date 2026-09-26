@@ -177,7 +177,9 @@ Kirigami.Page {
 
                 QQC2.Label {
                     Kirigami.FormData.label: i18n("Current:")
-                    text: root.locationName.length > 0 ? root.locationName : i18n("%1, %2", root.latitude.toFixed(2), root.longitude.toFixed(2))
+                    text: root.locationName.length > 0 ? root.locationName
+                          : (root.latitude === 0 && root.longitude === 0) ? i18n("Not set")
+                          : i18n("%1, %2", root.latitude.toFixed(2), root.longitude.toFixed(2))
                     color: Qt.alpha(KanteStyle.textColor, 0.7)
                 }
 

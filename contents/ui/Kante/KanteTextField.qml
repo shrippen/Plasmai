@@ -14,14 +14,20 @@ QQC2.TextField {
     /** Kante: draw the sunken box (false inside an already framed container). */
     property bool kanteFrame: true
 
-    Rectangle {
+    // The Item below the text (z < 0) stays visible, only its content hides:
+    // org.kde.desktop does not draw the text over a hidden item with z < 0.
+    Item {
         z: -1
         anchors.fill: parent
-        visible: KanteStyle.themed && control.kanteFrame
-        color: KanteStyle.sunkenColor
-        opacity: control.enabled ? 1 : 0.5
-        border.width: 1
-        border.color: control.activeFocus ? KanteStyle.accentColor : KanteStyle.frameColor
+
+        Rectangle {
+            anchors.fill: parent
+            visible: KanteStyle.themed && control.kanteFrame
+            color: KanteStyle.sunkenColor
+            opacity: control.enabled ? 1 : 0.5
+            border.width: 1
+            border.color: control.activeFocus ? KanteStyle.accentColor : KanteStyle.frameColor
+        }
     }
 
     Binding {
@@ -36,6 +42,14 @@ QQC2.TextField {
         property: "color"
         value: KanteStyle.textColor
         when: KanteStyle.themed
+        restoreMode: Binding.RestoreBindingOrValue
+    }
+    // Material floats the placeholder above a filled field, over the Kante frame.
+    Binding {
+        target: control
+        property: "placeholderText"
+        value: ""
+        when: KanteStyle.themed && control.text.length > 0
         restoreMode: Binding.RestoreBindingOrValue
     }
     Binding {

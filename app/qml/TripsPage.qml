@@ -78,7 +78,7 @@ Kirigami.Page {
         KimaiApi.createTrip(currentUrl(), root.apiToken, Mileage.commuteBody(Mileage.dateString(new Date())), function(r) {
             page.busy = false
             if (r.ok) {
-                root.showPassiveNotification(i18n("Commute logged: %1 km", Mileage.formatKm(Mileage.tripKm(r.data))))
+                root.showPassiveNotification(i18n("Commute logged: %1 km", Mileage.displayKm(Mileage.tripKm(r.data))))
                 page.reload()
             } else {
                 root.showPassiveNotification((r.error && r.error.detail) || ApiErrors.text(r.error))
@@ -191,7 +191,7 @@ Kirigami.Page {
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
                 opacity: 0.8
-                text: i18np("%2 km in 1 trip", "%2 km in %1 trips", page.summary.count, page.summary.km)
+                text: i18np("%2 km in 1 trip", "%2 km in %1 trips", page.summary.count, Mileage.displayKm(page.summary.km))
                       + (page.monthLocked ? " · " + i18n("month closed") : "")
             }
 
@@ -242,7 +242,7 @@ Kirigami.Page {
                         }
                         QQC2.Label {
                             font.bold: true
-                            text: i18n("%1 km", Mileage.formatKm(Mileage.tripKm(modelData)))
+                            text: i18n("%1 km", Mileage.displayKm(Mileage.tripKm(modelData)))
                         }
                     }
                 }

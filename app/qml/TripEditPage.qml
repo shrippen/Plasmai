@@ -31,7 +31,7 @@ Kirigami.Page {
     function done(tripJson) {
         page.busy = false
         if (tripJson) {
-            root.showPassiveNotification(i18n("Trip saved: %1 km", Mileage.formatKm(Mileage.tripKm(tripJson))))
+            root.showPassiveNotification(i18n("Trip saved: %1 km", Mileage.displayKm(Mileage.tripKm(tripJson))))
         }
         page.saved()
         pageStack.pop()

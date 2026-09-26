@@ -164,7 +164,7 @@
             <min>0</min>
             <max>2</max>
         </entry>
-        <!-- Visual style of the popup: 0=System (Plasma theme), 1=Kante (opt-in, see Style.qml) -->
+        <!-- Visual style of the popup: 0=System (Plasma theme), 1=Kante, 2=Kante Light (opt-in, see ui/Kante/KanteStyle.qml) -->
         <entry name="visualStyle" type="Int">
             <default>0</default>
             <min>0</min>
