@@ -211,6 +211,13 @@ def main():
         import app_strings
         for msgid, val in app_strings.T_BY_LANG.get(lang, {}).items():
             trans.setdefault(msgid, {"s": val})
+        # Film day and trips for the languages that had only German (per-language entries win)
+        import film_trips
+        for msgid, val in film_trips.T_BY_LANG.get(lang, {}).items():
+            trans.setdefault(msgid, {"s": val})
+        for msgid, forms in film_trips.PLURALS.items():
+            if lang in forms:
+                trans.setdefault(msgid, {"p": forms[lang]})
         write_po(lang, items, trans)
         print(f"Wrote {lang}.po ({len(items)} strings)")
 
