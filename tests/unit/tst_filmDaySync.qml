@@ -296,6 +296,19 @@ TestCase {
         compare(got.pendingMap, null)
     }
 
+    function test_saveNoEngagementSkipsExtras() {
+        responses = [{ status: 200, body: { id: 5 } }]
+        var fields = FilmDays.entryDefaults()
+        fields.breakMinutes = 30
+        var req = saveReq(fields, null, 5)
+        req.dayMode = Sync.Mode.NO_ENGAGEMENT
+        var got = null
+        Sync.saveDay(ctx("server"), req, function(r) { got = r })
+        compare(requests.length, 1)
+        compare(got.ok, true)
+        compare(got.extras, "skipped")
+    }
+
     function test_saveLocalMode() {
         responses = [{ status: 200, body: { id: 5 } }]
         var fields = FilmDays.entryDefaults()

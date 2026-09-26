@@ -171,6 +171,11 @@ TestCase {
         compare(Mileage.options(null, Mileage.PURPOSES, { business: "B" })[1].label, "B")
         compare(Mileage.options(null, Mileage.PURPOSES, {})[0].value, "commute")
         compare(Mileage.options(meta, Mileage.PURPOSES, {})[0].label, "Dienstreise")
+        // The plugin's /meta labels are English; a translated fallback wins.
+        var englishMeta = [{ value: "business", label: "Business trip" }, { value: "custom", label: "Custom" }]
+        compare(Mileage.labelOf(englishMeta, "business", { business: "Dienstreise" }), "Dienstreise")
+        compare(Mileage.options(englishMeta, Mileage.PURPOSES, { business: "Dienstreise" })[0].label, "Dienstreise")
+        compare(Mileage.options(englishMeta, Mileage.PURPOSES, { business: "Dienstreise" })[1].label, "Custom")
         compare(Mileage.routeText("A", "B"), "A → B")
         compare(Mileage.routeText("", "B"), "B")
     }

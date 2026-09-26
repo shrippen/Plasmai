@@ -286,7 +286,8 @@ Kirigami.ApplicationWindow {
     function remainingWeekText() { return remainingWeekSeconds >= 0 ? i18n("%1 left this week", KimaiApi.formatDurationShort(remainingWeekSeconds)) : i18n("%1 over this week", KimaiApi.formatDurationShort(-remainingWeekSeconds)) }
 
     Timer { id: elapsedTimer; interval: 1000; running: root.isTracking; repeat: true; onTriggered: root.elapsedSeconds++ }
-    Timer { id: refreshTimer; interval: root.refreshInterval * 1000; running: root.isConfigured && root.connectionState === "online"; repeat: true; onTriggered: root.refreshAll() }
+    // Keeps polling after an error too, so the app recovers by itself once the network is back.
+    Timer { id: refreshTimer; interval: root.refreshInterval * 1000; running: root.isConfigured && (root.connectionState === "online" || root.connectionState === "error"); repeat: true; onTriggered: root.refreshAll() }
     Timer { id: alreadyRunningHintTimer; interval: 1400; repeat: false; onTriggered: root.alreadyRunningHintKey = "" }
     Timer { id: sparklineTimer; interval: 30000; running: root.isConfigured; repeat: true; onTriggered: root.sparklineNowTick++ }
     Timer { id: descriptionSaveTimer; interval: 800; repeat: false; onTriggered: root.saveCurrentDescription() }
@@ -420,7 +421,8 @@ Kirigami.ApplicationWindow {
         isBusy = true; var url = TimeTracker.resolveUrl(activeProfile)
         tracker.fetchActiveTimesheet(url, apiToken, function(result) {
             isBusy = false
-            if (result.ok) applyActiveTimesheet(result.data && result.data.length > 0 ? result.data[0] : null)
+            // A good answer clears an earlier error; refreshTimer only runs while "online", so without this one failed poll stopped all refreshes.
+            if (result.ok) { connectionState = "online"; errorMessage = ""; applyActiveTimesheet(result.data && result.data.length > 0 ? result.data[0] : null) }
             else { connectionState = "error"; errorMessage = result.error ? (result.error.statusText || "") : "" }
         })
         tracker.fetchRecentTimesheets(url, apiToken, recentCount, function(result) {
@@ -442,7 +444,7 @@ Kirigami.ApplicationWindow {
     function refreshWorkTotals() {
         if (!apiToken) return; var url = TimeTracker.resolveUrl(activeProfile)
         var now = new Date(); var tf = new Date(now); tf.setHours(0, 0, 0, 0)
-        var wf = new Date(now); wf.setDate(now.getDate() - now.getDay()); wf.setHours(0, 0, 0, 0)
+        var wf = KimaiApi.startOfWeekMonday(now) // Kimai weeks start on Monday, like the Plasmoid and statistics
         tracker.fetchTimesheetsRange(url, apiToken, tf, now, function(r) {
             if (r.ok) { var d = r.data || []; var t = 0; for (var i = 0; i < d.length; i++) t += d[i].duration || 0; todayTotalSeconds = t; todayTimesheets = KimaiApi.hydrateTimesheets(d, projects, activityCatalog(), activitiesByProject) }
         })
@@ -470,7 +472,7 @@ Kirigami.ApplicationWindow {
             for (var p = 0; p < projects.length; p++) { if (String(projects[p].id) === pid || String(projects[p].name) === pid) { proj = projects[p]; break } }
             if (proj && aid) { for (var a = 0; a < allActivities.length; a++) { if (String(allActivities[a].id) === aid) { act = allActivities[a]; break } } }
             if (!act && aid) { var byProj = activitiesByProject[pid] || []; for (var b = 0; b < byProj.length; b++) { if (String(byProj[b].id) === aid) { act = byProj[b]; break } } }
-            entries.push({ projectId: pid, projectName: proj ? proj.name : pid, activityId: aid, activityName: act ? act.name : aid, color: proj && proj.color ? proj.color : KimaiApi.DEFAULT_CUSTOMER_COLOR })
+            entries.push({ projectId: pid, projectName: proj ? proj.name : pid, activityId: aid, activityName: act ? act.name : aid, color: proj ? KimaiApi.barColorInfo(act, proj, customersById).color : KimaiApi.DEFAULT_CUSTOMER_COLOR })
         }
         if (JSON.stringify(entries) !== JSON.stringify(pinnedEntries)) pinnedEntries = entries
         for (var k = 0; k < entries.length; k++) {

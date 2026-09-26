@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import "../contents/code/timeTracker.js" as TimeTracker
 import "../contents/code/kimaiApi.js" as KimaiApi
+import "../contents/code/timesheetFields.js" as TimesheetFields
 import "shared"
 
 Kirigami.Page {
@@ -322,7 +323,8 @@ Kirigami.Page {
                         showCreateActions: root.providerCapabilities.createEntities
                         tagLookupUrl: root.tagLookupUrl
                         tagLookupToken: root.apiToken
-                        previousTimesheet: root.recentTimesheets.length > 0 ? root.recentTimesheets[0] : null
+                        // Recent is deduped per project/activity, so it can hide the latest stopped entry; the Plasmoid scans today too.
+                        previousTimesheet: TimesheetFields.previousStoppedTimesheet(root.recentTimesheets, root.todayTimesheets, root.activeTimesheet)
                         overlapGuardEnabled: root.confirmStartBeforePreviousEnd
                         onProjectChosen: function(projectId) {
                             root.loadActivitiesForProject(projectId, function(model) { page.editActivityPickerModel = model })
@@ -566,7 +568,12 @@ Kirigami.Page {
         id: confirmDialog
         title: i18n("Stop tracking?")
         subtitle: i18n("Stop %1 · %2?", root.currentProject, root.currentActivity)
-        standardButtons: Kirigami.Dialog.Ok | Kirigami.Dialog.Cancel
+        // Own footer actions: Qt's standard button texts stay English on Android.
+        standardButtons: Kirigami.Dialog.NoButton
+        customFooterActions: [
+            Kirigami.Action { text: i18n("Stop"); icon.name: "dialog-ok"; onTriggered: confirmDialog.accept() },
+            Kirigami.Action { text: i18n("Cancel"); icon.name: "dialog-cancel"; onTriggered: confirmDialog.reject() }
+        ]
         onAccepted: root.stopTracking()
     }
     Kirigami.PromptDialog {
@@ -574,14 +581,24 @@ Kirigami.Page {
         property var target: null
         title: i18n("Delete entry?")
         subtitle: i18n("Really delete this entry?")
-        standardButtons: Kirigami.Dialog.Ok | Kirigami.Dialog.Cancel
+        // Own footer actions: Qt's standard button texts stay English on Android.
+        standardButtons: Kirigami.Dialog.NoButton
+        customFooterActions: [
+            Kirigami.Action { text: i18n("Delete"); icon.name: "dialog-ok"; onTriggered: deleteDialog.accept() },
+            Kirigami.Action { text: i18n("Cancel"); icon.name: "dialog-cancel"; onTriggered: deleteDialog.reject() }
+        ]
         onAccepted: { if (target) root.deleteEntry(target); target = null }
     }
     Kirigami.PromptDialog {
         id: switchDialog
         title: i18n("Switch activity")
         subtitle: root.pendingSwitchTimesheet ? i18n("Switch to %1 · %2?", KimaiApi.displayProjectName(root.pendingSwitchTimesheet, root.projects), KimaiApi.displayActivityName(root.pendingSwitchTimesheet, root.allActivities, root.activitiesByProject)) : ""
-        standardButtons: Kirigami.Dialog.Ok | Kirigami.Dialog.Cancel
+        // Own footer actions: Qt's standard button texts stay English on Android.
+        standardButtons: Kirigami.Dialog.NoButton
+        customFooterActions: [
+            Kirigami.Action { text: i18n("Switch"); icon.name: "dialog-ok"; onTriggered: switchDialog.accept() },
+            Kirigami.Action { text: i18n("Cancel"); icon.name: "dialog-cancel"; onTriggered: switchDialog.reject() }
+        ]
         onAccepted: {
             var ts = root.pendingSwitchTimesheet; root.pendingSwitchTimesheet = null
             if (ts) root.switchToActivity(KimaiApi.projectId(ts), KimaiApi.activityId(ts), KimaiApi.displayProjectName(ts, root.projects), KimaiApi.displayActivityName(ts, root.allActivities, root.activitiesByProject), ts.description || "")
@@ -592,7 +609,12 @@ Kirigami.Page {
         id: splitDialog
         property var target: null
         title: i18n("Split entry")
-        standardButtons: Kirigami.Dialog.Ok | Kirigami.Dialog.Cancel
+        // Own footer actions: Qt's standard button texts stay English on Android.
+        standardButtons: Kirigami.Dialog.NoButton
+        customFooterActions: [
+            Kirigami.Action { text: i18n("Split entry"); icon.name: "dialog-ok"; onTriggered: splitDialog.accept() },
+            Kirigami.Action { text: i18n("Cancel"); icon.name: "dialog-cancel"; onTriggered: splitDialog.reject() }
+        ]
         padding: Kirigami.Units.largeSpacing
         onAboutToShow: {
             if (!target) return

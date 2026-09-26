@@ -41,9 +41,10 @@ ColumnLayout {
     property var tripSummary: null
     readonly property var nowDate: new Date()
     readonly property var selectedDay: StatsData.addDays(StatsData.startOfDay(nowDate), dayOffset)
-    readonly property var selectedWeekStart: StatsData.addDays(StatsData.startOfWeek(nowDate), weekOffset * 7)
-    readonly property var selectedHourWeekStart: StatsData.addDays(StatsData.startOfWeek(nowDate), hourWeekOffset * 7)
-    readonly property var selectedPieWeekStart: StatsData.addDays(StatsData.startOfWeek(nowDate), pieWeekOffset * 7)
+    // addDays() lands on noon (DST-safe); week starts must be midnight or Monday mornings drop out.
+    readonly property var selectedWeekStart: StatsData.startOfDay(StatsData.addDays(StatsData.startOfWeek(nowDate), weekOffset * 7))
+    readonly property var selectedHourWeekStart: StatsData.startOfDay(StatsData.addDays(StatsData.startOfWeek(nowDate), hourWeekOffset * 7))
+    readonly property var selectedPieWeekStart: StatsData.startOfDay(StatsData.addDays(StatsData.startOfWeek(nowDate), pieWeekOffset * 7))
     readonly property var filteredTimesheets: StatsData.filterBillable(timesheets, billableFilter)
     readonly property string filterAllLabel: i18n("All")
     readonly property string filterBillableLabel: i18n("Billable")
@@ -488,7 +489,7 @@ ColumnLayout {
                         }
 
                         PlasmaComponents3.Label {
-                            text: modelData.name || ""
+                            text: modelData.key === "_other" ? i18n("Other") : (modelData.name || "")
                             font.pointSize: Kirigami.Theme.smallFont.pointSize
                             opacity: 0.8
                         }
@@ -588,7 +589,7 @@ ColumnLayout {
 
                         PlasmaComponents3.Label {
                             anchors.verticalCenter: parent.verticalCenter
-                            text: modelData.name || ""
+                            text: modelData.key === "_other" ? i18n("Other") : (modelData.name || "")
                             font.pointSize: Kirigami.Theme.smallFont.pointSize
                             opacity: 0.8
                         }

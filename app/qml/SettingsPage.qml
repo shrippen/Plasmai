@@ -159,6 +159,8 @@ Kirigami.Page {
                     id: locationField
                     Kirigami.FormData.label: i18n("Search city:")
                     placeholderText: i18n("Search for a city…")
+                    // Predictive keyboards deliver text as uncommitted preedit, so the search would only start after commit.
+                    inputMethodHints: Qt.ImhNoPredictiveText
                     onTextChanged: { page.locationQuery = text; locationSearchTimer.restart() }
                 }
 

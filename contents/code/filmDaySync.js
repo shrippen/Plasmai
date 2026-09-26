@@ -296,7 +296,8 @@ function loadDay(ctx, projectId, dateStr, callback) {
 
 /**
  * Two-step save: Kimai timesheet (create or patch), then the extras.
- *   req = { projectId, dateStr, timesheetFields, existingId, fields, server }
+ *   req = { projectId, dateStr, timesheetFields, existingId, fields, server, dayMode }
+ *   dayMode: the mode loadDay() returned for this day; NO_ENGAGEMENT skips the extras.
  * callback(result):
  *   { ok, stage: "timesheet"|"extras", extras, error, timesheet,
  *     localMap (new map to persist, or null), pendingMap (or null), server }
@@ -342,7 +343,9 @@ function saveExtras(ctx, req, callback) {
         }))
         return
     }
-    if (!hasId(req.projectId) || (ctx.mode !== Mode.SERVER && ctx.mode !== Mode.OFFLINE)) {
+    // The server answers 404 no_engagement for such a day; the view already says only begin/end are saved.
+    if (!hasId(req.projectId) || (ctx.mode !== Mode.SERVER && ctx.mode !== Mode.OFFLINE)
+            || req.dayMode === Mode.NO_ENGAGEMENT) {
         callback(result("skipped"))
         return
     }

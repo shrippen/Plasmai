@@ -33,7 +33,23 @@ Kirigami.Dialog {
 
     signal submitted(string mode, var payload)
 
-    standardButtons: Kirigami.Dialog.Ok | Kirigami.Dialog.Cancel
+    // Own footer actions: Qt's standard button texts stay English on Android (no Qt translations there).
+    readonly property bool canSubmit: nameField.text.trim().length > 0
+                                      && (mode !== "project" || customerCombo.currentIndex >= 0)
+    standardButtons: Kirigami.Dialog.NoButton
+    customFooterActions: [
+        Kirigami.Action {
+            text: i18n("Save")
+            icon.name: "dialog-ok"
+            enabled: root.canSubmit
+            onTriggered: root.accept()
+        },
+        Kirigami.Action {
+            text: i18n("Cancel")
+            icon.name: "dialog-cancel"
+            onTriggered: root.reject()
+        }
+    ]
     padding: Kirigami.Units.largeSpacing
     title: {
         if (mode === "customer") {
@@ -49,26 +65,11 @@ Kirigami.Dialog {
         mode = nextMode
         nameField.text = ""
         customerCombo.currentIndex = -1
-        refreshOk()
-    }
-
-    function refreshOk() {
-        var btn = standardButton(Kirigami.Dialog.Ok)
-        if (!btn) {
-            return
-        }
-        var named = nameField.text.trim().length > 0
-        if (mode === "project") {
-            btn.enabled = named && customerCombo.currentIndex >= 0
-        } else {
-            btn.enabled = named
-        }
     }
 
     onAboutToShow: {
         nameField.text = ""
         customerCombo.currentIndex = -1
-        Qt.callLater(refreshOk)
     }
 
     ColumnLayout {
@@ -93,7 +94,6 @@ Kirigami.Dialog {
             id: nameField
             Layout.fillWidth: true
             Accessible.name: i18n("Name")
-            onTextChanged: root.refreshOk()
         }
 
         QQC2.Label {
@@ -111,7 +111,6 @@ Kirigami.Dialog {
             model: root.customerRows
             textRole: "name"
             Accessible.name: i18n("Customer")
-            onActivated: root.refreshOk()
 
             contentItem: Item {
                 ColorLabelRow {
@@ -171,7 +170,6 @@ Kirigami.Dialog {
             onClicked: {
                 root.mode = "customer"
                 nameField.text = ""
-                root.refreshOk()
             }
         }
     }

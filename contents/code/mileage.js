@@ -504,23 +504,28 @@ function routeText(from, to) {
     return a || b
 }
 
-/** Label of a value in a /meta list ([{value,label}]), else the fallback map, else the value. */
+/**
+ * Label of a value: the translated fallback map first (the plugin's /meta
+ * labels are always English), else the /meta list ([{value,label}]), else the value.
+ */
 function labelOf(list, value, fallback) {
+    if (fallback && fallback[value]) {
+        return fallback[value]
+    }
     for (var i = 0; i < (list || []).length; i++) {
         if (list[i] && list[i].value === value) {
             return String(list[i].label || value)
         }
     }
-    if (fallback && fallback[value]) {
-        return fallback[value]
-    }
     return String(value || "")
 }
 
-/** [{value,label}] for a picker: /meta list when loaded, else values with fallback labels. */
+/** [{value,label}] for a picker: /meta list when loaded, else the known values; labels as in labelOf. */
 function options(metaList, values, fallback) {
     if (Array.isArray(metaList) && metaList.length) {
-        return metaList.map(function(o) { return { value: String(o.value), label: String(o.label || o.value) } })
+        return metaList.map(function(o) {
+            return { value: String(o.value), label: labelOf(metaList, String(o.value), fallback) }
+        })
     }
     return values.map(function(v) { return { value: v, label: (fallback && fallback[v]) || v } })
 }

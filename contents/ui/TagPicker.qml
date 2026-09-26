@@ -205,6 +205,17 @@ ColumnLayout {
                                 Kirigami.Theme.textColor.b, 0.18)
         implicitHeight: tagFlow.implicitHeight + Kirigami.Units.smallSpacing * 2
 
+        // The search field is only as wide as its text; a tap on the rest of the frame must focus it too.
+        // Declared before the Flow so the pills and their remove buttons still get their own taps.
+        MouseArea {
+            anchors.fill: parent
+            enabled: root.enabled
+            onClicked: {
+                searchField.forceActiveFocus()
+                root.openSuggestions()
+            }
+        }
+
         Flow {
             id: tagFlow
             anchors {

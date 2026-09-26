@@ -182,6 +182,7 @@ PlasmoidItem {
     property var filmDayPing: null
     /** Film-day JSON the next save diffs against (server mode). */
     property var filmDayServer: null
+    property string filmDayLoadMode: ""
     /** Plain cache handed to filmDaySync (last-seen days, engagement lists); not reactive. */
     property var filmDayMemo: ({})
     property bool filmDayMigrationDismissed: false
@@ -1179,6 +1180,7 @@ PlasmoidItem {
                     loadingFilmDay = false
                     filmDayTimesheet = match
                     filmDayServer = day.server
+                    filmDayLoadMode = day.mode
                     if (day.mode === FilmDaySync.Mode.SERVER && filmDayMode === FilmDaySync.Mode.OFFLINE) {
                         filmDayMode = FilmDaySync.Mode.SERVER
                     }
@@ -1317,7 +1319,8 @@ PlasmoidItem {
                 activity: activityId
             },
             fields: filmDayFields,
-            server: filmDayServer
+            server: filmDayServer,
+            dayMode: filmDayLoadMode
         }, function(result) {
             isBusy = false
             if (!result.ok) {

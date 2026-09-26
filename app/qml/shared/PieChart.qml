@@ -121,7 +121,8 @@ ColumnLayout {
                     Layout.fillWidth: true
                     elide: Text.ElideRight
                     font.pointSize: Kirigami.Theme.smallFont.pointSize
-                    text: modelData.name
+                    // statsData.js has no i18n; its catch-all row is keyed "_other".
+                    text: modelData.key === "_other" ? i18n("Other") : modelData.name
                 }
                 QQC2.Label {
                     font.pointSize: Kirigami.Theme.smallFont.pointSize

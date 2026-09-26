@@ -64,32 +64,59 @@ public:
 
     // Plural form. Catalogs only carry the two-form (singular/plural) English rule —
     // see translate/po2json.py — good enough since the languages shipped here all use it.
+    // n fills %1; further args fill %2, %3 like KI18n.
     Q_INVOKABLE QString i18np(const QString &singular, const QString &plural, const QVariant &n) const {
-        return tr(n.toInt() == 1 ? singular : plural).arg(n.toString());
+        return subst(tr(n.toInt() == 1 ? singular : plural), {n});
+    }
+    Q_INVOKABLE QString i18np(const QString &singular, const QString &plural, const QVariant &n, const QVariant &a2) const {
+        return subst(tr(n.toInt() == 1 ? singular : plural), {n, a2});
+    }
+    Q_INVOKABLE QString i18np(const QString &singular, const QString &plural, const QVariant &n, const QVariant &a2, const QVariant &a3) const {
+        return subst(tr(n.toInt() == 1 ? singular : plural), {n, a2, a3});
     }
 
     // 1 extra arg
     Q_INVOKABLE QString i18n(const QString &text, const QVariant &a1) const {
-        return tr(text).arg(a1.toString());
+        return subst(tr(text), {a1});
     }
 
     // 2 extra args
     Q_INVOKABLE QString i18n(const QString &text, const QVariant &a1, const QVariant &a2) const {
-        return tr(text).arg(a1.toString()).arg(a2.toString());
+        return subst(tr(text), {a1, a2});
     }
 
     // 3 extra args
     Q_INVOKABLE QString i18n(const QString &text, const QVariant &a1, const QVariant &a2, const QVariant &a3) const {
-        return tr(text).arg(a1.toString()).arg(a2.toString()).arg(a3.toString());
+        return subst(tr(text), {a1, a2, a3});
     }
 
     // 4 extra args
     Q_INVOKABLE QString i18n(const QString &text, const QVariant &a1, const QVariant &a2, const QVariant &a3, const QVariant &a4) const {
-        return tr(text).arg(a1.toString()).arg(a2.toString()).arg(a3.toString()).arg(a4.toString());
+        return subst(tr(text), {a1, a2, a3, a4});
     }
 
 private:
     QString tr(const QString &text) const { return m_catalog.value(text, text); }
+
+    // %N always takes args[N-1], in one pass (QString::arg would fill the lowest
+    // marker present, and a plural form may lack %1).
+    static QString subst(const QString &text, const QVariantList &args) {
+        QString out;
+        out.reserve(text.size());
+        for (qsizetype i = 0; i < text.size(); ++i) {
+            const QChar c = text.at(i);
+            if (c == QLatin1Char('%') && i + 1 < text.size() && text.at(i + 1).isDigit()) {
+                const int idx = text.at(i + 1).digitValue();
+                if (idx >= 1 && idx <= args.size()) {
+                    out += args.at(idx - 1).toString();
+                    ++i;
+                    continue;
+                }
+            }
+            out += c;
+        }
+        return out;
+    }
 
     // Pick the first UI language that has a catalog; English (no file) stops the search.
     void loadCatalog() {

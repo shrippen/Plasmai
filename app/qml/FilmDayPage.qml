@@ -18,6 +18,7 @@ Kirigami.Page {
     property var filmDayTimesheet: null
     /** Film-day JSON the next save diffs against (server mode). */
     property var filmDayServer: null
+    property string filmDayLoadMode: ""
     property int loadSerial: 0
 
     function currentUrl() { return TimeTracker.resolveUrl(root.activeProfile) }
@@ -45,6 +46,7 @@ Kirigami.Page {
                     page.loadingFilmDay = false
                     page.filmDayTimesheet = match
                     page.filmDayServer = day.server
+                    page.filmDayLoadMode = day.mode
                     if (day.mode === FilmDaySync.Mode.SERVER && root.filmDayMode === FilmDaySync.Mode.OFFLINE) {
                         root.filmDayMode = FilmDaySync.Mode.SERVER
                     }
@@ -109,7 +111,8 @@ Kirigami.Page {
                 activity: activityId
             },
             fields: filmDayFields,
-            server: page.filmDayServer
+            server: page.filmDayServer,
+            dayMode: page.filmDayLoadMode
         }, function(result) {
             page.saving = false
             if (!result.ok) {

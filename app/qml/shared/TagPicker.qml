@@ -204,6 +204,17 @@ ColumnLayout {
                                 Kirigami.Theme.textColor.b, 0.18)
         implicitHeight: tagFlow.implicitHeight + Kirigami.Units.smallSpacing * 2
 
+        // The search field is only as wide as its text; a tap on the rest of the frame must focus it too.
+        // Declared before the Flow so the pills and their remove buttons still get their own taps.
+        MouseArea {
+            anchors.fill: parent
+            enabled: root.enabled
+            onClicked: {
+                searchField.forceActiveFocus()
+                root.openSuggestions()
+            }
+        }
+
         Flow {
             id: tagFlow
             anchors {
@@ -255,6 +266,8 @@ ColumnLayout {
                                               Kirigami.Theme.textColor.g,
                                               Kirigami.Theme.textColor.b, 0.45)
                 background: Item {}
+                // Predictive keyboards deliver text as uncommitted preedit, so suggestions would only update after commit.
+                inputMethodHints: Qt.ImhNoPredictiveText | Qt.ImhNoAutoUppercase
                 Accessible.name: i18n("Tags")
                 onActiveFocusChanged: {
                     if (activeFocus) {

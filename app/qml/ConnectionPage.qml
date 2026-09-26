@@ -232,9 +232,12 @@ Kirigami.Page {
                     }
                 }
 
-                RowLayout {
+                // Flow, not RowLayout: three buttons do not fit a phone in portrait and would widen the whole form.
+                Flow {
                     Kirigami.FormData.label: " "
                     Layout.fillWidth: true
+                    // A wrapped Flow reports its narrow wrapped width, and the narrow FormLayout sizes every field to its widest child.
+                    Layout.preferredWidth: formCol.width
                     spacing: Kirigami.Units.smallSpacing
 
                     QQC2.Button {
@@ -363,9 +366,12 @@ Kirigami.Page {
                     enabled: !page.busy
                 }
 
-                RowLayout {
+                // Flow, not RowLayout: three buttons do not fit a phone in portrait and would widen the whole form.
+                Flow {
                     Kirigami.FormData.label: " "
                     Layout.fillWidth: true
+                    // A wrapped Flow reports its narrow wrapped width, and the narrow FormLayout sizes every field to its widest child.
+                    Layout.preferredWidth: formCol.width
                     spacing: Kirigami.Units.smallSpacing
 
                     QQC2.Button {
