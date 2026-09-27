@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Landing-page screenshots of the widget with the demo profile, for
-# shrippen.github.io/tools/screenshots.py (demo/shots.json). Renders offscreen; the plan in
+# shrippen.github.io/demo/tools/screenshots.py (demo/shots.json). Renders offscreen; the plan in
 # screenshots.json is picked up by contents/ui/ScreenshotRunner.qml. Output: $SHOT_DIR/<name>.png
 set -euo pipefail
 source "$(dirname "$0")/common.sh"
