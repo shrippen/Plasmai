@@ -202,6 +202,14 @@ for Flathub switch the `plasmai` source to `type: git` with the release tag and 
 
 ## 6. Tagging and publishing
 
+**Rule: every release carries assets for all platforms**, each installable from the release
+page: the Android APK (`Plasmai-X.Y.Z.apk`), a Flatpak bundle (`.flatpak`, besides any Flathub
+listing), an AppImage, and the Plasma widget (`Plasmai-X.Y.Z.plasmoid`). If one of them cannot
+be built, say so before tagging instead of releasing without it. The APK may live only on the
+GitHub release (IzzyOnDroid fetches it there); the release itself also exists on Gitea.
+Status: 2.0.0 shipped APK and .plasmoid (plus a Linux tarball); the Flatpak bundle and the
+AppImage are not built by the release process yet.
+
 Git work goes to Gitea (git.arianw.de); its push mirror carries commits and tags to GitHub,
 but not releases. So a release is made in two places, the second one automatically:
 
