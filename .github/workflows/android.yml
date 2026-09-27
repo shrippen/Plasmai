@@ -40,6 +40,10 @@ jobs:
           yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null
           "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" \
             "ndk;28.2.13676358" "platforms;android-34" "build-tools;34.0.0" > /dev/null
+          # Qt 6.7's androiddeployqt builds against the newest platform and has no CMake
+          # setting for it; the runner's android-35/36 break resource linking. Keep 34.
+          find "$ANDROID_SDK_ROOT/platforms" -maxdepth 1 -name 'android-*' ! -name 'android-34' -exec rm -rf {} +
+          ls "$ANDROID_SDK_ROOT/platforms"
 
       # The same script as on a developer machine: Qt via aqtinstall, KF6 (Kirigami)
       # from source, CMake, libomp for Kirigami, Gradle.
