@@ -1,43 +1,65 @@
 .pragma library
+.import "./demoWorld.js" as World
 
 /**
  * Demo mode: an in-memory Kimai (with the Drehzettel and Anfahrten plugins)
  * behind the reserved address DEMO_URL, which no real server can have.
  * kimaiApi.createRequest() hands requests to that address to request()
- * instead of the network. The data is made up relative to today (a camera
- * assistant with a TV engagement, a web client, admin work); writes live
- * until the app closes. Nothing is stored on the device.
+ * instead of the network. The data is Studio Weber, the demo world shared by
+ * all shrippen projects (demoWorld.js, generated from shrippen.github.io/demo;
+ * do not edit it here), seen by Jonas Brandt: camera assistant on "Harbour
+ * Lights" with a TV engagement, plus studio work. Dates are placed around
+ * today; writes live until the app closes. Nothing is stored on the device.
  */
 
 var DEMO_URL = "https://demo.invalid"
 var DEMO_TOKEN = "demo"
+var DEMO_USER = "jonas"
 
 var HOUR = 3600
 var DAY_MS = 86400000
 
-var CUSTOMERS = [
-    { id: 1, name: "Northlight Pictures", color: "#d65d0e", visible: true, currency: "EUR" },
-    { id: 2, name: "Studio Weber", color: "#458588", visible: true, currency: "EUR" },
-    { id: 3, name: "Internal", color: "#689d6a", visible: true, currency: "EUR" }
-]
-var PROJECTS = [
-    { id: 10, name: "Harbour Lights – Season 2", customer: 1, color: "#fe8019" },
-    { id: 11, name: "Website relaunch", customer: 2, color: "#83a598" },
-    { id: 12, name: "Admin", customer: 3, color: "#8ec07c" }
-]
-var ACTIVITIES = [
-    { id: 20, name: "Shooting", color: "#fabd2f" },
-    { id: 21, name: "Travel", color: "#b8bb26" },
-    { id: 22, name: "Prep", color: "#d3869b" },
-    { id: 23, name: "Design", color: "#83a598" },
-    { id: 24, name: "Development", color: "#458588" },
-    { id: 25, name: "Meeting", color: "#b16286" },
-    { id: 26, name: "Bookkeeping", color: "#689d6a" }
-]
+/** Language of the demo texts: the app's locale, German or English. */
+function demoLang() {
+    return String(Qt.locale().name).indexOf("de") === 0 ? "de" : "en"
+}
 
-var FILM_PROJECT = 10
-var SHOOTING = 20
-var TRAVEL = 21
+// Kimai ids: customers 1.., projects 10.., activities 20.. in the world's order.
+function worldIds(kind, base) {
+    var out = {}
+    var list = World.data[kind]
+    for (var i = 0; i < list.length; i++) {
+        out[list[i].id] = base + i
+    }
+    return out
+}
+var CUSTOMER_IDS = worldIds("customers", 1)
+var PROJECT_IDS = worldIds("projects", 10)
+var ACTIVITY_IDS = worldIds("activities", 20)
+
+function catalog(lang) {
+    var w = World.data
+    return {
+        customers: w.customers.map(function(c) {
+            return { id: CUSTOMER_IDS[c.id], name: c.name, color: c.color, visible: true, currency: w.currency }
+        }),
+        projects: w.projects.map(function(p) {
+            return { id: PROJECT_IDS[p.id], name: World.t(p.name, lang), customer: CUSTOMER_IDS[p.customer],
+                     color: p.color, billable: p.billable }
+        }),
+        activities: w.activities.map(function(a) {
+            return { id: ACTIVITY_IDS[a.id], name: World.t(a.name, lang), color: a.color }
+        })
+    }
+}
+var CUSTOMERS = catalog("en").customers
+var PROJECTS = catalog("en").projects
+var ACTIVITIES = catalog("en").activities
+
+var ENGAGEMENT = World.data.film_engagement
+var FILM_PROJECT = PROJECT_IDS[ENGAGEMENT.project]
+var SHOOTING = ACTIVITY_IDS.shoot
+var TRAVEL = ACTIVITY_IDS.travel
 var DAY_RATE_CENTS = 38000
 var HOURLY_CENTS = 3800
 
@@ -97,97 +119,115 @@ function byId(list, id) {
     return null
 }
 
-/** Small stable variation per day (0..n-1), so the history looks lived in. */
-function vary(day, n) {
-    var x = Math.floor(day / DAY_MS) * 2654435761 % 4294967296
-    return Math.floor((x / 4294967296) * n)
+function isBillable(project) {
+    var p = byId(state.projects, project)
+    return p ? p.billable !== false : true
 }
 
 function addEntry(project, activity, begin, end, description) {
     var e = { id: state.nextId++, project: project, activity: activity, begin: begin,
-              end: end, description: description || "", tags: [], billable: project !== 12 }
+              end: end, description: description || "", tags: [], billable: isBillable(project) }
     state.entries.push(e)
     return e
 }
 
-function addTrip(entry, destination, km) {
-    state.trips.push({ id: state.nextTripId++, date: dateKey(new Date(entry.begin)),
-                       departure: stamp(entry.begin), arrival: stamp(entry.end),
-                       purpose: "business", vehicle: "own_car", vehicleId: 1, licensePlate: "PL-AI 42",
-                       start: "Eimsbüttel, Hamburg", destination: destination, distanceKm: km, roundTrip: true,
-                       totalKm: km * 2, overnight: false, project: entry.project, timesheet: entry.id,
-                       comment: "", source: "manual" })
+function placeOf(id) {
+    var places = World.data.places
+    for (var i = 0; i < places.length; i++) {
+        if (places[i].id === id) {
+            return places[i]
+        }
+    }
+    return null
 }
 
-function fillDay(day, today) {
-    var weekday = new Date(day).getDay() // 0 = Sunday
-    var v = vary(day, 4) * 5
-    if (weekday === 0 || weekday === 6) {
-        if (weekday === 6 && vary(day, 3) === 0) {
-            addEntry(12, 26, at(day, 10, 0), at(day, 11, 10 + v))
-        }
-        return
-    }
-    var filming = day >= state.engagementFrom && weekday <= 4
-    if (day === state.engagementFrom) {
-        // First day of the engagement: travel to the location.
-        var drive = addEntry(FILM_PROJECT, TRAVEL, at(day, 10, 0), at(day, 13, 25), "To the location")
-        addTrip(drive, "Westerland, Sylt", 205)
-        state.filmDays[dateKey(new Date(day))] = { dayType: "travel" }
-        return
-    }
-    if (filming) {
-        var commute = addEntry(FILM_PROJECT, TRAVEL, at(day, 6, 50 + v % 10), at(day, 7, 25 + v % 10))
-        addTrip(commute, "Tonndorf, Hamburg", 14.5)
-        addEntry(FILM_PROJECT, SHOOTING, at(day, 7, 30 + v % 10), at(day, 18 + vary(day, 3), 15 + v))
-        state.filmDays[dateKey(new Date(day))] = { catering: true }
-        return
-    }
-    if (weekday === 5) {
-        addEntry(11, 24, at(day, 9, 15), at(day, 12, 40 + v), "Checkout flow")
-        addEntry(12, 26, at(day, 13, 30), at(day, 15, 0 + v))
-        return
-    }
-    addEntry(11, vary(day, 2) ? 23 : 24, at(day, 9, 0), at(day, 12, 30 + v))
-    addEntry(11, 25, at(day, 13, 15), at(day, 14, 0))
-    addEntry(11, 24, at(day, 14, 10), at(day, 17, 30 + v))
+/** Road distance estimate: straight line × 1.3, one decimal. */
+function roadKm(a, b) {
+    var rad = Math.PI / 180
+    var dLat = (b.lat - a.lat) * rad
+    var dLon = (b.lon - a.lon) * rad * Math.cos((a.lat + b.lat) / 2 * rad)
+    return Math.round(Math.sqrt(dLat * dLat + dLon * dLon) * 6371 * 1.3 * 10) / 10
+}
+
+function addTrip(entry, from, to, km, comment) {
+    state.trips.push({ id: state.nextTripId++, date: dateKey(new Date(entry.begin)),
+                       departure: stamp(entry.begin), arrival: stamp(entry.end),
+                       purpose: "business", vehicle: "company_car", vehicleId: 1, licensePlate: "HH-SW 204",
+                       start: from.address, destination: to.address, distanceKm: km, roundTrip: true,
+                       totalKm: km * 2, overnight: false, project: entry.project, timesheet: entry.id,
+                       comment: comment || "", source: "manual" })
 }
 
 /** Rebuild the demo data around nowDate (default: now). */
-function reset(nowDate) {
+function reset(nowDate, lang) {
     var now = (nowDate || new Date()).getTime()
     var today = dayStart(now)
+    lang = lang || demoLang()
+    var cat = catalog(lang)
+    var w = World.data
+    var e = w.film_engagement
     state = {
         now: now,
         fixedNow: !!nowDate,
+        lang: lang,
         entries: [],
         trips: [],
         filmDays: {},
-        customers: CUSTOMERS.slice(),
-        projects: PROJECTS.slice(),
-        activities: ACTIVITIES.slice(),
+        customers: cat.customers,
+        projects: cat.projects,
+        activities: cat.activities,
         nextId: 1000,
         nextTripId: 1,
-        engagementFrom: today - 16 * DAY_MS,
-        engagementTo: today + 30 * DAY_MS
+        engagementFrom: World.date(e.from, new Date(today)).getTime(),
+        engagementTo: World.date(e.to, new Date(today)).getTime()
     }
-    // Two months of history; shooting days since the engagement began.
-    for (var d = today - 60 * DAY_MS; d < today; d += DAY_MS) {
-        fillDay(dayStart(d + 2 * HOUR * 1000), today)
-    }
-    // Today: on a shooting day the shoot is running, otherwise work on the website.
-    var earliest = at(today, 0, 5)
-    var weekday = new Date(today).getDay()
-    if (weekday >= 1 && weekday <= 4 && at(today, 7, 40) < now) {
-        addTrip(addEntry(FILM_PROJECT, TRAVEL, at(today, 6, 55), at(today, 7, 30)), "Tonndorf, Hamburg", 14.5)
-        addEntry(FILM_PROJECT, SHOOTING, at(today, 7, 35), null)
-        state.filmDays[dateKey(new Date(today))] = { catering: true }
-    } else {
-        var begin = Math.max(earliest, now - 85 * 60000)
-        if (begin - 55 * 60000 > earliest) {
-            addEntry(11, 25, begin - 55 * 60000, begin - 15 * 60000, "Weekly call")
+    var fixed = new Date(today)
+
+    // Shoot days: travel to the location, then call to wrap (the day's other entries on the film go).
+    var shootDays = {}
+    var studio = placeOf("studio")
+    for (var i = 0; i < e.days.length; i++) {
+        var d = e.days[i]
+        var begin = World.dateTime(d.day, d.call, fixed).getTime()
+        var end = World.dateTime(d.day, d.wrap, fixed).getTime()
+        if (end <= begin) {
+            end += DAY_MS
         }
-        addEntry(11, 24, begin, null, "Checkout flow")
+        var key = dateKey(new Date(dayStart(begin)))
+        shootDays[key] = true
+        var place = placeOf(d.location)
+        var note = World.t(place.name, lang) + " · " + World.t(d.note, lang)
+        if (begin > now) {
+            continue
+        }
+        var drive = addEntry(FILM_PROJECT, TRAVEL, begin - 40 * 60000, begin - 5 * 60000, World.t(place.name, lang))
+        addTrip(drive, studio, place, roadKm(studio, place), note)
+        addEntry(FILM_PROJECT, SHOOTING, begin, end > now ? null : end, World.t(d.note, lang))
+        state.filmDays[key] = { catering: i % 3 === 0, breakMinutes: d.break_min, note: note, shootingDayNumber: i + 1 }
+    }
+
+    // Everything else Jonas worked on, from the world's week templates.
+    var rows = World.pastTimesheets(new Date(now), fixed)
+    for (var r = 0; r < rows.length; r++) {
+        var row = rows[r]
+        if (row.user !== DEMO_USER) {
+            continue
+        }
+        var start = World.dateTime(row.day, row.start, fixed).getTime()
+        var dayKey = dateKey(new Date(dayStart(start)))
+        if (shootDays[dayKey] && row.project === e.project) {
+            continue
+        }
+        addEntry(PROJECT_IDS[row.project], ACTIVITY_IDS[row.activity], start,
+                 World.dateTime(row.day, row.end, fixed).getTime(), World.t(row.description, lang))
+    }
+
+    // Nothing running yet (no shoot today): the showreel is being cut.
+    var running = state.entries.some(function(x) { return !x.end })
+    if (!running) {
+        var earliest = at(today, 0, 5)
+        var from = Math.max(earliest, now - 85 * 60000)
+        addEntry(PROJECT_IDS.showreel, ACTIVITY_IDS.edit, from, null, lang === "de" ? "Kamera-Reel schneiden" : "Cut the camera reel")
     }
 }
 
@@ -330,8 +370,9 @@ function engagementOn(dateStr, projectId) {
         return null
     }
     return {
-        engagementId: 5, projectId: FILM_PROJECT, projectName: PROJECTS[0].name,
-        customerName: CUSTOMERS[0].name, rulesetName: "TV FFS 2025", crewRole: "1st AC",
+        engagementId: 5, projectId: FILM_PROJECT, projectName: byId(state.projects, FILM_PROJECT).name,
+        customerName: byId(state.customers, byId(state.projects, FILM_PROJECT).customer).name,
+        rulesetName: "TV FFS 2024", crewRole: World.t(ENGAGEMENT.position, state.lang),
         validFrom: dateKey(new Date(state.engagementFrom)), validTo: dateKey(new Date(state.engagementTo)),
         toggleDefault: true, azvEligible: true, travelDays: "counted"
     }
@@ -452,7 +493,8 @@ function mileage(method, rest, q, body) {
                     taxProfiles: [] })
     }
     if (rest === "/vehicles") {
-        return ok([{ id: 1, name: "Car", type: "own_car", licensePlate: "PL-AI 42", active: true }])
+        return ok([{ id: 1, name: World.t(World.data.vehicles[0].name, state.lang), type: "company_car",
+                     licensePlate: World.data.vehicles[0].plate, active: true }])
     }
     if (rest === "/suggestions") {
         return ok([])
@@ -463,7 +505,7 @@ function mileage(method, rest, q, body) {
         return ok(state.trips.filter(function(t) { return t.date >= from && t.date <= to }).map(tripJson))
     }
     if (rest === "/trips" && method === "POST") {
-        var t = { id: state.nextTripId++, source: "manual", licensePlate: "PL-AI 42", roundTrip: false }
+        var t = { id: state.nextTripId++, source: "manual", licensePlate: World.data.vehicles[0].plate, roundTrip: false }
         for (var i = 0; i < TRIP_KEYS.length; i++) {
             if (body && body.hasOwnProperty(TRIP_KEYS[i])) {
                 t[TRIP_KEYS[i]] = body[TRIP_KEYS[i]]

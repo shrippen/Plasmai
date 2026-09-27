@@ -9,6 +9,7 @@ import org.kde.plasma.extras as PlasmaExtras
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasma5support as P5Support
 import "../code/kimaiApi.js" as KimaiApi
+import "../code/demoKimai.js" as DemoKimai
 import "../code/timeTracker.js" as TimeTracker
 import "../code/secret.js" as Secret
 import "../code/platform.js" as Platform
@@ -366,6 +367,11 @@ PlasmoidItem {
             return errorMessage
         }
         return panelTooltipBody()
+    }
+
+    ScreenshotRunner {
+        plasmoidRoot: root
+        execSource: execSource
     }
 
     P5Support.DataSource {
@@ -1700,7 +1706,11 @@ PlasmoidItem {
             return
         }
         syncTrackerSession()
-        Platform.loadToken(execSource, activeProfile.id).then(function(token) {
+        // Demo profile (DemoKimai.DEMO_URL): made-up data in memory, no keychain.
+        var tokenPromise = DemoKimai.isDemoUrl(activeProfile.url)
+            ? Promise.resolve(DemoKimai.DEMO_TOKEN)
+            : Platform.loadToken(execSource, activeProfile.id)
+        tokenPromise.then(function(token) {
             apiToken = token || ""
             syncTrackerSession()
             var needsUrl = providerMeta.needsUrl

@@ -1,0 +1,12 @@
+{
+  "kind": "command",
+  "start": "demo/shots.sh",
+  "today": "real",
+  "timeout": 240,
+  "shots": [
+    {"name": "timer", "view": "main"},
+    {"name": "add", "view": "manual"},
+    {"name": "statistics", "view": "stats"},
+    {"name": "filmday", "view": "filmday"}
+  ]
+}

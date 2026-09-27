@@ -28,6 +28,16 @@ TestCase {
         verify(!Demo.isDemoUrl(""))
     }
 
+    // The shared shrippen demo world: Studio Weber's customers, Jonas' shoot days.
+    function test_worldNames() {
+        Demo.reset(now, "en")
+        var names = get("/api/customers").body.map(function(c) { return c.name })
+        verify(names.indexOf("Northlight Pictures") >= 0, names)
+        compare(get("/api/projects?visible=3").body[0].name, "Harbour Lights – Season 2")
+        var day = get("/api/drehzettel/v1/film-days/2026-09-22?project=10").body
+        verify(String(day.note).indexOf("Fish market") === 0, day.note)
+    }
+
     function test_catalog() {
         var projects = get("/api/projects?visible=3").body
         verify(projects.length >= 3)
