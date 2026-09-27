@@ -54,7 +54,7 @@ gegen das Plasmoid. Technische Details und Begründungen zu jedem Punkt hier ste
 
 ## 4. IzzyOnDroid
 - [x] Store-Texte und Icon in `fastlane/metadata/android/` (en-US, de-DE), Changelog `20000.txt`.
-- [x] Screenshots aus dem Demo-Modus (en-US, de-DE) in `fastlane/metadata/android/*/images/phoneScreenshots/`.
+- [x] Screenshots aus dem internen Demo-Modus (en-US, de-DE; der Demo-Modus selbst ist nicht in veröffentlichten Builds) in `fastlane/metadata/android/*/images/phoneScreenshots/`.
 - [ ] Nach dem GitHub-Release (Punkt 6): Aufnahme bei IzzyOnDroid beantragen (`RELEASING.md` §4.5).
 
 ## 5. Flatpak verifizieren

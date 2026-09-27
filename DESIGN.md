@@ -590,16 +590,17 @@ read as Kante. It is the design system's `KanteStyle.Kind.KanteLight`:
   `tests/viewer/test_favorites_loading.py`. WorkContractBundle remaining-
   hours math is fixture-tested from the public Absence/PublicHoliday JSON
   shape; there is no live paid-plugin call.
-- **Demo mode** (`contents/code/demoKimai.js`): an in-memory Kimai with the
-  Drehzettel and Anfahrten plugins behind the reserved address
-  `https://demo.invalid`, which no real server can have. `createRequest()`
-  hands requests to that address to the demo instead of the network, so the
-  whole app runs unchanged on made-up data (a camera assistant's engagement,
-  a web client, admin work, relative to today). Writes live until the app
-  closes; nothing is stored. The app offers "Try the demo" on the setup
-  screen (profile "Demo", no token in the keychain); in the widget the
-  address works as a profile URL with any token. Store screenshots are taken
-  from it (offscreen, with a fixed clock), never from real accounts.
+- **Demo mode, internal only** (screenshots and testing; never in published builds or
+  texts): `contents/code/demoKimai.js` is an in-memory Kimai with the Drehzettel and
+  Anfahrten plugins behind the reserved address `https://demo.invalid`, data from the shared
+  Studio Weber world (`demoWorld.js`). It registers itself through the neutral hook
+  `KimaiApi.setUrlRoute()`; nothing else imports it. The widget loads it through
+  `DemoHook.qml` between `BEGIN/END internal demo` markers, which `scripts/package.sh`
+  strips together with the demo files (and fails if a reference is left). The app includes
+  it only with `-DPLASMAI_DEMO=ON` (`app/demo.qrc`, on for the test-driver build);
+  `tests/test_app_resources.py` fails if the regular resources carry demo files. Store
+  screenshots come from it (offscreen, fixed clock), never from real accounts. See
+  `demo/README.md`.
 - Dev install: `./scripts/install-dev.sh` (build number bump, `kpackagetool6
   -u`, plasmashell restart). Store packages keep `Build: 0`.
 - Release: `./scripts/package.sh`, version in `metadata.json` + changelog

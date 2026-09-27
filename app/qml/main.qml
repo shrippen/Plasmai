@@ -15,7 +15,6 @@ import "../contents/code/favorites.js" as Favorites
 import "../contents/code/sharedConfig.js" as SharedConfig
 import "../contents/code/providerUtil.js" as ProviderUtil
 import "../contents/code/timesheetFields.js" as TimesheetFields
-import "../contents/code/demoKimai.js" as DemoKimai
 import "shared"
 import "Kante"
 
@@ -408,7 +407,8 @@ Kirigami.ApplicationWindow {
 
     function loadApiToken() {
         if (!activeProfile) { apiToken = ""; tokenLoaded = true; return }
-        (DemoKimai.isDemoUrl(activeProfile.url) ? Promise.resolve(DemoKimai.DEMO_TOKEN) : Platform.loadToken(null, activeProfile.id)).then(function(token) {
+        var routedToken = KimaiApi.routeToken(activeProfile.url); // internal builds: the demo brings its own
+        (routedToken ? Promise.resolve(routedToken) : Platform.loadToken(null, activeProfile.id)).then(function(token) {
             apiToken = token || ""; tokenLoaded = true; connectionState = token ? "online" : "offline"
             if (token) { refreshAll(); resolveFilmDayMode(false); resolveMileage(false) }
         }).catch(function() { apiToken = ""; tokenLoaded = true; connectionState = "error" })
@@ -714,17 +714,6 @@ Kirigami.ApplicationWindow {
         descriptionSaveTimer.restart()
     }
 
-    /** Demo mode: a profile on DemoKimai's reserved address; the data is made up and stays in memory. */
-    function startDemo() {
-        Platform.loadShared(null).then(function(shared) {
-            var list = Profiles.withDemoProfile(Profiles.parseProfiles(shared ? shared.profilesJson : "", shared ? shared.kimaiUrl : ""),
-                                                DemoKimai.DEMO_URL, i18n("Demo"))
-            return Platform.patchShared(null, currentConfig(), { profilesJson: Profiles.serializeProfiles(list), activeProfileId: "demo" })
-        }).then(function() {
-            loadSharedAndConnect()
-        }).catch(function(err) { showPassiveNotification(String(err || i18n("Failed to save"))) })
-    }
-
     function loadSharedAndConnect() {
         Platform.loadShared(null).then(function(shared) {
             if (shared) SharedConfig.applyToConfiguration(currentConfig(), shared)
@@ -849,6 +838,14 @@ Kirigami.ApplicationWindow {
             typeof notifier !== "undefined" ? notifier : undefined))
         loadSharedAndConnect()
     }
+    // Internal builds only (-DPLASMAI_DEMO): the demo Kimai; published builds lack DemoHook.qml.
+    Loader {
+        id: demoHook
+        active: typeof plasmaiDemoBuild !== "undefined" && plasmaiDemoBuild
+        source: "DemoHook.qml"
+        onLoaded: item.appRoot = root
+    }
+
     Component { id: manualPageComponent; ManualEntryPage { } }
     Component { id: statsPageComponent; StatsPage { } }
     Component { id: filmDayPageComponent; FilmDayPage { } }

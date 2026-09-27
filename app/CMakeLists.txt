@@ -101,6 +101,14 @@ if(PLASMAI_TEST_DRIVER)
     target_compile_definitions(plasmai-app PRIVATE PLASMAI_TEST_DRIVER)
 endif()
 
+# Internal demo (made-up data for screenshots and testing). Never in published builds:
+# off by default, on for the test-driver build.
+option(PLASMAI_DEMO "Include the internal demo mode (development only)" ${PLASMAI_TEST_DRIVER})
+if(PLASMAI_DEMO)
+    target_sources(plasmai-app PRIVATE demo.qrc)
+    target_compile_definitions(plasmai-app PRIVATE PLASMAI_DEMO)
+endif()
+
 if(KF6_FOUND)
     message(STATUS "KF6 found — building with Kirigami")
     target_compile_definitions(plasmai-app PRIVATE HAVE_KF6)

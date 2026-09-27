@@ -8,7 +8,7 @@ Einzige Übersicht über das, was noch fehlt. Details stehen in der jeweiligen D
 **Release 2.0.0** (`ROADMAP.md`, `RELEASE-TODO.md`)
 - [x] Entschieden: zweites Backend erst für 3.0; App-ID `io.github.shrippen.Plasmai`; versionCode 20000; IzzyOnDroid
 - [x] Fastlane-Texte und Icon für IzzyOnDroid; Flatpak-Manifest und Metainfo korrigiert
-- [x] Demo-Modus und Screenshots daraus für IzzyOnDroid und Flathub
+- [x] Interner Demo-Modus (nicht in veröffentlichten Builds) und Screenshots daraus für IzzyOnDroid und Flathub
 - [ ] Keystore anlegen, CI auf GitHub laufen lassen, APK signieren, Flatpak bauen, aarch64-Tarball, GitHub-Release, IzzyOnDroid-Antrag, Store-Listing
 
 **3.0**

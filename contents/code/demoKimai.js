@@ -652,3 +652,6 @@ function request() {
     }
     return xhr
 }
+
+/** The route kimaiApi.setUrlRoute() takes: this address is answered here, with a fixed token. */
+var ROUTE = { handles: isDemoUrl, request: request, token: DEMO_TOKEN }

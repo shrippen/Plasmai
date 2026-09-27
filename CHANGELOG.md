@@ -2,7 +2,7 @@
 
 ## 2.0.0
 
-Released 2026-09-27. Plasmai 2.0 is also an app for Android and Plasma Mobile, with the film day and trips of the Drehzettel and Anfahrten Kimai plugins, an optional Kante style and a demo mode. Kimai is the reference backend; Clockify, Toggl Track and SolidTime are experimental.
+Released 2026-09-27. Plasmai 2.0 is also an app for Android and Plasma Mobile, with the film day and trips of the Drehzettel and Anfahrten Kimai plugins and an optional Kante style. Kimai is the reference backend; Clockify, Toggl Track and SolidTime are experimental.
 
 ### New: optional style "Kante" (Desktop and app)
 - Display settings (app: Settings) → Style: **Kante** is Plasmai's own look from the shrippen design: warm Gruvbox colors (light variant with a light theme), square controls, cards with a cut corner, Rajdhani titles and monospace figures. It deliberately does not follow Breeze; the default stays the Plasma theme and looks as before
@@ -32,7 +32,6 @@ Released 2026-09-27. Plasmai 2.0 is also an app for Android and Plasma Mobile, w
 - Add entry shows the server only with more than one profile, like the timer page
 - Favorites and pickers sort Aa→Zz instead of A→Z then a→z
 - The menu button opened the drawer only on the second tap after a restart in some cases; the drawer state now follows what is on screen
-- Demo mode: "Try the demo" on the setup screen shows the app with made-up data (film day, trips and statistics included), without a server; nothing is kept
 - Week and day remaining subtract approved absences and public holidays (holiday or WorkContract plugin), like the widget
 - "Tracking in progress" notification when a timer runs that was started elsewhere (web, another device) or was already running when the app started
 - Failed writes show a message: stop, start, continue, switch, edit, delete, split and idle discard no longer fail silently

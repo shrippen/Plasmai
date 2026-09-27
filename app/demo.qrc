@@ -1,0 +1,9 @@
+<!DOCTYPE RCC>
+<!-- Internal demo (screenshots, testing): only built with -DPLASMAI_DEMO=ON. -->
+<RCC version="1.0">
+    <qresource prefix="/">
+        <file alias="qml/DemoHook.qml">qml/DemoHook.qml</file>
+        <file alias="contents/code/demoKimai.js">../contents/code/demoKimai.js</file>
+        <file alias="contents/code/demoWorld.js">../contents/code/demoWorld.js</file>
+    </qresource>
+</RCC>

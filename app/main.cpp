@@ -442,6 +442,11 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextObject(&i18nFallback);
 #endif
     engine.rootContext()->setContextProperty(QStringLiteral("TokenStore"), tokenStore);
+#ifdef PLASMAI_DEMO
+    engine.rootContext()->setContextProperty(QStringLiteral("plasmaiDemoBuild"), true);
+#else
+    engine.rootContext()->setContextProperty(QStringLiteral("plasmaiDemoBuild"), false);
+#endif
     engine.rootContext()->setContextProperty(QStringLiteral("FileStore"), fileStore);
 #ifdef HAVE_QTDBUS
     auto *idleWatcher = new IdleWatcher(&app);

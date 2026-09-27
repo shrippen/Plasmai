@@ -11,6 +11,11 @@ TestCase {
 
     function init() {
         Demo.reset(now)
+        KimaiApi.setUrlRoute(Demo.ROUTE)
+    }
+
+    function cleanup() {
+        KimaiApi.setUrlRoute(null)
     }
 
     function get(path) {
@@ -120,12 +125,21 @@ TestCase {
         compare(KimaiApi.workWeekSecondsFromPrefs(prefs, now), 40 * 3600)
     }
 
-    // The app's request layer answers demo URLs without a network.
+    // With the demo's route registered, the request layer answers its address without a network.
     function test_throughKimaiApi() {
         var result = null
         KimaiApi.loadProjects(Demo.DEMO_URL, "demo", function(r) { result = r })
         tryVerify(function() { return result !== null })
         verify(result.ok)
         verify(result.data.length >= 3)
+    }
+
+    // Without a route (published builds) the demo address is not special.
+    function test_noRouteNoDemo() {
+        KimaiApi.setUrlRoute(null)
+        compare(KimaiApi.routeToken(Demo.DEMO_URL), "")
+        KimaiApi.setUrlRoute(Demo.ROUTE)
+        compare(KimaiApi.routeToken(Demo.DEMO_URL), "demo")
+        compare(KimaiApi.routeToken("https://kimai.example.org"), "")
     }
 }

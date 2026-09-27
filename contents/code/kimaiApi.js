@@ -2,7 +2,6 @@
 .import "./timesheetFields.js" as Fields
 .import "./workContractAdjust.js" as WorkAdjust
 .import "./providerUtil.js" as ProviderUtil
-.import "./demoKimai.js" as DemoKimai
 
 var ErrorType = {
     Network: "network",
@@ -30,10 +29,24 @@ function setRequestFactory(factory) {
     requestFactory = factory || null
 }
 
+/**
+ * Internal builds only: a route answers one address itself instead of the network,
+ * { handles(url), request(), token }. Published builds register none, so this stays null.
+ */
+var urlRoute = null
+
+function setUrlRoute(route) {
+    urlRoute = route || null
+}
+
+/** The fixed token of a routed address, or "" (the keychain is used then). */
+function routeToken(url) {
+    return urlRoute && urlRoute.handles(url) ? urlRoute.token : ""
+}
+
 function createRequest(method, kimaiUrl, endpoint, apiToken, isJson) {
-    // The demo address never reaches the network (demoKimai.js).
     var xhr = requestFactory ? requestFactory()
-        : (DemoKimai.isDemoUrl(kimaiUrl) ? DemoKimai.request() : new XMLHttpRequest())
+        : (urlRoute && urlRoute.handles(kimaiUrl) ? urlRoute.request() : new XMLHttpRequest())
     xhr.open(method, normalizeUrl(kimaiUrl) + endpoint, true)
     xhr.setRequestHeader("Authorization", "Bearer " + apiToken)
     xhr.setRequestHeader("Accept", "application/json")

@@ -9,7 +9,6 @@ import org.kde.plasma.extras as PlasmaExtras
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasma5support as P5Support
 import "../code/kimaiApi.js" as KimaiApi
-import "../code/demoKimai.js" as DemoKimai
 import "../code/timeTracker.js" as TimeTracker
 import "../code/secret.js" as Secret
 import "../code/platform.js" as Platform
@@ -369,10 +368,15 @@ PlasmoidItem {
         return panelTooltipBody()
     }
 
-    ScreenshotRunner {
-        plasmoidRoot: root
-        execSource: execSource
+    // BEGIN internal demo: scripts/package.sh removes this block and DemoHook.qml.
+    Loader {
+        source: "DemoHook.qml"
+        onLoaded: {
+            item.execSource = execSource
+            item.plasmoidRoot = root
+        }
     }
+    // END internal demo
 
     P5Support.DataSource {
         id: execSource
@@ -1706,9 +1710,10 @@ PlasmoidItem {
             return
         }
         syncTrackerSession()
-        // Demo profile (DemoKimai.DEMO_URL): made-up data in memory, no keychain.
-        var tokenPromise = DemoKimai.isDemoUrl(activeProfile.url)
-            ? Promise.resolve(DemoKimai.DEMO_TOKEN)
+        // A routed address (internal builds) brings its own token; no keychain.
+        var routedToken = KimaiApi.routeToken(activeProfile.url)
+        var tokenPromise = routedToken
+            ? Promise.resolve(routedToken)
             : Platform.loadToken(execSource, activeProfile.id)
         tokenPromise.then(function(token) {
             apiToken = token || ""
