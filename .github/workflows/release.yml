@@ -71,6 +71,13 @@ jobs:
         with:
           ref: ${{ needs.release.outputs.tag || github.ref }}
 
+      # An older tag lacks newer release tooling: take it from this workflow's commit
+      # (a no-op when the tag is that commit).
+      - name: Release tooling of this workflow
+        run: |
+          git fetch -q --depth=1 origin "$GITHUB_SHA"
+          git checkout "$GITHUB_SHA" -- .github scripts/build-appimage.sh
+
       - uses: ./.github/actions/android-setup
 
       # A release needs the key; a test run signs only when the secrets are set.
@@ -120,6 +127,13 @@ jobs:
         with:
           ref: ${{ needs.release.outputs.tag || github.ref }}
 
+      # An older tag lacks newer release tooling: take it from this workflow's commit
+      # (a no-op when the tag is that commit).
+      - name: Release tooling of this workflow
+        run: |
+          git fetch -q --depth=1 origin "$GITHUB_SHA"
+          git checkout "$GITHUB_SHA" -- .github scripts/build-appimage.sh
+
       - name: Build dependencies
         run: |
           sudo apt-get update -q
@@ -149,6 +163,13 @@ jobs:
         with:
           ref: ${{ needs.release.outputs.tag || github.ref }}
 
+      # An older tag lacks newer release tooling: take it from this workflow's commit
+      # (a no-op when the tag is that commit).
+      - name: Release tooling of this workflow
+        run: |
+          git fetch -q --depth=1 origin "$GITHUB_SHA"
+          git checkout "$GITHUB_SHA" -- .github scripts/build-appimage.sh
+
       - name: Install flatpak-builder
         run: |
           sudo apt-get update -q
@@ -176,6 +197,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.release.outputs.tag || github.ref }}
+
+      # An older tag lacks newer release tooling: take it from this workflow's commit
+      # (a no-op when the tag is that commit).
+      - name: Release tooling of this workflow
+        run: |
+          git fetch -q --depth=1 origin "$GITHUB_SHA"
+          git checkout "$GITHUB_SHA" -- .github scripts/build-appimage.sh
 
       - name: Build widget package
         run: |
