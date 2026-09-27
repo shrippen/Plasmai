@@ -516,8 +516,29 @@ function splitActivitiesForProject(activities, projectId) {
     return { projectSpecific: projectSpecific, global: globalActivities }
 }
 
+/** Sort key: lower case without accents, so the list reads Aa→Zz with "ä" beside "a". */
+function nameKey(name) {
+    return String(name || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+}
+
+/** Names Aa→Zz; Android's localeCompare alone would put every capital first. */
+function compareNames(a, b) {
+    var x = nameKey(a)
+    var y = nameKey(b)
+    if (x !== y) {
+        return x < y ? -1 : 1
+    }
+    return String(a) < String(b) ? -1 : (String(a) > String(b) ? 1 : 0)
+}
+
+function byName(a, b) {
+    return compareNames(a && a.name, b && b.name)
+}
+
 function activitiesListModel(activities, projectId) {
     var split = splitActivitiesForProject(activities, projectId)
+    split.projectSpecific.sort(byName)
+    split.global.sort(byName)
     var rows = []
     var i
     for (i = 0; i < split.projectSpecific.length; i++) {
@@ -563,7 +584,7 @@ function projectsGroupedByCustomer(projects, customers) {
         if (b === "Other") {
             return -1
         }
-        return a.localeCompare(b)
+        return compareNames(a, b)
     })
 
     var rows = []
@@ -571,7 +592,7 @@ function projectsGroupedByCustomer(projects, customers) {
         var customerName = order[i]
         var group = groups[customerName]
         var list = group.projects
-        list.sort(function(a, b) { return String(a.name).localeCompare(String(b.name)) })
+        list.sort(byName)
         for (var p = 0; p < list.length; p++) {
             var proj = list[p]
             var bar = barColorInfo(null, proj, customersById)

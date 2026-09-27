@@ -1,4 +1,5 @@
 {
+"\"%1\" was not found": "«%1» non trovato",
 "%1 (from your profile)": "%1 (dal tuo profilo)",
 "%1 day ago": "%1 giorno fa",
 "%1 days ago": "%1 giorni fa",
@@ -89,6 +90,7 @@
 "City, region, or address…": "Città, regione o indirizzo…",
 "Clear": "Cancella",
 "Clear token": "Cancella token",
+"Click the map to open the route.": "Fai clic sulla mappa per aprire il percorso.",
 "Clockify cloud API is prefilled. Change only for a regional endpoint (e.g. euc1).": "L’API cloud di Clockify è precompilata. Modifica solo per un endpoint regionale (es. euc1).",
 "Comment:": "Commento:",
 "Commute": "Tragitto casa-lavoro",
@@ -237,6 +239,7 @@
 "Log trips and show detected trips": "Registra tragitti e mostra quelli rilevati",
 "Log trips and show detected trips (Anfahrten plugin)": "Registra tragitti e mostra quelli rilevati (plugin Anfahrten)",
 "Longitude:": "Longitudine:",
+"Looking up the places…": "Ricerca dei luoghi…",
 "Made-up data, kept only while the app runs. Switch profiles in Connection to leave it.": "Dati inventati, conservati solo finché l’app è aperta. Cambia profilo in Connessione per uscire.",
 "Manual time entry": "Inserimento manuale del tempo",
 "Means of travel:": "Mezzo di trasporto:",
@@ -402,6 +405,8 @@
 "Stop tracking %1 · %2?": "Interrompere il tracciamento di %1 · %2?",
 "Stop tracking?": "Interrompere il tracciamento?",
 "Stopped": "Interrotto",
+"Straight line %1 km": "In linea d’aria %1 km",
+"Straight line %1 km · entered %2 km one way": "In linea d’aria %1 km · inseriti %2 km solo andata",
 "Style:": "Stile:",
 "Sunday": "Domenica",
 "Surcharge day": "Giorno di maggiorazione",
@@ -414,6 +419,7 @@
 "System (Plasma theme)": "Sistema (tema Plasma)",
 "Tags": "Tag",
 "Tap a project to see its activities, then pin the ones you use often.": "Tocca un progetto per vedere le sue attività, poi fissa quelle che usi spesso.",
+"Tap the map to open the route.": "Tocca la mappa per aprire il percorso.",
 "Test": "Prova",
 "Test connection": "Test connessione",
 "Testing connection…": "Test della connessione…",
@@ -498,6 +504,7 @@
 "You lack the Drehzettel permission on this Kimai server. Only begin and end are saved.": "Non hai il permesso Drehzettel su questo server Kimai. Vengono salvati solo inizio e fine.",
 "You were idle": "Eri inattivo",
 "You were idle for %1. Keep this time, discard it, or discard and continue?": "Sei stato inattivo per %1. Tenere questo tempo, scartarlo o scartarlo e continuare?",
+"far longer than the straight line: check the places.": "molto più lungo della linea d’aria: controlla i luoghi.",
 "https://api.solidtime.io or https://time.example.com": "https://api.solidtime.io o https://time.example.com",
 "https://kimai.example.com or https://www.kimai.cloud": "https://kimai.example.com o https://www.kimai.cloud",
 "https://your-server.com": "https://il-tuo-server.com",
@@ -506,5 +513,7 @@
 "none": "nessuno",
 "round trip": "andata e ritorno",
 "running": "in corso",
-"yesterday": "ieri"
+"shorter than the straight line: check the places or the km.": "più corto della linea d’aria: controlla i luoghi o i km.",
+"yesterday": "ieri",
+"© OpenStreetMap contributors": "© collaboratori di OpenStreetMap"
 }

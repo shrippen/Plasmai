@@ -1,4 +1,5 @@
 {
+"\"%1\" was not found": "未找到“%1”",
 "%1 (from your profile)": "%1 (来自个人资料)",
 "%1 day ago": "%1 天前",
 "%1 hour ago": "%1 小时前",
@@ -87,6 +88,7 @@
 "City, region, or address…": "城市、地区或地址…",
 "Clear": "清除",
 "Clear token": "清除令牌",
+"Click the map to open the route.": "点击地图以打开路线。",
 "Clockify cloud API is prefilled. Change only for a regional endpoint (e.g. euc1).": "已预填 Clockify 云 API。仅在使用区域端点（例如 euc1）时更改。",
 "Comment:": "备注:",
 "Commute": "通勤",
@@ -236,6 +238,7 @@
 "Log trips and show detected trips": "记录行程并显示检测到的行程",
 "Log trips and show detected trips (Anfahrten plugin)": "记录行程并显示检测到的行程 (Anfahrten 插件)",
 "Longitude:": "经度：",
+"Looking up the places…": "正在查找地点…",
 "Made-up data, kept only while the app runs. Switch profiles in Connection to leave it.": "虚构的数据，仅在应用运行期间保留。要退出，请在“连接”中切换配置文件。",
 "Manual time entry": "手动时间条目",
 "Means of travel:": "出行方式:",
@@ -402,6 +405,8 @@
 "Stop tracking %1 · %2?": "停止计时 %1 · %2？",
 "Stop tracking?": "停止计时？",
 "Stopped": "已停止",
+"Straight line %1 km": "直线距离 %1 公里",
+"Straight line %1 km · entered %2 km one way": "直线距离 %1 公里 · 已填 %2 公里（单程）",
 "Style:": "样式:",
 "Sunday": "星期日",
 "Surcharge day": "加班补贴日",
@@ -414,6 +419,7 @@
 "System (Plasma theme)": "系统 (Plasma 主题)",
 "Tags": "标签",
 "Tap a project to see its activities, then pin the ones you use often.": "点按项目查看其活动，然后固定常用的活动。",
+"Tap the map to open the route.": "点按地图以打开路线。",
 "Test": "测试",
 "Test connection": "测试连接",
 "Testing connection…": "正在测试连接…",
@@ -498,6 +504,7 @@
 "You lack the Drehzettel permission on this Kimai server. Only begin and end are saved.": "你在此 Kimai 服务器上没有 Drehzettel 权限。只保存开始和结束时间。",
 "You were idle": "你处于空闲状态",
 "You were idle for %1. Keep this time, discard it, or discard and continue?": "你已空闲 %1。保留这段时间、丢弃，还是丢弃并继续？",
+"far longer than the straight line: check the places.": "远长于直线距离：请检查地点。",
 "https://api.solidtime.io or https://time.example.com": "https://api.solidtime.io 或 https://time.example.com",
 "https://kimai.example.com or https://www.kimai.cloud": "https://kimai.example.com 或 https://www.kimai.cloud",
 "just now": "刚刚",
@@ -506,5 +513,7 @@
 "none": "无",
 "round trip": "往返",
 "running": "进行中",
-"yesterday": "昨天"
+"shorter than the straight line: check the places or the km.": "比直线距离还短：请检查地点或公里数。",
+"yesterday": "昨天",
+"© OpenStreetMap contributors": "© OpenStreetMap 贡献者"
 }

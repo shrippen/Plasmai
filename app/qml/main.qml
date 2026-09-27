@@ -50,6 +50,18 @@ Kirigami.ApplicationWindow {
     // Kirigami (Plasma Mobile) controls. Restored when switched back; Kante Light
     // keeps the platform colors.
     KanteScope { target: root.contentItem }
+    // The drawer lives in the overlay, outside contentItem.
+    KanteScope { target: globalDrawer.contentItem }
+    KanteScope { target: globalDrawer.background }
+    // Android (Material): the scope stays out, and older Kirigami colours the entries
+    // from Kirigami.Theme, so the drawer gets Kante's text colour directly.
+    Binding {
+        target: globalDrawer.contentItem ? globalDrawer.contentItem.Kirigami.Theme : null
+        property: "textColor"
+        value: KanteStyle.textColor
+        when: KanteStyle.materialStyle && KanteStyle.themed && !!globalDrawer.contentItem
+        restoreMode: Binding.RestoreBindingOrValue
+    }
     Binding { target: root; property: "color"; value: KanteStyle.backgroundColor; when: KanteStyle.themed; restoreMode: Binding.RestoreBindingOrValue }
     Binding { target: root.Material; property: "accent"; value: KanteStyle.accentColor; when: KanteStyle.themed; restoreMode: Binding.RestoreBindingOrValue }
     Binding { target: root.Material; property: "background"; value: KanteStyle.backgroundColor; when: KanteStyle.themed; restoreMode: Binding.RestoreBindingOrValue }
@@ -765,36 +777,43 @@ Kirigami.ApplicationWindow {
         title: i18n("Plasmai")
         isMenu: false
         modal: true
+        // The menu button toggles drawerOpen: keep it equal to what is on screen,
+        // or a tap after a restart closes the (already closed) drawer.
+        drawerOpen: false
+        onOpened: drawerOpen = true
+        // Android: the entries take their text colour from Material, not from Kirigami.Theme.
+        Material.foreground: KanteStyle.themed ? KanteStyle.textColor : (Material.theme === Material.Dark ? "#ffffff" : "#1c1b1f")
+        onClosed: drawerOpen = false
 
         actions: [
             Kirigami.Action {
                 text: i18n("Timer")
-                onTriggered: { pageStack.pop(pageStack.get(0)); globalDrawer.close() }
+                onTriggered: { pageStack.pop(pageStack.get(0)); globalDrawer.drawerOpen = false }
             },
             Kirigami.Action {
                 text: i18n("Add Entry")
-                onTriggered: { root.navigateTo(manualPageComponent); globalDrawer.close() }
+                onTriggered: { root.navigateTo(manualPageComponent); globalDrawer.drawerOpen = false }
             },
             Kirigami.Action {
                 text: i18n("Statistics")
-                onTriggered: { root.navigateTo(statsPageComponent); globalDrawer.close() }
+                onTriggered: { root.navigateTo(statsPageComponent); globalDrawer.drawerOpen = false }
             },
             Kirigami.Action {
                 text: i18n("Trips")
                 visible: root.mileageAvailable
-                onTriggered: { root.navigateTo(tripsPageComponent); globalDrawer.close() }
+                onTriggered: { root.navigateTo(tripsPageComponent); globalDrawer.drawerOpen = false }
             },
             Kirigami.Action {
                 text: i18n("Favorites")
-                onTriggered: { root.navigateTo(favoritesComponent); globalDrawer.close() }
+                onTriggered: { root.navigateTo(favoritesComponent); globalDrawer.drawerOpen = false }
             },
             Kirigami.Action {
                 text: i18n("Connection")
-                onTriggered: { root.navigateTo(connectionComponent); globalDrawer.close() }
+                onTriggered: { root.navigateTo(connectionComponent); globalDrawer.drawerOpen = false }
             },
             Kirigami.Action {
                 text: i18n("Settings")
-                onTriggered: { root.navigateTo(settingsComponent); globalDrawer.close() }
+                onTriggered: { root.navigateTo(settingsComponent); globalDrawer.drawerOpen = false }
             }
         ]
     }

@@ -128,6 +128,18 @@ Item {
             }
 
             KantePlasmaButton {
+                visible: widget.isTracking && widget.showNewActivityHere && !widget.showNewActivityForm
+                display: QQC2.AbstractButton.IconOnly
+                Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+                enabled: widget.isConfigured && !widget.isBusy && widget.connectionState !== "error"
+                text: i18n("Switch to another activity…")
+                icon.name: "media-playback-start"
+                onClicked: widget.showNewActivityForm = true
+                PlasmaComponents3.ToolTip.text: text
+                PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
+            }
+
+            KantePlasmaButton {
                 visible: widget.isTracking
                 emphasis: KantePlasmaButton.Emphasis.Destructive
                 Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
@@ -219,30 +231,61 @@ Item {
             visible: widget.isTracking && !widget.editingActiveEntry
         }
 
-        KantePlasmaButton {
+        // Continue, and the generic start right beside it (never scrolled to).
+        RowLayout {
             Layout.fillWidth: true
-            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-            emphasis: KantePlasmaButton.Emphasis.Primary
-            visible: widget.showContinueHere && !widget.isTracking && widget.lastRecent
-            enabled: widget.isConfigured && !widget.isBusy && widget.connectionState !== "error"
-            text: i18n("Continue · %1 · %2",
-                       KimaiApi.displayProjectName(widget.lastRecent, widget.projects),
-                       KimaiApi.displayActivityName(widget.lastRecent, widget.allActivities, widget.activitiesByProject))
-            icon.name: "media-playback-start"
-            onClicked: widget.continueLastActivity()
-        }
+            spacing: Kirigami.Units.smallSpacing
+            id: continueRow
+            // Conditions, not the children's visible: those read false while the row is hidden.
+            readonly property bool continueShown: widget.showContinueHere && !widget.isTracking && !!widget.lastRecent
+            readonly property bool lastUsedShown: widget.showContinueHere && !widget.isTracking && !widget.lastRecent && widget.hasLastUsed
+            readonly property bool startShown: widget.showNewActivityHere && widget.isConfigured && !widget.showNewActivityForm
+            visible: !widget.isTracking && (continueShown || lastUsedShown || startShown)
 
-        KantePlasmaButton {
-            Layout.fillWidth: true
-            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-            emphasis: KantePlasmaButton.Emphasis.Primary
-            visible: widget.showContinueHere && !widget.isTracking && !widget.lastRecent && widget.hasLastUsed
-            enabled: widget.isConfigured && !widget.isBusy && widget.connectionState !== "error"
-            text: i18n("Start · %1 · %2",
-                       Plasmoid.configuration.lastUsedProjectName || "",
-                       Plasmoid.configuration.lastUsedActivityName || "")
-            icon.name: "media-playback-start"
-            onClicked: widget.startLastUsed()
+            KantePlasmaButton {
+                id: continueButton
+                Layout.fillWidth: true
+                Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+                emphasis: KantePlasmaButton.Emphasis.Primary
+                visible: widget.showContinueHere && !widget.isTracking && widget.lastRecent
+                enabled: widget.isConfigured && !widget.isBusy && widget.connectionState !== "error"
+                text: i18n("Continue · %1 · %2",
+                           KimaiApi.displayProjectName(widget.lastRecent, widget.projects),
+                           KimaiApi.displayActivityName(widget.lastRecent, widget.allActivities, widget.activitiesByProject))
+                icon.name: "media-playback-start"
+                onClicked: widget.continueLastActivity()
+            }
+
+            KantePlasmaButton {
+                id: lastUsedButton
+                Layout.fillWidth: true
+                Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+                emphasis: KantePlasmaButton.Emphasis.Primary
+                visible: widget.showContinueHere && !widget.isTracking && !widget.lastRecent && widget.hasLastUsed
+                enabled: widget.isConfigured && !widget.isBusy && widget.connectionState !== "error"
+                text: i18n("Start · %1 · %2",
+                           Plasmoid.configuration.lastUsedProjectName || "",
+                           Plasmoid.configuration.lastUsedActivityName || "")
+                icon.name: "media-playback-start"
+                onClicked: widget.startLastUsed()
+            }
+            KantePlasmaButton {
+                id: startOtherButton
+                visible: widget.showNewActivityHere && widget.isConfigured && !widget.showNewActivityForm
+                readonly property bool beside: continueRow.continueShown || continueRow.lastUsedShown
+                // Icon only beside Continue, so Continue keeps room for what it continues.
+                display: beside ? QQC2.AbstractButton.IconOnly : QQC2.AbstractButton.TextBesideIcon
+                Layout.fillWidth: !beside
+                Layout.fillHeight: beside
+        Layout.preferredWidth: beside ? height : implicitWidth
+                Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+                enabled: widget.isConfigured && !widget.isBusy && widget.connectionState !== "error"
+                text: i18n("Start something else…")
+                icon.name: "media-playback-start"
+                onClicked: widget.showNewActivityForm = true
+                PlasmaComponents3.ToolTip.text: text
+                PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
+            }
         }
 
         // Today · week · what is left of the week (work contract).

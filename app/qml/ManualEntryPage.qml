@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
+import "../contents/code/profiles.js" as Profiles
 import "../contents/code/timeTracker.js" as TimeTracker
 import "../contents/code/kimaiApi.js" as KimaiApi
 import "shared"
@@ -66,15 +67,19 @@ Kirigami.Page {
     QQC2.ScrollView {
         id: pageScroll
         anchors.fill: parent
+        // The scroll bar sits at the screen edge; the content keeps the page margin.
+        anchors.rightMargin: -page.rightPadding
         contentWidth: availableWidth
         QQC2.ScrollBar.horizontal.policy: QQC2.ScrollBar.AlwaysOff
 
         ColumnLayout {
             id: formCol
-            width: pageScroll.availableWidth
+            width: (pageScroll.availableWidth - page.rightPadding)
             spacing: Kirigami.Units.smallSpacing
 
             RowLayout { Layout.fillWidth: true; spacing: Kirigami.Units.smallSpacing
+                // Same rule as the timer page: only with several profiles or a problem.
+                visible: Profiles.showsConnection(root.profiles, root.isConfigured, root.connectionState)
                 Kirigami.Icon {
                     source: !root.isConfigured ? "network-disconnect" : root.connectionState === "error" ? "network-disconnect" : "network-connect"
                     color: !root.isConfigured ? KanteStyle.disabledTextColor : root.connectionState === "error" ? KanteStyle.negativeTextColor : KanteStyle.positiveTextColor
@@ -129,13 +134,4 @@ Kirigami.Page {
         }
     }
 
-    // Pull to refresh (see shared/KantePullToRefresh.qml).
-    KantePullToRefresh {
-        parent: pageScroll
-        anchors.fill: parent
-        z: 10
-        flickable: pageScroll.contentItem
-        busy: root.isBusy
-        onRefreshRequested: root.refreshAll()
-    }
 }

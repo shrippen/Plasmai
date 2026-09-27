@@ -139,11 +139,13 @@ Kirigami.Page {
     QQC2.ScrollView {
         id: pageScroll
         anchors.fill: parent
+        // The scroll bar sits at the screen edge; the content keeps the page margin.
+        anchors.rightMargin: -page.rightPadding
         contentWidth: availableWidth
         QQC2.ScrollBar.horizontal.policy: QQC2.ScrollBar.AlwaysOff
 
         ColumnLayout {
-            width: pageScroll.availableWidth
+            width: (pageScroll.availableWidth - page.rightPadding)
             spacing: Kirigami.Units.smallSpacing
 
             KanteHeading {

@@ -19,12 +19,23 @@
 - Film day: the production's shooting day is counted from the engagement's entries in Kimai instead of being entered; a pencil on the engagement picks another engagement or project
 
 ### App
+- Film day: opening a finished or running film day no longer writes begin and end back to Kimai (loading the times counted as an edit and was saved directly, dropping any seconds)
+- Trip map: places given as coordinates (Dawarich suggestions) are shown directly, without a search
+- Timer card (System style, phone width): the clock shrinks to fit and Stop shows as an icon, so the row with trip, edit and switch fits
+- Trips: the trip form shows start and destination on a map (OpenStreetMap), with the found places and the straight line against the entered km; click the map for the route. Also in the widget
+- The generic start is right next to Continue as a ▶ button (and next to Stop while tracking) instead of below the lists, so it is never scrolled to; its form opens in the timer card. Also in the widget, where the form sits right below the card
+- The scroll bar sits at the screen edge instead of over the content
+- Pull to refresh only on pages with server data; no longer in settings, connection and the forms
+- Kante colours the menu (drawer) too
+- Add entry shows the server only with more than one profile, like the timer page
+- Favorites and pickers sort Aa→Zz instead of A→Z then a→z
+- The menu button opened the drawer only on the second tap after a restart in some cases; the drawer state now follows what is on screen
 - Demo mode: "Try the demo" on the setup screen shows the app with made-up data (film day, trips and statistics included), without a server; nothing is kept
 - Week and day remaining subtract approved absences and public holidays (holiday or WorkContract plugin), like the widget
 - "Tracking in progress" notification when a timer runs that was started elsewhere (web, another device) or was already running when the app started
 - Failed writes show a message: stop, start, continue, switch, edit, delete, split and idle discard no longer fail silently
 - Film day: a finished travel day offers "Log trip" in the view, in the widget as well as the app (before only the app offered it once, after saving)
-- Pull to refresh on every page: timer, statistics, film day, trips, favorites, add entry, settings and connection reload their data
+- Pull to refresh on the pages that show server data: timer, statistics, film day, trips and favorites
 
 ### Polish
 - Film day: the shoot running after a finished commute shows as running, not the commute as the finished day

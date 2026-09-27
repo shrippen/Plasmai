@@ -1,4 +1,5 @@
 {
+"\"%1\" was not found": "「%1」が見つかりません",
 "%1 (from your profile)": "%1 (プロフィールから)",
 "%1 day ago": "%1 日前",
 "%1 hour ago": "%1 時間前",
@@ -84,6 +85,7 @@
 "City, region, or address…": "都市、地域、または住所…",
 "Clear": "クリア",
 "Clear token": "トークンをクリア",
+"Click the map to open the route.": "地図をクリックするとルートを開きます。",
 "Clockify cloud API is prefilled. Change only for a regional endpoint (e.g. euc1).": "ClockifyクラウドAPIは事前入力済みです。リージョン用エンドポイント（例: euc1）のときだけ変更してください。",
 "Comment:": "コメント:",
 "Commute": "通勤",
@@ -233,6 +235,7 @@
 "Log trips and show detected trips": "移動を記録し、検出された移動を表示",
 "Log trips and show detected trips (Anfahrten plugin)": "移動を記録し、検出された移動を表示 (Anfahrten プラグイン)",
 "Longitude:": "経度:",
+"Looking up the places…": "場所を検索中…",
 "Made-up data, kept only while the app runs. Switch profiles in Connection to leave it.": "架空のデータで、アプリの実行中のみ保持されます。終了するには接続でプロファイルを切り替えます。",
 "Manual time entry": "手動時間エントリ",
 "Means of travel:": "交通手段:",
@@ -399,6 +402,8 @@
 "Stop tracking %1 · %2?": "%1 · %2 の記録を停止しますか？",
 "Stop tracking?": "記録を停止しますか？",
 "Stopped": "停止しました",
+"Straight line %1 km": "直線距離 %1 km",
+"Straight line %1 km · entered %2 km one way": "直線距離 %1 km · 入力 %2 km（片道）",
 "Style:": "スタイル:",
 "Sunday": "日曜日",
 "Surcharge day": "割増日",
@@ -411,6 +416,7 @@
 "System (Plasma theme)": "システム (Plasma テーマ)",
 "Tags": "タグ",
 "Tap a project to see its activities, then pin the ones you use often.": "プロジェクトをタップしてアクティビティを表示し、よく使うものをピン留めします。",
+"Tap the map to open the route.": "地図をタップするとルートを開きます。",
 "Test": "テスト",
 "Test connection": "接続をテスト",
 "Testing connection…": "接続をテスト中…",
@@ -495,6 +501,7 @@
 "You lack the Drehzettel permission on this Kimai server. Only begin and end are saved.": "この Kimai サーバーで Drehzettel の権限がありません。開始と終了のみ保存されます。",
 "You were idle": "アイドル状態でした",
 "You were idle for %1. Keep this time, discard it, or discard and continue?": "%1 間アイドル状態でした。この時間を残しますか、破棄しますか、それとも破棄して続けますか？",
+"far longer than the straight line: check the places.": "直線距離よりかなり長いです。場所を確認してください。",
 "https://api.solidtime.io or https://time.example.com": "https://api.solidtime.io または https://time.example.com",
 "https://kimai.example.com or https://www.kimai.cloud": "https://kimai.example.com または https://www.kimai.cloud",
 "just now": "たった今",
@@ -502,5 +509,7 @@
 "none": "なし",
 "round trip": "往復",
 "running": "計測中",
-"yesterday": "昨日"
+"shorter than the straight line: check the places or the km.": "直線距離より短いです。場所または km を確認してください。",
+"yesterday": "昨日",
+"© OpenStreetMap contributors": "© OpenStreetMap の貢献者"
 }

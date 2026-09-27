@@ -36,6 +36,11 @@ RowLayout {
         suppressHandler = true
         timeField.text = DTF.formatLocaleTime(hours, minutes)
         suppressHandler = false
+    }
+
+    /** A time the user typed or picked: set it and report the edit (setTime() from code does not). */
+    function editTime(h, m) {
+        setTime(h, m)
         root.timeEdited()
     }
 
@@ -163,7 +168,7 @@ RowLayout {
         onEditingFinished: {
             var parsed = root.parseTime(text)
             if (parsed) {
-                root.setTime(parsed.hours, parsed.minutes)
+                root.editTime(parsed.hours, parsed.minutes)
             } else {
                 root.refreshText()
             }
@@ -198,7 +203,7 @@ RowLayout {
         sourceComponent: TimePopup {
             parent: QQC2.Overlay.overlay
             anchors.centerIn: parent
-            onAccepted: root.setTime(value.getHours(), value.getMinutes())
+            onAccepted: root.editTime(value.getHours(), value.getMinutes())
         }
     }
 

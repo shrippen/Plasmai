@@ -189,4 +189,18 @@ TestCase {
         verify(KimaiApi.tagEntityColor({ name: "generated" }).length > 0)
         compare(KimaiApi.tagEntityName({ name: "review" }), "review")
     }
+
+    // Names sort Aa→Zz: case and accents do not split the alphabet (Android's
+    // localeCompare compares code points: "Zeta" before "alpha").
+    function test_compareNames() {
+        var names = ["zulu", "Beta", "ärger", "Zeta", "alpha"]
+        names.sort(KimaiApi.compareNames)
+        compare(names, ["alpha", "ärger", "Beta", "Zeta", "zulu"])
+        var rows = KimaiApi.projectsGroupedByCustomer(
+            [{ id: 1, name: "website", customer: 1 }, { id: 2, name: "Admin", customer: 1 }, { id: 3, name: "buch", customer: 2 }],
+            [{ id: 1, name: "studio" }, { id: 2, name: "Agentur" }])
+        compare(rows.map(function(r) { return r.project.name }), ["buch", "Admin", "website"])
+        var acts = KimaiApi.activitiesListModel([{ id: 1, name: "meeting" }, { id: 2, name: "Design" }], 0)
+        compare(acts.map(function(r) { return r.activity.name }), ["Design", "meeting"])
+    }
 }

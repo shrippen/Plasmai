@@ -60,3 +60,27 @@ function search(query, callback) {
     xhr.setRequestHeader("User-Agent", USER_AGENT)
     xhr.send()
 }
+
+// Places looked up this session (query → first result or null); only online, never stored.
+var placeCache = {}
+
+/** The best match for a place name: callback({ displayName, latitude, longitude } | null). */
+function lookup(query, callback) {
+    var key = String(query || "").trim().toLowerCase()
+    if (!key) {
+        callback(null)
+        return
+    }
+    if (placeCache.hasOwnProperty(key)) {
+        callback(placeCache[key])
+        return
+    }
+    search(query, function(result) {
+        var place = result.ok && result.results.length > 0 ? result.results[0] : null
+        // Keep only answers: a network error is tried again next time.
+        if (result.ok) {
+            placeCache[key] = place
+        }
+        callback(place)
+    })
+}

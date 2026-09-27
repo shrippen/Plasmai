@@ -326,6 +326,14 @@ ColumnLayout {
             maximumLength: 255
         }
 
+        // Check that start and destination are the intended places.
+        TripMap {
+            Layout.fillWidth: true
+            from: startField.text
+            to: destinationField.text
+            enteredKm: Mileage.parseDistance(distanceField.text) === null ? NaN : Mileage.parseDistance(distanceField.text)
+        }
+
         QQC2.CheckBox {
             KanteCheckSkin { control: parent }
             id: timesCheck

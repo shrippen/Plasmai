@@ -37,6 +37,11 @@ RowLayout {
         suppressHandler = true
         timeField.text = DTF.formatLocaleTime(hours, minutes)
         suppressHandler = false
+    }
+
+    /** A time the user typed or picked: set it and report the edit (setTime() from code does not). */
+    function editTime(h, m) {
+        setTime(h, m)
         root.timeEdited()
     }
 
@@ -164,7 +169,7 @@ RowLayout {
         onEditingFinished: {
             var parsed = root.parseTime(text)
             if (parsed) {
-                root.setTime(parsed.hours, parsed.minutes)
+                root.editTime(parsed.hours, parsed.minutes)
             } else {
                 root.refreshText()
             }
@@ -266,7 +271,7 @@ RowLayout {
                     text: i18n("Select")
                     icon.name: "dialog-ok-apply"
                     onClicked: {
-                        root.setTime(hourTumbler.currentIndex, minuteTumbler.currentIndex)
+                        root.editTime(hourTumbler.currentIndex, minuteTumbler.currentIndex)
                         timePopup.close()
                     }
                 }

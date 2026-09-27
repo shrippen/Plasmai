@@ -388,6 +388,16 @@ read as Kante. It is the design system's `KanteStyle.Kind.KanteLight`:
 
 ### Trips (kimai-anfahrten, Kimai only)
 
+- **Map in the trip form** (`TripMap.qml`, math in `tripMap.js`): start and
+  destination are looked up on OpenStreetMap Nominatim after a pause in
+  typing (one after the other, cached for the session, never stored) and
+  shown on OSM tiles with a dashed line, the found names and the straight
+  line against the entered one-way km ("shorter" is impossible, "far longer"
+  hints at a wrong place). Clicking the map opens the route on
+  openstreetmap.org. The attribution "© OpenStreetMap contributors" is always
+  shown. The app sends "Plasmai/<version> (+repo)" as User-Agent on every
+  request (Nominatim requires one); the widget uses Plasma's.
+
 - Gated by `providerCapabilities.mileage`, the `showTrips` setting (shared,
   default on) and `GET /api/mileage/ping`: 200 with `v1` and
   `permissions.view` → available; 404 → absent. The probe is cached 24 h per
@@ -470,6 +480,16 @@ read as Kante. It is the design system's `KanteStyle.Kind.KanteLight`:
   activity via Recent or Favorites shows the switch dialog (current vs target
   cards), not a silent stop+start. Clicking the same project/activity that is
   already running shows the already-running hint; it must not stop the timer.
+- **The generic start is never scrolled to** (all Plasmai UIs): an icon-only
+  ▶ button sits right of Continue (full label when there is nothing to
+  continue), and right of Stop while tracking (switch). Its form (project,
+  activity, description) opens in the timer card in the app and right below
+  it in the widget. Continue keeps the width for what it continues.
+- **Pull to refresh** only where the page shows server data (timer,
+  statistics, film day, trips, favorites); not in settings, connection or
+  the entry and trip forms.
+- **Lists sort Aa→Zz** (`KimaiApi.compareNames`): case and accents do not
+  split the alphabet (Android's `localeCompare` compares code points).
 - **Continue** is “last recent”, not a generic Start. Favorites and Recent
   are one-tap presets. If Recents are empty, **Start · last used** uses the
   last started project/activity pair from shared.json. Favorite and Recent

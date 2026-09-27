@@ -6,6 +6,9 @@
 #include "addons/infinitecalendarviewmodel.h"
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QQmlNetworkAccessManagerFactory>
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
 #include <QStandardPaths>
 #include <QFile>
 #include <QSaveFile>
@@ -149,6 +152,26 @@ private:
 #endif
 
 static const QString APP_ID = QStringLiteral("com.github.shrippen.plasmai");
+
+// -- Every request names Plasmai: OpenStreetMap (trip map, place search) asks for it.
+
+class UserAgentNam : public QNetworkAccessManager {
+public:
+    using QNetworkAccessManager::QNetworkAccessManager;
+
+protected:
+    QNetworkReply *createRequest(Operation op, const QNetworkRequest &request, QIODevice *data) override {
+        QNetworkRequest named(request);
+        named.setHeader(QNetworkRequest::UserAgentHeader,
+                        QStringLiteral("Plasmai/%1 (+https://github.com/shrippen/Plasmai)").arg(QGuiApplication::applicationVersion()));
+        return QNetworkAccessManager::createRequest(op, named, data);
+    }
+};
+
+class UserAgentNamFactory : public QQmlNetworkAccessManagerFactory {
+public:
+    QNetworkAccessManager *create(QObject *parent) override { return new UserAgentNam(parent); }
+};
 
 // -- TokenStore: read / write / delete API tokens via QtKeychain ----------
 
@@ -403,7 +426,9 @@ int main(int argc, char *argv[])
     qmlRegisterType<MonthModel>("org.kde.kirigamiaddons.dateandtime", 1, 0, "MonthModel");
     qmlRegisterType<InfiniteCalendarViewModel>("org.kde.kirigamiaddons.dateandtime", 1, 0, "InfiniteCalendarViewModel");
 
+    UserAgentNamFactory namFactory; // outlives the engine
     QQmlApplicationEngine engine;
+    engine.setNetworkAccessManagerFactory(&namFactory);
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreationFailed,
                      &app, []() {
         fprintf(stderr, "QML object creation failed\n");

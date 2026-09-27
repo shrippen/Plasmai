@@ -48,6 +48,115 @@ ColumnLayout {
         return b && !isNaN(b.getTime()) ? DTF.formatLocaleTime(b.getHours(), b.getMinutes()) : ""
     }
 
+    // —— New / switch: right below the timer card, opened from its start button ——
+    KantePlasmaHeading {
+    Layout.fillWidth: true
+        level: 4
+        opacity: widget.showNewActivityHere && widget.isConfigured && widget.showNewActivityForm ? 1 : 0
+        visible: opacity > 0
+        text: widget.isTracking ? i18n("Switch activity") : i18n("New activity")
+        Behavior on opacity { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+    }
+
+    LoadingRow {
+    Layout.fillWidth: true
+        visible: widget.showNewActivityHere && widget.showNewActivityForm && widget.loadingProjects
+                 && widget.projectPickerModel.length === 0
+    }
+
+    ProjectActivityPickers {
+        id: switchPickers
+        Component.onCompleted: widget.switchPickersRef = switchPickers
+        Component.onDestruction: {
+            if (widget.switchPickersRef === switchPickers) {
+                widget.switchPickersRef = null
+            }
+        }
+    Layout.fillWidth: true
+        visible: widget.showNewActivityHere && widget.showNewActivityForm && !widget.loadingProjects
+        projectPickerModel: widget.projectPickerModel
+        activityPickerModel: widget.activityPickerModel
+        activitySectionTitles: widget.activitySectionTitles
+        pickerOpenBelow: widget.pickerOpenBelow
+        pickerViewport: pickerScroll
+        projectEnabled: widget.isConfigured && !widget.isBusy && widget.connectionState !== "error"
+        activityEnabled: widget.isConfigured && !widget.isBusy && widget.connectionState !== "error"
+                     && !!widget.selectedProjectId
+        projectVisible: !widget.loadingProjects
+        activityVisible: !widget.loadingProjects || widget.activityPickerModel.length > 0
+        showCreateActions: widget.providerCapabilities.createEntities
+        onAboutToOpenPicker: function(projectField, activityField) {
+            widget.updatePickerOpenDirection(projectField, activityField)
+        }
+        onProjectActivated: function(index) {
+            if (index < 0 || index >= switchPickers.projectPickerModel.length) {
+                widget.loadActivitiesForProject(0)
+                return
+            }
+            widget.loadActivitiesForProject(switchPickers.projectPickerModel[index].value.id)
+        }
+        onCreateProjectRequested: widget.openCreateEntity("project")
+        onCreateActivityRequested: widget.openCreateEntity("activity")
+    }
+
+    KanteTextField {
+        id: descriptionField
+        Component.onCompleted: widget.descriptionFieldRef = descriptionField
+        Component.onDestruction: {
+            if (widget.descriptionFieldRef === descriptionField) {
+                widget.descriptionFieldRef = null
+            }
+        }
+    Layout.fillWidth: true
+        visible: widget.showNewActivityHere && widget.showNewActivityForm
+        enabled: widget.isConfigured && !widget.isBusy && widget.connectionState !== "error"
+        placeholderText: i18n("Description (optional)")
+    }
+
+    RowLayout {
+    Layout.fillWidth: true
+        visible: widget.showNewActivityHere && widget.showNewActivityForm
+    spacing: Kirigami.Units.smallSpacing
+
+        KantePlasmaButton {
+            Layout.fillWidth: true
+            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+            enabled: widget.isConfigured && !widget.isBusy && !widget.isTracking && widget.connectionState !== "error"
+                     && switchPickers.projectCombo.currentIndex >= 0
+                     && switchPickers.activityCombo.currentIndex >= 0
+            text: i18n("Start")
+            icon.name: "media-playback-start"
+            onClicked: {
+                var project = switchPickers.projectCombo.currentItem.value
+                var activity = switchPickers.activityCombo.currentItem.value
+                widget.startTracking(project.id, activity.id, project.name, activity.name, descriptionField.text)
+            }
+        }
+
+        KantePlasmaButton {
+            Layout.fillWidth: true
+            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+            visible: widget.isTracking
+            enabled: widget.isConfigured && !widget.isBusy && widget.connectionState !== "error"
+                     && switchPickers.projectCombo.currentIndex >= 0
+                     && switchPickers.activityCombo.currentIndex >= 0
+            text: i18n("Switch")
+            icon.name: "media-skip-forward"
+            onClicked: {
+                var project = switchPickers.projectCombo.currentItem.value
+                var activity = switchPickers.activityCombo.currentItem.value
+                widget.switchToActivity(project.id, activity.id, project.name, activity.name, descriptionField.text)
+            }
+        }
+
+        KantePlasmaButton {
+            visible: widget.compactPopupLayout
+            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+            text: i18n("Cancel")
+            onClicked: widget.showNewActivityForm = false
+        }
+    }
+
     // —— Favorites ——
     KantePlasmaHeading {
     Layout.fillWidth: true
@@ -338,124 +447,4 @@ ColumnLayout {
         }
     }
 
-    // —— New / switch ——
-    KantePlasmaButton {
-    Layout.fillWidth: true
-        Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-        opacity: widget.showNewActivityHere && widget.isConfigured
-                 && widget.compactPopupLayout && !widget.showNewActivityForm ? 1 : 0
-        visible: opacity > 0
-        text: widget.isTracking ? i18n("Switch to another activity…") : i18n("Start something else…")
-        icon.name: "list-add"
-        onClicked: widget.showNewActivityForm = true
-        Behavior on opacity { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
-    }
-
-    KantePlasmaHeading {
-    Layout.fillWidth: true
-        level: 4
-        opacity: widget.showNewActivityHere && widget.isConfigured && widget.showNewActivityForm ? 1 : 0
-        visible: opacity > 0
-        text: widget.isTracking ? i18n("Switch activity") : i18n("New activity")
-        Behavior on opacity { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
-    }
-
-    LoadingRow {
-    Layout.fillWidth: true
-        visible: widget.showNewActivityHere && widget.showNewActivityForm && widget.loadingProjects
-                 && widget.projectPickerModel.length === 0
-    }
-
-    ProjectActivityPickers {
-        id: switchPickers
-        Component.onCompleted: widget.switchPickersRef = switchPickers
-        Component.onDestruction: {
-            if (widget.switchPickersRef === switchPickers) {
-                widget.switchPickersRef = null
-            }
-        }
-    Layout.fillWidth: true
-        visible: widget.showNewActivityHere && widget.showNewActivityForm && !widget.loadingProjects
-        projectPickerModel: widget.projectPickerModel
-        activityPickerModel: widget.activityPickerModel
-        activitySectionTitles: widget.activitySectionTitles
-        pickerOpenBelow: widget.pickerOpenBelow
-        pickerViewport: pickerScroll
-        projectEnabled: widget.isConfigured && !widget.isBusy && widget.connectionState !== "error"
-        activityEnabled: widget.isConfigured && !widget.isBusy && widget.connectionState !== "error"
-                     && !!widget.selectedProjectId
-        projectVisible: !widget.loadingProjects
-        activityVisible: !widget.loadingProjects || widget.activityPickerModel.length > 0
-        showCreateActions: widget.providerCapabilities.createEntities
-        onAboutToOpenPicker: function(projectField, activityField) {
-            widget.updatePickerOpenDirection(projectField, activityField)
-        }
-        onProjectActivated: function(index) {
-            if (index < 0 || index >= switchPickers.projectPickerModel.length) {
-                widget.loadActivitiesForProject(0)
-                return
-            }
-            widget.loadActivitiesForProject(switchPickers.projectPickerModel[index].value.id)
-        }
-        onCreateProjectRequested: widget.openCreateEntity("project")
-        onCreateActivityRequested: widget.openCreateEntity("activity")
-    }
-
-    KanteTextField {
-        id: descriptionField
-        Component.onCompleted: widget.descriptionFieldRef = descriptionField
-        Component.onDestruction: {
-            if (widget.descriptionFieldRef === descriptionField) {
-                widget.descriptionFieldRef = null
-            }
-        }
-    Layout.fillWidth: true
-        visible: widget.showNewActivityHere && widget.showNewActivityForm
-        enabled: widget.isConfigured && !widget.isBusy && widget.connectionState !== "error"
-        placeholderText: i18n("Description (optional)")
-    }
-
-    RowLayout {
-    Layout.fillWidth: true
-        visible: widget.showNewActivityHere && widget.showNewActivityForm
-    spacing: Kirigami.Units.smallSpacing
-
-        KantePlasmaButton {
-            Layout.fillWidth: true
-            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-            enabled: widget.isConfigured && !widget.isBusy && !widget.isTracking && widget.connectionState !== "error"
-                     && switchPickers.projectCombo.currentIndex >= 0
-                     && switchPickers.activityCombo.currentIndex >= 0
-            text: i18n("Start")
-            icon.name: "media-playback-start"
-            onClicked: {
-                var project = switchPickers.projectCombo.currentItem.value
-                var activity = switchPickers.activityCombo.currentItem.value
-                widget.startTracking(project.id, activity.id, project.name, activity.name, descriptionField.text)
-            }
-        }
-
-        KantePlasmaButton {
-            Layout.fillWidth: true
-            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-            visible: widget.isTracking
-            enabled: widget.isConfigured && !widget.isBusy && widget.connectionState !== "error"
-                     && switchPickers.projectCombo.currentIndex >= 0
-                     && switchPickers.activityCombo.currentIndex >= 0
-            text: i18n("Switch")
-            icon.name: "media-skip-forward"
-            onClicked: {
-                var project = switchPickers.projectCombo.currentItem.value
-                var activity = switchPickers.activityCombo.currentItem.value
-                widget.switchToActivity(project.id, activity.id, project.name, activity.name, descriptionField.text)
-            }
-        }
-
-        KantePlasmaButton {
-            visible: widget.compactPopupLayout
-            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-            text: i18n("Cancel")
-            onClicked: widget.showNewActivityForm = false
-        }
-    }
 }

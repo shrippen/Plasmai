@@ -1,4 +1,5 @@
 {
+"\"%1\" was not found": "«%1» не знайдено",
 "%1 (from your profile)": "%1 (з вашого профілю)",
 "%1 day ago": "%1 день тому",
 "%1 days ago": "%1 дні тому",
@@ -94,6 +95,7 @@
 "City, region, or address…": "Місто, регіон або адреса…",
 "Clear": "Очистити",
 "Clear token": "Очистити токен",
+"Click the map to open the route.": "Клацніть карту, щоб відкрити маршрут.",
 "Clockify cloud API is prefilled. Change only for a regional endpoint (e.g. euc1).": "Хмарний API Clockify заповнено. Змінюйте лише для регіональної кінцевої точки (напр. euc1).",
 "Comment:": "Коментар:",
 "Commute": "Дорога на роботу",
@@ -243,6 +245,7 @@
 "Log trips and show detected trips": "Записувати поїздки та показувати виявлені",
 "Log trips and show detected trips (Anfahrten plugin)": "Записувати поїздки та показувати виявлені (плагін Anfahrten)",
 "Longitude:": "Довгота:",
+"Looking up the places…": "Пошук місць…",
 "Made-up data, kept only while the app runs. Switch profiles in Connection to leave it.": "Вигадані дані, лише поки працює застосунок. Щоб вийти, змініть профіль у розділі «З’єднання».",
 "Manual time entry": "Ручний запис часу",
 "Means of travel:": "Транспорт:",
@@ -409,6 +412,8 @@
 "Stop tracking %1 · %2?": "Зупинити відстеження %1 · %2?",
 "Stop tracking?": "Зупинити відстеження?",
 "Stopped": "Зупинено",
+"Straight line %1 km": "По прямій %1 км",
+"Straight line %1 km · entered %2 km one way": "По прямій %1 км · введено %2 км в один бік",
 "Style:": "Стиль:",
 "Sunday": "Неділя",
 "Surcharge day": "День надбавки",
@@ -421,6 +426,7 @@
 "System (Plasma theme)": "Системний (тема Plasma)",
 "Tags": "Теги",
 "Tap a project to see its activities, then pin the ones you use often.": "Торкніться проєкту, щоб побачити його активності, і закріпіть ті, якими часто користуєтеся.",
+"Tap the map to open the route.": "Торкніться карти, щоб відкрити маршрут.",
 "Test": "Перевірити",
 "Test connection": "Перевірити з'єднання",
 "Testing connection…": "Перевірка з'єднання…",
@@ -506,6 +512,7 @@
 "You lack the Drehzettel permission on this Kimai server. Only begin and end are saved.": "У вас немає дозволу Drehzettel на цьому сервері Kimai. Зберігаються лише початок і кінець.",
 "You were idle": "Ви були в простої",
 "You were idle for %1. Keep this time, discard it, or discard and continue?": "Ви були бездіяльні %1. Залишити цей час, відкинути його чи відкинути й продовжити?",
+"far longer than the straight line: check the places.": "набагато довше, ніж по прямій: перевірте місця.",
 "https://api.solidtime.io or https://time.example.com": "https://api.solidtime.io або https://time.example.com",
 "https://kimai.example.com or https://www.kimai.cloud": "https://kimai.example.com або https://www.kimai.cloud",
 "https://your-server.com": "https://ваш-сервер.com",
@@ -515,5 +522,7 @@
 "none": "немає",
 "round trip": "туди й назад",
 "running": "триває",
-"yesterday": "учора"
+"shorter than the straight line: check the places or the km.": "коротше, ніж по прямій: перевірте місця або км.",
+"yesterday": "учора",
+"© OpenStreetMap contributors": "© учасники OpenStreetMap"
 }

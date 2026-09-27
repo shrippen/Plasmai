@@ -1,4 +1,5 @@
 {
+"\"%1\" was not found": "‘%1’ niet gevonden",
 "%1 (from your profile)": "%1 (uit je profiel)",
 "%1 day ago": "%1 dag geleden",
 "%1 days ago": "%1 dagen geleden",
@@ -88,6 +89,7 @@
 "City, region, or address…": "Stad, regio of adres…",
 "Clear": "Wissen",
 "Clear token": "Token wissen",
+"Click the map to open the route.": "Klik op de kaart om de route te openen.",
 "Clockify cloud API is prefilled. Change only for a regional endpoint (e.g. euc1).": "Clockify-cloud-API is vooraf ingevuld. Wijzig alleen voor een regionaal endpoint (bijv. euc1).",
 "Comment:": "Opmerking:",
 "Commute": "Woon-werkverkeer",
@@ -235,6 +237,7 @@
 "Log trips and show detected trips": "Ritten vastleggen en gedetecteerde ritten tonen",
 "Log trips and show detected trips (Anfahrten plugin)": "Ritten vastleggen en gedetecteerde ritten tonen (Anfahrten-plugin)",
 "Longitude:": "Lengtegraad:",
+"Looking up the places…": "Plaatsen opzoeken…",
 "Made-up data, kept only while the app runs. Switch profiles in Connection to leave it.": "Verzonnen gegevens, alleen zolang de app draait. Wissel van profiel bij Verbinding om te stoppen.",
 "Manual time entry": "Handmatige tijdregistratie",
 "Means of travel:": "Vervoermiddel:",
@@ -396,6 +399,8 @@
 "Stop tracking %1 · %2?": "Registratie stoppen voor %1 · %2?",
 "Stop tracking?": "Registratie stoppen?",
 "Stopped": "Gestopt",
+"Straight line %1 km": "Hemelsbreed %1 km",
+"Straight line %1 km · entered %2 km one way": "Hemelsbreed %1 km · ingevoerd %2 km enkele reis",
 "Style:": "Stijl:",
 "Sunday": "Zondag",
 "Surcharge day": "Toeslagdag",
@@ -407,6 +412,7 @@
 "Switched activity": "Activiteit gewisseld",
 "System (Plasma theme)": "Systeem (Plasma-thema)",
 "Tap a project to see its activities, then pin the ones you use often.": "Tik op een project om de activiteiten te zien en maak de vaak gebruikte favoriet.",
+"Tap the map to open the route.": "Tik op de kaart om de route te openen.",
 "Test": "Testen",
 "Test connection": "Verbinding testen",
 "Testing connection…": "Verbinding testen…",
@@ -489,6 +495,7 @@
 "You lack the Drehzettel permission on this Kimai server. Only begin and end are saved.": "Je hebt geen Drehzettel-recht op deze Kimai-server. Alleen begin en einde worden opgeslagen.",
 "You were idle": "Je was inactief",
 "You were idle for %1. Keep this time, discard it, or discard and continue?": "Je was %1 inactief. Deze tijd behouden, verwerpen of verwerpen en doorgaan?",
+"far longer than the straight line: check the places.": "veel langer dan hemelsbreed: controleer de plaatsen.",
 "https://api.solidtime.io or https://time.example.com": "https://api.solidtime.io of https://time.example.com",
 "https://kimai.example.com or https://www.kimai.cloud": "https://kimai.example.com of https://www.kimai.cloud",
 "https://your-server.com": "https://uw-server.nl",
@@ -497,5 +504,7 @@
 "none": "geen",
 "round trip": "heen en terug",
 "running": "loopt",
-"yesterday": "gisteren"
+"shorter than the straight line: check the places or the km.": "korter dan hemelsbreed: controleer de plaatsen of de km.",
+"yesterday": "gisteren",
+"© OpenStreetMap contributors": "© OpenStreetMap-bijdragers"
 }

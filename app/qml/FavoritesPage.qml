@@ -30,14 +30,16 @@ Kirigami.Page {
     QQC2.ScrollView {
         id: pageScroll
         anchors.fill: parent
+        // The scroll bar sits at the screen edge; the content keeps the page margin.
+        anchors.rightMargin: -page.rightPadding
         contentWidth: availableWidth
         QQC2.ScrollBar.horizontal.policy: QQC2.ScrollBar.AlwaysOff
 
         ColumnLayout {
             id: col
             // Centered, capped width once the page is wider than this list needs.
-            width: Math.min(pageScroll.availableWidth, Kirigami.Units.gridUnit * 40)
-            x: Math.max(0, (pageScroll.availableWidth - width) / 2)
+            width: Math.min((pageScroll.availableWidth - page.rightPadding), Kirigami.Units.gridUnit * 40)
+            x: Math.max(0, ((pageScroll.availableWidth - page.rightPadding) - width) / 2)
             spacing: Kirigami.Units.smallSpacing
             QQC2.Label {
                 Layout.fillWidth: true; wrapMode: Text.WordWrap

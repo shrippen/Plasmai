@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Quick Svg Core QuickControls2)
+find_package(Qt6 REQUIRED COMPONENTS Quick Svg Core QuickControls2 Network)
 
 # QtDBus: idle detection (org.freedesktop.ScreenSaver) and native notifications
 # (org.freedesktop.Notifications) on a real Linux/Plasma session — desktop
@@ -79,6 +79,7 @@ endif()
 
 target_link_libraries(plasmai-app PRIVATE
     Qt6::Quick
+    Qt6::Network
     Qt6::Svg
     Qt6::Core
     Qt6::QuickControls2

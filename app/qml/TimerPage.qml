@@ -213,6 +213,8 @@ Kirigami.Page {
         QQC2.ScrollView {
             id: narrowScroll
             anchors.fill: parent
+            // The scroll bar sits at the screen edge; the content keeps the page margin.
+            anchors.rightMargin: -page.rightPadding
             visible: !page.isWideLayout
             Material.theme: Material.Dark
             contentWidth: availableWidth
@@ -220,7 +222,7 @@ Kirigami.Page {
 
             ColumnLayout {
                 id: narrowCol
-                width: narrowScroll.availableWidth
+                width: narrowScroll.availableWidth - page.rightPadding
                 spacing: Kirigami.Units.smallSpacing
             }
         }
@@ -228,6 +230,7 @@ Kirigami.Page {
         RowLayout {
             id: wideRow
             anchors.fill: parent
+            anchors.rightMargin: -page.rightPadding
             visible: page.isWideLayout
             spacing: Kirigami.Units.largeSpacing
 
@@ -259,7 +262,7 @@ Kirigami.Page {
 
                 ColumnLayout {
                     id: wideRightCol
-                    width: wideRightScroll.availableWidth
+                    width: wideRightScroll.availableWidth - page.rightPadding
                     spacing: Kirigami.Units.smallSpacing
                 }
             }
@@ -330,13 +333,12 @@ Kirigami.Page {
                                               : Qt.font({ family: KanteStyle.monoFamily, pointSize: KanteStyle.defaultFont.pointSize + 12, bold: true })
                             color: !KanteStyle.active ? KanteStyle.positiveTextColor
                                    : (root.isTracking ? KanteStyle.accentTextColor : KanteStyle.tint(KanteStyle.textColor, 0.3))
-                            // Kante: the big mono clock shrinks to the width left next to the buttons (phones).
-                            Layout.minimumWidth: KanteStyle.active ? 0 : implicitWidth
-                            Layout.fillWidth: KanteStyle.active
-                            fontSizeMode: KanteStyle.active ? Text.HorizontalFit : Text.FixedSize
+                            // The big mono clock shrinks to the width left next to the buttons (phones).
+                            Layout.minimumWidth: 0
+                            Layout.fillWidth: true
+                            fontSizeMode: Text.HorizontalFit
                             minimumPointSize: KanteStyle.defaultFont.pointSize * 1.4
                         }
-                        Item { Layout.fillWidth: !KanteStyle.active }
                         KanteToolButton {
                             visible: !KanteStyle.active && root.isTracking && root.canEditTrips && !!root.activeTimesheet
                             icon.name: "mark-location"
@@ -354,12 +356,25 @@ Kirigami.Page {
                             QQC2.ToolTip.text: text; QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile; QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
                         }
                         KanteButton {
+                            visible: root.isTracking && root.showNewActivity && !page.showNewActivityForm
+                            display: QQC2.AbstractButton.IconOnly
+                            icon.name: "media-playback-start"
+                            text: i18n("Switch to another activity…")
+                            enabled: !root.isBusy && root.connectionState !== "error"
+                            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+                            onClicked: page.openNewActivityForm()
+                            QQC2.ToolTip.text: text; QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile; QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
+                        }
+                        KanteButton {
                             Material.theme: Material.Dark
                             Material.background: Qt.lighter(KanteStyle.backgroundColor, 1.7)
                             Material.foreground: KanteStyle.textColor
                             emphasis: KanteButton.Emphasis.Destructive
                             visible: root.isTracking
                             text: i18n("Stop")
+                            // Phones: the System card also holds trip, edit and switch here; the red stop icon says enough.
+                            display: !KanteStyle.active && parent.width < Kirigami.Units.gridUnit * 22
+                                     ? QQC2.AbstractButton.IconOnly : QQC2.AbstractButton.TextBesideIcon
                             icon.name: "media-playback-stop"
                             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                             onClicked: root.confirmBeforeStop ? confirmDialog.open() : root.stopTracking()
@@ -537,20 +552,89 @@ Kirigami.Page {
                         color: KanteStyle.disabledTextColor; wrapMode: Text.WordWrap
                     }
 
-                    // ══════ CONTINUE BUTTON ══════
-                    KanteButton {
-                        emphasis: KanteButton.Emphasis.Primary
-                    Material.theme: Material.Dark
-                    Material.background: Qt.lighter(KanteStyle.backgroundColor, 1.7)
-                    Material.foreground: KanteStyle.textColor
+                    // ══════ CONTINUE, and the generic start right next to it (never scrolled to) ══════
+                    RowLayout {
                         Layout.fillWidth: true
-                        visible: !root.isTracking && root.isConfigured && root.showContinue && (root.lastRecent || root.hasLastUsed)
-                        enabled: !root.isBusy && root.connectionState !== "error"
-                        icon.name: "media-playback-start"
-                        text: root.lastRecent
-                              ? i18n("Continue · %1 · %2", KimaiApi.displayProjectName(root.lastRecent, root.projects), KimaiApi.displayActivityName(root.lastRecent, root.allActivities, root.activitiesByProject))
-                              : i18n("Start · %1 · %2", root.lastUsedProjectName, root.lastUsedActivityName)
-                        onClicked: root.lastRecent ? root.continueRecent(root.lastRecent) : root.startLastUsed()
+                        spacing: Kirigami.Units.smallSpacing
+                        id: continueRow
+                        // Conditions, not the children's visible: those read false while the row is hidden.
+                        readonly property bool continueShown: root.showContinue && (!!root.lastRecent || root.hasLastUsed)
+                        visible: !root.isTracking && root.isConfigured && !page.showNewActivityForm
+                                 && (continueShown || root.showNewActivity)
+                        KanteButton {
+                            id: continueButton
+                            emphasis: KanteButton.Emphasis.Primary
+                        Material.theme: Material.Dark
+                        Material.background: Qt.lighter(KanteStyle.backgroundColor, 1.7)
+                        Material.foreground: KanteStyle.textColor
+                            Layout.fillWidth: true
+                            visible: !root.isTracking && root.isConfigured && root.showContinue && (root.lastRecent || root.hasLastUsed)
+                            enabled: !root.isBusy && root.connectionState !== "error"
+                            icon.name: "media-playback-start"
+                            text: root.lastRecent
+                                  ? i18n("Continue · %1 · %2", KimaiApi.displayProjectName(root.lastRecent, root.projects), KimaiApi.displayActivityName(root.lastRecent, root.allActivities, root.activitiesByProject))
+                                  : i18n("Start · %1 · %2", root.lastUsedProjectName, root.lastUsedActivityName)
+                            onClicked: root.lastRecent ? root.continueRecent(root.lastRecent) : root.startLastUsed()
+                        }
+                        KanteButton {
+                            id: startOtherButton
+                            visible: root.showNewActivity
+                            // Icon only beside Continue, so Continue keeps room for what it continues.
+                            display: continueRow.continueShown ? QQC2.AbstractButton.IconOnly : QQC2.AbstractButton.TextBesideIcon
+                            Layout.fillWidth: !continueRow.continueShown
+                            Layout.preferredHeight: continueRow.continueShown ? continueButton.height : implicitHeight
+                            Layout.preferredWidth: continueRow.continueShown ? continueButton.height : implicitWidth
+                            enabled: !root.isBusy && root.connectionState !== "error"
+                            icon.name: "media-playback-start"
+                            text: i18n("Start something else…")
+                            onClicked: page.openNewActivityForm()
+                            QQC2.ToolTip.text: text; QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile; QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
+                        }
+                    }
+
+                    // ══════ START SOMETHING ELSE: the form opens in the card ══════
+                    ColumnLayout {
+                        Layout.fillWidth: true; spacing: Kirigami.Units.smallSpacing
+                        visible: root.showNewActivity && page.showNewActivityForm
+
+                        ProjectActivityPickers {
+                            id: newActivityPickers
+                            Layout.fillWidth: true
+                            projectPickerModel: root.projectPickerModel
+                            activityPickerModel: page.newActivityPickerModel
+                            showCreateActions: root.providerCapabilities.createEntities
+                            onProjectActivated: function(index) {
+                                var projectId = index >= 0 ? root.projectPickerModel[index].value.id : null
+                                root.loadActivitiesForProject(projectId, function(model) { page.newActivityPickerModel = model })
+                            }
+                            onCreateProjectRequested: { createEntityDialog.customers = root.customers; createEntityDialog.resetForMode("project"); createEntityDialog.open() }
+                            onCreateActivityRequested: {
+                                createEntityDialog.selectedProjectId = newActivityPickers.projectCombo.currentItem ? newActivityPickers.projectCombo.currentItem.value.id : null
+                                createEntityDialog.selectedProjectName = newActivityPickers.projectCombo.currentItem ? newActivityPickers.projectCombo.currentItem.value.name : ""
+                                createEntityDialog.resetForMode("activity"); createEntityDialog.open()
+                            }
+                        }
+                        KanteTextField {
+                            Layout.fillWidth: true
+                            placeholderText: i18n("Description (optional)")
+                            text: page.newActivityDescription
+                            onEditingFinished: page.newActivityDescription = text
+                        }
+                        RowLayout { Layout.fillWidth: true; spacing: Kirigami.Units.smallSpacing
+                            KanteButton {
+                                Layout.fillWidth: true
+                                text: root.isTracking ? i18n("Switch") : i18n("Start")
+                                icon.name: root.isTracking ? "media-skip-forward" : "media-playback-start"
+                                enabled: !root.isBusy && newActivityPickers.projectCombo.currentIndex >= 0 && newActivityPickers.activityCombo.currentIndex >= 0
+                                onClicked: {
+                                    var proj = newActivityPickers.projectCombo.currentItem.value
+                                    var act = newActivityPickers.activityCombo.currentItem.value
+                                    root.switchToActivity(proj.id, act.id, proj.name, act.name || "", page.newActivityDescription)
+                                    page.showNewActivityForm = false
+                                }
+                            }
+                            KanteButton { text: i18n("Cancel"); onClicked: page.showNewActivityForm = false }
+                        }
                     }
 
                 }
@@ -676,57 +760,6 @@ Kirigami.Page {
             }
         }
 
-        // ══════ NEW / SWITCH ACTIVITY ══════
-        KanteButton {
-            Layout.fillWidth: true; Layout.topMargin: Kirigami.Units.smallSpacing
-            visible: root.isConfigured && root.showNewActivity && !page.showNewActivityForm
-            text: root.isTracking ? i18n("Switch to another activity…") : i18n("Start something else…")
-            icon.name: "media-skip-forward"
-            onClicked: page.openNewActivityForm()
-        }
-        ColumnLayout {
-            Layout.fillWidth: true; spacing: Kirigami.Units.smallSpacing
-            visible: root.showNewActivity && page.showNewActivityForm
-
-            ProjectActivityPickers {
-                id: newActivityPickers
-                Layout.fillWidth: true
-                projectPickerModel: root.projectPickerModel
-                activityPickerModel: page.newActivityPickerModel
-                showCreateActions: root.providerCapabilities.createEntities
-                onProjectActivated: function(index) {
-                    var projectId = index >= 0 ? root.projectPickerModel[index].value.id : null
-                    root.loadActivitiesForProject(projectId, function(model) { page.newActivityPickerModel = model })
-                }
-                onCreateProjectRequested: { createEntityDialog.customers = root.customers; createEntityDialog.resetForMode("project"); createEntityDialog.open() }
-                onCreateActivityRequested: {
-                    createEntityDialog.selectedProjectId = newActivityPickers.projectCombo.currentItem ? newActivityPickers.projectCombo.currentItem.value.id : null
-                    createEntityDialog.selectedProjectName = newActivityPickers.projectCombo.currentItem ? newActivityPickers.projectCombo.currentItem.value.name : ""
-                    createEntityDialog.resetForMode("activity"); createEntityDialog.open()
-                }
-            }
-            KanteTextField {
-                Layout.fillWidth: true
-                placeholderText: i18n("Description (optional)")
-                text: page.newActivityDescription
-                onEditingFinished: page.newActivityDescription = text
-            }
-            RowLayout { Layout.fillWidth: true; spacing: Kirigami.Units.smallSpacing
-                KanteButton {
-                    Layout.fillWidth: true
-                    text: root.isTracking ? i18n("Switch") : i18n("Start")
-                    icon.name: root.isTracking ? "media-skip-forward" : "media-playback-start"
-                    enabled: !root.isBusy && newActivityPickers.projectCombo.currentIndex >= 0 && newActivityPickers.activityCombo.currentIndex >= 0
-                    onClicked: {
-                        var proj = newActivityPickers.projectCombo.currentItem.value
-                        var act = newActivityPickers.activityCombo.currentItem.value
-                        root.switchToActivity(proj.id, act.id, proj.name, act.name || "", page.newActivityDescription)
-                        page.showNewActivityForm = false
-                    }
-                }
-                KanteButton { text: i18n("Cancel"); onClicked: page.showNewActivityForm = false }
-            }
-        }
 
         // ══════ BOTTOM SPACER ══════
         Item { Layout.fillHeight: true; Layout.minimumHeight: Kirigami.Units.largeSpacing + (Qt.inputMethod.visible ? Kirigami.Units.gridUnit * 14 : 0) }

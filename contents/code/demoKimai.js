@@ -114,7 +114,7 @@ function addTrip(entry, destination, km) {
     state.trips.push({ id: state.nextTripId++, date: dateKey(new Date(entry.begin)),
                        departure: stamp(entry.begin), arrival: stamp(entry.end),
                        purpose: "business", vehicle: "own_car", vehicleId: 1, licensePlate: "PL-AI 42",
-                       start: "Home", destination: destination, distanceKm: km, roundTrip: true,
+                       start: "Eimsbüttel, Hamburg", destination: destination, distanceKm: km, roundTrip: true,
                        totalKm: km * 2, overnight: false, project: entry.project, timesheet: entry.id,
                        comment: "", source: "manual" })
 }
@@ -132,13 +132,13 @@ function fillDay(day, today) {
     if (day === state.engagementFrom) {
         // First day of the engagement: travel to the location.
         var drive = addEntry(FILM_PROJECT, TRAVEL, at(day, 10, 0), at(day, 13, 25), "To the location")
-        addTrip(drive, "Harbour studios", 168)
+        addTrip(drive, "Westerland, Sylt", 205)
         state.filmDays[dateKey(new Date(day))] = { dayType: "travel" }
         return
     }
     if (filming) {
         var commute = addEntry(FILM_PROJECT, TRAVEL, at(day, 6, 50 + v % 10), at(day, 7, 25 + v % 10))
-        addTrip(commute, "Harbour studios", 23.5)
+        addTrip(commute, "Tonndorf, Hamburg", 14.5)
         addEntry(FILM_PROJECT, SHOOTING, at(day, 7, 30 + v % 10), at(day, 18 + vary(day, 3), 15 + v))
         state.filmDays[dateKey(new Date(day))] = { catering: true }
         return
@@ -179,7 +179,7 @@ function reset(nowDate) {
     var earliest = at(today, 0, 5)
     var weekday = new Date(today).getDay()
     if (weekday >= 1 && weekday <= 4 && at(today, 7, 40) < now) {
-        addTrip(addEntry(FILM_PROJECT, TRAVEL, at(today, 6, 55), at(today, 7, 30)), "Harbour studios", 23.5)
+        addTrip(addEntry(FILM_PROJECT, TRAVEL, at(today, 6, 55), at(today, 7, 30)), "Tonndorf, Hamburg", 14.5)
         addEntry(FILM_PROJECT, SHOOTING, at(today, 7, 35), null)
         state.filmDays[dateKey(new Date(today))] = { catering: true }
     } else {
@@ -441,7 +441,7 @@ function mileage(method, rest, q, body) {
                     features: ["tripTimesheet", "dateRange", "acceptFields", "commuteCheck"],
                     permissions: { view: true, editOwn: true, deleteOwn: true, editLocked: false,
                                    viewTeam: false, viewOther: false, editOther: false },
-                    profile: { commuteKm: 23.5, defaultVehicle: "own_car", defaultVehicleId: 1, dawarichConfigured: false },
+                    profile: { commuteKm: 14.5, defaultVehicle: "own_car", defaultVehicleId: 1, dawarichConfigured: false },
                     lockedMonths: [] })
     }
     if (rest === "/meta") {
