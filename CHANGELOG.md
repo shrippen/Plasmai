@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 2.0.0
+
+Released 2026-09-27. Plasmai 2.0 is also an app for Android and Plasma Mobile, with the film day and trips of the Drehzettel and Anfahrten Kimai plugins, an optional Kante style and a demo mode. Kimai is the reference backend; Clockify, Toggl Track and SolidTime are experimental.
 
 ### New: optional style "Kante" (Desktop and app)
 - Display settings (app: Settings) → Style: **Kante** is Plasmai's own look from the shrippen design: warm Gruvbox colors (light variant with a light theme), square controls, cards with a cut corner, Rajdhani titles and monospace figures. It deliberately does not follow Breeze; the default stays the Plasma theme and looks as before
@@ -77,8 +79,6 @@
 - App on a phone: Begin and End side by side with Break below, the day numbers stacked, so times and values are no longer cut off; the note's hint sits inside the field again
 - Several entries of the same project on one day: the view says so and can merge them into one entry (the others are deleted after saving); before, only one was updated and the work time was wrong
 - If the film day extras cannot be saved, the view says so; save again
-
-## 2.0.0
 
 ### Android / Plasma Mobile
 - New: Plasmai is now also a standalone Kirigami app for Android and Plasma Mobile (KF6), built from `app/`, sharing the Kimai/Clockify/Toggl Track/SolidTime backend and QML components with the Plasmoid

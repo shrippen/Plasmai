@@ -36,19 +36,19 @@ gegen das Plasmoid. Technische Details und Begründungen zu jedem Punkt hier ste
       bleibt für später (Qt und OpenSSL müssten dort aus dem Quellcode gebaut werden, `RELEASING.md` §4.6).
 
 ## 1. Android-Keystore anlegen (ich habe das nicht gemacht — Passwort muss von dir kommen)
-- [ ] `keytool -genkeypair ...` (genauer Befehl in `RELEASING.md` §4.3), Passwort in einen
+- [x] `keytool -genkeypair ...` (genauer Befehl in `RELEASING.md` §4.3), Passwort in einen
       Passwortmanager, `.jks`-Datei sicher und getrennt vom Repo aufbewahren.
-- [ ] **Wichtig:** Dieser Keystore signiert alle künftigen Updates. Verloren = Play-Store-Listing
+- [x] **Wichtig:** Dieser Keystore signiert alle künftigen Updates. Verloren = Play-Store-Listing
       kann nie wieder aktualisiert werden (bei GitHub/F-Droid nur ärgerlich, nicht fatal).
-- [ ] Als GitHub-Secrets hinterlegen, falls CI später signieren soll (Namen in `RELEASING.md`).
+- [x] Als GitHub-Secrets hinterlegen (gesetzt 2026-09-27; Testlauf signiert, SHA-256 `53f20859…2631a`), falls CI später signieren soll (Namen in `RELEASING.md`).
 
 ## 2. CI verifizieren
-- [ ] Den überarbeiteten Workflow einmal wirklich auf GitHub laufen lassen (push auf `main`
+- [x] Den überarbeiteten Workflow einmal wirklich auf GitHub laufen lassen (grün seit 2026-09-27, nur auf GitHub; `release.yml` baut und signiert beim Tag) (push auf `main`
       oder `workflow_dispatch`) — bisher nur lokal (Build-Server dieser Maschine) validiert,
       nicht auf einem echten GitHub-Actions-Runner.
 
 ## 3. Android-Release signieren und hochladen
-- [ ] `PLASMAI_KEYSTORE_*`-Umgebungsvariablen setzen, `./scripts/build-android.sh release`.
+- [x] Signieren übernimmt `.github/workflows/release.yml` beim Tag (Schlüssel aus den Secrets).
 - [ ] Signierte APK prüfen (`adb install -r`, kurzer Funktionstest wie in `todo.md`).
 - [ ] An GitHub Release anhängen (siehe Punkt 6).
 
@@ -59,7 +59,7 @@ gegen das Plasmoid. Technische Details und Begründungen zu jedem Punkt hier ste
 
 ## 5. Flatpak verifizieren
 - [x] Manifest korrigiert: baut jetzt aus dem ganzen Repo (`subdir: app`; vorher fehlten `contents/code` und `translate`), App-Icon statt Chronometer-Symbol, neue App-ID. Metainfo mit Mobil-Angaben (Touch, Mindestbreite 360 px), validiert mit `appstreamcli`.
-- [ ] `flatpak-builder` + `org.kde.Platform//6.9` + `org.kde.Sdk//6.9` installieren.
+- [x] `flatpak-builder` + KDE-Runtime 6.11 installiert, Flatpak baut, `flatpak-builder-lint` ohne Fehler (außer Screenshot-Spiegelung, die Flathub selbst macht).
 - [ ] `packaging/flatpak/com.github.shrippen.plasmai.yml` bauen, App testen (genauer Ablauf in
       der Datei selbst und `RELEASING.md` §5.2). Manifest-Kommentare abarbeiten (Runtime-Version
       aktuell? QtKeychain schon in der Runtime? qtkeychain-Tag aktuell?).

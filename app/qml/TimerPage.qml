@@ -337,7 +337,7 @@ Kirigami.Page {
                             Layout.minimumWidth: 0
                             Layout.fillWidth: true
                             fontSizeMode: Text.HorizontalFit
-                            minimumPointSize: KanteStyle.defaultFont.pointSize * 1.4
+                            minimumPointSize: KanteStyle.defaultFont.pointSize
                         }
                         KanteToolButton {
                             visible: !KanteStyle.active && root.isTracking && root.canEditTrips && !!root.activeTimesheet

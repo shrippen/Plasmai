@@ -91,8 +91,10 @@
   <releases>
     <release version="2.0.0" date="2026-09-27">
       <description>
-        <p>First release of the app for Plasma Mobile, the Linux desktop and Android,
-        built from the same code as the Plasma widget.</p>
+        <p>First release of the app for Plasma Mobile, the Linux desktop and Android, built from
+        the same code as the Plasma widget: timer, recent entries by day, favorites, statistics,
+        film day and trips with a map for the Kimai plugins Drehzettel and Anfahrten, an optional
+        Kante style and a demo mode.</p>
       </description>
     </release>
   </releases>
