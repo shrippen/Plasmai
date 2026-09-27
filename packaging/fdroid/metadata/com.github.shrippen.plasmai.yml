@@ -118,6 +118,7 @@ Builds:
       - git clone --quiet --depth 1 --branch openssl-3.3.2
         https://github.com/openssl/openssl.git /tmp/openssl
       - cd /tmp/openssl
+      - export ANDROID_NDK_ROOT=$NDK_PATH
       - PATH=$NDK_PATH/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH ./Configure shared
         android-arm64 -D__ANDROID_API__=28
       - PATH=$NDK_PATH/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH make -j$(nproc)
