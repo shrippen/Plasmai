@@ -18,10 +18,20 @@
 # submission). Two real bugs this caught and fixed:
 #   - `fdroid rewritemeta` job: requires AutoUpdateMode/UpdateCheckMode/UpdateCheckData/
 #     CurrentVersion/CurrentVersionCode (schema-required, added) and unquoted version strings.
-#   - `fdroid build` job: hung on sdkmanager's interactive license prompt because `--licenses`
-#     was piped into the same command as installing the NDK; fdroiddata's own recipes
-#     (de.wger.flutter.yml, com.gnethomelinux.midistrum.yml) always run `yes | sdkmanager
-#     --licenses` as its own separate step first — fixed to match.
+#   - `fdroid build` job, twice: first, `--licenses` piped into the same command as installing
+#     the NDK — split into its own step first, matching fdroiddata's own recipes
+#     (de.wger.flutter.yml, com.gnethomelinux.midistrum.yml). Second, even split out, the step
+#     still failed the whole `sudo:` script *despite* sdkmanager printing "All SDK package
+#     licenses accepted": `yes` gets SIGPIPE once sdkmanager stops reading, and `set -o
+#     pipefail` (confirmed in the job's own `bash -e -u -o pipefail` invocation) turns that into
+#     the pipeline's exit status. Fixed with `|| true` on that one line — a genuine sdkmanager
+#     failure still surfaces at the next (non-yes-piped) sdkmanager call, which needs the
+#     licenses already accepted to succeed.
+#   - Canonicalize with fdroidserver's git `master` (what fdroiddata's CI installs), not an
+#     older PyPI release — they can reformat lines slightly differently; run
+#     `PYTHONPATH=<checkout>:<checkout>/examples python3 <checkout>/fdroid rewritemeta …`
+#     against a fresh clone of https://gitlab.com/fdroid/fdroidserver (branch master) instead of
+#     a pip-installed fdroidserver, then diff to confirm no further reflow.
 # Not yet verified: whether the actual Qt/KF6/Gradle build steps succeed (the pipeline was still
 # running past that point as of this note). Checked so far, still valid:
 #   - Every individual cmake/gradle command below is one scripts/build-android.sh and
@@ -79,7 +89,7 @@ Builds:
         https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -o
         /tmp/cmdtools.zip && unzip -qo /tmp/cmdtools.zip -d $$SDK$$/cmdline-tools/ && mv
         $$SDK$$/cmdline-tools/cmdline-tools $$SDK$$/cmdline-tools/latest)
-      - yes | $$SDK$$/cmdline-tools/latest/bin/sdkmanager --sdk_root=$$SDK$$ --licenses
+      - yes | $$SDK$$/cmdline-tools/latest/bin/sdkmanager --sdk_root=$$SDK$$ --licenses || true
       - $$SDK$$/cmdline-tools/latest/bin/sdkmanager --sdk_root=$$SDK$$ "ndk;28.2.13676358"
 
     # Unprivileged: the same three cmake passes as scripts/build-kf6-android.sh (ECM,
