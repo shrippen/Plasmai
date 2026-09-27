@@ -25,7 +25,7 @@ SDK=${ANDROID_HOME:-/opt/android-sdk}
 # The recipe's sudo:
 apt-get install -y --no-install-recommends cmake ninja-build python3-pip perl make g++ libegl1 \
     libgl1 libxkbcommon0 libfontconfig1 libdbus-1-3 > /dev/null
-pip install -q --break-system-packages aqtinstall
+pip install -q --break-system-packages aqtinstall==3.3.0
 aqt install-qt linux android 6.7.3 android_arm64_v8a -m qtshadertools -O /opt/plasmai-qt > /dev/null
 aqt install-qt linux desktop 6.7.3 linux_gcc_64 -m qtshadertools -O /opt/plasmai-qt > /dev/null
 yes | sdkmanager --licenses > /dev/null || true

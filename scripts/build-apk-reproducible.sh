@@ -31,7 +31,7 @@ QT_DIR="${PLASMAI_QT_DIR:-/opt/plasmai-qt/6.7.3}"
 QT_ANDROID="$QT_DIR/android_arm64_v8a"
 QT_HOST="$QT_DIR/gcc_64"
 KF6_VERSION="6.8.0"
-OPENSSL_VERSION="3.3.2"
+OPENSSL_VERSION="3.5.8"   # LTS (until 2030-04); bump for security releases
 WORK=/tmp/plasmai-build
 KF6="$WORK/kf6"
 

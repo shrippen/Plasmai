@@ -46,7 +46,7 @@ jobs:
             echo "version=test" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ steps.version.outputs.tag || github.ref }}
 
@@ -67,7 +67,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ needs.release.outputs.tag || github.ref }}
 
@@ -107,7 +107,7 @@ jobs:
           if [ -x scripts/build-apk-reproducible.sh ]; then
             # The same build as F-Droid's (Reproducible Builds): see the script's header.
             sudo apt-get install -y -q ninja-build > /dev/null
-            pip install --user --break-system-packages -q aqtinstall
+            pip install --user --break-system-packages -q aqtinstall==3.3.0
             sudo install -d -o "$USER" /opt/plasmai-qt
             ~/.local/bin/aqt install-qt linux android 6.7.3 android_arm64_v8a -m qtshadertools -O /opt/plasmai-qt > /dev/null
             ~/.local/bin/aqt install-qt linux desktop 6.7.3 linux_gcc_64 -m qtshadertools -O /opt/plasmai-qt > /dev/null
@@ -136,7 +136,7 @@ jobs:
     runs-on: ubuntu-22.04
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ needs.release.outputs.tag || github.ref }}
 
@@ -172,7 +172,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ needs.release.outputs.tag || github.ref }}
 
@@ -207,7 +207,7 @@ jobs:
     needs: release
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ needs.release.outputs.tag || github.ref }}
 

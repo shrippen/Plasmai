@@ -15,7 +15,7 @@ VERSION="$(sed -n 's/.*"Version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$R
 
 QT_VER="6.7.3"
 KF6_VERSION="6.8.0"
-QTKEYCHAIN_TAG="0.15.0"
+QTKEYCHAIN_TAG="0.17.0"
 QT="$HOME/Qt/$QT_VER/gcc_64"
 PREFIX="${KF6_LINUX:-$HOME/kf6-linux}"
 ARCH="$(uname -m)"
