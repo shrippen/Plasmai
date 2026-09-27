@@ -21,7 +21,8 @@ runs:
     - name: Install Android SDK packages
       shell: bash
       run: |
-        yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null
+        # Composite steps run with pipefail: yes ends with SIGPIPE once all licences are accepted.
+        (yes || true) | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null
         "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" \
           "ndk;28.2.13676358" "platforms;android-34" "build-tools;34.0.0" > /dev/null
         # Qt 6.7's androiddeployqt builds against the newest platform and has no CMake
