@@ -1,4 +1,0 @@
-# F-Droid srclib: Kirigami, the only KF6 module Plasmai links against directly, cross-compiled
-# for android_arm64_v8a in the recipe's build: step (see ../metadata/com.github.shrippen.plasmai.yml).
-Repo: https://invent.kde.org/frameworks/kirigami.git
-RepoType: git

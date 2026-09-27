@@ -138,26 +138,32 @@ submitting, since policies change. Submitting means a PR to
 [F-Droid/fdroiddata](https://gitlab.com/fdroid/fdroiddata) with a recipe, not an artifact
 produced here.
 
-A draft recipe is prepared under `packaging/fdroid/` (mirrors how `packaging/flatpak/` holds the
-Flathub draft): `metadata/com.github.shrippen.plasmai.yml` plus three `srclibs/*.yml`
-(ExtraCMakeModules, KCoreAddons, Kirigami — the same three `scripts/build-kf6-android.sh`
-cross-compiles) — its `Builds[].srclibs`/`build:` steps pin them ahead of the sandboxed build
-instead of that script's live `git clone`. `fdroid readmeta`/`fdroid lint` (`fdroidserver` PyPI
-package) pass against it. **Not build-tested**: there is no F-Droid buildserver VM here (needs
-their Vagrant/QEMU setup) to run `fdroid build --local`; the recipe's header comment lists what
-to recheck first, the biggest one being whether F-Droid's Gradle offline cache already has what
-androiddeployqt's generated Gradle project needs (Android Gradle Plugin, AndroidX, Kotlin
-stdlib) or whether `sudo:` needs to pre-seed it.
+A draft recipe is prepared under `packaging/fdroid/metadata/com.github.shrippen.plasmai.yml`
+(mirrors how `packaging/flatpak/` holds the Flathub draft). It's a close translation of
+`scripts/build-kf6-android.sh` + `scripts/build-android.sh` into F-Droid's `Builds[]` format —
+`sudo:` installs Qt6 and the NDK (root, network available), `build:` cross-compiles ECM →
+KCoreAddons → Kirigami → the app itself (unprivileged, but **also** with network — checking
+real recipes already in fdroiddata (`org.kde.ktrip.yml`, `de.asmw.sudokunst.yml`,
+`de.akaflieg_freiburg.enroute.yml`) showed the build phase itself does live `git clone`/`wget`,
+which corrected an earlier wrong assumption here that it was offline; `srclibs:` turned out to
+be unnecessary for this recipe). `fdroid readmeta`/`fdroid lint` (`fdroidserver` PyPI package,
+installed locally) pass against a real clone of fdroiddata. **Not build-tested**: there is no
+F-Droid buildserver VM here (needs their Vagrant/QEMU setup) to run `fdroid build --local`; the
+recipe's header comment lists what to recheck first, the biggest one being whether the
+androiddeployqt-generated Gradle project's dependencies (Android Gradle Plugin, AndroidX,
+Kotlin stdlib) resolve on their builder without extra seeding.
 
-To submit:
+Submission is prepared as far as it can be without opening the PR yourself:
 
-1. Fork `F-Droid/fdroiddata`, copy `packaging/fdroid/metadata/com.github.shrippen.plasmai.yml`
-   and `packaging/fdroid/srclibs/*.yml` into the fork's `metadata/` and `srclibs/`.
-2. Update `Builds[0].commit`/`versionName`/`versionCode` for whichever tag is actually submitted
-   (the draft targets v2.0.0).
-3. Open the PR yourself, with an AI-disclosure note (same reasoning as Flathub, 5.2) — expect
-   review rounds; F-Droid maintainers test the build themselves before merging, so treat the
-   draft as a starting point, not a finished submission.
+1. A fork `shrippen/fdroiddata` exists (`glab repo fork fdroid/fdroiddata`), cloned to
+   `/home/arian/Hacking/eigene/fdroiddata`.
+2. Branch `new/com.github.shrippen.plasmai` there has the recipe committed and pushed to the
+   fork (`git push origin new/com.github.shrippen.plasmai`).
+3. Before opening the MR: update `Builds[0].commit`/`versionName`/`versionCode` for whichever
+   tag is actually submitted (the draft targets v2.0.0).
+4. Open the MR yourself at the URL the push printed, with an AI-disclosure note (same reasoning
+   as Flathub, 5.2) — expect review rounds; F-Droid maintainers test the build themselves before
+   merging, so treat this as a starting point, not a finished submission.
 
 ## 5. Plasma Mobile / desktop Linux app
 

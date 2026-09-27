@@ -1,5 +1,0 @@
-# F-Droid srclib: extra-cmake-modules, a build-time-only dependency of KCoreAddons and
-# Kirigami (CMake modules, nothing to link against). Pinned per Builds[].srclibs in
-# ../metadata/com.github.shrippen.plasmai.yml, e.g. ExtraCMakeModules@v6.8.0.
-Repo: https://invent.kde.org/frameworks/extra-cmake-modules.git
-RepoType: git
