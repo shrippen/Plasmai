@@ -123,10 +123,12 @@ if(KF6_FOUND)
         target_link_libraries(plasmai-app PRIVATE KF6::CoreAddons)
         target_compile_definitions(plasmai-app PRIVATE HAVE_KF6_COREADDONS)
     endif()
-    # Ensure Kirigami QML plugins are found during Android deployment
-    if(ANDROID AND IS_DIRECTORY "$ENV{HOME}/kf6-android/lib/qml")
+    # Ensure Kirigami QML plugins are found during Android deployment: the qml dir of the KF6
+    # prefix Kirigami was found in (<prefix>/lib/cmake/KF6Kirigami -> <prefix>/lib/qml).
+    get_filename_component(KF6_QML_DIR "${KF6Kirigami_DIR}/../../qml" ABSOLUTE)
+    if(ANDROID AND IS_DIRECTORY "${KF6_QML_DIR}")
         set_target_properties(plasmai-app PROPERTIES
-            _qt_native_qml_import_paths "$ENV{HOME}/kf6-android/lib/qml")
+            _qt_native_qml_import_paths "${KF6_QML_DIR}")
     endif()
 else()
     message(STATUS "KF6 not found — building without Kirigami")

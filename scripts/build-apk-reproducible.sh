@@ -144,3 +144,15 @@ if [ -n "${PLASMAI_KEYSTORE_PATH:-}" ]; then
 fi
 cd build-android/android-build
 ./gradlew assembleRelease
+
+# Without its QML plugins the app builds fine but quits at startup ("module org.kde.kirigami
+# plugin ... not found"), so check the APK has them and OpenSSL.
+python3 - build/outputs/apk/release/*.apk <<'EOF'
+import sys, zipfile
+names = set(zipfile.ZipFile(sys.argv[1]).namelist())
+need = ["lib/arm64-v8a/libqml_org_kde_kirigami_Kirigamiplugin_arm64-v8a.so",
+        "lib/arm64-v8a/libomp.so", "lib/arm64-v8a/libssl_3.so", "lib/arm64-v8a/libcrypto_3.so"]
+missing = [n for n in need if n not in names]
+if missing:
+    sys.exit("APK is missing: " + ", ".join(missing))
+EOF
