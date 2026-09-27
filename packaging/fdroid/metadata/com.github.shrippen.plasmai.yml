@@ -13,15 +13,23 @@
 #     fdroiddata (for Categories etc.) — passes.
 #   - Every individual cmake/gradle command below is one scripts/build-android.sh and
 #     scripts/build-kf6-android.sh already run successfully (verified in this project's own CI).
+#   - Against the MR template (.gitlab/merge_request_templates/App inclusion.md): no
+#     Description/summary here (the upstream repo's fastlane/metadata/android/ has it, which is
+#     what that template asks for instead), and `commit:` is the full hash, not a tag.
 # Before opening the PR, re-check:
 #   - Whether the androiddeployqt-generated Gradle project's dependencies (Android Gradle Plugin,
 #     AndroidX, Kotlin stdlib) resolve on F-Droid's builder without extra `sudo:` seeding — other
 #     Gradle-based recipes there just run `./gradlew assembleRelease` successfully, so this is
 #     likely fine, but this exact Qt6+KF6+Gradle combination is untested.
 #   - `Builds[0].commit`/`versionName`/`versionCode` for whatever tag is actually submitted
-#     (this draft targets v2.0.0 as a placeholder).
+#     (this draft targets v2.0.0, commit f6f9f060b11b08960854922bc898a347eb2facb1).
 #   - The NDK version (28.2.13676358) and Qt version (6.7.3) against whatever is current when
 #     you submit.
+#   - Not yet done, per the template: Reproducible Builds is not enabled (would use your own
+#     signature instead of F-Droid's); the "external repos as git submodules instead of srclibs"
+#     checklist item isn't addressed either — the KF6 sources are cloned directly in `build:`
+#     below rather than vendored as submodules of the Plasmai repo. Both are worth doing before
+#     or during review, not blockers to opening the MR.
 
 Categories:
   - Time Tracker
@@ -33,17 +41,6 @@ IssueTracker: https://github.com/shrippen/Plasmai/issues
 Changelog: https://github.com/shrippen/Plasmai/blob/HEAD/CHANGELOG.md
 
 AutoName: Plasmai
-Description: |-
-  Plasmai is a time tracking app for Kimai, made for Plasma Mobile and Android. It works with
-  the data on your server only: nothing is kept on the device beyond your settings.
-
-  Start, stop and switch timers; edit the running entry. Recent entries grouped by day,
-  favorites, manual entries, split and delete. Today and week against your work contract, with
-  absences and public holidays. Statistics. Film day and trips with the optional Drehzettel and
-  Anfahrten Kimai plugins. Optional Kante style.
-
-  Clockify, Toggl Track and SolidTime are supported experimentally. API tokens are stored in the
-  Android Keystore (QtKeychain).
 
 RepoType: git
 Repo: https://github.com/shrippen/Plasmai.git
@@ -51,7 +48,7 @@ Repo: https://github.com/shrippen/Plasmai.git
 Builds:
   - versionName: '2.0.0'
     versionCode: 20000
-    commit: v2.0.0
+    commit: f6f9f060b11b08960854922bc898a347eb2facb1
     timeout: 10800
 
     # Root, network available: same tools scripts/build-android.sh installs — aqtinstall (Qt6
