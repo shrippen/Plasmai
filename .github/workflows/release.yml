@@ -103,9 +103,22 @@ jobs:
           PLASMAI_KEY_ALIAS: ${{ secrets.PLASMAI_KEY_ALIAS }}
           PLASMAI_KEY_PASSWORD: ${{ secrets.PLASMAI_KEY_PASSWORD }}
         run: |
-          ./scripts/build-android.sh release
           mkdir -p assets
-          mv dist/android/plasmai-app-release.apk "assets/Plasmai-${{ needs.release.outputs.version }}.apk"
+          if [ -x scripts/build-apk-reproducible.sh ]; then
+            # The same build as F-Droid's (Reproducible Builds): see the script's header.
+            sudo apt-get install -y -q ninja-build > /dev/null
+            pip install --user --break-system-packages -q aqtinstall
+            sudo install -d -o "$USER" /opt/plasmai-qt
+            ~/.local/bin/aqt install-qt linux android 6.7.3 android_arm64_v8a -m qtshadertools -O /opt/plasmai-qt > /dev/null
+            ~/.local/bin/aqt install-qt linux desktop 6.7.3 linux_gcc_64 -m qtshadertools -O /opt/plasmai-qt > /dev/null
+            ./scripts/build-apk-reproducible.sh
+            APK=$(ls app/build-android/android-build/build/outputs/apk/release/*.apk)
+          else
+            # Tags from before v2.0.1.
+            ./scripts/build-android.sh release
+            APK=dist/android/plasmai-app-release.apk
+          fi
+          mv "$APK" "assets/Plasmai-${{ needs.release.outputs.version }}.apk"
 
       - name: Check signature
         if: steps.keystore.outputs.signed == 'true'

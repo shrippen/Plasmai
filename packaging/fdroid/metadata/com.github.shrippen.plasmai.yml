@@ -82,83 +82,14 @@ Builds:
       - yes | sdkmanager --licenses || true
       - sdkmanager "ndk;28.2.13676358" "platforms;android-34" "build-tools;34.0.0"
 
-    # Building OpenSSL from source: the checked-in app/libs/openssl/arm64-v8a/*.so (prebuilt,
-    # from KDAB/android_openssl, bundled for Qt Network's TLS backend — app/CMakeLists.txt) are
-    # exactly the kind of prebuilt binary F-Droid's scanner rejects ("Found shared library at
-    # app/libs/openssl/..."). scandelete: (below) removes them from the scanned source; this
-    # replaces them with the same files, built from source, before the app itself is configured,
-    # so Qt Network's HTTPS support (all backends are HTTPS APIs) still works.
-    # SHLIB_VERSION_NUMBER=/SHLIB_EXT= (matching org.kde.ktrip.yml/de.akaflieg_freiburg.enroute.yml's
-    # OpenSSL 1.1.1 builds) is NOT honored by upstream OpenSSL 3.3.2's build system the same way —
-    # it just produces plain libssl.so/libcrypto.so regardless — so the loop below finds whatever
-    # actually got built and renames it to the libssl_3.so/libcrypto_3.so name CMakeLists.txt
-    # expects (KDAB's own naming convention, since Android only bundles files ending in ".so").
-    #
-    # Unprivileged: the same three cmake passes as scripts/build-kf6-android.sh (ECM,
-    # KCoreAddons, Kirigami, cross-compiled), then the app itself as scripts/build-android.sh does.
+    # Unprivileged: one script shared with the GitHub release job (.github/workflows/release.yml),
+    # so both builds are byte-identical and F-Droid can publish the APK with our signature
+    # (Reproducible Builds, signatures/ in the fdroiddata copy). The script builds OpenSSL from
+    # source (as libssl_3.so/libcrypto_3.so, replacing the prebuilt KDAB libs that scandelete:
+    # removes), then ECM, KCoreAddons and Kirigami, then the app; its header lists what keeps the
+    # two builds identical (fixed /tmp/plasmai-build paths, SOURCE_DATE_EPOCH, Kirigami with -j1).
     build:
-      - export NDK_PATH=$$SDK$$/ndk/28.2.13676358
-      - export QT_ANDROID=/opt/plasmai-qt/6.7.3/android_arm64_v8a
-      - export QT_HOST=/opt/plasmai-qt/6.7.3/gcc_64
-      - export KF6=$HOME/kf6-android
-      - mkdir -p $KF6
-      - git clone --quiet --depth 1 --branch openssl-3.3.2
-        https://github.com/openssl/openssl.git /tmp/openssl
-      - cd /tmp/openssl
-      - export ANDROID_NDK_ROOT=$NDK_PATH
-      - PATH=$NDK_PATH/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH ./Configure shared
-        android-arm64 -D__ANDROID_API__=28
-      - PATH=$NDK_PATH/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH make -j$(nproc)
-        SHLIB_VERSION_NUMBER= SHLIB_EXT=_3.so build_libs > /tmp/openssl-build.log 2>&1 ||
-        (tail -n 200 /tmp/openssl-build.log; exit 1)
-      - cd -
-      - mkdir -p app/libs/openssl/arm64-v8a
-      - ls -la /tmp/openssl/*.so* 2>&1 || true
-      - for f in libssl libcrypto; do src=$(ls /tmp/openssl/${f}*.so* 2>/dev/null | head -1);
-        if [ -n "$src" ]; then cp "$src" app/libs/openssl/arm64-v8a/${f}_3.so; fi; done
-      - ls -la app/libs/openssl/arm64-v8a/
-      - git clone --quiet --depth 1 --branch v6.8.0
-        https://invent.kde.org/frameworks/extra-cmake-modules.git /tmp/ecm
-      - cmake -S /tmp/ecm -B /tmp/ecm/build -G Ninja -DCMAKE_INSTALL_PREFIX=$KF6
-        -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DBUILD_HTML_DOCS=OFF
-        -DBUILD_MAN_DOCS=OFF -DBUILD_QTHELP_DOCS=OFF
-      - cmake --build /tmp/ecm/build -j$(nproc)
-      - cmake --install /tmp/ecm/build
-      - git clone --quiet --depth 1 --branch v6.8.0
-        https://invent.kde.org/frameworks/kcoreaddons.git /tmp/kcoreaddons
-      - cmake -S /tmp/kcoreaddons -B /tmp/kcoreaddons/build -G Ninja
-        -DCMAKE_TOOLCHAIN_FILE=$NDK_PATH/build/cmake/android.toolchain.cmake
-        -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-28 -DCMAKE_BUILD_TYPE=Release
-        -DCMAKE_PREFIX_PATH="$QT_ANDROID;$KF6" -DCMAKE_INSTALL_PREFIX=$KF6
-        -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=BOTH -DQT_HOST_PATH=$QT_HOST
-        -DECM_DIR=$KF6/share/ECM/cmake -DBUILD_TESTING=OFF -DBUILD_QCH=OFF
-      - cmake --build /tmp/kcoreaddons/build -j$(nproc)
-      - cmake --install /tmp/kcoreaddons/build
-      - git clone --quiet --depth 1 --branch v6.8.0
-        https://invent.kde.org/frameworks/kirigami.git /tmp/kirigami
-      - cmake -S /tmp/kirigami -B /tmp/kirigami/build -G Ninja
-        -DCMAKE_TOOLCHAIN_FILE=$NDK_PATH/build/cmake/android.toolchain.cmake
-        -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-28 -DCMAKE_BUILD_TYPE=Release
-        -DCMAKE_PREFIX_PATH="$QT_ANDROID;$KF6" -DCMAKE_INSTALL_PREFIX=$KF6
-        -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=BOTH -DQT_HOST_PATH=$QT_HOST
-        -DECM_DIR=$KF6/share/ECM/cmake -DBUILD_TESTING=OFF -DBUILD_QCH=OFF
-        -DBUILD_EXAMPLES=OFF -DDESKTOP_ENABLED=OFF
-      - cmake --build /tmp/kirigami/build -j$(nproc)
-      - cmake --install /tmp/kirigami/build
-      - cd app
-      - cmake -B build-android
-        -DCMAKE_TOOLCHAIN_FILE=$NDK_PATH/build/cmake/android.toolchain.cmake
-        -DCMAKE_BUILD_TYPE=Release -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-34
-        -DCMAKE_PREFIX_PATH="$QT_ANDROID;$KF6" -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=BOTH
-        -DQT_HOST_PATH=$QT_HOST -DANDROID_SDK_ROOT=$$SDK$$
-        -DQT_ANDROID_TARGET_SDK_VERSION=34 -DECM_DIR=$KF6/share/ECM/cmake
-        -DQT_QML_IMPORT_PATH=$KF6/lib/qml -DBUILD_TESTING=OFF
-      - cmake --build build-android -j$(nproc)
-      - export LIBOMP=$NDK_PATH/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/lib/linux/aarch64/libomp.so
-      - mkdir -p build-android/android-build/libs/arm64-v8a
-      - test -f $LIBOMP && cp $LIBOMP build-android/android-build/libs/arm64-v8a/ || true
-      - cd build-android/android-build
-      - ./gradlew assembleRelease
+      - ANDROID_SDK_ROOT=$$SDK$$ scripts/build-apk-reproducible.sh
 
     output: app/build-android/android-build/build/outputs/apk/release/android-build-release-unsigned.apk
     scandelete:
