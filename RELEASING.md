@@ -139,23 +139,31 @@ submitting, since policies change. Submitting means a PR to
 produced here.
 
 A recipe is prepared under `packaging/fdroid/metadata/com.github.shrippen.plasmai.yml` (mirrors
-how `packaging/flatpak/` holds the Flathub draft). It's a close translation of
-`scripts/build-kf6-android.sh` + `scripts/build-android.sh` into F-Droid's `Builds[]` format —
-`sudo:` installs Qt6, the NDK, the android-34 platform and a handful of runtime libs (root,
-network available), `build:` builds OpenSSL from source, then cross-compiles ECM → KCoreAddons →
-Kirigami → the app itself (unprivileged, but **also** with network — real recipes already in
-fdroiddata do live `git clone`/`wget` in `build:` too).
+how `packaging/flatpak/` holds the Flathub draft). `sudo:` installs Qt6, the NDK, the android-34
+platform and a handful of runtime libs (root, network available); `build:` runs
+`scripts/build-apk-reproducible.sh`, which builds OpenSSL from source, cross-compiles ECM →
+KCoreAddons → Kirigami, then the app (unprivileged, but **also** with network — real recipes
+already in fdroiddata do live `git clone`/`wget` in `build:` too).
 
-**Build-verified**: this exact recipe produced a full green run in a real GitLab CI pipeline —
-opened as a throwaway MR from the fork's own branch against its own `master` (purely to trigger
-a `merge_request_event` pipeline, not a submission) and closed once green. `fdroid build`,
-`check apk`, `fdroid rewritemeta`, `fdroid lint`, schema validation and `checkupdates` all
-passed; `fdroid build` ran a genuine ~6-minute cross-compile end to end. Getting there took
-several rounds against the real infrastructure (sdkmanager licenses interacting with
-`pipefail`, F-Droid's scanner rejecting the vendored OpenSSL binaries, missing apt packages on
-the minimal build image, OpenSSL 3.x not honoring the filename override the way 1.1.1 did, a
-missing `android-34` platform) — the recipe file's git history and header comment have the
-specifics; RELEASING.md doesn't repeat them.
+**Reproducible Builds**: the GitHub release job (4.3) runs the same script, so both builds are
+byte-identical and F-Droid can ship the APK with our signature (the recipe's `signatures/`
+directory, made with `fdroid signatures <signed release APK>`). Verified after 2.0.0 (commit
+301fe36): a build in F-Droid's own buildserver image (`registry.gitlab.com/fdroid/fdroidserver:
+buildserver-trixie`, run locally with Docker the way fdroiddata's CI job does) plus the signature
+block of the GitHub test build's signed APK gave exactly the signed APK (`apksigcopier compare
+--unsigned`). What keeps them identical is listed in the script's header — change nothing there,
+in the Qt/NDK/SDK versions or in the release job's setup without re-checking. To check a change
+before a release: run release.yml by hand (test build, its artifact `plasmai-test-apk` is the
+signed APK), then `packaging/fdroid/check-reproducible.sh <commit> <that APK>` (Docker,
+apksigcopier and apksigner needed; ~15 min). **One-way door**: once F-Droid publishes a release with our key, every
+later release must reproduce too (or F-Droid stops updating it); once F-Droid signs with its own
+key, switching to ours later means users reinstall.
+
+**Build-verified** on F-Droid's CI (before the reproducible script, v2.0.0): a throwaway MR from
+the fork's own branch against its own `master` (only to trigger a `merge_request_event`
+pipeline, not a submission), closed once green — `fdroid build`, `check apk`, `fdroid
+rewritemeta`, `fdroid lint`, schema validation and `checkupdates` all passed. The recipe file's
+git history and header comment have the problems met on the way.
 
 Submission is prepared as far as it can be without opening the PR yourself:
 
@@ -163,10 +171,12 @@ Submission is prepared as far as it can be without opening the PR yourself:
    `/home/arian/Hacking/eigene/fdroiddata`.
 2. Branch `new/com.github.shrippen.plasmai` there has the verified recipe committed and pushed
    to the fork.
-3. Before opening the MR: bump `Builds[0].commit`/`versionName`/`versionCode` for whichever tag
-   is actually submitted (currently targets v2.0.0), and consider the two still-open template
-   items noted in the recipe's header (Reproducible Builds, KF6 sources as git submodules
-   instead of a plain clone) — not blockers, but worth doing before or during review.
+3. Before opening the MR: release a version built by the reproducible release job (2.0.1 or
+   later; v2.0.0's APK can't be reproduced), point `Builds[0].commit`/`versionName`/`versionCode`
+   at its tag, run `fdroid signatures <its signed APK from the GitHub release>` in the fdroiddata
+   clone and commit `metadata/com.github.shrippen.plasmai/signatures/`. Then run the throwaway
+   MR once more: `fdroid build` must pass including the signature check. Still open from the
+   template: KF6 sources as git submodules instead of a plain clone (not a blocker).
 4. Open the MR yourself at `https://gitlab.com/shrippen/fdroiddata/-/merge_requests/new` (branch
    `new/com.github.shrippen.plasmai` against `fdroid/fdroiddata:master`), with an AI-disclosure
    note (same reasoning as Flathub, 5.2) — expect review rounds; F-Droid maintainers test the
