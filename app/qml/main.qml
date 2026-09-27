@@ -777,13 +777,29 @@ Kirigami.ApplicationWindow {
         title: i18n("Plasmai")
         isMenu: false
         modal: true
-        // The menu button toggles drawerOpen: keep it equal to what is on screen,
-        // or a tap after a restart closes the (already closed) drawer.
-        drawerOpen: false
-        onOpened: drawerOpen = true
         // Android: the entries take their text colour from Material, not from Kirigami.Theme.
         Material.foreground: KanteStyle.themed ? KanteStyle.textColor : (Material.theme === Material.Dark ? "#ffffff" : "#1c1b1f")
-        onClosed: drawerOpen = false
+        // Sometimes the slide-in does not run (Kirigami disables the enter transition while the
+        // drawer peeks under a touch): the drawer counts as open at position 0, invisible, and the
+        // next tap closes it. Slide it in when it is still at 0 shortly after opening.
+        onAboutToShow: slideInGuard.restart()
+        Timer {
+            id: slideInGuard
+            interval: 350
+            onTriggered: {
+                if (globalDrawer.visible && globalDrawer.drawerOpen && globalDrawer.position < 0.05) {
+                    slideIn.restart()
+                }
+            }
+        }
+        NumberAnimation {
+            id: slideIn
+            target: globalDrawer
+            property: "position"
+            to: 1
+            duration: Kirigami.Units.longDuration
+            easing.type: Easing.OutCubic
+        }
 
         actions: [
             Kirigami.Action {
