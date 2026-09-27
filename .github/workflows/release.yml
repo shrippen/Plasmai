@@ -3,7 +3,8 @@ name: Release
 # A tag v* reaches GitHub through the Gitea push mirror; the release itself is created on
 # Gitea (tea, without APK). Here the signed APK is built and the GitHub release made with
 # the same notes (scripts/release-notes.sh), so IzzyOnDroid can fetch the APK.
-# Run by hand (workflow_dispatch) it only builds an unsigned release APK as a test.
+# Run by hand (workflow_dispatch) it makes no release: it builds a test APK, signed and
+# checked when the keystore secrets are set, so the signing can be tried before a tag.
 
 on:
   push:
@@ -33,14 +34,21 @@ jobs:
             echo "version=test" >> "$GITHUB_OUTPUT"
           fi
 
+      # A tag needs the key; a test run signs only when the secrets are set.
       - name: Keystore
-        if: steps.version.outputs.tag != ''
+        id: keystore
         env:
           PLASMAI_KEYSTORE_B64: ${{ secrets.PLASMAI_KEYSTORE_B64 }}
+          IS_TAG: ${{ steps.version.outputs.tag != '' }}
         run: |
-          [ -n "$PLASMAI_KEYSTORE_B64" ] || { echo "::error::Secret PLASMAI_KEYSTORE_B64 is missing (RELEASING.md 4.3)"; exit 1; }
+          if [ -z "$PLASMAI_KEYSTORE_B64" ]; then
+            [ "$IS_TAG" != "true" ] || { echo "::error::Secret PLASMAI_KEYSTORE_B64 is missing (RELEASING.md 4.3)"; exit 1; }
+            echo "No keystore secret: unsigned test build."
+            exit 0
+          fi
           echo "$PLASMAI_KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/plasmai-release.jks"
           echo "PLASMAI_KEYSTORE_PATH=$RUNNER_TEMP/plasmai-release.jks" >> "$GITHUB_ENV"
+          echo "signed=true" >> "$GITHUB_OUTPUT"
 
       - name: Build release APK
         env:
@@ -53,7 +61,7 @@ jobs:
           mv dist/android/plasmai-app-release.apk "dist/android/Plasmai-${{ steps.version.outputs.version }}.apk"
 
       - name: Check signature
-        if: steps.version.outputs.tag != ''
+        if: steps.keystore.outputs.signed == 'true'
         run: |
           "$ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner" verify --print-certs \
             "dist/android/Plasmai-${{ steps.version.outputs.version }}.apk"
