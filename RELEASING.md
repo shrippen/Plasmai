@@ -108,9 +108,9 @@ there, but still worth treating as a secret.
 Store the four values (path handled separately — upload the `.jks` itself, not a path) as
 GitHub Actions repository secrets (`Settings → Secrets and variables → Actions`) if you want CI
 to sign release builds: `PLASMAI_KEYSTORE_B64` (`base64 -w0 plasmai-release.jks`),
-`PLASMAI_KEYSTORE_PASSWORD`, `PLASMAI_KEY_ALIAS`, `PLASMAI_KEY_PASSWORD`. No workflow currently
-decodes/uses these — add a release job once the KF6-Android CI gap (4.1) is solved, since
-signing a broken build doesn't help.
+`PLASMAI_KEYSTORE_PASSWORD`, `PLASMAI_KEY_ALIAS`, `PLASMAI_KEY_PASSWORD`.
+`.github/workflows/release.yml` decodes and uses them (section 6). Set them with `gh`, e.g.
+`base64 -w0 plasmai-release.jks | gh secret set PLASMAI_KEYSTORE_B64 -R shrippen/Plasmai`.
 
 ### 4.4 GitHub Release
 
