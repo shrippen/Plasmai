@@ -207,8 +207,10 @@ page: the Android APK (`Plasmai-X.Y.Z.apk`), a Flatpak bundle (`.flatpak`, besid
 listing), an AppImage, and the Plasma widget (`Plasmai-X.Y.Z.plasmoid`). If one of them cannot
 be built, say so before tagging instead of releasing without it. The APK may live only on the
 GitHub release (IzzyOnDroid fetches it there); the release itself also exists on Gitea.
-Status: 2.0.0 shipped APK and .plasmoid (plus a Linux tarball); the Flatpak bundle and the
-AppImage are not built by the release process yet.
+`.github/workflows/release.yml` builds all four on a tag and attaches them to the GitHub
+release (APK signed; AppImage via `scripts/build-appimage.sh` on Ubuntu 22.04; Flatpak bundle
+from `packaging/flatpak/`; widget via `scripts/package.sh`). For an existing release run it by
+hand with `tag` set: `gh workflow run release.yml -R shrippen/Plasmai -f tag=vX.Y.Z`.
 
 Git work goes to Gitea (git.arianw.de); its push mirror carries commits and tags to GitHub,
 but not releases. So a release is made in two places, the second one automatically:

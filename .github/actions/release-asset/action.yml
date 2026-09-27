@@ -1,0 +1,31 @@
+name: Release asset
+description: Attach the files in assets/ to the release of `tag`, or keep them as a workflow artifact on a test run
+
+inputs:
+  tag:
+    description: Release tag; empty for a test run
+    required: false
+    default: ''
+  name:
+    description: Artifact name for a test run
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Attach to the release
+      if: inputs.tag != ''
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        TAG: ${{ inputs.tag }}
+      run: gh release upload "$TAG" assets/* --clobber
+
+    - name: Keep as test artifact
+      if: inputs.tag == ''
+      uses: actions/upload-artifact@v4
+      with:
+        name: plasmai-test-${{ inputs.name }}
+        path: assets/*
+        if-no-files-found: error
+        retention-days: 7
