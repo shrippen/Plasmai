@@ -38,6 +38,7 @@
 - Pull to refresh on the pages that show server data: timer, statistics, film day, trips and favorites
 
 ### Polish
+- Kante day strip: the track is a dark groove with a frame and the open part of the work day a lighter band, so it no longer blends into the timer card on a phone
 - Film day: the shoot running after a finished commute shows as running, not the commute as the finished day
 - Film day: labels wrap between words, so the fields keep room on a phone; the default break reads "Default" (its minutes are in the line above)
 - Recent entries: the time column fits 12-hour times ("7:35 AM")

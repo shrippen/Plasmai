@@ -71,13 +71,17 @@ ColumnLayout {
         id: track
         Layout.fillWidth: true
         Layout.preferredHeight: Math.round(Kirigami.Units.gridUnit * 0.55)
-        color: KanteStyle.sunkenColor
+        // A groove like the web's --bg-hard track: opaque and darker than the card. The
+        // translucent sunken tint nearly matches the card on a dark ground (phones).
+        color: KanteStyle.themed ? Qt.darker(KanteStyle.backgroundColor, KanteStyle.light ? 1.08 : 1.45)
+                                 : KanteStyle.sunkenColor
 
+        // The work day stands out from the rest of the track.
         Rectangle {
             x: strip.xOf(strip.workBegin)
             width: Math.max(0, strip.xOf(strip.workEnd) - x)
             height: parent.height
-            color: KanteStyle.tint(KanteStyle.textColor, 0.06)
+            color: KanteStyle.tint(KanteStyle.textColor, 0.22)
         }
 
         Repeater {
@@ -91,6 +95,15 @@ ColumnLayout {
                 height: parent.height
                 color: ts.end ? KimaiApi.barColorInfoFromTimesheet(ts, strip.customersById).color : KanteStyle.accentColor
             }
+        }
+
+        // Sunken like a field: the frame keeps the track apart from the card, whose
+        // tint is close to the sunken one on a dark ground (phones).
+        Rectangle {
+            anchors.fill: parent
+            color: "transparent"
+            border.width: 1
+            border.color: KanteStyle.frameColor
         }
 
         Rectangle {

@@ -240,7 +240,7 @@ for people who want Plasmai to look like Plasmai rather than like Breeze.
   segments, the gold timer, primary buttons). Muted text is one step
   lighter on glass (`#bdae93`).
 - **Main view:** timer card with the accent-colored timer, activity as the
-  heading, a day strip when idle; favorites as tiles (two per row); Recent as
+  heading, a day strip when idle (an opaque groove darker than the card, framed like a field, the open work day as a lighter band, entries in project colours); favorites as tiles (two per row); Recent as
   a time line grouped by day (day header "Today" / "Yesterday" / weekday and
   date; row: begin time · color bar · activity bold over project · duration).
   The row menu opens on long press (right click on the desktop); Kante rows
