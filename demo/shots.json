@@ -4,9 +4,26 @@
   "today": "real",
   "timeout": 240,
   "shots": [
-    {"name": "timer", "view": "main"},
-    {"name": "add", "view": "manual"},
-    {"name": "statistics", "view": "stats"},
-    {"name": "filmday", "view": "filmday"}
-  ]
+    {
+      "name": "timer",
+      "view": "main"
+    },
+    {
+      "name": "add",
+      "view": "manual"
+    },
+    {
+      "name": "statistics",
+      "view": "stats"
+    },
+    {
+      "name": "filmday",
+      "view": "filmday"
+    }
+  ],
+  "page": {
+    "01-panel.jpg": "timer",
+    "02-add-screen.jpg": "add",
+    "03-statistics.jpg": "statistics"
+  }
 }
