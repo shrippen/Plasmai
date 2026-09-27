@@ -22,7 +22,7 @@ regenerated via `./scripts/bump-build.sh` (reads the version from `metadata.json
 versionCode is `major*10000 + minor*100 + patch` (2.0.0 → 20000), set in
 `app/CMakeLists.txt` (`QT_ANDROID_VERSION_CODE`) and `app/android/AndroidManifest.xml`. It
 replaced the 1.x scheme `major*100 + minor*10 + patch` before any APK was published; it can
-only increase from here (IzzyOnDroid, F-Droid, Play Store).
+only increase from here (F-Droid, Play Store).
 
 ## 2. Changelog (done)
 
@@ -117,24 +117,23 @@ to sign release builds: `PLASMAI_KEYSTORE_B64` (`base64 -w0 plasmai-release.jks`
 Once signed: attach `dist/android/plasmai-app-release.apk` (rename to something like
 `Plasmai-2.0.0.apk`) to the GitHub Release alongside the `.plasmoid` and the Linux app tarball.
 
-### 4.5 IzzyOnDroid (chosen F-Droid route)
+### 4.5 IzzyOnDroid — ruled out (AI policy)
 
-[IzzyOnDroid](https://apt.izzysoft.de/fdroid/) is an F-Droid repository that takes the signed APK
-from the GitHub release, so Qt and OpenSSL need not be built from source. Needs:
+[IzzyOnDroid](https://apt.izzysoft.de/fdroid/) would have taken the signed APK straight from the
+GitHub release, no source build needed. **Not usable**: their
+[App Inclusion Policy](https://izzyondroid.org/docs/general/AppInclusionPolicy/#ai-policy)
+states plainly "Vibe-coded apps will be rejected" and that they are "strongly opposed to apps
+which are fully or in part created by generative AI tools." Plasmai was built with AI
+assistance throughout, so this route is closed regardless of app quality — do not submit here.
 
-1. A signed release APK (4.3) attached to a GitHub release with a tag (`v2.0.0`).
-2. Store texts, icon and screenshots in `fastlane/metadata/android/<locale>/` (IzzyOnDroid reads
-   them from the repo): `title.txt`, `short_description.txt` (max. 80 characters),
-   `full_description.txt`, `changelogs/<versionCode>.txt`, `images/icon.png`,
-   `images/phoneScreenshots/*.png`.
-3. A request for inclusion (issue on IzzyOnDroid's GitLab repo, link to the GitHub repo).
-
-Every later release: raise `versionCode`, add `changelogs/<versionCode>.txt`, tag, attach the APK.
-
-### 4.6 Main F-Droid repository (later)
+### 4.6 Main F-Droid repository (chosen route)
 
 F-Droid builds from source on their own infrastructure — you cannot upload a binary APK there
-(except in narrow, discouraged exceptions). Preparing this means submitting a recipe
+(except in narrow, discouraged exceptions), which also sidesteps IzzyOnDroid's per-APK AI
+objection: F-Droid's own
+[Inclusion Policy](https://f-droid.org/docs/Inclusion_Policy/) has no blanket AI-authorship ban
+at the time of writing, only the usual FOSS/reproducibility requirements below — recheck this
+before submitting, since policies change. Preparing this means submitting a recipe
 (`metadata/com.github.shrippen.plasmai.yml`) as a PR to
 [F-Droid/fdroiddata](https://gitlab.com/fdroid/fdroiddata), not producing an artifact here.
 
@@ -206,7 +205,7 @@ for Flathub switch the `plasmai` source to `type: git` with the release tag and 
 page: the Android APK (`Plasmai-X.Y.Z.apk`), a Flatpak bundle (`.flatpak`, besides any Flathub
 listing), an AppImage, and the Plasma widget (`Plasmai-X.Y.Z.plasmoid`). If one of them cannot
 be built, say so before tagging instead of releasing without it. The APK may live only on the
-GitHub release (IzzyOnDroid fetches it there); the release itself also exists on Gitea.
+GitHub release, for people who install it directly; the release itself also exists on Gitea.
 `.github/workflows/release.yml` builds all four on a tag and attaches them to the GitHub
 release (APK signed; AppImage via `scripts/build-appimage.sh` on Ubuntu 22.04; Flatpak bundle
 from `packaging/flatpak/`; widget via `scripts/package.sh`). For an existing release run it by
@@ -222,6 +221,6 @@ but not releases. So a release is made in two places, the second one automatical
    plus `--asset` for the `.plasmoid` and the Linux tarball.
 4. The mirror pushes the tag to GitHub; `.github/workflows/release.yml` builds the release APK,
    signs it with the secrets from 4.3, checks the signature and creates the GitHub release
-   with the same notes and the APK (`Plasmai-X.Y.Z.apk`). IzzyOnDroid fetches it from there.
+   with the same notes and the APK (`Plasmai-X.Y.Z.apk`), attached for direct install.
    Run by hand (`gh workflow run release.yml -R shrippen/Plasmai`) it only builds an unsigned
    test APK.
