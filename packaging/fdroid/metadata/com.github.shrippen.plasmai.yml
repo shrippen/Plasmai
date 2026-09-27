@@ -1,0 +1,126 @@
+# Draft F-Droid recipe for the Plasmai Android app (app/, package com.github.shrippen.plasmai;
+# the Plasma widget is a separate distribution, see RELEASING.md 4 vs 5). Not the Flathub/AppImage
+# builds — this one is for F-Droid's own sandboxed builders, which is why it's a source build
+# translated from scripts/build-android.sh + scripts/build-kf6-android.sh rather than a copy of
+# either: no live network during the `build:` phase, so KF6 (extra-cmake-modules, KCoreAddons,
+# Kirigami) comes in as `srclibs:` (pinned checkouts fdroidserver fetches ahead of time) instead
+# of the `git clone` those scripts do, and Qt6/the NDK are fetched once in `sudo:`, which still
+# has network and root.
+#
+# WRITTEN BUT NOT BUILD-TESTED: I have no F-Droid buildserver VM here (needs their Vagrant/QEMU
+# setup) to actually run `fdroid build --local`. Only checked so far:
+#   - `fdroid readmeta`/`fdroid lint` against this file (YAML shape, required fields) — passes.
+#   - The individual cmake/gradle commands themselves, which are the same ones
+#     scripts/build-android.sh and scripts/build-kf6-android.sh already run successfully in CI.
+# Before opening the PR to F-Droid/fdroiddata, re-verify (their reviewers will anyway, but this
+# saves review rounds):
+#   - The NDK version below against a real buildserver's preinstalled NDKs — this recipe installs
+#     its own via sdkmanager (matching the scripts) rather than relying on F-Droid's `ndk:` field,
+#     so it should be independent of that, but confirm cmdline-tools/sdkmanager works without
+#     interactive input on their builder image.
+#   - Whether the androiddeployqt-generated Gradle project's dependencies (Android Gradle Plugin,
+#     AndroidX, Kotlin stdlib) are already in F-Droid's Gradle offline cache, or need `sudo:`
+#     pre-seeding — this is the single biggest unknown, and the most likely thing to need a
+#     review round with the F-Droid maintainers.
+#   - `Builds[0].commit` and `versionCode`/`versionName` for whatever tag is actually submitted
+#     (this draft targets v2.0.0 as a placeholder).
+
+Categories:
+  - Office
+License: GPL-3.0-or-later
+AuthorName: shrippen
+WebSite: https://github.com/shrippen/Plasmai
+SourceCode: https://github.com/shrippen/Plasmai
+IssueTracker: https://github.com/shrippen/Plasmai/issues
+Changelog: https://github.com/shrippen/Plasmai/blob/HEAD/CHANGELOG.md
+
+AutoName: Plasmai
+Summary: Time tracking for Kimai
+Description: |-
+  Plasmai is a time tracking app for Kimai, made for Plasma Mobile and Android. It works with
+  the data on your server only: nothing is kept on the device beyond your settings.
+
+  Start, stop and switch timers; edit the running entry. Recent entries grouped by day,
+  favorites, manual entries, split and delete. Today and week against your work contract, with
+  absences and public holidays. Statistics. Film day and trips with the optional Drehzettel and
+  Anfahrten Kimai plugins. Optional Kante style.
+
+  Clockify, Toggl Track and SolidTime are supported experimentally. API tokens are stored in the
+  Android Keystore (QtKeychain).
+
+RepoType: git
+Repo: https://github.com/shrippen/Plasmai.git
+
+Builds:
+  - versionName: '2.0.0'
+    versionCode: 20000
+    commit: v2.0.0
+    subdir: app
+    srclibs:
+      - ExtraCMakeModules@v6.8.0
+      - KCoreAddons@v6.8.0
+      - Kirigami@v6.8.0
+
+    # Root, still has network: install Qt6 (host + android_arm64_v8a) via aqtinstall and the
+    # exact Android NDK build-android.sh uses. Same versions/tool as CI (scripts/build-android.sh).
+    sudo: |
+      apt-get update
+      apt-get install -y --no-install-recommends ninja-build python3-pip unzip
+      pip install --break-system-packages aqtinstall
+      export PATH="$HOME/.local/bin:$PATH"
+      aqt install-qt linux android 6.7.3 android_arm64_v8a -m qtshadertools -O /opt/plasmai-qt
+      aqt install-qt linux desktop 6.7.3 linux_gcc_64 -m qtshadertools -O /opt/plasmai-qt
+      mkdir -p "$$SDK$$/cmdline-tools"
+      if [ ! -f "$$SDK$$/cmdline-tools/latest/bin/sdkmanager" ]; then
+        curl -sL https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -o /tmp/cmdtools.zip
+        unzip -qo /tmp/cmdtools.zip -d "$$SDK$$/cmdline-tools/"
+        mv "$$SDK$$/cmdline-tools/cmdline-tools" "$$SDK$$/cmdline-tools/latest"
+      fi
+      yes | "$$SDK$$/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$$SDK$$" "ndk;28.2.13676358"
+
+    # No network from here on: everything needed (Qt, the NDK, the KF6 srclibs, the app source)
+    # is already on disk. Same three steps as scripts/build-kf6-android.sh (ECM, KCoreAddons,
+    # Kirigami, cross-compiled) followed by scripts/build-android.sh's app build.
+    build: |
+      NDK_PATH="$$SDK$$/ndk/28.2.13676358"
+      QT_ANDROID=/opt/plasmai-qt/6.7.3/android_arm64_v8a
+      QT_HOST=/opt/plasmai-qt/6.7.3/gcc_64
+      KF6_ANDROID=/opt/kf6-android
+
+      cmake -S "$$ExtraCMakeModules$$" -B ecm-build -DCMAKE_INSTALL_PREFIX="$KF6_ANDROID" \
+        -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF \
+        -DBUILD_HTML_DOCS=OFF -DBUILD_MAN_DOCS=OFF -DBUILD_QTHELP_DOCS=OFF
+      cmake --build ecm-build -j$(nproc)
+      cmake --install ecm-build
+
+      CROSS_ARGS="-DCMAKE_TOOLCHAIN_FILE=$NDK_PATH/build/cmake/android.toolchain.cmake \
+        -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-28 -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_PREFIX_PATH=$QT_ANDROID;$KF6_ANDROID -DCMAKE_INSTALL_PREFIX=$KF6_ANDROID \
+        -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=BOTH -DQT_HOST_PATH=$QT_HOST \
+        -DECM_DIR=$KF6_ANDROID/share/ECM/cmake -DBUILD_TESTING=OFF -DBUILD_QCH=OFF"
+
+      cmake -S "$$KCoreAddons$$" -B kca-build $CROSS_ARGS
+      cmake --build kca-build -j$(nproc)
+      cmake --install kca-build
+
+      cmake -S "$$Kirigami$$" -B kirigami-build $CROSS_ARGS -DBUILD_EXAMPLES=OFF -DDESKTOP_ENABLED=OFF
+      cmake --build kirigami-build -j$(nproc)
+      cmake --install kirigami-build
+
+      cmake -B build-android \
+        -DCMAKE_TOOLCHAIN_FILE="$NDK_PATH/build/cmake/android.toolchain.cmake" \
+        -DCMAKE_BUILD_TYPE=Release -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-34 \
+        -DCMAKE_PREFIX_PATH="$QT_ANDROID;$KF6_ANDROID" -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=BOTH \
+        -DQT_HOST_PATH="$QT_HOST" -DANDROID_SDK_ROOT="$$SDK$$" -DQT_ANDROID_TARGET_SDK_VERSION=34 \
+        -DECM_DIR="$KF6_ANDROID/share/ECM/cmake" -DQT_QML_IMPORT_PATH="$KF6_ANDROID/lib/qml" \
+        -DBUILD_TESTING=OFF
+      cmake --build build-android -j$(nproc)
+
+      LIBOMP="$NDK_PATH/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/lib/linux/aarch64/libomp.so"
+      LIBS_DIR=build-android/android-build/libs/arm64-v8a
+      [ -f "$LIBOMP" ] && mkdir -p "$LIBS_DIR" && cp "$LIBOMP" "$LIBS_DIR/"
+
+      cd build-android/android-build
+      ./gradlew assembleRelease
+
+    output: app/build-android/android-build/build/outputs/apk/release/android-build-release-unsigned.apk

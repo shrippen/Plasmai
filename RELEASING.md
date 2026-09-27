@@ -126,36 +126,38 @@ states plainly "Vibe-coded apps will be rejected" and that they are "strongly op
 which are fully or in part created by generative AI tools." Plasmai was built with AI
 assistance throughout, so this route is closed regardless of app quality — do not submit here.
 
-### 4.6 Main F-Droid repository (chosen route)
+### 4.6 Main F-Droid repository (chosen route — draft recipe prepared)
 
 F-Droid builds from source on their own infrastructure — you cannot upload a binary APK there
 (except in narrow, discouraged exceptions), which also sidesteps IzzyOnDroid's per-APK AI
 objection: F-Droid's own
 [Inclusion Policy](https://f-droid.org/docs/Inclusion_Policy/) has no blanket AI-authorship ban
-at the time of writing, only the usual FOSS/reproducibility requirements below — recheck this
-before submitting, since policies change. Preparing this means submitting a recipe
-(`metadata/com.github.shrippen.plasmai.yml`) as a PR to
-[F-Droid/fdroiddata](https://gitlab.com/fdroid/fdroiddata), not producing an artifact here.
+at the time of writing, only the usual FOSS/reproducibility requirements (Qt6/KF6/QtKeychain all
+qualify; the Kimai/Clockify/etc. backends are just HTTP APIs, fine) — recheck this before
+submitting, since policies change. Submitting means a PR to
+[F-Droid/fdroiddata](https://gitlab.com/fdroid/fdroiddata) with a recipe, not an artifact
+produced here.
 
-4.1's gap is closed (`scripts/build-kf6-android.sh` cross-compiles ECM + KCoreAddons + Kirigami
-in well under a minute, verified end to end), which removes the biggest uncertainty. **One
-real difference remains, not just paperwork**: that script does a plain `git clone` of
-`invent.kde.org/frameworks/{...}` at build time — fine for CI, but F-Droid's sandboxed
-builders don't allow live network access during the build (that's how they guarantee
-reproducible builds). The KDE sources need to become an F-Droid `srclibs:` entry instead (their
-mechanism for pinning an external source ahead of the sandboxed build) rather than a raw clone
-inside the recipe's build steps. Sequence:
+A draft recipe is prepared under `packaging/fdroid/` (mirrors how `packaging/flatpak/` holds the
+Flathub draft): `metadata/com.github.shrippen.plasmai.yml` plus three `srclibs/*.yml`
+(ExtraCMakeModules, KCoreAddons, Kirigami — the same three `scripts/build-kf6-android.sh`
+cross-compiles) — its `Builds[].srclibs`/`build:` steps pin them ahead of the sandboxed build
+instead of that script's live `git clone`. `fdroid readmeta`/`fdroid lint` (`fdroidserver` PyPI
+package) pass against it. **Not build-tested**: there is no F-Droid buildserver VM here (needs
+their Vagrant/QEMU setup) to run `fdroid build --local`; the recipe's header comment lists what
+to recheck first, the biggest one being whether F-Droid's Gradle offline cache already has what
+androiddeployqt's generated Gradle project needs (Android Gradle Plugin, AndroidX, Kotlin
+stdlib) or whether `sudo:` needs to pre-seed it.
 
-1. Read F-Droid's [Build Metadata Reference](https://f-droid.org/docs/Build_Metadata_Reference/)
-   and [Inclusion Policy](https://f-droid.org/docs/Inclusion_Policy/) (all dependencies must be
-   FOSS — Qt6/KF6/QtKeychain all qualify; the Kimai/Clockify/etc. backends are just HTTP APIs,
-   fine).
-2. Translate `scripts/build-kf6-android.sh`'s three `cmake -B/--build/--install` passes (ECM,
-   KCoreAddons, Kirigami) into `srclibs:` entries + `build:`/`init:` steps in the recipe —
-   the actual CMake invocations can likely be reused close to verbatim, only the source
-   acquisition changes.
-3. Open the PR — expect review rounds; F-Droid maintainers test the build themselves before
-   merging, so treat this as a starting point, not a finished submission.
+To submit:
+
+1. Fork `F-Droid/fdroiddata`, copy `packaging/fdroid/metadata/com.github.shrippen.plasmai.yml`
+   and `packaging/fdroid/srclibs/*.yml` into the fork's `metadata/` and `srclibs/`.
+2. Update `Builds[0].commit`/`versionName`/`versionCode` for whichever tag is actually submitted
+   (the draft targets v2.0.0).
+3. Open the PR yourself, with an AI-disclosure note (same reasoning as Flathub, 5.2) — expect
+   review rounds; F-Droid maintainers test the build themselves before merging, so treat the
+   draft as a starting point, not a finished submission.
 
 ## 5. Plasma Mobile / desktop Linux app
 
