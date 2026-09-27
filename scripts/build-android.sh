@@ -8,7 +8,7 @@ REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 APP_DIR="$REPO_DIR/app"
 SDK_ROOT="${ANDROID_SDK_ROOT:-$HOME/android-sdk}"
 NDK_DIR="$SDK_ROOT/ndk"
-QT_VER="6.7.3"
+QT_VER="6.11.3"
 QT_ANDROID="$HOME/Qt/$QT_VER/android_arm64_v8a"
 QT_HOST="$HOME/Qt/$QT_VER/gcc_64"
 # Not in the base install: Kirigami needs ShaderTools (Svg comes with the base).
@@ -20,9 +20,9 @@ error() { echo -e "${RED}[ERROR]${NC} $*"; exit 1; }
 show() { if [ -n "${PLASMAI_VERBOSE:-}" ]; then cat; else tail -"$1"; fi; }
 
 # ── 1. NDK ──
-NDK_PATH=$(ls -d "$NDK_DIR"/28.* 2>/dev/null | head -1)
+NDK_PATH=$(ls -d "$NDK_DIR"/27.2.* 2>/dev/null | head -1)
 if [ ! -d "$NDK_PATH" ]; then
-    info "Installing Android NDK r28..."
+    info "Installing Android NDK r27c (the one Qt $QT_VER is built with)..."
     mkdir -p "$SDK_ROOT/cmdline-tools"
     if [ ! -f "$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then
         TMP=$(mktemp /tmp/cmdtools.zip)
@@ -31,9 +31,9 @@ if [ ! -d "$NDK_PATH" ]; then
         mv "$SDK_ROOT/cmdline-tools/cmdline-tools" "$SDK_ROOT/cmdline-tools/latest" 2>/dev/null || true
         rm -f "$TMP"
     fi
-    yes | "$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$SDK_ROOT" "ndk;28.2.13676358" 2>&1 | tail -3
+    yes | "$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$SDK_ROOT" "ndk;27.2.12479018" "platforms;android-36" "build-tools;36.0.0" 2>&1 | tail -3
 fi
-NDK_PATH=$(ls -d "$NDK_DIR"/28.* 2>/dev/null | head -1)
+NDK_PATH=$(ls -d "$NDK_DIR"/27.2.* 2>/dev/null | head -1)
 [ -d "$NDK_PATH" ] || error "NDK not found"
 info "NDK: $NDK_PATH"
 
@@ -43,7 +43,7 @@ info "NDK: $NDK_PATH"
     pip install --user --break-system-packages aqtinstall 2>/dev/null || true
     export PATH="$HOME/.local/bin:$PATH"
     info "Downloading Qt $QT_VER for Android..."
-    aqt install-qt linux android "$QT_VER" android_arm64_v8a -m $QT_MODULES -O "$HOME/Qt" 2>&1 | tail -3
+    aqt install-qt all_os android "$QT_VER" android_arm64_v8a -m $QT_MODULES -O "$HOME/Qt" 2>&1 | tail -3
     info "Downloading Qt $QT_VER host tools..."
     aqt install-qt linux desktop "$QT_VER" linux_gcc_64 -m $QT_MODULES -O "$HOME/Qt" 2>&1 | tail -3
 }
@@ -52,10 +52,9 @@ info "Qt: host=$QT_HOST android=$QT_ANDROID"
 
 # ── 3. KF6 (Kirigami + its KCoreAddons dependency) for Android ──
 KF6_ANDROID="$HOME/kf6-android"
-if [ ! -d "$KF6_ANDROID/lib/cmake/KF6Kirigami" ]; then
-    info "KF6 for Android not found at $KF6_ANDROID — building it (scripts/build-kf6-android.sh)..."
-    ANDROID_SDK_ROOT="$SDK_ROOT" "$SCRIPT_DIR/build-kf6-android.sh" "$KF6_ANDROID"
-fi
+# build-kf6-android.sh skips itself when $KF6_ANDROID already has its KF6 version, and
+# rebuilds it otherwise (e.g. left over from an older Qt/KF6).
+ANDROID_SDK_ROOT="$SDK_ROOT" "$SCRIPT_DIR/build-kf6-android.sh" "$KF6_ANDROID"
 info "KF6: $KF6_ANDROID"
 
 # ── 4. Build ──
@@ -68,7 +67,7 @@ cmake -B build-android \
     -DCMAKE_TOOLCHAIN_FILE="$NDK_PATH/build/cmake/android.toolchain.cmake" \
     -DCMAKE_BUILD_TYPE="$MODE" \
     -DANDROID_ABI=arm64-v8a \
-    -DANDROID_PLATFORM=android-34 \
+    -DANDROID_PLATFORM=android-28 \
     -DCMAKE_PREFIX_PATH="$QT_ANDROID;$KF6_ANDROID" \
     -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=BOTH \
     -DQT_HOST_PATH="$QT_HOST" \
@@ -102,7 +101,7 @@ elif [ "$MODE" = "release" ]; then
 fi
 
 LIBS_DIR="$APP_DIR/build-android/android-build/libs/arm64-v8a"
-LIBOMP="$NDK_PATH/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/lib/linux/aarch64/libomp.so"
+LIBOMP=$(ls "$NDK_PATH"/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/*/lib/linux/aarch64/libomp.so 2>/dev/null | head -1)
 if [ -d "$LIBS_DIR" ] && [ -f "$LIBOMP" ] && [ ! -f "$LIBS_DIR/libomp.so" ]; then
     info "Adding libomp.so for KF6 Kirigami QML plugins..."
     cp "$LIBOMP" "$LIBS_DIR/"

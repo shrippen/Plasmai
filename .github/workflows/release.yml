@@ -109,8 +109,8 @@ jobs:
             sudo apt-get install -y -q ninja-build > /dev/null
             pip install --user --break-system-packages -q aqtinstall==3.3.0
             sudo install -d -o "$USER" /opt/plasmai-qt
-            ~/.local/bin/aqt install-qt linux android 6.7.3 android_arm64_v8a -m qtshadertools -O /opt/plasmai-qt > /dev/null
-            ~/.local/bin/aqt install-qt linux desktop 6.7.3 linux_gcc_64 -m qtshadertools -O /opt/plasmai-qt > /dev/null
+            ~/.local/bin/aqt install-qt all_os android 6.11.3 android_arm64_v8a -m qtshadertools -O /opt/plasmai-qt > /dev/null
+            ~/.local/bin/aqt install-qt linux desktop 6.11.3 linux_gcc_64 -m qtshadertools -O /opt/plasmai-qt > /dev/null
             ./scripts/build-apk-reproducible.sh
             APK=$(ls app/build-android/android-build/build/outputs/apk/release/*.apk)
           else
@@ -123,7 +123,7 @@ jobs:
       - name: Check signature
         if: steps.keystore.outputs.signed == 'true'
         run: |
-          "$ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner" verify --print-certs assets/*.apk
+          "$ANDROID_SDK_ROOT/build-tools/36.0.0/apksigner" verify --print-certs assets/*.apk
 
       - uses: ./.github/actions/release-asset
         with:

@@ -8,9 +8,9 @@
 #   (or ...-release.apk, signed, when PLASMAI_KEYSTORE_PATH & co. are set as in build-android.sh)
 #
 # Needs, installed beforehand (the recipe's sudo: block, the release job's setup steps):
-#   NDK 28.2.13676358, platforms;android-34, build-tools;34.0.0 in the SDK; Qt 6.7.3 android_arm64_v8a
-#   and gcc_64 with qtshadertools under $PLASMAI_QT_DIR (default /opt/plasmai-qt/6.7.3); cmake,
-#   ninja, perl, make, git.
+#   NDK 27.2.12479018 (the one Qt 6.11.3 is built with), platforms;android-36, build-tools;36.0.0
+#   in the SDK; Qt 6.11.3 android_arm64_v8a and gcc_64 with qtshadertools under $PLASMAI_QT_DIR
+#   (default /opt/plasmai-qt/6.11.3); cmake, ninja, perl, make, git, a JDK 17+.
 #
 # What keeps the two builds identical — change nothing here without checking both:
 #   - fixed paths: dependencies build in /tmp/plasmai-build (their source paths end up in the
@@ -26,11 +26,11 @@ set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 SDK_ROOT="${ANDROID_SDK_ROOT:?ANDROID_SDK_ROOT not set}"
-NDK_PATH="$SDK_ROOT/ndk/28.2.13676358"
-QT_DIR="${PLASMAI_QT_DIR:-/opt/plasmai-qt/6.7.3}"
+NDK_PATH="$SDK_ROOT/ndk/27.2.12479018"
+QT_DIR="${PLASMAI_QT_DIR:-/opt/plasmai-qt/6.11.3}"
 QT_ANDROID="$QT_DIR/android_arm64_v8a"
 QT_HOST="$QT_DIR/gcc_64"
-KF6_VERSION="6.8.0"
+KF6_VERSION="6.30.0"
 OPENSSL_VERSION="3.5.8"   # LTS (until 2030-04); bump for security releases
 WORK=/tmp/plasmai-build
 KF6="$WORK/kf6"
@@ -117,7 +117,7 @@ cmake -B build-android \
     -DCMAKE_TOOLCHAIN_FILE="$NDK_PATH/build/cmake/android.toolchain.cmake" \
     -DCMAKE_BUILD_TYPE=Release \
     -DANDROID_ABI=arm64-v8a \
-    -DANDROID_PLATFORM=android-34 \
+    -DANDROID_PLATFORM=android-28 \
     -DCMAKE_PREFIX_PATH="$QT_ANDROID;$KF6" \
     -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=BOTH \
     -DQT_HOST_PATH="$QT_HOST" \
@@ -131,7 +131,7 @@ cmake --build build-android -j"$(nproc)"
 
 # Kirigami's QML plugins need libomp at runtime.
 mkdir -p build-android/android-build/libs/arm64-v8a
-cp "$NDK_PATH/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/lib/linux/aarch64/libomp.so" \
+cp "$NDK_PATH"/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/*/lib/linux/aarch64/libomp.so \
     build-android/android-build/libs/arm64-v8a/
 
 if [ -n "${PLASMAI_KEYSTORE_PATH:-}" ]; then

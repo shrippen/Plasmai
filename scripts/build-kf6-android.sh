@@ -17,9 +17,9 @@ FORCE=0
 PREFIX="${1:-$HOME/kf6-android}"
 if [ "${1:-}" = "-f" ] || [ "${1:-}" = "--force" ]; then FORCE=1; PREFIX="${2:-$HOME/kf6-android}"; fi
 
-KF6_VERSION="6.8.0"
+KF6_VERSION="6.30.0"
 SDK_ROOT="${ANDROID_SDK_ROOT:-$HOME/android-sdk}"
-QT_VER="6.7.3"
+QT_VER="6.11.3"
 QT_ANDROID="$HOME/Qt/$QT_VER/android_arm64_v8a"
 QT_HOST="$HOME/Qt/$QT_VER/gcc_64"
 ANDROID_PLATFORM_LEVEL="android-28"   # matches QT_ANDROID_MIN_SDK_VERSION in app/CMakeLists.txt
@@ -28,14 +28,16 @@ RED='\033[0;31m'; GREEN='\033[0;32m'; NC='\033[0m'
 info()  { echo -e "${GREEN}[INFO]${NC} $*"; }
 error() { echo -e "${RED}[ERROR]${NC} $*"; exit 1; }
 
-NDK_PATH=$(ls -d "$SDK_ROOT"/ndk/28.* 2>/dev/null | head -1)
+NDK_PATH=$(ls -d "$SDK_ROOT"/ndk/27.2.* 2>/dev/null | head -1)
 [ -d "$NDK_PATH" ] || error "Android NDK not found under $SDK_ROOT/ndk — run scripts/build-android.sh once first (it installs the NDK), or set ANDROID_SDK_ROOT"
 [ -d "$QT_ANDROID" ] && [ -d "$QT_HOST" ] || error "Qt $QT_VER (android_arm64_v8a + gcc_64) not found under \$HOME/Qt — run scripts/build-android.sh once first (it installs Qt via aqtinstall)"
 
-if [ -d "$PREFIX/lib/cmake/KF6Kirigami" ] && [ "$FORCE" -ne 1 ]; then
-    info "$PREFIX already has KF6Kirigami — skipping (pass -f to rebuild)"
+if grep -qs "\"$KF6_VERSION\"" "$PREFIX/lib/cmake/KF6Kirigami/KF6KirigamiConfigVersion.cmake" && [ "$FORCE" -ne 1 ]; then
+    info "$PREFIX already has KF6Kirigami $KF6_VERSION — skipping (pass -f to rebuild)"
     exit 0
 fi
+# Another KF6 version (built against another Qt) must not mix with this one.
+rm -rf "${PREFIX:?}"
 
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT

@@ -48,6 +48,11 @@ if(ANDROID)
         QT_ANDROID_VERSION_CODE "20000"
         QT_ANDROID_MIN_SDK_VERSION "28"
         QT_ANDROID_TARGET_SDK_VERSION "34"
+        # Pinned instead of "newest installed": GitHub's runner and F-Droid's buildserver have
+        # different SDK packages, and the reproducible build must use the same ones.
+        QT_ANDROID_COMPILE_SDK_VERSION "36"
+        QT_ANDROID_SDK_BUILD_TOOLS_REVISION "36.0.0"
+        QT_ANDROID_LEGACY_PACKAGING ON
     )
     # OpenSSL for HTTPS (Qt QML XMLHttpRequest needs it)
     # Pre-built libs from KDAB/android_openssl

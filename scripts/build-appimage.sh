@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build the Plasmai app (app/) as an AppImage that runs without Qt/KF6 installed:
-# Qt 6.7.3 via aqtinstall, KF6 6.8 (ECM, KCoreAddons, KI18n, Kirigami) and QtKeychain from
+# Qt 6.11.3 via aqtinstall, KF6 6.30 (ECM, KCoreAddons, KI18n, Kirigami) and QtKeychain from
 # source, bundled with linuxdeploy and its Qt plugin. The same versions as the Android build.
 # Build on an old distro (CI: ubuntu-22.04) so the AppImage runs on as many systems as possible.
 #
@@ -13,8 +13,8 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 VERSION="$(sed -n 's/.*"Version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$ROOT/metadata.json" | head -n1)"
 [ -n "$VERSION" ] || { echo "error: could not read Version from metadata.json" >&2; exit 1; }
 
-QT_VER="6.7.3"
-KF6_VERSION="6.8.0"
+QT_VER="6.11.3"
+KF6_VERSION="6.30.0"
 QTKEYCHAIN_TAG="0.17.0"
 QT="$HOME/Qt/$QT_VER/gcc_64"
 PREFIX="${KF6_LINUX:-$HOME/kf6-linux}"
@@ -47,7 +47,8 @@ build() { # name source-dir [cmake args...]
     cmake --install "$src/build" > /dev/null
 }
 # Always lib/ (Debian/Ubuntu would pick lib/x86_64-linux-gnu, where linuxdeploy does not look).
-if [ ! -d "$PREFIX/lib/cmake/KF6Kirigami" ] && [ ! -d "$PREFIX/lib64/cmake/KF6Kirigami" ]; then
+if ! grep -qs "\"$KF6_VERSION\"" "$PREFIX"/lib*/cmake/KF6Kirigami/KF6KirigamiConfigVersion.cmake; then
+    rm -rf "${PREFIX:?}"   # another KF6 version (built against another Qt) must not mix with this one
     mkdir -p "$PREFIX"
     for repo in extra-cmake-modules kcoreaddons ki18n kirigami; do
         git clone --quiet --depth 1 --branch "v$KF6_VERSION" "https://invent.kde.org/frameworks/$repo.git" "$WORK/$repo" &

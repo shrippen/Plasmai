@@ -26,10 +26,10 @@ SDK=${ANDROID_HOME:-/opt/android-sdk}
 apt-get install -y --no-install-recommends cmake ninja-build python3-pip perl make g++ libegl1 \
     libgl1 libxkbcommon0 libfontconfig1 libdbus-1-3 > /dev/null
 pip install -q --break-system-packages aqtinstall==3.3.0
-aqt install-qt linux android 6.7.3 android_arm64_v8a -m qtshadertools -O /opt/plasmai-qt > /dev/null
-aqt install-qt linux desktop 6.7.3 linux_gcc_64 -m qtshadertools -O /opt/plasmai-qt > /dev/null
+aqt install-qt all_os android 6.11.3 android_arm64_v8a -m qtshadertools -O /opt/plasmai-qt > /dev/null
+aqt install-qt linux desktop 6.11.3 linux_gcc_64 -m qtshadertools -O /opt/plasmai-qt > /dev/null
 yes | sdkmanager --licenses > /dev/null || true
-sdkmanager "ndk;28.2.13676358" "platforms;android-34" "build-tools;34.0.0" > /dev/null
+sdkmanager "ndk;27.2.12479018" "platforms;android-36" "build-tools;36.0.0" > /dev/null
 chown -R vagrant "$SDK"
 B=/home/vagrant/build/com.github.shrippen.plasmai
 mkdir -p /home/vagrant/build

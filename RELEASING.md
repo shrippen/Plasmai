@@ -51,7 +51,7 @@ Fixed by adding `scripts/build-kf6-android.sh`, which cross-compiles the only KF
 app actually needs — extra-cmake-modules, KCoreAddons (a Kirigami dependency), and Kirigami
 itself (`app/CMakeLists.txt` only requires `KF6::Kirigami` when cross-compiling) — for
 `android_arm64_v8a`, from the `frameworks/{extra-cmake-modules,kcoreaddons,kirigami}` KDE
-repos at tag `v6.8.0`. This is verified working, end to end, not just written and hoped for:
+repos at the tag in the script (`KF6_VERSION`, now 6.30.0, with Qt 6.11.3). This is verified working, end to end, not just written and hoped for:
 built from a clean clone, linked against by a fresh build of the app, and the resulting APK's
 native libraries checked with `readelf` for the `libomp.so` dependency (see below). It runs in
 well under a minute (ECM installs cmake modules only; KCoreAddons and Kirigami compile in
@@ -139,7 +139,7 @@ submitting, since policies change. Submitting means a PR to
 produced here.
 
 A recipe is prepared under `packaging/fdroid/metadata/com.github.shrippen.plasmai.yml` (mirrors
-how `packaging/flatpak/` holds the Flathub draft). `sudo:` installs Qt6, the NDK, the android-34
+how `packaging/flatpak/` holds the Flathub draft). `sudo:` installs Qt6, the NDK, the android-36
 platform and a handful of runtime libs (root, network available); `build:` runs
 `scripts/build-apk-reproducible.sh`, which builds OpenSSL from source, cross-compiles ECM →
 KCoreAddons → Kirigami, then the app (unprivileged, but **also** with network — real recipes
