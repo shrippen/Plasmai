@@ -30,7 +30,14 @@
 #
 # Before opening the real PR to F-Droid/fdroiddata, still worth doing (not blockers, per the MR
 # template .gitlab/merge_request_templates/App inclusion.md):
-#   - Enable Reproducible Builds (would use your own signature instead of F-Droid's).
+#   - Enable Reproducible Builds. TESTED, doesn't reproduce yet: `fdroid signatures` against the
+#     real signed v2.0.0 GitHub release APK, committed, then the from-source build failed at the
+#     implant step with "APK Signing Block offset < central directory offset" — a real byte-level
+#     size mismatch (build paths in .so debug info, toolchain versions, timestamps likely differ
+#     between GitHub Actions and F-Droid's buildserver), not just a missing setup step. This is a
+#     one-way door once a release is actually published with F-Droid's key, so don't enable it
+#     without re-testing — revisit once both build pipelines are normalized
+#     (`-ffile-prefix-map`, matching JDK/AGP/gradle-wrapper versions) for a later release.
 #   - Vendor the KF6 sources as git submodules of the Plasmai repo instead of a plain `git clone`
 #     inside `build:` (the template's "external repos as git submodules instead of srclibs").
 #   - Bump `Builds[0].commit`/`versionName`/`versionCode` for whatever tag is actually submitted
