@@ -87,7 +87,7 @@ Builds:
     # aqtinstall (Qt6 host + android_arm64_v8a) and the exact Android NDK version we pin.
     sudo:
       - apt-get update
-      - apt-get install -y --no-install-recommends ninja-build python3-pip perl make
+      - apt-get install -y --no-install-recommends cmake ninja-build python3-pip perl make g++
       - pip install --break-system-packages aqtinstall
       - aqt install-qt linux android 6.7.3 android_arm64_v8a -m qtshadertools -O /opt/plasmai-qt
       - aqt install-qt linux desktop 6.7.3 linux_gcc_64 -m qtshadertools -O /opt/plasmai-qt
