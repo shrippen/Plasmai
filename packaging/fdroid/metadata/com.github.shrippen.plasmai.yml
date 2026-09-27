@@ -7,16 +7,29 @@
 # unlike an earlier draft of this file assumed. So this is now a close, explicit translation of
 # scripts/build-kf6-android.sh + scripts/build-android.sh, not a rewrite around srclibs.
 #
-# WRITTEN BUT NOT BUILD-TESTED against F-Droid's actual buildserver VM (needs their Vagrant/QEMU
-# setup, not available here). Checked so far:
-#   - `fdroid readmeta`/`fdroid lint` (fdroidserver PyPI package) against a real clone of
-#     fdroiddata (for Categories etc.) — passes.
+# This file keeps comments for maintenance; the version actually submitted (pushed to the
+# shrippen/fdroiddata fork, branch new/com.github.shrippen.plasmai) has none, because
+# `fdroid rewritemeta` — which fdroiddata's CI checks the file against — strips all comments and
+# reflows lines its own way. After editing this file, copy it into the fdroiddata clone, run
+# `fdroid rewritemeta com.github.shrippen.plasmai` there, and commit *that* output.
+#
+# TESTED against a real GitLab CI pipeline (MR !1 in shrippen/fdroiddata's own fork, opened
+# against its own master purely to trigger a merge_request_event pipeline — not the upstream
+# submission). Two real bugs this caught and fixed:
+#   - `fdroid rewritemeta` job: requires AutoUpdateMode/UpdateCheckMode/UpdateCheckData/
+#     CurrentVersion/CurrentVersionCode (schema-required, added) and unquoted version strings.
+#   - `fdroid build` job: hung on sdkmanager's interactive license prompt because `--licenses`
+#     was piped into the same command as installing the NDK; fdroiddata's own recipes
+#     (de.wger.flutter.yml, com.gnethomelinux.midistrum.yml) always run `yes | sdkmanager
+#     --licenses` as its own separate step first — fixed to match.
+# Not yet verified: whether the actual Qt/KF6/Gradle build steps succeed (the pipeline was still
+# running past that point as of this note). Checked so far, still valid:
 #   - Every individual cmake/gradle command below is one scripts/build-android.sh and
 #     scripts/build-kf6-android.sh already run successfully (verified in this project's own CI).
 #   - Against the MR template (.gitlab/merge_request_templates/App inclusion.md): no
 #     Description/summary here (the upstream repo's fastlane/metadata/android/ has it, which is
 #     what that template asks for instead), and `commit:` is the full hash, not a tag.
-# Before opening the PR, re-check:
+# Before opening the real PR, re-check:
 #   - Whether the androiddeployqt-generated Gradle project's dependencies (Android Gradle Plugin,
 #     AndroidX, Kotlin stdlib) resolve on F-Droid's builder without extra `sudo:` seeding — other
 #     Gradle-based recipes there just run `./gradlew assembleRelease` successfully, so this is
@@ -66,8 +79,8 @@ Builds:
         https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -o
         /tmp/cmdtools.zip && unzip -qo /tmp/cmdtools.zip -d $$SDK$$/cmdline-tools/ && mv
         $$SDK$$/cmdline-tools/cmdline-tools $$SDK$$/cmdline-tools/latest)
-      - yes | $$SDK$$/cmdline-tools/latest/bin/sdkmanager --sdk_root=$$SDK$$
-        "ndk;28.2.13676358"
+      - yes | $$SDK$$/cmdline-tools/latest/bin/sdkmanager --sdk_root=$$SDK$$ --licenses
+      - $$SDK$$/cmdline-tools/latest/bin/sdkmanager --sdk_root=$$SDK$$ "ndk;28.2.13676358"
 
     # Unprivileged: the same three cmake passes as scripts/build-kf6-android.sh (ECM,
     # KCoreAddons, Kirigami, cross-compiled), then the app itself as scripts/build-android.sh does.
