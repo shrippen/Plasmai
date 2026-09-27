@@ -148,7 +148,7 @@ already in fdroiddata do live `git clone`/`wget` in `build:` too).
 **Reproducible Builds**: the GitHub release job (4.3) runs the same script, so both builds are
 byte-identical and F-Droid can ship the APK with our signature (the recipe's `signatures/`
 directory, made with `fdroid signatures <signed release APK>`). Verified after 2.0.0 (commit
-301fe36): a build in F-Droid's own buildserver image (`registry.gitlab.com/fdroid/fdroidserver:
+9246974; also installed on a Pixel 6: starts, HTTPS with the self-built OpenSSL works): a build in F-Droid's own buildserver image (`registry.gitlab.com/fdroid/fdroidserver:
 buildserver-trixie`, run locally with Docker the way fdroiddata's CI job does) plus the signature
 block of the GitHub test build's signed APK gave exactly the signed APK (`apksigcopier compare
 --unsigned`). What keeps them identical is listed in the script's header — change nothing there,
