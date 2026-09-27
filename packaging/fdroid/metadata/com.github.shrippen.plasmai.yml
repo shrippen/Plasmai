@@ -1,65 +1,42 @@
-# Draft F-Droid recipe for the Plasmai Android app (app/, package com.github.shrippen.plasmai;
-# the Plasma widget is a separate distribution, see RELEASING.md 4 vs 5). Not the Flathub/AppImage
-# builds — this is for F-Droid's own build server, and follows the pattern of existing KF6/Qt
-# recipes already in fdroiddata (checked metadata/org.kde.ktrip.yml, de.asmw.sudokunst.yml,
-# de.akaflieg_freiburg.enroute.yml before writing this): the build: phase clones and builds Qt/KF6
-# from source itself, same as it would in CI — there is no offline/no-network restriction on it,
-# unlike an earlier draft of this file assumed. So this is now a close, explicit translation of
-# scripts/build-kf6-android.sh + scripts/build-android.sh, not a rewrite around srclibs.
+# F-Droid recipe for the Plasmai Android app (app/, package com.github.shrippen.plasmai; the
+# Plasma widget is a separate distribution, see RELEASING.md 4 vs 5). BUILD-VERIFIED: this exact
+# content produced a working, signed-by-F-Droid-test-keys APK in a real GitLab CI pipeline (a
+# merge_request_event pipeline against shrippen/fdroiddata's own fork, opened purely to trigger
+# CI — not a submission — then closed once green: `fdroid build`, `check apk`, `fdroid
+# rewritemeta`, `fdroid lint`, schema validation, `checkupdates` all passed). It got there through
+# many small real bugs (missing sdkmanager licenses/pipefail interaction, a scanner rejection of
+# vendored OpenSSL binaries, several missing apt packages, OpenSSL's actual output filenames
+# differing from the KDAB-style names assumed, a missing android-34 platform) — see the git
+# history of this file for what each one was and how it was found and fixed, rather than
+# repeating it all here.
 #
-# This file keeps comments for maintenance; the version actually submitted (pushed to the
-# shrippen/fdroiddata fork, branch new/com.github.shrippen.plasmai) has none, because
-# `fdroid rewritemeta` — which fdroiddata's CI checks the file against — strips all comments and
-# reflows lines its own way. After editing this file, copy it into the fdroiddata clone, run
-# `fdroid rewritemeta com.github.shrippen.plasmai` there, and commit *that* output.
+# This file keeps comments for maintenance; the version actually pushed (shrippen/fdroiddata
+# fork, branch new/com.github.shrippen.plasmai) has none, because `fdroid rewritemeta` — which
+# fdroiddata's CI checks the file against — strips all comments and reflows lines its own way
+# (and its exact wrap points only match Debian trixie's apt-installed fdroidserver/ruamel.yaml,
+# not any local pip or git-master install — verify idempotency locally, but take the CI job's own
+# diff as the correction for wrap points, not a local rewritemeta run). After editing this file:
+#   1. Copy it into the fdroiddata clone's metadata/, run
+#      `fdroid rewritemeta com.github.shrippen.plasmai` there.
+#   2. Diff against git HEAD; if the two lines noted below reappear unwrapped, that's expected
+#      (local rewritemeta disagrees with CI on exactly these two spots) — re-apply by hand:
+#        - `output: <path>` -> `output: \n      <path>` (trailing space after the colon)
+#        - `- export LIBOMP=<path>` -> `- export \n        LIBOMP=<path>` (same trailing space)
+#   3. `check-jsonschema --schemafile schemas/metadata.json metadata/com.github.shrippen.plasmai.yml`
+#      and `fdroid lint com.github.shrippen.plasmai` should both pass clean.
+#   4. Commit and push to the fork; if you want to re-verify before the real submission, open a
+#      throwaway MR against the fork's own master (triggers a merge_request_event pipeline) and
+#      close it once done, as above.
 #
-# TESTED against a real GitLab CI pipeline (MR !1 in shrippen/fdroiddata's own fork, opened
-# against its own master purely to trigger a merge_request_event pipeline — not the upstream
-# submission). Two real bugs this caught and fixed:
-#   - `fdroid rewritemeta` job: requires AutoUpdateMode/UpdateCheckMode/UpdateCheckData/
-#     CurrentVersion/CurrentVersionCode (schema-required, added) and unquoted version strings.
-#   - `fdroid build` job, twice: first, `--licenses` piped into the same command as installing
-#     the NDK — split into its own step first, matching fdroiddata's own recipes
-#     (de.wger.flutter.yml, com.gnethomelinux.midistrum.yml). Second, even split out, the step
-#     still failed the whole `sudo:` script *despite* sdkmanager printing "All SDK package
-#     licenses accepted": `yes` gets SIGPIPE once sdkmanager stops reading, and `set -o
-#     pipefail` (confirmed in the job's own `bash -e -u -o pipefail` invocation) turns that into
-#     the pipeline's exit status. Fixed with `|| true` on that one line — a genuine sdkmanager
-#     failure still surfaces at the next (non-yes-piped) sdkmanager call, which needs the
-#     licenses already accepted to succeed.
-#   - Canonicalizing with any local fdroidserver (git `master` included) never matched CI's own
-#     wrap points exactly — CI actually installs it via `apt-get install fdroidserver` (Debian
-#     trixie's package, with Debian's own `ruamel.yaml` version), not from PyPI or a git clone,
-#     and ruamel's exact wrap points are version-sensitive. Stop chasing byte-for-byte parity
-#     with a local run; instead take the diff `fdroid rewritemeta` prints in the CI job's own
-#     log as the correction to apply, and verify only that a *second* local rewritemeta pass
-#     changes nothing further (idempotent), which is a much weaker but sufficient check.
-#   - F-Droid's scanner rejected the checked-in prebuilt OpenSSL .so files (see `scandelete:`
-#     and the OpenSSL build steps below) — it runs right after checkout, before `sudo:`/`build:`,
-#     so this only became visible once the earlier `sudo:` license failures were fixed and the
-#     job got far enough to reach it.
-# Verification is now blocked on how far a real pipeline gets past this point, not on further
-# static checks — re-run the CI (open the MR in shrippen/fdroiddata against its own master) and
-# read the `fdroid build` job's log for the next real error. Checked so far, still valid:
-#   - Every individual cmake/gradle command below is one scripts/build-android.sh and
-#     scripts/build-kf6-android.sh already run successfully (verified in this project's own CI).
-#   - Against the MR template (.gitlab/merge_request_templates/App inclusion.md): no
-#     Description/summary here (the upstream repo's fastlane/metadata/android/ has it, which is
-#     what that template asks for instead), and `commit:` is the full hash, not a tag.
-# Before opening the real PR, re-check:
-#   - Whether the androiddeployqt-generated Gradle project's dependencies (Android Gradle Plugin,
-#     AndroidX, Kotlin stdlib) resolve on F-Droid's builder without extra `sudo:` seeding — other
-#     Gradle-based recipes there just run `./gradlew assembleRelease` successfully, so this is
-#     likely fine, but this exact Qt6+KF6+Gradle combination is untested.
-#   - `Builds[0].commit`/`versionName`/`versionCode` for whatever tag is actually submitted
-#     (this draft targets v2.0.0, commit f6f9f060b11b08960854922bc898a347eb2facb1).
-#   - The NDK version (28.2.13676358) and Qt version (6.7.3) against whatever is current when
-#     you submit.
-#   - Not yet done, per the template: Reproducible Builds is not enabled (would use your own
-#     signature instead of F-Droid's); the "external repos as git submodules instead of srclibs"
-#     checklist item isn't addressed either — the KF6 sources are cloned directly in `build:`
-#     below rather than vendored as submodules of the Plasmai repo. Both are worth doing before
-#     or during review, not blockers to opening the MR.
+# Before opening the real PR to F-Droid/fdroiddata, still worth doing (not blockers, per the MR
+# template .gitlab/merge_request_templates/App inclusion.md):
+#   - Enable Reproducible Builds (would use your own signature instead of F-Droid's).
+#   - Vendor the KF6 sources as git submodules of the Plasmai repo instead of a plain `git clone`
+#     inside `build:` (the template's "external repos as git submodules instead of srclibs").
+#   - Bump `Builds[0].commit`/`versionName`/`versionCode` for whatever tag is actually submitted
+#     (this targets v2.0.0, commit f6f9f060b11b08960854922bc898a347eb2facb1) and recheck the NDK
+#     (28.2.13676358) and Qt (6.7.3) versions against whatever is current then.
+
 
 Categories:
   - Time Tracker
@@ -100,13 +77,15 @@ Builds:
 
     # Building OpenSSL from source: the checked-in app/libs/openssl/arm64-v8a/*.so (prebuilt,
     # from KDAB/android_openssl, bundled for Qt Network's TLS backend — app/CMakeLists.txt) are
-    # exactly the kind of prebuilt binary F-Droid's scanner rejects (hit in a real test run:
-    # "Found shared library at app/libs/openssl/..."). scandelete: (below) removes them from the
-    # scanned source; this replaces them with the same files, built from source, before the app
-    # itself is configured, so Qt Network's HTTPS support (all backends are HTTPS APIs) still
-    # works. SHLIB_VERSION_NUMBER=/SHLIB_EXT= matches the KDAB naming CMakeLists.txt expects
-    # (libssl_3.so, not the default libssl.so.3), same idea as other recipes' OpenSSL builds
-    # (org.kde.ktrip.yml, de.akaflieg_freiburg.enroute.yml) with different override values.
+    # exactly the kind of prebuilt binary F-Droid's scanner rejects ("Found shared library at
+    # app/libs/openssl/..."). scandelete: (below) removes them from the scanned source; this
+    # replaces them with the same files, built from source, before the app itself is configured,
+    # so Qt Network's HTTPS support (all backends are HTTPS APIs) still works.
+    # SHLIB_VERSION_NUMBER=/SHLIB_EXT= (matching org.kde.ktrip.yml/de.akaflieg_freiburg.enroute.yml's
+    # OpenSSL 1.1.1 builds) is NOT honored by upstream OpenSSL 3.3.2's build system the same way —
+    # it just produces plain libssl.so/libcrypto.so regardless — so the loop below finds whatever
+    # actually got built and renames it to the libssl_3.so/libcrypto_3.so name CMakeLists.txt
+    # expects (KDAB's own naming convention, since Android only bundles files ending in ".so").
     #
     # Unprivileged: the same three cmake passes as scripts/build-kf6-android.sh (ECM,
     # KCoreAddons, Kirigami, cross-compiled), then the app itself as scripts/build-android.sh does.
