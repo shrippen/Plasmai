@@ -11,6 +11,8 @@ NDK_DIR="$SDK_ROOT/ndk"
 QT_VER="6.7.3"
 QT_ANDROID="$HOME/Qt/$QT_VER/android_arm64_v8a"
 QT_HOST="$HOME/Qt/$QT_VER/gcc_64"
+# Not in the base install: Kirigami needs ShaderTools (Svg comes with the base).
+QT_MODULES="qtshadertools"
 RED='\033[0;31m'; GREEN='\033[0;32m'; NC='\033[0m'
 info()  { echo -e "${GREEN}[INFO]${NC} $*"; }
 error() { echo -e "${RED}[ERROR]${NC} $*"; exit 1; }
@@ -39,9 +41,9 @@ info "NDK: $NDK_PATH"
     pip install --user --break-system-packages aqtinstall 2>/dev/null || true
     export PATH="$HOME/.local/bin:$PATH"
     info "Downloading Qt $QT_VER for Android..."
-    aqt install-qt linux android "$QT_VER" android_arm64_v8a -O "$HOME/Qt" 2>&1 | tail -3
+    aqt install-qt linux android "$QT_VER" android_arm64_v8a -m $QT_MODULES -O "$HOME/Qt" 2>&1 | tail -3
     info "Downloading Qt $QT_VER host tools..."
-    aqt install-qt linux desktop "$QT_VER" linux_gcc_64 -O "$HOME/Qt" 2>&1 | tail -3
+    aqt install-qt linux desktop "$QT_VER" linux_gcc_64 -m $QT_MODULES -O "$HOME/Qt" 2>&1 | tail -3
 }
 [ -d "$QT_ANDROID" ] && [ -d "$QT_HOST" ] || error "Qt not found"
 info "Qt: host=$QT_HOST android=$QT_ANDROID"
