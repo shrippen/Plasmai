@@ -52,7 +52,7 @@ Kirigami.Page {
             onTriggered: pageStack.push(statsPageComponent)
         },
         Kirigami.Action {
-            visible: root.isConfigured && root.providerCapabilities.filmDays
+            visible: root.filmDayAvailable
             icon.name: "view-calendar-day"
             text: i18n("Film day")
             onTriggered: pageStack.push(filmDayPageComponent)

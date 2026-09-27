@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- The film day is hidden when the Kimai instance has no Drehzettel plugin (or you lack its view permission), like trips without the Anfahrten plugin
+
 ## 2.0.0
 
 Released 2026-09-27. Changes since 1.6.3. Kimai is the reference backend; Clockify, Toggl Track and SolidTime stay experimental.

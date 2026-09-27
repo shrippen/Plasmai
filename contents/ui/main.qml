@@ -210,6 +210,9 @@ PlasmoidItem {
         && mileageState === KimaiApi.PluginState.PRESENT && KimaiApi.mileageCanView(mileagePing)
     readonly property bool canEditTrips: mileageAvailable && Mileage.can(mileagePing, "editOwn")
     readonly property string filmDayProfileKey: FilmDaySync.profileKey(activeProfile ? activeProfile.id : "", kimaiUrl)
+    /** The film day is offered only with the Drehzettel plugin and its view permission, like trips. */
+    readonly property bool filmDayAvailable: isConfigured && providerCapabilities.filmDays
+        && filmDayMode !== FilmDaySync.Mode.NO_PLUGIN && filmDayMode !== FilmDaySync.Mode.NO_PERMISSION
     readonly property string workDayBegin: {
         var v = plasmoid.configuration.workDayBegin
         return (v && String(v).length > 0) ? String(v) : KimaiApi.DEFAULT_WORK_DAY_BEGIN
@@ -1740,6 +1743,8 @@ PlasmoidItem {
 
     function resetTrackingState() {
         resetMileageState()
+        filmDayMode = FilmDaySync.Mode.NO_PLUGIN
+        filmDayPing = null
         isTracking = false
         editingActiveEntry = false
         editingStoppedTimesheet = null
@@ -2367,6 +2372,7 @@ PlasmoidItem {
         refreshProjects(!!quiet, !!forceCatalog)
         refreshWorkTotals()
         refreshMileage()
+        resolveFilmDayMode(false)
     }
 
     function loadActivitiesForProject(projectId) {
@@ -3419,8 +3425,7 @@ PlasmoidItem {
                         }
 
                         KantePlasmaToolButton {
-                            visible: root.isConfigured && root.mainViewMode === "main"
-                                     && root.providerCapabilities.filmDays
+                            visible: root.filmDayAvailable && root.mainViewMode === "main"
                             icon.name: "view-calendar-day"
                             text: i18n("Film day")
                             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight

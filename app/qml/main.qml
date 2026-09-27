@@ -110,6 +110,9 @@ Kirigami.ApplicationWindow {
     /** Plain cache handed to filmDaySync (engagement lists); not reactive. */
     property var filmDayMemo: ({})
     readonly property string filmDayProfileKey: FilmDaySync.profileKey(activeProfile ? activeProfile.id : "", TimeTracker.resolveUrl(activeProfile))
+    /** The film day is offered only with the Drehzettel plugin and its view permission, like trips. */
+    readonly property bool filmDayAvailable: isConfigured && providerCapabilities.filmDays
+        && filmDayMode !== FilmDaySync.Mode.NO_PLUGIN && filmDayMode !== FilmDaySync.Mode.NO_PERMISSION
 
     /**
      * Write data maps (pluginProbesJson) merged onto shared.json key by key,

@@ -41,11 +41,12 @@ build() { # name source-dir [cmake args...]
     local name="$1" src="$2"; shift 2
     info "Building $name..."
     cmake -S "$src" -B "$src/build" -G Ninja -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_PREFIX_PATH="$QT;$PREFIX" -DCMAKE_INSTALL_PREFIX="$PREFIX" \
+        -DCMAKE_PREFIX_PATH="$QT;$PREFIX" -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_INSTALL_LIBDIR=lib \
         -DBUILD_TESTING=OFF -DBUILD_QCH=OFF "$@" 2>&1 | show 3
     cmake --build "$src/build" 2>&1 | show 3
     cmake --install "$src/build" > /dev/null
 }
+# Always lib/ (Debian/Ubuntu would pick lib/x86_64-linux-gnu, where linuxdeploy does not look).
 if [ ! -d "$PREFIX/lib/cmake/KF6Kirigami" ] && [ ! -d "$PREFIX/lib64/cmake/KF6Kirigami" ]; then
     mkdir -p "$PREFIX"
     for repo in extra-cmake-modules kcoreaddons ki18n kirigami; do
