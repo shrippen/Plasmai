@@ -200,19 +200,18 @@ name (`KAboutData::setDesktopFileName`) and the Flatpak `app-id`. Internally the
 widget, and Android keeps it as the package name. The manifest builds from the local checkout;
 for Flathub switch the `plasmai` source to `type: git` with the release tag and commit.
 
-## 6. Tagging and publishing (not done — your call)
+## 6. Tagging and publishing
 
-Everything above stops at local, built-but-unsigned artifacts. When ready:
+Git work goes to Gitea (git.arianw.de); its push mirror carries commits and tags to GitHub,
+but not releases. So a release is made in two places, the second one automatically:
 
-```bash
-git add -A
-git commit -m "Release 2.0.0"
-git tag -a v2.0.0 -m "2.0.0"
-git push origin feature/android-plasmamobile   # or wherever this lands after review/merge
-git push origin v2.0.0
-```
-
-Pushing the tag does **not** currently trigger anything (no release workflow reacts to tags —
-`.github/workflows/android.yml` only reacts to pushes on `main`). Add a tag-triggered workflow
-once 4.1/4.3 are sorted if you want CI to build+sign+attach release artifacts automatically;
-until then, build everything above locally and attach it to a manually-created GitHub Release.
+1. `CHANGELOG.md` has a section `## X.Y.Z` (the release notes: `scripts/release-notes.sh X.Y.Z`).
+2. Tag and push to Gitea: `git tag -a vX.Y.Z -m "X.Y.Z" && git push origin vX.Y.Z`.
+3. Gitea release with `tea` (no APK there):
+   `tea releases create --login git.arianw.de --repo shrippen/plasmai --tag vX.Y.Z --title "Plasmai X.Y.Z" --note "$(scripts/release-notes.sh X.Y.Z)"`
+   plus `--asset` for the `.plasmoid` and the Linux tarball.
+4. The mirror pushes the tag to GitHub; `.github/workflows/release.yml` builds the release APK,
+   signs it with the secrets from 4.3, checks the signature and creates the GitHub release
+   with the same notes and the APK (`Plasmai-X.Y.Z.apk`). IzzyOnDroid fetches it from there.
+   Run by hand (`gh workflow run release.yml -R shrippen/Plasmai`) it only builds an unsigned
+   test APK.
