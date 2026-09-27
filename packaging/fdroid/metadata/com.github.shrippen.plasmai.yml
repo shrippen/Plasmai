@@ -121,3 +121,12 @@ Builds:
       - ./gradlew assembleRelease
 
     output: app/build-android/android-build/build/outputs/apk/release/android-build-release-unsigned.apk
+
+# Auto-update from new git tags (CONTRIBUTING.md "After You Added Your App"). versionCode isn't
+# derivable from the tag name alone (v2.0.0 -> 20000), so UpdateCheckData reads it from
+# AndroidManifest.xml, which RELEASING.md 1's version bump keeps in sync with metadata.json.
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+UpdateCheckData: app/android/AndroidManifest.xml|versionCode="(\d+)"|.|versionName="([\d.]+)"
+CurrentVersion: '2.0.0'
+CurrentVersionCode: 20000

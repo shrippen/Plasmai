@@ -164,6 +164,10 @@ Submission is prepared as far as it can be without opening the PR yourself:
 4. Open the MR yourself at the URL the push printed, with an AI-disclosure note (same reasoning
    as Flathub, 5.2) — expect review rounds; F-Droid maintainers test the build themselves before
    merging, so treat this as a starting point, not a finished submission.
+5. TODO once accepted: add the F-Droid "Get it on" badge and a shields.io version badge
+   (`https://img.shields.io/f-droid/v/com.github.shrippen.plasmai.svg?logo=F-Droid`, per
+   CONTRIBUTING.md) to the project's README.md on Gitea/GitHub — not the landing page
+   (`docs/index.html`), where it wouldn't fit stylistically.
 
 ## 5. Plasma Mobile / desktop Linux app
 
