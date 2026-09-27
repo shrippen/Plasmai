@@ -122,7 +122,8 @@ Builds:
       - PATH=$NDK_PATH/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH ./Configure shared
         android-arm64 -D__ANDROID_API__=28
       - PATH=$NDK_PATH/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH make -j$(nproc)
-        SHLIB_VERSION_NUMBER= SHLIB_EXT=_3.so build_libs
+        SHLIB_VERSION_NUMBER= SHLIB_EXT=_3.so build_libs > /tmp/openssl-build.log 2>&1 ||
+        (tail -n 200 /tmp/openssl-build.log; exit 1)
       - cd -
       - mkdir -p app/libs/openssl/arm64-v8a
       - cp /tmp/openssl/libssl_3.so /tmp/openssl/libcrypto_3.so app/libs/openssl/arm64-v8a/
