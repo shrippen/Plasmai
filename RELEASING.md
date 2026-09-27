@@ -126,7 +126,7 @@ states plainly "Vibe-coded apps will be rejected" and that they are "strongly op
 which are fully or in part created by generative AI tools." Plasmai was built with AI
 assistance throughout, so this route is closed regardless of app quality — do not submit here.
 
-### 4.6 Main F-Droid repository (chosen route — draft recipe prepared)
+### 4.6 Main F-Droid repository (chosen route — recipe build-verified)
 
 F-Droid builds from source on their own infrastructure — you cannot upload a binary APK there
 (except in narrow, discouraged exceptions), which also sidesteps IzzyOnDroid's per-APK AI
@@ -138,32 +138,40 @@ submitting, since policies change. Submitting means a PR to
 [F-Droid/fdroiddata](https://gitlab.com/fdroid/fdroiddata) with a recipe, not an artifact
 produced here.
 
-A draft recipe is prepared under `packaging/fdroid/metadata/com.github.shrippen.plasmai.yml`
-(mirrors how `packaging/flatpak/` holds the Flathub draft). It's a close translation of
+A recipe is prepared under `packaging/fdroid/metadata/com.github.shrippen.plasmai.yml` (mirrors
+how `packaging/flatpak/` holds the Flathub draft). It's a close translation of
 `scripts/build-kf6-android.sh` + `scripts/build-android.sh` into F-Droid's `Builds[]` format —
-`sudo:` installs Qt6 and the NDK (root, network available), `build:` cross-compiles ECM →
-KCoreAddons → Kirigami → the app itself (unprivileged, but **also** with network — checking
-real recipes already in fdroiddata (`org.kde.ktrip.yml`, `de.asmw.sudokunst.yml`,
-`de.akaflieg_freiburg.enroute.yml`) showed the build phase itself does live `git clone`/`wget`,
-which corrected an earlier wrong assumption here that it was offline; `srclibs:` turned out to
-be unnecessary for this recipe). `fdroid readmeta`/`fdroid lint` (`fdroidserver` PyPI package,
-installed locally) pass against a real clone of fdroiddata. **Not build-tested**: there is no
-F-Droid buildserver VM here (needs their Vagrant/QEMU setup) to run `fdroid build --local`; the
-recipe's header comment lists what to recheck first, the biggest one being whether the
-androiddeployqt-generated Gradle project's dependencies (Android Gradle Plugin, AndroidX,
-Kotlin stdlib) resolve on their builder without extra seeding.
+`sudo:` installs Qt6, the NDK, the android-34 platform and a handful of runtime libs (root,
+network available), `build:` builds OpenSSL from source, then cross-compiles ECM → KCoreAddons →
+Kirigami → the app itself (unprivileged, but **also** with network — real recipes already in
+fdroiddata do live `git clone`/`wget` in `build:` too).
+
+**Build-verified**: this exact recipe produced a full green run in a real GitLab CI pipeline —
+opened as a throwaway MR from the fork's own branch against its own `master` (purely to trigger
+a `merge_request_event` pipeline, not a submission) and closed once green. `fdroid build`,
+`check apk`, `fdroid rewritemeta`, `fdroid lint`, schema validation and `checkupdates` all
+passed; `fdroid build` ran a genuine ~6-minute cross-compile end to end. Getting there took
+several rounds against the real infrastructure (sdkmanager licenses interacting with
+`pipefail`, F-Droid's scanner rejecting the vendored OpenSSL binaries, missing apt packages on
+the minimal build image, OpenSSL 3.x not honoring the filename override the way 1.1.1 did, a
+missing `android-34` platform) — the recipe file's git history and header comment have the
+specifics; RELEASING.md doesn't repeat them.
 
 Submission is prepared as far as it can be without opening the PR yourself:
 
 1. A fork `shrippen/fdroiddata` exists (`glab repo fork fdroid/fdroiddata`), cloned to
    `/home/arian/Hacking/eigene/fdroiddata`.
-2. Branch `new/com.github.shrippen.plasmai` there has the recipe committed and pushed to the
-   fork (`git push origin new/com.github.shrippen.plasmai`).
-3. Before opening the MR: update `Builds[0].commit`/`versionName`/`versionCode` for whichever
-   tag is actually submitted (the draft targets v2.0.0).
-4. Open the MR yourself at the URL the push printed, with an AI-disclosure note (same reasoning
-   as Flathub, 5.2) — expect review rounds; F-Droid maintainers test the build themselves before
-   merging, so treat this as a starting point, not a finished submission.
+2. Branch `new/com.github.shrippen.plasmai` there has the verified recipe committed and pushed
+   to the fork.
+3. Before opening the MR: bump `Builds[0].commit`/`versionName`/`versionCode` for whichever tag
+   is actually submitted (currently targets v2.0.0), and consider the two still-open template
+   items noted in the recipe's header (Reproducible Builds, KF6 sources as git submodules
+   instead of a plain clone) — not blockers, but worth doing before or during review.
+4. Open the MR yourself at `https://gitlab.com/shrippen/fdroiddata/-/merge_requests/new` (branch
+   `new/com.github.shrippen.plasmai` against `fdroid/fdroiddata:master`), with an AI-disclosure
+   note (same reasoning as Flathub, 5.2) — expect review rounds; F-Droid maintainers test the
+   build themselves before merging, so treat this as a strong starting point, not a guaranteed
+   merge.
 5. TODO once accepted: add the F-Droid "Get it on" badge and a shields.io version badge
    (`https://img.shields.io/f-droid/v/com.github.shrippen.plasmai.svg?logo=F-Droid`, per
    CONTRIBUTING.md) to the project's README.md on Gitea/GitHub — not the landing page
