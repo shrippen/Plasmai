@@ -26,6 +26,12 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      # Qt's host tools (qsb for Kirigami's shaders) need the GL libraries a desktop has.
+      - name: Install host libraries for Qt tools
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q libegl1 libgl1 libopengl0 libxkbcommon0 libfontconfig1 > /dev/null
+
       # The runner ships an Android SDK with sdkmanager; add what the build needs.
       - name: Install Android SDK packages
         run: |
