@@ -19,7 +19,9 @@
 #     writes into Qt resources and OpenSSL's "built on";
 #   - Kirigami built with -j1: its QML modules are AOT-compiled against each other's type
 #     info, and a parallel build races on it, so which functions get compiled varies;
-#   - OpenSSL from source (not the prebuilt libs in app/libs/openssl, which F-Droid removes).
+#   - OpenSSL from source (not the prebuilt libs in app/libs/openssl, which F-Droid removes);
+#   - the SDK and checkout paths mapped away in the debug info (-ffile-prefix-map): it is
+#     stripped from the APK, but the libraries' build IDs are hashed over it first.
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -37,6 +39,10 @@ KF6="$WORK/kf6"
 [ -d "$QT_ANDROID" ] && [ -d "$QT_HOST" ] || { echo "Qt not found under $QT_DIR" >&2; exit 1; }
 export SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-$(git -C "$REPO_DIR" log -1 --format=%ct)}"
 echo "SOURCE_DATE_EPOCH=$SOURCE_DATE_EPOCH"
+
+# GitHub: /usr/local/lib/android/sdk and /home/runner/work/...; F-Droid: /opt/android-sdk and
+# /home/vagrant/build/<appid>.
+PREFIX_MAP="-ffile-prefix-map=$SDK_ROOT=/android-sdk -ffile-prefix-map=$REPO_DIR=/plasmai"
 
 rm -rf "$WORK"
 mkdir -p "$WORK" "$KF6"
@@ -82,6 +88,7 @@ CROSS_ARGS=(
     -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=BOTH
     -DQT_HOST_PATH="$QT_HOST"
     -DECM_DIR="$KF6/share/ECM/cmake"
+    -DCMAKE_C_FLAGS="$PREFIX_MAP" -DCMAKE_CXX_FLAGS="$PREFIX_MAP"
     -DBUILD_TESTING=OFF -DBUILD_QCH=OFF
 )
 
@@ -118,6 +125,7 @@ cmake -B build-android \
     -DQT_ANDROID_TARGET_SDK_VERSION=34 \
     -DECM_DIR="$KF6/share/ECM/cmake" \
     -DQT_QML_IMPORT_PATH="$KF6/lib/qml" \
+    -DCMAKE_C_FLAGS="$PREFIX_MAP" -DCMAKE_CXX_FLAGS="$PREFIX_MAP" \
     -DBUILD_TESTING=OFF
 cmake --build build-android -j"$(nproc)"
 
