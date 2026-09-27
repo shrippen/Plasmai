@@ -32,7 +32,7 @@ if [[ -z "${DISPLAY:-}" && -z "${WAYLAND_DISPLAY:-}" ]]; then
 fi
 PYTEST=(python -m pytest "$ROOT/tests" -q)
 if [[ "${1:-}" == "unit" ]]; then
-    PYTEST=(python -m pytest "$ROOT/tests/viewer/test_error_classifier.py" "$ROOT/tests/viewer/test_deny_list.py" -q)
+    PYTEST=(python -m pytest "$ROOT/tests/test_app_resources.py" "$ROOT/tests/viewer/test_error_classifier.py" "$ROOT/tests/viewer/test_deny_list.py" -q)
 elif [[ "${1:-}" != "all" && "${1:-}" != "shell" ]]; then
     PYTEST+=(-m "not shell")
 fi

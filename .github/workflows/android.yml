@@ -23,6 +23,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # A script missing from the qrc still builds, but the app fails at startup.
+      - name: Check app resources
+        run: python3 tests/test_app_resources.py
+
       - uses: ./.github/actions/android-setup
 
       # The same script as on a developer machine: Qt via aqtinstall, KF6 (Kirigami)
