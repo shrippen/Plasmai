@@ -27,13 +27,20 @@
 #     the pipeline's exit status. Fixed with `|| true` on that one line — a genuine sdkmanager
 #     failure still surfaces at the next (non-yes-piped) sdkmanager call, which needs the
 #     licenses already accepted to succeed.
-#   - Canonicalize with fdroidserver's git `master` (what fdroiddata's CI installs), not an
-#     older PyPI release — they can reformat lines slightly differently; run
-#     `PYTHONPATH=<checkout>:<checkout>/examples python3 <checkout>/fdroid rewritemeta …`
-#     against a fresh clone of https://gitlab.com/fdroid/fdroidserver (branch master) instead of
-#     a pip-installed fdroidserver, then diff to confirm no further reflow.
-# Not yet verified: whether the actual Qt/KF6/Gradle build steps succeed (the pipeline was still
-# running past that point as of this note). Checked so far, still valid:
+#   - Canonicalizing with any local fdroidserver (git `master` included) never matched CI's own
+#     wrap points exactly — CI actually installs it via `apt-get install fdroidserver` (Debian
+#     trixie's package, with Debian's own `ruamel.yaml` version), not from PyPI or a git clone,
+#     and ruamel's exact wrap points are version-sensitive. Stop chasing byte-for-byte parity
+#     with a local run; instead take the diff `fdroid rewritemeta` prints in the CI job's own
+#     log as the correction to apply, and verify only that a *second* local rewritemeta pass
+#     changes nothing further (idempotent), which is a much weaker but sufficient check.
+#   - F-Droid's scanner rejected the checked-in prebuilt OpenSSL .so files (see `scandelete:`
+#     and the OpenSSL build steps below) — it runs right after checkout, before `sudo:`/`build:`,
+#     so this only became visible once the earlier `sudo:` license failures were fixed and the
+#     job got far enough to reach it.
+# Verification is now blocked on how far a real pipeline gets past this point, not on further
+# static checks — re-run the CI (open the MR in shrippen/fdroiddata against its own master) and
+# read the `fdroid build` job's log for the next real error. Checked so far, still valid:
 #   - Every individual cmake/gradle command below is one scripts/build-android.sh and
 #     scripts/build-kf6-android.sh already run successfully (verified in this project's own CI).
 #   - Against the MR template (.gitlab/merge_request_templates/App inclusion.md): no
@@ -74,24 +81,32 @@ Builds:
     commit: f6f9f060b11b08960854922bc898a347eb2facb1
     timeout: 10800
 
-    # Root, network available: same tools scripts/build-android.sh installs — aqtinstall (Qt6
-    # host + android_arm64_v8a) and the exact Android NDK it pins.
+    # Root, network available. sdkmanager is already on PATH and $$SDK$$ pre-populated by the
+    # buildserver's own base image (confirmed in a real test run: no need to bootstrap
+    # cmdline-tools ourselves, unlike scripts/build-android.sh's from-scratch environment) — just
+    # aqtinstall (Qt6 host + android_arm64_v8a) and the exact Android NDK version we pin.
     sudo:
       - apt-get update
-      - apt-get install -y --no-install-recommends ninja-build python3-pip unzip curl
+      - apt-get install -y --no-install-recommends ninja-build python3-pip perl
       - pip install --break-system-packages aqtinstall
-      - export PATH="$HOME/.local/bin:$PATH" && aqt install-qt linux android 6.7.3
-        android_arm64_v8a -m qtshadertools -O /opt/plasmai-qt
-      - export PATH="$HOME/.local/bin:$PATH" && aqt install-qt linux desktop 6.7.3 linux_gcc_64
-        -m qtshadertools -O /opt/plasmai-qt
-      - mkdir -p $$SDK$$/cmdline-tools
-      - test -f $$SDK$$/cmdline-tools/latest/bin/sdkmanager || (curl -sL
-        https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -o
-        /tmp/cmdtools.zip && unzip -qo /tmp/cmdtools.zip -d $$SDK$$/cmdline-tools/ && mv
-        $$SDK$$/cmdline-tools/cmdline-tools $$SDK$$/cmdline-tools/latest)
-      - yes | $$SDK$$/cmdline-tools/latest/bin/sdkmanager --sdk_root=$$SDK$$ --licenses || true
-      - $$SDK$$/cmdline-tools/latest/bin/sdkmanager --sdk_root=$$SDK$$ "ndk;28.2.13676358"
+      - aqt install-qt linux android 6.7.3 android_arm64_v8a -m qtshadertools -O /opt/plasmai-qt
+      - aqt install-qt linux desktop 6.7.3 linux_gcc_64 -m qtshadertools -O /opt/plasmai-qt
+      # sdkmanager exits 0 here (see the "All SDK package licenses accepted" line), but `yes`
+      # gets SIGPIPE once it stops reading, and pipefail turns that into this line's exit status
+      # — `|| true` tolerates it; a genuine failure still surfaces at the next sdkmanager call.
+      - yes | sdkmanager --licenses || true
+      - sdkmanager "ndk;28.2.13676358"
 
+    # Building OpenSSL from source: the checked-in app/libs/openssl/arm64-v8a/*.so (prebuilt,
+    # from KDAB/android_openssl, bundled for Qt Network's TLS backend — app/CMakeLists.txt) are
+    # exactly the kind of prebuilt binary F-Droid's scanner rejects (hit in a real test run:
+    # "Found shared library at app/libs/openssl/..."). scandelete: (below) removes them from the
+    # scanned source; this replaces them with the same files, built from source, before the app
+    # itself is configured, so Qt Network's HTTPS support (all backends are HTTPS APIs) still
+    # works. SHLIB_VERSION_NUMBER=/SHLIB_EXT= matches the KDAB naming CMakeLists.txt expects
+    # (libssl_3.so, not the default libssl.so.3), same idea as other recipes' OpenSSL builds
+    # (org.kde.ktrip.yml, de.akaflieg_freiburg.enroute.yml) with different override values.
+    #
     # Unprivileged: the same three cmake passes as scripts/build-kf6-android.sh (ECM,
     # KCoreAddons, Kirigami, cross-compiled), then the app itself as scripts/build-android.sh does.
     build:
@@ -100,6 +115,16 @@ Builds:
       - export QT_HOST=/opt/plasmai-qt/6.7.3/gcc_64
       - export KF6=$HOME/kf6-android
       - mkdir -p $KF6
+      - git clone --quiet --depth 1 --branch openssl-3.3.2
+        https://github.com/openssl/openssl.git /tmp/openssl
+      - cd /tmp/openssl
+      - PATH=$NDK_PATH/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH ./Configure shared
+        android-arm64 -D__ANDROID_API__=28
+      - PATH=$NDK_PATH/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH make -j$(nproc)
+        SHLIB_VERSION_NUMBER= SHLIB_EXT=_3.so build_libs
+      - cd -
+      - mkdir -p app/libs/openssl/arm64-v8a
+      - cp /tmp/openssl/libssl_3.so /tmp/openssl/libcrypto_3.so app/libs/openssl/arm64-v8a/
       - git clone --quiet --depth 1 --branch v6.8.0
         https://invent.kde.org/frameworks/extra-cmake-modules.git /tmp/ecm
       - cmake -S /tmp/ecm -B /tmp/ecm/build -G Ninja -DCMAKE_INSTALL_PREFIX=$KF6
@@ -144,6 +169,9 @@ Builds:
       - ./gradlew assembleRelease
 
     output: app/build-android/android-build/build/outputs/apk/release/android-build-release-unsigned.apk
+    scandelete:
+      - app/libs/openssl/arm64-v8a/libssl_3.so
+      - app/libs/openssl/arm64-v8a/libcrypto_3.so
 
 # Auto-update from new git tags (CONTRIBUTING.md "After You Added Your App"). versionCode isn't
 # derivable from the tag name alone (v2.0.0 -> 20000), so UpdateCheckData reads it from
