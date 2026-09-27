@@ -9,7 +9,7 @@ mkdir -p "${OUT}"
 python3 - "${OUT}" "${ROOT}/demo/shots.json" > "${CONFIG}/com.github.shrippen.plasmai/screenshots.json" <<'PY'
 import json, sys
 shots = json.load(open(sys.argv[2]))["shots"]
-print(json.dumps({"dir": sys.argv[1], "shots": [{"name": s["name"], "view": s.get("view", "main")} for s in shots]}))
+print(json.dumps({"dir": sys.argv[1], "shots": [{"name": s["name"], "view": s.get("view", "main")} for s in shots if s.get("view") != "none"]}))  # "none": cropped below
 PY
 cat > "${WORK}/screens.json" <<'JSON'
 { "screens": [ { "name": "shot", "x": 0, "y": 0, "width": 1920, "height": 1200,
@@ -27,4 +27,9 @@ if ! grep -q "PLASMAI_SCREENSHOT_DONE" "${LOG}"; then
     echo "Screenshot run did not finish (exit ${rc}). Log:"
     tail -40 "${LOG}"
     exit 1
+fi
+# Detail crop of the timer card with the day sparkline (upper part of the timer view).
+if [[ -f "${OUT}/timer.png" ]]; then
+    size="$(magick identify -format '%w %h' "${OUT}/timer.png")"
+    magick "${OUT}/timer.png" -crop "${size% *}x$(( ${size#* } * 60 / 100 ))+0+0" +repage "${OUT}/detail-sparkline.png"
 fi

@@ -19,11 +19,16 @@
     {
       "name": "filmday",
       "view": "filmday"
+    },
+    {
+      "name": "detail-sparkline",
+      "view": "none"
     }
   ],
   "page": {
     "01-panel.jpg": "timer",
     "02-add-screen.jpg": "add",
-    "03-statistics.jpg": "statistics"
+    "03-statistics.jpg": "statistics",
+    "detail-sparkline.jpg": "detail-sparkline"
   }
 }
