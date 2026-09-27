@@ -16,6 +16,8 @@ QT_MODULES="qtshadertools"
 RED='\033[0;31m'; GREEN='\033[0;32m'; NC='\033[0m'
 info()  { echo -e "${GREEN}[INFO]${NC} $*"; }
 error() { echo -e "${RED}[ERROR]${NC} $*"; exit 1; }
+# Build output is trimmed to its last lines; PLASMAI_VERBOSE=1 (CI) shows all of it.
+show() { if [ -n "${PLASMAI_VERBOSE:-}" ]; then cat; else tail -"$1"; fi; }
 
 # ── 1. NDK ──
 NDK_PATH=$(ls -d "$NDK_DIR"/28.* 2>/dev/null | head -1)
@@ -75,9 +77,9 @@ cmake -B build-android \
     -DECM_DIR="$KF6_ANDROID/share/ECM/cmake" \
     -DQT_QML_IMPORT_PATH="$KF6_ANDROID/lib/qml" \
     -DBUILD_TESTING=OFF \
-    2>&1 | tail -5
+    2>&1 | show 5
 
-cmake --build build-android -j$(nproc) 2>&1 | tail -10
+cmake --build build-android -j$(nproc) 2>&1 | show 10
 
 # ── 5. Patch KF6 QML plugin dependencies (libomp.so) ──
 GRADLE_TASK="assembleDebug"
@@ -106,7 +108,7 @@ if [ -d "$LIBS_DIR" ] && [ -f "$LIBOMP" ] && [ ! -f "$LIBS_DIR/libomp.so" ]; the
     cp "$LIBOMP" "$LIBS_DIR/"
 fi
 cd "$APP_DIR/build-android/android-build"
-./gradlew "$GRADLE_TASK" 2>&1 | tail -10
+./gradlew "$GRADLE_TASK" 2>&1 | show 10
 cd "$APP_DIR"
 
 # ── 6. Copy APK ──

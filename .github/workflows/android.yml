@@ -44,6 +44,8 @@ jobs:
       # The same script as on a developer machine: Qt via aqtinstall, KF6 (Kirigami)
       # from source, CMake, libomp for Kirigami, Gradle.
       - name: Build APK
+        env:
+          PLASMAI_VERBOSE: 1
         run: ./scripts/build-android.sh debug
 
       - name: Upload APK artifact
