@@ -1,8 +1,8 @@
 # Flatpak manifest for the Plasmai app (Android/Plasma Mobile/desktop-Linux Kirigami build,
 # app/CMakeLists.txt) — NOT the Plasma Widget, which is a Plasmoid and cannot be a Flatpak.
 #
-# UNTESTED: written from the KDE Flatpak conventions without a local flatpak-builder / KDE
-# runtime to build against (see RELEASING.md before publishing). Check before shipping:
+# Builds cleanly with flatpak-builder (locally and in .github/workflows/release.yml, which
+# produces the .flatpak bundle attached to every release). Before a Flathub submission, recheck:
 #   - The KDE runtime version below (org.kde.Platform//6.11) against the current
 #     https://api.kde.org/flatpak-kde-runtime — bump if a newer one is current.
 #   - Whether org.kde.Platform already bundles QtKeychain; if so, drop the qtkeychain module.
