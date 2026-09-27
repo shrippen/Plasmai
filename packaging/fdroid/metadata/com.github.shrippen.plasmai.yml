@@ -126,7 +126,10 @@ Builds:
         (tail -n 200 /tmp/openssl-build.log; exit 1)
       - cd -
       - mkdir -p app/libs/openssl/arm64-v8a
-      - cp /tmp/openssl/libssl_3.so /tmp/openssl/libcrypto_3.so app/libs/openssl/arm64-v8a/
+      - ls -la /tmp/openssl/*.so* 2>&1 || true
+      - for f in libssl libcrypto; do src=$(ls /tmp/openssl/${f}*.so* 2>/dev/null | head -1);
+        if [ -n "$src" ]; then cp "$src" app/libs/openssl/arm64-v8a/${f}_3.so; fi; done
+      - ls -la app/libs/openssl/arm64-v8a/
       - git clone --quiet --depth 1 --branch v6.8.0
         https://invent.kde.org/frameworks/extra-cmake-modules.git /tmp/ecm
       - cmake -S /tmp/ecm -B /tmp/ecm/build -G Ninja -DCMAKE_INSTALL_PREFIX=$KF6
