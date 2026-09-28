@@ -120,6 +120,10 @@ if(KF6_FOUND)
     target_link_libraries(plasmai-app PRIVATE KF6::Kirigami)
     if(TARGET KF6::I18n)
         target_link_libraries(plasmai-app PRIVATE KF6::I18n)
+        # Hide KI18n's API deprecated up to 6.8 (the app uses KLocalizedQmlContext): newer
+        # KI18n marks the old KLocalizedContext with an attribute GCC <= 12 can't parse, and
+        # <KLocalizedString> includes it (AppImage build on Ubuntu 22.04).
+        target_compile_definitions(plasmai-app PRIVATE KI18N_DISABLE_DEPRECATED_BEFORE_AND_AT=0x060800)
     endif()
     if(TARGET KF6::I18nQml)
         target_link_libraries(plasmai-app PRIVATE KF6::I18nQml)
