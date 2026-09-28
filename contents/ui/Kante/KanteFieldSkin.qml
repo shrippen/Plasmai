@@ -64,6 +64,18 @@ Item {
         color: KanteStyle.mutedTextColor
     }
 
+    // A non-editable combo box's text field never pastes, but Qt's styles bind its readOnly to
+    // `down`; every release then re-checks the clipboard for text, which on Android reads the
+    // content and shows "… pasted from your clipboard". Keep it read-only (in every style).
+    Binding {
+        target: skin.comboBox && skin.control.contentItem ? skin.control.contentItem : null
+        property: "readOnly"
+        value: true
+        when: skin.comboBox && !skin.control.editable && skin.control.contentItem !== null
+              && skin.control.contentItem.readOnly !== undefined
+        restoreMode: Binding.RestoreBindingOrValue
+    }
+
     Binding {
         target: skin.comboBox ? skin.control.indicator : null
         property: "opacity"

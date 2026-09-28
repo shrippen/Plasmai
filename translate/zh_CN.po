@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-09-28 10:08+0200\n"
+"POT-Creation-Date: 2026-09-28 11:00+0200\n"
 "PO-Revision-Date: 2026-08-09 19:45+0200\n"
 "Last-Translator: Cursor Agent\n"
 "Language-Team: Simplified Chinese\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: app/qml/AboutPage.qml:11 app/qml/main.qml:827
+#: app/qml/AboutPage.qml:11 app/qml/main.qml:855
 msgid "About"
 msgstr "关于"
 
@@ -44,7 +44,7 @@ msgstr "源代码"
 msgid "More projects"
 msgstr "更多项目"
 
-#: app/qml/ConnectionPage.qml:15 app/qml/main.qml:819
+#: app/qml/ConnectionPage.qml:15 app/qml/main.qml:847
 #: contents/config/config.qml:6 contents/ui/config/ConfigConnection.qml:366
 msgid "Connection"
 msgstr "连接"
@@ -160,7 +160,7 @@ msgstr "连接正常！"
 msgid "Missing URL or token (type: %1)"
 msgstr "缺少 URL 或令牌（类型：%1）"
 
-#: app/qml/FavoritesPage.qml:12 app/qml/main.qml:815 app/qml/TimerPage.qml:637
+#: app/qml/FavoritesPage.qml:12 app/qml/main.qml:843 app/qml/TimerPage.qml:637
 #: contents/config/config.qml:11 contents/ui/config/ConfigDisplay.qml:833
 #: contents/ui/config/ConfigDisplay.qml:888
 #: contents/ui/config/ConfigFavorites.qml:423 contents/ui/EntryLists.qml:167
@@ -265,7 +265,7 @@ msgstr ":"
 msgid "Minutes"
 msgstr "分钟"
 
-#: app/qml/main.qml:221 app/qml/main.qml:769 app/qml/TimerPage.qml:17
+#: app/qml/main.qml:221 app/qml/main.qml:797 app/qml/TimerPage.qml:17
 #: contents/ui/main.qml:357 contents/ui/main.qml:359 contents/ui/main.qml:2743
 #: contents/ui/main.qml:3364
 msgid "Plasmai"
@@ -375,24 +375,28 @@ msgstr "昨天"
 msgid "%1d ago"
 msgstr "%1天前"
 
-#: app/qml/main.qml:798
+#: app/qml/main.qml:783
+msgid "Menu"
+msgstr "菜单"
+
+#: app/qml/main.qml:826
 msgid "Timer"
 msgstr "计时器"
 
-#: app/qml/main.qml:802
+#: app/qml/main.qml:830
 msgid "Add Entry"
 msgstr "添加条目"
 
-#: app/qml/main.qml:806 app/qml/StatsPage.qml:15 app/qml/TimerPage.qml:51
+#: app/qml/main.qml:834 app/qml/StatsPage.qml:15 app/qml/TimerPage.qml:51
 #: contents/ui/main.qml:3359 contents/ui/main.qml:3416
 msgid "Statistics"
 msgstr "统计"
 
-#: app/qml/main.qml:810 app/qml/TripsPage.qml:18
+#: app/qml/main.qml:838 app/qml/TripsPage.qml:18
 msgid "Trips"
 msgstr "行程"
 
-#: app/qml/main.qml:823 app/qml/SettingsPage.qml:13
+#: app/qml/main.qml:851 app/qml/SettingsPage.qml:13
 msgid "Settings"
 msgstr "设置"
 

@@ -339,6 +339,8 @@ ROWS = [
      "Links", "Liens", "Enlaces", "Link", "Links", "Links", "Linki", "Посилання", "Ссылки", "リンク", "链接"),
     ("Source code",
      "Quellcode", "Code source", "Código fuente", "Codice sorgente", "Broncode", "Código-fonte", "Kod źródłowy", "Вихідний код", "Исходный код", "ソースコード", "源代码"),
+    ("Menu",
+     "Menü", "Menu", "Menú", "Menu", "Menu", "Menu", "Menu", "Меню", "Меню", "メニュー", "菜单"),
     ("More projects",
      "Weitere Projekte", "Autres projets", "Más proyectos", "Altri progetti", "Meer projecten", "Mais projetos", "Więcej projektów", "Інші проєкти", "Другие проекты", "ほかのプロジェクト", "更多项目"),
 ]

@@ -774,6 +774,18 @@ Kirigami.ApplicationWindow {
         return "leave"
     }
 
+    /** Kirigami's drawer button in the header has only an icon and no accessible name (screen
+     *  readers and AT-SPI see an unnamed button). Name every one of them; they come and go
+     *  with the pages. */
+    function nameDrawerButtons(item) {
+        if (!item) return
+        if (String(item).indexOf("HandleButton") === 0) {
+            item.Accessible.name = i18n("Menu")
+        }
+        var kids = item.children || []
+        for (var i = 0; i < kids.length; ++i) nameDrawerButtons(kids[i])
+    }
+
     /** Drawer navigation is flat: return to the timer page first so pages don't stack up. */
     function navigateTo(component) {
         if (pageStack.depth > 1) pageStack.pop(pageStack.get(0))
@@ -854,8 +866,21 @@ Kirigami.ApplicationWindow {
     pageStack.globalToolBar.style: Kirigami.ApplicationHeaderStyle.ToolBar
     pageStack.globalToolBar.showNavigationButtons: Kirigami.ApplicationHeaderStyle.ShowBackButton
 
+    // Page headers (and their drawer buttons) are built after the page switch.
+    Timer {
+        id: drawerButtonNamer
+        interval: 300
+        onTriggered: root.nameDrawerButtons(root.contentItem)
+    }
+    Connections {
+        target: root.pageStack
+        function onCurrentItemChanged() { drawerButtonNamer.restart() }
+        function onDepthChanged() { drawerButtonNamer.restart() }
+    }
+
     pageStack.initialPage: TimerPage { }
     Component.onCompleted: {
+        drawerButtonNamer.restart()
         Platform.setBackend(AppBackend.create(TokenStore, FileStore,
             typeof idleWatcher !== "undefined" ? idleWatcher : undefined,
             typeof notifier !== "undefined" ? notifier : undefined))
