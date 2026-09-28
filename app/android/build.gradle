@@ -87,6 +87,7 @@ android {
         minSdkVersion qtMinSdkVersion
         targetSdkVersion qtTargetSdkVersion
         ndk.abiFilters = qtTargetAbiList.split(",")
+        manifestPlaceholders = [appLabel: "Plasmai"]
     }
 
     if (hasReleaseSigning) {
@@ -101,6 +102,13 @@ android {
     }
 
     buildTypes {
+        // Debug builds get their own application id and name, so a dev build installs next to the
+        // released app (separate data, separate icon) instead of replacing it.
+        debug {
+            applicationIdSuffix ".dev"
+            versionNameSuffix "-dev"
+            manifestPlaceholders = [appLabel: "Plasmai Dev"]
+        }
         release {
             if (hasReleaseSigning) {
                 signingConfig signingConfigs.release
