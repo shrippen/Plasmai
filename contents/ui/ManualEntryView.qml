@@ -2,12 +2,11 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
-import org.kde.plasma.components as PlasmaComponents3
 import "../code/kimaiApi.js" as KimaiApi
 import "../code/dateTimeFormat.js" as DTF
 import "."
 import "Kante"
-import "KantePlasma"
+import "Controls" as Controls
 
 /**
  * Manual timesheet editor — project/activity pickers plus date/time fields
@@ -238,7 +237,7 @@ ColumnLayout {
         Qt.callLater(trySelectPendingActivity)
     }
 
-    PlasmaComponents3.Label {
+    Controls.Label {
         Layout.fillWidth: true
         wrapMode: Text.WordWrap
         font.pointSize: KanteStyle.smallFont.pointSize
@@ -291,7 +290,7 @@ ColumnLayout {
                 onCreateActivityRequested: root.createActivityRequested()
             }
 
-            PlasmaComponents3.Label {
+            Controls.Label {
                 Layout.fillWidth: true
                 Layout.topMargin: Kirigami.Units.smallSpacing
                 text: i18n("Begin")
@@ -316,7 +315,7 @@ ColumnLayout {
                 }
             }
 
-            PlasmaComponents3.Label {
+            Controls.Label {
                 Layout.fillWidth: true
                 text: i18n("End")
                 font.bold: true
@@ -340,7 +339,7 @@ ColumnLayout {
                 }
             }
 
-            PlasmaComponents3.Label {
+            Controls.Label {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
                 font.pointSize: KanteStyle.smallFont.pointSize
@@ -389,14 +388,14 @@ ColumnLayout {
         Layout.fillWidth: true
         spacing: Kirigami.Units.smallSpacing
 
-        KantePlasmaButton {
+        Controls.Button {
             Layout.fillWidth: true
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             enabled: root.configured && !root.busy && root.connectionOk
                      && projectCombo.currentIndex >= 0 && activityCombo.currentIndex >= 0
                      && root.rangeValid
             highlighted: true
-            emphasis: KantePlasmaButton.Emphasis.Primary
+            emphasis: Controls.Button.Emphasis.Primary
             text: root.editingExisting ? i18n("Save changes") : i18n("Save entry")
             icon.name: "document-save"
             onClicked: {
@@ -413,7 +412,7 @@ ColumnLayout {
             }
         }
 
-        KantePlasmaButton {
+        Controls.Button {
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             text: i18n("Cancel")
             onClicked: root.cancelled()

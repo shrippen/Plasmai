@@ -3,9 +3,10 @@ import QtQuick
 import org.kde.kirigami as Kirigami
 
 /**
- * Central touch / tablet sizing for Plasmai.
- * preference: 0 = auto (follow Plasma tablet mode), 1 = on, 2 = off
- * Bind preference from plasmoid.configuration.touchMode in main.qml.
+ * Central touch / tablet sizing, shared by the Plasmoid and the app.
+ * preference: 0 = auto (follow the platform's tablet mode), 1 = on, 2 = off.
+ * The Plasmoid binds it to plasmoid.configuration.touchMode (main.qml); the app
+ * keeps auto, which is on for Android and Plasma Mobile.
  */
 QtObject {
     id: root

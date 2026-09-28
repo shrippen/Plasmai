@@ -2,12 +2,11 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
-import org.kde.plasma.components as PlasmaComponents3
 import "../code/mileage.js" as Mileage
 import "../code/dateTimeFormat.js" as DTF
 import "."
 import "Kante"
-import "KantePlasma"
+import "Controls" as Controls
 
 /**
  * One trip of the Kimai MileageBundle (kimai-anfahrten): new, edit, or
@@ -213,7 +212,7 @@ ColumnLayout {
             Layout.fillWidth: true
             enabled: root.fieldsEnabled && !root.suggestionMode
         }
-        PlasmaComponents3.Label {
+        Controls.Label {
             visible: text.length > 0
             Layout.fillWidth: true
             wrapMode: Text.WordWrap
@@ -293,11 +292,11 @@ ColumnLayout {
                 Accessible.name: i18n("Distance in kilometers")
                 onTextEdited: root.distanceTouched = true
             }
-            PlasmaComponents3.Label {
+            Controls.Label {
                 text: i18n("km")
             }
         }
-        PlasmaComponents3.Label {
+        Controls.Label {
             visible: text.length > 0
             Layout.fillWidth: true
             wrapMode: Text.WordWrap
@@ -305,7 +304,7 @@ ColumnLayout {
             text: root.errorFor("distanceKm")
         }
 
-        PlasmaComponents3.CheckBox {
+        Controls.CheckBox {
             KanteCheckSkin { control: parent }
             id: roundTripCheck
             text: i18n("Round trip (there and back)")
@@ -336,7 +335,7 @@ ColumnLayout {
             enteredKm: Mileage.parseDistance(distanceField.text) === null ? NaN : Mileage.parseDistance(distanceField.text)
         }
 
-        PlasmaComponents3.CheckBox {
+        Controls.CheckBox {
             KanteCheckSkin { control: parent }
             id: timesCheck
             text: i18n("Departure and arrival times")
@@ -352,7 +351,7 @@ ColumnLayout {
                 Layout.fillWidth: true
                 enabled: root.fieldsEnabled && !root.suggestionMode
             }
-            PlasmaComponents3.Label {
+            Controls.Label {
                 text: "–"
             }
             TimeField {
@@ -361,7 +360,7 @@ ColumnLayout {
                 enabled: root.fieldsEnabled && !root.suggestionMode
             }
         }
-        PlasmaComponents3.Label {
+        Controls.Label {
             visible: timesCheck.checked && text.length > 0
             Layout.fillWidth: true
             wrapMode: Text.WordWrap
@@ -381,24 +380,24 @@ ColumnLayout {
             Kirigami.FormData.label: i18n("Time entry:")
             Layout.fillWidth: true
             visible: root.linkedText.length > 0
-            PlasmaComponents3.Label {
+            Controls.Label {
                 Layout.fillWidth: true
                 elide: Text.ElideRight
                 text: root.linkedText
             }
-            KantePlasmaToolButton {
+            Controls.ToolButton {
                 icon.name: "edit-clear"
                 text: i18n("Unlink")
                 display: QQC2.AbstractButton.IconOnly
                 enabled: root.fieldsEnabled
                 onClicked: root.unlinkTimesheet()
-                PlasmaComponents3.ToolTip.text: i18n("Do not link this trip to the time entry")
-                PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
+                Controls.ToolTip.text: i18n("Do not link this trip to the time entry")
+                Controls.ToolTip.visible: hovered && !TouchUi.active
             }
         }
     }
 
-    PlasmaComponents3.Label {
+    Controls.Label {
         Layout.fillWidth: true
         visible: text.length > 0
         wrapMode: Text.WordWrap
@@ -411,11 +410,11 @@ ColumnLayout {
         Layout.topMargin: Kirigami.Units.largeSpacing
         spacing: Kirigami.Units.smallSpacing
 
-        KantePlasmaButton {
+        Controls.Button {
             Layout.fillWidth: true
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             highlighted: true
-            emphasis: KantePlasmaButton.Emphasis.Primary
+            emphasis: Controls.Button.Emphasis.Primary
             enabled: root.fieldsEnabled && root.connectionOk && root.formValid
             text: root.suggestionMode ? i18n("Accept") : (root.editing ? i18n("Save trip") : i18n("Log trip"))
             icon.name: "document-save"
@@ -428,18 +427,18 @@ ColumnLayout {
             }
         }
 
-        KantePlasmaButton {
+        Controls.Button {
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             text: i18n("Cancel")
             onClicked: root.cancelled()
         }
     }
 
-    KantePlasmaButton {
+    Controls.Button {
         id: deleteButton
         visible: root.canDelete
         Layout.alignment: Qt.AlignLeft
-        emphasis: KantePlasmaButton.Emphasis.Destructive
+        emphasis: Controls.Button.Emphasis.Destructive
         Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
         enabled: root.fieldsEnabled && root.connectionOk
         // Two steps instead of a dialog: the sheet lives in the Plasmoid popup and on a phone page.

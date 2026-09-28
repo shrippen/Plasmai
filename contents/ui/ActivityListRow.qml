@@ -2,10 +2,10 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
-import org.kde.plasma.components as PlasmaComponents3
 import "."
 import "Kante"
 import "../code/dateTimeFormat.js" as DTF
+import "Controls" as Controls
 
 QQC2.ItemDelegate {
     id: root
@@ -93,7 +93,7 @@ QQC2.ItemDelegate {
     QQC2.ToolTip.delay: 600
 
     // Kante: tiles are cards with the customer color on top, time line rows
-    // show a sunken tint on hover. The Breeze highlight stays hidden.
+    // show a sunken tint on hover. The style's highlight stays hidden.
     KanteCard {
         z: -1
         anchors.fill: parent
@@ -135,7 +135,7 @@ QQC2.ItemDelegate {
     contentItem: RowLayout {
         spacing: Kirigami.Units.smallSpacing
 
-        PlasmaComponents3.Label {
+        Controls.Label {
             visible: root.kanteLine && root.timeText.length > 0
             Layout.preferredWidth: Math.ceil(timeMetrics.width) + Kirigami.Units.smallSpacing
             text: root.timeText
@@ -165,8 +165,9 @@ QQC2.ItemDelegate {
 
         Kirigami.Icon {
             visible: root.showPlayIcon && !root.kanteLine
-            Layout.preferredWidth: TouchUi.iconSize
-            Layout.preferredHeight: TouchUi.iconSize
+            // Small on phones too (the row's action icons keep the larger touch size).
+            Layout.preferredWidth: Kirigami.Settings.isMobile ? Kirigami.Units.iconSizes.small : TouchUi.iconSize
+            Layout.preferredHeight: Kirigami.Settings.isMobile ? Kirigami.Units.iconSizes.small : TouchUi.iconSize
             source: "media-playback-start"
             color: KanteStyle.active ? KanteStyle.positiveTextColor : "transparent"
             opacity: root.enabled ? 1 : 0.5
@@ -178,7 +179,7 @@ QQC2.ItemDelegate {
             Layout.minimumWidth: 0
             spacing: 0
 
-            PlasmaComponents3.Label {
+            Controls.Label {
                 Layout.fillWidth: true
                 Layout.preferredWidth: 0
                 text: root.titleText
@@ -187,7 +188,7 @@ QQC2.ItemDelegate {
                 elide: Text.ElideRight
             }
 
-            PlasmaComponents3.Label {
+            Controls.Label {
                 Layout.fillWidth: true
                 Layout.preferredWidth: 0
                 visible: root.subtitleText.length > 0
@@ -199,7 +200,7 @@ QQC2.ItemDelegate {
             }
         }
 
-        PlasmaComponents3.Label {
+        Controls.Label {
             visible: root.kanteLine && root.durationText.length > 0 && !root.runningHintVisible
             text: root.durationText
             font: KanteStyle.monoFont(KanteStyle.smallFont.pointSize, false)
@@ -228,7 +229,7 @@ QQC2.ItemDelegate {
                 width: parent.width
                 spacing: 0
 
-                PlasmaComponents3.Label {
+                Controls.Label {
                     id: runningHintTop
                     Layout.fillWidth: true
                     horizontalAlignment: Text.AlignRight
@@ -240,7 +241,7 @@ QQC2.ItemDelegate {
                     elide: Text.ElideRight
                 }
 
-                PlasmaComponents3.Label {
+                Controls.Label {
                     id: runningHintBottom
                     Layout.fillWidth: true
                     visible: runningHintCounterText.length > 0
@@ -292,10 +293,12 @@ QQC2.ItemDelegate {
                         root.ignoreNextRowClick = false
                     })
                 }
-                onClicked: historyMenu.popup()
+                // Anchor to the button: popup() without arguments follows the mouse cursor, which is
+                // meaningless for touch input (Plasma Mobile) and lands in the window corner there.
+                onClicked: historyMenu.popup(historyButton, historyButton.width - historyMenu.implicitWidth, historyButton.height)
             }
 
-            QQC2.ToolTip.visible: historyButton.hovered
+            QQC2.ToolTip.visible: historyButton.hovered && !Kirigami.Settings.isMobile
             QQC2.ToolTip.text: i18n("Entry actions")
             QQC2.ToolTip.delay: 600
         }

@@ -2,11 +2,11 @@ import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
-import org.kde.plasma.components as PlasmaComponents3
 import "../code/kimaiApi.js" as KimaiApi
 import "../code/timesheetFields.js" as Fields
 import "."
 import "Kante"
+import "Controls" as Controls
 
 /**
  * Searchable multi-tag picker: Kimai tags as inline color pills, optional create.
@@ -270,6 +270,8 @@ ColumnLayout {
                                               KanteStyle.textColor.g,
                                               KanteStyle.textColor.b, 0.45)
                 background: Item {}
+                // Predictive keyboards deliver text as uncommitted preedit, so suggestions would only update after commit.
+                inputMethodHints: Qt.ImhNoPredictiveText | Qt.ImhNoAutoUppercase
                 Accessible.name: i18n("Tags")
                 onActiveFocusChanged: {
                     if (activeFocus) {
@@ -317,7 +319,7 @@ ColumnLayout {
                     visible: height > 0
                     clip: true
 
-                    PlasmaComponents3.Label {
+                    Controls.Label {
                         anchors.centerIn: parent
                         width: parent.width - Kirigami.Units.smallSpacing * 2
                         horizontalAlignment: Text.AlignHCenter
@@ -362,7 +364,7 @@ ColumnLayout {
                                 Layout.alignment: Qt.AlignVCenter
                             }
 
-                            PlasmaComponents3.Label {
+                            Controls.Label {
                                 Layout.fillWidth: true
                                 Layout.preferredWidth: 0
                                 text: modelData.name

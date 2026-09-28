@@ -9,5 +9,15 @@ StackedBarChart 1.0 StackedBarChart.qml
 TagPill 1.0 TagPill.qml
 TimesheetMetaFields 1.0 TimesheetMetaFields.qml
 WeeklyHourChart 1.0 WeeklyHourChart.qml
-singleton TouchUi 1.0 ../../qml/shared/TouchUi.qml
-TagPicker 1.0 ../../qml/shared/TagPicker.qml
+LoadingRow 1.0 LoadingRow.qml
+TagPicker 1.0 TagPicker.qml
+TripMap 1.0 TripMap.qml
+ManualEntryView 1.0 ManualEntryView.qml
+TripSuggestionList 1.0 TripSuggestionList.qml
+SearchableCombo 1.0 SearchableCombo.qml
+TripSheet 1.0 TripSheet.qml
+ActivityListRow 1.0 ActivityListRow.qml
+ProjectActivityPickers 1.0 ProjectActivityPickers.qml
+singleton TouchUi 1.0 TouchUi.qml
+DateField 1.0 ../../qml/shared/DateField.qml
+TimeField 1.0 ../../qml/shared/TimeField.qml

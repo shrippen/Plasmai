@@ -1,2 +1,6 @@
 Label 1.0 Label.qml
 ToolTip 1.0 ToolTip.qml
+CheckBox 1.0 CheckBox.qml
+Button 1.0 Button.qml
+ToolButton 1.0 ToolButton.qml
+Heading 1.0 Heading.qml

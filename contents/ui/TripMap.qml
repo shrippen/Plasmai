@@ -2,10 +2,11 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
-import org.kde.plasma.components as PlasmaComponents3
 import "../code/geocode.js" as Geocode
 import "../code/tripMap.js" as TripMap
 import "Kante"
+import "Controls" as Controls
+import "."
 
 /**
  * Map of a trip's start and destination (OpenStreetMap), to check that both
@@ -144,7 +145,7 @@ ColumnLayout {
                 color: KanteStyle.accentColor
                 border.width: 2
                 border.color: "white"
-                PlasmaComponents3.Label {
+                Controls.Label {
                     anchors.centerIn: parent
                     text: parent.modelData.label
                     font.bold: true
@@ -154,7 +155,7 @@ ColumnLayout {
         }
 
         // OpenStreetMap asks for this attribution on every map.
-        PlasmaComponents3.Label {
+        Controls.Label {
             anchors.right: parent.right
             anchors.bottom: parent.bottom
             padding: 2
@@ -172,7 +173,7 @@ ColumnLayout {
         }
     }
 
-    PlasmaComponents3.Label {
+    Controls.Label {
         Layout.fillWidth: true
         visible: root.searching && root.points.length === 0
         text: i18n("Looking up the places…")
@@ -182,7 +183,7 @@ ColumnLayout {
 
     Repeater {
         model: [{ query: root.from, place: root.fromPlace, label: "A" }, { query: root.to, place: root.toPlace, label: "B" }]
-        PlasmaComponents3.Label {
+        Controls.Label {
             required property var modelData
             Layout.fillWidth: true
             visible: modelData.query.trim().length > 0 && !root.searching
@@ -195,7 +196,7 @@ ColumnLayout {
         }
     }
 
-    PlasmaComponents3.Label {
+    Controls.Label {
         Layout.fillWidth: true
         visible: !isNaN(root.straightKm) && !root.searching
         wrapMode: Text.WordWrap
@@ -214,10 +215,10 @@ ColumnLayout {
         }
     }
 
-    PlasmaComponents3.Label {
+    Controls.Label {
         Layout.fillWidth: true
         visible: !!root.fromPlace && !!root.toPlace
-        text: i18n("Click the map to open the route.")
+        text: TouchUi.active ? i18n("Tap the map to open the route.") : i18n("Click the map to open the route.")
         color: KanteStyle.mutedTextColor
         font.pointSize: KanteStyle.smallFont.pointSize
     }

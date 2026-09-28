@@ -3,7 +3,6 @@ import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import QtQuick.Window
 import org.kde.kirigami as Kirigami
-import org.kde.plasma.components as PlasmaComponents3
 import "../code/kimaiApi.js" as KimaiApi
 import "."
 import "Kante"
@@ -282,6 +281,8 @@ Item {
         enabled: root.enabled
         placeholderText: root.placeholderText
         selectByMouse: true
+        // Predictive keyboards deliver text as uncommitted preedit, so the list would only filter after commit.
+        inputMethodHints: Qt.ImhNoPredictiveText | Qt.ImhNoAutoUppercase
 
         onTextEdited: {
             if (root.suppressTextHandler) {
@@ -340,6 +341,15 @@ Item {
                 }
             }
         }
+    }
+
+    // Scrolling the page or showing the soft keyboard changes the space around the field
+    // after the popup was placed, so keep the placement current while it is open.
+    Timer {
+        interval: 150
+        repeat: true
+        running: popup.opened
+        onTriggered: root.placePopup()
     }
 
     QQC2.Popup {

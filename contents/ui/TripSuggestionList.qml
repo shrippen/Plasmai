@@ -2,12 +2,11 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
-import org.kde.plasma.components as PlasmaComponents3
 import "../code/mileage.js" as Mileage
 import "../code/dateTimeFormat.js" as DTF
 import "."
 import "Kante"
-import "KantePlasma"
+import "Controls" as Controls
 
 /**
  * Open trip suggestions of the kimai-anfahrten plugin (detected from
@@ -67,12 +66,12 @@ ColumnLayout {
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 0
-                PlasmaComponents3.Label {
+                Controls.Label {
                     Layout.fillWidth: true
                     elide: Text.ElideRight
                     text: Mileage.routeText(s ? s.from : "", s ? s.to : "") || i18n("Detected trip")
                 }
-                PlasmaComponents3.Label {
+                Controls.Label {
                     Layout.fillWidth: true
                     elide: Text.ElideRight
                     font.pointSize: KanteStyle.smallFont.pointSize
@@ -89,43 +88,43 @@ ColumnLayout {
                 }
             }
 
-            KantePlasmaToolButton {
+            Controls.ToolButton {
                 visible: root.canEdit
                 enabled: !root.busy
                 icon.name: "dialog-ok-apply"
                 text: i18n("Accept")
                 display: TouchUi.active ? QQC2.AbstractButton.TextBesideIcon : QQC2.AbstractButton.IconOnly
                 onClicked: root.acceptRequested(s)
-                PlasmaComponents3.ToolTip.text: i18n("Add this trip to the logbook")
-                PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
-                PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
+                Controls.ToolTip.text: i18n("Add this trip to the logbook")
+                Controls.ToolTip.visible: hovered && !TouchUi.active
+                Controls.ToolTip.delay: Kirigami.Units.toolTipDelay
             }
-            KantePlasmaToolButton {
+            Controls.ToolButton {
                 visible: root.canEdit
                 enabled: !root.busy
                 icon.name: "document-edit"
                 text: i18n("Edit and accept")
                 display: QQC2.AbstractButton.IconOnly
                 onClicked: root.editRequested(s)
-                PlasmaComponents3.ToolTip.text: text
-                PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
-                PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
+                Controls.ToolTip.text: text
+                Controls.ToolTip.visible: hovered && !TouchUi.active
+                Controls.ToolTip.delay: Kirigami.Units.toolTipDelay
             }
-            KantePlasmaToolButton {
+            Controls.ToolButton {
                 visible: root.canEdit
                 enabled: !root.busy
                 icon.name: "edit-delete"
                 text: i18n("Dismiss")
                 display: QQC2.AbstractButton.IconOnly
                 onClicked: root.dismissRequested(s)
-                PlasmaComponents3.ToolTip.text: i18n("Dismiss this detected trip")
-                PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
-                PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
+                Controls.ToolTip.text: i18n("Dismiss this detected trip")
+                Controls.ToolTip.visible: hovered && !TouchUi.active
+                Controls.ToolTip.delay: Kirigami.Units.toolTipDelay
             }
         }
     }
 
-    PlasmaComponents3.Label {
+    Controls.Label {
         Layout.fillWidth: true
         visible: root.maxRows > 0 && root.suggestions.length > root.maxRows
         font.pointSize: KanteStyle.smallFont.pointSize

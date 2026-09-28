@@ -40,9 +40,10 @@ TestCase {
     // The components the app loads from contents/ui compile in the Plasmoid too
     // (singletons ApiErrors and PlasmaiColors are not creatable; they import no controls).
     function test_sharedComponentsCompile_data() {
-        return ["BarChart", "ColorLabelRow", "CustomerColorDot", "KanteDayStrip", "PieChart",
-                "StackedBarChart", "TagPill", "TimesheetMetaFields",
-                "WeeklyHourChart"].map(function(n) { return { tag: n, name: n } })
+        return ["ActivityListRow", "BarChart", "ColorLabelRow", "CustomerColorDot", "KanteDayStrip",
+                "LoadingRow", "ManualEntryView", "PieChart", "ProjectActivityPickers", "SearchableCombo",
+                "StackedBarChart", "TagPicker", "TagPill", "TimesheetMetaFields", "TripMap", "TripSheet",
+                "TripSuggestionList", "WeeklyHourChart"].map(function(n) { return { tag: n, name: n } })
     }
 
     function test_sharedComponentsCompile(data) {

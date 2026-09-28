@@ -2,9 +2,8 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
-import org.kde.plasma.components as PlasmaComponents3
 import "."
-import "KantePlasma"
+import "Controls" as Controls
 
 /**
  * Shared project + activity picker pair used across the main view, manual entry,
@@ -34,7 +33,7 @@ ColumnLayout {
     signal createProjectRequested()
     signal createActivityRequested()
 
-    spacing: 0
+    spacing: Kirigami.Settings.isMobile ? Kirigami.Units.largeSpacing : 0
 
     function closePickers() {
         projectCombo.closePopup()
@@ -61,7 +60,7 @@ ColumnLayout {
             }
         }
 
-        KantePlasmaToolButton {
+        Controls.ToolButton {
             visible: root.showCreateActions
             text: i18n("Create project")
             icon.name: "list-add"
@@ -70,9 +69,9 @@ ColumnLayout {
             enabled: root.projectEnabled
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             onClicked: root.createProjectRequested()
-            PlasmaComponents3.ToolTip.text: text
-            PlasmaComponents3.ToolTip.visible: hovered
-            PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
+            Controls.ToolTip.text: text
+            Controls.ToolTip.visible: hovered && !Kirigami.Settings.isMobile
+            Controls.ToolTip.delay: Kirigami.Units.toolTipDelay
         }
     }
 
@@ -98,7 +97,7 @@ ColumnLayout {
             }
         }
 
-        KantePlasmaToolButton {
+        Controls.ToolButton {
             visible: root.showCreateActions
             text: i18n("Create activity")
             icon.name: "list-add"
@@ -107,9 +106,9 @@ ColumnLayout {
             enabled: root.activityEnabled && projectCombo.currentIndex >= 0
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             onClicked: root.createActivityRequested()
-            PlasmaComponents3.ToolTip.text: text
-            PlasmaComponents3.ToolTip.visible: hovered
-            PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
+            Controls.ToolTip.text: text
+            Controls.ToolTip.visible: hovered && !Kirigami.Settings.isMobile
+            Controls.ToolTip.delay: Kirigami.Units.toolTipDelay
         }
     }
 }
