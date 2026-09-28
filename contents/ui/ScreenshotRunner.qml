@@ -5,7 +5,7 @@ import "../code/secret.js" as Secret
 /**
  * Landing-page screenshots, only when a plan file exists:
  *   $XDG_CONFIG_HOME/com.github.shrippen.plasmai/screenshots.json
- *   { "dir": "/out", "shots": [ { "name": "timer", "view": "main|manual|stats|filmday" } ] }
+ *   { "dir": "/out", "shots": [ { "name": "timer", "view": "main|manual|stats|filmday|edit" } ] }
  * demo/shots.sh writes it into a scratch config home together with a demo profile, then
  * runs plasmoidviewer offscreen. Each view is grabbed with grabToImage into dir/name.png,
  * then the viewer quits ("PLASMAI_SCREENSHOT_DONE" in the log). Without the file: nothing.
@@ -66,6 +66,8 @@ Item {
                 r.openStatsView()
             } else if (item.value === "filmday") {
                 r.openFilmDayView()
+            } else if (item.value === "edit") {
+                r.openActiveEdit()
             } else {
                 r.returnToMainView()
             }
