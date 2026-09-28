@@ -326,6 +326,21 @@ ROWS = [
      "Karte antippen, um die Route zu öffnen.", "Touchez la carte pour ouvrir l’itinéraire.", "Toca el mapa para abrir la ruta.", "Tocca la mappa per aprire il percorso.", "Tik op de kaart om de route te openen.", "Toque no mapa para abrir a rota.", "Dotknij mapy, aby otworzyć trasę.", "Торкніться карти, щоб відкрити маршрут.", "Коснитесь карты, чтобы открыть маршрут.", "地図をタップするとルートを開きます。", "点按地图以打开路线。"),
     ("Click the map to open the route.",
      "Karte anklicken, um die Route zu öffnen.", "Cliquez sur la carte pour ouvrir l’itinéraire.", "Haz clic en el mapa para abrir la ruta.", "Fai clic sulla mappa per aprire il percorso.", "Klik op de kaart om de route te openen.", "Clique no mapa para abrir a rota.", "Kliknij mapę, aby otworzyć trasę.", "Клацніть карту, щоб відкрити маршрут.", "Щёлкните по карте, чтобы открыть маршрут.", "地図をクリックするとルートを開きます。", "点击地图以打开路线。"),
+    # About page (2026-09)
+    ("About",
+     "Über", "À propos", "Acerca de", "Informazioni", "Over", "Sobre", "O aplikacji", "Про програму", "О программе", "このアプリについて", "关于"),
+    ("Version %1",
+     "Version %1", "Version %1", "Versión %1", "Versione %1", "Versie %1", "Versão %1", "Wersja %1", "Версія %1", "Версия %1", "バージョン %1", "版本 %1"),
+    ("Track time with Kimai, Clockify, Toggl Track, or SolidTime",
+     "Zeiterfassung mit Kimai, Clockify, Toggl Track oder SolidTime", "Suivez votre temps avec Kimai, Clockify, Toggl Track ou SolidTime", "Registra tu tiempo con Kimai, Clockify, Toggl Track o SolidTime", "Traccia il tempo con Kimai, Clockify, Toggl Track o SolidTime", "Houd je tijd bij met Kimai, Clockify, Toggl Track of SolidTime", "Registre seu tempo com Kimai, Clockify, Toggl Track ou SolidTime", "Rejestruj czas w Kimai, Clockify, Toggl Track lub SolidTime", "Облік часу в Kimai, Clockify, Toggl Track або SolidTime", "Учёт времени в Kimai, Clockify, Toggl Track или SolidTime", "Kimai、Clockify、Toggl Track、SolidTime で時間を記録", "使用 Kimai、Clockify、Toggl Track 或 SolidTime 记录时间"),
+    ("License: %1",
+     "Lizenz: %1", "Licence : %1", "Licencia: %1", "Licenza: %1", "Licentie: %1", "Licença: %1", "Licencja: %1", "Ліцензія: %1", "Лицензия: %1", "ライセンス: %1", "许可证：%1"),
+    ("Links",
+     "Links", "Liens", "Enlaces", "Link", "Links", "Links", "Linki", "Посилання", "Ссылки", "リンク", "链接"),
+    ("Source code",
+     "Quellcode", "Code source", "Código fuente", "Codice sorgente", "Broncode", "Código-fonte", "Kod źródłowy", "Вихідний код", "Исходный код", "ソースコード", "源代码"),
+    ("More projects",
+     "Weitere Projekte", "Autres projets", "Más proyectos", "Altri progetti", "Meer projecten", "Mais projetos", "Więcej projektów", "Інші проєкти", "Другие проекты", "ほかのプロジェクト", "更多项目"),
 ]
 
 

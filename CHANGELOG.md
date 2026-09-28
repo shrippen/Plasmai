@@ -2,7 +2,11 @@
 
 ## Unreleased
 
+### New
+- App: an About page in the menu, with the version and links to the source code and to shrippen.github.io
+
 ### Changed
+- App (Android, AppImage): Qt 6.11 and KF6 6.30; Android bundles OpenSSL 3.5 (LTS), built from source
 - The film day is hidden when the Kimai instance has no Drehzettel plugin (or you lack its view permission), like trips without the Anfahrten plugin
 
 ## 2.0.0

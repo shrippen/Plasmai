@@ -822,6 +822,10 @@ Kirigami.ApplicationWindow {
             Kirigami.Action {
                 text: i18n("Settings")
                 onTriggered: { root.navigateTo(settingsComponent); globalDrawer.drawerOpen = false }
+            },
+            Kirigami.Action {
+                text: i18n("About")
+                onTriggered: { root.navigateTo(aboutComponent); globalDrawer.drawerOpen = false }
             }
         ]
     }
@@ -857,5 +861,6 @@ Kirigami.ApplicationWindow {
     Component { id: settingsComponent; SettingsPage { } }
     Component { id: connectionComponent; ConnectionPage { } }
     Component { id: favoritesComponent; FavoritesPage { } }
+    Component { id: aboutComponent; AboutPage { } }
 }
 
