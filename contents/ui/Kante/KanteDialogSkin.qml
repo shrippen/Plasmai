@@ -6,22 +6,22 @@ import "."
  * dialog. Replaces the background with a cut-corner card and hands the Kante
  * colors to the dialog's content; does nothing in the System style.
  */
-Item {
+// A QtObject, not an Item: inside a Kirigami.Dialog every item child counts as
+// content, and its ScrollView sizes itself only from a single one.
+QtObject {
     id: skin
 
     required property var dialog
 
-    visible: false
+    readonly property KanteScope scope: KanteScope { target: skin.dialog ? skin.dialog.contentItem : null }
 
-    KanteScope { target: skin.dialog ? skin.dialog.contentItem : null }
-
-    // Not a child: only handed to `background` while Kante is on.
+    // Only handed to `background` while Kante is on.
     readonly property Item kanteBackground: KanteCard {
         color: KanteStyle.dialogColor
         barColor: KanteStyle.accentColor
     }
 
-    Binding {
+    readonly property Binding backgroundBinding: Binding {
         target: skin.dialog
         property: "background"
         value: skin.kanteBackground
