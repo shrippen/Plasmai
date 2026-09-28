@@ -96,7 +96,7 @@ info "Bundling the AppImage..."
     export QML_SOURCES_PATHS="$ROOT/app/qml"   # the app's QML; contents/ui is the widget
     export NO_STRIP=1   # linuxdeploy's strip is too old for current distros' libraries (.relr.dyn)
     export QML_MODULES_PATHS="$LIBDIR/qml"
-    export EXTRA_PLATFORM_PLUGINS="libqwayland-egl.so;libqwayland-generic.so"
+    export EXTRA_PLATFORM_PLUGINS="libqwayland.so"   # Qt 6.10+: one Wayland plugin (was -egl and -generic)
     export EXTRA_QT_MODULES="svg;dbus"
     export LINUXDEPLOY_OUTPUT_VERSION="$VERSION"
     "$TOOLS/linuxdeploy-x86_64.AppImage" --appdir "$APPDIR" --plugin qt --output appimage \
