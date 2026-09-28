@@ -5,3 +5,6 @@ Button 1.0 Button.qml
 ToolButton 1.0 ToolButton.qml
 Heading 1.0 Heading.qml
 SegmentButton 1.0 SegmentButton.qml
+DatePicker 1.0 DatePicker.qml
+TimePicker 1.0 TimePicker.qml
+FormDialog 1.0 FormDialog.qml

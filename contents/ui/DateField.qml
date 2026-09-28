@@ -1,13 +1,11 @@
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Controls
 import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
-import org.kde.plasma.components as PlasmaComponents3
 import "../code/dateTimeFormat.js" as DTF
 import "."
 import "Kante"
-import "KantePlasma"
+import "Controls" as Controls
 
 /**
  * Locale-formatted date field with click-to-select segments (day/month/year)
@@ -32,8 +30,6 @@ RowLayout {
     property int activeSegment: -1
     property string digitBuffer: ""
     property bool suppressHandler: false
-    property int calendarMonth: (new Date()).getMonth()
-    property int calendarYear: (new Date()).getFullYear()
 
     function parseDate(text) {
         return DTF.parseLocaleDate(text)
@@ -48,8 +44,6 @@ RowLayout {
         suppressHandler = true
         dateField.text = DTF.formatLocaleDate(next)
         suppressHandler = false
-        calendarMonth = next.getMonth()
-        calendarYear = next.getFullYear()
         root.dateEdited()
     }
 
@@ -61,10 +55,7 @@ RowLayout {
 
     /** Opens the calendar popup programmatically (e.g. from a custom big-text header). */
     function openPicker() {
-        var d = DTF.coerceDate(root.selectedDate) || new Date()
-        root.calendarMonth = d.getMonth()
-        root.calendarYear = d.getFullYear()
-        calendarPopup.open()
+        datePicker.openFor(DTF.coerceDate(root.selectedDate) || new Date())
     }
 
     function selectSegment(index) {
@@ -143,7 +134,7 @@ RowLayout {
         id: dateField
         Layout.fillWidth: true
         Layout.preferredHeight: Math.max(implicitHeight, TouchUi.controlMinHeight)
-        placeholderText: DTF.datePlaceholder()
+        placeholderText: text.length > 0 ? "" : DTF.datePlaceholder()  // Material floats the placeholder above filled fields
         inputMethodHints: Qt.ImhDate | Qt.ImhPreferNumbers
         // Keep selection look when clicking segments
         selectByMouse: true
@@ -206,7 +197,7 @@ RowLayout {
         }
     }
 
-    KantePlasmaToolButton {
+    Controls.ToolButton {
         Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
         Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
         icon.name: "view-calendar"
@@ -214,98 +205,17 @@ RowLayout {
         display: QQC2.AbstractButton.IconOnly
         enabled: dateField.enabled
         onClicked: root.openPicker()
-        PlasmaComponents3.ToolTip.text: text
-        PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
-        PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
+        Controls.ToolTip.text: text
+        Controls.ToolTip.visible: hovered && !TouchUi.active
+        Controls.ToolTip.delay: Kirigami.Units.toolTipDelay
     }
 
-    QQC2.Popup {
-        id: calendarPopup
+    // Calendar popup in the Plasmoid, kirigami-addons' DatePopup in the app (Controls).
+    Controls.DatePicker {
+        id: datePicker
         parent: root
-        x: Math.max(0, root.width - width)
         y: dateField.height + Kirigami.Units.smallSpacing
-        width: Kirigami.Units.gridUnit * 14
-        padding: Kirigami.Units.smallSpacing
-        closePolicy: QQC2.Popup.CloseOnEscape | QQC2.Popup.CloseOnPressOutside
-
-        contentItem: ColumnLayout {
-            spacing: Kirigami.Units.smallSpacing
-
-            RowLayout {
-                Layout.fillWidth: true
-                KantePlasmaToolButton {
-                    Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
-                    Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-                    icon.name: "go-previous"
-                    onClicked: {
-                        if (root.calendarMonth === 0) {
-                            root.calendarMonth = 11
-                            root.calendarYear -= 1
-                        } else {
-                            root.calendarMonth -= 1
-                        }
-                    }
-                }
-                PlasmaComponents3.Label {
-                    Layout.fillWidth: true
-                    horizontalAlignment: Text.AlignHCenter
-                    font.bold: true
-                    text: Qt.locale().standaloneMonthName(root.calendarMonth) + " " + root.calendarYear
-                }
-                KantePlasmaToolButton {
-                    Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
-                    Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-                    icon.name: "go-next"
-                    onClicked: {
-                        if (root.calendarMonth === 11) {
-                            root.calendarMonth = 0
-                            root.calendarYear += 1
-                        } else {
-                            root.calendarMonth += 1
-                        }
-                    }
-                }
-            }
-
-            DayOfWeekRow {
-                Layout.fillWidth: true
-                locale: Qt.locale()
-            }
-
-            MonthGrid {
-                id: monthGrid
-                Layout.fillWidth: true
-                month: root.calendarMonth
-                year: root.calendarYear
-                locale: Qt.locale()
-                spacing: 2
-
-                delegate: QQC2.ItemDelegate {
-                    required property var model
-                    implicitWidth: Kirigami.Units.gridUnit * TouchUi.calendarCellGu
-                    implicitHeight: Kirigami.Units.gridUnit * TouchUi.calendarCellGu
-                    enabled: model.month === monthGrid.month
-                    highlighted: {
-                        var sel = DTF.coerceDate(root.selectedDate)
-                        return !!sel
-                                 && model.year === sel.getFullYear()
-                                 && model.month === sel.getMonth()
-                                 && model.day === sel.getDate()
-                    }
-                    contentItem: PlasmaComponents3.Label {
-                        text: model.day
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        opacity: model.month === monthGrid.month ? 1 : 0.35
-                        font.bold: parent.highlighted
-                    }
-                    onClicked: {
-                        root.setDate(new Date(model.year, model.month, model.day, 12, 0, 0, 0))
-                        calendarPopup.close()
-                    }
-                }
-            }
-        }
+        onPicked: function(date) { root.setDate(date) }
     }
 
     Component.onCompleted: refreshText()

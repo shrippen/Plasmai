@@ -2,11 +2,10 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
-import org.kde.plasma.components as PlasmaComponents3
 import "../code/dateTimeFormat.js" as DTF
 import "."
 import "Kante"
-import "KantePlasma"
+import "Controls" as Controls
 
 /**
  * Locale-formatted time field with click-to-select segments (hour/minute)
@@ -122,7 +121,7 @@ RowLayout {
         id: timeField
         Layout.fillWidth: true
         Layout.preferredHeight: Math.max(implicitHeight, TouchUi.controlMinHeight)
-        placeholderText: DTF.timePlaceholder()
+        placeholderText: text.length > 0 ? "" : DTF.timePlaceholder()  // Material floats the placeholder above filled fields
         inputMethodHints: Qt.ImhTime | Qt.ImhPreferNumbers
         selectByMouse: true
 
@@ -178,105 +177,25 @@ RowLayout {
         }
     }
 
-    KantePlasmaToolButton {
+    Controls.ToolButton {
         Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
         Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
         icon.name: "clock-symbolic"
         text: i18n("Pick time")
         display: QQC2.AbstractButton.IconOnly
         enabled: timeField.enabled
-        onClicked: {
-            hourTumbler.currentIndex = root.hours
-            minuteTumbler.currentIndex = root.minutes
-            timePopup.open()
-        }
-        PlasmaComponents3.ToolTip.text: text
-        PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
-        PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
+        onClicked: timePicker.openFor(root.hours, root.minutes)
+        Controls.ToolTip.text: text
+        Controls.ToolTip.visible: hovered && !TouchUi.active
+        Controls.ToolTip.delay: Kirigami.Units.toolTipDelay
     }
 
-    QQC2.Popup {
-        id: timePopup
+    // Tumbler popup in the Plasmoid, kirigami-addons' TimePopup in the app (Controls).
+    Controls.TimePicker {
+        id: timePicker
         parent: root
-        x: Math.max(0, root.width - width)
         y: timeField.height + Kirigami.Units.smallSpacing
-        width: Kirigami.Units.gridUnit * (TouchUi.active ? 12 : 10)
-        padding: Kirigami.Units.smallSpacing
-        closePolicy: QQC2.Popup.CloseOnEscape | QQC2.Popup.CloseOnPressOutside
-
-        contentItem: ColumnLayout {
-            spacing: Kirigami.Units.smallSpacing
-
-            PlasmaComponents3.Label {
-                Layout.fillWidth: true
-                horizontalAlignment: Text.AlignHCenter
-                opacity: 0.75
-                font.pointSize: KanteStyle.smallFont.pointSize
-                text: i18n("Hours : Minutes")
-            }
-
-            RowLayout {
-                Layout.fillWidth: true
-                Layout.alignment: Qt.AlignHCenter
-                spacing: Kirigami.Units.smallSpacing
-
-                QQC2.Tumbler {
-                    id: hourTumbler
-                    Layout.preferredWidth: Kirigami.Units.gridUnit * TouchUi.tumblerWidthGu
-                    Layout.preferredHeight: Kirigami.Units.gridUnit * TouchUi.tumblerHeightGu
-                    model: 24
-                    visibleItemCount: 5
-                    delegate: PlasmaComponents3.Label {
-                        text: DTF.pad2(modelData)
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        opacity: Math.abs(QQC2.Tumbler.displacement) < 0.5 ? 1 : 0.4
-                        font.bold: Math.abs(QQC2.Tumbler.displacement) < 0.5
-                    }
-                }
-
-                PlasmaComponents3.Label {
-                    text: ":"
-                    font.bold: true
-                    font.pointSize: KanteStyle.defaultFont.pointSize + 2
-                }
-
-                QQC2.Tumbler {
-                    id: minuteTumbler
-                    Layout.preferredWidth: Kirigami.Units.gridUnit * TouchUi.tumblerWidthGu
-                    Layout.preferredHeight: Kirigami.Units.gridUnit * TouchUi.tumblerHeightGu
-                    model: 60
-                    visibleItemCount: 5
-                    delegate: PlasmaComponents3.Label {
-                        text: DTF.pad2(modelData)
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        opacity: Math.abs(QQC2.Tumbler.displacement) < 0.5 ? 1 : 0.4
-                        font.bold: Math.abs(QQC2.Tumbler.displacement) < 0.5
-                    }
-                }
-            }
-
-            RowLayout {
-                Layout.fillWidth: true
-                KantePlasmaButton {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-                    text: i18n("Cancel")
-                    onClicked: timePopup.close()
-                }
-                KantePlasmaButton {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-                    text: i18n("Select")
-                    icon.name: "dialog-ok-apply"
-                    onClicked: {
-                        root.editTime(hourTumbler.currentIndex, minuteTumbler.currentIndex)
-                        timePopup.close()
-                    }
-                }
-            }
-        }
+        onPicked: function(hours, minutes) { root.editTime(hours, minutes) }
     }
 
     Component.onCompleted: refreshText()

@@ -19,8 +19,10 @@ TripSheet 1.0 TripSheet.qml
 ActivityListRow 1.0 ActivityListRow.qml
 ProjectActivityPickers 1.0 ProjectActivityPickers.qml
 singleton TouchUi 1.0 TouchUi.qml
-DateField 1.0 ../../qml/shared/DateField.qml
-TimeField 1.0 ../../qml/shared/TimeField.qml
 FilmDayView 1.0 FilmDayView.qml
 ActiveEditView 1.0 ActiveEditView.qml
 StatsView 1.0 StatsView.qml
+DaySparkline 1.0 DaySparkline.qml
+DateField 1.0 DateField.qml
+TimeField 1.0 TimeField.qml
+CreateEntityDialog 1.0 CreateEntityDialog.qml

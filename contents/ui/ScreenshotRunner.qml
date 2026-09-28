@@ -5,9 +5,10 @@ import "../code/secret.js" as Secret
 /**
  * Landing-page screenshots, only when a plan file exists:
  *   $XDG_CONFIG_HOME/com.github.shrippen.plasmai/screenshots.json
- *   { "dir": "/out", "shots": [ { "name": "timer", "view": "main|manual|stats|filmday|edit" } ] }
+ *   { "dir": "/out", "shots": [ { "name": "timer", "view": "main|manual|stats|filmday|edit|datepicker|timepicker|create" } ] }
  * demo/shots.sh writes it into a scratch config home together with a demo profile, then
- * runs plasmoidviewer offscreen. Each view is grabbed with grabToImage into dir/name.png,
+ * runs plasmoidviewer offscreen. Each view is grabbed with grabToImage into dir/name.png
+ * (popup views: the whole X screen with ImageMagick's import, use a planar viewer),
  * then the viewer quits ("PLASMAI_SCREENSHOT_DONE" in the log). Without the file: nothing.
  */
 Item {
@@ -68,12 +69,37 @@ Item {
                 r.openFilmDayView()
             } else if (item.value === "edit") {
                 r.openActiveEdit()
+            } else if (item.value === "datepicker") {
+                // In the add-entry view: the begin date's calendar.
+                r.openManualEntry()
+                Qt.callLater(function() { runner.callFirst(r.fullRepresentationItem, "openPicker", []) })
+            } else if (item.value === "timepicker") {
+                r.openManualEntry()
+                Qt.callLater(function() { runner.callFirst(r.fullRepresentationItem, "openFor", [9, 30]) })
+            } else if (item.value === "create") {
+                r.openManualEntry()
+                Qt.callLater(function() {
+                    var d = runner.findFirst(r.fullRepresentationItem, "resetForMode")
+                    if (d) {
+                        d.resetForMode("project")
+                        d.open()
+                    }
+                })
             } else {
                 r.returnToMainView()
             }
             wait = 3500
             break
         case "shot": {
+            // Popups are drawn outside the representation item: take the whole (X) screen.
+            if (item.name.indexOf("picker") >= 0 || item.name.indexOf("create") >= 0) {
+                trace("PLASMAI_SCREENSHOT " + item.name + " screen")
+                Secret._run(execSource, "import -window root '" + runner.plan.dir + "/" + item.name + ".png'", function() {
+                    runner.shotCount += 1
+                    ticker.restart()
+                })
+                return
+            }
             var target = r.fullRepresentationItem
             trace("PLASMAI_SCREENSHOT " + item.name + " " + Math.round(target.width) + "x" + Math.round(target.height))
             var ok = target.grabToImage(function(result) {
@@ -94,6 +120,34 @@ Item {
         }
         ticker.interval = wait
         ticker.restart()
+    }
+
+    // First item under `item` (children, then popups' content) with a function `name`;
+    // `openFor` of the time picker takes two arguments, the date picker's one.
+    function findFirst(item, name, argc) {
+        if (!item) {
+            return null
+        }
+        if (typeof item[name] === "function" && (argc === undefined || item[name].length === argc)) {
+            return item
+        }
+        var kids = (item.children || []).concat(item.data || [])
+        for (var i = 0; i < kids.length; ++i) {
+            var found = kids[i] !== item ? findFirst(kids[i], name, argc) : null
+            if (found) {
+                return found
+            }
+        }
+        return null
+    }
+
+    function callFirst(item, name, args) {
+        var target = findFirst(item, name, args.length || undefined)
+        if (target) {
+            target[name].apply(target, args)
+        } else {
+            trace("PLASMAI_SCREENSHOT_NOTFOUND " + name)
+        }
     }
 
     Timer {

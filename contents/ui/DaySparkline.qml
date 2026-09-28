@@ -1,7 +1,7 @@
 import "../code/kimaiApi.js" as KimaiApi
 import "../code/solar.js" as Solar
-import Qt5Compat.GraphicalEffects as GE
 import QtQuick
+import QtQuick.Effects
 import org.kde.kirigami as Kirigami
 import "Kante"
 
@@ -12,6 +12,12 @@ import "Kante"
  */
 Item {
     id: root
+
+    /**
+     * Masks (rounded track, text cutouts under the sun) are shader effects; Qt's software
+     * renderer draws none of them, so there the layers show unmasked instead of vanishing.
+     */
+    readonly property bool masksRender: root.GraphicsInfo.api !== GraphicsInfo.Software
 
     property var entries: []
     property int targetSeconds: 0
@@ -671,7 +677,7 @@ Item {
             Item {
                 id: sunSpin
                 anchors.fill: parent
-                visible: false
+                visible: !root.masksRender
                 transformOrigin: Item.Center
 
                 RotationAnimator on rotation {
@@ -706,6 +712,7 @@ Item {
                 id: sunMask
                 anchors.fill: parent
                 visible: false
+                layer.enabled: true
                 onPaint: {
                     var ctx = getContext("2d")
                     var w = width
@@ -740,10 +747,16 @@ Item {
                 }
             }
 
-            GE.OpacityMask {
+            // Qt Quick's own mask (Qt5Compat's OpacityMask is gone): alpha of sunMask,
+            // with a soft edge like the old alpha multiply.
+            MultiEffect {
                 anchors.fill: parent
+                visible: root.masksRender
                 source: sunSpin
+                maskEnabled: true
                 maskSource: sunMask
+                maskThresholdMin: 0.5
+                maskSpreadAtMin: 1.0
             }
         }
 
@@ -811,7 +824,7 @@ Item {
     // —— Track ——
     // Layers (bottom → top): moon base → sun → business hours → activities.
     // Item.clip is axis-aligned only, so zoomed fills would square off the
-    // capsule ends; OpacityMask keeps every layer rounded at any zoom.
+    // capsule ends; a MultiEffect mask keeps every layer rounded at any zoom.
     Item {
         id: track
         anchors.left: parent.left
@@ -824,7 +837,7 @@ Item {
             id: trackContent
             anchors.fill: parent
             clip: true
-            visible: false
+            visible: !root.masksRender
 
             // 0 — Moon base: always full width / full height (not tied to moonrise)
             Rectangle {
@@ -963,12 +976,17 @@ Item {
             radius: height / 2
             color: "#ffffff"
             visible: false
+            layer.enabled: true
         }
 
-        GE.OpacityMask {
+        MultiEffect {
             anchors.fill: parent
+            visible: root.masksRender
             source: trackContent
+            maskEnabled: true
             maskSource: trackMask
+            maskThresholdMin: 0.5
+            maskSpreadAtMin: 1.0
         }
     }
 
