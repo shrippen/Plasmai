@@ -191,19 +191,30 @@ function engagementOf(engagements, projectId) {
 /**
  * Production shooting day of the engagement on dateStr, and its film
  * activity: the project's entries from fromDateStr (the engagement's start)
- * to dateStr; the film activity is activityId, or else the activity of the
- * longest of them; the count is the distinct days with entries of it.
- * ids = { projectOf, activityOf }. callback({ count, includesDay, activityId })
+ * to dateStr. With the engagement's whitelist `activityIds` (plugin) the
+ * count is the distinct days with whitelisted entries and the film activity
+ * the longest of them. Without one the film activity is activityId, or else
+ * the activity of the longest entry; the count is the distinct days with
+ * entries of it. ids = { projectOf, activityOf }. callback({ count, includesDay, activityId })
  * or callback(null) on an error. Cached per profile, project and day for 10 minutes.
  */
-function productionDay(ctx, projectId, activityId, fromDateStr, dateStr, ids, callback) {
+function productionDay(ctx, projectId, activityId, activityIds, fromDateStr, dateStr, ids, callback) {
     if (!hasId(projectId) || !fromDateStr) {
         callback(null)
         return
     }
     var memo = memoOf(ctx)
     var key = [ctx.profileKey, projectId, dateStr].join("|")
+    var whitelisted = !!activityIds && activityIds.length > 0
     function answer(entries) {
+        if (whitelisted) {
+            var listed = FilmDays.filmEntries(entries, activityIds, ids.activityOf)
+            var longest = FilmDays.suggestedActivityId(listed, projectId, ids.projectOf, ids.activityOf)
+            var listedCount = FilmDays.countShootingDays(listed, dateStr, function(ts) { return ts.begin })
+            listedCount.activityId = hasId(longest) ? longest : activityIds[0]
+            callback(listedCount)
+            return
+        }
         var activity = hasId(activityId) ? activityId
             : FilmDays.suggestedActivityId(entries, projectId, ids.projectOf, ids.activityOf)
         var film = []
@@ -330,8 +341,11 @@ function loadDay(ctx, projectId, dateStr, callback) {
  * else the project's longest. With preferSelected the chosen project wins (the
  * engagement chooser). ids = { projectOf, activityOf } read an entry's project
  * and activity id. callback({ projectId, engagement, engagements, match,
- * others, day }): `engagement` is the D1 entry of projectId (or null), `day`
- * from loadDay(), `others` further entries of the film day's activity only.
+ * others, day, activityIds }): `engagement` is the D1 entry of projectId (or
+ * null), `day` from loadDay(), `others` further entries of the film day's
+ * activity only. With the engagement's whitelist `activityIds` (plugin) only
+ * whitelisted entries are film time, as in the plugin's begin and end of the
+ * day: `match` and `others` come from them, others of any listed activity.
  */
 function resolveDay(ctx, entries, selectedProjectId, dateStr, ids, callback, preferSelected) {
     dayEngagements(ctx, dateStr, function(engagements) {
@@ -341,14 +355,20 @@ function resolveDay(ctx, entries, selectedProjectId, dateStr, ids, callback, pre
             var summary = day.summary
             var span = (summary && summary.hasEntry !== false && summary.begin && summary.end)
                 ? { begin: summary.begin, end: summary.end } : null
-            var match = FilmDays.pickDayEntry(entries, projectId, ids.projectOf, span)
+            var engagement = engagementOf(engagements, projectId)
+            var activityIds = (engagement && engagement.activityIds) || []
+            var film = FilmDays.filmEntries(entries, activityIds, ids.activityOf)
+            var match = FilmDays.pickDayEntry(film, projectId, ids.projectOf, span)
+            // Whitelist: every listed activity belongs to the one film day (Set + Dreh).
+            var sameActivity = activityIds.length ? null : ids.activityOf
             callback({
                 projectId: hasId(projectId) ? projectId : null,
-                engagement: engagementOf(engagements, projectId),
+                engagement: engagement,
                 engagements: engagements,
                 match: match,
-                others: FilmDays.otherDayEntries(entries, match, projectId, ids.projectOf, ids.activityOf),
-                day: day
+                others: FilmDays.otherDayEntries(film, match, projectId, ids.projectOf, sameActivity),
+                day: day,
+                activityIds: activityIds
             })
         })
     })
@@ -363,12 +383,19 @@ function resolveDay(ctx, entries, selectedProjectId, dateStr, ids, callback, pre
  */
 function viewInfo(r, opts) {
     var ids = opts.ids
+    var activityIds = r.activityIds || []
+    var recent = FilmDays.filmEntries(opts.recent, activityIds, ids.activityOf)
     var filmActivity = r.match ? ids.activityOf(r.match)
-        : FilmDays.suggestedActivityId(opts.recent, r.projectId, ids.projectOf, ids.activityOf)
+        : FilmDays.suggestedActivityId(recent, r.projectId, ids.projectOf, ids.activityOf)
+    if (!hasId(filmActivity) && activityIds.length) {
+        filmActivity = activityIds[0]
+    }
     var active = opts.active
+    // A running entry outside the engagement's whitelist (commute) is never the film day.
+    var counts = !!active && FilmDays.countsActivity(activityIds, ids.activityOf(active))
     // The film day is the day's longest entry, the running one with its time so far:
     // a shoot running after the commute counts, a drive home after the shoot does not.
-    if (active && r.match && opts.daysFromToday === 0 && String(ids.projectOf(active)) === String(r.projectId)) {
+    if (counts && r.match && opts.daysFromToday === 0 && String(ids.projectOf(active)) === String(r.projectId)) {
         var now = opts.nowMs || Date.now()
         var runningMs = now - FilmDays.stampMs(active.begin)
         var matchMs = FilmDays.stampMs(r.match.end) - FilmDays.stampMs(r.match.begin)
@@ -376,9 +403,9 @@ function viewInfo(r, opts) {
             filmActivity = ids.activityOf(active)
         }
     }
-    var running = !!active && opts.daysFromToday === 0 && hasId(r.projectId)
+    var running = counts && opts.daysFromToday === 0 && hasId(r.projectId)
         && String(ids.projectOf(active)) === String(r.projectId)
-        && (!hasId(filmActivity) || String(ids.activityOf(active)) === String(filmActivity))
+        && (activityIds.length > 0 || !hasId(filmActivity) || String(ids.activityOf(active)) === String(filmActivity))
     var shown = running ? active : r.match
     var skip = [shown].concat(r.others || [])
     var otherActivities = []

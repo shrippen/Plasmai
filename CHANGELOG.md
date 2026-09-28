@@ -5,6 +5,9 @@
 ### Changed
 - Widget (Kante styles): a running timer no longer tints the whole panel entry in the accent color. It is marked by a small red indicator instead; Display settings offer a red dot, a red bottom edge or a red side stripe, with a preview
 
+### Fixed
+- Film day: only the activities the Drehzettel engagement counts (its activity list) make up the film day, its begin and end and the shooting day count, as in the plugin. A private commute on the same project no longer becomes the film day
+
 ## 2.0.1
 
 Released 2026-09-28.

@@ -123,6 +123,37 @@ function saveTargetId(timesheet, projectId, projectIdOf) {
     return timesheet.id
 }
 
+/**
+ * Whether activityId counts as film time under the engagement's whitelist
+ * (plugin `activityIds`). Empty or missing: every activity counts (older
+ * plugin, unrestricted engagement).
+ */
+function countsActivity(activityIds, activityId) {
+    if (!activityIds || !activityIds.length) {
+        return true
+    }
+    for (var i = 0; i < activityIds.length; i++) {
+        if (String(activityIds[i]) === String(activityId)) {
+            return true
+        }
+    }
+    return false
+}
+
+/**
+ * Entries the plugin counts for the film day: only whitelisted activities,
+ * e.g. [40 Set, 41 Dreh] drops a private 12 Anfahrt on the same project.
+ */
+function filmEntries(entries, activityIds, activityIdOf) {
+    var out = []
+    for (var i = 0; i < (entries || []).length; i++) {
+        if (countsActivity(activityIds, activityIdOf(entries[i]))) {
+            out.push(entries[i])
+        }
+    }
+    return out
+}
+
 /** Entries count as the summary's span within a minute (seconds in Kimai stamps). */
 var SPAN_TOLERANCE_MS = 60 * 1000
 

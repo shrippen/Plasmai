@@ -23,6 +23,22 @@ TestCase {
         verify(isNaN(FilmDays.daySpan([]).beginMs))
     }
 
+    // The engagement's activity whitelist (plugin): only those entries are film time.
+    function test_filmEntries() {
+        function aid(ts) { return ts.activity }
+        var set = { id: 1, activity: 40 }
+        var shoot = { id: 2, activity: 41 }
+        var commute = { id: 3, activity: 12 }
+        compare(FilmDays.filmEntries([set, shoot, commute], [40, 41], aid).map(function(e) { return e.id }), [1, 2])
+        compare(FilmDays.filmEntries([set, commute], ["40"], aid).length, 1)
+        // no whitelist (old plugin, unrestricted engagement): every entry counts
+        compare(FilmDays.filmEntries([set, commute], [], aid).length, 2)
+        compare(FilmDays.filmEntries([set, commute], undefined, aid).length, 2)
+        verify(FilmDays.countsActivity([], 12))
+        verify(FilmDays.countsActivity([40], "40"))
+        verify(!FilmDays.countsActivity([40], 12))
+    }
+
     function test_categoryFromWeekday() {
         compare(FilmDays.categoryFromWeekday(1), FilmDays.DayCategory.WORKDAY)
         compare(FilmDays.categoryFromWeekday(5), FilmDays.DayCategory.WORKDAY)

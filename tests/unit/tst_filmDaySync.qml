@@ -282,12 +282,63 @@ TestCase {
             { id: 4, project: 155, activity: 40, begin: "2026-09-25T13:15:00+0200", end: "2026-09-25T21:30:00+0200" }] }]
         var got = null
         // no activity known yet: the longest entry's activity is the film activity
-        Sync.productionDay(ctx("server"), 155, null, "2026-05-18", "2026-09-25", ids, function(r) { got = r })
+        Sync.productionDay(ctx("server"), 155, null, [], "2026-05-18", "2026-09-25", ids, function(r) { got = r })
         verify(requests[0].url.indexOf("project=155") > 0)
         verify(requests[0].url.indexOf("activity=") < 0)
         compare(got.activityId, 40)
         compare(got.count, 3)
         verify(got.includesDay)
+    }
+
+    // The engagement's whitelist decides the film activities: a day with only
+    // a whitelisted activity counts, a commute-only day does not.
+    function test_productionDayActivityWhitelist() {
+        responses = [{ status: 200, body: [
+            { id: 1, project: 155, activity: 12, begin: "2026-09-22T06:00:00+0200", end: "2026-09-22T18:00:00+0200" },
+            { id: 2, project: 155, activity: 41, begin: "2026-09-23T08:00:00+0200", end: "2026-09-23T10:00:00+0200" },
+            { id: 3, project: 155, activity: 40, begin: "2026-09-24T08:00:00+0200", end: "2026-09-24T12:00:00+0200" },
+            { id: 4, project: 155, activity: 12, begin: "2026-09-25T06:00:00+0200", end: "2026-09-25T07:00:00+0200" }] }]
+        var got = null
+        Sync.productionDay(ctx("server"), 155, null, [40, 41], "2026-05-18", "2026-09-25", ids, function(r) { got = r })
+        compare(got.count, 2)
+        verify(!got.includesDay)
+        compare(got.activityId, 40)
+    }
+
+    // Plugin whitelist: the film day spans all whitelisted entries (as the
+    // plugin's begin and end), the longer commute of the same project is not it.
+    function test_resolveDayActivityWhitelist() {
+        var entries = [
+            { id: 1, project: 155, activity: 12, begin: "2026-09-25T06:00:00+0200", end: "2026-09-25T09:30:00+0200" },
+            { id: 2, project: 155, activity: 40, begin: "2026-09-25T09:30:00+0200", end: "2026-09-25T12:30:00+0200" },
+            { id: 3, project: 155, activity: 41, begin: "2026-09-25T13:00:00+0200", end: "2026-09-25T15:00:00+0200" }
+        ]
+        responses = [
+            { status: 200, body: [{ engagementId: 1, projectId: 155, activityIds: [40, 41] }] },
+            { status: 200, body: serverDay({ date: "2026-09-25" }) },
+            { status: 200, body: { hasEntry: true, begin: "2026-09-25T09:30:00+02:00", end: "2026-09-25T15:00:00+02:00" } }
+        ]
+        var got = null
+        Sync.resolveDay(ctx("server"), entries, null, "2026-09-25", ids, function(r) { got = r })
+        compare(got.match.id, 2)
+        compare(got.others.map(function(e) { return e.id }), [3])
+        compare(got.activityIds, [40, 41])
+    }
+
+    // Whitelist: any whitelisted activity running is the film day, a
+    // non-whitelisted one (commute) is not; a single one is the suggestion.
+    function test_viewInfoActivityWhitelist() {
+        var shoot = { id: 9, project: 155, activity: 41, begin: "2026-09-26T07:42:00+0200", end: null }
+        var v = Sync.viewInfo({ projectId: 155, match: null, others: [], activityIds: [40, 41] },
+                              viewOpts({ entries: [shoot], active: shoot, daysFromToday: 0 }))
+        compare(v.phase, "running")
+        compare(v.activityId, 41)
+
+        var commute = { id: 10, project: 155, activity: 12, begin: "2026-09-26T06:00:00+0200", end: null }
+        v = Sync.viewInfo({ projectId: 155, match: null, others: [], activityIds: [40] },
+                          viewOpts({ entries: [commute], active: commute, recent: [commute], daysFromToday: 0 }))
+        compare(v.phase, "before")
+        compare(v.activityId, 40)
     }
 
     function travelDayEntries() {

@@ -1183,7 +1183,7 @@ PlasmoidItem {
         if (!r.engagement || !r.engagement.validFrom) {
             return
         }
-        FilmDaySync.productionDay(filmDayContext(), r.projectId, info.activityId,
+        FilmDaySync.productionDay(filmDayContext(), r.projectId, info.activityId, r.activityIds,
                                   String(r.engagement.validFrom), dateStr,
                                   { projectOf: KimaiApi.projectId, activityOf: KimaiApi.activityId }, function(count) {
             var view = root.filmDayViewRef
