@@ -1129,19 +1129,16 @@ PlasmoidItem {
         loadingFilmDay = true
         // Only the latest load may fill the view (fast day steps / project picks).
         var serial = ++filmDayLoadSerial
-        tracker.fetchTimesheetsRange(
-            kimaiUrl, apiToken, KimaiApi.startOfLocalDay(date), KimaiApi.endOfLocalDay(date),
-            function(result) {
-                if (serial !== filmDayLoadSerial) {
-                    return
-                }
-                var entries = (result && result.ok) ? KimaiApi.hydrateTimesheets(
-                    result.data || [], root.projects, root.activityCatalog(), root.activitiesByProject) : []
-                var dateStr = KimaiApi.localDateString(date)
-                // One engagement per day: it decides the project; the plugin's day
-                // summary decides which of the project's entries is the film day.
-                FilmDaySync.resolveDay(root.filmDayContext(), entries, selectedProjectIdForDay, dateStr,
-                                       { projectOf: KimaiApi.projectId, activityOf: KimaiApi.activityId }, function(r) {
+        var dateStr = KimaiApi.localDateString(date)
+        function hydrate(raw) {
+            return KimaiApi.hydrateTimesheets(raw, root.projects, root.activityCatalog(), root.activitiesByProject)
+        }
+        // One engagement per day: it decides the project; the plugin's day
+        // summary decides which of the project's entries is the film day.
+        // Cached days show at once; the live answer follows when it differs.
+        FilmDaySync.openDay(root.filmDayContext(), date, selectedProjectIdForDay,
+                            { projectOf: KimaiApi.projectId, activityOf: KimaiApi.activityId }, hydrate,
+                            function(r, entries) {
                     if (serial !== filmDayLoadSerial) {
                         return
                     }
@@ -1175,7 +1172,6 @@ PlasmoidItem {
                         })
                     loadFilmDayProductionDay(serial, r, info, dateStr)
                 }, !!preferSelected)
-            })
     }
 
     /** Production shooting day of the engagement, filled in once counted. */

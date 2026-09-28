@@ -341,6 +341,146 @@ TestCase {
         compare(v.activityId, 40)
     }
 
+    // ── Day cache (openDay, prefetchDays) ──
+
+    readonly property var shootDay: [
+        { id: 7, project: 155, activity: 40, begin: "2026-09-25T08:00:00+0200", end: "2026-09-25T18:00:00+0200" }
+    ]
+
+    /** Live answers of one day open: timesheets, engagements, film day, summary. */
+    function dayResponses(note) {
+        return [
+            { status: 200, body: shootDay },
+            { status: 200, body: [{ engagementId: 1, projectId: 155, rulesetName: "R", validFrom: "2026-09-01" }] },
+            { status: 200, body: serverDay({ date: "2026-09-25", note: note }) },
+            { status: 200, body: { hasEntry: true, begin: "2026-09-25T08:00:00+02:00", end: "2026-09-25T18:00:00+02:00" } }
+        ]
+    }
+
+    /** A ctx whose prefetch already ran (openDay tests see only the day's requests). */
+    function cacheCtx() {
+        var c = ctx("server")
+        c.memo.prefetched = {}
+        c.memo.prefetched[c.profileKey] = c.nowMs
+        return c
+    }
+
+    function openDay(c, got) {
+        Sync.openDay(c, new Date(2026, 8, 25), null, ids, function(raw) { return raw }, function(r, entries, source) {
+            got.push({ r: r, entries: entries, source: source })
+        })
+    }
+
+    // Uncached: one live render. Cached: at once from the cache, the equal
+    // live answer does not render again.
+    function test_openDayFromCache() {
+        var c = cacheCtx()
+        var got = []
+        responses = dayResponses("seen")
+        openDay(c, got)
+        compare(got.length, 1)
+        compare(got[0].source, Sync.Source.LIVE)
+        compare(got[0].r.match.id, 7)
+        compare(got[0].r.day.fields.note, "seen")
+
+        got = []
+        requests = []
+        responses = [{ status: 200, body: shootDay }].concat(dayResponses("seen").slice(2))
+        openDay(c, got)
+        compare(got.length, 1)
+        compare(got[0].source, Sync.Source.CACHE)
+        compare(got[0].r.match.id, 7)
+        compare(got[0].r.day.fields.note, "seen")
+        // still checked live (engagements within their hour stay cached)
+        compare(requests.length, 3)
+    }
+
+    // The live check differs from the cache: the view renders again.
+    function test_openDayLiveChanged() {
+        var c = cacheCtx()
+        var got = []
+        responses = dayResponses("old")
+        openDay(c, got)
+        got = []
+        responses = [{ status: 200, body: shootDay }].concat(dayResponses("new").slice(2))
+        openDay(c, got)
+        compare(got.map(function(g) { return g.source }), [Sync.Source.CACHE, Sync.Source.LIVE])
+        compare(got[0].r.day.fields.note, "old")
+        compare(got[1].r.day.fields.note, "new")
+    }
+
+    // Offline after a cached open: the cached view stays.
+    function test_openDayOfflineKeepsCache() {
+        var c = cacheCtx()
+        var got = []
+        responses = dayResponses("seen")
+        openDay(c, got)
+        got = []
+        responses = [{ status: 0 }, { status: 0 }, { status: 0 }]
+        openDay(c, got)
+        compare(got.length, 1)
+        compare(got[0].source, Sync.Source.CACHE)
+    }
+
+    // A save drops the day: the next open waits for the server.
+    function test_openDayAfterSave() {
+        var c = cacheCtx()
+        var got = []
+        responses = dayResponses("seen")
+        openDay(c, got)
+        Sync.forgetDay(c, "2026-09-25")
+        got = []
+        responses = [{ status: 200, body: shootDay }].concat(dayResponses("seen").slice(2))
+        openDay(c, got)
+        compare(got.length, 1)
+        compare(got[0].source, Sync.Source.LIVE)
+    }
+
+    // Prefetch: one timesheet fetch for the last month, split by the days an
+    // entry overlaps (night shoot on both days), then the engaged days' extras.
+    function test_prefetchDays() {
+        var c = ctx("server", { nowMs: new Date(2026, 8, 26, 12, 0).getTime() })
+        var night = { id: 8, project: 155, activity: 40, begin: "2026-09-25T20:00:00+0200", end: "2026-09-26T03:00:00+0200" }
+        responses = [{ status: 200, body: [night] }]
+        for (var i = 0; i < Sync.PREFETCH_DAYS; i++) {
+            responses.push({ status: 200, body: [] })   // no engagement that day
+        }
+        var finished = false
+        Sync.prefetchDays(c, function() { finished = true })
+        verify(finished)
+        compare(requests.length, 1 + Sync.PREFETCH_DAYS)
+        verify(requests[0].url.indexOf("/api/timesheets") > 0)
+        var days = c.memo.days[c.profileKey]
+        compare(days["2026-09-25"].timesheets.result.data[0].id, 8)
+        compare(days["2026-09-26"].timesheets.result.data[0].id, 8)
+        compare(days["2026-09-24"].timesheets.result.data.length, 0)
+        verify(!days["2026-08-26"])
+
+        // within the hour: no second prefetch
+        requests = []
+        Sync.prefetchDays(c)
+        compare(requests.length, 0)
+    }
+
+    // A prefetched engaged day opens from the cache.
+    function test_prefetchedDayOpensFromCache() {
+        var c = ctx("server", { nowMs: new Date(2026, 8, 25, 20, 0).getTime() })
+        var engagement = [{ engagementId: 1, projectId: 155, rulesetName: "R", validFrom: "2026-09-01" }]
+        responses = [{ status: 200, body: shootDay }, { status: 200, body: engagement },
+                     { status: 200, body: serverDay({ date: "2026-09-25", note: "pre" }) },
+                     { status: 200, body: { hasEntry: true, begin: "2026-09-25T08:00:00+02:00", end: "2026-09-25T18:00:00+02:00" } }]
+        for (var i = 1; i < Sync.PREFETCH_DAYS; i++) {
+            responses.push({ status: 200, body: [] })
+        }
+        Sync.prefetchDays(c)
+        responses = []
+        var got = []
+        openDay(c, got)
+        compare(got.length, 1)
+        compare(got[0].source, Sync.Source.CACHE)
+        compare(got[0].r.day.fields.note, "pre")
+    }
+
     function travelDayEntries() {
         return [
             { id: 4246, project: 155, activity: 12, begin: "2026-09-25T21:31:00+0200", end: "2026-09-25T21:56:00+0200" },

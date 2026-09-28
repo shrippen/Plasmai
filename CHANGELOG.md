@@ -4,6 +4,7 @@
 
 ### Changed
 - Widget (Kante styles): a running timer no longer tints the whole panel entry in the accent color. It is marked by a small red indicator instead; Display settings offer a red dot, a red bottom edge or a red side stripe, with a preview
+- Film day: switching days is instant. The last month is loaded in the background; a day opens from it and is then checked against the server, so what is shown can still change a moment later. Older days load as before
 
 ### Fixed
 - Film day: only the activities the Drehzettel engagement counts (its activity list) make up the film day, its begin and end and the shooting day count, as in the plugin. A private commute on the same project no longer becomes the film day

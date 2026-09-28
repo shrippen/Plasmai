@@ -17,7 +17,7 @@
  *     mode,                Mode.* from resolveMode()
  *     ping,                last ping body (features, permissions) or null
  *     memo,                plain object kept by the caller between calls
- *                          (engagement lists, 1 h)
+ *                          (engagement lists 1 h, day cache)
  *     tracker,             timesheet API (default KimaiApi)
  *     nowMs                optional clock for tests
  *   }
@@ -40,6 +40,18 @@ var Mode = {
 
 var ENGAGEMENT_CACHE_MS = 3600 * 1000
 var PRODUCTION_DAY_CACHE_MS = 10 * 60 * 1000
+/** Days before today the background prefetch fills (the last month). */
+var PREFETCH_DAYS = 31
+/** A new prefetch of the last month at most this often per profile. */
+var PREFETCH_INTERVAL_MS = 3600 * 1000
+
+/** Where a day's answers come from (ctx.source). */
+var Source = {
+    /** Only the day cache; a missing answer marks ctx.missed. */
+    CACHE: "cache",
+    /** The server; answers are stored in the day cache. */
+    LIVE: "live"
+}
 
 function profileKey(profileId, kimaiUrl) {
     return String(profileId || "") + "|" + KimaiApi.normalizeUrl(kimaiUrl)
@@ -62,6 +74,12 @@ function memoOf(ctx) {
     }
     if (!ctx.memo.productionDays) {
         ctx.memo.productionDays = {}
+    }
+    if (!ctx.memo.days) {
+        ctx.memo.days = {}
+    }
+    if (!ctx.memo.prefetched) {
+        ctx.memo.prefetched = {}
     }
     return ctx.memo
 }
@@ -126,14 +144,23 @@ function loadEngagements(ctx, dateStr, callback) {
     var memo = memoOf(ctx)
     var ekey = String(ctx.profileKey) + "|" + dateStr
     var cached = memo.engagements[ekey]
-    if (cached && nowOf(ctx) - cached.at < ENGAGEMENT_CACHE_MS) {
+    // The day cache takes any age; the live check keeps the 1 h.
+    if (cached && (ctx.source === Source.CACHE || nowOf(ctx) - cached.at < ENGAGEMENT_CACHE_MS)) {
         callback(cached.list)
+        return
+    }
+    if (ctx.source === Source.CACHE) {
+        ctx.missed = true
+        callback(null)
         return
     }
     KimaiApi.fetchDrehzettelEngagements(ctx.url, ctx.token, dateStr, function(result) {
         if (!result.ok) {
             callback(null)
             return
+        }
+        if (cached && JSON.stringify(cached.list) !== JSON.stringify(result.data)) {
+            ctx.changed = true
         }
         memo.engagements[ekey] = { at: nowOf(ctx), list: result.data }
         callback(result.data)
@@ -157,7 +184,9 @@ function loadRulesetName(ctx, projectId, dateStr, callback) {
         })
         return
     }
-    KimaiApi.fetchEngagementStatus(ctx.url, ctx.token, projectId, dateStr, function(result) {
+    dayCall(ctx, dateStr, "status|" + projectId, function(done) {
+        KimaiApi.fetchEngagementStatus(ctx.url, ctx.token, projectId, dateStr, done)
+    }, function(result) {
         callback(result.ok && result.data && result.data.active ? (result.data.rulesetName || "") : "")
     })
 }
@@ -204,7 +233,11 @@ function productionDay(ctx, projectId, activityId, activityIds, fromDateStr, dat
         return
     }
     var memo = memoOf(ctx)
-    var key = [ctx.profileKey, projectId, dateStr].join("|")
+    // One fetch from the engagement's start to today (or a later dateStr)
+    // serves every day of it: day steps count from the same entries.
+    var key = [ctx.profileKey, projectId, fromDateStr].join("|")
+    var todayStr = KimaiApi.localDateString(new Date(nowOf(ctx)))
+    var toStr = dateStr > todayStr ? dateStr : todayStr
     var whitelisted = !!activityIds && activityIds.length > 0
     function answer(entries) {
         if (whitelisted) {
@@ -228,18 +261,18 @@ function productionDay(ctx, projectId, activityId, activityIds, fromDateStr, dat
         callback(count)
     }
     var cached = memo.productionDays[key]
-    if (cached && nowOf(ctx) - cached.at < PRODUCTION_DAY_CACHE_MS) {
+    if (cached && cached.toStr >= dateStr && nowOf(ctx) - cached.at < PRODUCTION_DAY_CACHE_MS) {
         answer(cached.entries)
         return
     }
     var from = new Date(fromDateStr + "T00:00:00")
-    var to = new Date(dateStr + "T23:59:59")
+    var to = new Date(toStr + "T23:59:59")
     trackerOf(ctx).fetchTimesheetsRange(ctx.url, ctx.token, from, to, function(result) {
         if (!result.ok) {
             callback(null)
             return
         }
-        memo.productionDays[key] = { at: nowOf(ctx), entries: result.data || [] }
+        memo.productionDays[key] = { at: nowOf(ctx), toStr: toStr, entries: result.data || [] }
         answer(result.data || [])
     }, { project: projectId })
 }
@@ -284,7 +317,9 @@ function loadDay(ctx, projectId, dateStr, callback) {
         callback(emptyLoad(ctx.mode === Mode.OFFLINE ? Mode.OFFLINE : Mode.NO_PROJECT))
         return
     }
-    KimaiApi.fetchFilmDay(ctx.url, ctx.token, projectId, dateStr, function(result) {
+    dayCall(ctx, dateStr, "filmDay|" + projectId, function(done) {
+        KimaiApi.fetchFilmDay(ctx.url, ctx.token, projectId, dateStr, done)
+    }, function(result) {
         if (!result.ok) {
             var err = result.error || {}
             if (err.status === 404 && !err.code && ctx.mode === Mode.OFFLINE) {
@@ -326,7 +361,9 @@ function loadDay(ctx, projectId, dateStr, callback) {
             done()
         })
         if (wantSummary) {
-            KimaiApi.fetchDaySummary(ctx.url, ctx.token, projectId, dateStr, function(sres) {
+            dayCall(ctx, dateStr, "summary|" + projectId, function(summaryDone) {
+                KimaiApi.fetchDaySummary(ctx.url, ctx.token, projectId, dateStr, summaryDone)
+            }, function(sres) {
                 out.summary = sres.ok ? sres.data : null
                 done()
             })
@@ -442,6 +479,7 @@ function saveDay(ctx, req, callback) {
                        timesheet: null, server: null })
             return
         }
+        forgetDay(ctx, req.dateStr)
         saveExtras(ctx, req, function(extras) {
             extras.ok = true
             extras.timesheet = tsResult.data
@@ -480,6 +518,7 @@ function saveExtras(ctx, req, callback) {
     }
     KimaiApi.putFilmDay(ctx.url, ctx.token, req.projectId, req.dateStr, patch, function(put) {
         if (put.ok) {
+            forgetDay(ctx, req.dateStr)
             callback(result("saved", { server: put.data }))
             return
         }
@@ -512,4 +551,226 @@ function deleteEntries(ctx, ids, callback) {
         })
     }
     step()
+}
+
+// ── Day cache ────────────────────────────────────────────────────────────
+//
+// Stale-while-revalidate for the film day screen: a day opens from the
+// cache at once, then the live answers replace it only when they differ.
+//
+//   openDay ─┬─► CACHE pass: all answers cached? ──► callback(.., CACHED)
+//            └─► LIVE pass: server, stores answers ──► callback(.., LIVE)
+//                    (skipped when the cached view was shown and nothing changed)
+//
+// prefetchDays() fills the last month in the background; older days load live.
+//
+//   memo.days[profileKey][dateStr][what] = { at, result }
+//   what: "timesheets" | "filmDay|<project>" | "summary|<project>" | "status|<project>"
+
+/** A copy of ctx for one pass (missed / changed are per pass). */
+function withSource(ctx, source) {
+    memoOf(ctx)
+    var out = {}
+    for (var k in ctx) {
+        out[k] = ctx[k]
+    }
+    out.source = source
+    out.missed = false
+    out.changed = false
+    return out
+}
+
+function dayStore(ctx, dateStr) {
+    var memo = memoOf(ctx)
+    var profile = memo.days[ctx.profileKey] || (memo.days[ctx.profileKey] = {})
+    return profile[dateStr] || (profile[dateStr] = {})
+}
+
+/** Answers worth keeping: success, and "no engagement" / "no permission" (404/403). */
+function cacheable(result) {
+    if (result.ok) {
+        return true
+    }
+    var status = result.error ? result.error.status : 0
+    return status === 404 || status === 403
+}
+
+function storeAnswer(ctx, dateStr, what, result) {
+    if (!cacheable(result)) {
+        // Network error: a view shown from the cache stays (offline stays usable).
+        return
+    }
+    var store = dayStore(ctx, dateStr)
+    var before = store[what]
+    if (!before || JSON.stringify(before.result) !== JSON.stringify(result)) {
+        ctx.changed = true
+    }
+    store[what] = { at: nowOf(ctx), result: result }
+}
+
+/**
+ * One answer of dateStr: from the day cache (Source.CACHE) or from `live`
+ * (stored). Without a source (saves, older callers) always live, stored too.
+ */
+function dayCall(ctx, dateStr, what, live, callback) {
+    if (ctx.source === Source.CACHE) {
+        var hit = dayStore(ctx, dateStr)[what]
+        if (!hit) {
+            ctx.missed = true
+            callback({ ok: false, data: null, error: { type: "cache", status: 0, detail: "" } })
+            return
+        }
+        callback(hit.result)
+        return
+    }
+    live(function(result) {
+        storeAnswer(ctx, dateStr, what, result)
+        callback(result)
+    })
+}
+
+/** Drops the cached answers of dateStr (after a save: the next open is live only). */
+function forgetDay(ctx, dateStr) {
+    var memo = memoOf(ctx)
+    if (memo.days[ctx.profileKey]) {
+        delete memo.days[ctx.profileKey][dateStr]
+    }
+}
+
+/** Timesheets of the local day `date` (raw, not hydrated). */
+function dayTimesheets(ctx, date, callback) {
+    dayCall(ctx, KimaiApi.localDateString(date), "timesheets", function(done) {
+        trackerOf(ctx).fetchTimesheetsRange(ctx.url, ctx.token,
+            KimaiApi.startOfLocalDay(date), KimaiApi.endOfLocalDay(date), done)
+    }, callback)
+}
+
+/**
+ * Opens `date` on the film day screen: resolveDay() from the cache first,
+ * then live. callback(r, entries, source) runs up to twice: Source.CACHE when
+ * every answer was cached, Source.LIVE unless it equals the cached view.
+ * hydrate(raw) turns raw timesheets into the view's entries. Starts the
+ * background prefetch of the last month (at most hourly per profile).
+ */
+function openDay(ctx, date, selectedProjectId, ids, hydrate, callback, preferSelected) {
+    var dateStr = KimaiApi.localDateString(date)
+    function run(pass, done) {
+        dayTimesheets(pass, date, function(result) {
+            var entries = result.ok ? hydrate(result.data || []) : []
+            resolveDay(pass, entries, selectedProjectId, dateStr, ids, function(r) {
+                done(r, entries)
+            }, preferSelected)
+        })
+    }
+
+    var shown = false
+    var cached = withSource(ctx, Source.CACHE)
+    run(cached, function(r, entries) {
+        if (cached.missed) {
+            return
+        }
+        shown = true
+        callback(r, entries, Source.CACHE)
+    })
+
+    var live = withSource(ctx, Source.LIVE)
+    run(live, function(r, entries) {
+        if (!shown || live.changed) {
+            callback(r, entries, Source.LIVE)
+        }
+        prefetchDays(ctx)
+    })
+}
+
+/** Local "YYYY-MM-DD" keys of the days `ts` overlaps (a running entry until now). */
+function overlappedDays(ts, nowMs) {
+    var begin = FilmDays.stampMs(ts.begin)
+    var end = ts.end ? FilmDays.stampMs(ts.end) : nowMs
+    if (isNaN(begin) || isNaN(end)) {
+        return []
+    }
+    var out = []
+    var day = new Date(begin)
+    day.setHours(0, 0, 0, 0)
+    while (day.getTime() <= end) {
+        out.push(KimaiApi.localDateString(day))
+        day.setDate(day.getDate() + 1)
+    }
+    return out
+}
+
+/**
+ * Background fill of the day cache for the last PREFETCH_DAYS days: one
+ * timesheet fetch split by day (as Kimai's range filter: every day an entry
+ * overlaps), then day by day, newest first, the extras of the day's
+ * engagement. Days without an engagement stay live. done() when finished or
+ * skipped (prefetched within PREFETCH_INTERVAL_MS).
+ */
+function prefetchDays(ctx, done) {
+    var finish = done || function() {}
+    var memo = memoOf(ctx)
+    var last = memo.prefetched[ctx.profileKey]
+    if (last !== undefined && nowOf(ctx) - last < PREFETCH_INTERVAL_MS) {
+        finish()
+        return
+    }
+    memo.prefetched[ctx.profileKey] = nowOf(ctx)
+    var live = withSource(ctx, Source.LIVE)
+
+    var today = new Date(nowOf(ctx))
+    var dates = []
+    for (var i = 0; i < PREFETCH_DAYS; i++) {
+        var d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i)
+        dates.push(d)
+    }
+    var first = dates[dates.length - 1]
+
+    trackerOf(ctx).fetchTimesheetsRange(ctx.url, ctx.token,
+        KimaiApi.startOfLocalDay(first), KimaiApi.endOfLocalDay(today), function(result) {
+        if (!result.ok) {
+            delete memo.prefetched[ctx.profileKey]
+            finish()
+            return
+        }
+        splitTimesheets(live, dates, result.data || [])
+        prefetchExtras(live, dates, 0, finish)
+    })
+}
+
+/** Stores a range fetch as the per-day "timesheets" answers of `dates`. */
+function splitTimesheets(ctx, dates, entries) {
+    var byDay = {}
+    for (var i = 0; i < dates.length; i++) {
+        byDay[KimaiApi.localDateString(dates[i])] = []
+    }
+    for (var j = 0; j < entries.length; j++) {
+        var keys = overlappedDays(entries[j], nowOf(ctx))
+        for (var k = 0; k < keys.length; k++) {
+            if (byDay[keys[k]]) {
+                byDay[keys[k]].push(entries[j])
+            }
+        }
+    }
+    for (var key in byDay) {
+        storeAnswer(ctx, key, "timesheets", { ok: true, data: byDay[key], error: null })
+    }
+}
+
+/** Day by day (one at a time, the server is not flooded): engagements, then loadDay(). */
+function prefetchExtras(ctx, dates, index, done) {
+    if (index >= dates.length || ctx.mode !== Mode.SERVER) {
+        done()
+        return
+    }
+    var dateStr = KimaiApi.localDateString(dates[index])
+    function next() {
+        prefetchExtras(ctx, dates, index + 1, done)
+    }
+    dayEngagements(ctx, dateStr, function(engagements) {
+        if (!engagements.length) {
+            next()
+            return
+        }
+        loadDay(ctx, engagements[0].projectId, dateStr, next)
+    })
 }
