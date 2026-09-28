@@ -758,6 +758,22 @@ Kirigami.ApplicationWindow {
         })
     }
 
+    /** Android Back, decided once per press (AndroidBackFilter in main.cpp): "handled" when it
+     *  closed a drawer here, "pass" for Qt/Kirigami (an open dialog or menu, a subpage to go
+     *  back from), "leave" on the first page with nothing open (the app goes to the background). */
+    function androidBack() {
+        if (globalDrawer.drawerOpen) { globalDrawer.drawerOpen = false; return "handled" }
+        if (contextDrawer.drawerOpen) { contextDrawer.drawerOpen = false; return "handled" }
+        // Open dialogs and menus sit in the overlay as popup items (next to Kirigami's
+        // always visible passive-notification area, which does not count).
+        var overlayItems = root.overlay ? root.overlay.children : []
+        for (var i = 0; i < overlayItems.length; ++i) {
+            if (overlayItems[i].visible && String(overlayItems[i]).indexOf("PopupItem") >= 0) return "pass"
+        }
+        if (pageStack.depth > 1 || pageStack.layers.depth > 1) return "pass"
+        return "leave"
+    }
+
     /** Drawer navigation is flat: return to the timer page first so pages don't stack up. */
     function navigateTo(component) {
         if (pageStack.depth > 1) pageStack.pop(pageStack.get(0))
