@@ -87,6 +87,12 @@ for tool in linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86
 done
 chmod +x "$TOOLS"/*.AppImage
 info "Bundling the AppImage..."
+# linuxdeploy-plugin-qt deploys Wayland's EGL client integration only for the pre-6.10 plugin
+# name; without it Qt Quick can't create an OpenGL context on Wayland and shows nothing. Its
+# RUNPATH ($ORIGIN/../../lib) and Qt dependencies fit the AppDir; EGL/wayland-egl are system libs.
+mkdir -p "$APPDIR/usr/plugins/wayland-graphics-integration-client"
+cp "$QT/plugins/wayland-graphics-integration-client/libqt-plugin-wayland-egl.so" \
+    "$APPDIR/usr/plugins/wayland-graphics-integration-client/"
 (
     cd "$WORK"
     export APPIMAGE_EXTRACT_AND_RUN=1   # no FUSE needed (CI containers)
