@@ -17,6 +17,7 @@ import "../contents/code/providerUtil.js" as ProviderUtil
 import "../contents/code/timesheetFields.js" as TimesheetFields
 import "../contents/code/dateTimeFormat.js" as DTF
 import "../contents/code/workTotals.js" as WorkTotals
+import "../contents/code/timerSession.js" as TimerSession
 import "shared"
 import "Kante"
 
@@ -318,45 +319,37 @@ Kirigami.ApplicationWindow {
     function checkIdle() {
         if (!isTracking || !idleStopEnabled || idleDialogPending) return
         Platform.checkIdle(null).then(function(idleMs) {
-            if (idleMs < 0) return
-            if (root.idleIgnoreUntilActive) {
-                if (idleMs < 30000) root.idleIgnoreUntilActive = false
-                return
-            }
-            var thresholdMs = Math.max(1, idleStopMinutes) * 60 * 1000
-            if (idleMs >= thresholdMs) root.promptIdle(idleMs)
+            var v = TimerSession.verdict(idleMs, root.idleIgnoreUntilActive, idleStopMinutes)
+            root.idleIgnoreUntilActive = v.ignoring
+            if (v.prompt) root.promptIdle(idleMs)
         })
     }
 
     function promptIdle(idleMs) {
         pendingIdleMs = idleMs
-        pendingIdleSince = Date.now() - Math.max(0, idleMs)
-        var beginInstant = activeTimesheet ? TimesheetFields.parseInstant(activeTimesheet.begin) : null
-        pendingIdleSnapshot = {
-            beginMs: beginInstant ? beginInstant.getTime() : 0,
-            timesheetId: currentTimesheetId,
-            projectId: activeTimesheet ? KimaiApi.projectId(activeTimesheet) : null,
-            activityId: activeTimesheet ? KimaiApi.activityId(activeTimesheet) : null,
-            projectName: currentProject,
-            activityName: currentActivity,
-            description: currentDescription
-        }
+        pendingIdleSince = TimerSession.idleSince(Date.now(), idleMs)
+        pendingIdleSnapshot = TimerSession.snapshot(activeTimesheet, currentTimesheetId,
+            { project: currentProject, activity: currentActivity, description: currentDescription })
         idleDialogPending = true
+    }
+
+    function clearPendingIdle() {
+        pendingIdleSnapshot = null; pendingIdleMs = 0; pendingIdleSince = 0; idleDialogPending = false
     }
 
     function keepIdleTime() {
         idleIgnoreUntilActive = true
-        pendingIdleSnapshot = null; pendingIdleMs = 0; pendingIdleSince = 0; idleDialogPending = false
+        clearPendingIdle()
     }
 
     function discardIdleTime(andContinue) {
         var snap = pendingIdleSnapshot
-        var idleSince = pendingIdleSince > 0 ? pendingIdleSince : Date.now() - Math.max(0, pendingIdleMs)
-        pendingIdleSnapshot = null; pendingIdleMs = 0; pendingIdleSince = 0; idleDialogPending = false
+        var idleSince = pendingIdleSince > 0 ? pendingIdleSince : TimerSession.idleSince(Date.now(), pendingIdleMs)
+        clearPendingIdle()
         if (!snap || !snap.timesheetId) { stopTracking(); return }
         // Stop where idle began (not "now − idle" at click time, which keeps
         // the time the dialog sat open), never before the entry's begin.
-        var endDate = new Date(Math.max(idleSince, snap.beginMs || 0))
+        var endDate = TimerSession.discardEnd(snap, idleSince)
         isBusy = true
         tracker.patchTimesheet(TimeTracker.resolveUrl(activeProfile), apiToken, snap.timesheetId,
             { end: KimaiApi.localDateTimeString(endDate) }, function(result) {
@@ -364,18 +357,19 @@ Kirigami.ApplicationWindow {
             if (!result.ok) { reportWriteError(result, i18n("Could not stop tracking")); return }
             applyActiveTimesheet(null); refreshAll()
             if (notifyOnIdleStop) sendNotification(i18n("Idle time discarded"), snap.projectName + " · " + snap.activityName)
-            if (andContinue && snap.projectId && snap.activityId) {
+            if (andContinue && TimerSession.canContinue(snap)) {
                 startTracking(snap.projectId, snap.activityId, snap.projectName, snap.activityName, snap.description || "")
             }
         })
     }
 
     function checkForgotToStart() {
-        if (!isConfigured || isTracking || !notifyForgotToStart) return
-        if (!KimaiApi.isWithinWorkHours(workDayBegin, workDayEnd, new Date())) return
-        var dayKey = Qt.formatDate(new Date(), "yyyy-MM-dd")
-        if (forgotReminderDay === dayKey) return
-        forgotReminderDay = dayKey
+        var day = TimerSession.forgotToStartDay({
+            enabled: notifyForgotToStart, configured: isConfigured, tracking: isTracking,
+            workDayBegin: workDayBegin, workDayEnd: workDayEnd, lastDay: forgotReminderDay
+        }, new Date())
+        if (!day) return
+        forgotReminderDay = day
         sendNotification(i18n("Nothing is tracking"), i18n("Start tracking when you begin work."))
     }
 
@@ -650,11 +644,7 @@ Kirigami.ApplicationWindow {
         })
     }
 
-    function switchHintKey(ts) {
-        var pid = KimaiApi.projectId(ts); var aid = KimaiApi.activityId(ts)
-        var idPart = ts && ts.id !== undefined && ts.id !== null ? ts.id : ""
-        return String(pid) + "|" + String(aid) + "|" + String(idPart)
-    }
+    function switchHintKey(ts) { return TimerSession.switchHintKey(ts) }
 
     function startPinned(entry) {
         if (!entry || !isConfigured || isBusy) return

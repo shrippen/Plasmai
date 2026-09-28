@@ -26,6 +26,7 @@ import "../code/mileage.js" as Mileage
 import "../code/statsData.js" as StatsData
 import "../code/providerUtil.js" as ProviderUtil
 import "../code/workTotals.js" as WorkTotals
+import "../code/timerSession.js" as TimerSession
 import "."
 import "Kante"
 import "KantePlasma"
@@ -616,21 +617,9 @@ PlasmoidItem {
             return
         }
         Platform.checkIdle(execSource).then(function(idleMs) {
-            if (idleMs < 0) {
-                return
-            }
-            if (root.idleIgnoreUntilActive) {
-                if (idleMs < 30000) {
-                    root.idleIgnoreUntilActive = false
-                }
-                return
-            }
-            var idleMinutes = parseInt(plasmoid.configuration.idleStopMinutes, 10)
-            if (isNaN(idleMinutes) || idleMinutes < 1) {
-                idleMinutes = 1
-            }
-            var thresholdMs = idleMinutes * 60 * 1000
-            if (idleMs >= thresholdMs) {
+            var v = TimerSession.verdict(idleMs, root.idleIgnoreUntilActive, plasmoid.configuration.idleStopMinutes)
+            root.idleIgnoreUntilActive = v.ignoring
+            if (v.prompt) {
                 root.promptIdle(idleMs)
             }
         })
@@ -638,17 +627,9 @@ PlasmoidItem {
 
     function promptIdle(idleMs) {
         pendingIdleMs = idleMs
-        pendingIdleSince = Date.now() - Math.max(0, idleMs)
-        var beginInstant = activeTimesheet ? TimesheetFields.parseInstant(activeTimesheet.begin) : null
-        pendingIdleSnapshot = {
-            beginMs: beginInstant ? beginInstant.getTime() : 0,
-            timesheetId: currentTimesheetId,
-            projectId: activeTimesheet ? KimaiApi.projectId(activeTimesheet) : null,
-            activityId: activeTimesheet ? KimaiApi.activityId(activeTimesheet) : null,
-            projectName: currentProject,
-            activityName: currentActivity,
-            description: currentDescription
-        }
+        pendingIdleSince = TimerSession.idleSince(Date.now(), idleMs)
+        pendingIdleSnapshot = TimerSession.snapshot(activeTimesheet, currentTimesheetId,
+            { project: currentProject, activity: currentActivity, description: currentDescription })
         expanded = true
         if (idleDialogRef) {
             idleDialogRef.open()
@@ -657,27 +638,28 @@ PlasmoidItem {
         }
     }
 
-    function keepIdleTime() {
-        idleIgnoreUntilActive = true
+    function clearPendingIdle() {
         pendingIdleSnapshot = null
         pendingIdleMs = 0
         pendingIdleSince = 0
     }
 
+    function keepIdleTime() {
+        idleIgnoreUntilActive = true
+        clearPendingIdle()
+    }
+
     function discardIdleTime(andContinue) {
         var snap = pendingIdleSnapshot
-        var idleSince = pendingIdleSince > 0 ? pendingIdleSince : Date.now() - Math.max(0, pendingIdleMs)
-        pendingIdleSnapshot = null
-        pendingIdleMs = 0
-        pendingIdleSince = 0
+        var idleSince = pendingIdleSince > 0 ? pendingIdleSince : TimerSession.idleSince(Date.now(), pendingIdleMs)
+        clearPendingIdle()
         if (!snap || !snap.timesheetId) {
             stopTracking(true)
             return
         }
         // Stop where idle began (not "now − idle" at click time, which would
         // keep the time the dialog sat open), never before the entry's begin.
-        var endMs = Math.max(idleSince, snap.beginMs || 0)
-        var endDate = new Date(endMs)
+        var endDate = TimerSession.discardEnd(snap, idleSince)
         if (!tracker || typeof tracker.patchTimesheet !== "function") {
             stopTracking(true)
             return
@@ -701,27 +683,25 @@ PlasmoidItem {
                     i18n("Idle time discarded"),
                     snap.projectName + " · " + snap.activityName)
             }
-            if (andContinue && snap.projectId && snap.activityId) {
+            if (andContinue && TimerSession.canContinue(snap)) {
                 startTracking(snap.projectId, snap.activityId, snap.projectName, snap.activityName, snap.description || "")
             }
         })
     }
 
     function checkForgotToStart() {
-        if (!isConfigured || isTracking || plasmoid.userConfiguring) {
+        if (plasmoid.userConfiguring) {
             return
         }
-        if (!plasmoid.configuration.notifyForgotToStart) {
+        var day = TimerSession.forgotToStartDay({
+            enabled: plasmoid.configuration.notifyForgotToStart, configured: isConfigured, tracking: isTracking,
+            workDayBegin: plasmoid.configuration.workDayBegin, workDayEnd: plasmoid.configuration.workDayEnd,
+            lastDay: forgotReminderDay
+        }, new Date())
+        if (!day) {
             return
         }
-        if (!KimaiApi.isWithinWorkHours(plasmoid.configuration.workDayBegin, plasmoid.configuration.workDayEnd, new Date())) {
-            return
-        }
-        var dayKey = Qt.formatDate(new Date(), "yyyy-MM-dd")
-        if (forgotReminderDay === dayKey) {
-            return
-        }
-        forgotReminderDay = dayKey
+        forgotReminderDay = day
         sendNotification(
             i18n("Nothing is tracking"),
             i18n("Work hours have started. Start a timer when you begin."))
@@ -2472,10 +2452,7 @@ PlasmoidItem {
     }
 
     function switchHintKey(timesheet) {
-        var pid = KimaiApi.projectId(timesheet)
-        var aid = KimaiApi.activityId(timesheet)
-        var idPart = (timesheet && timesheet.id !== undefined && timesheet.id !== null) ? timesheet.id : ""
-        return String(pid) + "|" + String(aid) + "|" + String(idPart)
+        return TimerSession.switchHintKey(timesheet)
     }
 
     function requestRestartFromRecent(timesheet) {

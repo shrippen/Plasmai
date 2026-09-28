@@ -99,6 +99,7 @@
         <file alias="contents/code/providerUtil.js">../contents/code/providerUtil.js</file>
         <file alias="contents/code/timesheetFields.js">../contents/code/timesheetFields.js</file>
         <file alias="contents/code/workTotals.js">../contents/code/workTotals.js</file>
+        <file alias="contents/code/timerSession.js">../contents/code/timerSession.js</file>
         <file alias="contents/code/workContractAdjust.js">../contents/code/workContractAdjust.js</file>
         <file alias="contents/code/statsData.js">../contents/code/statsData.js</file>
         <file alias="contents/code/buildInfo.js">../contents/code/buildInfo.js</file>
