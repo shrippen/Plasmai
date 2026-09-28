@@ -1,33 +1,58 @@
 {
+"\u0004%1 day ago": [
+"il y a %1 jour",
+"il y a %1 jours"
+],
+"\u0004%1 hour ago": [
+"il y a %1 heure",
+"il y a %1 heures"
+],
+"\u0004%1 minute": [
+"%1 minute",
+"%1 minutes"
+],
+"\u0004%1 minute ago": [
+"il y a %1 minute",
+"il y a %1 minutes"
+],
+"\u0004%1 other entry of this day could not be deleted: %2": [
+"%1 autre entrée de ce jour n’a pas pu être supprimée : %2",
+"%1 autres entrées de ce jour n’ont pas pu être supprimées : %2"
+],
+"\u0004%1 place found.": [
+"%1 lieu trouvé.",
+"%1 lieux trouvés."
+],
+"\u0004%2 km (1 trip)": [
+"%2 km (%1 trajet)",
+"%2 km (%1 trajets)"
+],
+"\u0004%2 km in 1 trip": [
+"%2 km en %1 trajet",
+"%2 km en %1 trajets"
+],
+"\u0004+%1 more detected trip": [
+"+%1 autre trajet détecté",
+"+%1 autres trajets détectés"
+],
+"\u0004Plural-Forms": "(n>1)",
+"\u0004This activity has %1 more entry on this day (%2); the work time above does not include it.": [
+"Cette activité a %1 autre entrée ce jour (%2) ; le temps de travail ci-dessus ne l’inclut pas.",
+"Cette activité a %1 autres entrées ce jour (%2) ; le temps de travail ci-dessus ne les inclut pas."
+],
 "\"%1\" was not found": "« %1 » est introuvable",
 "%1 (from your profile)": "%1 (de votre profil)",
-"%1 day ago": "il y a %1 jour",
-"%1 days ago": "il y a %1 jours",
-"%1 hour ago": "il y a %1 heure",
-"%1 hours ago": "il y a %1 heures",
 "%1 left": "reste %1",
 "%1 left this week": "%1 restant cette semaine",
 "%1 left today": "%1 restant aujourd’hui",
-"%1 minute ago": "il y a %1 minute",
-"%1 minutes ago": "il y a %1 minutes",
-"%1 other entries of this day could not be deleted: %2": "%1 autres entrées de ce jour n’ont pas pu être supprimées : %2",
-"%1 other entry of this day could not be deleted: %2": "%1 autre entrée de ce jour n’a pas pu être supprimée : %2",
 "%1 over": "%1 de trop",
 "%1 over this week": "%1 en dépassement cette semaine",
 "%1 over today": "%1 en dépassement aujourd’hui",
-"%1 place found.": "%1 lieu trouvé.",
-"%1 places found.": "%1 lieux trouvés.",
 "%1 project-specific, %2 global": "%1 spécifique au projet, %2 global",
 "%1: %2": "%1 : %2",
 "%1d ago": "il y a %1 j",
 "%1h ago": "il y a %1 h",
 "%1m ago": "il y a %1 min",
-"%2 km (%1 trips)": "%2 km (%1 trajets)",
-"%2 km (1 trip)": "%2 km (%1 trajet)",
-"%2 km in %1 trips": "%2 km en %1 trajets",
-"%2 km in 1 trip": "%2 km en %1 trajet",
-"+%1 more detected trip": "+%1 autre trajet détecté",
-"+%1 more detected trips": "+%1 autres trajets détectés",
 "+%1 more in settings": "+%1 de plus dans les paramètres",
 "A profile named \"%1\" already exists.": "Un profil nommé « %1 » existe déjà.",
 "API Token:": "Jeton API :",
@@ -437,8 +462,6 @@
 "The trip could not be accepted: %1": "Impossible d’accepter le trajet : %1",
 "The trip could not be dismissed: %1": "Impossible d’ignorer le trajet : %1",
 "This action is not supported for the selected service yet.": "Cette action n’est pas encore prise en charge pour le service sélectionné.",
-"This activity has %1 more entries on this day (%2); the work time above does not include them.": "Cette activité a %1 autres entrées ce jour (%2) ; le temps de travail ci-dessus ne les inclut pas.",
-"This activity has %1 more entry on this day (%2); the work time above does not include it.": "Cette activité a %1 autre entrée ce jour (%2) ; le temps de travail ci-dessus ne l’inclut pas.",
 "This month of the logbook is closed.": "Ce mois du carnet de route est clôturé.",
 "This provider cannot delete entries.": "Ce fournisseur ne peut pas supprimer d’entrées.",
 "This provider cannot split entries.": "Ce fournisseur ne peut pas diviser d’entrées.",

@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 """Convert translate/*.po into app/i18n/<lang>.json for the Android build.
 
-Android has no KF6 I18n / gettext runtime, so the app looks messages up in these
-JSON catalogs ({msgid: msgstr}) that are bundled into the QRC (see main.cpp, I18nFallback).
-Plural forms (msgid/msgid_plural) are stored under both the singular and plural
-msgid, each mapped to its own msgstr — matching I18nFallback::i18np(), which only
-picks between the two English-rule forms, not full gettext plural rules.
+The app has no gettext runtime (Android, Windows, macOS; on Linux too, one path
+everywhere), so it looks messages up in these JSON catalogs, bundled into the QRC
+(see app/i18nfallback.cpp):
+
+  {msgid: msgstr}                     plain messages
+  {"\u0004" + msgid: [form0, ...]}    all plural forms of a msgid/msgid_plural pair
+  {"\u0004Plural-Forms": "<rule>"}    the language's gettext plural rule
+
+Only the rules I18nFallback knows (PLURAL_RULES) are accepted: a new language with
+another rule fails here instead of showing wrong plurals in the app.
 """
 import json
 import re
@@ -15,9 +20,28 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 OUT = ROOT.parent / "app" / "i18n"
 
+# \u0004 (gettext's context separator) never occurs in a msgid: no clash with messages.
+PLURAL_PREFIX = "\u0004"
+PLURAL_FORMS_KEY = PLURAL_PREFIX + "Plural-Forms"
+
+# Rules implemented in app/i18nfallback.cpp (pluralIndex), whitespace removed.
+PLURAL_RULES = {
+    "0",
+    "(n!=1)",
+    "(n>1)",
+    "(n%10==1&&n%100!=11?0:n%10>=2&&n%10<=4&&(n%100<10||n%100>=20)?1:2)",
+    "(n==1?0:n%10>=2&&n%10<=4&&(n%100<10||n%100>=20)?1:2)",
+}
+
 
 def unesc(s):
     return s.replace("\\n", "\n").replace('\\"', '"').replace("\\\\", "\\")
+
+
+def plural_rule(text):
+    """The plural= expression of the header, whitespace removed ("(n!=1)")."""
+    m = re.search(r"Plural-Forms:[^\\]*?plural=([^;\\]+);", text)
+    return re.sub(r"\s+", "", m.group(1)) if m else "(n!=1)"
 
 
 def parse(text):
@@ -28,18 +52,14 @@ def parse(text):
         fields = {}
         target = None
         for line in block.splitlines():
-            for prefix, name in (
-                ("msgid_plural ", "msgid_plural"), ("msgid ", "msgid"),
-                ("msgstr[0] ", "msgstr0"), ("msgstr[1] ", "msgstr1"), ("msgstr ", "msgstr"),
-            ):
-                if line.startswith(prefix):
-                    target = fields.setdefault(name, [])
-                    line = line[len(prefix):]
-                    break
-            else:
-                if not line.startswith('"'):
-                    target = None
-                    continue
+            m = re.match(r"(msgid_plural|msgid|msgstr\[(\d+)\]|msgstr) ", line)
+            if m:
+                name = "msgstr%s" % m.group(2) if m.group(2) else m.group(1)
+                target = fields.setdefault(name, [])
+                line = line[m.end():]
+            elif not line.startswith('"'):
+                target = None
+                continue
             if target is not None:
                 m = re.match(r'"(.*)"$', line)
                 if m:
@@ -47,11 +67,11 @@ def parse(text):
         joined = {k: "".join(v) for k, v in fields.items()}
         if "msgid_plural" in joined:
             singular, plural = joined.get("msgid", ""), joined["msgid_plural"]
-            msgstr0, msgstr1 = joined.get("msgstr0", ""), joined.get("msgstr1", "")
-            if singular and msgstr0 and singular != msgstr0:
-                catalog[singular] = msgstr0
-            if plural and msgstr1 and plural != msgstr1:
-                catalog[plural] = msgstr1
+            forms = []
+            while "msgstr%d" % len(forms) in joined:
+                forms.append(joined["msgstr%d" % len(forms)])
+            if singular and forms and all(forms):
+                catalog[PLURAL_PREFIX + singular] = forms
             continue
         key, val = joined.get("msgid", ""), joined.get("msgstr", "")
         if key and val and key != val:
@@ -65,7 +85,12 @@ def main():
         lang = po.stem
         if lang == "en":
             continue
-        catalog = parse(po.read_text(encoding="utf-8"))
+        text = po.read_text(encoding="utf-8")
+        rule = plural_rule(text)
+        if rule not in PLURAL_RULES:
+            sys.exit(f"{po.name}: plural rule {rule} is not in I18nFallback (app/i18nfallback.cpp)")
+        catalog = parse(text)
+        catalog[PLURAL_FORMS_KEY] = rule
         (OUT / f"{lang}.json").write_text(
             json.dumps(catalog, ensure_ascii=False, indent=0, sort_keys=True) + "\n", encoding="utf-8")
         print(f"Wrote app/i18n/{lang}.json ({len(catalog)} strings)")

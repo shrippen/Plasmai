@@ -1,19 +1,44 @@
 {
+"\u0004%1 day ago": [
+"%1 日前"
+],
+"\u0004%1 hour ago": [
+"%1 時間前"
+],
+"\u0004%1 minute": [
+"%1 分"
+],
+"\u0004%1 minute ago": [
+"%1 分前"
+],
+"\u0004%1 other entry of this day could not be deleted: %2": [
+"この日の他の %1 件のエントリーを削除できませんでした: %2"
+],
+"\u0004%1 place found.": [
+"%1 件の場所が見つかりました。"
+],
+"\u0004%2 km (1 trip)": [
+"%2 km (%1 件)"
+],
+"\u0004%2 km in 1 trip": [
+"%1 件の移動で %2 km"
+],
+"\u0004+%1 more detected trip": [
+"+ 検出された移動 %1 件"
+],
+"\u0004Plural-Forms": "0",
+"\u0004This activity has %1 more entry on this day (%2); the work time above does not include it.": [
+"この作業にはこの日さらに %1 件のエントリーがあります (%2)。上の作業時間には含まれません。"
+],
 "\"%1\" was not found": "「%1」が見つかりません",
 "%1 (from your profile)": "%1 (プロフィールから)",
-"%1 day ago": "%1 日前",
-"%1 hour ago": "%1 時間前",
 "%1 left": "残り %1",
 "%1 left this week": "今週あと %1",
 "%1 left today": "今日あと %1",
 "%1 min": "%1分",
-"%1 minute": "%1 分",
-"%1 minute ago": "%1 分前",
-"%1 other entry of this day could not be deleted: %2": "この日の他の %1 件のエントリーを削除できませんでした: %2",
 "%1 over": "%1 超過",
 "%1 over this week": "今週 %1 超過",
 "%1 over today": "今日 %1 超過",
-"%1 place found.": "%1 件の場所が見つかりました。",
 "%1 project-specific, %2 global": "プロジェクト専用 %1 件、グローバル %2 件",
 "%1: %2": "%1：%2",
 "%1d ago": "%1日前",
@@ -21,9 +46,6 @@
 "%1h ago": "%1時間前",
 "%1m %2s": "%1分%2秒",
 "%1m ago": "%1分前",
-"%2 km (1 trip)": "%2 km (%1 件)",
-"%2 km in 1 trip": "%1 件の移動で %2 km",
-"+%1 more detected trip": "+ 検出された移動 %1 件",
 "+%1 more in settings": "設定にあと %1 件",
 "A profile named \"%1\" already exists.": "「%1」という名前のプロファイルは既にあります。",
 "API Token:": "APIトークン:",
@@ -441,7 +463,6 @@
 "The trip could not be accepted: %1": "移動を承認できませんでした: %1",
 "The trip could not be dismissed: %1": "移動を破棄できませんでした: %1",
 "This action is not supported for the selected service yet.": "選択したサービスではこの操作はまだサポートされていません。",
-"This activity has %1 more entry on this day (%2); the work time above does not include it.": "この作業にはこの日さらに %1 件のエントリーがあります (%2)。上の作業時間には含まれません。",
 "This month of the logbook is closed.": "この月の運行記録は締め切られています。",
 "This provider cannot delete entries.": "このプロバイダーはエントリを削除できません。",
 "This provider cannot split entries.": "このプロバイダーはエントリを分割できません。",

@@ -1,34 +1,57 @@
 {
+"\u0004%1 day ago": [
+"há %1 dia",
+"há %1 dias"
+],
+"\u0004%1 hour ago": [
+"há %1 hora",
+"há %1 horas"
+],
+"\u0004%1 minute": [
+"%1 minuto",
+"%1 minutos"
+],
+"\u0004%1 minute ago": [
+"há %1 minuto",
+"há %1 minutos"
+],
+"\u0004%1 other entry of this day could not be deleted: %2": [
+"Não foi possível excluir %1 outra entrada deste dia: %2",
+"Não foi possível excluir %1 outras entradas deste dia: %2"
+],
+"\u0004%1 place found.": [
+"%1 local encontrado.",
+"%1 locais encontrados."
+],
+"\u0004%2 km (1 trip)": [
+"%2 km (%1 viagem)",
+"%2 km (%1 viagens)"
+],
+"\u0004%2 km in 1 trip": [
+"%2 km em %1 viagem",
+"%2 km em %1 viagens"
+],
+"\u0004+%1 more detected trip": [
+"+%1 viagem detectada",
+"+%1 viagens detectadas"
+],
+"\u0004Plural-Forms": "(n>1)",
+"\u0004This activity has %1 more entry on this day (%2); the work time above does not include it.": [
+"Esta atividade tem mais %1 entrada neste dia (%2); o tempo de trabalho acima não a inclui.",
+"Esta atividade tem mais %1 entradas neste dia (%2); o tempo de trabalho acima não as inclui."
+],
 "\"%1\" was not found": "“%1” não foi encontrado",
 "%1 (from your profile)": "%1 (do seu perfil)",
-"%1 day ago": "há %1 dia",
-"%1 days ago": "há %1 dias",
-"%1 hour ago": "há %1 hora",
-"%1 hours ago": "há %1 horas",
 "%1 left": "faltam %1",
 "%1 left this week": "%1 restantes nesta semana",
 "%1 left today": "%1 restantes hoje",
-"%1 minute": "%1 minuto",
-"%1 minute ago": "há %1 minuto",
-"%1 minutes": "%1 minutos",
-"%1 minutes ago": "há %1 minutos",
-"%1 other entries of this day could not be deleted: %2": "Não foi possível excluir %1 outras entradas deste dia: %2",
-"%1 other entry of this day could not be deleted: %2": "Não foi possível excluir %1 outra entrada deste dia: %2",
 "%1 over": "%1 a mais",
 "%1 over this week": "%1 a mais nesta semana",
 "%1 over today": "%1 a mais hoje",
-"%1 place found.": "%1 local encontrado.",
-"%1 places found.": "%1 locais encontrados.",
 "%1 project-specific, %2 global": "%1 específicos do projeto, %2 globais",
 "%1d ago": "há %1 d",
 "%1h ago": "há %1 h",
 "%1m ago": "há %1 min",
-"%2 km (%1 trips)": "%2 km (%1 viagens)",
-"%2 km (1 trip)": "%2 km (%1 viagem)",
-"%2 km in %1 trips": "%2 km em %1 viagens",
-"%2 km in 1 trip": "%2 km em %1 viagem",
-"+%1 more detected trip": "+%1 viagem detectada",
-"+%1 more detected trips": "+%1 viagens detectadas",
 "+%1 more in settings": "+%1 a mais nas configurações",
 "A profile named \"%1\" already exists.": "Já existe um perfil chamado \"%1\".",
 "API Token:": "Token da API:",
@@ -441,8 +464,6 @@
 "The trip could not be accepted: %1": "Não foi possível aceitar a viagem: %1",
 "The trip could not be dismissed: %1": "Não foi possível descartar a viagem: %1",
 "This action is not supported for the selected service yet.": "Esta ação ainda não é suportada para o serviço selecionado.",
-"This activity has %1 more entries on this day (%2); the work time above does not include them.": "Esta atividade tem mais %1 entradas neste dia (%2); o tempo de trabalho acima não as inclui.",
-"This activity has %1 more entry on this day (%2); the work time above does not include it.": "Esta atividade tem mais %1 entrada neste dia (%2); o tempo de trabalho acima não a inclui.",
 "This month of the logbook is closed.": "Este mês do diário de bordo está fechado.",
 "This provider cannot delete entries.": "Este serviço não pode excluir entradas.",
 "This provider cannot split entries.": "Este serviço não pode dividir entradas.",

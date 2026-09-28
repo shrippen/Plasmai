@@ -9,7 +9,9 @@ name: Checks
 # the same stack as a developer machine.
 
 on:
+  # Branches get their run through the pull request; main (and the Gitea mirror's pushes) directly.
   push:
+    branches: [main]
     paths-ignore: ['**.md', 'docs/**', 'screenshots/**', 'fastlane/**', 'metadata.json']
   pull_request:
   workflow_dispatch:
@@ -56,12 +58,13 @@ jobs:
       - name: Install Qt, KF6, QtKeychain
         run: |
           pacman -Syu --noconfirm --needed base-devel cmake ninja git extra-cmake-modules \
-            qt6-declarative qt6-svg qt6-shadertools kirigami ki18n kcoreaddons qtkeychain-qt6
+            qt6-declarative qt6-svg qt6-shadertools kirigami qtkeychain-qt6
       - uses: actions/checkout@v7
-      - name: Build the app
+      - name: Build the app and its C++ tests
         run: |
-          cmake -S app -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake -S app -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DPLASMAI_BUILD_TESTS=ON
           cmake --build build
+          ctest --test-dir build --output-on-failure
 
   app:
     if: github.server_url == 'https://github.com'
@@ -69,12 +72,15 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # aqtinstall finds no Windows packages of Qt 6.11.x (download.qt.io metadata), 6.10 works;
+          # enough for a build check. Move to 6.11 once aqt resolves it.
           - os: windows-latest
+            qt: '6.10.3'
           - os: macos-latest
+            qt: '6.11.3'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 40
     env:
-      QT_VERSION: '6.11.3'
       KF_VERSION: '6.30.0'
       QTKEYCHAIN_VERSION: '0.15.0'
     steps:
@@ -82,7 +88,7 @@ jobs:
 
       - uses: jurplel/install-qt-action@v4
         with:
-          version: ${{ env.QT_VERSION }}
+          version: ${{ matrix.qt }}
           modules: qtshadertools
           cache: true
 
@@ -108,9 +114,10 @@ jobs:
           cmake --build qtkeychain/build
           cmake --install qtkeychain/build
 
-      - name: Build the app
+      - name: Build the app and its C++ tests
         shell: bash
         run: |
-          cmake -S app -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+          cmake -S app -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DPLASMAI_BUILD_TESTS=ON \
             -DCMAKE_PREFIX_PATH="$GITHUB_WORKSPACE/deps"
           cmake --build build
+          ctest --test-dir build --output-on-failure

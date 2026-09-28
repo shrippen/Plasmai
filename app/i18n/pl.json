@@ -1,34 +1,67 @@
 {
+"\u0004%1 day ago": [
+"%1 dzień temu",
+"%1 dni temu",
+"%1 dni temu"
+],
+"\u0004%1 hour ago": [
+"%1 godzinę temu",
+"%1 godziny temu",
+"%1 godzin temu"
+],
+"\u0004%1 minute": [
+"%1 minuta",
+"%1 minuty",
+"%1 minut"
+],
+"\u0004%1 minute ago": [
+"%1 minutę temu",
+"%1 minuty temu",
+"%1 minut temu"
+],
+"\u0004%1 other entry of this day could not be deleted: %2": [
+"Nie udało się usunąć %1 innego wpisu z tego dnia: %2",
+"Nie udało się usunąć %1 innych wpisów z tego dnia: %2",
+"Nie udało się usunąć %1 innych wpisów z tego dnia: %2"
+],
+"\u0004%1 place found.": [
+"Znaleziono %1 miejsce.",
+"Znaleziono %1 miejsca.",
+"Znaleziono %1 miejsc."
+],
+"\u0004%2 km (1 trip)": [
+"%2 km (%1 przejazd)",
+"%2 km (%1 przejazdy)",
+"%2 km (%1 przejazdów)"
+],
+"\u0004%2 km in 1 trip": [
+"%2 km w %1 przejeździe",
+"%2 km w %1 przejazdach",
+"%2 km w %1 przejazdach"
+],
+"\u0004+%1 more detected trip": [
+"+%1 kolejny wykryty przejazd",
+"+%1 kolejne wykryte przejazdy",
+"+%1 kolejnych wykrytych przejazdów"
+],
+"\u0004Plural-Forms": "(n==1?0:n%10>=2&&n%10<=4&&(n%100<10||n%100>=20)?1:2)",
+"\u0004This activity has %1 more entry on this day (%2); the work time above does not include it.": [
+"Ta czynność ma tego dnia jeszcze %1 wpis (%2); czas pracy powyżej go nie obejmuje.",
+"Ta czynność ma tego dnia jeszcze %1 wpisy (%2); czas pracy powyżej ich nie obejmuje.",
+"Ta czynność ma tego dnia jeszcze %1 wpisów (%2); czas pracy powyżej ich nie obejmuje."
+],
 "\"%1\" was not found": "Nie znaleziono „%1”",
 "%1 (from your profile)": "%1 (z profilu)",
-"%1 day ago": "%1 dzień temu",
-"%1 days ago": "%1 dni temu",
-"%1 hour ago": "%1 godzinę temu",
-"%1 hours ago": "%1 godziny temu",
 "%1 left": "zostało %1",
 "%1 left this week": "Pozostało w tym tygodniu: %1",
 "%1 left today": "Pozostało dziś: %1",
-"%1 minute": "%1 minuta",
-"%1 minute ago": "%1 minutę temu",
-"%1 minutes": "%1 minuty",
-"%1 minutes ago": "%1 minuty temu",
-"%1 other entries of this day could not be deleted: %2": "Nie udało się usunąć %1 innych wpisów z tego dnia: %2",
-"%1 other entry of this day could not be deleted: %2": "Nie udało się usunąć %1 innego wpisu z tego dnia: %2",
 "%1 over": "%1 ponad",
 "%1 over this week": "Przekroczono w tym tygodniu o %1",
 "%1 over today": "Przekroczono dziś o %1",
-"%1 place found.": "Znaleziono %1 miejsce.",
-"%1 places found.": "Znaleziono %1 miejsca.",
 "%1 project-specific, %2 global": "%1 specyficznych dla projektu, %2 globalnych",
 "%1d ago": "%1 d temu",
 "%1h ago": "%1 godz. temu",
 "%1m ago": "%1 min temu",
-"%2 km (%1 trips)": "%2 km (%1 przejazdy)",
-"%2 km (1 trip)": "%2 km (%1 przejazd)",
-"%2 km in %1 trips": "%2 km w %1 przejazdach",
-"%2 km in 1 trip": "%2 km w %1 przejeździe",
-"+%1 more detected trip": "+%1 kolejny wykryty przejazd",
-"+%1 more detected trips": "+%1 kolejne wykryte przejazdy",
 "+%1 more in settings": "+%1 więcej w ustawieniach",
 "A profile named \"%1\" already exists.": "Profil o nazwie „%1” już istnieje.",
 "API Token:": "Token API:",
@@ -442,8 +475,6 @@
 "The trip could not be accepted: %1": "Nie udało się przyjąć przejazdu: %1",
 "The trip could not be dismissed: %1": "Nie udało się odrzucić przejazdu: %1",
 "This action is not supported for the selected service yet.": "Ta akcja nie jest jeszcze obsługiwana dla wybranej usługi.",
-"This activity has %1 more entries on this day (%2); the work time above does not include them.": "Ta czynność ma tego dnia jeszcze %1 wpisy (%2); czas pracy powyżej ich nie obejmuje.",
-"This activity has %1 more entry on this day (%2); the work time above does not include it.": "Ta czynność ma tego dnia jeszcze %1 wpis (%2); czas pracy powyżej go nie obejmuje.",
 "This month of the logbook is closed.": "Ten miesiąc ewidencji przejazdów jest zamknięty.",
 "This provider cannot delete entries.": "Ten serwis nie może usuwać wpisów.",
 "This provider cannot split entries.": "Ten serwis nie może dzielić wpisów.",

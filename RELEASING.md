@@ -11,7 +11,7 @@ intentional — see `RELEASE-TODO.md`.
 ## 1. Version numbers (done)
 
 2.0.0 is set in: `metadata.json` (Plasmoid), `app/CMakeLists.txt` (project version + the
-`QT_ANDROID_VERSION_NAME`/`_CODE` and `KAboutData`/`app.setApplicationVersion` in
+`QT_ANDROID_VERSION_NAME`/`_CODE` and `app.setApplicationVersion` in
 `app/main.cpp`), `app/android/AndroidManifest.xml` (`versionCode="20000"`,
 `versionName="2.0.0"`), `STORE.md`, `docs/index.html`. `contents/code/buildInfo.js` was
 regenerated via `./scripts/bump-build.sh` (reads the version from `metadata.json`, bumps

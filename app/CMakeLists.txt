@@ -15,24 +15,35 @@ if(NOT ANDROID)
     find_package(Qt6 COMPONENTS DBus QUIET)
 endif()
 
-# KF6 — available for desktop and cross-compiled Android builds
+# KF6: only Kirigami. Translations come from JSON catalogs on every platform
+# (i18nfallback.cpp), so no KI18n / gettext runtime is needed anywhere.
 find_package(ECM REQUIRED NO_MODULE)
 set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
-if(CMAKE_CROSSCOMPILING)
-    # For Android, only Kirigami is needed (I18n pulls in host Qt6Core)
-    find_package(KF6 COMPONENTS Kirigami QUIET)
-else()
-    find_package(KF6 COMPONENTS Kirigami I18n CoreAddons QUIET)
-endif()
+find_package(KF6 COMPONENTS Kirigami QUIET)
 
 # Qt6Keychain: use native when available, file-based fallback for Android
 if(NOT CMAKE_CROSSCOMPILING)
     find_package(Qt6Keychain REQUIRED)
 endif()
 
+# Platform services: one implementation per platform (ROADMAP pillar 5, step 3).
+# D-Bus (idle time, notifications) on Linux and Plasma Mobile; not offered elsewhere.
+if(TARGET Qt6::DBus AND UNIX AND NOT APPLE AND NOT ANDROID)
+    set(PLASMAI_PLATFORM_SOURCES platform/idlewatcher_dbus.cpp platform/notifier_dbus.cpp)
+else()
+    set(PLASMAI_PLATFORM_SOURCES platform/idlewatcher_none.cpp platform/notifier_none.cpp)
+endif()
+
 qt_add_executable(plasmai-app
     main.cpp
+    i18nfallback.cpp
     plasmai-app.qrc
+    platform/filestore.h
+    platform/idlewatcher.h
+    platform/notifier.h
+    platform/tokenstore.h
+    platform/useragentnam.h
+    ${PLASMAI_PLATFORM_SOURCES}
     addons/yearmodel.cpp
     addons/monthmodel.cpp
     addons/infinitecalendarviewmodel.cpp
@@ -91,13 +102,11 @@ target_link_libraries(plasmai-app PRIVATE
 )
 
 if(NOT CMAKE_CROSSCOMPILING AND TARGET Qt6Keychain::Qt6Keychain)
-    target_include_directories(plasmai-app PRIVATE /usr/include/qt6keychain)
     target_link_libraries(plasmai-app PRIVATE Qt6Keychain::Qt6Keychain)
 endif()
 
-if(TARGET Qt6::DBus)
+if(PLASMAI_PLATFORM_SOURCES MATCHES "_dbus")
     message(STATUS "Qt6::DBus found — building with idle detection + native notifications")
-    target_compile_definitions(plasmai-app PRIVATE HAVE_QTDBUS)
     target_link_libraries(plasmai-app PRIVATE Qt6::DBus)
 endif()
 
@@ -118,20 +127,6 @@ if(KF6_FOUND)
     message(STATUS "KF6 found — building with Kirigami")
     target_compile_definitions(plasmai-app PRIVATE HAVE_KF6)
     target_link_libraries(plasmai-app PRIVATE KF6::Kirigami)
-    if(TARGET KF6::I18n)
-        target_link_libraries(plasmai-app PRIVATE KF6::I18n)
-        # Hide KI18n's API deprecated up to 6.8 (the app uses KLocalizedQmlContext): newer
-        # KI18n marks the old KLocalizedContext with an attribute GCC <= 12 can't parse, and
-        # <KLocalizedString> includes it (AppImage build on Ubuntu 22.04).
-        target_compile_definitions(plasmai-app PRIVATE KI18N_DISABLE_DEPRECATED_BEFORE_AND_AT=0x060800)
-    endif()
-    if(TARGET KF6::I18nQml)
-        target_link_libraries(plasmai-app PRIVATE KF6::I18nQml)
-    endif()
-    if(TARGET KF6::CoreAddons)
-        target_link_libraries(plasmai-app PRIVATE KF6::CoreAddons)
-        target_compile_definitions(plasmai-app PRIVATE HAVE_KF6_COREADDONS)
-    endif()
     # Ensure Kirigami QML plugins are found during Android deployment: the qml dir of the KF6
     # prefix Kirigami was found in (<prefix>/lib/cmake/KF6Kirigami -> <prefix>/lib/qml).
     get_filename_component(KF6_QML_DIR "${KF6Kirigami_DIR}/../../qml" ABSOLUTE)
@@ -143,35 +138,16 @@ else()
     message(STATUS "KF6 not found — building without Kirigami")
 endif()
 
-# Translations for Plasma Mobile / desktop Linux: compile translate/*.po into
-# <lang>/LC_MESSAGES/plasmai.mo (KLocalizedString domain "plasmai"). Android has
-# no gettext runtime and bundles JSON catalogs instead (app/i18n, see main.cpp).
-if(NOT ANDROID)
-    include(GNUInstallDirs)
-    find_program(MSGFMT_EXECUTABLE msgfmt)
-    if(MSGFMT_EXECUTABLE)
-        file(GLOB PLASMAI_PO_FILES "${CMAKE_CURRENT_SOURCE_DIR}/../translate/*.po")
-        set(PLASMAI_MO_FILES)
-        foreach(po ${PLASMAI_PO_FILES})
-            get_filename_component(lang ${po} NAME_WE)
-            set(mo "${CMAKE_CURRENT_BINARY_DIR}/locale/${lang}/LC_MESSAGES/plasmai.mo")
-            add_custom_command(
-                OUTPUT ${mo}
-                COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/locale/${lang}/LC_MESSAGES"
-                COMMAND ${MSGFMT_EXECUTABLE} -o ${mo} ${po}
-                DEPENDS ${po}
-                COMMENT "Compiling ${lang} translation"
-            )
-            list(APPEND PLASMAI_MO_FILES ${mo})
-            install(FILES ${mo} DESTINATION ${CMAKE_INSTALL_LOCALEDIR}/${lang}/LC_MESSAGES)
-        endforeach()
-        add_custom_target(plasmai-translations ALL DEPENDS ${PLASMAI_MO_FILES})
-        add_dependencies(plasmai-app plasmai-translations)
-        target_compile_definitions(plasmai-app PRIVATE
-            PLASMAI_BUILD_LOCALE_DIR="${CMAKE_CURRENT_BINARY_DIR}/locale")
-    else()
-        message(WARNING "msgfmt not found: translations will not be built")
-    endif()
+# Unit tests of the C++ side (plural rules, catalogs): cmake -DPLASMAI_BUILD_TESTS=ON, ctest.
+option(PLASMAI_BUILD_TESTS "Build the C++ unit tests" OFF)
+if(PLASMAI_BUILD_TESTS AND NOT ANDROID)
+    enable_testing()
+    find_package(Qt6 REQUIRED COMPONENTS Test)
+    qt_add_executable(tst_i18nfallback tests/tst_i18nfallback.cpp i18nfallback.cpp)
+    qt_add_resources(tst_i18nfallback "i18n" PREFIX "/i18n" BASE i18n FILES i18n/ru.json i18n/pl.json i18n/fr.json i18n/ja.json i18n/de.json)
+    target_include_directories(tst_i18nfallback PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(tst_i18nfallback PRIVATE Qt6::Core Qt6::Test)
+    add_test(NAME i18nfallback COMMAND tst_i18nfallback)
 endif()
 
 install(TARGETS plasmai-app

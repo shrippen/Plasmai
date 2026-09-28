@@ -1,20 +1,45 @@
 {
+"\u0004%1 day ago": [
+"%1 天前"
+],
+"\u0004%1 hour ago": [
+"%1 小时前"
+],
+"\u0004%1 minute": [
+"%1 分钟"
+],
+"\u0004%1 minute ago": [
+"%1 分钟前"
+],
+"\u0004%1 other entry of this day could not be deleted: %2": [
+"无法删除当天的另外 %1 条记录: %2"
+],
+"\u0004%1 place found.": [
+"找到 %1 个地点。"
+],
+"\u0004%2 km (1 trip)": [
+"%2 公里 (%1 次行程)"
+],
+"\u0004%2 km in 1 trip": [
+"%1 次行程共 %2 公里"
+],
+"\u0004+%1 more detected trip": [
+"+ 另外 %1 个检测到的行程"
+],
+"\u0004Plural-Forms": "0",
+"\u0004This activity has %1 more entry on this day (%2); the work time above does not include it.": [
+"此活动当天还有 %1 条记录 (%2);上面的工作时间不包含它们。"
+],
 "\"%1\" was not found": "未找到“%1”",
 "%1 (from your profile)": "%1 (来自个人资料)",
-"%1 day ago": "%1 天前",
-"%1 hour ago": "%1 小时前",
 "%1 km": "%1 公里",
 "%1 left": "剩余 %1",
 "%1 left this week": "本周剩余 %1",
 "%1 left today": "今日剩余 %1",
 "%1 min": "%1 分钟",
-"%1 minute": "%1 分钟",
-"%1 minute ago": "%1 分钟前",
-"%1 other entry of this day could not be deleted: %2": "无法删除当天的另外 %1 条记录: %2",
 "%1 over": "超出 %1",
 "%1 over this week": "本周超出 %1",
 "%1 over today": "今日超出 %1",
-"%1 place found.": "找到 %1 个地点。",
 "%1 project-specific, %2 global": "%1 个项目专用，%2 个全局",
 "%1, %2": "%1，%2",
 "%1: %2": "%1：%2",
@@ -23,9 +48,6 @@
 "%1h ago": "%1小时前",
 "%1m %2s": "%1分%2秒",
 "%1m ago": "%1分钟前",
-"%2 km (1 trip)": "%2 公里 (%1 次行程)",
-"%2 km in 1 trip": "%1 次行程共 %2 公里",
-"+%1 more detected trip": "+ 另外 %1 个检测到的行程",
 "+%1 more in settings": "设置中还有 +%1 项",
 "A profile named \"%1\" already exists.": "已存在名为“%1”的配置文件。",
 "API Token:": "API 令牌:",
@@ -444,7 +466,6 @@
 "The trip could not be accepted: %1": "无法接受行程: %1",
 "The trip could not be dismissed: %1": "无法忽略行程: %1",
 "This action is not supported for the selected service yet.": "所选服务尚不支持此操作。",
-"This activity has %1 more entry on this day (%2); the work time above does not include it.": "此活动当天还有 %1 条记录 (%2);上面的工作时间不包含它们。",
 "This month of the logbook is closed.": "该月的行车记录已关闭。",
 "This provider cannot delete entries.": "此服务无法删除条目。",
 "This provider cannot split entries.": "此服务无法拆分条目。",

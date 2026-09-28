@@ -1,34 +1,57 @@
 {
+"\u0004%1 day ago": [
+"hace %1 día",
+"hace %1 días"
+],
+"\u0004%1 hour ago": [
+"hace %1 hora",
+"hace %1 horas"
+],
+"\u0004%1 minute": [
+"%1 minuto",
+"%1 minutos"
+],
+"\u0004%1 minute ago": [
+"hace %1 minuto",
+"hace %1 minutos"
+],
+"\u0004%1 other entry of this day could not be deleted: %2": [
+"No se pudo eliminar %1 otra entrada de este día: %2",
+"No se pudieron eliminar %1 otras entradas de este día: %2"
+],
+"\u0004%1 place found.": [
+"%1 lugar encontrado.",
+"%1 lugares encontrados."
+],
+"\u0004%2 km (1 trip)": [
+"%2 km (%1 trayecto)",
+"%2 km (%1 trayectos)"
+],
+"\u0004%2 km in 1 trip": [
+"%2 km en %1 trayecto",
+"%2 km en %1 trayectos"
+],
+"\u0004+%1 more detected trip": [
+"+%1 trayecto detectado más",
+"+%1 trayectos detectados más"
+],
+"\u0004Plural-Forms": "(n!=1)",
+"\u0004This activity has %1 more entry on this day (%2); the work time above does not include it.": [
+"Esta actividad tiene %1 entrada más este día (%2); el tiempo de trabajo de arriba no la incluye.",
+"Esta actividad tiene %1 entradas más este día (%2); el tiempo de trabajo de arriba no las incluye."
+],
 "\"%1\" was not found": "No se encontró «%1»",
 "%1 (from your profile)": "%1 (de tu perfil)",
-"%1 day ago": "hace %1 día",
-"%1 days ago": "hace %1 días",
-"%1 hour ago": "hace %1 hora",
-"%1 hours ago": "hace %1 horas",
 "%1 left": "quedan %1",
 "%1 left this week": "%1 restante esta semana",
 "%1 left today": "%1 restante hoy",
-"%1 minute": "%1 minuto",
-"%1 minute ago": "hace %1 minuto",
-"%1 minutes": "%1 minutos",
-"%1 minutes ago": "hace %1 minutos",
-"%1 other entries of this day could not be deleted: %2": "No se pudieron eliminar %1 otras entradas de este día: %2",
-"%1 other entry of this day could not be deleted: %2": "No se pudo eliminar %1 otra entrada de este día: %2",
 "%1 over": "%1 de más",
 "%1 over this week": "%1 de exceso esta semana",
 "%1 over today": "%1 de exceso hoy",
-"%1 place found.": "%1 lugar encontrado.",
-"%1 places found.": "%1 lugares encontrados.",
 "%1 project-specific, %2 global": "%1 específico del proyecto, %2 global",
 "%1d ago": "hace %1 d",
 "%1h ago": "hace %1 h",
 "%1m ago": "hace %1 min",
-"%2 km (%1 trips)": "%2 km (%1 trayectos)",
-"%2 km (1 trip)": "%2 km (%1 trayecto)",
-"%2 km in %1 trips": "%2 km en %1 trayectos",
-"%2 km in 1 trip": "%2 km en %1 trayecto",
-"+%1 more detected trip": "+%1 trayecto detectado más",
-"+%1 more detected trips": "+%1 trayectos detectados más",
 "+%1 more in settings": "+%1 más en la configuración",
 "A profile named \"%1\" already exists.": "Ya existe un perfil llamado «%1».",
 "API Token:": "Token de API:",
@@ -446,8 +469,6 @@
 "The trip could not be accepted: %1": "No se pudo aceptar el trayecto: %1",
 "The trip could not be dismissed: %1": "No se pudo descartar el trayecto: %1",
 "This action is not supported for the selected service yet.": "Esta acción aún no está soportada para el servicio seleccionado.",
-"This activity has %1 more entries on this day (%2); the work time above does not include them.": "Esta actividad tiene %1 entradas más este día (%2); el tiempo de trabajo de arriba no las incluye.",
-"This activity has %1 more entry on this day (%2); the work time above does not include it.": "Esta actividad tiene %1 entrada más este día (%2); el tiempo de trabajo de arriba no la incluye.",
 "This month of the logbook is closed.": "Este mes del libro de viajes está cerrado.",
 "This provider cannot delete entries.": "Este proveedor no puede eliminar entradas.",
 "This provider cannot split entries.": "Este proveedor no puede dividir entradas.",

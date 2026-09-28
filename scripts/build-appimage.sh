@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build the Plasmai app (app/) as an AppImage that runs without Qt/KF6 installed:
-# Qt 6.11.3 via aqtinstall, KF6 6.30 (ECM, KCoreAddons, KI18n, Kirigami) and QtKeychain from
+# Qt 6.11.3 via aqtinstall, KF6 6.30 (ECM, Kirigami) and QtKeychain from
 # source, bundled with linuxdeploy and its Qt plugin. The same versions as the Android build.
 # Build on an old distro (CI: ubuntu-22.04) so the AppImage runs on as many systems as possible.
 #
@@ -50,14 +50,12 @@ build() { # name source-dir [cmake args...]
 if ! grep -qs "\"$KF6_VERSION\"" "$PREFIX"/lib*/cmake/KF6Kirigami/KF6KirigamiConfigVersion.cmake; then
     rm -rf "${PREFIX:?}"   # another KF6 version (built against another Qt) must not mix with this one
     mkdir -p "$PREFIX"
-    for repo in extra-cmake-modules kcoreaddons ki18n kirigami; do
+    for repo in extra-cmake-modules kirigami; do
         git clone --quiet --depth 1 --branch "v$KF6_VERSION" "https://invent.kde.org/frameworks/$repo.git" "$WORK/$repo" &
     done
     git clone --quiet --depth 1 --branch "$QTKEYCHAIN_TAG" https://github.com/frankosterfeld/qtkeychain.git "$WORK/qtkeychain" &
     wait
     build extra-cmake-modules "$WORK/extra-cmake-modules" -DBUILD_HTML_DOCS=OFF -DBUILD_MAN_DOCS=OFF -DBUILD_QTHELP_DOCS=OFF
-    build KCoreAddons "$WORK/kcoreaddons"
-    build KI18n "$WORK/ki18n"
     build Kirigami "$WORK/kirigami" -DBUILD_EXAMPLES=OFF
     build QtKeychain "$WORK/qtkeychain" -DBUILD_WITH_QT6=ON -DBUILD_TRANSLATIONS=OFF
 fi

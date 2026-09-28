@@ -1,35 +1,58 @@
 {
+"\u0004%1 day ago": [
+"vor %1 Tag",
+"vor %1 Tagen"
+],
+"\u0004%1 hour ago": [
+"vor %1 Stunde",
+"vor %1 Stunden"
+],
+"\u0004%1 minute": [
+"%1 Minute",
+"%1 Minuten"
+],
+"\u0004%1 minute ago": [
+"vor %1 Minute",
+"vor %1 Minuten"
+],
+"\u0004%1 other entry of this day could not be deleted: %2": [
+"%1 anderer Eintrag dieses Tages konnte nicht gelöscht werden: %2",
+"%1 andere Einträge dieses Tages konnten nicht gelöscht werden: %2"
+],
+"\u0004%1 place found.": [
+"%1 Ort gefunden.",
+"%1 Orte gefunden."
+],
+"\u0004%2 km (1 trip)": [
+"%2 km (1 Fahrt)",
+"%2 km (%1 Fahrten)"
+],
+"\u0004%2 km in 1 trip": [
+"%2 km in 1 Fahrt",
+"%2 km in %1 Fahrten"
+],
+"\u0004+%1 more detected trip": [
+"+%1 weitere erkannte Fahrt",
+"+%1 weitere erkannte Fahrten"
+],
+"\u0004Plural-Forms": "(n!=1)",
+"\u0004This activity has %1 more entry on this day (%2); the work time above does not include it.": [
+"Diese Tätigkeit hat an diesem Tag %1 weiteren Eintrag (%2); die Arbeitszeit oben enthält ihn nicht.",
+"Diese Tätigkeit hat an diesem Tag %1 weitere Einträge (%2); die Arbeitszeit oben enthält sie nicht."
+],
 "\"%1\" was not found": "„%1“ wurde nicht gefunden",
 "%1 (from your profile)": "%1 (aus deinem Profil)",
-"%1 day ago": "vor %1 Tag",
-"%1 days ago": "vor %1 Tagen",
-"%1 hour ago": "vor %1 Stunde",
-"%1 hours ago": "vor %1 Stunden",
 "%1 left": "noch %1",
 "%1 left this week": "%1 diese Woche übrig",
 "%1 left today": "%1 heute übrig",
 "%1 min": "%1 Min.",
-"%1 minute": "%1 Minute",
-"%1 minute ago": "vor %1 Minute",
-"%1 minutes": "%1 Minuten",
-"%1 minutes ago": "vor %1 Minuten",
-"%1 other entries of this day could not be deleted: %2": "%1 andere Einträge dieses Tages konnten nicht gelöscht werden: %2",
-"%1 other entry of this day could not be deleted: %2": "%1 anderer Eintrag dieses Tages konnte nicht gelöscht werden: %2",
 "%1 over": "%1 drüber",
 "%1 over this week": "%1 diese Woche drüber",
 "%1 over today": "%1 heute drüber",
-"%1 place found.": "%1 Ort gefunden.",
-"%1 places found.": "%1 Orte gefunden.",
 "%1 project-specific, %2 global": "%1 projektspezifisch, %2 global",
 "%1d ago": "vor %1 T.",
 "%1h ago": "vor %1 Std.",
 "%1m ago": "vor %1 Min.",
-"%2 km (%1 trips)": "%2 km (%1 Fahrten)",
-"%2 km (1 trip)": "%2 km (1 Fahrt)",
-"%2 km in %1 trips": "%2 km in %1 Fahrten",
-"%2 km in 1 trip": "%2 km in 1 Fahrt",
-"+%1 more detected trip": "+%1 weitere erkannte Fahrt",
-"+%1 more detected trips": "+%1 weitere erkannte Fahrten",
 "+%1 more in settings": "+%1 weitere in den Einstellungen",
 "A profile named \"%1\" already exists.": "Ein Profil namens „%1“ existiert bereits.",
 "API Token:": "API-Token:",
@@ -441,8 +464,6 @@
 "The trip could not be accepted: %1": "Die Fahrt konnte nicht übernommen werden: %1",
 "The trip could not be dismissed: %1": "Die Fahrt konnte nicht verworfen werden: %1",
 "This action is not supported for the selected service yet.": "Diese Aktion wird für den gewählten Dienst noch nicht unterstützt.",
-"This activity has %1 more entries on this day (%2); the work time above does not include them.": "Diese Tätigkeit hat an diesem Tag %1 weitere Einträge (%2); die Arbeitszeit oben enthält sie nicht.",
-"This activity has %1 more entry on this day (%2); the work time above does not include it.": "Diese Tätigkeit hat an diesem Tag %1 weiteren Eintrag (%2); die Arbeitszeit oben enthält ihn nicht.",
 "This month of the logbook is closed.": "Dieser Monat des Fahrtenbuchs ist abgeschlossen.",
 "This provider cannot delete entries.": "Dieser Dienst kann Einträge nicht löschen.",
 "This provider cannot split entries.": "Dieser Dienst kann Einträge nicht teilen.",

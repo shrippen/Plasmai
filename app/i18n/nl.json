@@ -1,35 +1,58 @@
 {
+"\u0004%1 day ago": [
+"%1 dag geleden",
+"%1 dagen geleden"
+],
+"\u0004%1 hour ago": [
+"%1 uur geleden",
+"%1 uur geleden"
+],
+"\u0004%1 minute": [
+"%1 minuut",
+"%1 minuten"
+],
+"\u0004%1 minute ago": [
+"%1 minuut geleden",
+"%1 minuten geleden"
+],
+"\u0004%1 other entry of this day could not be deleted: %2": [
+"%1 andere invoer van deze dag kon niet worden verwijderd: %2",
+"%1 andere invoeren van deze dag konden niet worden verwijderd: %2"
+],
+"\u0004%1 place found.": [
+"%1 plaats gevonden.",
+"%1 plaatsen gevonden."
+],
+"\u0004%2 km (1 trip)": [
+"%2 km (%1 rit)",
+"%2 km (%1 ritten)"
+],
+"\u0004%2 km in 1 trip": [
+"%2 km in %1 rit",
+"%2 km in %1 ritten"
+],
+"\u0004+%1 more detected trip": [
+"+%1 andere gedetecteerde rit",
+"+%1 andere gedetecteerde ritten"
+],
+"\u0004Plural-Forms": "(n!=1)",
+"\u0004This activity has %1 more entry on this day (%2); the work time above does not include it.": [
+"Deze activiteit heeft op deze dag nog %1 invoer (%2); de werktijd hierboven telt die niet mee.",
+"Deze activiteit heeft op deze dag nog %1 invoeren (%2); de werktijd hierboven telt die niet mee."
+],
 "\"%1\" was not found": "‘%1’ niet gevonden",
 "%1 (from your profile)": "%1 (uit je profiel)",
-"%1 day ago": "%1 dag geleden",
-"%1 days ago": "%1 dagen geleden",
-"%1 hour ago": "%1 uur geleden",
-"%1 hours ago": "%1 uur geleden",
 "%1 left": "nog %1",
 "%1 left this week": "%1 resterend deze week",
 "%1 left today": "%1 resterend vandaag",
-"%1 minute": "%1 minuut",
-"%1 minute ago": "%1 minuut geleden",
-"%1 minutes": "%1 minuten",
-"%1 minutes ago": "%1 minuten geleden",
-"%1 other entries of this day could not be deleted: %2": "%1 andere invoeren van deze dag konden niet worden verwijderd: %2",
-"%1 other entry of this day could not be deleted: %2": "%1 andere invoer van deze dag kon niet worden verwijderd: %2",
 "%1 over": "%1 te veel",
 "%1 over this week": "%1 over deze week",
 "%1 over today": "%1 over vandaag",
-"%1 place found.": "%1 plaats gevonden.",
-"%1 places found.": "%1 plaatsen gevonden.",
 "%1 project-specific, %2 global": "%1 projectspecifiek, %2 globaal",
 "%1d ago": "%1 d geleden",
 "%1h %2m": "%1u %2m",
 "%1h ago": "%1 u geleden",
 "%1m ago": "%1 min geleden",
-"%2 km (%1 trips)": "%2 km (%1 ritten)",
-"%2 km (1 trip)": "%2 km (%1 rit)",
-"%2 km in %1 trips": "%2 km in %1 ritten",
-"%2 km in 1 trip": "%2 km in %1 rit",
-"+%1 more detected trip": "+%1 andere gedetecteerde rit",
-"+%1 more detected trips": "+%1 andere gedetecteerde ritten",
 "+%1 more in settings": "+%1 meer in instellingen",
 "A profile named \"%1\" already exists.": "Er bestaat al een profiel met de naam „%1”.",
 "API Token:": "API-token:",
@@ -436,8 +459,6 @@
 "The trip could not be accepted: %1": "De rit kon niet worden geaccepteerd: %1",
 "The trip could not be dismissed: %1": "De rit kon niet worden genegeerd: %1",
 "This action is not supported for the selected service yet.": "Deze actie wordt nog niet ondersteund voor de geselecteerde dienst.",
-"This activity has %1 more entries on this day (%2); the work time above does not include them.": "Deze activiteit heeft op deze dag nog %1 invoeren (%2); de werktijd hierboven telt die niet mee.",
-"This activity has %1 more entry on this day (%2); the work time above does not include it.": "Deze activiteit heeft op deze dag nog %1 invoer (%2); de werktijd hierboven telt die niet mee.",
 "This month of the logbook is closed.": "Deze maand van het rittenregister is afgesloten.",
 "This provider cannot delete entries.": "Deze dienst kan invoeren niet verwijderen.",
 "This provider cannot split entries.": "Deze dienst kan invoeren niet splitsen.",

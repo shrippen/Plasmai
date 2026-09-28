@@ -1,439 +1,29 @@
 #include <QGuiApplication>
 #include <QIcon>
 #include <QtQml>
+#include <QQmlApplicationEngine>
+#include <QQmlContext>
+#include <cstdio>
+
 #include "addons/yearmodel.h"
 #include "addons/monthmodel.h"
 #include "addons/infinitecalendarviewmodel.h"
-#include <QQmlApplicationEngine>
-#include <QQmlContext>
-#include <QQmlNetworkAccessManagerFactory>
-#include <QNetworkAccessManager>
-#include <QNetworkRequest>
-#include <QStandardPaths>
-#include <QFile>
-#include <QSaveFile>
-#include <QHash>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QLocale>
-#include <QDir>
-#include <QObject>
-#include <cstdio>
+#include "appid.h"
+#include "i18nfallback.h"
+#include "platform/filestore.h"
+#include "platform/idlewatcher.h"
+#include "platform/notifier.h"
+#include "platform/tokenstore.h"
+#include "platform/useragentnam.h"
+#ifdef Q_OS_ANDROID
+#include "platform/androidbackfilter.h"
+#endif
 #ifdef PLASMAI_TEST_DRIVER
 #include "testdriver.h"
 #endif
 
-#ifdef HAVE_KF6
-#ifdef HAVE_KF6_COREADDONS
-#include <KLocalizedString>
-#include <KAboutData>
-#include <KLocalizedQmlContext>
-#endif
-#endif
-
-// TokenStore with cross-platform support
-#ifdef Qt6Keychain_FOUND
-#include <keychain.h>
-#define HAS_KEYCHAIN 1
-#endif
-
-// Idle detection + native notifications: real Linux/Plasma session only
-// (desktop Linux and Plasma Mobile devices both run a Plasma D-Bus session;
-// Android does not, so this whole block is compiled out there).
-#ifdef HAVE_QTDBUS
-#include <QDBusInterface>
-#include <QDBusReply>
-#include <QVariantList>
-#include <QVariantMap>
-#endif
-
-// -- AndroidBackFilter: Back on the first page leaves the app ------------------
-
-#ifdef Q_OS_ANDROID
-#include <QKeyEvent>
-#include <QJniObject>
-#include <QtCore/qcoreapplication_platform.h>
-
-// Qt 6.11 turns Android's Back key into the StandardKey.Back shortcut, which Kirigami's
-// PageRow takes even on the first page (Back did nothing there), while a Back nothing takes
-// finishes the activity (with the drawer open, Back quit the app). main.qml's androidBack()
-// decides per press: "pass" leaves it to Qt/Kirigami (subpages, dialogs), "handled" means it
-// closed something itself, "leave" sends the app to the background, as Android does for
-// launcher activities since 12. One decision per press, at its first event.
-class AndroidBackFilter : public QObject {
-public:
-    AndroidBackFilter(QQmlApplicationEngine *engine) : QObject(engine), m_engine(engine) {}
-
-protected:
-    bool eventFilter(QObject *watched, QEvent *event) override {
-        const QEvent::Type type = event->type();
-        if ((type != QEvent::ShortcutOverride && type != QEvent::KeyPress && type != QEvent::KeyRelease)
-            || static_cast<QKeyEvent *>(event)->key() != Qt::Key_Back) {
-            return QObject::eventFilter(watched, event);
-        }
-        if (m_action.isEmpty()) {
-            if (type == QEvent::KeyRelease) {
-                return QObject::eventFilter(watched, event); // a press we did not see
-            }
-            m_action = decide();
-        }
-        const QString action = m_action;
-        if (type == QEvent::KeyRelease) {
-            m_action.clear();
-        }
-        if (action == QLatin1String("pass")) {
-            return QObject::eventFilter(watched, event);
-        }
-        event->accept(); // for ShortcutOverride: the key is ours, the Back shortcut stays quiet
-        if (type == QEvent::KeyRelease && action == QLatin1String("leave")) {
-            QNativeInterface::QAndroidApplication::runOnAndroidMainThread([]() {
-                QJniObject activity = QNativeInterface::QAndroidApplication::context();
-                activity.callMethod<jboolean>("moveTaskToBack", "(Z)Z", jboolean(true));
-            });
-        }
-        return true;
-    }
-
-private:
-    QString decide() const {
-        const QList<QObject *> roots = m_engine->rootObjects();
-        QVariant result;
-        if (roots.isEmpty()
-            || !QMetaObject::invokeMethod(roots.first(), "androidBack", Q_RETURN_ARG(QVariant, result))) {
-            return QStringLiteral("pass");
-        }
-        return result.toString();
-    }
-
-    QQmlApplicationEngine *m_engine;
-    QString m_action; // decision for the press in progress
-};
-#endif
-
-// -- I18nFallback: passthrough i18n() when KF6 I18n is unavailable -----------
-
-#if !defined(HAVE_KF6_COREADDONS)
-// Android has no KF6 I18n / gettext runtime. Messages are looked up in JSON catalogs
-// ({msgid: msgstr}, generated from translate/*.po by translate/po2json.py) that are
-// bundled in the QRC under :/i18n/<lang>.json. English source strings are the fallback.
-class I18nFallback : public QObject {
-    Q_OBJECT
-public:
-    explicit I18nFallback(QObject *parent = nullptr) : QObject(parent) { loadCatalog(); }
-
-    // 0 extra args
-    Q_INVOKABLE QString i18n(const QString &text) const { return tr(text); }
-
-    // Domain / context variants used by the vendored kirigami-addons QML
-    Q_INVOKABLE QString i18nd(const QString &, const QString &text) const { return tr(text); }
-    Q_INVOKABLE QString i18ndc(const QString &, const QString &, const QString &text) const { return tr(text); }
-
-    // Plural form. Catalogs only carry the two-form (singular/plural) English rule —
-    // see translate/po2json.py — good enough since the languages shipped here all use it.
-    // n fills %1; further args fill %2, %3 like KI18n.
-    Q_INVOKABLE QString i18np(const QString &singular, const QString &plural, const QVariant &n) const {
-        return subst(tr(n.toInt() == 1 ? singular : plural), {n});
-    }
-    Q_INVOKABLE QString i18np(const QString &singular, const QString &plural, const QVariant &n, const QVariant &a2) const {
-        return subst(tr(n.toInt() == 1 ? singular : plural), {n, a2});
-    }
-    Q_INVOKABLE QString i18np(const QString &singular, const QString &plural, const QVariant &n, const QVariant &a2, const QVariant &a3) const {
-        return subst(tr(n.toInt() == 1 ? singular : plural), {n, a2, a3});
-    }
-
-    // 1 extra arg
-    Q_INVOKABLE QString i18n(const QString &text, const QVariant &a1) const {
-        return subst(tr(text), {a1});
-    }
-
-    // 2 extra args
-    Q_INVOKABLE QString i18n(const QString &text, const QVariant &a1, const QVariant &a2) const {
-        return subst(tr(text), {a1, a2});
-    }
-
-    // 3 extra args
-    Q_INVOKABLE QString i18n(const QString &text, const QVariant &a1, const QVariant &a2, const QVariant &a3) const {
-        return subst(tr(text), {a1, a2, a3});
-    }
-
-    // 4 extra args
-    Q_INVOKABLE QString i18n(const QString &text, const QVariant &a1, const QVariant &a2, const QVariant &a3, const QVariant &a4) const {
-        return subst(tr(text), {a1, a2, a3, a4});
-    }
-
-private:
-    QString tr(const QString &text) const { return m_catalog.value(text, text); }
-
-    // %N always takes args[N-1], in one pass (QString::arg would fill the lowest
-    // marker present, and a plural form may lack %1).
-    static QString subst(const QString &text, const QVariantList &args) {
-        QString out;
-        out.reserve(text.size());
-        for (qsizetype i = 0; i < text.size(); ++i) {
-            const QChar c = text.at(i);
-            if (c == QLatin1Char('%') && i + 1 < text.size() && text.at(i + 1).isDigit()) {
-                const int idx = text.at(i + 1).digitValue();
-                if (idx >= 1 && idx <= args.size()) {
-                    out += args.at(idx - 1).toString();
-                    ++i;
-                    continue;
-                }
-            }
-            out += c;
-        }
-        return out;
-    }
-
-    // Pick the first UI language that has a catalog; English (no file) stops the search.
-    void loadCatalog() {
-        const QStringList uiLanguages = QLocale::system().uiLanguages();
-        for (const QString &ui : uiLanguages) {
-            const QString name = QString(ui).replace(QLatin1Char('-'), QLatin1Char('_'));
-            const QString base = name.section(QLatin1Char('_'), 0, 0);
-            if (base == QLatin1String("en")) {
-                return;
-            }
-            QStringList candidates{name, base};
-            if (base == QLatin1String("pt")) candidates << QStringLiteral("pt_BR");
-            if (base == QLatin1String("zh")) candidates << QStringLiteral("zh_CN");
-            for (const QString &c : std::as_const(candidates)) {
-                QFile f(QStringLiteral(":/i18n/%1.json").arg(c));
-                if (!f.open(QIODevice::ReadOnly)) {
-                    continue;
-                }
-                const QJsonObject obj = QJsonDocument::fromJson(f.readAll()).object();
-                for (auto it = obj.constBegin(); it != obj.constEnd(); ++it) {
-                    m_catalog.insert(it.key(), it.value().toString());
-                }
-                return;
-            }
-        }
-    }
-
-    QHash<QString, QString> m_catalog;
-};
-#endif
-
-static const QString APP_ID = QStringLiteral("com.github.shrippen.plasmai");
-
-// -- Every request names Plasmai: OpenStreetMap (trip map, place search) asks for it.
-
-class UserAgentNam : public QNetworkAccessManager {
-public:
-    using QNetworkAccessManager::QNetworkAccessManager;
-
-protected:
-    QNetworkReply *createRequest(Operation op, const QNetworkRequest &request, QIODevice *data) override {
-        QNetworkRequest named(request);
-        named.setHeader(QNetworkRequest::UserAgentHeader,
-                        QStringLiteral("Plasmai/%1 (+https://github.com/shrippen/Plasmai)").arg(QGuiApplication::applicationVersion()));
-        return QNetworkAccessManager::createRequest(op, named, data);
-    }
-};
-
-class UserAgentNamFactory : public QQmlNetworkAccessManagerFactory {
-public:
-    QNetworkAccessManager *create(QObject *parent) override { return new UserAgentNam(parent); }
-};
-
-// -- TokenStore: read / write / delete API tokens via QtKeychain ----------
-
-class TokenStore : public QObject {
-    Q_OBJECT
-public:
-    using QObject::QObject;
-
-    Q_INVOKABLE void load(const QString &profileId) {
-#ifdef HAS_KEYCHAIN
-        auto *job = new QKeychain::ReadPasswordJob(APP_ID, this);
-        job->setAutoDelete(true);
-        job->setKey(profileId);
-        connect(job, &QKeychain::ReadPasswordJob::finished,
-                this, [this, profileId](QKeychain::Job *j) {
-            auto *rj = static_cast<QKeychain::ReadPasswordJob *>(j);
-            QString token;
-            if (rj->error() == QKeychain::NoError) {
-                token = rj->textData();
-            }
-            emit loaded(profileId, token);
-        });
-        job->start();
-#else
-        QFile f(tokenPath(profileId));
-        QString token;
-        if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            token = QString::fromUtf8(f.readAll()).trimmed();
-        }
-        emit loaded(profileId, token);
-#endif
-    }
-
-    Q_INVOKABLE void save(const QString &profileId, const QString &token) {
-#ifdef HAS_KEYCHAIN
-        auto *job = new QKeychain::WritePasswordJob(APP_ID, this);
-        job->setAutoDelete(true);
-        job->setKey(profileId);
-        job->setTextData(token);
-        connect(job, &QKeychain::WritePasswordJob::finished,
-                this, [this, profileId](QKeychain::Job *j) {
-            emit saved(profileId, j->error() == QKeychain::NoError);
-        });
-        job->start();
-#else
-        QDir().mkpath(tokenDir());
-        // QSaveFile: temp file + rename, so a killed app never leaves a torn token.
-        QSaveFile f(tokenPath(profileId));
-        bool ok = f.open(QIODevice::WriteOnly | QIODevice::Text);
-        if (ok) {
-            f.write(token.toUtf8());
-            ok = f.commit();
-        }
-        emit saved(profileId, ok);
-#endif
-    }
-
-    Q_INVOKABLE void remove(const QString &profileId) {
-#ifdef HAS_KEYCHAIN
-        auto *job = new QKeychain::DeletePasswordJob(APP_ID, this);
-        job->setAutoDelete(true);
-        job->setKey(profileId);
-        connect(job, &QKeychain::DeletePasswordJob::finished,
-                this, [this, profileId](QKeychain::Job *j) {
-            emit removed(profileId, j->error() == QKeychain::NoError);
-        });
-        job->start();
-#else
-        QFile f(tokenPath(profileId));
-        bool ok = f.remove();
-        emit removed(profileId, ok);
-#endif
-    }
-
-signals:
-    void loaded(const QString &profileId, const QString &token);
-    void saved(const QString &profileId, bool ok);
-    void removed(const QString &profileId, bool ok);
-
-private:
-    static QString tokenDir() {
-        return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/tokens";
-    }
-    static QString tokenPath(const QString &id) {
-        return tokenDir() + "/" + id + ".token";
-    }
-};
-
-// -- FileStore: read / write JSON files in app config dir -----------------
-
-class FileStore : public QObject {
-    Q_OBJECT
-public:
-    using QObject::QObject;
-
-    Q_INVOKABLE void load(const QString &fileName) {
-        QString path = configDir() + "/" + fileName;
-        QFile f(path);
-        QString data;
-        if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            data = QString::fromUtf8(f.readAll());
-        }
-        emit loaded(fileName, data);
-    }
-
-    Q_INVOKABLE void save(const QString &fileName, const QString &json) {
-        QString dir = configDir();
-        QDir().mkpath(dir);
-        // QSaveFile: temp file + rename (like mktemp + mv in sharedConfig.sh),
-        // so a killed app never leaves a half-written shared.json.
-        QSaveFile f(dir + "/" + fileName);
-        bool ok = f.open(QIODevice::WriteOnly | QIODevice::Text);
-        if (ok) {
-            f.write(json.toUtf8());
-            ok = f.commit();
-        }
-        emit saved(fileName, ok);
-    }
-
-private:
-    static QString configDir() {
-#ifdef Q_OS_ANDROID
-        return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-#else
-        return QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation)
-            + "/" + APP_ID;
-#endif
-    }
-
-signals:
-    void loaded(const QString &fileName, const QString &data);
-    void saved(const QString &fileName, bool ok);
-};
-
-// -- IdleWatcher: session idle time via org.freedesktop.ScreenSaver -------
-// Same D-Bus source contents/code/idle.sh falls back to on Wayland/Plasma;
-// Plasma Mobile devices run a real Plasma Wayland session so this works
-// unmodified on-device, same as on a desktop Linux build.
-
-#ifdef HAVE_QTDBUS
-class IdleWatcher : public QObject {
-    Q_OBJECT
-public:
-    using QObject::QObject;
-
-    Q_INVOKABLE void checkIdle() {
-        QDBusInterface iface(QStringLiteral("org.freedesktop.ScreenSaver"),
-                             QStringLiteral("/org/freedesktop/ScreenSaver"),
-                             QStringLiteral("org.freedesktop.ScreenSaver"),
-                             QDBusConnection::sessionBus());
-        if (!iface.isValid()) {
-            emit idleChecked(-1, false);
-            return;
-        }
-        QDBusReply<uint> reply = iface.call(QStringLiteral("GetSessionIdleTime"));
-        if (!reply.isValid()) {
-            emit idleChecked(-1, false);
-            return;
-        }
-        emit idleChecked(static_cast<qint64>(reply.value()), true);
-    }
-
-signals:
-    void idleChecked(qint64 idleMs, bool ok);
-};
-
-// -- Notifier: desktop notifications via org.freedesktop.Notifications ----
-
-class Notifier : public QObject {
-    Q_OBJECT
-public:
-    using QObject::QObject;
-
-    Q_INVOKABLE void notify(const QString &summary, const QString &body) {
-        QDBusInterface iface(QStringLiteral("org.freedesktop.Notifications"),
-                             QStringLiteral("/org/freedesktop/Notifications"),
-                             QStringLiteral("org.freedesktop.Notifications"),
-                             QDBusConnection::sessionBus());
-        if (!iface.isValid()) {
-            emit notified(false);
-            return;
-        }
-        QDBusReply<uint> reply = iface.call(
-            QStringLiteral("Notify"),
-            APP_ID,               // app_name
-            0u,                    // replaces_id
-            QStringLiteral("chronometer"), // app_icon
-            summary,
-            body,
-            QStringList(),         // actions
-            QVariantMap(),         // hints
-            -1);                   // expire_timeout (server default)
-        emit notified(reply.isValid());
-    }
-
-signals:
-    void notified(bool ok);
-};
-#endif
+// Platform code lives in platform/ (one file per service, per platform where it
+// differs; CMakeLists.txt picks them). This file wires them into QML.
 
 // -- main ----------------------------------------------------------------
 
@@ -457,28 +47,19 @@ int main(int argc, char *argv[])
     QIcon::setFallbackThemeName(QStringLiteral("breeze-dark"));
 #endif
 
-#ifdef HAVE_KF6_COREADDONS
-    KLocalizedString::setApplicationDomain("plasmai");
-#ifdef PLASMAI_BUILD_LOCALE_DIR
-    // Development runs from the build tree find the compiled catalogs here;
-    // installed builds use the regular <prefix>/share/locale.
-    if (QDir(QStringLiteral(PLASMAI_BUILD_LOCALE_DIR)).exists()) {
-        KLocalizedString::addDomainLocaleDir("plasmai", QStringLiteral(PLASMAI_BUILD_LOCALE_DIR));
-    }
-#endif
-    KAboutData aboutData(APP_ID, i18n("Plasmai"),
-                         QStringLiteral("2.0.1"),
-                         i18n("Time tracking with Kimai, Clockify, Toggl Track, or SolidTime"),
-                         KAboutLicense::GPL_V3,
-                         i18n("© 2025 Plasmai contributors"));
-    // Desktop identity (Flathub ID); APP_ID stays the keychain service and the config folder shared with the widget.
-    aboutData.setDesktopFileName(QStringLiteral("io.github.shrippen.Plasmai"));
-    KAboutData::setApplicationData(aboutData);
+    // Names the token files and QStandardPaths depend on: keep them as the builds had them
+    // (desktop: KAboutData's component name and domain; Android: Qt's defaults as set here).
+#ifdef Q_OS_ANDROID
+    app.setApplicationName(QStringLiteral("Plasmai"));
+    app.setOrganizationName(QStringLiteral("shrippen"));
 #else
-    app.setApplicationName("Plasmai");
-    app.setApplicationVersion("2.0.1");
-    app.setOrganizationName("shrippen");
+    app.setApplicationName(APP_ID);
+    app.setOrganizationDomain(QStringLiteral("kde.org"));
+    app.setApplicationDisplayName(QStringLiteral("Plasmai"));
+    // Desktop identity (Flathub ID); APP_ID stays the keychain service and the config folder shared with the widget.
+    QGuiApplication::setDesktopFileName(QStringLiteral("io.github.shrippen.Plasmai"));
 #endif
+    app.setApplicationVersion(QStringLiteral("2.0.1"));
 
     // Singletons
     auto *tokenStore = new TokenStore(&app);
@@ -497,13 +78,8 @@ int main(int argc, char *argv[])
         fprintf(stderr, "QML object creation failed\n");
         fflush(stderr);
     }, Qt::QueuedConnection);
-#if defined(HAVE_KF6_COREADDONS)
-    KLocalizedQmlContext klocalizedContext(&engine);
-    engine.rootContext()->setContextObject(&klocalizedContext);
-#else
     I18nFallback i18nFallback;
     engine.rootContext()->setContextObject(&i18nFallback);
-#endif
     engine.rootContext()->setContextProperty(QStringLiteral("TokenStore"), tokenStore);
 #ifdef PLASMAI_DEMO
     engine.rootContext()->setContextProperty(QStringLiteral("plasmaiDemoBuild"), true);
@@ -511,12 +87,13 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty(QStringLiteral("plasmaiDemoBuild"), false);
 #endif
     engine.rootContext()->setContextProperty(QStringLiteral("FileStore"), fileStore);
-#ifdef HAVE_QTDBUS
-    auto *idleWatcher = new IdleWatcher(&app);
-    auto *notifier = new Notifier(&app);
-    engine.rootContext()->setContextProperty(QStringLiteral("idleWatcher"), idleWatcher);
-    engine.rootContext()->setContextProperty(QStringLiteral("notifier"), notifier);
-#endif
+    // Platform services: offered to QML only where this platform has them.
+    if (IdleWatcher::isSupported()) {
+        engine.rootContext()->setContextProperty(QStringLiteral("idleWatcher"), new IdleWatcher(&app));
+    }
+    if (Notifier::isSupported()) {
+        engine.rootContext()->setContextProperty(QStringLiteral("notifier"), new Notifier(&app));
+    }
 
     // Add QRC import path so Kirigami platform plugin can find style modules
 #ifdef Q_OS_ANDROID
@@ -540,5 +117,3 @@ int main(int argc, char *argv[])
 #endif
     return app.exec();
 }
-
-#include "main.moc"

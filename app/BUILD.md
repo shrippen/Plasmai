@@ -12,7 +12,7 @@ cmake --build build -j$(nproc)
 Abhängigkeiten (Arch Linux):
 ```bash
 sudo pacman -S extra-cmake-modules qt6-base qt6-declarative kirigami2 \
-  qt6-svg qtkeychain-qt6 kf6-i18n kf6-coreaddons
+  qt6-svg qtkeychain-qt6
 ```
 
 ## Android (Craft-Container)
@@ -114,9 +114,10 @@ Statistik-Charts, Standortsuche für
 den Sparkline-Sonnenstand.
 
 - **Idle-Detection / native Benachrichtigungen**: plattform-adaptiv über
-  `IdleWatcher`/`Notifier` (`app/main.cpp`, `org.freedesktop.ScreenSaver` /
-  `org.freedesktop.Notifications` via QtDBus). Nur kompiliert wenn
-  `NOT ANDROID` (siehe `HAVE_QTDBUS` in `app/CMakeLists.txt`) — funktioniert
+  `IdleWatcher`/`Notifier` (`app/platform/`, eine Datei pro Plattform:
+  `*_dbus.cpp` mit `org.freedesktop.ScreenSaver` /
+  `org.freedesktop.Notifications`, sonst `*_none.cpp`; Auswahl in
+  `app/CMakeLists.txt`, nur Linux ohne Android nutzt D-Bus) — funktioniert
   auf Desktop-Linux und auf echten Plasma-Mobile-Geräten (beides reale
   Plasma-Wayland-Sessions mit D-Bus), ist auf Android deaktiviert
   (`root.supportsIdleDetection`/`supportsNotifications` blenden die
@@ -127,6 +128,7 @@ den Sparkline-Sonnenstand.
   Kapsel-Rundung genutzt) — die Kapsel-Rundung kommt stattdessen aus
   Canvas-`clip()` + `Rectangle.radius`, die Textaussparung entfällt (rein
   kosmetisch).
-- **Übersetzungen**: Die App bündelt aktuell keine `.mo`-Kataloge; `i18n()`
-  gibt daher immer den englischen Originaltext zurück, unabhängig von der
-  Systemsprache. Nicht Teil dieses Rewrites — separates Packaging-Thema.
+- **Übersetzungen**: auf allen Plattformen JSON-Kataloge (`app/i18n/<lang>.json`,
+  aus `translate/*.po` per `translate/po2json.py`, im QRC) mit den Pluralregeln
+  der Sprache (`app/i18nfallback.cpp`); kein KI18n / gettext. C++-Tests:
+  `cmake -DPLASMAI_BUILD_TESTS=ON`, dann `ctest`.
