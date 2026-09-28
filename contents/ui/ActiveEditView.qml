@@ -116,11 +116,7 @@ ColumnLayout {
 
     function parseBeginDate(ts) {
         if (ts && ts.begin) {
-            var raw = String(ts.begin)
-            var d = new Date(raw)
-            if (isNaN(d.getTime())) {
-                d = new Date(raw.replace(" ", "T"))
-            }
+            var d = DTF.parseStamp(ts.begin)
             if (!isNaN(d.getTime())) {
                 return d
             }

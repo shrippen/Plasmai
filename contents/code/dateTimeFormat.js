@@ -408,6 +408,7 @@ function entryTimeLabel(begin, end, now, nowLabel) {
  * backend, so no JS engine's Date() quirks leak in:
  *   "2026-09-25T13:15:00+0200"   Kimai (offset without colon)
  *   "2026-09-25 13:15:00"        space instead of T, local time
+ *   "2026-09-25 13:15"           form input without seconds
  *   "2026-09-25T11:15:00Z"       ISO, UTC
  *   "2026-09-25"                 date only → local midnight (Date() takes UTC)
  * A Date is copied, a number is ms.
@@ -429,7 +430,12 @@ function parseStamp(value) {
         return new Date(Number(dateOnly[1]), Number(dateOnly[2]) - 1, Number(dateOnly[3]))
     }
 
-    return new Date(text.replace(" ", "T").replace(/([+-]\d{2})(\d{2})$/, "$1:$2"))
+    text = text.replace(" ", "T").replace(/([+-]\d{2})(\d{2})$/, "$1:$2")
+    // Form input without seconds ("2026-09-25T13:15"): add them, not every engine takes it.
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(text)) {
+        text += ":00"
+    }
+    return new Date(text)
 }
 
 /** parseStamp() in ms; NaN when unusable. */

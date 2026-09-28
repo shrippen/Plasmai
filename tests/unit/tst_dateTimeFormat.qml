@@ -106,6 +106,9 @@ TestCase {
         // no offset: local time
         compare(DateTimeFormat.stampMs("2026-09-25T13:15:00"), new Date(2026, 8, 25, 13, 15, 0).getTime())
         compare(DateTimeFormat.stampMs("2026-09-25 13:15:00"), new Date(2026, 8, 25, 13, 15, 0).getTime())
+        // form input without seconds ("yyyy-MM-dd hh:mm")
+        compare(DateTimeFormat.stampMs("2026-09-25 13:15"), new Date(2026, 8, 25, 13, 15, 0).getTime())
+        compare(DateTimeFormat.stampMs(" 2026-09-25T13:15 "), new Date(2026, 8, 25, 13, 15, 0).getTime())
         // date only: local midnight (Date() takes UTC, the day before west of UTC)
         compare(DateTimeFormat.stampMs("2026-09-25"), new Date(2026, 8, 25).getTime())
         // Date and ms pass through; the result is a copy

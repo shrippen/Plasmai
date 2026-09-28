@@ -46,7 +46,7 @@ Item {
     readonly property int padding: Kirigami.Units.largeSpacing
     readonly property string beginClock: {
         var ts = widget.activeTimesheet
-        var d = ts && ts.begin ? new Date(ts.begin) : null
+        var d = ts && ts.begin ? DTF.parseStamp(ts.begin) : null
         return d && !isNaN(d.getTime()) ? d.toLocaleTimeString(Qt.locale(), Locale.ShortFormat) : ""
     }
 

@@ -4,6 +4,7 @@ import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
 import "../code/mileage.js" as Mileage
+import "../code/dateTimeFormat.js" as DTF
 import "."
 import "Kante"
 import "KantePlasma"
@@ -40,7 +41,7 @@ ColumnLayout {
     readonly property int shownCount: maxRows > 0 ? Math.min(maxRows, suggestions.length) : suggestions.length
 
     function timeText(stamp) {
-        var d = new Date(String(stamp || ""))
+        var d = DTF.parseStamp(stamp)
         if (isNaN(d.getTime())) {
             return ""
         }

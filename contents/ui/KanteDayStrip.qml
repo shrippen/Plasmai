@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
 import "../code/kimaiApi.js" as KimaiApi
+import "../code/dateTimeFormat.js" as DTF
 import "."
 import "Kante"
 
@@ -49,11 +50,11 @@ ColumnLayout {
         var lo = workBegin
         var hi = Math.max(workEnd, nowHours)
         for (var i = 0; i < (entries || []).length; i++) {
-            var b = new Date(entries[i].begin)
+            var b = DTF.parseStamp(entries[i].begin)
             if (!isNaN(b.getTime())) {
                 lo = Math.min(lo, hoursOfDay(b))
             }
-            var e = entries[i].end ? new Date(entries[i].end) : null
+            var e = entries[i].end ? DTF.parseStamp(entries[i].end) : null
             if (e && !isNaN(e.getTime())) {
                 hi = Math.max(hi, hoursOfDay(e))
             }
@@ -88,8 +89,8 @@ ColumnLayout {
             model: strip.entries || []
             delegate: Rectangle {
                 readonly property var ts: modelData
-                readonly property var begin: new Date(ts.begin)
-                readonly property var end: ts.end ? new Date(ts.end) : new Date()
+                readonly property var begin: DTF.parseStamp(ts.begin)
+                readonly property var end: ts.end ? DTF.parseStamp(ts.end) : new Date()
                 x: strip.xOf(strip.hoursOfDay(begin))
                 width: Math.max(2, strip.xOf(strip.hoursOfDay(end)) - x)
                 height: parent.height

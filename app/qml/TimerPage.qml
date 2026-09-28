@@ -34,7 +34,7 @@ Kirigami.Page {
 
     /** Begin of an entry as a local clock time ("07:42"). */
     function beginClock(ts) {
-        var b = ts && ts.begin ? new Date(ts.begin) : null
+        var b = ts && ts.begin ? DTF.parseStamp(ts.begin) : null
         return b && !isNaN(b.getTime()) ? DTF.formatLocaleTime(b.getHours(), b.getMinutes()) : ""
     }
 
@@ -284,7 +284,7 @@ Kirigami.Page {
                             Layout.fillWidth: true
                             readonly property string beginClock: {
                                 var ts = root.activeTimesheet
-                                var d = ts && ts.begin ? new Date(ts.begin) : null
+                                var d = ts && ts.begin ? DTF.parseStamp(ts.begin) : null
                                 return d && !isNaN(d.getTime()) ? DTF.formatLocaleTime(d.getHours(), d.getMinutes()) : ""
                             }
                             text: root.isTracking

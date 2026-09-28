@@ -29,7 +29,7 @@ Kirigami.Page {
     /** Shown entry's time label ("12:15–12:45") for the other activities. */
     function spanText(ts) {
         function clock(v) {
-            var d = v ? new Date(v) : null
+            var d = v ? DTF.parseStamp(v) : null
             return d && !isNaN(d.getTime()) ? DTF.formatLocaleTime(d.getHours(), d.getMinutes()) : "…"
         }
         return clock(ts.begin) + "–" + clock(ts.end)
@@ -128,11 +128,7 @@ Kirigami.Page {
     }
 
     function parseLocalStamp(text) {
-        var s = String(text || "").trim().replace(" ", "T")
-        if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(s)) {
-            s += ":00"
-        }
-        return new Date(s)
+        return DTF.parseStamp(text)
     }
 
     function stepDay(deltaDays) {

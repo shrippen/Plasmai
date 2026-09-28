@@ -44,7 +44,7 @@ ColumnLayout {
 
     /** Begin of an entry as a local clock time ("07:42"). */
     function beginClock(ts) {
-        var b = ts && ts.begin ? new Date(ts.begin) : null
+        var b = ts && ts.begin ? DTF.parseStamp(ts.begin) : null
         return b && !isNaN(b.getTime()) ? DTF.formatLocaleTime(b.getHours(), b.getMinutes()) : ""
     }
 

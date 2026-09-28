@@ -326,10 +326,7 @@ ColumnLayout {
 
     function parseStampDate(raw, fallback) {
         if (raw) {
-            var d = new Date(String(raw))
-            if (isNaN(d.getTime())) {
-                d = new Date(String(raw).replace(" ", "T"))
-            }
+            var d = DTF.parseStamp(raw)
             if (!isNaN(d.getTime())) {
                 return d
             }

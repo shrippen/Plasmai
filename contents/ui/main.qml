@@ -506,7 +506,7 @@ PlasmoidItem {
         if (!isoDate) {
             return ""
         }
-        var date = new Date(isoDate)
+        var date = DTF.parseStamp(isoDate)
         if (isNaN(date.getTime())) {
             return ""
         }
@@ -908,11 +908,7 @@ PlasmoidItem {
             return
         }
         function parseLocalStamp(text) {
-            var s = String(text || "").trim().replace(" ", "T")
-            if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(s)) {
-                s += ":00"
-            }
-            return new Date(s)
+            return DTF.parseStamp(text)
         }
         var beginDate = parseLocalStamp(beginText)
         if (isNaN(beginDate.getTime())) {
@@ -1108,7 +1104,7 @@ PlasmoidItem {
     /** Time label of an entry ("12:15–12:45") for the film day's other activities. */
     function filmDaySpanText(ts) {
         function clock(v) {
-            var d = v ? new Date(v) : null
+            var d = v ? DTF.parseStamp(v) : null
             return d && !isNaN(d.getTime()) ? DTF.formatLocaleTime(d.getHours(), d.getMinutes()) : "…"
         }
         return clock(ts.begin) + "–" + clock(ts.end)
@@ -1243,11 +1239,7 @@ PlasmoidItem {
             return
         }
         function parseLocalStamp(text) {
-            var s = String(text || "").trim().replace(" ", "T")
-            if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(s)) {
-                s += ":00"
-            }
-            return new Date(s)
+            return DTF.parseStamp(text)
         }
         var beginDate = parseLocalStamp(beginText)
         var endDate = parseLocalStamp(endText)
@@ -1396,7 +1388,7 @@ PlasmoidItem {
         }
         var bits = [KimaiApi.displayProjectName(ts, root.projects),
                     KimaiApi.displayActivityName(ts, root.allActivities, root.activitiesByProject)]
-        var begin = new Date(String(ts.begin || ""))
+        var begin = DTF.parseStamp(ts.begin)
         if (!isNaN(begin.getTime())) {
             bits.push(begin.toLocaleDateString(Qt.locale(), Locale.ShortFormat) + " "
                       + begin.toLocaleTimeString(Qt.locale(), Locale.ShortFormat))
@@ -1552,12 +1544,7 @@ PlasmoidItem {
             return
         }
         function parseLocalStamp(text) {
-            var s = String(text || "").trim().replace(" ", "T")
-            if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(s)) {
-                s += ":00"
-            }
-            var d = new Date(s)
-            return d
+            return DTF.parseStamp(text)
         }
         var beginDate = parseLocalStamp(beginText)
         var endDate = parseLocalStamp(endText)
@@ -1792,7 +1779,7 @@ PlasmoidItem {
             showNewActivityForm = plasmoid.configuration.desktopShowNewActivity
         }
 
-        var beginDate = new Date(timesheet.begin)
+        var beginDate = DTF.parseStamp(timesheet.begin)
         if (!isNaN(beginDate.getTime())) {
             elapsedSeconds = Math.max(0, Math.floor((Date.now() - beginDate.getTime()) / 1000))
         }
@@ -2162,13 +2149,13 @@ PlasmoidItem {
                         if (!entry || !entry.begin) {
                             continue
                         }
-                        var begin = new Date(entry.begin)
+                        var begin = DTF.parseStamp(entry.begin)
                         if (isNaN(begin.getTime())) {
                             continue
                         }
                         var endMs = nowMs
                         if (entry.end) {
-                            var end = new Date(entry.end)
+                            var end = DTF.parseStamp(entry.end)
                             if (!isNaN(end.getTime())) {
                                 endMs = end.getTime()
                             }

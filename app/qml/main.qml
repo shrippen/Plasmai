@@ -15,6 +15,7 @@ import "../contents/code/favorites.js" as Favorites
 import "../contents/code/sharedConfig.js" as SharedConfig
 import "../contents/code/providerUtil.js" as ProviderUtil
 import "../contents/code/timesheetFields.js" as TimesheetFields
+import "../contents/code/dateTimeFormat.js" as DTF
 import "shared"
 import "Kante"
 
@@ -200,7 +201,7 @@ Kirigami.ApplicationWindow {
     function timesheetSummaryText(ts) {
         if (!ts) return ""
         var bits = [KimaiApi.displayProjectName(ts, projects), KimaiApi.displayActivityName(ts, allActivities, activitiesByProject)]
-        var begin = new Date(String(ts.begin || ""))
+        var begin = DTF.parseStamp(ts.begin)
         if (!isNaN(begin.getTime())) bits.push(begin.toLocaleDateString(Qt.locale(), Locale.ShortFormat) + " " + begin.toLocaleTimeString(Qt.locale(), Locale.ShortFormat))
         return bits.filter(function(b) { return !!b }).join(" · ")
     }
@@ -523,7 +524,7 @@ Kirigami.ApplicationWindow {
         currentActivity = KimaiApi.displayActivityName(ts, allActivities, activitiesByProject)
         currentCustomer = KimaiApi.customerNameFromTimesheet(ts, customersById)
         currentDescription = ts.description || ""; descriptionDraft = currentDescription
-        var begin = new Date(ts.begin)
+        var begin = DTF.parseStamp(ts.begin)
         if (!isNaN(begin.getTime())) elapsedSeconds = Math.max(0, Math.floor((Date.now() - begin.getTime()) / 1000))
         // Starts from this app set isTracking before the refresh, so only foreign timers get here.
         if (!wasTracking && notifyOnStart) sendNotification(i18n("Tracking in progress"), currentProject + " · " + currentActivity + " · " + KimaiApi.formatDurationShort(elapsedSeconds))
@@ -689,7 +690,7 @@ Kirigami.ApplicationWindow {
 
     function formatRelativeTime(isoDate) {
         if (!isoDate) return ""
-        var date = new Date(isoDate); if (isNaN(date.getTime())) return ""
+        var date = DTF.parseStamp(isoDate); if (isNaN(date.getTime())) return ""
         var diffSec = Math.floor((Date.now() - date.getTime()) / 1000)
         if (diffSec < 60) return i18n("just now")
         var diffMin = Math.floor(diffSec / 60)
