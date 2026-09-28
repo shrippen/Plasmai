@@ -67,9 +67,11 @@ jobs:
           ctest --test-dir build --output-on-failure
 
       # Token storage with a real Secret Service: round trip and migration of old token files.
+      # Not as root: gnome-keyring-daemon then drops capabilities, which a container refuses.
       - name: Token storage with a keychain
         run: |
-          dbus-run-session -- sh -c 'printf ci | gnome-keyring-daemon --unlock --components=secrets >/dev/null && sleep 1 && ctest --test-dir build --output-on-failure -R tokenstore -V' | tee tokenstore.log
+          useradd -m ci && chown -R ci build
+          su ci -c "dbus-run-session -- sh -c 'printf ci | gnome-keyring-daemon --unlock --components=secrets >/dev/null && sleep 1 && ctest --test-dir build --output-on-failure -R tokenstore -V'" | tee tokenstore.log
           grep -q "PASS   : TstTokenStore::withKeychain()" tokenstore.log
 
   app:
@@ -120,10 +122,22 @@ jobs:
           cmake --build qtkeychain/build
           cmake --install qtkeychain/build
 
+      # The runner's login keychain is locked (reads wait for a prompt): an unlocked one
+      # for the token storage test.
+      - name: Keychain
+        if: runner.os == 'macOS'
+        run: |
+          security create-keychain -p ci ci.keychain
+          security set-keychain-settings ci.keychain
+          security unlock-keychain -p ci ci.keychain
+          security list-keychains -d user -s ci.keychain
+          security default-keychain -s ci.keychain
+
       - name: Build the app and its C++ tests
         shell: bash
         run: |
           cmake -S app -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DPLASMAI_BUILD_TESTS=ON \
             -DCMAKE_PREFIX_PATH="$GITHUB_WORKSPACE/deps"
           cmake --build build
-          ctest --test-dir build --output-on-failure
+          ctest --test-dir build --output-on-failure -V | tee ctest.log
+          if [ "$RUNNER_OS" != Linux ]; then grep -q "PASS   : TstTokenStore::withKeychain()" ctest.log; fi

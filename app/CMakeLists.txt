@@ -150,7 +150,9 @@ if(PLASMAI_BUILD_TESTS AND NOT ANDROID)
     qt_add_executable(tst_tokenstore tests/tst_tokenstore.cpp platform/tokenstore.cpp)
     target_include_directories(tst_tokenstore PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     target_link_libraries(tst_tokenstore PRIVATE Qt6::Core Qt6::Test Qt6Keychain::Qt6Keychain)
-    add_test(NAME tokenstore COMMAND tst_tokenstore)
+    add_test(NAME tokenstore COMMAND tst_tokenstore -v2)
+    # A keychain call that blocks must fail the run, not hang it.
+    set_tests_properties(tokenstore PROPERTIES TIMEOUT 180)
 endif()
 
 install(TARGETS plasmai-app
