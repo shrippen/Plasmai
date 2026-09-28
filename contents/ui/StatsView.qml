@@ -5,11 +5,9 @@ import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
-import org.kde.plasma.components as PlasmaComponents3
-import org.kde.plasma.extras as PlasmaExtras
 import "."
 import "Kante"
-import "KantePlasma"
+import "Controls" as Controls
 
 /**
  * Statistics pane — hourly bars, weekly project stacks, week hour timeline,
@@ -178,7 +176,7 @@ ColumnLayout {
             anchors.fill: parent
             spacing: 0
 
-            KantePlasmaToolButton {
+            Controls.SegmentButton {
                 Layout.fillWidth: true
                 Layout.preferredWidth: 1
                 height: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
@@ -188,7 +186,7 @@ ColumnLayout {
                 text: root.filterAllLabel
                 onClicked: root.billableFilter = StatsData.BILLABLE_ALL
             }
-            KantePlasmaToolButton {
+            Controls.SegmentButton {
                 Layout.fillWidth: true
                 Layout.preferredWidth: 1
                 height: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
@@ -198,7 +196,7 @@ ColumnLayout {
                 text: root.filterBillableLabel
                 onClicked: root.billableFilter = StatsData.BILLABLE_ONLY
             }
-            KantePlasmaToolButton {
+            Controls.SegmentButton {
                 Layout.fillWidth: true
                 Layout.preferredWidth: 1
                 height: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
@@ -247,14 +245,14 @@ ColumnLayout {
                     anchors.leftMargin: Kirigami.Units.largeSpacing
                     spacing: 0
 
-                    PlasmaComponents3.Label {
+                    Controls.Label {
                         Layout.fillWidth: true
                         text: modelData.label
                         font: KanteStyle.labelFont()
                         color: KanteStyle.mutedTextColor
                         elide: Text.ElideRight
                     }
-                    PlasmaComponents3.Label {
+                    Controls.Label {
                         Layout.fillWidth: true
                         text: modelData.value
                         font: KanteStyle.monoFont(KanteStyle.defaultFont.pointSize * 1.25, true)
@@ -274,37 +272,37 @@ ColumnLayout {
         columnSpacing: Kirigami.Units.largeSpacing
         rowSpacing: Kirigami.Units.smallSpacing
 
-        PlasmaComponents3.Label {
+        Controls.Label {
             text: i18n("Today")
             opacity: 0.7
         }
 
-        PlasmaComponents3.Label {
+        Controls.Label {
             Layout.fillWidth: true
             horizontalAlignment: Text.AlignRight
             font.bold: true
             text: KimaiApi.formatDurationShort(root.filteredTodaySeconds)
         }
 
-        PlasmaComponents3.Label {
+        Controls.Label {
             text: i18n("This week")
             opacity: 0.7
         }
 
-        PlasmaComponents3.Label {
+        Controls.Label {
             Layout.fillWidth: true
             horizontalAlignment: Text.AlignRight
             font.bold: true
             text: KimaiApi.formatDurationShort(root.filteredWeekSeconds)
         }
 
-        PlasmaComponents3.Label {
+        Controls.Label {
             visible: root.tripSummary !== null
             text: i18n("Trips this week")
             opacity: 0.7
         }
 
-        PlasmaComponents3.Label {
+        Controls.Label {
             visible: root.tripSummary !== null
             Layout.fillWidth: true
             horizontalAlignment: Text.AlignRight
@@ -312,13 +310,13 @@ ColumnLayout {
             text: root.tripSummary ? i18n("%1 km", Mileage.displayKm(root.tripSummary.weekKm)) : ""
         }
 
-        PlasmaComponents3.Label {
+        Controls.Label {
             visible: root.tripSummary !== null
             text: i18n("Trips this month")
             opacity: 0.7
         }
 
-        PlasmaComponents3.Label {
+        Controls.Label {
             visible: root.tripSummary !== null
             Layout.fillWidth: true
             horizontalAlignment: Text.AlignRight
@@ -352,7 +350,7 @@ ColumnLayout {
             Layout.alignment: Qt.AlignTop
             spacing: Kirigami.Units.smallSpacing
 
-            KantePlasmaHeading {
+            Controls.Heading {
                 Layout.fillWidth: true
                 level: 4
                 text: i18n("Time by hour")
@@ -361,16 +359,16 @@ ColumnLayout {
             RowLayout {
                 Layout.fillWidth: true
 
-                KantePlasmaToolButton {
+                Controls.ToolButton {
                     Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
                     Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     icon.name: "go-previous"
                     onClicked: root.shiftDay(-1)
-                    PlasmaComponents3.ToolTip.text: i18n("Previous day")
-                    PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
+                    Controls.ToolTip.text: i18n("Previous day")
+                    Controls.ToolTip.visible: hovered && !TouchUi.active
                 }
 
-                PlasmaComponents3.Label {
+                Controls.Label {
                     Layout.fillWidth: true
                     horizontalAlignment: Text.AlignHCenter
                     font.bold: true
@@ -385,14 +383,14 @@ ColumnLayout {
                     }
                 }
 
-                KantePlasmaToolButton {
+                Controls.ToolButton {
                     Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
                     Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     icon.name: "go-next"
                     enabled: root.dayOffset < 0
                     onClicked: root.shiftDay(1)
-                    PlasmaComponents3.ToolTip.text: i18n("Next day")
-                    PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
+                    Controls.ToolTip.text: i18n("Next day")
+                    Controls.ToolTip.visible: hovered && !TouchUi.active
                 }
 
             }
@@ -411,7 +409,7 @@ ColumnLayout {
             }
 
             // —— Activity pies ——
-            KantePlasmaHeading {
+            Controls.Heading {
                 Layout.fillWidth: true
                 level: 4
                 text: i18n("Activity distribution")
@@ -439,16 +437,16 @@ ColumnLayout {
                     RowLayout {
                         Layout.fillWidth: true
 
-                        KantePlasmaToolButton {
+                        Controls.ToolButton {
                             Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
                             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                             icon.name: "go-previous"
                             onClicked: root.shiftPieWeek(-1)
-                            PlasmaComponents3.ToolTip.text: i18n("Previous week")
-                            PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
+                            Controls.ToolTip.text: i18n("Previous week")
+                            Controls.ToolTip.visible: hovered && !TouchUi.active
                         }
 
-                        PlasmaComponents3.Label {
+                        Controls.Label {
                             Layout.fillWidth: true
                             horizontalAlignment: Text.AlignHCenter
                             font.bold: true
@@ -460,14 +458,14 @@ ColumnLayout {
                             }
                         }
 
-                        KantePlasmaToolButton {
+                        Controls.ToolButton {
                             Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
                             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                             icon.name: "go-next"
                             enabled: root.pieWeekOffset < 0
                             onClicked: root.shiftPieWeek(1)
-                            PlasmaComponents3.ToolTip.text: i18n("Next week")
-                            PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
+                            Controls.ToolTip.text: i18n("Next week")
+                            Controls.ToolTip.visible: hovered && !TouchUi.active
                         }
                     }
 
@@ -490,7 +488,7 @@ ColumnLayout {
             Layout.alignment: Qt.AlignTop
             spacing: Kirigami.Units.smallSpacing
 
-            KantePlasmaHeading {
+            Controls.Heading {
                 Layout.fillWidth: true
                 level: 4
                 text: i18n("Projects by day")
@@ -499,16 +497,16 @@ ColumnLayout {
             RowLayout {
                 Layout.fillWidth: true
 
-                KantePlasmaToolButton {
+                Controls.ToolButton {
                     Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
                     Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     icon.name: "go-previous"
                     onClicked: root.shiftWeek(-1)
-                    PlasmaComponents3.ToolTip.text: i18n("Previous week")
-                    PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
+                    Controls.ToolTip.text: i18n("Previous week")
+                    Controls.ToolTip.visible: hovered && !TouchUi.active
                 }
 
-                PlasmaComponents3.Label {
+                Controls.Label {
                     Layout.fillWidth: true
                     horizontalAlignment: Text.AlignHCenter
                     font.bold: true
@@ -520,14 +518,14 @@ ColumnLayout {
                     }
                 }
 
-                KantePlasmaToolButton {
+                Controls.ToolButton {
                     Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
                     Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                     icon.name: "go-next"
                     enabled: root.weekOffset < 0
                     onClicked: root.shiftWeek(1)
-                    PlasmaComponents3.ToolTip.text: i18n("Next week")
-                    PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
+                    Controls.ToolTip.text: i18n("Next week")
+                    Controls.ToolTip.visible: hovered && !TouchUi.active
                 }
 
             }
@@ -558,7 +556,7 @@ ColumnLayout {
                             slotSizeFactor: 0.7
                         }
 
-                        PlasmaComponents3.Label {
+                        Controls.Label {
                             text: modelData.key === "_other" ? i18n("Other") : (modelData.name || "")
                             font.pointSize: KanteStyle.smallFont.pointSize
                             opacity: 0.8
@@ -577,7 +575,7 @@ ColumnLayout {
             }
 
             // —— Projects by hour (week timeline) ——
-            KantePlasmaHeading {
+            Controls.Heading {
                 Layout.fillWidth: true
                 level: 4
                 text: i18n("Projects by hour")
@@ -586,14 +584,14 @@ ColumnLayout {
             RowLayout {
                 Layout.fillWidth: true
 
-                KantePlasmaToolButton {
+                Controls.ToolButton {
                     icon.name: "go-previous"
                     onClicked: root.shiftHourWeek(-1)
-                    PlasmaComponents3.ToolTip.text: i18n("Previous week")
-                    PlasmaComponents3.ToolTip.visible: hovered
+                    Controls.ToolTip.text: i18n("Previous week")
+                    Controls.ToolTip.visible: hovered && !TouchUi.active
                 }
 
-                PlasmaComponents3.Label {
+                Controls.Label {
                     Layout.fillWidth: true
                     horizontalAlignment: Text.AlignHCenter
                     font.bold: true
@@ -605,17 +603,17 @@ ColumnLayout {
                     }
                 }
 
-                KantePlasmaToolButton {
+                Controls.ToolButton {
                     icon.name: "go-next"
                     enabled: root.hourWeekOffset < 0
                     onClicked: root.shiftHourWeek(1)
-                    PlasmaComponents3.ToolTip.text: i18n("Next week")
-                    PlasmaComponents3.ToolTip.visible: hovered
+                    Controls.ToolTip.text: i18n("Next week")
+                    Controls.ToolTip.visible: hovered && !TouchUi.active
                 }
 
             }
 
-            PlasmaComponents3.Label {
+            Controls.Label {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
                 font.pointSize: KanteStyle.smallFont.pointSize
@@ -658,14 +656,14 @@ ColumnLayout {
                             slotSizeFactor: 0.7
                         }
 
-                        PlasmaComponents3.Label {
+                        Controls.Label {
                             anchors.verticalCenter: parent.verticalCenter
                             text: modelData.key === "_other" ? i18n("Other") : (modelData.name || "")
                             font.pointSize: KanteStyle.smallFont.pointSize
                             opacity: 0.8
                         }
 
-                        PlasmaComponents3.Label {
+                        Controls.Label {
                             anchors.verticalCenter: parent.verticalCenter
                             text: KimaiApi.formatDurationShort(modelData.seconds || 0)
                             font.pointSize: KanteStyle.smallFont.pointSize
