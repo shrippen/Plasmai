@@ -1,4 +1,5 @@
 .pragma library
+.import "./dateTimeFormat.js" as DTF
 
 /**
  * Shared timesheet extras: tags and billable.
@@ -119,11 +120,7 @@ function parseInstant(value) {
     if (typeof value === "object" && typeof value.getTime === "function") {
         return isNaN(value.getTime()) ? null : value
     }
-    var raw = String(value)
-    var d = new Date(raw)
-    if (isNaN(d.getTime())) {
-        d = new Date(raw.replace(" ", "T"))
-    }
+    var d = DTF.parseStamp(value)
     return isNaN(d.getTime()) ? null : d
 }
 

@@ -1,6 +1,7 @@
 .pragma library
 .import "../providerUtil.js" as Util
 .import "../timesheetFields.js" as Fields
+.import "../dateTimeFormat.js" as DTF
 
 var ErrorType = Util.ErrorType
 var DEFAULT_CUSTOMER_COLOR = Util.DEFAULT_CUSTOMER_COLOR
@@ -140,10 +141,7 @@ function toClockifyTime(value) {
     if (!value) {
         return Util.isoUtc(new Date())
     }
-    var d = new Date(value)
-    if (isNaN(d.getTime())) {
-        d = new Date(String(value).replace(" ", "T"))
-    }
+    var d = DTF.parseStamp(value)
     if (isNaN(d.getTime())) {
         return Util.isoUtc(new Date())
     }

@@ -1,4 +1,5 @@
 .pragma library
+.import "./dateTimeFormat.js" as DTF
 
 /**
  * Trips of the Kimai MileageBundle (kimai-anfahrten, /api/mileage): the trip
@@ -388,8 +389,8 @@ function acceptBody(ping, options) {
  */
 function formFromSuggestion(ping, suggestion) {
     var sg = suggestion || {}
-    var start = new Date(String(sg.start || ""))
-    var end = new Date(String(sg.end || ""))
+    var start = DTF.parseStamp(sg.start)
+    var end = DTF.parseStamp(sg.end)
     var form = emptyForm(ping, isNaN(start.getTime()) ? "" : dateString(start))
     form.purpose = sg.purpose || Purpose.BUSINESS
     if (sg.vehicle) {

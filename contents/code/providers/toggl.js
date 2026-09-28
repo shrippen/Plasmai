@@ -1,6 +1,7 @@
 .pragma library
 .import "../providerUtil.js" as Util
 .import "../timesheetFields.js" as Fields
+.import "../dateTimeFormat.js" as DTF
 
 var ErrorType = Util.ErrorType
 var DEFAULT_CUSTOMER_COLOR = Util.DEFAULT_CUSTOMER_COLOR
@@ -342,10 +343,7 @@ function patchTimesheet(url, token, timesheetId, fields, callback) {
             var f = fields || {}
             var startVal = existing.start
             if (f.begin !== undefined) {
-                startVal = Util.isoUtc(new Date(f.begin))
-                if (isNaN(new Date(f.begin).getTime())) {
-                    startVal = Util.isoUtc(new Date(String(f.begin).replace(" ", "T")))
-                }
+                startVal = Util.isoUtc(DTF.parseStamp(f.begin))
             }
             var payload = {
                 created_with: "Plasmai",
@@ -356,10 +354,7 @@ function patchTimesheet(url, token, timesheetId, fields, callback) {
             }
             if (f.end !== undefined) {
                 if (f.end) {
-                    var endDate = new Date(f.end)
-                    if (isNaN(endDate.getTime())) {
-                        endDate = new Date(String(f.end).replace(" ", "T"))
-                    }
+                    var endDate = DTF.parseStamp(f.end)
                     payload.stop = Util.isoUtc(endDate)
                 }
             } else if (existing.stop) {
@@ -376,8 +371,8 @@ function patchTimesheet(url, token, timesheetId, fields, callback) {
                 payload.task_id = existing.task_id || existing.tid
             }
             if (payload.start && payload.stop) {
-                var startMs = new Date(payload.start).getTime()
-                var stopMs = new Date(payload.stop).getTime()
+                var startMs = DTF.stampMs(payload.start)
+                var stopMs = DTF.stampMs(payload.stop)
                 if (!isNaN(startMs) && !isNaN(stopMs)) {
                     payload.duration = Math.max(0, Math.floor((stopMs - startMs) / 1000))
                 }
@@ -407,10 +402,7 @@ function createTimesheet(url, token, fields, callback) {
             callback(Util.fail({ type: "config", status: 0, detail: "begin is required" }))
             return
         }
-        var beginIso = Util.isoUtc(new Date(f.begin))
-        if (isNaN(new Date(f.begin).getTime())) {
-            beginIso = Util.isoUtc(new Date(String(f.begin).replace(" ", "T")))
-        }
+        var beginIso = Util.isoUtc(DTF.parseStamp(f.begin))
         var data = {
             created_with: "Plasmai",
             description: f.description || "",
@@ -423,10 +415,7 @@ function createTimesheet(url, token, fields, callback) {
             data.tags = tags
         }
         if (f.end) {
-            var endDate = new Date(f.end)
-            if (isNaN(endDate.getTime())) {
-                endDate = new Date(String(f.end).replace(" ", "T"))
-            }
+            var endDate = DTF.parseStamp(f.end)
             data.stop = Util.isoUtc(endDate)
             var startMs = new Date(beginIso).getTime()
             var stopMs = endDate.getTime()

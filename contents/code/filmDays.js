@@ -1,4 +1,5 @@
 .pragma library
+.import "./dateTimeFormat.js" as DTF
 
 /**
  * Film-day extras (break, catering, day category/type, production shooting
@@ -158,12 +159,7 @@ function filmEntries(entries, activityIds, activityIdOf) {
 var SPAN_TOLERANCE_MS = 60 * 1000
 
 function stampMs(value) {
-    if (!value) {
-        return NaN
-    }
-    // Kimai writes the offset without a colon ("+0200").
-    var text = String(value).replace(" ", "T").replace(/([+-]\d{2})(\d{2})$/, "$1:$2")
-    return new Date(text).getTime()
+    return DTF.stampMs(value)
 }
 
 /**

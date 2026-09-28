@@ -2,6 +2,7 @@
 .import "./timesheetFields.js" as Fields
 .import "./workContractAdjust.js" as WorkAdjust
 .import "./providerUtil.js" as ProviderUtil
+.import "./dateTimeFormat.js" as DTF
 
 var ErrorType = {
     Network: "network",
@@ -1758,11 +1759,11 @@ function timesheetDurationSeconds(timesheet, nowMs) {
         return Number(timesheet.duration)
     }
     if (timesheet.begin) {
-        var begin = new Date(timesheet.begin)
+        var begin = DTF.parseStamp(timesheet.begin)
         if (!isNaN(begin.getTime())) {
             var endMs = nowMs || Date.now()
             if (timesheet.end) {
-                var end = new Date(timesheet.end)
+                var end = DTF.parseStamp(timesheet.end)
                 if (!isNaN(end.getTime())) {
                     endMs = end.getTime()
                 }
@@ -2191,13 +2192,13 @@ function dayIntervalsFromTimesheets(entries, dayDate, nowMs) {
         if (!entry || !entry.begin) {
             continue
         }
-        var begin = new Date(entry.begin)
+        var begin = DTF.parseStamp(entry.begin)
         if (isNaN(begin.getTime())) {
             continue
         }
         var endMs = now
         if (entry.end) {
-            var end = new Date(entry.end)
+            var end = DTF.parseStamp(entry.end)
             if (!isNaN(end.getTime())) {
                 endMs = end.getTime()
             }

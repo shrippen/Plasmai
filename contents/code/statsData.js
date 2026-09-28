@@ -1,6 +1,7 @@
 .pragma library
 .import "./kimaiApi.js" as KimaiApi
 .import "./mileage.js" as Mileage
+.import "./dateTimeFormat.js" as DTF
 
 /**
  * Stats aggregations for the secondary statistics view.
@@ -108,13 +109,13 @@ function overlapSeconds(entry, rangeStart, rangeEnd, nowMs) {
     if (!entry || !entry.begin) {
         return 0
     }
-    var begin = new Date(entry.begin)
+    var begin = DTF.parseStamp(entry.begin)
     if (isNaN(begin.getTime())) {
         return 0
     }
     var endMs = (typeof nowMs === "number") ? nowMs : Date.now()
     if (entry.end) {
-        var end = new Date(entry.end)
+        var end = DTF.parseStamp(entry.end)
         if (!isNaN(end.getTime())) {
             endMs = end.getTime()
         }
@@ -164,10 +165,10 @@ function hourlyBreakdown(entries, dayDate, nowMs) {
     var dayEntries = entriesOverlappingDay(entries, dayDate, nowMs)
     for (var i = 0; i < dayEntries.length; i++) {
         var entry = dayEntries[i]
-        var begin = new Date(entry.begin)
+        var begin = DTF.parseStamp(entry.begin)
         var endMs = nowMs || Date.now()
         if (entry.end) {
-            var end = new Date(entry.end)
+            var end = DTF.parseStamp(entry.end)
             if (!isNaN(end.getTime())) {
                 endMs = end.getTime()
             }
@@ -336,13 +337,13 @@ function weeklyHourTimeline(entries, weekStart, customersById, nowMs, maxLegend,
             if (secs <= 0) {
                 continue
             }
-            var begin = new Date(entry.begin)
+            var begin = DTF.parseStamp(entry.begin)
             if (isNaN(begin.getTime())) {
                 continue
             }
             var endMs = (typeof nowMs === "number") ? nowMs : Date.now()
             if (entry.end) {
-                var end = new Date(entry.end)
+                var end = DTF.parseStamp(entry.end)
                 if (!isNaN(end.getTime())) {
                     endMs = end.getTime()
                 }

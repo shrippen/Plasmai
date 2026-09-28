@@ -1,6 +1,7 @@
 .pragma library
 .import "../providerUtil.js" as Util
 .import "../timesheetFields.js" as Fields
+.import "../dateTimeFormat.js" as DTF
 
 var ErrorType = Util.ErrorType
 var DEFAULT_CUSTOMER_COLOR = Util.DEFAULT_CUSTOMER_COLOR
@@ -393,20 +394,14 @@ function patchTimesheet(url, token, timesheetId, fields, callback) {
                 billable: Fields.resolveBillable(f, existing)
             }
             if (f.begin !== undefined) {
-                var beginDate = new Date(f.begin)
-                if (isNaN(beginDate.getTime())) {
-                    beginDate = new Date(String(f.begin).replace(" ", "T"))
-                }
+                var beginDate = DTF.parseStamp(f.begin)
                 payload.start = Util.isoUtc(beginDate)
             } else if (existing.start) {
                 payload.start = existing.start
             }
             if (f.end !== undefined) {
                 if (f.end) {
-                    var endDate = new Date(f.end)
-                    if (isNaN(endDate.getTime())) {
-                        endDate = new Date(String(f.end).replace(" ", "T"))
-                    }
+                    var endDate = DTF.parseStamp(f.end)
                     payload.end = Util.isoUtc(endDate)
                 }
             } else if (existing.end) {
@@ -444,10 +439,7 @@ function createTimesheet(url, token, fields, callback) {
             callback(Util.fail({ type: "config", status: 0, detail: "begin is required" }))
             return
         }
-        var beginDate = new Date(f.begin)
-        if (isNaN(beginDate.getTime())) {
-            beginDate = new Date(String(f.begin).replace(" ", "T"))
-        }
+        var beginDate = DTF.parseStamp(f.begin)
         var data = {
             member_id: _session.memberId,
             start: Util.isoUtc(beginDate),
@@ -455,10 +447,7 @@ function createTimesheet(url, token, fields, callback) {
             billable: Fields.resolveBillable(f)
         }
         if (f.end) {
-            var endDate = new Date(f.end)
-            if (isNaN(endDate.getTime())) {
-                endDate = new Date(String(f.end).replace(" ", "T"))
-            }
+            var endDate = DTF.parseStamp(f.end)
             data.end = Util.isoUtc(endDate)
         }
         if (f.project) {

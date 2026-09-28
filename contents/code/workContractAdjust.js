@@ -1,4 +1,5 @@
 .pragma library
+.import "./dateTimeFormat.js" as DTF
 
 /**
  * Adjust weekly work targets using absences and public holidays.
@@ -318,7 +319,7 @@ function entrySecondsOnLocalDate(entry, date, nowMs) {
     if (!entry || !entry.begin) {
         return 0
     }
-    var begin = new Date(entry.begin)
+    var begin = DTF.parseStamp(entry.begin)
     if (isNaN(begin.getTime())) {
         return 0
     }
@@ -326,7 +327,7 @@ function entrySecondsOnLocalDate(entry, date, nowMs) {
         return 0
     }
     if (entry.end) {
-        var end = new Date(entry.end)
+        var end = DTF.parseStamp(entry.end)
         if (!isNaN(end.getTime())) {
             return Math.max(0, Math.floor((end.getTime() - begin.getTime()) / 1000))
         }

@@ -94,4 +94,30 @@ TestCase {
         compare(DateTimeFormat.entryTimeLabel(null, null, now, "now"), "")
         compare(DateTimeFormat.entryTimeLabel("not a date", null, now, "now"), "")
     }
+
+    // One parser for every backend's stamps (Kimai, ISO, provider variants).
+    function test_parseStamp() {
+        var utc = Date.UTC(2026, 8, 25, 11, 15, 0)
+        compare(DateTimeFormat.stampMs("2026-09-25T13:15:00+0200"), utc)
+        compare(DateTimeFormat.stampMs("2026-09-25T13:15:00+02:00"), utc)
+        compare(DateTimeFormat.stampMs("2026-09-25T13:15:00.000+0200"), utc)
+        compare(DateTimeFormat.stampMs("2026-09-25T11:15:00Z"), utc)
+        compare(DateTimeFormat.stampMs("2026-09-25T11:15:00.000Z"), utc)
+        // no offset: local time
+        compare(DateTimeFormat.stampMs("2026-09-25T13:15:00"), new Date(2026, 8, 25, 13, 15, 0).getTime())
+        compare(DateTimeFormat.stampMs("2026-09-25 13:15:00"), new Date(2026, 8, 25, 13, 15, 0).getTime())
+        // date only: local midnight (Date() takes UTC, the day before west of UTC)
+        compare(DateTimeFormat.stampMs("2026-09-25"), new Date(2026, 8, 25).getTime())
+        // Date and ms pass through; the result is a copy
+        var d = new Date(utc)
+        var parsed = DateTimeFormat.parseStamp(d)
+        compare(parsed.getTime(), utc)
+        verify(parsed !== d)
+        compare(DateTimeFormat.stampMs(utc), utc)
+        // nothing usable: Invalid Date, never the epoch
+        verify(isNaN(DateTimeFormat.stampMs(null)))
+        verify(isNaN(DateTimeFormat.stampMs(undefined)))
+        verify(isNaN(DateTimeFormat.stampMs("")))
+        verify(isNaN(DateTimeFormat.stampMs("not a date")))
+    }
 }

@@ -378,7 +378,7 @@ function hoursMinutes(seconds) {
  * begin/end: Date or ISO string; "" for a missing or invalid begin.
  */
 function entryTimeLabel(begin, end, now, nowLabel) {
-    var b = begin ? new Date(begin) : null
+    var b = begin ? parseStamp(begin) : null
     if (!b || isNaN(b.getTime())) {
         return ""
     }
@@ -392,7 +392,7 @@ function entryTimeLabel(begin, end, now, nowLabel) {
     var daysAgo = Math.round((today.getTime() - day.getTime()) / 86400000)
 
     if (daysAgo <= 0) {
-        var e = end ? new Date(end) : null
+        var e = end ? parseStamp(end) : null
         return clock(b) + " – " + (e && !isNaN(e.getTime()) ? clock(e) : nowLabel)
     }
     // 1 = QLocale::ShortFormat (no Locale enum in a pragma library)
@@ -402,9 +402,44 @@ function entryTimeLabel(begin, end, now, nowLabel) {
     return b.getDate() + " " + Qt.locale().standaloneMonthName(b.getMonth(), 1) + " " + clock(b)
 }
 
+/**
+ * Timestamp → Date; Invalid Date when unusable (never the epoch, as
+ * `new Date(null)` would be). The one parser for server stamps of every
+ * backend, so no JS engine's Date() quirks leak in:
+ *   "2026-09-25T13:15:00+0200"   Kimai (offset without colon)
+ *   "2026-09-25 13:15:00"        space instead of T, local time
+ *   "2026-09-25T11:15:00Z"       ISO, UTC
+ *   "2026-09-25"                 date only → local midnight (Date() takes UTC)
+ * A Date is copied, a number is ms.
+ */
+function parseStamp(value) {
+    if (value === null || value === undefined || value === "") {
+        return new Date(NaN)
+    }
+    if (typeof value === "number") {
+        return new Date(value)
+    }
+    if (typeof value.getTime === "function") {
+        return new Date(value.getTime())
+    }
+
+    var text = String(value).trim()
+    var dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text)
+    if (dateOnly) {
+        return new Date(Number(dateOnly[1]), Number(dateOnly[2]) - 1, Number(dateOnly[3]))
+    }
+
+    return new Date(text.replace(" ", "T").replace(/([+-]\d{2})(\d{2})$/, "$1:$2"))
+}
+
+/** parseStamp() in ms; NaN when unusable. */
+function stampMs(value) {
+    return parseStamp(value).getTime()
+}
+
 /** Local midnight of a Date or ISO string; null if invalid. */
 function localDay(value) {
-    var d = value ? new Date(value) : null
+    var d = value ? parseStamp(value) : null
     if (!d || isNaN(d.getTime())) {
         return null
     }
