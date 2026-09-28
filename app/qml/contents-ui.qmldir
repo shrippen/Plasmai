@@ -21,3 +21,5 @@ ProjectActivityPickers 1.0 ProjectActivityPickers.qml
 singleton TouchUi 1.0 TouchUi.qml
 DateField 1.0 ../../qml/shared/DateField.qml
 TimeField 1.0 ../../qml/shared/TimeField.qml
+FilmDayView 1.0 FilmDayView.qml
+ActiveEditView 1.0 ActiveEditView.qml

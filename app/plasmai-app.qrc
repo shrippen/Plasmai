@@ -62,6 +62,8 @@
         <file alias="contents/ui/TagPill.qml">../contents/ui/TagPill.qml</file>
         <file alias="contents/ui/TimesheetMetaFields.qml">../contents/ui/TimesheetMetaFields.qml</file>
         <file alias="contents/ui/WeeklyHourChart.qml">../contents/ui/WeeklyHourChart.qml</file>
+        <file alias="contents/ui/ActiveEditView.qml">../contents/ui/ActiveEditView.qml</file>
+        <file alias="contents/ui/FilmDayView.qml">../contents/ui/FilmDayView.qml</file>
         <file alias="contents/ui/TouchUi.qml">../contents/ui/TouchUi.qml</file>
         <file alias="contents/ui/ProjectActivityPickers.qml">../contents/ui/ProjectActivityPickers.qml</file>
         <file alias="contents/ui/ActivityListRow.qml">../contents/ui/ActivityListRow.qml</file>
@@ -76,9 +78,7 @@
         <file alias="qml/shared/DateField.qml">qml/shared/DateField.qml</file>
         <file alias="qml/shared/TimeField.qml">qml/shared/TimeField.qml</file>
         <file alias="qml/shared/CreateEntityDialog.qml">qml/shared/CreateEntityDialog.qml</file>
-        <file alias="qml/shared/ActiveEditView.qml">qml/shared/ActiveEditView.qml</file>
         <file alias="qml/shared/StatsView.qml">qml/shared/StatsView.qml</file>
-        <file alias="qml/shared/FilmDayView.qml">qml/shared/FilmDayView.qml</file>
         <file alias="qml/shared/DaySparkline.qml">qml/shared/DaySparkline.qml</file>
         <file alias="contents/code/platform.js">../contents/code/platform.js</file>
         <file alias="contents/code/sharedConfig.js">../contents/code/sharedConfig.js</file>

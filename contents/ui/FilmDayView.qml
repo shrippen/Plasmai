@@ -2,13 +2,12 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
-import org.kde.plasma.components as PlasmaComponents3
 import "../code/kimaiApi.js" as KimaiApi
 import "../code/filmDays.js" as FilmDays
 import "../code/dateTimeFormat.js" as DTF
 import "."
 import "Kante"
-import "KantePlasma"
+import "Controls" as Controls
 
 /**
  * Shooting day: an alternative to the timer page for a film day. The day's
@@ -496,7 +495,7 @@ ColumnLayout {
         }
     }
 
-    PlasmaComponents3.Label {
+    Controls.Label {
         Layout.fillWidth: true
         visible: text.length > 0 && root.mode !== "noProject"
         wrapMode: Text.WordWrap
@@ -511,23 +510,23 @@ ColumnLayout {
         Layout.topMargin: Kirigami.Units.smallSpacing
         spacing: Kirigami.Units.smallSpacing
 
-        KantePlasmaToolButton {
+        Controls.ToolButton {
             icon.name: "go-previous"
             display: QQC2.AbstractButton.IconOnly
             text: i18n("Previous day")
             Accessible.name: text
             enabled: root.configured && !root.busy
             onClicked: root.dayStepRequested(-1)
-            PlasmaComponents3.ToolTip.text: text
-            PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
-            PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
+            Controls.ToolTip.text: text
+            Controls.ToolTip.visible: hovered && !TouchUi.active
+            Controls.ToolTip.delay: Kirigami.Units.toolTipDelay
         }
 
         ColumnLayout {
             Layout.fillWidth: true
             spacing: 0
 
-            PlasmaComponents3.Label {
+            Controls.Label {
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
                 font.bold: true
@@ -543,7 +542,7 @@ ColumnLayout {
                     onClicked: dayField.openPicker()
                 }
             }
-            PlasmaComponents3.Label {
+            Controls.Label {
                 Layout.fillWidth: true
                 visible: root.isToday
                 horizontalAlignment: Text.AlignHCenter
@@ -553,16 +552,16 @@ ColumnLayout {
             }
         }
 
-        KantePlasmaToolButton {
+        Controls.ToolButton {
             icon.name: "go-next"
             display: QQC2.AbstractButton.IconOnly
             text: i18n("Next day")
             Accessible.name: text
             enabled: root.configured && !root.busy
             onClicked: root.dayStepRequested(1)
-            PlasmaComponents3.ToolTip.text: text
-            PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
-            PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
+            Controls.ToolTip.text: text
+            Controls.ToolTip.visible: hovered && !TouchUi.active
+            Controls.ToolTip.delay: Kirigami.Units.toolTipDelay
         }
     }
 
@@ -593,19 +592,19 @@ ColumnLayout {
                 Layout.fillWidth: true
                 spacing: Kirigami.Units.smallSpacing / 2
 
-                PlasmaComponents3.Label {
+                Controls.Label {
                     text: root.engagement ? i18n("Engagement") : i18n("Project")
                     font: KanteStyle.labelFont()
                     color: KanteStyle.mutedTextColor
                 }
-                PlasmaComponents3.Label {
+                Controls.Label {
                     Layout.fillWidth: true
                     wrapMode: Text.WordWrap
                     text: root.engagement && root.engagement.projectName ? root.engagement.projectName : root.projectCombo.currentLabel
                     font: KanteStyle.titleFont(KanteStyle.defaultFont.pointSize * 1.3)
                     color: KanteStyle.strongTextColor
                 }
-                PlasmaComponents3.Label {
+                Controls.Label {
                     Layout.fillWidth: true
                     wrapMode: Text.WordWrap
                     text: [root.activityCombo.currentLabel || i18n("Pick an activity"),
@@ -613,7 +612,7 @@ ColumnLayout {
                           .filter(function(t) { return t.length > 0 }).join(" · ")
                     color: KanteStyle.mutedTextColor
                 }
-                PlasmaComponents3.Label {
+                Controls.Label {
                     Layout.fillWidth: true
                     wrapMode: Text.WordWrap
                     visible: text.length > 0
@@ -626,7 +625,7 @@ ColumnLayout {
                 }
             }
 
-            KantePlasmaToolButton {
+            Controls.ToolButton {
                 Layout.alignment: Qt.AlignTop
                 icon.name: "document-edit"
                 display: QQC2.AbstractButton.IconOnly
@@ -636,9 +635,9 @@ ColumnLayout {
                 checked: root.chooserOpen
                 enabled: root.configured && !root.busy
                 onClicked: root.chooserOpen = !root.chooserOpen
-                PlasmaComponents3.ToolTip.text: text
-                PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
-                PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
+                Controls.ToolTip.text: text
+                Controls.ToolTip.visible: hovered && !TouchUi.active
+                Controls.ToolTip.delay: Kirigami.Units.toolTipDelay
             }
         }
     }
@@ -652,7 +651,7 @@ ColumnLayout {
 
         Repeater {
             model: root.engagements.length > 1 ? root.engagements : []
-            delegate: KantePlasmaButton {
+            delegate: Controls.Button {
                 required property var modelData
                 Layout.fillWidth: true
                 checkable: true
@@ -665,7 +664,7 @@ ColumnLayout {
             }
         }
 
-        PlasmaComponents3.Label {
+        Controls.Label {
             Layout.fillWidth: true
             visible: engagementCard.visible
             wrapMode: Text.WordWrap
@@ -709,19 +708,19 @@ ColumnLayout {
         visible: root.shownPhase === "before"
         spacing: Kirigami.Units.smallSpacing
 
-        KantePlasmaButton {
+        Controls.Button {
             Layout.fillWidth: true
             Layout.preferredHeight: (TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight) * 1.4
             visible: root.isToday
             highlighted: true
-            emphasis: KantePlasmaButton.Emphasis.Primary
+            emphasis: Controls.Button.Emphasis.Primary
             icon.name: "media-playback-start"
             text: i18n("Start shooting day")
             enabled: root.configured && !root.busy && root.connectionOk && root.hasFilmActivity
             onClicked: root.startRequested(root.projectCombo.currentItem.value.id, root.activityCombo.currentItem.value.id,
                                            root.projectCombo.currentLabel, root.activityCombo.currentLabel)
         }
-        PlasmaComponents3.Label {
+        Controls.Label {
             Layout.fillWidth: true
             visible: root.isToday
             horizontalAlignment: Text.AlignHCenter
@@ -730,7 +729,7 @@ ColumnLayout {
             color: KanteStyle.mutedTextColor
             text: i18n("Begins now, with the timer of the main page.")
         }
-        KantePlasmaButton {
+        Controls.Button {
             Layout.fillWidth: true
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             text: i18n("Enter times instead")
@@ -741,7 +740,7 @@ ColumnLayout {
     }
 
     // ── Running: elapsed time of the main page's timer ──────────────────
-    PlasmaComponents3.Label {
+    Controls.Label {
         Layout.fillWidth: true
         Layout.topMargin: Kirigami.Units.largeSpacing
         visible: root.shownPhase === "running"
@@ -762,7 +761,7 @@ ColumnLayout {
             Layout.fillWidth: true
             Layout.preferredWidth: 1
             spacing: Kirigami.Units.smallSpacing / 2
-            PlasmaComponents3.Label {
+            Controls.Label {
                 text: i18n("Begin")
                 font: KanteStyle.labelFont()
                 color: KanteStyle.mutedTextColor
@@ -785,7 +784,7 @@ ColumnLayout {
             Layout.fillWidth: true
             Layout.preferredWidth: 1
             spacing: Kirigami.Units.smallSpacing / 2
-            PlasmaComponents3.Label {
+            Controls.Label {
                 text: i18n("End")
                 font: KanteStyle.labelFont()
                 color: KanteStyle.mutedTextColor
@@ -797,7 +796,7 @@ ColumnLayout {
                 enabled: root.configured && !root.busy
                 onTimeEdited: root.timesTouched()
             }
-            PlasmaComponents3.Label {
+            Controls.Label {
                 Layout.fillWidth: true
                 Layout.preferredHeight: beginTime.height
                 visible: root.shownPhase === "running"
@@ -808,7 +807,7 @@ ColumnLayout {
         }
     }
 
-    PlasmaComponents3.Label {
+    Controls.Label {
         Layout.fillWidth: true
         visible: root.shownPhase !== "before"
         wrapMode: Text.WordWrap
@@ -831,12 +830,12 @@ ColumnLayout {
         }
     }
 
-    KantePlasmaButton {
+    Controls.Button {
         Layout.fillWidth: true
         Layout.topMargin: Kirigami.Units.smallSpacing
         Layout.preferredHeight: (TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight) * 1.2
         visible: root.shownPhase === "running"
-        emphasis: KantePlasmaButton.Emphasis.Destructive
+        emphasis: Controls.Button.Emphasis.Destructive
         icon.name: "media-playback-stop"
         text: i18n("Stop shooting day")
         enabled: root.configured && !root.busy
@@ -844,7 +843,7 @@ ColumnLayout {
     }
 
     // A travel day usually comes with a trip: offer one linked to the day's entry.
-    KantePlasmaButton {
+    Controls.Button {
         Layout.fillWidth: true
         visible: root.tripsAvailable && root.shownPhase === "done" && dayTypeCombo.currentIndex >= 0
                  && root.dayTypeOptions[dayTypeCombo.currentIndex].value === FilmDays.DayType.TRAVEL
@@ -860,7 +859,7 @@ ColumnLayout {
         visible: root.otherEntries.length > 0 && root.shownPhase === "done"
         spacing: Kirigami.Units.smallSpacing / 2
 
-        PlasmaComponents3.Label {
+        Controls.Label {
             Layout.fillWidth: true
             wrapMode: Text.WordWrap
             font.pointSize: KanteStyle.smallFont.pointSize
@@ -870,7 +869,7 @@ ColumnLayout {
                         root.otherEntries.length, root.durationText(root.otherSpan.seconds))
         }
 
-        PlasmaComponents3.CheckBox {
+        Controls.CheckBox {
             KanteCheckSkin { control: parent }
             id: mergeCheck
             Layout.fillWidth: true
@@ -895,11 +894,11 @@ ColumnLayout {
         visible: root.shownPhase === "manual"
         spacing: Kirigami.Units.smallSpacing
 
-        KantePlasmaButton {
+        Controls.Button {
             Layout.fillWidth: true
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             highlighted: true
-            emphasis: KantePlasmaButton.Emphasis.Primary
+            emphasis: Controls.Button.Emphasis.Primary
             enabled: root.configured && !root.busy && root.connectionOk && root.hasFilmActivity && root.rangeValid
             text: i18n("Save shooting day")
             icon.name: "document-save"
@@ -907,7 +906,7 @@ ColumnLayout {
                                           root.stampText(root.selectedDay, beginTime), root.stampText(root.selectedDay, endTime),
                                           root.currentEntryFields())
         }
-        KantePlasmaButton {
+        Controls.Button {
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             visible: root.phase === "before"
             text: i18n("Cancel")
@@ -931,7 +930,7 @@ ColumnLayout {
         columnSpacing: Kirigami.Units.largeSpacing
         rowSpacing: Kirigami.Units.smallSpacing
 
-        PlasmaComponents3.Label { text: i18n("Day type"); Layout.maximumWidth: root.formLabelWidth; wrapMode: Text.WordWrap }
+        Controls.Label { text: i18n("Day type"); Layout.maximumWidth: root.formLabelWidth; wrapMode: Text.WordWrap }
         QQC2.ComboBox {
             KanteFieldSkin { control: parent }
             id: dayTypeCombo
@@ -941,7 +940,7 @@ ColumnLayout {
             onActivated: root.extrasTouched()
         }
 
-        PlasmaComponents3.Label { text: i18n("Catering"); Layout.maximumWidth: root.formLabelWidth; wrapMode: Text.WordWrap }
+        Controls.Label { text: i18n("Catering"); Layout.maximumWidth: root.formLabelWidth; wrapMode: Text.WordWrap }
         QQC2.Switch {
             KanteCheckSkin { control: parent; shape: KanteCheckSkin.Shape.Switch }
             id: cateringSwitch
@@ -950,7 +949,7 @@ ColumnLayout {
             onToggled: root.extrasTouched()
         }
 
-        PlasmaComponents3.Label { text: i18n("Break"); Layout.maximumWidth: root.formLabelWidth; wrapMode: Text.WordWrap }
+        Controls.Label { text: i18n("Break"); Layout.maximumWidth: root.formLabelWidth; wrapMode: Text.WordWrap }
         QQC2.SpinBox {
             KanteFieldSkin { control: parent }
             id: breakSpin
@@ -981,7 +980,7 @@ ColumnLayout {
             }
         }
 
-        PlasmaComponents3.Label { text: i18n("Day category"); Layout.maximumWidth: root.formLabelWidth; wrapMode: Text.WordWrap }
+        Controls.Label { text: i18n("Day category"); Layout.maximumWidth: root.formLabelWidth; wrapMode: Text.WordWrap }
         QQC2.ComboBox {
             KanteFieldSkin { control: parent }
             id: categoryCombo
@@ -991,7 +990,7 @@ ColumnLayout {
             onActivated: root.extrasTouched()
         }
 
-        PlasmaComponents3.Label {
+        Controls.Label {
             visible: surchargeDaySpin.visible
             text: i18n("Surcharge day")
             Layout.maximumWidth: root.formLabelWidth
@@ -1016,7 +1015,7 @@ ColumnLayout {
             onValueModified: root.extrasTouched()
         }
 
-        PlasmaComponents3.Label {
+        Controls.Label {
             visible: extraPayField.visible
             text: i18n("Extra pay / expenses")
             Layout.maximumWidth: root.formLabelWidth
@@ -1039,11 +1038,11 @@ ColumnLayout {
         Layout.topMargin: Kirigami.Units.smallSpacing
         visible: root.extrasVisible
 
-        PlasmaComponents3.Label {
+        Controls.Label {
             Layout.fillWidth: true
             text: i18n("Note")
         }
-        PlasmaComponents3.Label {
+        Controls.Label {
             visible: noteField.length > FilmDays.NOTE_MAX_LENGTH - 100
             font.pointSize: KanteStyle.smallFont.pointSize
             opacity: 0.7
@@ -1099,13 +1098,13 @@ ColumnLayout {
         delegate: RowLayout {
             required property var modelData
             Layout.fillWidth: true
-            PlasmaComponents3.Label {
+            Controls.Label {
                 Layout.fillWidth: true
                 text: modelData.label
                 elide: Text.ElideRight
                 color: KanteStyle.mutedTextColor
             }
-            PlasmaComponents3.Label {
+            Controls.Label {
                 text: modelData.timeText
                 font: KanteStyle.monoFont(KanteStyle.smallFont.pointSize, false)
                 color: KanteStyle.mutedTextColor

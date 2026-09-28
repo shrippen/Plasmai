@@ -1,14 +1,14 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as QQC2
+import QtQuick.Controls.Material
 import org.kde.kirigami as Kirigami
-import org.kde.plasma.components as PlasmaComponents3
 import "../code/kimaiApi.js" as KimaiApi
 import "../code/dateTimeFormat.js" as DTF
 import "../code/timesheetFields.js" as TimesheetFields
 import "."
 import "Kante"
-import "KantePlasma"
+import "Controls" as Controls
 
 /**
  * Inline editor for the running timesheet: start time, project, and activity.
@@ -240,7 +240,7 @@ ColumnLayout {
         Qt.callLater(trySelectPendingActivity)
     }
 
-    PlasmaComponents3.Label {
+    Controls.Label {
         Layout.fillWidth: true
         wrapMode: Text.WordWrap
         font.pointSize: KanteStyle.smallFont.pointSize
@@ -274,7 +274,7 @@ ColumnLayout {
         onCreateActivityRequested: root.createActivityRequested()
     }
 
-    PlasmaComponents3.Label {
+    Controls.Label {
         Layout.fillWidth: true
         Layout.topMargin: Kirigami.Units.smallSpacing
         text: i18n("Start")
@@ -299,7 +299,7 @@ ColumnLayout {
         }
     }
 
-    PlasmaComponents3.Label {
+    Controls.Label {
         Layout.fillWidth: true
         visible: root.overlapGuardEnabled && root.previousEndText.length > 0
         wrapMode: Text.WordWrap
@@ -308,7 +308,7 @@ ColumnLayout {
         text: i18n("Previous entry ended at %1", root.previousEndText)
     }
 
-    PlasmaComponents3.Label {
+    Controls.Label {
         Layout.fillWidth: true
         wrapMode: Text.WordWrap
         font.pointSize: KanteStyle.smallFont.pointSize
@@ -334,7 +334,11 @@ ColumnLayout {
         Layout.fillWidth: true
         spacing: Kirigami.Units.smallSpacing
 
-        KantePlasmaButton {
+        Controls.Button {
+            // Only Android's Material style reads these; other styles ignore them.
+            Material.theme: Material.Dark
+            Material.background: Qt.lighter(KanteStyle.backgroundColor, 1.7)
+            Material.foreground: KanteStyle.textColor
             Layout.fillWidth: true
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             enabled: root.configured && !root.busy && root.connectionOk
@@ -351,7 +355,10 @@ ColumnLayout {
             }
         }
 
-        KantePlasmaButton {
+        Controls.Button {
+            Material.theme: Material.Dark
+            Material.background: Qt.lighter(KanteStyle.backgroundColor, 1.7)
+            Material.foreground: KanteStyle.textColor
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             text: i18n("Cancel")
             onClicked: root.cancelled()
@@ -368,23 +375,35 @@ ColumnLayout {
         standardButtons: QQC2.Dialog.NoButton
         padding: Kirigami.Units.largeSpacing
 
-        contentItem: PlasmaComponents3.Label {
-            wrapMode: Text.WordWrap
-            text: i18n("The new start is before the previous entry ended (%1). Set it anyway?",
-                       root.previousEndText)
-        }
+        // Buttons live in contentItem rather than `footer: DialogButtonBox`: that combination
+        // makes Qt Quick Controls' Material style (Android) loop on implicitHeight.
+        contentItem: ColumnLayout {
+            spacing: Kirigami.Units.largeSpacing
 
-        footer: QQC2.DialogButtonBox {
-            KantePlasmaButton {
-                text: i18n("Set anyway")
-                icon.name: "document-save"
-                Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-                QQC2.DialogButtonBox.buttonRole: QQC2.DialogButtonBox.AcceptRole
+            Controls.Label {
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                text: i18n("The new start is before the previous entry ended (%1). Set it anyway?",
+                           root.previousEndText)
             }
-            KantePlasmaButton {
-                text: i18n("Cancel")
-                Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-                QQC2.DialogButtonBox.buttonRole: QQC2.DialogButtonBox.RejectRole
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Kirigami.Units.smallSpacing
+
+                Controls.Button {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+                    text: i18n("Set anyway")
+                    icon.name: "document-save"
+                    onClicked: overlapDialog.accept()
+                }
+                Controls.Button {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+                    text: i18n("Cancel")
+                    onClicked: overlapDialog.reject()
+                }
             }
         }
 

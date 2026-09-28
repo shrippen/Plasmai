@@ -22,3 +22,5 @@ TripSheet 1.0 ../../contents/ui/TripSheet.qml
 ActivityListRow 1.0 ../../contents/ui/ActivityListRow.qml
 ProjectActivityPickers 1.0 ../../contents/ui/ProjectActivityPickers.qml
 singleton TouchUi 1.0 ../../contents/ui/TouchUi.qml
+FilmDayView 1.0 ../../contents/ui/FilmDayView.qml
+ActiveEditView 1.0 ../../contents/ui/ActiveEditView.qml
