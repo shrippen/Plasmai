@@ -126,49 +126,66 @@ Both:
 
 Constraint: panel click still must not start/stop. No tray app.
 
-### 5. Offline mode (app) — planned
+### 5. Offline mode — planned
 
-Bad reception on set: the app keeps working and syncs as soon as the server answers again. Reverses “online only” (film day, see above; the first 2.0 builds had a queue and removed it — read why before starting). Update DESIGN.md in the same change.
+Bad reception on set: Plasmai keeps working and syncs as soon as the server answers again. Reverses “online only” (film day, see above; the first 2.0 builds had a queue and removed it — read why before starting). Update DESIGN.md in the same change.
 
-Scope: **Kirigami app only**, Kimai only. The Plasmoid stays online only (desktop, stable network; a queue shared by two processes doubles the work).
+Scope: **app and Plasmoid**, Kimai only. The layer sits in the shared code (`contents/code/`), so both get it; storage goes through `platform.js` like the catalog cache already does (`saveCatalog`: `catalogCache.sh` on the desktop, `FileStore` in the app).
 
 ```
  UI ──► kimaiApi.js write ──► online? ──yes──► server
                                  │no
                                  ▼
-                         outbox (on disk) ──► replay on: next good request,
-                                              network change, app start/resume
+             offline-capable? ──no──► “needs a connection”, nothing queued
+                                 │yes
+                                 ▼
+                 outbox (platform.js, on disk) ──► replay on: next good request,
+                                                   network change, start/resume
 ```
 
-**Stage A — read offline (2–4 days)**
+**Offline-capable vs. online only**
 
-- Persist the last known state per profile: catalog (`catalogCache.js` is process memory only), recents, active timer, engagements, the film day cache (`filmDaySync.js` `memo.days`, today memory only).
-- Offline = network error or timeout (not 401/403/4xx). A banner “Offline — showing the state of HH:MM”; writes disabled.
-- Useful alone; the base for stage B.
+| Offline (queued) | Online only (disabled offline, with a hint) |
+|---|---|
+| Timer start / stop | Split an entry |
+| Add entry | Film day “merge entries” (deletes entries) |
+| Film day save (entry + extras) | Create customer / project / activity |
+| Edit begin/end/description of a stopped entry | Idle “discard” / “keep and split” |
+| Delete an entry | Switch profile / connection settings |
+| Trips (create / edit / delete) | Statistics beyond the cached range |
 
-**Stage B — outbox for the core writes (2–3 weeks)**
+Rule: queue only ops that touch one entry and need no server answer to continue. Anything creating ids others depend on (master data) or turning one entry into several stays online only.
 
-Only: timer start/stop, add entry, film day save (entry + extras).
+**Stage A — read offline (3–5 days)**
 
-- **Outbox** on disk, one ordered list per profile: `{ localId, op, fields, createdAt, attempts, lastError }`. One layer in `kimaiApi.js`/tracker, so pages do not change their calls.
-- **Start offline** → `createTimesheet` with explicit `begin` (the server would otherwise set its own time); **stop** → `patchTimesheet` with `end`. The running entry lives locally until synced.
-- **Local ids**: an entry made offline gets `local:<uuid>`; later ops on it (stop, film day extras) are rewritten to the server id when the create succeeds.
-- **Film day**: the PUT needs an engagement; offline it relies on the cached engagements. Kept as its own op after the timesheet op, as `saveDay` does online.
-- **Replay** strictly in order, stop at the first failure. Network error → retry later. Validation error (overlap, lockdown, 400/409) → the op stays with its error, shown in an “Unsynced” list: edit, retry or discard. Never dropped silently.
-- **Conflicts**: Kimai has no versions/ETags. Before replaying a patch on an existing entry, read it; changed since it was loaded (web, Plasmoid) → ask, do not overwrite.
-- **Triggers**: every successful request, `QNetworkInformation` reachability change (`app/main.cpp`), app start and resume. No Android background sync (WorkManager) — a separate project.
-- UI: pending count in the header, the entry marked “not synced”, stats/week totals include pending entries.
-- Tests: outbox order, id rewrite, replay stop on failure, conflict check (fake XHR, as `tst_filmDaySync.qml`).
+- Persist the last known state per profile: recents, active timer, engagements, the film day cache (`filmDaySync.js` `memo.days`, today memory only); the catalog is already on disk.
+- Offline = network error or timeout (not 401/403/4xx). App: banner “Offline — state of HH:MM”. Plasmoid: the existing `connectionState` shows it; no toast per poll.
+- Writes disabled; useful alone, the base for stage B.
 
-**Stage C — everything else (+2–3 weeks, only if B proves itself)**
+**Stage B — outbox for timer, add entry, film day (2–3 weeks)**
 
-Edit/split/delete of stopped entries, trips (`createTrip`/`patchTrip`/`deleteTrip`), creating customers/projects/activities (local ids through the catalog), a full conflict review.
+- **Outbox** per client and profile, an ordered list `{ localId, op, fields, createdAt, attempts, lastError }`, stored via `platform.js` (new `loadOutbox`/`saveOutbox` in `desktopBackend.js` and `appBackend.js`). Not shared between app and Plasmoid: two writers on one file is the `shared.json` problem again; the conflict check below covers the other client.
+- One layer in `kimaiApi.js`/tracker: pages keep their calls; online-only ops check `isOffline()` and disable their action.
+- **Start offline** → `createTimesheet` with explicit `begin` (the server would set its own time); **stop** → `patchTimesheet` with `end`. The running entry lives locally until synced.
+- **Local ids**: an entry made offline gets `local:<uuid>`; later ops on it (stop, extras) are rewritten to the server id once the create succeeds.
+- **Film day**: the PUT needs an engagement; offline it relies on the cached engagements. Own op after the timesheet op, as `saveDay` does online.
+- **Replay** strictly in order, stop at the first failure. Network error → retry later. Validation error (overlap, lockdown, 400/409) → the op stays with its error in an “Unsynced” list: edit, retry or discard. Never dropped silently.
+- **Conflicts**: Kimai has no versions/ETags. Before replaying a patch on an existing entry, read it; changed since it was loaded (web, the other client) → ask, do not overwrite.
+- **Triggers**: every successful request; app: `QNetworkInformation` reachability (`app/main.cpp`), start and resume; Plasmoid: the existing poll timer. No Android background sync (WorkManager) — a separate project.
+- UI in both: pending count, entries marked “not synced”, stats/week totals include pending entries.
+- Tests: outbox order, id rewrite, replay stop on failure, conflict check, online-only ops refused (fake XHR, as `tst_filmDaySync.qml`).
+
+**Stage C — the other offline-capable ops (+1–2 weeks)**
+
+Edit and delete of stopped entries, trips (`createTrip`/`patchTrip`/`deleteTrip`, a trip linked to a `local:` timesheet waits for its id). The online-only column stays online only.
+
+**Plasmoid extra (+~1 week over app only)**: shell-script storage for the outbox, the compact panel UI (pending badge, “Unsynced” list in the full view), manual testing on plasmashell.
 
 **Risks**
 
 - Late errors: Kimai rules (overlap, lockdown, min/max duration) fire at sync time, hours later.
-- Two clients: the Plasmoid may stop a timer the app started offline → conflict on replay.
-- Clock skew between phone and server for offline begin/end.
+- App and Plasmoid each queue: the Plasmoid may stop a timer the app started offline → conflict on replay, resolved by the read-before-patch check.
+- Clock skew between device and server for offline begin/end.
 
 ### Release chores for 2.0.0 (see RELEASE-TODO.md)
 
@@ -198,7 +215,7 @@ Peers are **desktop/panel trackers**, not the full Kimai/Clockify web apps.
 ### Clockify desktop
 
 - **Have:** timer, manual entry, continue, last-used, idle, notifications, billable, edit/delete/split recents.
-- **Gap:** tags (API is id-based); offline queue (planned for the app, pillar 5).
+- **Gap:** tags (API is id-based); offline queue (planned, pillar 5).
 - **Skip:** auto-tracker, screenshots, Pomodoro as the product, mini window.
 
 ### Toggl Track desktop
@@ -226,7 +243,7 @@ Not required for 2.0.
 - Compact **week timesheet grid** as another `mainViewMode` (SolidTime / Clockify), same density as stats.
 - Map **KDE Activities** to a default project (easy to get wrong).
 - **Pomodoro** as a Behavior option — not a second product.
-- Offline queue — planned for the app, see pillar 5.
+- Offline queue — planned, see pillar 5.
 - “Template” / reload last timesheet without starting (Kemai).
 - Anfahrten: tax report (`/tax`), receipts.
 - Desktop-widget blur already follows the containment; theme-specific `blurred` prefixes stay a Plasma theme concern.
