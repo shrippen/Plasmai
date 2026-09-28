@@ -42,7 +42,7 @@ build() { # name source-dir [cmake args...]
     info "Building $name..."
     cmake -S "$src" -B "$src/build" -G Ninja -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_PREFIX_PATH="$QT;$PREFIX" -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_INSTALL_LIBDIR=lib \
-        -DBUILD_TESTING=OFF -DBUILD_QCH=OFF "$@" 2>&1 | show 3
+        -DBUILD_TESTING=OFF -DBUILD_QCH=OFF -DBUILD_PYTHON_BINDINGS=OFF "$@" 2>&1 | show 3
     cmake --build "$src/build" 2>&1 | show 3
     cmake --install "$src/build" > /dev/null
 }
