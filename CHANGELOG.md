@@ -6,7 +6,11 @@
 - Widget (Kante styles): a running timer no longer tints the whole panel entry in the accent color. It is marked by a small red indicator instead; Display settings offer a red dot, a red bottom edge or a red side stripe, with a preview
 - Film day: switching days is instant. The last month is loaded in the background; a day opens from it and is then checked against the server, so what is shown can still change a moment later. Older days load as before
 
+### Security
+- App: API tokens are now always kept in the platform's secure storage (Secret Service / KWallet, Android Keystore, Windows Credential Manager, macOS Keychain). Up to 2.0.1 the app stored them in plain files on Linux (AppImage, Flatpak) and on Android, although it was meant to use the keychain. Such a file moves into the secure storage on the next start and is deleted; without secure storage the token is not saved
+
 ### Fixed
+- App (Android): plurals in Russian, Ukrainian and Polish use the right form ("5 минут"), Japanese and Chinese no longer show English, French counts 0 as singular
 - Film day: only the activities the Drehzettel engagement counts (its activity list) make up the film day, its begin and end and the shooting day count, as in the plugin. A private commute on the same project no longer becomes the film day
 
 ## 2.0.1

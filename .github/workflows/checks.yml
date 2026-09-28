@@ -58,13 +58,19 @@ jobs:
       - name: Install Qt, KF6, QtKeychain
         run: |
           pacman -Syu --noconfirm --needed base-devel cmake ninja git extra-cmake-modules \
-            qt6-declarative qt6-svg qt6-shadertools kirigami qtkeychain-qt6
+            qt6-declarative qt6-svg qt6-shadertools kirigami qtkeychain-qt6 gnome-keyring dbus
       - uses: actions/checkout@v7
       - name: Build the app and its C++ tests
         run: |
           cmake -S app -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DPLASMAI_BUILD_TESTS=ON
           cmake --build build
           ctest --test-dir build --output-on-failure
+
+      # Token storage with a real Secret Service: round trip and migration of old token files.
+      - name: Token storage with a keychain
+        run: |
+          dbus-run-session -- sh -c 'printf ci | gnome-keyring-daemon --unlock --components=secrets >/dev/null && sleep 1 && ctest --test-dir build --output-on-failure -R tokenstore -V' | tee tokenstore.log
+          grep -q "PASS   : TstTokenStore::withKeychain()" tokenstore.log
 
   app:
     if: github.server_url == 'https://github.com'

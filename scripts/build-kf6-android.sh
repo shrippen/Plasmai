@@ -18,6 +18,7 @@ PREFIX="${1:-$HOME/kf6-android}"
 if [ "${1:-}" = "-f" ] || [ "${1:-}" = "--force" ]; then FORCE=1; PREFIX="${2:-$HOME/kf6-android}"; fi
 
 KF6_VERSION="6.30.0"
+QTKEYCHAIN_TAG="0.15.0"   # API tokens: encrypted with a key in the Android Keystore
 SDK_ROOT="${ANDROID_SDK_ROOT:-$HOME/android-sdk}"
 QT_VER="6.11.3"
 QT_ANDROID="$HOME/Qt/$QT_VER/android_arm64_v8a"
@@ -32,7 +33,8 @@ NDK_PATH=$(ls -d "$SDK_ROOT"/ndk/27.2.* 2>/dev/null | head -1)
 [ -d "$NDK_PATH" ] || error "Android NDK not found under $SDK_ROOT/ndk — run scripts/build-android.sh once first (it installs the NDK), or set ANDROID_SDK_ROOT"
 [ -d "$QT_ANDROID" ] && [ -d "$QT_HOST" ] || error "Qt $QT_VER (android_arm64_v8a + gcc_64) not found under \$HOME/Qt — run scripts/build-android.sh once first (it installs Qt via aqtinstall)"
 
-if grep -qs "\"$KF6_VERSION\"" "$PREFIX/lib/cmake/KF6Kirigami/KF6KirigamiConfigVersion.cmake" && [ "$FORCE" -ne 1 ]; then
+if grep -qs "\"$KF6_VERSION\"" "$PREFIX/lib/cmake/KF6Kirigami/KF6KirigamiConfigVersion.cmake" \
+    && [ -f "$PREFIX/lib/cmake/Qt6Keychain/Qt6KeychainConfig.cmake" ] && [ "$FORCE" -ne 1 ]; then
     info "$PREFIX already has KF6Kirigami $KF6_VERSION — skipping (pass -f to rebuild)"
     exit 0
 fi
@@ -65,6 +67,7 @@ info "Cloning extra-cmake-modules, kcoreaddons, kirigami @ v$KF6_VERSION..."
 clone extra-cmake-modules &
 clone kcoreaddons &
 clone kirigami &
+git clone --quiet --depth 1 --branch "$QTKEYCHAIN_TAG" https://github.com/frankosterfeld/qtkeychain.git "$WORK/qtkeychain" &
 wait
 
 info "Building extra-cmake-modules (cmake modules only, no compilation)..."
@@ -84,5 +87,12 @@ cmake -B "$WORK/kirigami/build" -S "$WORK/kirigami" "${CROSS_ARGS[@]}" \
     -DBUILD_EXAMPLES=OFF -DDESKTOP_ENABLED=OFF
 cmake --build "$WORK/kirigami/build" -j"$(nproc)"
 cmake --install "$WORK/kirigami/build"
+
+# Static: linked into the app library, nothing extra for androiddeployqt to find.
+info "Building QtKeychain for android_arm64_v8a..."
+cmake -B "$WORK/qtkeychain/build" -S "$WORK/qtkeychain" "${CROSS_ARGS[@]}" \
+    -DBUILD_WITH_QT6=ON -DBUILD_SHARED_LIBS=OFF -DBUILD_TRANSLATIONS=OFF -DBUILD_TEST_APPLICATION=OFF
+cmake --build "$WORK/qtkeychain/build" -j"$(nproc)"
+cmake --install "$WORK/qtkeychain/build"
 
 info "KF6 for Android ready at $PREFIX"

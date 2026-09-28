@@ -82,7 +82,7 @@ Builds:
     # so both builds are byte-identical and F-Droid can publish the APK with our signature
     # (Reproducible Builds, signatures/ in the fdroiddata copy). The script builds OpenSSL from
     # source (as libssl_3.so/libcrypto_3.so, replacing the prebuilt KDAB libs that scandelete:
-    # removes), then ECM, KCoreAddons and Kirigami, then the app; its header lists what keeps the
+    # removes), then ECM, KCoreAddons, Kirigami and QtKeychain, then the app; its header lists what keeps the
     # two builds identical (fixed /tmp/plasmai-build paths, SOURCE_DATE_EPOCH, Kirigami with -j1).
     build:
       - ANDROID_SDK_ROOT=$$SDK$$ scripts/build-apk-reproducible.sh

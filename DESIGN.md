@@ -97,7 +97,10 @@ typography stack, badge format, and social-preview spec.
 ### Persistence
 
 - **API tokens:** KWallet / libsecret via `contents/code/kwallet.sh` and
-  `secret.js`. Never write tokens to `main.xml`, `shared.json`, or logs.
+  `secret.js`; in the app QtKeychain on every platform (`app/platform/tokenstore.cpp`).
+  Only secure storage, never plain text: no keychain means the save fails and says so
+  (QtKeychain's insecure fallback stays off). Never write tokens to `main.xml`,
+  `shared.json`, files, or logs.
 - **Settings:** shared across every Plasmai instance through
   `~/.config/com.github.shrippen.plasmai/shared.json` (`sharedConfig.js` /
   `sharedConfig.sh`). Instance config is a cache; edits persist a patch into

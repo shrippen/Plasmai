@@ -110,6 +110,13 @@ cmake -S "$WORK/kirigami" -B "$WORK/kirigami/build" "${CROSS_ARGS[@]}" \
 cmake --build "$WORK/kirigami/build" -j1
 cmake --install "$WORK/kirigami/build"
 
+# ── QtKeychain: API tokens encrypted with a key in the Android Keystore (static) ──
+git clone --quiet --depth 1 --branch 0.15.0 https://github.com/frankosterfeld/qtkeychain.git "$WORK/qtkeychain"
+cmake -S "$WORK/qtkeychain" -B "$WORK/qtkeychain/build" "${CROSS_ARGS[@]}" \
+    -DBUILD_WITH_QT6=ON -DBUILD_SHARED_LIBS=OFF -DBUILD_TRANSLATIONS=OFF -DBUILD_TEST_APPLICATION=OFF
+cmake --build "$WORK/qtkeychain/build" -j1
+cmake --install "$WORK/qtkeychain/build"
+
 # ── The app ──
 cd "$REPO_DIR/app"
 rm -rf build-android

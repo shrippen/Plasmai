@@ -102,9 +102,15 @@ Installiere Qt 6.8+ mit Android Kit via [Qt Online Installer](https://www.qt.io/
   und App geteilt. Auf Android ist die App eigenständig.
 
 ### Token-Speicherung
-- **Desktop**: qtkeychain → KWallet / freedesktop Secret Service
-- **Android**: qtkeychain → Android Keystore (automatisch)
-- Auf beiden Plattformen: API-Tokens verschlüsselt gespeichert.
+- Immer QtKeychain, auf jeder Plattform (`app/platform/tokenstore.cpp`), nie Klartext:
+  - **Linux / Plasma Mobile**: Secret Service oder KWallet (Flatpak: `--talk-name=org.freedesktop.secrets`)
+  - **Android**: verschlüsselt mit einem Schlüssel im Android Keystore (QtKeychain statisch, `scripts/build-kf6-android.sh`)
+  - **Windows / macOS**: Anmeldeinformationsverwaltung / Schlüsselbund
+- Ohne Schlüsselbund scheitert das Speichern mit Meldung; kein Ausweichen auf Dateien.
+- Builds bis 2.0.1 legten Tokens als `<AppData>/tokens/<Profil>.token` ab. Beim Laden wandert
+  so eine Datei in den Schlüsselbund und wird gelöscht (bleibt nur, solange keiner läuft).
+- Test: `tst_tokenstore` (`-DPLASMAI_BUILD_TESTS=ON`), mit Secret Service in der Session
+  Rundlauf und Migration, ohne: kein Klartext.
 
 ### Feature-Parität mit dem Plasmoid
 Die App teilt sich `app/qml/shared/` (portierte Kopien der Plasmoid-Komponenten

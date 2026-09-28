@@ -38,8 +38,9 @@ function create(tokenStore, fileStore, idleWatcher, notifier) {
         },
 
         saveToken: function(_ds, profileId, token, cb) {
-            _connectOnce(tokenStore.saved, profileId, function(id, ok) {
-                cb(ok, ok ? null : "Failed to save token")
+            // Secure storage only: no keychain running means no save (never plain text).
+            _connectOnce(tokenStore.saved, profileId, function(id, ok, error) {
+                cb(ok, ok ? null : "No secure storage for the token: " + (error || "unavailable"))
             })
             tokenStore.save(profileId, token)
         },

@@ -21,10 +21,8 @@ find_package(ECM REQUIRED NO_MODULE)
 set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
 find_package(KF6 COMPONENTS Kirigami QUIET)
 
-# Qt6Keychain: use native when available, file-based fallback for Android
-if(NOT CMAKE_CROSSCOMPILING)
-    find_package(Qt6Keychain REQUIRED)
-endif()
+# Qt6Keychain on every platform (Android too): API tokens never go to plain files.
+find_package(Qt6Keychain REQUIRED)
 
 # Platform services: one implementation per platform (ROADMAP pillar 5, step 3).
 # D-Bus (idle time, notifications) on Linux and Plasma Mobile; not offered elsewhere.
@@ -42,6 +40,7 @@ qt_add_executable(plasmai-app
     platform/idlewatcher.h
     platform/notifier.h
     platform/tokenstore.h
+    platform/tokenstore.cpp
     platform/useragentnam.h
     ${PLASMAI_PLATFORM_SOURCES}
     addons/yearmodel.cpp
@@ -101,9 +100,7 @@ target_link_libraries(plasmai-app PRIVATE
     Qt6::QuickControls2
 )
 
-if(NOT CMAKE_CROSSCOMPILING AND TARGET Qt6Keychain::Qt6Keychain)
-    target_link_libraries(plasmai-app PRIVATE Qt6Keychain::Qt6Keychain)
-endif()
+target_link_libraries(plasmai-app PRIVATE Qt6Keychain::Qt6Keychain)
 
 if(PLASMAI_PLATFORM_SOURCES MATCHES "_dbus")
     message(STATUS "Qt6::DBus found — building with idle detection + native notifications")
@@ -148,6 +145,12 @@ if(PLASMAI_BUILD_TESTS AND NOT ANDROID)
     target_include_directories(tst_i18nfallback PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     target_link_libraries(tst_i18nfallback PRIVATE Qt6::Core Qt6::Test)
     add_test(NAME i18nfallback COMMAND tst_i18nfallback)
+
+    # With a Secret Service in the session: round trip and migration; without: no plain text.
+    qt_add_executable(tst_tokenstore tests/tst_tokenstore.cpp platform/tokenstore.cpp)
+    target_include_directories(tst_tokenstore PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(tst_tokenstore PRIVATE Qt6::Core Qt6::Test Qt6Keychain::Qt6Keychain)
+    add_test(NAME tokenstore COMMAND tst_tokenstore)
 endif()
 
 install(TARGETS plasmai-app
