@@ -467,7 +467,7 @@ int main(int argc, char *argv[])
     }
 #endif
     KAboutData aboutData(APP_ID, i18n("Plasmai"),
-                         QStringLiteral("2.0.0"),
+                         QStringLiteral("2.0.1"),
                          i18n("Time tracking with Kimai, Clockify, Toggl Track, or SolidTime"),
                          KAboutLicense::GPL_V3,
                          i18n("© 2025 Plasmai contributors"));
@@ -476,7 +476,7 @@ int main(int argc, char *argv[])
     KAboutData::setApplicationData(aboutData);
 #else
     app.setApplicationName("Plasmai");
-    app.setApplicationVersion("2.0.0");
+    app.setApplicationVersion("2.0.1");
     app.setOrganizationName("shrippen");
 #endif
 

@@ -2,12 +2,22 @@
 
 ## Unreleased
 
+## 2.0.1
+
+Released 2026-09-28.
+
 ### New
 - App: an About page in the menu, with the version and links to the source code and to shrippen.github.io
 
 ### Changed
 - App (Android, AppImage): Qt 6.11 and KF6 6.30; Android bundles OpenSSL 3.5 (LTS), built from source
 - The film day is hidden when the Kimai instance has no Drehzettel plugin (or you lack its view permission), like trips without the Anfahrten plugin
+- App (Android): the release APK is now built reproducibly, so F-Droid can publish it with the original signature; debug builds install next to the released app as "Plasmai Dev"
+
+### Fixed
+- App (Android): Back on the first page sends the app to the background again, and closes an open menu first
+- App (Android): opening a dropdown no longer triggers "Plasmai pasted from your clipboard"
+- App: the menu button has a name for screen readers (12 languages)
 
 ## 2.0.0
 

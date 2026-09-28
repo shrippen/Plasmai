@@ -89,6 +89,12 @@
     <binary>plasmai-app</binary>
   </provides>
   <releases>
+    <release version="2.0.1" date="2026-09-28">
+      <description>
+        <p>Adds an About page, fixes the Back button on Android and the clipboard notice when
+        opening a dropdown, and names the menu button for screen readers.</p>
+      </description>
+    </release>
     <release version="2.0.0" date="2026-09-27">
       <description>
         <p>First release of the app for Plasma Mobile, the Linux desktop and Android, built from
