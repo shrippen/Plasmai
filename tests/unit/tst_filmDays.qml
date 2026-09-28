@@ -153,11 +153,9 @@ TestCase {
 
     // Production shooting day: distinct days with entries up to the day.
     function test_countShootingDays() {
-        var e = [
-            { begin: "2026-09-10T08:00:00+0200" }, { begin: "2026-09-10T14:00:00+0200" },
-            { begin: "2026-09-24T11:50:00+0200" }, { begin: "2026-09-25T13:15:00+0200" },
-            { begin: "2026-09-27T08:00:00+0200" }
-        ]
+        // local times, so the days hold in every time zone
+        function at(d, h, m) { return { begin: new Date(2026, 8, d, h, m).toISOString() } }
+        var e = [at(10, 8, 0), at(10, 14, 0), at(24, 11, 50), at(25, 13, 15), at(27, 8, 0)]
         var beginOf = function(ts) { return ts.begin }
         var r = FilmDays.countShootingDays(e, "2026-09-25", beginOf)
         compare(r.count, 3)

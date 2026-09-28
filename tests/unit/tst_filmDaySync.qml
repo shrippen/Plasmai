@@ -275,11 +275,13 @@ TestCase {
     // Production shooting day and the film activity from the engagement's
     // entries (project filter, from the engagement's start to the day).
     function test_productionDay() {
+        // local times, so the days hold in every time zone
+        function at(d, h, m) { return new Date(2026, 8, d, h, m).toISOString() }
         responses = [{ status: 200, body: [
-            { id: 1, project: 155, activity: 40, begin: "2026-09-10T08:00:00+0200", end: "2026-09-10T18:00:00+0200" },
-            { id: 2, project: 155, activity: 12, begin: "2026-09-24T07:00:00+0200", end: "2026-09-24T07:30:00+0200" },
-            { id: 3, project: 155, activity: 40, begin: "2026-09-24T11:50:00+0200", end: "2026-09-24T22:09:00+0200" },
-            { id: 4, project: 155, activity: 40, begin: "2026-09-25T13:15:00+0200", end: "2026-09-25T21:30:00+0200" }] }]
+            { id: 1, project: 155, activity: 40, begin: at(10, 8, 0), end: at(10, 18, 0) },
+            { id: 2, project: 155, activity: 12, begin: at(24, 7, 0), end: at(24, 7, 30) },
+            { id: 3, project: 155, activity: 40, begin: at(24, 11, 50), end: at(24, 22, 9) },
+            { id: 4, project: 155, activity: 40, begin: at(25, 13, 15), end: at(25, 21, 30) }] }]
         var got = null
         // no activity known yet: the longest entry's activity is the film activity
         Sync.productionDay(ctx("server"), 155, null, [], "2026-05-18", "2026-09-25", ids, function(r) { got = r })
@@ -440,7 +442,9 @@ TestCase {
     // entry overlaps (night shoot on both days), then the engaged days' extras.
     function test_prefetchDays() {
         var c = ctx("server", { nowMs: new Date(2026, 8, 26, 12, 0).getTime() })
-        var night = { id: 8, project: 155, activity: 40, begin: "2026-09-25T20:00:00+0200", end: "2026-09-26T03:00:00+0200" }
+        // local times, so the test holds in every time zone
+        var night = { id: 8, project: 155, activity: 40, begin: new Date(2026, 8, 25, 20, 0).toISOString(),
+                      end: new Date(2026, 8, 26, 3, 0).toISOString() }
         responses = [{ status: 200, body: [night] }]
         for (var i = 0; i < Sync.PREFETCH_DAYS; i++) {
             responses.push({ status: 200, body: [] })   // no engagement that day
