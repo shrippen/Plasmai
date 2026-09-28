@@ -28,7 +28,8 @@ TestCase {
 
     function test_label() {
         compare(label.text, "abc")
-        verify(label instanceof QQC2.Label)
+        compare(label.elide, Text.ElideRight)
+        verify(label.implicitWidth > 0)
     }
 
     function test_attachedToolTip() {
