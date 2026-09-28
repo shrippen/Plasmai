@@ -25,6 +25,7 @@ import "../code/dateTimeFormat.js" as DTF
 import "../code/mileage.js" as Mileage
 import "../code/statsData.js" as StatsData
 import "../code/providerUtil.js" as ProviderUtil
+import "../code/workTotals.js" as WorkTotals
 import "."
 import "Kante"
 import "KantePlasma"
@@ -2077,113 +2078,37 @@ PlasmoidItem {
             return
         }
 
+        // Totals, targets and absence credit: workTotals.js, shared with the app.
         var now = new Date()
-        tracker.fetchCurrentUser(kimaiUrl, apiToken, function(userResult) {
-            if (userResult.ok) {
-                workPrefs = tracker.preferenceMap(userResult.data)
-                todayTargetSeconds = tracker.workDaySecondsFromPrefs(workPrefs, now)
-                weekTargetSeconds = tracker.workWeekSecondsFromPrefs(workPrefs, now)
-                hasWorkContract = weekTargetSeconds > 0 || todayTargetSeconds > 0
-            } else {
-                workPrefs = ({})
-                todayTargetSeconds = 0
-                weekTargetSeconds = 0
-                hasWorkContract = false
+        WorkTotals.load({ tracker: tracker, url: kimaiUrl, token: apiToken,
+                          holidayBundle: providerCapabilities.holidayBundle }, now, function(t) {
+            workPrefs = t.prefs
+            hasWorkContract = t.hasWorkContract
+            todayTargetSeconds = t.todayTargetSeconds
+            weekTargetSeconds = t.weekTargetSeconds
+            weekEffectiveTargetSeconds = t.weekEffectiveTargetSeconds
+            weekAbsences = t.absences
+            weekPublicHolidays = t.publicHolidays
+            if (!t.entriesLoaded) {
+                return
             }
 
-            function applyAbsenceCredit() {
-                if (!providerCapabilities.holidayBundle || !hasWorkContract || !workPrefs) {
-                    weekAbsenceCreditSeconds = 0
-                    todayAbsenceCreditSeconds = 0
-                    return
-                }
-                var nowMs = Date.now()
-                weekAbsenceCreditSeconds = KimaiApi.absenceCreditSeconds(
-                    workPrefs, now, weekAbsences, weekPublicHolidays, weekTimesheetsForCredit, nowMs)
-                todayAbsenceCreditSeconds = KimaiApi.dayAbsenceCreditSeconds(
-                    workPrefs, now, weekAbsences, weekPublicHolidays, todayTimesheets, nowMs)
+            weekAbsenceCreditSeconds = t.weekAbsenceCreditSeconds
+            todayAbsenceCreditSeconds = t.todayAbsenceCreditSeconds
+            weekTimesheetsForCredit = t.weekEntries
+            todayTimesheets = t.todayEntries
+            weekSeconds = t.weekSeconds
+            todaySeconds = t.todaySeconds
+            totalsElapsedAnchor = elapsedSeconds
+            // Keep current week available for stats until a wider fetch completes.
+            if (!statsTimesheets.length || mainViewMode !== "stats") {
+                statsTimesheets = KimaiApi.hydrateTimesheets(
+                    t.weekEntries, root.projects,
+                    root.activityCatalog(),
+                    root.activitiesByProject)
+                statsRangeBeginMs = KimaiApi.startOfWeekMonday(now).getTime()
+                statsRangeEndMs = KimaiApi.endOfWeekSunday(now).getTime()
             }
-
-            function applyEffectiveWeekTarget() {
-                weekEffectiveTargetSeconds = weekTargetSeconds
-                if (providerCapabilities.holidayBundle && hasWorkContract && workPrefs) {
-                    weekEffectiveTargetSeconds = KimaiApi.effectiveWeekTargetSeconds(
-                        workPrefs, now, weekAbsences, weekPublicHolidays)
-                    todayTargetSeconds = KimaiApi.effectiveDayTargetSeconds(
-                        workPrefs, now, weekAbsences, weekPublicHolidays)
-                }
-                applyAbsenceCredit()
-            }
-
-            if (providerCapabilities.holidayBundle && hasWorkContract) {
-                KimaiApi.fetchContractAdjustments(kimaiUrl, apiToken, now, workPrefs, function(adjResult) {
-                    var data = (adjResult && adjResult.ok && adjResult.data) ? adjResult.data : null
-                    weekAbsences = data && data.absences ? data.absences : []
-                    weekPublicHolidays = data && data.publicHolidays ? data.publicHolidays : []
-                    applyEffectiveWeekTarget()
-                })
-            } else {
-                weekAbsences = []
-                weekPublicHolidays = []
-                applyEffectiveWeekTarget()
-            }
-
-            tracker.fetchTimesheetsRange(
-                kimaiUrl, apiToken,
-                KimaiApi.startOfWeekMonday(now),
-                KimaiApi.endOfWeekSunday(now),
-                function(weekResult) {
-                    if (!weekResult.ok) {
-                        return
-                    }
-                    var nowMs = Date.now()
-                    var weekEntries = weekResult.data || []
-                    weekTimesheetsForCredit = weekEntries
-                    weekSeconds = KimaiApi.sumTimesheetDurations(weekEntries, nowMs)
-
-                    var dayStart = KimaiApi.startOfLocalDay(now).getTime()
-                    var dayEnd = KimaiApi.endOfLocalDay(now).getTime()
-                    var todayEntries = []
-                    for (var i = 0; i < weekEntries.length; i++) {
-                        var entry = weekEntries[i]
-                        if (!entry || !entry.begin) {
-                            continue
-                        }
-                        var begin = DTF.parseStamp(entry.begin)
-                        if (isNaN(begin.getTime())) {
-                            continue
-                        }
-                        var endMs = nowMs
-                        if (entry.end) {
-                            var end = DTF.parseStamp(entry.end)
-                            if (!isNaN(end.getTime())) {
-                                endMs = end.getTime()
-                            }
-                        }
-                        // Include entries that overlap today (not only those that started today).
-                        if (begin.getTime() < dayEnd + 1000 && endMs > dayStart) {
-                            todayEntries.push(entry)
-                        }
-                    }
-                    todayTimesheets = todayEntries
-                    // Keep current week available for stats until a wider fetch completes.
-                    if (!statsTimesheets.length || mainViewMode !== "stats") {
-                        statsTimesheets = KimaiApi.hydrateTimesheets(
-                            weekEntries, root.projects,
-                            root.activityCatalog(),
-                            root.activitiesByProject)
-                        statsRangeBeginMs = KimaiApi.startOfWeekMonday(now).getTime()
-                        statsRangeEndMs = KimaiApi.endOfWeekSunday(now).getTime()
-                    }
-                    var dayIntervals = KimaiApi.dayIntervalsFromTimesheets(todayEntries, now, nowMs)
-                    todaySeconds = 0
-                    for (var j = 0; j < dayIntervals.length; j++) {
-                        todaySeconds += dayIntervals[j].endSec - dayIntervals[j].startSec
-                    }
-                    totalsElapsedAnchor = elapsedSeconds
-                    applyAbsenceCredit()
-                }
-            )
         })
     }
 

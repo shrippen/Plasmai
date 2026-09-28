@@ -16,6 +16,7 @@ import "../contents/code/sharedConfig.js" as SharedConfig
 import "../contents/code/providerUtil.js" as ProviderUtil
 import "../contents/code/timesheetFields.js" as TimesheetFields
 import "../contents/code/dateTimeFormat.js" as DTF
+import "../contents/code/workTotals.js" as WorkTotals
 import "shared"
 import "Kante"
 
@@ -278,8 +279,10 @@ Kirigami.ApplicationWindow {
     readonly property var currentBarColorInfo: KimaiApi.barColorInfoFromTimesheet(activeTimesheet, customersById)
     readonly property color currentCustomerColor: currentBarColorInfo.color || KimaiApi.DEFAULT_CUSTOMER_COLOR
 
-    readonly property real todayLiveSeconds: todayTotalSeconds + (isTracking ? elapsedSeconds : 0)
-    readonly property real weekLiveSeconds: weekTotalSeconds + (isTracking ? elapsedSeconds : 0)
+    // Totals include the running entry up to their load (workTotals.js); add the timer's progress since.
+    property real totalsElapsedAnchor: 0
+    readonly property real todayLiveSeconds: todayTotalSeconds + (isTracking ? Math.max(0, elapsedSeconds - totalsElapsedAnchor) : 0)
+    readonly property real weekLiveSeconds: weekTotalSeconds + (isTracking ? Math.max(0, elapsedSeconds - totalsElapsedAnchor) : 0)
     readonly property real remainingTodaySeconds: hasWorkContract ? (todayTargetSeconds - todayLiveSeconds + todayAbsenceCreditSeconds) : 0
     readonly property real remainingWeekSeconds: hasWorkContract ? (weekTargetSeconds - weekLiveSeconds + weekAbsenceCreditSeconds) : 0
 
@@ -443,40 +446,21 @@ Kirigami.ApplicationWindow {
         refreshWorkTotals(); refreshPinnedEntries()
     }
 
+    /** Totals, targets and absence credit: workTotals.js, shared with the Plasmoid. */
     function refreshWorkTotals() {
-        if (!apiToken) return; var url = TimeTracker.resolveUrl(activeProfile)
-        var now = new Date(); var tf = new Date(now); tf.setHours(0, 0, 0, 0)
-        var wf = KimaiApi.startOfWeekMonday(now) // Kimai weeks start on Monday, like the Plasmoid and statistics
-        tracker.fetchTimesheetsRange(url, apiToken, tf, now, function(r) {
-            if (r.ok) { var d = r.data || []; var t = 0; for (var i = 0; i < d.length; i++) t += d[i].duration || 0; todayTotalSeconds = t; todayTimesheets = KimaiApi.hydrateTimesheets(d, projects, activityCatalog(), activitiesByProject) }
+        if (!apiToken) return
+        WorkTotals.load({ tracker: tracker, url: TimeTracker.resolveUrl(activeProfile), token: apiToken,
+                          holidayBundle: providerCapabilities.holidayBundle }, new Date(), function(t) {
+            workPrefs = t.prefs; hasWorkContract = t.hasWorkContract
+            todayTargetSeconds = t.todayTargetSeconds; weekTargetSeconds = t.weekEffectiveTargetSeconds
+            weekAbsences = t.absences; weekPublicHolidays = t.publicHolidays
+            if (!t.entriesLoaded) return
+            weekAbsenceCreditSeconds = t.weekAbsenceCreditSeconds; todayAbsenceCreditSeconds = t.todayAbsenceCreditSeconds
+            weekTimesheets = t.weekEntries
+            todayTimesheets = KimaiApi.hydrateTimesheets(t.todayEntries, projects, activityCatalog(), activitiesByProject)
+            todayTotalSeconds = t.todaySeconds; weekTotalSeconds = t.weekSeconds
+            totalsElapsedAnchor = elapsedSeconds
         })
-        tracker.fetchTimesheetsRange(url, apiToken, wf, now, function(r) {
-            if (r.ok) { var t = 0; var d = r.data || []; for (var i = 0; i < d.length; i++) t += d[i].duration || 0; weekTotalSeconds = t; weekTimesheets = d; applyAbsenceCredit() }
-        })
-        tracker.fetchCurrentUser(url, apiToken, function(result) {
-            if (result.ok) {
-                workPrefs = tracker.preferenceMap(result.data)
-                todayTargetSeconds = tracker.workDaySecondsFromPrefs(workPrefs, now)
-                weekTargetSeconds = tracker.workWeekSecondsFromPrefs(workPrefs, now)
-                hasWorkContract = todayTargetSeconds > 0 || weekTargetSeconds > 0
-            } else { workPrefs = ({}); todayTargetSeconds = 0; weekTargetSeconds = 0; hasWorkContract = false }
-            if (!providerCapabilities.holidayBundle || !hasWorkContract) { weekAbsences = []; weekPublicHolidays = []; applyAbsenceCredit(); return }
-            KimaiApi.fetchContractAdjustments(url, apiToken, now, workPrefs, function(adj) {
-                var data = (adj && adj.ok && adj.data) ? adj.data : {}
-                weekAbsences = data.absences || []; weekPublicHolidays = data.publicHolidays || []
-                weekTargetSeconds = KimaiApi.effectiveWeekTargetSeconds(workPrefs, now, weekAbsences, weekPublicHolidays)
-                todayTargetSeconds = KimaiApi.effectiveDayTargetSeconds(workPrefs, now, weekAbsences, weekPublicHolidays)
-                applyAbsenceCredit()
-            })
-        })
-    }
-
-    /** Time tracked on absence days does not use up the week (same rule as the Plasmoid). */
-    function applyAbsenceCredit() {
-        if (!providerCapabilities.holidayBundle || !hasWorkContract) { weekAbsenceCreditSeconds = 0; todayAbsenceCreditSeconds = 0; return }
-        var now = new Date()
-        weekAbsenceCreditSeconds = KimaiApi.absenceCreditSeconds(workPrefs, now, weekAbsences, weekPublicHolidays, weekTimesheets, now.getTime())
-        todayAbsenceCreditSeconds = KimaiApi.dayAbsenceCreditSeconds(workPrefs, now, weekAbsences, weekPublicHolidays, todayTimesheets, now.getTime())
     }
 
     function refreshPinnedEntries() {
