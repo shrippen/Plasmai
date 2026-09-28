@@ -1,6 +1,6 @@
 import QtQuick
 import org.kde.kirigami as Kirigami
-import org.kde.plasma.components as PlasmaComponents3
+import "Controls" as Controls
 import "Kante"
 
 /**
@@ -43,7 +43,7 @@ Item {
         slotSizeFactor: 0.85
     }
 
-    PlasmaComponents3.Label {
+    Controls.Label {
         id: labelItem
         anchors.left: parent.left
         anchors.leftMargin: root.labelX

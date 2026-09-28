@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
-import org.kde.plasma.components as PlasmaComponents3
+import "Controls" as Controls
 import "../code/kimaiApi.js" as KimaiApi
 import "."
 import "Kante"
@@ -48,7 +48,7 @@ ColumnLayout {
 
     spacing: Kirigami.Units.smallSpacing / 2
 
-    PlasmaComponents3.Label {
+    Controls.Label {
         Layout.fillWidth: true
         Layout.preferredHeight: Kirigami.Units.gridUnit * 3
         horizontalAlignment: Text.AlignHCenter
@@ -68,7 +68,7 @@ ColumnLayout {
 
         Repeater {
             model: root.hourLabels
-            delegate: PlasmaComponents3.Label {
+            delegate: Controls.Label {
                 property var labelData: modelData
                 y: 0
                 x: {
@@ -98,7 +98,7 @@ ColumnLayout {
             spacing: Kirigami.Units.smallSpacing
             property var day: modelData
 
-            PlasmaComponents3.Label {
+            Controls.Label {
                 Layout.preferredWidth: root.labelWidth
                 Layout.maximumWidth: root.labelWidth
                 elide: Text.ElideRight
@@ -159,9 +159,9 @@ ColumnLayout {
                             property bool tipPinned: false
                             onClicked: tipPinned = !tipPinned
                             onExited: tipPinned = false
-                            PlasmaComponents3.ToolTip.visible: containsMouse || tipPinned
-                            PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
-                            PlasmaComponents3.ToolTip.text: segItem.seg
+                            Controls.ToolTip.visible: containsMouse || tipPinned
+                            Controls.ToolTip.delay: Kirigami.Units.toolTipDelay
+                            Controls.ToolTip.text: segItem.seg
                                 ? (segItem.seg.name + " · "
                                    + KimaiApi.formatDurationShort(segItem.seg.seconds))
                                 : ""
@@ -170,7 +170,7 @@ ColumnLayout {
                 }
             }
 
-            PlasmaComponents3.Label {
+            Controls.Label {
                 Layout.preferredWidth: Kirigami.Units.gridUnit * 2.2
                 horizontalAlignment: Text.AlignRight
                 font.pointSize: KanteStyle.smallFont.pointSize - 1

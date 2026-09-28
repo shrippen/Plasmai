@@ -1,10 +1,18 @@
-singleton PlasmaiColors 1.0 PlasmaiColors.qml
-singleton ApiErrors 1.0 ApiErrors.qml
+singleton PlasmaiColors 1.0 ../../contents/ui/PlasmaiColors.qml
+singleton ApiErrors 1.0 ../../contents/ui/ApiErrors.qml
 singleton TouchUi 1.0 TouchUi.qml
-ColorLabelRow 1.0 ColorLabelRow.qml
-CustomerColorDot 1.0 CustomerColorDot.qml
+ColorLabelRow 1.0 ../../contents/ui/ColorLabelRow.qml
+CustomerColorDot 1.0 ../../contents/ui/CustomerColorDot.qml
 DaySparkline 1.0 DaySparkline.qml
 ProjectActivityPickers 1.0 ProjectActivityPickers.qml
 SearchableCombo 1.0 SearchableCombo.qml
 ActivityListRow 1.0 ActivityListRow.qml
 WrapCheckBox 1.0 WrapCheckBox.qml
+# One source with the Plasmoid (ROADMAP pillar 5, step 2): the files in contents/ui.
+BarChart 1.0 ../../contents/ui/BarChart.qml
+KanteDayStrip 1.0 ../../contents/ui/KanteDayStrip.qml
+PieChart 1.0 ../../contents/ui/PieChart.qml
+StackedBarChart 1.0 ../../contents/ui/StackedBarChart.qml
+TagPill 1.0 ../../contents/ui/TagPill.qml
+TimesheetMetaFields 1.0 ../../contents/ui/TimesheetMetaFields.qml
+WeeklyHourChart 1.0 ../../contents/ui/WeeklyHourChart.qml

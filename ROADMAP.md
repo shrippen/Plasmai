@@ -126,7 +126,7 @@ Both:
 
 Constraint: panel click still must not start/stop. No tray app on Linux (Windows: pillar 7).
 
-### 5. Cross-platform foundation — planned, before 6 and 7
+### 5. Cross-platform foundation — in progress, before 6 and 7
 
 Stay on Kirigami, but make the code portable: one source for components and logic, platform code behind one interface. Offline mode (6) and the Windows client (7) build on it; each item below is useful alone.
 
@@ -138,12 +138,12 @@ Stay on Kirigami, but make the code portable: one source for components and logi
  app/main.cpp (#ifdef, D-Bus inline)        platform_{linux,android,windows}.cpp behind one interface
 ```
 
-1. **Logic out of `main.qml` (1–2 weeks).** 39 functions exist under the same name in the Plasmoid's `main.qml` and the app (`startTracking`, `stopTracking`, `refreshAll`, `checkIdle`, `applyActiveTimesheet`, idle keep/discard, …). Move them into shared JS controllers in `contents/code/` (`timerSession.js`, `idleFlow.js`, `workTotals.js`), as `filmDaySync.js` does for the film day. QML only binds state and signals; the logic becomes testable with `qmltestrunner`. Slice by slice, one flow at a time.
-2. **One component source (1–2 weeks).** 28 components are copied (`app/qml/shared/` vs `contents/ui/`, 2–152 differing lines; most: StatsView, DateField, TimeField, FilmDayView). The differences are nearly only `PlasmaComponents3.*` vs `QQC2.*` and import paths. A `contents/ui/Controls/` module (`Label`, `Button`, `TextField`, …): PlasmaComponents3 in the Plasmoid, QQC2 in the app via qrc aliases on the same paths — the `Kante`/`KantePlasma` pattern. Then the app loads `contents/ui/` directly and `app/qml/shared/` goes away. One component at a time.
-3. **Platform services behind `platform.js`, one file per platform (3–5 days).** `platform.js` already has desktop and app backends. Split `app/main.cpp` (`IdleWatcher`, `Notifier`, Android filters under `#ifdef`, D-Bus inline) into one interface per service with `platform_linux.cpp`, `platform_android.cpp` (later `platform_windows.cpp`). Add the services still missing: network reachability, autostart, outbox storage. A missing service is a capability flag, never scattered `Qt.platform.os` checks.
-4. **JSON i18n in the app everywhere (1–2 days).** The app uses KI18n on the desktop and the JSON catalogs (`I18nFallback`) on Android. JSON everywhere drops KI18n/gettext, the hardest native dependency on Windows/macOS (Kirigami itself needs only Qt + ECM). The Plasmoid keeps gettext `.mo`.
+1. **Logic out of `main.qml` — in progress.** 39 functions exist under the same name in the Plasmoid's `main.qml` and the app. Done: `workTotals.js` (today/week totals, targets, absence credit; the app now counts like the Plasmoid: overlap with the day, running entry until load). Next: timer session (`startTracking`, `stopTracking`, switch, `applyActiveTimesheet`), idle keep/discard, forgot-to-start, pinned entries, description save — one flow at a time, each with tests, as `filmDaySync.js` and `workTotals.js`.
+2. **One component source — in progress.** `contents/ui/Controls/` (Label, ToolTip, also attached): PlasmaComponents3 in the Plasmoid, QQC2 in the app, which puts `app/qml/controls/` at that qrc path. The app's Kante now lives at `contents/ui/Kante` too (`qml/Kante` is a redirect qmldir: one KanteStyle singleton). Done, 11 of 28: ApiErrors, BarChart, ColorLabelRow, CustomerColorDot, KanteDayStrip, PieChart, PlasmaiColors, StackedBarChart, TagPill, TimesheetMetaFields, WeeklyHourChart (`app/qml/shared/qmldir` points at `contents/ui`). Next: the 17 with real differences (LoadingRow, TagPicker, TripMap 2 lines … DateField 120), adding Controls types (Button, TextField, ComboBox, CheckBox) as needed. CI compiles the shared ones with libplasma (`tst_controls.qml`).
+3. ~~**Platform services, one file per platform**~~ — done: `app/platform/` (TokenStore, FileStore, UserAgentNam, AndroidBackFilter; IdleWatcher and Notifier with `*_dbus.cpp` / `*_none.cpp` picked in CMake, offered to QML only where supported). Still missing, with pillars 6 and 7: network reachability, autostart, outbox storage.
+4. ~~**JSON i18n in the app everywhere**~~ — done: no KI18n/KCoreAddons in the app. The catalogs now carry all plural forms and the language's rule (`app/i18nfallback.cpp`, C++ tests); this fixed wrong plurals on Android in ru, uk, pl, ja, zh_CN and fr.
 5. ~~**One timestamp parser**~~ — done: `DTF.parseStamp` / `DTF.stampMs` in `dateTimeFormat.js` parse every server stamp and form input (JS libraries, providers, Plasmoid and app QML). Qt 6.4 already parsed Kimai's formats; the gain is one place instead of six variants, and a date alone as local midnight. Film day tests no longer assume Berlin time.
-6. **CI as the guard (2–3 days).** `qmltestrunner` and `qmllint` in CI (`tests/run.sh` today needs a local runner); a build-only job of the app on Windows and macOS that publishes nothing but fails when Linux-only code creeps in.
+6. ~~**CI as the guard**~~ — done: `.github/workflows/checks.yml` — unit tests in an Arch container (Kirigami, libplasma) in three time zones, app resources, the app built on Linux (with C++ tests), Windows (Qt 6.10) and macOS. Not yet: `qmllint` (to evaluate its noise first).
 
 Order: 6 first (cheap guard), then 1 and 2 (most effort, most gain), 3–5 whenever they touch the code anyway.
 

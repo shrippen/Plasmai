@@ -1,0 +1,17 @@
+singleton KanteStyle 1.0 ../../contents/ui/Kante/KanteStyle.qml
+singleton KantePalette 1.0 ../../contents/ui/Kante/KantePalette.qml
+KanteScope 1.0 ../../contents/ui/Kante/KanteScope.qml
+KanteCard 1.0 ../../contents/ui/Kante/KanteCard.qml
+KanteButton 1.0 ../../contents/ui/Kante/KanteButton.qml
+KanteToolButton 1.0 ../../contents/ui/Kante/KanteToolButton.qml
+KanteTextField 1.0 ../../contents/ui/Kante/KanteTextField.qml
+KanteHeading 1.0 ../../contents/ui/Kante/KanteHeading.qml
+KanteDialog 1.0 ../../contents/ui/Kante/KanteDialog.qml
+KanteCheckSkin 1.0 ../../contents/ui/Kante/KanteCheckSkin.qml
+KanteFieldSkin 1.0 ../../contents/ui/Kante/KanteFieldSkin.qml
+KanteSliderSkin 1.0 ../../contents/ui/Kante/KanteSliderSkin.qml
+KantePopupSkin 1.0 ../../contents/ui/Kante/KantePopupSkin.qml
+KanteMessageSkin 1.0 ../../contents/ui/Kante/KanteMessageSkin.qml
+KanteDialogSkin 1.0 ../../contents/ui/Kante/KanteDialogSkin.qml
+KantePageTitle 1.0 ../../contents/ui/Kante/KantePageTitle.qml
+KantePullToRefresh 1.0 ../../contents/ui/Kante/KantePullToRefresh.qml

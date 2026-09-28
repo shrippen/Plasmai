@@ -1,0 +1,13 @@
+singleton PlasmaiColors 1.0 PlasmaiColors.qml
+singleton ApiErrors 1.0 ApiErrors.qml
+BarChart 1.0 BarChart.qml
+ColorLabelRow 1.0 ColorLabelRow.qml
+CustomerColorDot 1.0 CustomerColorDot.qml
+KanteDayStrip 1.0 KanteDayStrip.qml
+PieChart 1.0 PieChart.qml
+StackedBarChart 1.0 StackedBarChart.qml
+TagPill 1.0 TagPill.qml
+TimesheetMetaFields 1.0 TimesheetMetaFields.qml
+WeeklyHourChart 1.0 WeeklyHourChart.qml
+singleton TouchUi 1.0 ../../qml/shared/TouchUi.qml
+TagPicker 1.0 ../../qml/shared/TagPicker.qml

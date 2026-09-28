@@ -1,6 +1,6 @@
 import QtQuick
 import org.kde.kirigami as Kirigami
-import org.kde.plasma.components as PlasmaComponents3
+import "Controls" as Controls
 import "../code/kimaiApi.js" as KimaiApi
 import "../code/statsData.js" as StatsData
 import "."
@@ -34,7 +34,7 @@ Item {
     implicitHeight: barMaxHeight + Kirigami.Units.gridUnit * 1.6
     implicitWidth: Kirigami.Units.gridUnit * 16
 
-    PlasmaComponents3.Label {
+    Controls.Label {
         anchors.centerIn: parent
         anchors.horizontalCenterOffset: root.axisWidth / 2
         visible: root.maxSeconds <= 0
@@ -42,7 +42,7 @@ Item {
         text: root.emptyText
     }
 
-    PlasmaComponents3.Label {
+    Controls.Label {
         anchors.left: parent.left
         anchors.top: parent.top
         width: root.axisWidth
@@ -64,7 +64,7 @@ Item {
         width: root.axisWidth
         visible: root.maxSeconds > 0
 
-        PlasmaComponents3.Label {
+        Controls.Label {
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.top: parent.top
@@ -74,7 +74,7 @@ Item {
             elide: Text.ElideRight
             text: KimaiApi.formatDurationShort(root.axisSeconds)
         }
-        PlasmaComponents3.Label {
+        Controls.Label {
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
@@ -84,7 +84,7 @@ Item {
             elide: Text.ElideRight
             text: KimaiApi.formatDurationShort(Math.round(root.axisSeconds / 2))
         }
-        PlasmaComponents3.Label {
+        Controls.Label {
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.bottom: parent.bottom
@@ -180,9 +180,9 @@ Item {
                                     property bool tipPinned: false
                                     onClicked: tipPinned = !tipPinned
                                     onExited: tipPinned = false
-                                    PlasmaComponents3.ToolTip.visible: containsMouse || tipPinned
-                                    PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
-                                    PlasmaComponents3.ToolTip.text: {
+                                    Controls.ToolTip.visible: containsMouse || tipPinned
+                                    Controls.ToolTip.delay: Kirigami.Units.toolTipDelay
+                                    Controls.ToolTip.text: {
                                         if (!stackSeg.stack) {
                                             return ""
                                         }
@@ -199,7 +199,7 @@ Item {
                         }
                     }
 
-                    PlasmaComponents3.Label {
+                    Controls.Label {
                         anchors.bottom: parent.bottom
                         anchors.bottomMargin: -Kirigami.Units.gridUnit * 1.1
                         anchors.horizontalCenter: parent.horizontalCenter

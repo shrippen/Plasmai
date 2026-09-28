@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
-import org.kde.plasma.components as PlasmaComponents3
+import "Controls" as Controls
 import "../code/kimaiApi.js" as KimaiApi
 import "Kante"
 
@@ -20,7 +20,7 @@ ColumnLayout {
 
     spacing: Kirigami.Units.smallSpacing
 
-    PlasmaComponents3.Label {
+    Controls.Label {
         Layout.fillWidth: true
         visible: root.title.length > 0
         text: root.title
@@ -33,7 +33,7 @@ ColumnLayout {
         Layout.preferredWidth: root.chartSize
         Layout.preferredHeight: root.chartSize
 
-        PlasmaComponents3.Label {
+        Controls.Label {
             anchors.centerIn: parent
             visible: root.totalSeconds <= 0
             opacity: 0.6
@@ -81,7 +81,7 @@ ColumnLayout {
             }
         }
 
-        PlasmaComponents3.Label {
+        Controls.Label {
             anchors.centerIn: parent
             visible: root.totalSeconds > 0
             horizontalAlignment: Text.AlignHCenter
@@ -118,14 +118,14 @@ ColumnLayout {
                     sizeFactor: 0.55
                     slotSizeFactor: 0.7
                 }
-                PlasmaComponents3.Label {
+                Controls.Label {
                     Layout.fillWidth: true
                     elide: Text.ElideRight
                     font.pointSize: KanteStyle.smallFont.pointSize
                     // statsData.js has no i18n; its catch-all row is keyed "_other".
                     text: modelData.key === "_other" ? i18n("Other") : modelData.name
                 }
-                PlasmaComponents3.Label {
+                Controls.Label {
                     font.pointSize: KanteStyle.smallFont.pointSize
                     opacity: 0.75
                     text: KimaiApi.formatDurationShort(modelData.seconds)

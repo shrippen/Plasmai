@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
-import org.kde.plasma.components as PlasmaComponents3
+import "Controls" as Controls
 import "../code/kimaiApi.js" as KimaiApi
 import "../code/dateTimeFormat.js" as DTF
 import "."
@@ -122,7 +122,7 @@ ColumnLayout {
 
         Repeater {
             model: Math.floor((strip.span.hi - strip.span.lo) / 2) + 1
-            delegate: PlasmaComponents3.Label {
+            delegate: Controls.Label {
                 readonly property int hour: strip.span.lo + index * 2
                 x: Math.min(strip.width - width, Math.max(0, strip.xOf(hour) - width / 2))
                 text: (hour < 10 ? "0" : "") + hour
