@@ -116,7 +116,7 @@ The Plasmoid lags the app:
 
 Both:
 
-- Component copies drift (`app/qml/shared/` vs `contents/ui/`: StatsView, FilmDayView, DaySparkline, ActiveEditView). Goal: one source.
+- Component copies drift (`app/qml/shared/` vs `contents/ui/`: StatsView, FilmDayView, DaySparkline, ActiveEditView). Goal: one source (pillar 5).
 - ~~Plugin views not checked rendered~~ — film day and trips are rendered and used in the Plasmoid, the app offscreen and on a Pixel 6.
 
 ### 4. Plasma extras — optional, not blocking
@@ -124,9 +124,30 @@ Both:
 - **KRunner** as a *separate* package if ever; the Store QML applet cannot ship binaries.
 - Do **not** restore global shortcuts, D-Bus IPC or a logind shutdown hold unless DESIGN.md is rewritten.
 
-Constraint: panel click still must not start/stop. No tray app on Linux (Windows: pillar 6).
+Constraint: panel click still must not start/stop. No tray app on Linux (Windows: pillar 7).
 
-### 5. Offline mode — planned
+### 5. Cross-platform foundation — planned, before 6 and 7
+
+Stay on Kirigami, but make the code portable: one source for components and logic, platform code behind one interface. Offline mode (6) and the Windows client (7) build on it; each item below is useful alone.
+
+```
+ today                                    target
+ contents/ui/main.qml (3900 lines) ─┐     contents/code/*.js controllers (timer, idle, totals, film day)
+ app/qml/main.qml     (900 lines) ──┘ ──►   ▲ bind only
+ contents/ui/*.qml ◄─copy─► app/qml/shared  contents/ui/*.qml, one copy, controls via Controls/
+ app/main.cpp (#ifdef, D-Bus inline)        platform_{linux,android,windows}.cpp behind one interface
+```
+
+1. **Logic out of `main.qml` (1–2 weeks).** 39 functions exist under the same name in the Plasmoid's `main.qml` and the app (`startTracking`, `stopTracking`, `refreshAll`, `checkIdle`, `applyActiveTimesheet`, idle keep/discard, …). Move them into shared JS controllers in `contents/code/` (`timerSession.js`, `idleFlow.js`, `workTotals.js`), as `filmDaySync.js` does for the film day. QML only binds state and signals; the logic becomes testable with `qmltestrunner`. Slice by slice, one flow at a time.
+2. **One component source (1–2 weeks).** 28 components are copied (`app/qml/shared/` vs `contents/ui/`, 2–152 differing lines; most: StatsView, DateField, TimeField, FilmDayView). The differences are nearly only `PlasmaComponents3.*` vs `QQC2.*` and import paths. A `contents/ui/Controls/` module (`Label`, `Button`, `TextField`, …): PlasmaComponents3 in the Plasmoid, QQC2 in the app via qrc aliases on the same paths — the `Kante`/`KantePlasma` pattern. Then the app loads `contents/ui/` directly and `app/qml/shared/` goes away. One component at a time.
+3. **Platform services behind `platform.js`, one file per platform (3–5 days).** `platform.js` already has desktop and app backends. Split `app/main.cpp` (`IdleWatcher`, `Notifier`, Android filters under `#ifdef`, D-Bus inline) into one interface per service with `platform_linux.cpp`, `platform_android.cpp` (later `platform_windows.cpp`). Add the services still missing: network reachability, autostart, outbox storage. A missing service is a capability flag, never scattered `Qt.platform.os` checks.
+4. **JSON i18n in the app everywhere (1–2 days).** The app uses KI18n on the desktop and the JSON catalogs (`I18nFallback`) on Android. JSON everywhere drops KI18n/gettext, the hardest native dependency on Windows/macOS (Kirigami itself needs only Qt + ECM). The Plasmoid keeps gettext `.mo`.
+5. **One timestamp parser (1 day).** `FilmDays.stampMs` handles Kimai's `+0200` offset without a colon; other places still call `new Date(ts.begin)` (`FilmDayPage.qml` `spanText`, the Plasmoid's `filmDaySpanText`). One parser in `dateTimeFormat.js`, used everywhere: engine parsing differences are a classic cross-platform bug.
+6. **CI as the guard (2–3 days).** `qmltestrunner` and `qmllint` in CI (`tests/run.sh` today needs a local runner); a build-only job of the app on Windows and macOS that publishes nothing but fails when Linux-only code creeps in.
+
+Order: 6 first (cheap guard), then 1 and 2 (most effort, most gain), 3–5 whenever they touch the code anyway.
+
+### 6. Offline mode — planned
 
 Bad reception on set: Plasmai keeps working and syncs as soon as the server answers again. Reverses “online only” (film day, see above; the first 2.0 builds had a queue and removed it — read why before starting). Update DESIGN.md in the same change.
 
@@ -187,7 +208,7 @@ Edit and delete of stopped entries, trips (`createTrip`/`patchTrip`/`deleteTrip`
 - App and Plasmoid each queue: the Plasmoid may stop a timer the app started offline → conflict on replay, resolved by the read-before-patch check.
 - Clock skew between device and server for offline begin/end.
 
-### 6. Windows tray client — planned
+### 7. Windows tray client — planned
 
 A native Windows client: **tray icon + popup only**, conceptually the Plasmoid (icon shows the timer state, click opens the popup, nothing else on screen). Linux keeps the Plasmoid; this is Windows only. Reverses “no tray app” (pillar 4, “Won’t do”, DESIGN.md “Product intent”) for Windows — update both files in the same change.
 
@@ -215,7 +236,7 @@ A native Windows client: **tray icon + popup only**, conceptually the Plasmoid (
 4. **Packaging (1 week)** — `windeployqt` + installer (Inno Setup or MSIX), portable zip, code signing (SignPath for OSS), winget manifest, a job in `release.yml`.
 5. **Parity pass (3–5 days)** — every Plasmoid feature in the popup (film day, trips, stats, idle, forgot-to-start), Kimai live-tested on Windows 10 and 11.
 
-**Total: ~4–6 weeks.** The offline layer (pillar 5) comes along once it is in the shared code; the Windows backend implements its `platform.js` storage via `FileStore` (AppData).
+**Total: ~4–6 weeks**, less after pillar 5 (one component source, platform services per file, JSON i18n: stages 1 and 3 shrink). The offline layer (pillar 6) comes along once it is in the shared code; the Windows backend implements its `platform.js` storage via `FileStore` (AppData).
 
 **Rules**
 
@@ -257,7 +278,7 @@ Peers are **desktop/panel trackers**, not the full Kimai/Clockify web apps.
 ### Clockify desktop
 
 - **Have:** timer, manual entry, continue, last-used, idle, notifications, billable, edit/delete/split recents.
-- **Gap:** tags (API is id-based); offline queue (planned, pillar 5).
+- **Gap:** tags (API is id-based); offline queue (planned, pillar 6).
 - **Skip:** auto-tracker, screenshots, Pomodoro as the product, mini window.
 
 ### Toggl Track desktop
@@ -285,7 +306,7 @@ Not required for 2.0.
 - Compact **week timesheet grid** as another `mainViewMode` (SolidTime / Clockify), same density as stats.
 - Map **KDE Activities** to a default project (easy to get wrong).
 - **Pomodoro** as a Behavior option — not a second product.
-- Offline queue — planned, see pillar 5.
+- Offline queue — planned, see pillar 6.
 - “Template” / reload last timesheet without starting (Kemai).
 - Anfahrten: tax report (`/tax`), receipts.
 - Desktop-widget blur already follows the containment; theme-specific `blurred` prefixes stay a Plasma theme concern.
@@ -296,7 +317,7 @@ Not required for 2.0.
 
 - App/window **auto-tracker** and **screenshots**.
 - **Invoicing, expenses, team dashboards**.
-- A desktop **standalone window** or “minimize to tray” Kemai clone. The Kirigami app exists for phones; on the Linux desktop the Plasmoid is the product (Windows gets a tray-only client, pillar 6).
+- A desktop **standalone window** or “minimize to tray” Kemai clone. The Kirigami app exists for phones; on the Linux desktop the Plasmoid is the product (Windows gets a tray-only client, pillar 7).
 - **Compiled binaries** in the Store plasmoid.
 - Per-provider color UI.
 - Color distinction / clash maintenance inside Plasmai. A separate Kimai plugin handles that.
