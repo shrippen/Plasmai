@@ -124,7 +124,7 @@ Both:
 - **KRunner** as a *separate* package if ever; the Store QML applet cannot ship binaries.
 - Do **not** restore global shortcuts, D-Bus IPC or a logind shutdown hold unless DESIGN.md is rewritten.
 
-Constraint: panel click still must not start/stop. No tray app.
+Constraint: panel click still must not start/stop. No tray app on Linux (Windows: pillar 6).
 
 ### 5. Offline mode — planned
 
@@ -186,6 +186,48 @@ Edit and delete of stopped entries, trips (`createTrip`/`patchTrip`/`deleteTrip`
 - Late errors: Kimai rules (overlap, lockdown, min/max duration) fire at sync time, hours later.
 - App and Plasmoid each queue: the Plasmoid may stop a timer the app started offline → conflict on replay, resolved by the read-before-patch check.
 - Clock skew between device and server for offline begin/end.
+
+### 6. Windows tray client — planned
+
+A native Windows client: **tray icon + popup only**, conceptually the Plasmoid (icon shows the timer state, click opens the popup, nothing else on screen). Linux keeps the Plasmoid; this is Windows only. Reverses “no tray app” (pillar 4, “Won’t do”, DESIGN.md “Product intent”) for Windows — update both files in the same change.
+
+**Approach: the Kirigami app in a tray shell**, not a rewrite.
+
+| Option | Reuse | Verdict |
+|---|---|---|
+| Kirigami app (`app/`) + C++ tray shell | provider layer, app state (`app/qml/main.qml`), pages, i18n JSON, QtKeychain | **chosen** |
+| Port the Plasmoid (`contents/ui/main.qml`) | — needs Plasma imports (`org.kde.plasma.*`, P5Support) | no |
+| WinUI / C# rewrite | nothing | no |
+
+```
+ QSystemTrayIcon ──left click──► TrayPopup (frameless QQuickWindow, Kirigami pageStack)
+   │ icon: idle / running (red dot, as Kante)      │ timer, recents, favorites, film day, trips
+   │ tooltip: project · activity · 1:23            │ closes on focus loss, like a Plasma popup
+   └─right click──► menu: stop · continue last · open Kimai · settings · autostart · quit
+                                                   settings / connection: normal window
+```
+
+**Stages**
+
+1. **Windows build (3–5 days)** — `app/` with MSVC and Qt 6 on a GitHub Windows runner; Kirigami from KDE Craft (or built from source: only Qt + ECM); QtKeychain → Windows Credential Manager; no KI18n (the JSON catalogs of `I18nFallback` already cover Android). Goal: today's app window runs on Windows. Main risk of the plan.
+2. **Tray shell (1–1.5 weeks)** — C++ `TrayController`: `QSystemTrayIcon`, popup placed next to the icon (`QSystemTrayIcon::geometry()`, taskbar edge), hide on focus loss, single instance (`QLocalServer`: a second start opens the popup), autostart (HKCU `Run` key). QML `TrayPopup` hosting the existing pages at popup size; the icon and tooltip follow `activeTimesheet`.
+3. **Platform services (3–5 days)** — idle via `GetLastInputInfo` (idle dialog as on the Plasmoid), notifications via `QSystemTrayIcon::showMessage` (Windows toasts later if needed), light/dark from Windows (`QStyleHints::colorScheme`), per-monitor DPI.
+4. **Packaging (1 week)** — `windeployqt` + installer (Inno Setup or MSIX), portable zip, code signing (SignPath for OSS), winget manifest, a job in `release.yml`.
+5. **Parity pass (3–5 days)** — every Plasmoid feature in the popup (film day, trips, stats, idle, forgot-to-start), Kimai live-tested on Windows 10 and 11.
+
+**Total: ~4–6 weeks.** The offline layer (pillar 5) comes along once it is in the shared code; the Windows backend implements its `platform.js` storage via `FileStore` (AppData).
+
+**Rules**
+
+- Popup behaves like the Plasmoid: tray click opens, never starts/stops; no main window, no taskbar button.
+- No Windows-only features; missing platform services stay capability flags.
+- Same QML as the app (`app/qml/`), no third copy of the components.
+
+**Risks**
+
+- Kirigami on Windows is less used than on Linux/Android: styling and popup focus behavior need testing.
+- Tray popup placement varies (taskbar top/left, overflow area “^”, several monitors).
+- Unsigned builds trigger SmartScreen; signing is needed for real users.
 
 ### Release chores for 2.0.0 (see RELEASE-TODO.md)
 
@@ -254,7 +296,7 @@ Not required for 2.0.
 
 - App/window **auto-tracker** and **screenshots**.
 - **Invoicing, expenses, team dashboards**.
-- A desktop **standalone window** or “minimize to tray” Kemai clone. The Kirigami app exists for phones; on the desktop the Plasmoid is the product.
+- A desktop **standalone window** or “minimize to tray” Kemai clone. The Kirigami app exists for phones; on the Linux desktop the Plasmoid is the product (Windows gets a tray-only client, pillar 6).
 - **Compiled binaries** in the Store plasmoid.
 - Per-provider color UI.
 - Color distinction / clash maintenance inside Plasmai. A separate Kimai plugin handles that.
