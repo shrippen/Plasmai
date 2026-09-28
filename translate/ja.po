@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-09-28 11:02+0200\n"
+"POT-Creation-Date: 2026-09-28 12:06+0200\n"
 "PO-Revision-Date: 2026-08-09 19:45+0200\n"
 "Last-Translator: Cursor Agent\n"
 "Language-Team: Japanese\n"
@@ -161,8 +161,8 @@ msgid "Missing URL or token (type: %1)"
 msgstr "URLまたはトークンがありません (種類: %1)"
 
 #: app/qml/FavoritesPage.qml:12 app/qml/main.qml:843 app/qml/TimerPage.qml:637
-#: contents/config/config.qml:11 contents/ui/config/ConfigDisplay.qml:833
-#: contents/ui/config/ConfigDisplay.qml:888
+#: contents/config/config.qml:11 contents/ui/config/ConfigDisplay.qml:871
+#: contents/ui/config/ConfigDisplay.qml:926
 #: contents/ui/config/ConfigFavorites.qml:423 contents/ui/EntryLists.qml:167
 msgid "Favorites"
 msgstr "お気に入り"
@@ -176,7 +176,7 @@ msgid "Connect a time tracker first"
 msgstr "先に時間管理サービスを接続してください"
 
 #: app/qml/FilmDayPage.qml:16 app/qml/TimerPage.qml:57
-#: contents/ui/main.qml:3360 contents/ui/main.qml:3430
+#: contents/ui/main.qml:3371 contents/ui/main.qml:3441
 msgid "Film day"
 msgstr "撮影日"
 
@@ -216,7 +216,7 @@ msgstr "撮影日を保存しました"
 #: app/qml/TimerPage.qml:776 app/qml/TimerPage.qml:789
 #: app/qml/TimerPage.qml:806 contents/ui/ActiveEditView.qml:360
 #: contents/ui/ActiveEditView.qml:389 contents/ui/EntryLists.qml:155
-#: contents/ui/FilmDayView.qml:916 contents/ui/main.qml:3056
+#: contents/ui/FilmDayView.qml:916 contents/ui/main.qml:3067
 #: contents/ui/ManualEntryView.qml:421 contents/ui/TimeField.qml:265
 #: contents/ui/TripSheet.qml:433
 msgid "Cancel"
@@ -267,7 +267,7 @@ msgstr "分"
 
 #: app/qml/main.qml:221 app/qml/main.qml:797 app/qml/TimerPage.qml:17
 #: contents/ui/main.qml:357 contents/ui/main.qml:359 contents/ui/main.qml:2743
-#: contents/ui/main.qml:3364
+#: contents/ui/main.qml:3375
 msgid "Plasmai"
 msgstr "Plasmai"
 
@@ -339,7 +339,7 @@ msgstr "エントリを保存できませんでした"
 msgid "Could not delete the entry"
 msgstr "エントリを削除できませんでした"
 
-#: app/qml/main.qml:596 contents/ui/main.qml:2694 contents/ui/main.qml:3197
+#: app/qml/main.qml:596 contents/ui/main.qml:2694 contents/ui/main.qml:3208
 msgid "Split time must be between begin and end."
 msgstr "分割時刻は開始と終了の間である必要があります。"
 
@@ -388,7 +388,7 @@ msgid "Add Entry"
 msgstr "エントリを追加"
 
 #: app/qml/main.qml:834 app/qml/StatsPage.qml:15 app/qml/TimerPage.qml:51
-#: contents/ui/main.qml:3359 contents/ui/main.qml:3416
+#: contents/ui/main.qml:3370 contents/ui/main.qml:3427
 msgid "Statistics"
 msgstr "統計"
 
@@ -401,36 +401,36 @@ msgid "Settings"
 msgstr "設定"
 
 #: app/qml/ManualEntryPage.qml:14 app/qml/shared/ActivityListRow.qml:332
-#: contents/ui/ActivityListRow.qml:330 contents/ui/main.qml:3363
+#: contents/ui/ActivityListRow.qml:330 contents/ui/main.qml:3374
 msgid "Edit entry"
 msgstr "エントリを編集"
 
 #: app/qml/ManualEntryPage.qml:14 app/qml/TimerPage.qml:45
-#: contents/ui/main.qml:3363 contents/ui/main.qml:3401
+#: contents/ui/main.qml:3374 contents/ui/main.qml:3412
 msgid "Add entry"
 msgstr "エントリを追加"
 
-#: app/qml/SettingsPage.qml:59 contents/ui/config/ConfigDisplay.qml:487
+#: app/qml/SettingsPage.qml:59 contents/ui/config/ConfigDisplay.qml:492
 msgid "Appearance"
 msgstr "外観"
 
-#: app/qml/SettingsPage.qml:63 contents/ui/config/ConfigDisplay.qml:493
+#: app/qml/SettingsPage.qml:63 contents/ui/config/ConfigDisplay.qml:498
 msgid "Style:"
 msgstr "スタイル:"
 
-#: app/qml/SettingsPage.qml:66 contents/ui/config/ConfigDisplay.qml:497
+#: app/qml/SettingsPage.qml:66 contents/ui/config/ConfigDisplay.qml:502
 msgid "System (Plasma theme)"
 msgstr "システム (Plasma テーマ)"
 
-#: app/qml/SettingsPage.qml:66 contents/ui/config/ConfigDisplay.qml:498
+#: app/qml/SettingsPage.qml:66 contents/ui/config/ConfigDisplay.qml:503
 msgid "Kante"
 msgstr "Kante"
 
-#: app/qml/SettingsPage.qml:66 contents/ui/config/ConfigDisplay.qml:499
+#: app/qml/SettingsPage.qml:66 contents/ui/config/ConfigDisplay.qml:504
 msgid "Kante Light"
 msgstr "Kante Light"
 
-#: app/qml/SettingsPage.qml:78 contents/ui/config/ConfigDisplay.qml:511
+#: app/qml/SettingsPage.qml:78 contents/ui/config/ConfigDisplay.qml:516
 msgid "Kante is Plasmai's own look: warm colors, square cut corners and monospace figures. It deliberately does not follow Breeze; dark or light still follows your theme. Kante Light keeps your theme's colors and controls and adds only Kante's shapes, titles and figures."
 msgstr "Kante は Plasmai 独自の外観です: 暖色、角を切り落とした形、等幅の数字。あえて Breeze には従いませんが、明暗はテーマに従います。Kante Light はテーマの色とコントロールをそのまま使い、Kante の形・タイトル・数字だけを加えます。"
 
@@ -475,11 +475,11 @@ msgstr "アクティビティの開始／切り替え操作を表示"
 msgid "Show day sparkline"
 msgstr "1日のグラフを表示"
 
-#: app/qml/SettingsPage.qml:136 contents/ui/config/ConfigDisplay.qml:600
+#: app/qml/SettingsPage.qml:136 contents/ui/config/ConfigDisplay.qml:605
 msgid "Show sun, moon, and work arcs"
 msgstr "太陽・月・勤務の弧を表示"
 
-#: app/qml/SettingsPage.qml:142 contents/ui/config/ConfigDisplay.qml:941
+#: app/qml/SettingsPage.qml:142 contents/ui/config/ConfigDisplay.qml:979
 msgid "Trips:"
 msgstr "移動:"
 
@@ -503,7 +503,7 @@ msgstr "開始が直前の記録と重なる場合は確認する"
 msgid "When editing the running timer, the previous entry's end is shown. Saving an earlier start asks for confirmation."
 msgstr "実行中のタイマーを編集すると、前のエントリの終了時刻が表示されます。より早い開始時刻を保存するときは確認が必要です。"
 
-#: app/qml/SettingsPage.qml:165 contents/ui/config/ConfigDisplay.qml:555
+#: app/qml/SettingsPage.qml:165 contents/ui/config/ConfigDisplay.qml:560
 msgid "Work hours"
 msgstr "勤務時間"
 
@@ -644,7 +644,7 @@ msgstr "お気に入りにピン留め"
 
 #: app/qml/shared/ActivityListRow.qml:339 app/qml/TimerPage.qml:801
 #: app/qml/TimerPage.qml:805 contents/ui/ActivityListRow.qml:337
-#: contents/ui/main.qml:3104
+#: contents/ui/main.qml:3115
 msgid "Split entry"
 msgstr "エントリを分割"
 
@@ -653,7 +653,7 @@ msgstr "エントリを分割"
 #: app/qml/TimerPage.qml:301 app/qml/TimerPage.qml:330
 #: app/qml/TripEditPage.qml:19 app/qml/TripsPage.qml:119
 #: contents/ui/ActivityListRow.qml:344 contents/ui/FilmDayView.qml:855
-#: contents/ui/main.qml:3444 contents/ui/TimerCardKante.qml:88
+#: contents/ui/main.qml:3455 contents/ui/TimerCardKante.qml:88
 #: contents/ui/TimerCard.qml:98 contents/ui/TripSheet.qml:205
 #: contents/ui/TripSheet.qml:420
 msgid "Log trip"
@@ -1412,7 +1412,7 @@ msgstr "%1 (%2) に接続済み"
 msgid "Connected to %1"
 msgstr "%1 に接続済み"
 
-#: app/qml/TimerPage.qml:171 contents/ui/main.qml:3505
+#: app/qml/TimerPage.qml:171 contents/ui/main.qml:3516
 msgid "Connect a time tracker"
 msgstr "時間記録サービスを接続"
 
@@ -1420,15 +1420,15 @@ msgstr "時間記録サービスを接続"
 msgid "Add your service, server URL (if needed), and API token to start tracking."
 msgstr "サービス、サーバーURL (必要な場合)、APIトークンを追加して計測を始めましょう。"
 
-#: app/qml/TimerPage.qml:173 contents/ui/main.qml:3508
+#: app/qml/TimerPage.qml:173 contents/ui/main.qml:3519
 msgid "Configure Plasmai"
 msgstr "Plasmai を設定"
 
-#: app/qml/TimerPage.qml:182 contents/ui/main.qml:3522
+#: app/qml/TimerPage.qml:182 contents/ui/main.qml:3533
 msgid "Retry"
 msgstr "再試行"
 
-#: app/qml/TimerPage.qml:183 contents/ui/main.qml:3527
+#: app/qml/TimerPage.qml:183 contents/ui/main.qml:3538
 msgid "Configure"
 msgstr "設定"
 
@@ -1500,7 +1500,7 @@ msgid "Start something else…"
 msgstr "別の作業を開始…"
 
 #: app/qml/TimerPage.qml:610 app/qml/TimerPage.qml:788
-#: contents/ui/EntryLists.qml:143 contents/ui/main.qml:3050
+#: contents/ui/EntryLists.qml:143 contents/ui/main.qml:3061
 msgid "Switch"
 msgstr "切り替え"
 
@@ -1517,7 +1517,7 @@ msgstr "「最近」からエントリをピン留めすると、お気に入り
 msgid "Recent"
 msgstr "最近"
 
-#: app/qml/TimerPage.qml:756 contents/ui/main.qml:2893
+#: app/qml/TimerPage.qml:756 contents/ui/main.qml:2904
 msgid "Stop tracking?"
 msgstr "記録を停止しますか？"
 
@@ -1525,7 +1525,7 @@ msgstr "記録を停止しますか？"
 msgid "Stop %1 · %2?"
 msgstr "%1 · %2 を停止しますか？"
 
-#: app/qml/TimerPage.qml:770 contents/ui/main.qml:3071
+#: app/qml/TimerPage.qml:770 contents/ui/main.qml:3082
 msgid "Delete entry?"
 msgstr "エントリを削除しますか？"
 
@@ -1534,7 +1534,7 @@ msgid "Really delete this entry?"
 msgstr "このエントリを本当に削除しますか？"
 
 #: app/qml/TimerPage.qml:783 contents/ui/EntryLists.qml:57
-#: contents/ui/main.qml:2917
+#: contents/ui/main.qml:2928
 msgid "Switch activity"
 msgstr "アクティビティを切り替え"
 
@@ -1546,7 +1546,7 @@ msgstr "%1 · %2 に切り替えますか？"
 msgid "Split at:"
 msgstr "分割位置:"
 
-#: app/qml/TimerPage.qml:842 contents/ui/main.qml:3210
+#: app/qml/TimerPage.qml:842 contents/ui/main.qml:3221
 msgid "You were idle"
 msgstr "アイドル状態でした"
 
@@ -1554,15 +1554,15 @@ msgstr "アイドル状態でした"
 msgid "You were idle for %1. Keep this time, discard it, or discard and continue?"
 msgstr "%1 間アイドル状態でした。この時間を残しますか、破棄しますか、それとも破棄して続けますか？"
 
-#: app/qml/TimerPage.qml:853 contents/ui/main.qml:3237
+#: app/qml/TimerPage.qml:853 contents/ui/main.qml:3248
 msgid "Keep time"
 msgstr "時間を残す"
 
-#: app/qml/TimerPage.qml:854 contents/ui/main.qml:3246
+#: app/qml/TimerPage.qml:854 contents/ui/main.qml:3257
 msgid "Discard idle"
 msgstr "アイドルを破棄"
 
-#: app/qml/TimerPage.qml:855 contents/ui/main.qml:3255
+#: app/qml/TimerPage.qml:855 contents/ui/main.qml:3266
 msgid "Discard and continue"
 msgstr "破棄して続ける"
 
@@ -1627,7 +1627,7 @@ msgstr "時間エントリー #%1"
 msgid "round trip"
 msgstr "往復"
 
-#: contents/config/config.qml:16 contents/ui/config/ConfigDisplay.qml:473
+#: contents/config/config.qml:16 contents/ui/config/ConfigDisplay.qml:478
 msgid "Display"
 msgstr "表示"
 
@@ -1783,193 +1783,217 @@ msgstr "ok"
 msgid "Connected to %1 (%2)."
 msgstr "%1 (%2) に接続しました。"
 
-#: contents/ui/config/ConfigDisplay.qml:183
+#: contents/ui/config/ConfigDisplay.qml:185
 msgid "Enter a city or place name to search."
 msgstr "検索する都市または地名を入力してください。"
 
-#: contents/ui/config/ConfigDisplay.qml:187
-#: contents/ui/config/ConfigDisplay.qml:637
+#: contents/ui/config/ConfigDisplay.qml:189
+#: contents/ui/config/ConfigDisplay.qml:642
 msgid "Searching…"
 msgstr "検索中…"
 
-#: contents/ui/config/ConfigDisplay.qml:196
+#: contents/ui/config/ConfigDisplay.qml:198
 msgid "Location search failed. Check your network connection."
 msgstr "場所の検索に失敗しました。ネットワーク接続を確認してください。"
 
-#: contents/ui/config/ConfigDisplay.qml:201
+#: contents/ui/config/ConfigDisplay.qml:203
 msgid "No places found."
 msgstr "場所が見つかりませんでした。"
 
-#: contents/ui/config/ConfigDisplay.qml:203
+#: contents/ui/config/ConfigDisplay.qml:205
 msgid "%1 place found."
 msgid_plural "%1 places found."
 msgstr[0] "%1 件の場所が見つかりました。"
 
-#: contents/ui/config/ConfigDisplay.qml:517
+#: contents/ui/config/ConfigDisplay.qml:522
 msgid "Touch optimization:"
 msgstr "タッチ最適化:"
 
-#: contents/ui/config/ConfigDisplay.qml:521
+#: contents/ui/config/ConfigDisplay.qml:526
 msgid "Automatic (follow Plasma tablet mode)"
 msgstr "自動（Plasmaタブレットモードに従う）"
 
-#: contents/ui/config/ConfigDisplay.qml:522
+#: contents/ui/config/ConfigDisplay.qml:527
 msgid "On"
 msgstr "オン"
 
-#: contents/ui/config/ConfigDisplay.qml:523
+#: contents/ui/config/ConfigDisplay.qml:528
 msgid "Off"
 msgstr "オフ"
 
-#: contents/ui/config/ConfigDisplay.qml:535
+#: contents/ui/config/ConfigDisplay.qml:540
 msgid "Larger tap targets for buttons, lists, pickers, and date/time controls."
 msgstr "ボタン、リスト、ピッカー、日付/時刻コントロールのタップ領域を拡大します。"
 
-#: contents/ui/config/ConfigDisplay.qml:540
+#: contents/ui/config/ConfigDisplay.qml:545
 msgid "Updates"
 msgstr "更新"
 
-#: contents/ui/config/ConfigDisplay.qml:546
+#: contents/ui/config/ConfigDisplay.qml:551
 msgid "Refresh interval (seconds):"
 msgstr "更新間隔（秒）:"
 
-#: contents/ui/config/ConfigDisplay.qml:561
+#: contents/ui/config/ConfigDisplay.qml:566
 msgid "Usual work day start:"
 msgstr "通常の勤務開始:"
 
-#: contents/ui/config/ConfigDisplay.qml:571
+#: contents/ui/config/ConfigDisplay.qml:576
 msgid "Usual work day end:"
 msgstr "通常の勤務終了:"
 
-#: contents/ui/config/ConfigDisplay.qml:586
+#: contents/ui/config/ConfigDisplay.qml:591
 msgid "Used for the sparkline zoom and remaining-time in the work summary."
 msgstr "スパークラインのズームと作業概要の残り時間に使います。"
 
-#: contents/ui/config/ConfigDisplay.qml:591
-#: contents/ui/config/ConfigDisplay.qml:825
-#: contents/ui/config/ConfigDisplay.qml:880
+#: contents/ui/config/ConfigDisplay.qml:596
+#: contents/ui/config/ConfigDisplay.qml:863
+#: contents/ui/config/ConfigDisplay.qml:918
 msgid "Day sparkline"
 msgstr "日次スパークライン"
 
-#: contents/ui/config/ConfigDisplay.qml:597
+#: contents/ui/config/ConfigDisplay.qml:602
 msgid "Arcs:"
 msgstr "弧:"
 
-#: contents/ui/config/ConfigDisplay.qml:611
+#: contents/ui/config/ConfigDisplay.qml:616
 msgid "Hide the whole sparkline under Panel flyout or Desktop widget below."
 msgstr "パネルのポップアップまたは下のデスクトップウィジェットでスパークライン全体を非表示にします。"
 
-#: contents/ui/config/ConfigDisplay.qml:615
+#: contents/ui/config/ConfigDisplay.qml:620
 msgid "Find location:"
 msgstr "場所を検索:"
 
-#: contents/ui/config/ConfigDisplay.qml:624
+#: contents/ui/config/ConfigDisplay.qml:629
 msgid "City, region, or address…"
 msgstr "都市、地域、または住所…"
 
-#: contents/ui/config/ConfigDisplay.qml:637
-#: contents/ui/config/ConfigDisplay.qml:645
+#: contents/ui/config/ConfigDisplay.qml:642
+#: contents/ui/config/ConfigDisplay.qml:650
 msgid "Search"
 msgstr "検索"
 
-#: contents/ui/config/ConfigDisplay.qml:699
+#: contents/ui/config/ConfigDisplay.qml:704
 msgid "Using %1"
 msgstr "%1 を使用中"
 
-#: contents/ui/config/ConfigDisplay.qml:716
+#: contents/ui/config/ConfigDisplay.qml:721
 msgid "Current place: %1"
 msgstr "現在の場所: %1"
 
-#: contents/ui/config/ConfigDisplay.qml:721
+#: contents/ui/config/ConfigDisplay.qml:726
 msgid "Latitude:"
 msgstr "緯度:"
 
-#: contents/ui/config/ConfigDisplay.qml:736
+#: contents/ui/config/ConfigDisplay.qml:741
 msgid "Longitude:"
 msgstr "経度:"
 
-#: contents/ui/config/ConfigDisplay.qml:756
+#: contents/ui/config/ConfigDisplay.qml:761
 msgid "Search a place or enter coordinates for sunrise/sunset coloring. Powered by OpenStreetMap Nominatim."
 msgstr "場所を検索するか座標を入力して日の出・日の入りの色分けに使います。OpenStreetMap Nominatim を使用。"
 
-#: contents/ui/config/ConfigDisplay.qml:761
+#: contents/ui/config/ConfigDisplay.qml:766
 msgid "Panel (taskbar)"
 msgstr "パネル（タスクバー）"
 
-#: contents/ui/config/ConfigDisplay.qml:767
-#: contents/ui/config/ConfigDisplay.qml:814
-#: contents/ui/config/ConfigDisplay.qml:869
+#: contents/ui/config/ConfigDisplay.qml:772
+#: contents/ui/config/ConfigDisplay.qml:852
+#: contents/ui/config/ConfigDisplay.qml:907
 msgid "Show:"
 msgstr "表示:"
 
-#: contents/ui/config/ConfigDisplay.qml:770
+#: contents/ui/config/ConfigDisplay.qml:775
 msgid "Elapsed time"
 msgstr "経過時間"
 
-#: contents/ui/config/ConfigDisplay.qml:778
+#: contents/ui/config/ConfigDisplay.qml:783
 msgid "Project name"
 msgstr "プロジェクト名"
 
-#: contents/ui/config/ConfigDisplay.qml:786
+#: contents/ui/config/ConfigDisplay.qml:791
 msgid "Activity name"
 msgstr "アクティビティ名"
 
-#: contents/ui/config/ConfigDisplay.qml:794
+#: contents/ui/config/ConfigDisplay.qml:799
 msgid "Customer color pill"
 msgstr "顧客カラーピル"
 
-#: contents/ui/config/ConfigDisplay.qml:802
+#: contents/ui/config/ConfigDisplay.qml:807
 msgid "Project color pill"
 msgstr "プロジェクトカラーピル"
 
-#: contents/ui/config/ConfigDisplay.qml:808
+#: contents/ui/config/ConfigDisplay.qml:813
+msgid "Running timer:"
+msgstr "実行中のタイマー:"
+
+#: contents/ui/config/ConfigDisplay.qml:818
+msgid "Red dot"
+msgstr "赤い点"
+
+#: contents/ui/config/ConfigDisplay.qml:819
+msgid "Red bottom edge"
+msgstr "赤い下端"
+
+#: contents/ui/config/ConfigDisplay.qml:820
+msgid "Red side stripe"
+msgstr "左側の赤い帯"
+
+#: contents/ui/config/ConfigDisplay.qml:826
+msgid "Preview:"
+msgstr "プレビュー:"
+
+#: contents/ui/config/ConfigDisplay.qml:841
+msgid "The Kante styles mark a running timer with a small red indicator. The System style keeps the Plasma theme's green."
+msgstr "Kante スタイルでは、実行中のタイマーを小さな赤い印で示します。システムスタイルは Plasma テーマの緑のままです。"
+
+#: contents/ui/config/ConfigDisplay.qml:846
 msgid "Panel flyout"
 msgstr "パネルのフライアウト"
 
-#: contents/ui/config/ConfigDisplay.qml:817
-#: contents/ui/config/ConfigDisplay.qml:872
+#: contents/ui/config/ConfigDisplay.qml:855
+#: contents/ui/config/ConfigDisplay.qml:910
 msgid "Work summary (today / week / remaining)"
 msgstr "作業概要（今日 / 週 / 残り）"
 
-#: contents/ui/config/ConfigDisplay.qml:841
-#: contents/ui/config/ConfigDisplay.qml:896
-#: contents/ui/config/ConfigDisplay.qml:910
+#: contents/ui/config/ConfigDisplay.qml:879
+#: contents/ui/config/ConfigDisplay.qml:934
+#: contents/ui/config/ConfigDisplay.qml:948
 msgid "Recent list"
 msgstr "最近のリスト"
 
-#: contents/ui/config/ConfigDisplay.qml:849
+#: contents/ui/config/ConfigDisplay.qml:887
 msgid "Continue last activity"
 msgstr "前回のアクティビティを続行"
 
-#: contents/ui/config/ConfigDisplay.qml:857
+#: contents/ui/config/ConfigDisplay.qml:895
 msgid "Start / switch activity controls"
 msgstr "開始 / アクティビティ切り替えコントロール"
 
-#: contents/ui/config/ConfigDisplay.qml:863
+#: contents/ui/config/ConfigDisplay.qml:901
 msgid "Desktop widget"
 msgstr "デスクトップウィジェット"
 
-#: contents/ui/config/ConfigDisplay.qml:904
+#: contents/ui/config/ConfigDisplay.qml:942
 msgid "New activity picker"
 msgstr "新しいアクティビティ選択"
 
-#: contents/ui/config/ConfigDisplay.qml:916
+#: contents/ui/config/ConfigDisplay.qml:954
 msgid "Activities shown:"
 msgstr "表示するアクティビティ:"
 
-#: contents/ui/config/ConfigDisplay.qml:930
+#: contents/ui/config/ConfigDisplay.qml:968
 msgid "Applies to both the panel flyout and the desktop widget."
 msgstr "パネルのポップアップとデスクトップウィジェットの両方に適用されます。"
 
-#: contents/ui/config/ConfigDisplay.qml:935
+#: contents/ui/config/ConfigDisplay.qml:973
 msgid "Kimai plugins"
 msgstr "Kimai プラグイン"
 
-#: contents/ui/config/ConfigDisplay.qml:944
+#: contents/ui/config/ConfigDisplay.qml:982
 msgid "Log trips and show detected trips"
 msgstr "移動を記録し、検出された移動を表示"
 
-#: contents/ui/config/ConfigDisplay.qml:955
+#: contents/ui/config/ConfigDisplay.qml:993
 msgid "Only when the Anfahrten plugin (MileageBundle) is installed on the Kimai server and your account may use it."
 msgstr "Kimai サーバーに Anfahrten プラグイン (MileageBundle) があり、アカウントで利用できる場合のみ。"
 
@@ -2203,71 +2227,71 @@ msgstr "エントリを分割しました"
 msgid "Open or close the Plasmai popup"
 msgstr "Plasmai のポップアップを開くまたは閉じる"
 
-#: contents/ui/main.qml:2906
+#: contents/ui/main.qml:2917
 msgid "Stop tracking %1 · %2?"
 msgstr "%1 · %2 の記録を停止しますか？"
 
-#: contents/ui/main.qml:3020
+#: contents/ui/main.qml:3031
 msgid "Current"
 msgstr "現在"
 
-#: contents/ui/main.qml:3039
+#: contents/ui/main.qml:3050
 msgid "Switch to"
 msgstr "切り替え先"
 
-#: contents/ui/main.qml:3088
+#: contents/ui/main.qml:3099
 msgid "Delete this finished entry? This cannot be undone."
 msgstr "この完了済みエントリを削除しますか？元に戻せません。"
 
-#: contents/ui/main.qml:3090
+#: contents/ui/main.qml:3101
 msgid "Delete \"%1 · %2\"? This cannot be undone."
 msgstr "「%1 · %2」を削除しますか？元に戻せません。"
 
-#: contents/ui/main.qml:3155
+#: contents/ui/main.qml:3166
 msgid "The first half keeps the original start. The second half starts at the split time."
 msgstr "前半は元の開始時刻のままです。後半は分割時刻から始まります。"
 
-#: contents/ui/main.qml:3160
+#: contents/ui/main.qml:3171
 msgid "Split at"
 msgstr "分割時刻"
 
-#: contents/ui/main.qml:3196
+#: contents/ui/main.qml:3207
 msgid "Both halves will have a positive duration."
 msgstr "両方の半分は正の時間になります。"
 
-#: contents/ui/main.qml:3228
+#: contents/ui/main.qml:3239
 msgid "Keep the time, discard the idle gap, or discard and continue the same activity."
 msgstr "時間を残す、アイドル区間を破棄する、または破棄して同じアクティビティを続けます。"
 
-#: contents/ui/main.qml:3361
+#: contents/ui/main.qml:3372
 msgid "Trip"
 msgstr "移動"
 
-#: contents/ui/main.qml:3407
+#: contents/ui/main.qml:3418
 msgid "Add a manual time entry"
 msgstr "手動時間エントリを追加"
 
-#: contents/ui/main.qml:3422
+#: contents/ui/main.qml:3433
 msgid "Show statistics"
 msgstr "統計を表示"
 
-#: contents/ui/main.qml:3436
+#: contents/ui/main.qml:3447
 msgid "Log a shooting day"
 msgstr "撮影日を記録"
 
-#: contents/ui/main.qml:3450
+#: contents/ui/main.qml:3461
 msgid "Log a trip (Anfahrten plugin)"
 msgstr "移動を記録 (Anfahrten プラグイン)"
 
-#: contents/ui/main.qml:3459
+#: contents/ui/main.qml:3470
 msgid "Back"
 msgstr "戻る"
 
-#: contents/ui/main.qml:3464
+#: contents/ui/main.qml:3475
 msgid "Back to timer"
 msgstr "タイマーに戻る"
 
-#: contents/ui/main.qml:3506
+#: contents/ui/main.qml:3517
 msgid "Add your service, server URL (if needed), and API token to start tracking from the panel."
 msgstr "サービス、サーバー URL（必要な場合）、API トークンを追加してパネルから記録を開始します。"
 

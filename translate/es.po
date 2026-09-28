@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-09-28 11:02+0200\n"
+"POT-Creation-Date: 2026-09-28 12:06+0200\n"
 "PO-Revision-Date: 2026-08-09 19:45+0200\n"
 "Last-Translator: Cursor Agent\n"
 "Language-Team: Spanish\n"
@@ -161,8 +161,8 @@ msgid "Missing URL or token (type: %1)"
 msgstr "Falta la URL o el token (tipo: %1)"
 
 #: app/qml/FavoritesPage.qml:12 app/qml/main.qml:843 app/qml/TimerPage.qml:637
-#: contents/config/config.qml:11 contents/ui/config/ConfigDisplay.qml:833
-#: contents/ui/config/ConfigDisplay.qml:888
+#: contents/config/config.qml:11 contents/ui/config/ConfigDisplay.qml:871
+#: contents/ui/config/ConfigDisplay.qml:926
 #: contents/ui/config/ConfigFavorites.qml:423 contents/ui/EntryLists.qml:167
 msgid "Favorites"
 msgstr "Favoritos"
@@ -176,7 +176,7 @@ msgid "Connect a time tracker first"
 msgstr "Conecta primero un servicio de control de tiempo"
 
 #: app/qml/FilmDayPage.qml:16 app/qml/TimerPage.qml:57
-#: contents/ui/main.qml:3360 contents/ui/main.qml:3430
+#: contents/ui/main.qml:3371 contents/ui/main.qml:3441
 msgid "Film day"
 msgstr "Día de rodaje"
 
@@ -217,7 +217,7 @@ msgstr "Día de rodaje guardado"
 #: app/qml/TimerPage.qml:776 app/qml/TimerPage.qml:789
 #: app/qml/TimerPage.qml:806 contents/ui/ActiveEditView.qml:360
 #: contents/ui/ActiveEditView.qml:389 contents/ui/EntryLists.qml:155
-#: contents/ui/FilmDayView.qml:916 contents/ui/main.qml:3056
+#: contents/ui/FilmDayView.qml:916 contents/ui/main.qml:3067
 #: contents/ui/ManualEntryView.qml:421 contents/ui/TimeField.qml:265
 #: contents/ui/TripSheet.qml:433
 msgid "Cancel"
@@ -268,7 +268,7 @@ msgstr "Minutos"
 
 #: app/qml/main.qml:221 app/qml/main.qml:797 app/qml/TimerPage.qml:17
 #: contents/ui/main.qml:357 contents/ui/main.qml:359 contents/ui/main.qml:2743
-#: contents/ui/main.qml:3364
+#: contents/ui/main.qml:3375
 msgid "Plasmai"
 msgstr "Plasmai"
 
@@ -340,7 +340,7 @@ msgstr "No se pudo guardar la entrada"
 msgid "Could not delete the entry"
 msgstr "No se pudo eliminar la entrada"
 
-#: app/qml/main.qml:596 contents/ui/main.qml:2694 contents/ui/main.qml:3197
+#: app/qml/main.qml:596 contents/ui/main.qml:2694 contents/ui/main.qml:3208
 msgid "Split time must be between begin and end."
 msgstr "La hora de división debe estar entre el inicio y el fin."
 
@@ -389,7 +389,7 @@ msgid "Add Entry"
 msgstr "Añadir entrada"
 
 #: app/qml/main.qml:834 app/qml/StatsPage.qml:15 app/qml/TimerPage.qml:51
-#: contents/ui/main.qml:3359 contents/ui/main.qml:3416
+#: contents/ui/main.qml:3370 contents/ui/main.qml:3427
 msgid "Statistics"
 msgstr "Estadísticas"
 
@@ -402,36 +402,36 @@ msgid "Settings"
 msgstr "Ajustes"
 
 #: app/qml/ManualEntryPage.qml:14 app/qml/shared/ActivityListRow.qml:332
-#: contents/ui/ActivityListRow.qml:330 contents/ui/main.qml:3363
+#: contents/ui/ActivityListRow.qml:330 contents/ui/main.qml:3374
 msgid "Edit entry"
 msgstr "Editar entrada"
 
 #: app/qml/ManualEntryPage.qml:14 app/qml/TimerPage.qml:45
-#: contents/ui/main.qml:3363 contents/ui/main.qml:3401
+#: contents/ui/main.qml:3374 contents/ui/main.qml:3412
 msgid "Add entry"
 msgstr "Añadir entrada"
 
-#: app/qml/SettingsPage.qml:59 contents/ui/config/ConfigDisplay.qml:487
+#: app/qml/SettingsPage.qml:59 contents/ui/config/ConfigDisplay.qml:492
 msgid "Appearance"
 msgstr "Apariencia"
 
-#: app/qml/SettingsPage.qml:63 contents/ui/config/ConfigDisplay.qml:493
+#: app/qml/SettingsPage.qml:63 contents/ui/config/ConfigDisplay.qml:498
 msgid "Style:"
 msgstr "Estilo:"
 
-#: app/qml/SettingsPage.qml:66 contents/ui/config/ConfigDisplay.qml:497
+#: app/qml/SettingsPage.qml:66 contents/ui/config/ConfigDisplay.qml:502
 msgid "System (Plasma theme)"
 msgstr "Sistema (tema de Plasma)"
 
-#: app/qml/SettingsPage.qml:66 contents/ui/config/ConfigDisplay.qml:498
+#: app/qml/SettingsPage.qml:66 contents/ui/config/ConfigDisplay.qml:503
 msgid "Kante"
 msgstr "Kante"
 
-#: app/qml/SettingsPage.qml:66 contents/ui/config/ConfigDisplay.qml:499
+#: app/qml/SettingsPage.qml:66 contents/ui/config/ConfigDisplay.qml:504
 msgid "Kante Light"
 msgstr "Kante Light"
 
-#: app/qml/SettingsPage.qml:78 contents/ui/config/ConfigDisplay.qml:511
+#: app/qml/SettingsPage.qml:78 contents/ui/config/ConfigDisplay.qml:516
 msgid "Kante is Plasmai's own look: warm colors, square cut corners and monospace figures. It deliberately does not follow Breeze; dark or light still follows your theme. Kante Light keeps your theme's colors and controls and adds only Kante's shapes, titles and figures."
 msgstr "Kante es el aspecto propio de Plasmai: colores cálidos, esquinas cortadas y cifras monoespaciadas. No sigue Breeze a propósito; claro u oscuro sigue tu tema. Kante Light conserva los colores y controles de tu tema y solo añade las formas, los títulos y las cifras de Kante."
 
@@ -476,11 +476,11 @@ msgstr "Mostrar controles para iniciar / cambiar actividad"
 msgid "Show day sparkline"
 msgstr "Mostrar gráfico del día"
 
-#: app/qml/SettingsPage.qml:136 contents/ui/config/ConfigDisplay.qml:600
+#: app/qml/SettingsPage.qml:136 contents/ui/config/ConfigDisplay.qml:605
 msgid "Show sun, moon, and work arcs"
 msgstr "Mostrar arcos de sol, luna y trabajo"
 
-#: app/qml/SettingsPage.qml:142 contents/ui/config/ConfigDisplay.qml:941
+#: app/qml/SettingsPage.qml:142 contents/ui/config/ConfigDisplay.qml:979
 msgid "Trips:"
 msgstr "Trayectos:"
 
@@ -504,7 +504,7 @@ msgstr "Preguntar si el inicio solapa la entrada anterior"
 msgid "When editing the running timer, the previous entry's end is shown. Saving an earlier start asks for confirmation."
 msgstr "Al editar el temporizador en curso se muestra el final de la entrada anterior. Guardar un inicio anterior pide confirmación."
 
-#: app/qml/SettingsPage.qml:165 contents/ui/config/ConfigDisplay.qml:555
+#: app/qml/SettingsPage.qml:165 contents/ui/config/ConfigDisplay.qml:560
 msgid "Work hours"
 msgstr "Horario laboral"
 
@@ -645,7 +645,7 @@ msgstr "Fijar como favorito"
 
 #: app/qml/shared/ActivityListRow.qml:339 app/qml/TimerPage.qml:801
 #: app/qml/TimerPage.qml:805 contents/ui/ActivityListRow.qml:337
-#: contents/ui/main.qml:3104
+#: contents/ui/main.qml:3115
 msgid "Split entry"
 msgstr "Dividir entrada"
 
@@ -654,7 +654,7 @@ msgstr "Dividir entrada"
 #: app/qml/TimerPage.qml:301 app/qml/TimerPage.qml:330
 #: app/qml/TripEditPage.qml:19 app/qml/TripsPage.qml:119
 #: contents/ui/ActivityListRow.qml:344 contents/ui/FilmDayView.qml:855
-#: contents/ui/main.qml:3444 contents/ui/TimerCardKante.qml:88
+#: contents/ui/main.qml:3455 contents/ui/TimerCardKante.qml:88
 #: contents/ui/TimerCard.qml:98 contents/ui/TripSheet.qml:205
 #: contents/ui/TripSheet.qml:420
 msgid "Log trip"
@@ -1417,7 +1417,7 @@ msgstr "Conectado a %1 (%2)"
 msgid "Connected to %1"
 msgstr "Conectado a %1"
 
-#: app/qml/TimerPage.qml:171 contents/ui/main.qml:3505
+#: app/qml/TimerPage.qml:171 contents/ui/main.qml:3516
 msgid "Connect a time tracker"
 msgstr "Conectar un rastreador de tiempo"
 
@@ -1425,15 +1425,15 @@ msgstr "Conectar un rastreador de tiempo"
 msgid "Add your service, server URL (if needed), and API token to start tracking."
 msgstr "Añade tu servicio, la URL del servidor (si hace falta) y el token de API para empezar a registrar."
 
-#: app/qml/TimerPage.qml:173 contents/ui/main.qml:3508
+#: app/qml/TimerPage.qml:173 contents/ui/main.qml:3519
 msgid "Configure Plasmai"
 msgstr "Configurar Plasmai"
 
-#: app/qml/TimerPage.qml:182 contents/ui/main.qml:3522
+#: app/qml/TimerPage.qml:182 contents/ui/main.qml:3533
 msgid "Retry"
 msgstr "Reintentar"
 
-#: app/qml/TimerPage.qml:183 contents/ui/main.qml:3527
+#: app/qml/TimerPage.qml:183 contents/ui/main.qml:3538
 msgid "Configure"
 msgstr "Configurar"
 
@@ -1505,7 +1505,7 @@ msgid "Start something else…"
 msgstr "Iniciar otra cosa…"
 
 #: app/qml/TimerPage.qml:610 app/qml/TimerPage.qml:788
-#: contents/ui/EntryLists.qml:143 contents/ui/main.qml:3050
+#: contents/ui/EntryLists.qml:143 contents/ui/main.qml:3061
 msgid "Switch"
 msgstr "Cambiar"
 
@@ -1522,7 +1522,7 @@ msgstr "Fija una entrada de Recientes para añadirla a tus favoritos."
 msgid "Recent"
 msgstr "Recientes"
 
-#: app/qml/TimerPage.qml:756 contents/ui/main.qml:2893
+#: app/qml/TimerPage.qml:756 contents/ui/main.qml:2904
 msgid "Stop tracking?"
 msgstr "¿Detener el seguimiento?"
 
@@ -1530,7 +1530,7 @@ msgstr "¿Detener el seguimiento?"
 msgid "Stop %1 · %2?"
 msgstr "¿Detener %1 · %2?"
 
-#: app/qml/TimerPage.qml:770 contents/ui/main.qml:3071
+#: app/qml/TimerPage.qml:770 contents/ui/main.qml:3082
 msgid "Delete entry?"
 msgstr "¿Eliminar entrada?"
 
@@ -1539,7 +1539,7 @@ msgid "Really delete this entry?"
 msgstr "¿Seguro que quieres eliminar esta entrada?"
 
 #: app/qml/TimerPage.qml:783 contents/ui/EntryLists.qml:57
-#: contents/ui/main.qml:2917
+#: contents/ui/main.qml:2928
 msgid "Switch activity"
 msgstr "Cambiar actividad"
 
@@ -1551,7 +1551,7 @@ msgstr "¿Cambiar a %1 · %2?"
 msgid "Split at:"
 msgstr "Dividir en:"
 
-#: app/qml/TimerPage.qml:842 contents/ui/main.qml:3210
+#: app/qml/TimerPage.qml:842 contents/ui/main.qml:3221
 msgid "You were idle"
 msgstr "Estabas inactivo"
 
@@ -1559,15 +1559,15 @@ msgstr "Estabas inactivo"
 msgid "You were idle for %1. Keep this time, discard it, or discard and continue?"
 msgstr "Estuviste inactivo durante %1. ¿Conservar este tiempo, descartarlo o descartarlo y continuar?"
 
-#: app/qml/TimerPage.qml:853 contents/ui/main.qml:3237
+#: app/qml/TimerPage.qml:853 contents/ui/main.qml:3248
 msgid "Keep time"
 msgstr "Conservar el tiempo"
 
-#: app/qml/TimerPage.qml:854 contents/ui/main.qml:3246
+#: app/qml/TimerPage.qml:854 contents/ui/main.qml:3257
 msgid "Discard idle"
 msgstr "Descartar inactividad"
 
-#: app/qml/TimerPage.qml:855 contents/ui/main.qml:3255
+#: app/qml/TimerPage.qml:855 contents/ui/main.qml:3266
 msgid "Discard and continue"
 msgstr "Descartar y continuar"
 
@@ -1633,7 +1633,7 @@ msgstr "Registro de tiempo n.º %1"
 msgid "round trip"
 msgstr "ida y vuelta"
 
-#: contents/config/config.qml:16 contents/ui/config/ConfigDisplay.qml:473
+#: contents/config/config.qml:16 contents/ui/config/ConfigDisplay.qml:478
 msgid "Display"
 msgstr "Visualización"
 
@@ -1789,194 +1789,218 @@ msgstr "ok"
 msgid "Connected to %1 (%2)."
 msgstr "Conectado a %1 (%2)."
 
-#: contents/ui/config/ConfigDisplay.qml:183
+#: contents/ui/config/ConfigDisplay.qml:185
 msgid "Enter a city or place name to search."
 msgstr "Introduce el nombre de una ciudad o lugar para buscar."
 
-#: contents/ui/config/ConfigDisplay.qml:187
-#: contents/ui/config/ConfigDisplay.qml:637
+#: contents/ui/config/ConfigDisplay.qml:189
+#: contents/ui/config/ConfigDisplay.qml:642
 msgid "Searching…"
 msgstr "Buscando…"
 
-#: contents/ui/config/ConfigDisplay.qml:196
+#: contents/ui/config/ConfigDisplay.qml:198
 msgid "Location search failed. Check your network connection."
 msgstr "Error en la búsqueda de ubicación. Comprueba tu conexión de red."
 
-#: contents/ui/config/ConfigDisplay.qml:201
+#: contents/ui/config/ConfigDisplay.qml:203
 msgid "No places found."
 msgstr "No se encontraron lugares."
 
-#: contents/ui/config/ConfigDisplay.qml:203
+#: contents/ui/config/ConfigDisplay.qml:205
 msgid "%1 place found."
 msgid_plural "%1 places found."
 msgstr[0] "%1 lugar encontrado."
 msgstr[1] "%1 lugares encontrados."
 
-#: contents/ui/config/ConfigDisplay.qml:517
+#: contents/ui/config/ConfigDisplay.qml:522
 msgid "Touch optimization:"
 msgstr "Optimización táctil:"
 
-#: contents/ui/config/ConfigDisplay.qml:521
+#: contents/ui/config/ConfigDisplay.qml:526
 msgid "Automatic (follow Plasma tablet mode)"
 msgstr "Automático (seguir el modo tableta de Plasma)"
 
-#: contents/ui/config/ConfigDisplay.qml:522
+#: contents/ui/config/ConfigDisplay.qml:527
 msgid "On"
 msgstr "Activado"
 
-#: contents/ui/config/ConfigDisplay.qml:523
+#: contents/ui/config/ConfigDisplay.qml:528
 msgid "Off"
 msgstr "Desactivado"
 
-#: contents/ui/config/ConfigDisplay.qml:535
+#: contents/ui/config/ConfigDisplay.qml:540
 msgid "Larger tap targets for buttons, lists, pickers, and date/time controls."
 msgstr "Objetivos táctiles más grandes para botones, listas, selectores y fecha/hora."
 
-#: contents/ui/config/ConfigDisplay.qml:540
+#: contents/ui/config/ConfigDisplay.qml:545
 msgid "Updates"
 msgstr "Actualizaciones"
 
-#: contents/ui/config/ConfigDisplay.qml:546
+#: contents/ui/config/ConfigDisplay.qml:551
 msgid "Refresh interval (seconds):"
 msgstr "Intervalo de actualización (segundos):"
 
-#: contents/ui/config/ConfigDisplay.qml:561
+#: contents/ui/config/ConfigDisplay.qml:566
 msgid "Usual work day start:"
 msgstr "Inicio habitual de la jornada laboral:"
 
-#: contents/ui/config/ConfigDisplay.qml:571
+#: contents/ui/config/ConfigDisplay.qml:576
 msgid "Usual work day end:"
 msgstr "Fin habitual de la jornada laboral:"
 
-#: contents/ui/config/ConfigDisplay.qml:586
+#: contents/ui/config/ConfigDisplay.qml:591
 msgid "Used for the sparkline zoom and remaining-time in the work summary."
 msgstr "Se usa para el zoom de la sparkline y el tiempo restante en el resumen."
 
-#: contents/ui/config/ConfigDisplay.qml:591
-#: contents/ui/config/ConfigDisplay.qml:825
-#: contents/ui/config/ConfigDisplay.qml:880
+#: contents/ui/config/ConfigDisplay.qml:596
+#: contents/ui/config/ConfigDisplay.qml:863
+#: contents/ui/config/ConfigDisplay.qml:918
 msgid "Day sparkline"
 msgstr "Minigráfico del día"
 
-#: contents/ui/config/ConfigDisplay.qml:597
+#: contents/ui/config/ConfigDisplay.qml:602
 msgid "Arcs:"
 msgstr "Arcos:"
 
-#: contents/ui/config/ConfigDisplay.qml:611
+#: contents/ui/config/ConfigDisplay.qml:616
 msgid "Hide the whole sparkline under Panel flyout or Desktop widget below."
 msgstr "Ocultar toda la sparkline en el menú del panel o el widget de escritorio más abajo."
 
-#: contents/ui/config/ConfigDisplay.qml:615
+#: contents/ui/config/ConfigDisplay.qml:620
 msgid "Find location:"
 msgstr "Buscar ubicación:"
 
-#: contents/ui/config/ConfigDisplay.qml:624
+#: contents/ui/config/ConfigDisplay.qml:629
 msgid "City, region, or address…"
 msgstr "Ciudad, región o dirección…"
 
-#: contents/ui/config/ConfigDisplay.qml:637
-#: contents/ui/config/ConfigDisplay.qml:645
+#: contents/ui/config/ConfigDisplay.qml:642
+#: contents/ui/config/ConfigDisplay.qml:650
 msgid "Search"
 msgstr "Buscar"
 
-#: contents/ui/config/ConfigDisplay.qml:699
+#: contents/ui/config/ConfigDisplay.qml:704
 msgid "Using %1"
 msgstr "Usando %1"
 
-#: contents/ui/config/ConfigDisplay.qml:716
+#: contents/ui/config/ConfigDisplay.qml:721
 msgid "Current place: %1"
 msgstr "Lugar actual: %1"
 
-#: contents/ui/config/ConfigDisplay.qml:721
+#: contents/ui/config/ConfigDisplay.qml:726
 msgid "Latitude:"
 msgstr "Latitud:"
 
-#: contents/ui/config/ConfigDisplay.qml:736
+#: contents/ui/config/ConfigDisplay.qml:741
 msgid "Longitude:"
 msgstr "Longitud:"
 
-#: contents/ui/config/ConfigDisplay.qml:756
+#: contents/ui/config/ConfigDisplay.qml:761
 msgid "Search a place or enter coordinates for sunrise/sunset coloring. Powered by OpenStreetMap Nominatim."
 msgstr "Busca un lugar o introduce coordenadas para el color de amanecer/anochecer. Con OpenStreetMap Nominatim."
 
-#: contents/ui/config/ConfigDisplay.qml:761
+#: contents/ui/config/ConfigDisplay.qml:766
 msgid "Panel (taskbar)"
 msgstr "Panel (barra de tareas)"
 
-#: contents/ui/config/ConfigDisplay.qml:767
-#: contents/ui/config/ConfigDisplay.qml:814
-#: contents/ui/config/ConfigDisplay.qml:869
+#: contents/ui/config/ConfigDisplay.qml:772
+#: contents/ui/config/ConfigDisplay.qml:852
+#: contents/ui/config/ConfigDisplay.qml:907
 msgid "Show:"
 msgstr "Mostrar:"
 
-#: contents/ui/config/ConfigDisplay.qml:770
+#: contents/ui/config/ConfigDisplay.qml:775
 msgid "Elapsed time"
 msgstr "Tiempo transcurrido"
 
-#: contents/ui/config/ConfigDisplay.qml:778
+#: contents/ui/config/ConfigDisplay.qml:783
 msgid "Project name"
 msgstr "Nombre del proyecto"
 
-#: contents/ui/config/ConfigDisplay.qml:786
+#: contents/ui/config/ConfigDisplay.qml:791
 msgid "Activity name"
 msgstr "Nombre de la actividad"
 
-#: contents/ui/config/ConfigDisplay.qml:794
+#: contents/ui/config/ConfigDisplay.qml:799
 msgid "Customer color pill"
 msgstr "Pastilla de color del cliente"
 
-#: contents/ui/config/ConfigDisplay.qml:802
+#: contents/ui/config/ConfigDisplay.qml:807
 msgid "Project color pill"
 msgstr "Pastilla de color del proyecto"
 
-#: contents/ui/config/ConfigDisplay.qml:808
+#: contents/ui/config/ConfigDisplay.qml:813
+msgid "Running timer:"
+msgstr "Temporizador en marcha:"
+
+#: contents/ui/config/ConfigDisplay.qml:818
+msgid "Red dot"
+msgstr "Punto rojo"
+
+#: contents/ui/config/ConfigDisplay.qml:819
+msgid "Red bottom edge"
+msgstr "Borde inferior rojo"
+
+#: contents/ui/config/ConfigDisplay.qml:820
+msgid "Red side stripe"
+msgstr "Franja roja a la izquierda"
+
+#: contents/ui/config/ConfigDisplay.qml:826
+msgid "Preview:"
+msgstr "Vista previa:"
+
+#: contents/ui/config/ConfigDisplay.qml:841
+msgid "The Kante styles mark a running timer with a small red indicator. The System style keeps the Plasma theme's green."
+msgstr "Los estilos Kante marcan un temporizador en marcha con un pequeño indicador rojo. El estilo Sistema mantiene el verde del tema de Plasma."
+
+#: contents/ui/config/ConfigDisplay.qml:846
 msgid "Panel flyout"
 msgstr "Menú desplegable del panel"
 
-#: contents/ui/config/ConfigDisplay.qml:817
-#: contents/ui/config/ConfigDisplay.qml:872
+#: contents/ui/config/ConfigDisplay.qml:855
+#: contents/ui/config/ConfigDisplay.qml:910
 msgid "Work summary (today / week / remaining)"
 msgstr "Resumen de trabajo (hoy / semana / restante)"
 
-#: contents/ui/config/ConfigDisplay.qml:841
-#: contents/ui/config/ConfigDisplay.qml:896
-#: contents/ui/config/ConfigDisplay.qml:910
+#: contents/ui/config/ConfigDisplay.qml:879
+#: contents/ui/config/ConfigDisplay.qml:934
+#: contents/ui/config/ConfigDisplay.qml:948
 msgid "Recent list"
 msgstr "Lista reciente"
 
-#: contents/ui/config/ConfigDisplay.qml:849
+#: contents/ui/config/ConfigDisplay.qml:887
 msgid "Continue last activity"
 msgstr "Continuar la última actividad"
 
-#: contents/ui/config/ConfigDisplay.qml:857
+#: contents/ui/config/ConfigDisplay.qml:895
 msgid "Start / switch activity controls"
 msgstr "Controles de inicio / cambio de actividad"
 
-#: contents/ui/config/ConfigDisplay.qml:863
+#: contents/ui/config/ConfigDisplay.qml:901
 msgid "Desktop widget"
 msgstr "Widget de escritorio"
 
-#: contents/ui/config/ConfigDisplay.qml:904
+#: contents/ui/config/ConfigDisplay.qml:942
 msgid "New activity picker"
 msgstr "Selector de nueva actividad"
 
-#: contents/ui/config/ConfigDisplay.qml:916
+#: contents/ui/config/ConfigDisplay.qml:954
 msgid "Activities shown:"
 msgstr "Actividades mostradas:"
 
-#: contents/ui/config/ConfigDisplay.qml:930
+#: contents/ui/config/ConfigDisplay.qml:968
 msgid "Applies to both the panel flyout and the desktop widget."
 msgstr "Se aplica al menú del panel y al widget de escritorio."
 
-#: contents/ui/config/ConfigDisplay.qml:935
+#: contents/ui/config/ConfigDisplay.qml:973
 msgid "Kimai plugins"
 msgstr "Plugins de Kimai"
 
-#: contents/ui/config/ConfigDisplay.qml:944
+#: contents/ui/config/ConfigDisplay.qml:982
 msgid "Log trips and show detected trips"
 msgstr "Registrar trayectos y mostrar los detectados"
 
-#: contents/ui/config/ConfigDisplay.qml:955
+#: contents/ui/config/ConfigDisplay.qml:993
 msgid "Only when the Anfahrten plugin (MileageBundle) is installed on the Kimai server and your account may use it."
 msgstr "Solo si el plugin Anfahrten (MileageBundle) está instalado en el servidor Kimai y tu cuenta puede usarlo."
 
@@ -2213,71 +2237,71 @@ msgstr "Entrada dividida"
 msgid "Open or close the Plasmai popup"
 msgstr "Abrir o cerrar el menú de Plasmai"
 
-#: contents/ui/main.qml:2906
+#: contents/ui/main.qml:2917
 msgid "Stop tracking %1 · %2?"
 msgstr "¿Detener el seguimiento de %1 · %2?"
 
-#: contents/ui/main.qml:3020
+#: contents/ui/main.qml:3031
 msgid "Current"
 msgstr "Actual"
 
-#: contents/ui/main.qml:3039
+#: contents/ui/main.qml:3050
 msgid "Switch to"
 msgstr "Cambiar a"
 
-#: contents/ui/main.qml:3088
+#: contents/ui/main.qml:3099
 msgid "Delete this finished entry? This cannot be undone."
 msgstr "¿Eliminar esta entrada finalizada? No se puede deshacer."
 
-#: contents/ui/main.qml:3090
+#: contents/ui/main.qml:3101
 msgid "Delete \"%1 · %2\"? This cannot be undone."
 msgstr "¿Eliminar «%1 · %2»? No se puede deshacer."
 
-#: contents/ui/main.qml:3155
+#: contents/ui/main.qml:3166
 msgid "The first half keeps the original start. The second half starts at the split time."
 msgstr "La primera mitad conserva el inicio original. La segunda empieza a la hora de división."
 
-#: contents/ui/main.qml:3160
+#: contents/ui/main.qml:3171
 msgid "Split at"
 msgstr "Dividir en"
 
-#: contents/ui/main.qml:3196
+#: contents/ui/main.qml:3207
 msgid "Both halves will have a positive duration."
 msgstr "Ambas mitades tendrán una duración positiva."
 
-#: contents/ui/main.qml:3228
+#: contents/ui/main.qml:3239
 msgid "Keep the time, discard the idle gap, or discard and continue the same activity."
 msgstr "Conservar el tiempo, descartar el hueco de inactividad, o descartar y continuar la misma actividad."
 
-#: contents/ui/main.qml:3361
+#: contents/ui/main.qml:3372
 msgid "Trip"
 msgstr "Trayecto"
 
-#: contents/ui/main.qml:3407
+#: contents/ui/main.qml:3418
 msgid "Add a manual time entry"
 msgstr "Añadir una entrada manual de tiempo"
 
-#: contents/ui/main.qml:3422
+#: contents/ui/main.qml:3433
 msgid "Show statistics"
 msgstr "Mostrar estadísticas"
 
-#: contents/ui/main.qml:3436
+#: contents/ui/main.qml:3447
 msgid "Log a shooting day"
 msgstr "Registrar un día de rodaje"
 
-#: contents/ui/main.qml:3450
+#: contents/ui/main.qml:3461
 msgid "Log a trip (Anfahrten plugin)"
 msgstr "Registrar un trayecto (plugin Anfahrten)"
 
-#: contents/ui/main.qml:3459
+#: contents/ui/main.qml:3470
 msgid "Back"
 msgstr "Atrás"
 
-#: contents/ui/main.qml:3464
+#: contents/ui/main.qml:3475
 msgid "Back to timer"
 msgstr "Volver al temporizador"
 
-#: contents/ui/main.qml:3506
+#: contents/ui/main.qml:3517
 msgid "Add your service, server URL (if needed), and API token to start tracking from the panel."
 msgstr "Añade tu servicio, la URL del servidor (si es necesario) y el token de API para iniciar el seguimiento desde el panel."
 

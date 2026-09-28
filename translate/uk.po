@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-09-28 11:02+0200\n"
+"POT-Creation-Date: 2026-09-28 12:06+0200\n"
 "PO-Revision-Date: 2026-08-09 19:45+0200\n"
 "Last-Translator: Cursor Agent\n"
 "Language-Team: Ukrainian\n"
@@ -161,8 +161,8 @@ msgid "Missing URL or token (type: %1)"
 msgstr "Бракує URL або токена (тип: %1)"
 
 #: app/qml/FavoritesPage.qml:12 app/qml/main.qml:843 app/qml/TimerPage.qml:637
-#: contents/config/config.qml:11 contents/ui/config/ConfigDisplay.qml:833
-#: contents/ui/config/ConfigDisplay.qml:888
+#: contents/config/config.qml:11 contents/ui/config/ConfigDisplay.qml:871
+#: contents/ui/config/ConfigDisplay.qml:926
 #: contents/ui/config/ConfigFavorites.qml:423 contents/ui/EntryLists.qml:167
 msgid "Favorites"
 msgstr "Обране"
@@ -176,7 +176,7 @@ msgid "Connect a time tracker first"
 msgstr "Спершу підключіть сервіс обліку часу"
 
 #: app/qml/FilmDayPage.qml:16 app/qml/TimerPage.qml:57
-#: contents/ui/main.qml:3360 contents/ui/main.qml:3430
+#: contents/ui/main.qml:3371 contents/ui/main.qml:3441
 msgid "Film day"
 msgstr "Знімальний день"
 
@@ -218,7 +218,7 @@ msgstr "Знімальний день збережено"
 #: app/qml/TimerPage.qml:776 app/qml/TimerPage.qml:789
 #: app/qml/TimerPage.qml:806 contents/ui/ActiveEditView.qml:360
 #: contents/ui/ActiveEditView.qml:389 contents/ui/EntryLists.qml:155
-#: contents/ui/FilmDayView.qml:916 contents/ui/main.qml:3056
+#: contents/ui/FilmDayView.qml:916 contents/ui/main.qml:3067
 #: contents/ui/ManualEntryView.qml:421 contents/ui/TimeField.qml:265
 #: contents/ui/TripSheet.qml:433
 msgid "Cancel"
@@ -269,7 +269,7 @@ msgstr "Хвилини"
 
 #: app/qml/main.qml:221 app/qml/main.qml:797 app/qml/TimerPage.qml:17
 #: contents/ui/main.qml:357 contents/ui/main.qml:359 contents/ui/main.qml:2743
-#: contents/ui/main.qml:3364
+#: contents/ui/main.qml:3375
 msgid "Plasmai"
 msgstr "Plasmai"
 
@@ -341,7 +341,7 @@ msgstr "Не вдалося зберегти запис"
 msgid "Could not delete the entry"
 msgstr "Не вдалося видалити запис"
 
-#: app/qml/main.qml:596 contents/ui/main.qml:2694 contents/ui/main.qml:3197
+#: app/qml/main.qml:596 contents/ui/main.qml:2694 contents/ui/main.qml:3208
 msgid "Split time must be between begin and end."
 msgstr "Час розділення має бути між початком і кінцем."
 
@@ -390,7 +390,7 @@ msgid "Add Entry"
 msgstr "Додати запис"
 
 #: app/qml/main.qml:834 app/qml/StatsPage.qml:15 app/qml/TimerPage.qml:51
-#: contents/ui/main.qml:3359 contents/ui/main.qml:3416
+#: contents/ui/main.qml:3370 contents/ui/main.qml:3427
 msgid "Statistics"
 msgstr "Статистика"
 
@@ -403,36 +403,36 @@ msgid "Settings"
 msgstr "Налаштування"
 
 #: app/qml/ManualEntryPage.qml:14 app/qml/shared/ActivityListRow.qml:332
-#: contents/ui/ActivityListRow.qml:330 contents/ui/main.qml:3363
+#: contents/ui/ActivityListRow.qml:330 contents/ui/main.qml:3374
 msgid "Edit entry"
 msgstr "Редагувати запис"
 
 #: app/qml/ManualEntryPage.qml:14 app/qml/TimerPage.qml:45
-#: contents/ui/main.qml:3363 contents/ui/main.qml:3401
+#: contents/ui/main.qml:3374 contents/ui/main.qml:3412
 msgid "Add entry"
 msgstr "Додати запис"
 
-#: app/qml/SettingsPage.qml:59 contents/ui/config/ConfigDisplay.qml:487
+#: app/qml/SettingsPage.qml:59 contents/ui/config/ConfigDisplay.qml:492
 msgid "Appearance"
 msgstr "Вигляд"
 
-#: app/qml/SettingsPage.qml:63 contents/ui/config/ConfigDisplay.qml:493
+#: app/qml/SettingsPage.qml:63 contents/ui/config/ConfigDisplay.qml:498
 msgid "Style:"
 msgstr "Стиль:"
 
-#: app/qml/SettingsPage.qml:66 contents/ui/config/ConfigDisplay.qml:497
+#: app/qml/SettingsPage.qml:66 contents/ui/config/ConfigDisplay.qml:502
 msgid "System (Plasma theme)"
 msgstr "Системний (тема Plasma)"
 
-#: app/qml/SettingsPage.qml:66 contents/ui/config/ConfigDisplay.qml:498
+#: app/qml/SettingsPage.qml:66 contents/ui/config/ConfigDisplay.qml:503
 msgid "Kante"
 msgstr "Kante"
 
-#: app/qml/SettingsPage.qml:66 contents/ui/config/ConfigDisplay.qml:499
+#: app/qml/SettingsPage.qml:66 contents/ui/config/ConfigDisplay.qml:504
 msgid "Kante Light"
 msgstr "Kante Light"
 
-#: app/qml/SettingsPage.qml:78 contents/ui/config/ConfigDisplay.qml:511
+#: app/qml/SettingsPage.qml:78 contents/ui/config/ConfigDisplay.qml:516
 msgid "Kante is Plasmai's own look: warm colors, square cut corners and monospace figures. It deliberately does not follow Breeze; dark or light still follows your theme. Kante Light keeps your theme's colors and controls and adds only Kante's shapes, titles and figures."
 msgstr "Kante — власний вигляд Plasmai: теплі кольори, зрізані кути та моноширинні цифри. Свідомо не наслідує Breeze; світлий чи темний варіант і далі залежить від теми. Kante Light зберігає кольори й елементи керування теми та додає лише форми, заголовки й цифри Kante."
 
@@ -477,11 +477,11 @@ msgstr "Показувати керування запуском / зміною 
 msgid "Show day sparkline"
 msgstr "Показувати графік дня"
 
-#: app/qml/SettingsPage.qml:136 contents/ui/config/ConfigDisplay.qml:600
+#: app/qml/SettingsPage.qml:136 contents/ui/config/ConfigDisplay.qml:605
 msgid "Show sun, moon, and work arcs"
 msgstr "Показати дуги сонця, місяця та роботи"
 
-#: app/qml/SettingsPage.qml:142 contents/ui/config/ConfigDisplay.qml:941
+#: app/qml/SettingsPage.qml:142 contents/ui/config/ConfigDisplay.qml:979
 msgid "Trips:"
 msgstr "Поїздки:"
 
@@ -505,7 +505,7 @@ msgstr "Запитувати, якщо початок перетинається
 msgid "When editing the running timer, the previous entry's end is shown. Saving an earlier start asks for confirmation."
 msgstr "Під час редагування активного таймера показується кінець попереднього запису. Збереження раннішого початку потребує підтвердження."
 
-#: app/qml/SettingsPage.qml:165 contents/ui/config/ConfigDisplay.qml:555
+#: app/qml/SettingsPage.qml:165 contents/ui/config/ConfigDisplay.qml:560
 msgid "Work hours"
 msgstr "Робочі години"
 
@@ -646,7 +646,7 @@ msgstr "Закріпити як обране"
 
 #: app/qml/shared/ActivityListRow.qml:339 app/qml/TimerPage.qml:801
 #: app/qml/TimerPage.qml:805 contents/ui/ActivityListRow.qml:337
-#: contents/ui/main.qml:3104
+#: contents/ui/main.qml:3115
 msgid "Split entry"
 msgstr "Розділити запис"
 
@@ -655,7 +655,7 @@ msgstr "Розділити запис"
 #: app/qml/TimerPage.qml:301 app/qml/TimerPage.qml:330
 #: app/qml/TripEditPage.qml:19 app/qml/TripsPage.qml:119
 #: contents/ui/ActivityListRow.qml:344 contents/ui/FilmDayView.qml:855
-#: contents/ui/main.qml:3444 contents/ui/TimerCardKante.qml:88
+#: contents/ui/main.qml:3455 contents/ui/TimerCardKante.qml:88
 #: contents/ui/TimerCard.qml:98 contents/ui/TripSheet.qml:205
 #: contents/ui/TripSheet.qml:420
 msgid "Log trip"
@@ -1422,7 +1422,7 @@ msgstr "Підключено до %1 (%2)"
 msgid "Connected to %1"
 msgstr "Підключено до %1"
 
-#: app/qml/TimerPage.qml:171 contents/ui/main.qml:3505
+#: app/qml/TimerPage.qml:171 contents/ui/main.qml:3516
 msgid "Connect a time tracker"
 msgstr "Підключити облік часу"
 
@@ -1430,15 +1430,15 @@ msgstr "Підключити облік часу"
 msgid "Add your service, server URL (if needed), and API token to start tracking."
 msgstr "Додайте сервіс, URL сервера (за потреби) та API-токен, щоб почати відстеження."
 
-#: app/qml/TimerPage.qml:173 contents/ui/main.qml:3508
+#: app/qml/TimerPage.qml:173 contents/ui/main.qml:3519
 msgid "Configure Plasmai"
 msgstr "Налаштувати Plasmai"
 
-#: app/qml/TimerPage.qml:182 contents/ui/main.qml:3522
+#: app/qml/TimerPage.qml:182 contents/ui/main.qml:3533
 msgid "Retry"
 msgstr "Повторити"
 
-#: app/qml/TimerPage.qml:183 contents/ui/main.qml:3527
+#: app/qml/TimerPage.qml:183 contents/ui/main.qml:3538
 msgid "Configure"
 msgstr "Налаштувати"
 
@@ -1510,7 +1510,7 @@ msgid "Start something else…"
 msgstr "Почати щось інше…"
 
 #: app/qml/TimerPage.qml:610 app/qml/TimerPage.qml:788
-#: contents/ui/EntryLists.qml:143 contents/ui/main.qml:3050
+#: contents/ui/EntryLists.qml:143 contents/ui/main.qml:3061
 msgid "Switch"
 msgstr "Змінити"
 
@@ -1527,7 +1527,7 @@ msgstr "Закріпіть запис із «Нещодавні», щоб дод
 msgid "Recent"
 msgstr "Нещодавні"
 
-#: app/qml/TimerPage.qml:756 contents/ui/main.qml:2893
+#: app/qml/TimerPage.qml:756 contents/ui/main.qml:2904
 msgid "Stop tracking?"
 msgstr "Зупинити відстеження?"
 
@@ -1535,7 +1535,7 @@ msgstr "Зупинити відстеження?"
 msgid "Stop %1 · %2?"
 msgstr "Зупинити %1 · %2?"
 
-#: app/qml/TimerPage.qml:770 contents/ui/main.qml:3071
+#: app/qml/TimerPage.qml:770 contents/ui/main.qml:3082
 msgid "Delete entry?"
 msgstr "Видалити запис?"
 
@@ -1544,7 +1544,7 @@ msgid "Really delete this entry?"
 msgstr "Справді видалити цей запис?"
 
 #: app/qml/TimerPage.qml:783 contents/ui/EntryLists.qml:57
-#: contents/ui/main.qml:2917
+#: contents/ui/main.qml:2928
 msgid "Switch activity"
 msgstr "Змінити активність"
 
@@ -1556,7 +1556,7 @@ msgstr "Перейти до %1 · %2?"
 msgid "Split at:"
 msgstr "Розділити о:"
 
-#: app/qml/TimerPage.qml:842 contents/ui/main.qml:3210
+#: app/qml/TimerPage.qml:842 contents/ui/main.qml:3221
 msgid "You were idle"
 msgstr "Ви були в простої"
 
@@ -1564,15 +1564,15 @@ msgstr "Ви були в простої"
 msgid "You were idle for %1. Keep this time, discard it, or discard and continue?"
 msgstr "Ви були бездіяльні %1. Залишити цей час, відкинути його чи відкинути й продовжити?"
 
-#: app/qml/TimerPage.qml:853 contents/ui/main.qml:3237
+#: app/qml/TimerPage.qml:853 contents/ui/main.qml:3248
 msgid "Keep time"
 msgstr "Залишити час"
 
-#: app/qml/TimerPage.qml:854 contents/ui/main.qml:3246
+#: app/qml/TimerPage.qml:854 contents/ui/main.qml:3257
 msgid "Discard idle"
 msgstr "Відкинути простій"
 
-#: app/qml/TimerPage.qml:855 contents/ui/main.qml:3255
+#: app/qml/TimerPage.qml:855 contents/ui/main.qml:3266
 msgid "Discard and continue"
 msgstr "Відкинути й продовжити"
 
@@ -1639,7 +1639,7 @@ msgstr "Запис часу № %1"
 msgid "round trip"
 msgstr "туди й назад"
 
-#: contents/config/config.qml:16 contents/ui/config/ConfigDisplay.qml:473
+#: contents/config/config.qml:16 contents/ui/config/ConfigDisplay.qml:478
 msgid "Display"
 msgstr "Відображення"
 
@@ -1795,195 +1795,219 @@ msgstr "ok"
 msgid "Connected to %1 (%2)."
 msgstr "Підключено до %1 (%2)."
 
-#: contents/ui/config/ConfigDisplay.qml:183
+#: contents/ui/config/ConfigDisplay.qml:185
 msgid "Enter a city or place name to search."
 msgstr "Введіть назву міста або місця для пошуку."
 
-#: contents/ui/config/ConfigDisplay.qml:187
-#: contents/ui/config/ConfigDisplay.qml:637
+#: contents/ui/config/ConfigDisplay.qml:189
+#: contents/ui/config/ConfigDisplay.qml:642
 msgid "Searching…"
 msgstr "Пошук…"
 
-#: contents/ui/config/ConfigDisplay.qml:196
+#: contents/ui/config/ConfigDisplay.qml:198
 msgid "Location search failed. Check your network connection."
 msgstr "Пошук місця не вдався. Перевірте мережеве з'єднання."
 
-#: contents/ui/config/ConfigDisplay.qml:201
+#: contents/ui/config/ConfigDisplay.qml:203
 msgid "No places found."
 msgstr "Місць не знайдено."
 
-#: contents/ui/config/ConfigDisplay.qml:203
+#: contents/ui/config/ConfigDisplay.qml:205
 msgid "%1 place found."
 msgid_plural "%1 places found."
 msgstr[0] "Знайдено %1 місце."
 msgstr[1] "Знайдено %1 місця."
 msgstr[2] "Знайдено %1 місць."
 
-#: contents/ui/config/ConfigDisplay.qml:517
+#: contents/ui/config/ConfigDisplay.qml:522
 msgid "Touch optimization:"
 msgstr "Оптимізація для дотику:"
 
-#: contents/ui/config/ConfigDisplay.qml:521
+#: contents/ui/config/ConfigDisplay.qml:526
 msgid "Automatic (follow Plasma tablet mode)"
 msgstr "Автоматично (режим планшета Plasma)"
 
-#: contents/ui/config/ConfigDisplay.qml:522
+#: contents/ui/config/ConfigDisplay.qml:527
 msgid "On"
 msgstr "Увімкнено"
 
-#: contents/ui/config/ConfigDisplay.qml:523
+#: contents/ui/config/ConfigDisplay.qml:528
 msgid "Off"
 msgstr "Вимкнено"
 
-#: contents/ui/config/ConfigDisplay.qml:535
+#: contents/ui/config/ConfigDisplay.qml:540
 msgid "Larger tap targets for buttons, lists, pickers, and date/time controls."
 msgstr "Більші зони дотику для кнопок, списків, вибору та дати/часу."
 
-#: contents/ui/config/ConfigDisplay.qml:540
+#: contents/ui/config/ConfigDisplay.qml:545
 msgid "Updates"
 msgstr "Оновлення"
 
-#: contents/ui/config/ConfigDisplay.qml:546
+#: contents/ui/config/ConfigDisplay.qml:551
 msgid "Refresh interval (seconds):"
 msgstr "Інтервал оновлення (секунди):"
 
-#: contents/ui/config/ConfigDisplay.qml:561
+#: contents/ui/config/ConfigDisplay.qml:566
 msgid "Usual work day start:"
 msgstr "Початок робочого дня:"
 
-#: contents/ui/config/ConfigDisplay.qml:571
+#: contents/ui/config/ConfigDisplay.qml:576
 msgid "Usual work day end:"
 msgstr "Кінець робочого дня:"
 
-#: contents/ui/config/ConfigDisplay.qml:586
+#: contents/ui/config/ConfigDisplay.qml:591
 msgid "Used for the sparkline zoom and remaining-time in the work summary."
 msgstr "Для масштабу спарклайна та залишку часу в підсумку роботи."
 
-#: contents/ui/config/ConfigDisplay.qml:591
-#: contents/ui/config/ConfigDisplay.qml:825
-#: contents/ui/config/ConfigDisplay.qml:880
+#: contents/ui/config/ConfigDisplay.qml:596
+#: contents/ui/config/ConfigDisplay.qml:863
+#: contents/ui/config/ConfigDisplay.qml:918
 msgid "Day sparkline"
 msgstr "Денна діаграма"
 
-#: contents/ui/config/ConfigDisplay.qml:597
+#: contents/ui/config/ConfigDisplay.qml:602
 msgid "Arcs:"
 msgstr "Дуги:"
 
-#: contents/ui/config/ConfigDisplay.qml:611
+#: contents/ui/config/ConfigDisplay.qml:616
 msgid "Hide the whole sparkline under Panel flyout or Desktop widget below."
 msgstr "Приховати весь спарклайн у меню панелі або віджеті стільниці нижче."
 
-#: contents/ui/config/ConfigDisplay.qml:615
+#: contents/ui/config/ConfigDisplay.qml:620
 msgid "Find location:"
 msgstr "Знайти місце:"
 
-#: contents/ui/config/ConfigDisplay.qml:624
+#: contents/ui/config/ConfigDisplay.qml:629
 msgid "City, region, or address…"
 msgstr "Місто, регіон або адреса…"
 
-#: contents/ui/config/ConfigDisplay.qml:637
-#: contents/ui/config/ConfigDisplay.qml:645
+#: contents/ui/config/ConfigDisplay.qml:642
+#: contents/ui/config/ConfigDisplay.qml:650
 msgid "Search"
 msgstr "Пошук"
 
-#: contents/ui/config/ConfigDisplay.qml:699
+#: contents/ui/config/ConfigDisplay.qml:704
 msgid "Using %1"
 msgstr "Використовується %1"
 
-#: contents/ui/config/ConfigDisplay.qml:716
+#: contents/ui/config/ConfigDisplay.qml:721
 msgid "Current place: %1"
 msgstr "Поточне місце: %1"
 
-#: contents/ui/config/ConfigDisplay.qml:721
+#: contents/ui/config/ConfigDisplay.qml:726
 msgid "Latitude:"
 msgstr "Широта:"
 
-#: contents/ui/config/ConfigDisplay.qml:736
+#: contents/ui/config/ConfigDisplay.qml:741
 msgid "Longitude:"
 msgstr "Довгота:"
 
-#: contents/ui/config/ConfigDisplay.qml:756
+#: contents/ui/config/ConfigDisplay.qml:761
 msgid "Search a place or enter coordinates for sunrise/sunset coloring. Powered by OpenStreetMap Nominatim."
 msgstr "Шукайте місце або введіть координати для кольорів сходу/заходу. На базі OpenStreetMap Nominatim."
 
-#: contents/ui/config/ConfigDisplay.qml:761
+#: contents/ui/config/ConfigDisplay.qml:766
 msgid "Panel (taskbar)"
 msgstr "Панель (панель завдань)"
 
-#: contents/ui/config/ConfigDisplay.qml:767
-#: contents/ui/config/ConfigDisplay.qml:814
-#: contents/ui/config/ConfigDisplay.qml:869
+#: contents/ui/config/ConfigDisplay.qml:772
+#: contents/ui/config/ConfigDisplay.qml:852
+#: contents/ui/config/ConfigDisplay.qml:907
 msgid "Show:"
 msgstr "Показувати:"
 
-#: contents/ui/config/ConfigDisplay.qml:770
+#: contents/ui/config/ConfigDisplay.qml:775
 msgid "Elapsed time"
 msgstr "Минулий час"
 
-#: contents/ui/config/ConfigDisplay.qml:778
+#: contents/ui/config/ConfigDisplay.qml:783
 msgid "Project name"
 msgstr "Назва проєкту"
 
-#: contents/ui/config/ConfigDisplay.qml:786
+#: contents/ui/config/ConfigDisplay.qml:791
 msgid "Activity name"
 msgstr "Назва активності"
 
-#: contents/ui/config/ConfigDisplay.qml:794
+#: contents/ui/config/ConfigDisplay.qml:799
 msgid "Customer color pill"
 msgstr "Кольорова позначка клієнта"
 
-#: contents/ui/config/ConfigDisplay.qml:802
+#: contents/ui/config/ConfigDisplay.qml:807
 msgid "Project color pill"
 msgstr "Кольорова позначка проєкту"
 
-#: contents/ui/config/ConfigDisplay.qml:808
+#: contents/ui/config/ConfigDisplay.qml:813
+msgid "Running timer:"
+msgstr "Активний таймер:"
+
+#: contents/ui/config/ConfigDisplay.qml:818
+msgid "Red dot"
+msgstr "Червона крапка"
+
+#: contents/ui/config/ConfigDisplay.qml:819
+msgid "Red bottom edge"
+msgstr "Червона нижня межа"
+
+#: contents/ui/config/ConfigDisplay.qml:820
+msgid "Red side stripe"
+msgstr "Червона смужка ліворуч"
+
+#: contents/ui/config/ConfigDisplay.qml:826
+msgid "Preview:"
+msgstr "Попередній перегляд:"
+
+#: contents/ui/config/ConfigDisplay.qml:841
+msgid "The Kante styles mark a running timer with a small red indicator. The System style keeps the Plasma theme's green."
+msgstr "Стилі Kante позначають активний таймер невеликим червоним індикатором. Системний стиль зберігає зелений колір теми Plasma."
+
+#: contents/ui/config/ConfigDisplay.qml:846
 msgid "Panel flyout"
 msgstr "Спливаюче вікно панелі"
 
-#: contents/ui/config/ConfigDisplay.qml:817
-#: contents/ui/config/ConfigDisplay.qml:872
+#: contents/ui/config/ConfigDisplay.qml:855
+#: contents/ui/config/ConfigDisplay.qml:910
 msgid "Work summary (today / week / remaining)"
 msgstr "Підсумок роботи (сьогодні / тиждень / залишилось)"
 
-#: contents/ui/config/ConfigDisplay.qml:841
-#: contents/ui/config/ConfigDisplay.qml:896
-#: contents/ui/config/ConfigDisplay.qml:910
+#: contents/ui/config/ConfigDisplay.qml:879
+#: contents/ui/config/ConfigDisplay.qml:934
+#: contents/ui/config/ConfigDisplay.qml:948
 msgid "Recent list"
 msgstr "Список нещодавніх"
 
-#: contents/ui/config/ConfigDisplay.qml:849
+#: contents/ui/config/ConfigDisplay.qml:887
 msgid "Continue last activity"
 msgstr "Продовжити останню активність"
 
-#: contents/ui/config/ConfigDisplay.qml:857
+#: contents/ui/config/ConfigDisplay.qml:895
 msgid "Start / switch activity controls"
 msgstr "Керування запуском / зміною активності"
 
-#: contents/ui/config/ConfigDisplay.qml:863
+#: contents/ui/config/ConfigDisplay.qml:901
 msgid "Desktop widget"
 msgstr "Віджет робочого столу"
 
-#: contents/ui/config/ConfigDisplay.qml:904
+#: contents/ui/config/ConfigDisplay.qml:942
 msgid "New activity picker"
 msgstr "Вибір нової активності"
 
-#: contents/ui/config/ConfigDisplay.qml:916
+#: contents/ui/config/ConfigDisplay.qml:954
 msgid "Activities shown:"
 msgstr "Показані діяльності:"
 
-#: contents/ui/config/ConfigDisplay.qml:930
+#: contents/ui/config/ConfigDisplay.qml:968
 msgid "Applies to both the panel flyout and the desktop widget."
 msgstr "Стосується меню панелі та віджета стільниці."
 
-#: contents/ui/config/ConfigDisplay.qml:935
+#: contents/ui/config/ConfigDisplay.qml:973
 msgid "Kimai plugins"
 msgstr "Плагіни Kimai"
 
-#: contents/ui/config/ConfigDisplay.qml:944
+#: contents/ui/config/ConfigDisplay.qml:982
 msgid "Log trips and show detected trips"
 msgstr "Записувати поїздки та показувати виявлені"
 
-#: contents/ui/config/ConfigDisplay.qml:955
+#: contents/ui/config/ConfigDisplay.qml:993
 msgid "Only when the Anfahrten plugin (MileageBundle) is installed on the Kimai server and your account may use it."
 msgstr "Лише якщо плагін Anfahrten (MileageBundle) встановлено на сервері Kimai і ваш обліковий запис може ним користуватися."
 
@@ -2223,71 +2247,71 @@ msgstr "Запис розділено"
 msgid "Open or close the Plasmai popup"
 msgstr "Відкрити або закрити спливне вікно Plasmai"
 
-#: contents/ui/main.qml:2906
+#: contents/ui/main.qml:2917
 msgid "Stop tracking %1 · %2?"
 msgstr "Зупинити відстеження %1 · %2?"
 
-#: contents/ui/main.qml:3020
+#: contents/ui/main.qml:3031
 msgid "Current"
 msgstr "Поточна"
 
-#: contents/ui/main.qml:3039
+#: contents/ui/main.qml:3050
 msgid "Switch to"
 msgstr "Перейти до"
 
-#: contents/ui/main.qml:3088
+#: contents/ui/main.qml:3099
 msgid "Delete this finished entry? This cannot be undone."
 msgstr "Видалити цей завершений запис? Це не можна скасувати."
 
-#: contents/ui/main.qml:3090
+#: contents/ui/main.qml:3101
 msgid "Delete \"%1 · %2\"? This cannot be undone."
 msgstr "Видалити «%1 · %2»? Це не можна скасувати."
 
-#: contents/ui/main.qml:3155
+#: contents/ui/main.qml:3166
 msgid "The first half keeps the original start. The second half starts at the split time."
 msgstr "Перша половина зберігає початковий старт. Друга починається в момент розділення."
 
-#: contents/ui/main.qml:3160
+#: contents/ui/main.qml:3171
 msgid "Split at"
 msgstr "Розділити о"
 
-#: contents/ui/main.qml:3196
+#: contents/ui/main.qml:3207
 msgid "Both halves will have a positive duration."
 msgstr "Обидві половини матимуть додатну тривалість."
 
-#: contents/ui/main.qml:3228
+#: contents/ui/main.qml:3239
 msgid "Keep the time, discard the idle gap, or discard and continue the same activity."
 msgstr "Залишити час, відкинути проміжок простою або відкинути й продовжити ту саму діяльність."
 
-#: contents/ui/main.qml:3361
+#: contents/ui/main.qml:3372
 msgid "Trip"
 msgstr "Поїздка"
 
-#: contents/ui/main.qml:3407
+#: contents/ui/main.qml:3418
 msgid "Add a manual time entry"
 msgstr "Додати ручний запис часу"
 
-#: contents/ui/main.qml:3422
+#: contents/ui/main.qml:3433
 msgid "Show statistics"
 msgstr "Показати статистику"
 
-#: contents/ui/main.qml:3436
+#: contents/ui/main.qml:3447
 msgid "Log a shooting day"
 msgstr "Записати знімальний день"
 
-#: contents/ui/main.qml:3450
+#: contents/ui/main.qml:3461
 msgid "Log a trip (Anfahrten plugin)"
 msgstr "Записати поїздку (плагін Anfahrten)"
 
-#: contents/ui/main.qml:3459
+#: contents/ui/main.qml:3470
 msgid "Back"
 msgstr "Назад"
 
-#: contents/ui/main.qml:3464
+#: contents/ui/main.qml:3475
 msgid "Back to timer"
 msgstr "Назад до таймера"
 
-#: contents/ui/main.qml:3506
+#: contents/ui/main.qml:3517
 msgid "Add your service, server URL (if needed), and API token to start tracking from the panel."
 msgstr "Додайте сервіс, URL сервера (за потреби) та API-токен, щоб розпочати відстеження з панелі."
 

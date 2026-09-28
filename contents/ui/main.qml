@@ -2750,21 +2750,27 @@ PlasmoidItem {
 
         onClicked: root.expanded = !root.expanded
 
-        // Tracking tint: theme positive (System, Kante Light) or the Kante accent, square in Kante.
-        readonly property color trackingColor: KanteStyle.themed ? KanteStyle.accentColor : KanteStyle.positiveTextColor
+        // System keeps the theme-positive tint. The Kante styles keep the panel neutral and
+        // mark a running timer with a small red indicator (config: trackingIndicator).
+        readonly property color trackingColor: KanteStyle.active ? KanteStyle.textColor : KanteStyle.positiveTextColor
+        readonly property int recMode: plasmoid.configuration.trackingIndicator
 
         Rectangle {
             anchors.fill: parent
-            radius: KanteStyle.themed ? 0 : 3
-            color: root.isTracking
-                   ? Qt.rgba(compactRoot.trackingColor.r,
-                             compactRoot.trackingColor.g,
-                             compactRoot.trackingColor.b, 0.12)
-                   : "transparent"
-            border.width: root.isTracking ? 1 : 0
+            radius: 3
+            visible: root.isTracking && !KanteStyle.active
+            color: Qt.rgba(compactRoot.trackingColor.r,
+                           compactRoot.trackingColor.g,
+                           compactRoot.trackingColor.b, 0.12)
+            border.width: 1
             border.color: Qt.rgba(compactRoot.trackingColor.r,
                                   compactRoot.trackingColor.g,
                                   compactRoot.trackingColor.b, 0.35)
+        }
+
+        RecEdge {
+            mode: compactRoot.recMode
+            active: root.isTracking && KanteStyle.active
         }
 
         RowLayout {
@@ -2775,10 +2781,10 @@ PlasmoidItem {
             Kirigami.Icon {
                 Layout.preferredWidth: TouchUi.compactIconSize
                 Layout.preferredHeight: TouchUi.compactIconSize
-                // Kante keeps the Plasmai mark while tracking, tinted with the accent.
+                // The Kante styles keep the Plasmai mark while tracking.
                 source: root.connectionState === "error" ? "network-disconnect"
-                        : (root.isTracking && !KanteStyle.themed) ? "media-record" : Qt.resolvedUrl("../images/icon.svg")
-                isMask: root.connectionState !== "error" && (!root.isTracking || KanteStyle.themed)
+                        : (root.isTracking && !KanteStyle.active) ? "media-record" : Qt.resolvedUrl("../images/icon.svg")
+                isMask: root.connectionState !== "error" && (!root.isTracking || KanteStyle.active)
                 active: compactRoot.containsMouse
                 color: root.isTracking ? compactRoot.trackingColor : KanteStyle.textColor
             }
@@ -2820,13 +2826,18 @@ PlasmoidItem {
                 font.pointSize: KanteStyle.smallFont.pointSize
             }
 
+            RecDot {
+                visible: root.isTracking && KanteStyle.active && compactRoot.recMode === 0
+                Layout.alignment: Qt.AlignVCenter
+            }
+
             PlasmaComponents3.Label {
                 visible: root.isTracking && plasmoid.configuration.showElapsedInPanel
                 text: KimaiApi.formatDurationPanel(root.elapsedSeconds)
                 font.family: KanteStyle.monoFamily
                 font.pointSize: KanteStyle.smallFont.pointSize
                 font.bold: true
-                color: KanteStyle.themed ? compactRoot.trackingColor : Kirigami.Theme.textColor
+                color: KanteStyle.active ? KanteStyle.textColor : Kirigami.Theme.textColor
             }
         }
     }

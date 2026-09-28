@@ -170,5 +170,11 @@
             <min>0</min>
             <max>2</max>
         </entry>
+        <!-- Timer indicator in the panel (Kante styles): 0=red dot, 1=red bottom edge, 2=red side stripe -->
+        <entry name="trackingIndicator" type="Int">
+            <default>0</default>
+            <min>0</min>
+            <max>2</max>
+        </entry>
     </group>
 </kcfg>

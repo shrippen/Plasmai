@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-09-28 11:02+0200\n"
+"POT-Creation-Date: 2026-09-28 12:06+0200\n"
 "PO-Revision-Date: 2026-08-09 19:45+0200\n"
 "Last-Translator: Cursor Agent\n"
 "Language-Team: Simplified Chinese\n"
@@ -161,8 +161,8 @@ msgid "Missing URL or token (type: %1)"
 msgstr "缺少 URL 或令牌（类型：%1）"
 
 #: app/qml/FavoritesPage.qml:12 app/qml/main.qml:843 app/qml/TimerPage.qml:637
-#: contents/config/config.qml:11 contents/ui/config/ConfigDisplay.qml:833
-#: contents/ui/config/ConfigDisplay.qml:888
+#: contents/config/config.qml:11 contents/ui/config/ConfigDisplay.qml:871
+#: contents/ui/config/ConfigDisplay.qml:926
 #: contents/ui/config/ConfigFavorites.qml:423 contents/ui/EntryLists.qml:167
 msgid "Favorites"
 msgstr "收藏"
@@ -176,7 +176,7 @@ msgid "Connect a time tracker first"
 msgstr "请先连接时间追踪服务"
 
 #: app/qml/FilmDayPage.qml:16 app/qml/TimerPage.qml:57
-#: contents/ui/main.qml:3360 contents/ui/main.qml:3430
+#: contents/ui/main.qml:3371 contents/ui/main.qml:3441
 msgid "Film day"
 msgstr "拍摄日"
 
@@ -216,7 +216,7 @@ msgstr "已保存拍摄日"
 #: app/qml/TimerPage.qml:776 app/qml/TimerPage.qml:789
 #: app/qml/TimerPage.qml:806 contents/ui/ActiveEditView.qml:360
 #: contents/ui/ActiveEditView.qml:389 contents/ui/EntryLists.qml:155
-#: contents/ui/FilmDayView.qml:916 contents/ui/main.qml:3056
+#: contents/ui/FilmDayView.qml:916 contents/ui/main.qml:3067
 #: contents/ui/ManualEntryView.qml:421 contents/ui/TimeField.qml:265
 #: contents/ui/TripSheet.qml:433
 msgid "Cancel"
@@ -267,7 +267,7 @@ msgstr "分钟"
 
 #: app/qml/main.qml:221 app/qml/main.qml:797 app/qml/TimerPage.qml:17
 #: contents/ui/main.qml:357 contents/ui/main.qml:359 contents/ui/main.qml:2743
-#: contents/ui/main.qml:3364
+#: contents/ui/main.qml:3375
 msgid "Plasmai"
 msgstr "Plasmai"
 
@@ -339,7 +339,7 @@ msgstr "无法保存条目"
 msgid "Could not delete the entry"
 msgstr "无法删除条目"
 
-#: app/qml/main.qml:596 contents/ui/main.qml:2694 contents/ui/main.qml:3197
+#: app/qml/main.qml:596 contents/ui/main.qml:2694 contents/ui/main.qml:3208
 msgid "Split time must be between begin and end."
 msgstr "拆分时间必须介于开始和结束之间。"
 
@@ -388,7 +388,7 @@ msgid "Add Entry"
 msgstr "添加条目"
 
 #: app/qml/main.qml:834 app/qml/StatsPage.qml:15 app/qml/TimerPage.qml:51
-#: contents/ui/main.qml:3359 contents/ui/main.qml:3416
+#: contents/ui/main.qml:3370 contents/ui/main.qml:3427
 msgid "Statistics"
 msgstr "统计"
 
@@ -401,36 +401,36 @@ msgid "Settings"
 msgstr "设置"
 
 #: app/qml/ManualEntryPage.qml:14 app/qml/shared/ActivityListRow.qml:332
-#: contents/ui/ActivityListRow.qml:330 contents/ui/main.qml:3363
+#: contents/ui/ActivityListRow.qml:330 contents/ui/main.qml:3374
 msgid "Edit entry"
 msgstr "编辑条目"
 
 #: app/qml/ManualEntryPage.qml:14 app/qml/TimerPage.qml:45
-#: contents/ui/main.qml:3363 contents/ui/main.qml:3401
+#: contents/ui/main.qml:3374 contents/ui/main.qml:3412
 msgid "Add entry"
 msgstr "添加条目"
 
-#: app/qml/SettingsPage.qml:59 contents/ui/config/ConfigDisplay.qml:487
+#: app/qml/SettingsPage.qml:59 contents/ui/config/ConfigDisplay.qml:492
 msgid "Appearance"
 msgstr "外观"
 
-#: app/qml/SettingsPage.qml:63 contents/ui/config/ConfigDisplay.qml:493
+#: app/qml/SettingsPage.qml:63 contents/ui/config/ConfigDisplay.qml:498
 msgid "Style:"
 msgstr "样式:"
 
-#: app/qml/SettingsPage.qml:66 contents/ui/config/ConfigDisplay.qml:497
+#: app/qml/SettingsPage.qml:66 contents/ui/config/ConfigDisplay.qml:502
 msgid "System (Plasma theme)"
 msgstr "系统 (Plasma 主题)"
 
-#: app/qml/SettingsPage.qml:66 contents/ui/config/ConfigDisplay.qml:498
+#: app/qml/SettingsPage.qml:66 contents/ui/config/ConfigDisplay.qml:503
 msgid "Kante"
 msgstr "Kante"
 
-#: app/qml/SettingsPage.qml:66 contents/ui/config/ConfigDisplay.qml:499
+#: app/qml/SettingsPage.qml:66 contents/ui/config/ConfigDisplay.qml:504
 msgid "Kante Light"
 msgstr "Kante Light"
 
-#: app/qml/SettingsPage.qml:78 contents/ui/config/ConfigDisplay.qml:511
+#: app/qml/SettingsPage.qml:78 contents/ui/config/ConfigDisplay.qml:516
 msgid "Kante is Plasmai's own look: warm colors, square cut corners and monospace figures. It deliberately does not follow Breeze; dark or light still follows your theme. Kante Light keeps your theme's colors and controls and adds only Kante's shapes, titles and figures."
 msgstr "Kante 是 Plasmai 自己的外观: 暖色、切角和等宽数字。它有意不跟随 Breeze; 明暗仍跟随你的主题。Kante Light 保留主题的颜色和控件，只添加 Kante 的形状、标题和数字。"
 
@@ -475,11 +475,11 @@ msgstr "显示开始/切换活动控件"
 msgid "Show day sparkline"
 msgstr "显示当日走势图"
 
-#: app/qml/SettingsPage.qml:136 contents/ui/config/ConfigDisplay.qml:600
+#: app/qml/SettingsPage.qml:136 contents/ui/config/ConfigDisplay.qml:605
 msgid "Show sun, moon, and work arcs"
 msgstr "显示太阳、月亮和工作弧"
 
-#: app/qml/SettingsPage.qml:142 contents/ui/config/ConfigDisplay.qml:941
+#: app/qml/SettingsPage.qml:142 contents/ui/config/ConfigDisplay.qml:979
 msgid "Trips:"
 msgstr "行程:"
 
@@ -503,7 +503,7 @@ msgstr "开始时间落入上一条记录时询问"
 msgid "When editing the running timer, the previous entry's end is shown. Saving an earlier start asks for confirmation."
 msgstr "编辑正在运行的计时器时会显示上一条目的结束时间。保存更早的开始时间时需要确认。"
 
-#: app/qml/SettingsPage.qml:165 contents/ui/config/ConfigDisplay.qml:555
+#: app/qml/SettingsPage.qml:165 contents/ui/config/ConfigDisplay.qml:560
 msgid "Work hours"
 msgstr "工作时间"
 
@@ -644,7 +644,7 @@ msgstr "固定为收藏"
 
 #: app/qml/shared/ActivityListRow.qml:339 app/qml/TimerPage.qml:801
 #: app/qml/TimerPage.qml:805 contents/ui/ActivityListRow.qml:337
-#: contents/ui/main.qml:3104
+#: contents/ui/main.qml:3115
 msgid "Split entry"
 msgstr "拆分条目"
 
@@ -653,7 +653,7 @@ msgstr "拆分条目"
 #: app/qml/TimerPage.qml:301 app/qml/TimerPage.qml:330
 #: app/qml/TripEditPage.qml:19 app/qml/TripsPage.qml:119
 #: contents/ui/ActivityListRow.qml:344 contents/ui/FilmDayView.qml:855
-#: contents/ui/main.qml:3444 contents/ui/TimerCardKante.qml:88
+#: contents/ui/main.qml:3455 contents/ui/TimerCardKante.qml:88
 #: contents/ui/TimerCard.qml:98 contents/ui/TripSheet.qml:205
 #: contents/ui/TripSheet.qml:420
 msgid "Log trip"
@@ -1412,7 +1412,7 @@ msgstr "已连接到 %1 (%2)"
 msgid "Connected to %1"
 msgstr "已连接到 %1"
 
-#: app/qml/TimerPage.qml:171 contents/ui/main.qml:3505
+#: app/qml/TimerPage.qml:171 contents/ui/main.qml:3516
 msgid "Connect a time tracker"
 msgstr "连接时间跟踪服务"
 
@@ -1420,15 +1420,15 @@ msgstr "连接时间跟踪服务"
 msgid "Add your service, server URL (if needed), and API token to start tracking."
 msgstr "添加服务、服务器 URL（如需要）和 API 令牌即可开始计时。"
 
-#: app/qml/TimerPage.qml:173 contents/ui/main.qml:3508
+#: app/qml/TimerPage.qml:173 contents/ui/main.qml:3519
 msgid "Configure Plasmai"
 msgstr "配置 Plasmai"
 
-#: app/qml/TimerPage.qml:182 contents/ui/main.qml:3522
+#: app/qml/TimerPage.qml:182 contents/ui/main.qml:3533
 msgid "Retry"
 msgstr "重试"
 
-#: app/qml/TimerPage.qml:183 contents/ui/main.qml:3527
+#: app/qml/TimerPage.qml:183 contents/ui/main.qml:3538
 msgid "Configure"
 msgstr "配置"
 
@@ -1500,7 +1500,7 @@ msgid "Start something else…"
 msgstr "开始其他工作…"
 
 #: app/qml/TimerPage.qml:610 app/qml/TimerPage.qml:788
-#: contents/ui/EntryLists.qml:143 contents/ui/main.qml:3050
+#: contents/ui/EntryLists.qml:143 contents/ui/main.qml:3061
 msgid "Switch"
 msgstr "切换"
 
@@ -1517,7 +1517,7 @@ msgstr "在“最近”中固定条目即可将其加入收藏。"
 msgid "Recent"
 msgstr "最近"
 
-#: app/qml/TimerPage.qml:756 contents/ui/main.qml:2893
+#: app/qml/TimerPage.qml:756 contents/ui/main.qml:2904
 msgid "Stop tracking?"
 msgstr "停止计时？"
 
@@ -1525,7 +1525,7 @@ msgstr "停止计时？"
 msgid "Stop %1 · %2?"
 msgstr "停止 %1 · %2？"
 
-#: app/qml/TimerPage.qml:770 contents/ui/main.qml:3071
+#: app/qml/TimerPage.qml:770 contents/ui/main.qml:3082
 msgid "Delete entry?"
 msgstr "删除此条目？"
 
@@ -1534,7 +1534,7 @@ msgid "Really delete this entry?"
 msgstr "确定要删除此条目吗？"
 
 #: app/qml/TimerPage.qml:783 contents/ui/EntryLists.qml:57
-#: contents/ui/main.qml:2917
+#: contents/ui/main.qml:2928
 msgid "Switch activity"
 msgstr "切换活动"
 
@@ -1546,7 +1546,7 @@ msgstr "切换到 %1 · %2？"
 msgid "Split at:"
 msgstr "拆分于:"
 
-#: app/qml/TimerPage.qml:842 contents/ui/main.qml:3210
+#: app/qml/TimerPage.qml:842 contents/ui/main.qml:3221
 msgid "You were idle"
 msgstr "你处于空闲状态"
 
@@ -1554,15 +1554,15 @@ msgstr "你处于空闲状态"
 msgid "You were idle for %1. Keep this time, discard it, or discard and continue?"
 msgstr "你已空闲 %1。保留这段时间、丢弃，还是丢弃并继续？"
 
-#: app/qml/TimerPage.qml:853 contents/ui/main.qml:3237
+#: app/qml/TimerPage.qml:853 contents/ui/main.qml:3248
 msgid "Keep time"
 msgstr "保留时间"
 
-#: app/qml/TimerPage.qml:854 contents/ui/main.qml:3246
+#: app/qml/TimerPage.qml:854 contents/ui/main.qml:3257
 msgid "Discard idle"
 msgstr "丢弃空闲"
 
-#: app/qml/TimerPage.qml:855 contents/ui/main.qml:3255
+#: app/qml/TimerPage.qml:855 contents/ui/main.qml:3266
 msgid "Discard and continue"
 msgstr "丢弃并继续"
 
@@ -1627,7 +1627,7 @@ msgstr "时间记录 #%1"
 msgid "round trip"
 msgstr "往返"
 
-#: contents/config/config.qml:16 contents/ui/config/ConfigDisplay.qml:473
+#: contents/config/config.qml:16 contents/ui/config/ConfigDisplay.qml:478
 msgid "Display"
 msgstr "显示"
 
@@ -1783,193 +1783,217 @@ msgstr "ok"
 msgid "Connected to %1 (%2)."
 msgstr "已连接到 %1 (%2)。"
 
-#: contents/ui/config/ConfigDisplay.qml:183
+#: contents/ui/config/ConfigDisplay.qml:185
 msgid "Enter a city or place name to search."
 msgstr "输入城市或地名进行搜索。"
 
-#: contents/ui/config/ConfigDisplay.qml:187
-#: contents/ui/config/ConfigDisplay.qml:637
+#: contents/ui/config/ConfigDisplay.qml:189
+#: contents/ui/config/ConfigDisplay.qml:642
 msgid "Searching…"
 msgstr "搜索中…"
 
-#: contents/ui/config/ConfigDisplay.qml:196
+#: contents/ui/config/ConfigDisplay.qml:198
 msgid "Location search failed. Check your network connection."
 msgstr "位置搜索失败。请检查网络连接。"
 
-#: contents/ui/config/ConfigDisplay.qml:201
+#: contents/ui/config/ConfigDisplay.qml:203
 msgid "No places found."
 msgstr "未找到地点。"
 
-#: contents/ui/config/ConfigDisplay.qml:203
+#: contents/ui/config/ConfigDisplay.qml:205
 msgid "%1 place found."
 msgid_plural "%1 places found."
 msgstr[0] "找到 %1 个地点。"
 
-#: contents/ui/config/ConfigDisplay.qml:517
+#: contents/ui/config/ConfigDisplay.qml:522
 msgid "Touch optimization:"
 msgstr "触控优化："
 
-#: contents/ui/config/ConfigDisplay.qml:521
+#: contents/ui/config/ConfigDisplay.qml:526
 msgid "Automatic (follow Plasma tablet mode)"
 msgstr "自动（跟随 Plasma 平板模式）"
 
-#: contents/ui/config/ConfigDisplay.qml:522
+#: contents/ui/config/ConfigDisplay.qml:527
 msgid "On"
 msgstr "开"
 
-#: contents/ui/config/ConfigDisplay.qml:523
+#: contents/ui/config/ConfigDisplay.qml:528
 msgid "Off"
 msgstr "关"
 
-#: contents/ui/config/ConfigDisplay.qml:535
+#: contents/ui/config/ConfigDisplay.qml:540
 msgid "Larger tap targets for buttons, lists, pickers, and date/time controls."
 msgstr "为按钮、列表、选择器和日期/时间控件提供更大的触控目标。"
 
-#: contents/ui/config/ConfigDisplay.qml:540
+#: contents/ui/config/ConfigDisplay.qml:545
 msgid "Updates"
 msgstr "更新"
 
-#: contents/ui/config/ConfigDisplay.qml:546
+#: contents/ui/config/ConfigDisplay.qml:551
 msgid "Refresh interval (seconds):"
 msgstr "刷新间隔（秒）："
 
-#: contents/ui/config/ConfigDisplay.qml:561
+#: contents/ui/config/ConfigDisplay.qml:566
 msgid "Usual work day start:"
 msgstr "通常工作日开始："
 
-#: contents/ui/config/ConfigDisplay.qml:571
+#: contents/ui/config/ConfigDisplay.qml:576
 msgid "Usual work day end:"
 msgstr "通常工作日结束："
 
-#: contents/ui/config/ConfigDisplay.qml:586
+#: contents/ui/config/ConfigDisplay.qml:591
 msgid "Used for the sparkline zoom and remaining-time in the work summary."
 msgstr "用于迷你图缩放和工作摘要中的剩余时间。"
 
-#: contents/ui/config/ConfigDisplay.qml:591
-#: contents/ui/config/ConfigDisplay.qml:825
-#: contents/ui/config/ConfigDisplay.qml:880
+#: contents/ui/config/ConfigDisplay.qml:596
+#: contents/ui/config/ConfigDisplay.qml:863
+#: contents/ui/config/ConfigDisplay.qml:918
 msgid "Day sparkline"
 msgstr "每日 sparkline"
 
-#: contents/ui/config/ConfigDisplay.qml:597
+#: contents/ui/config/ConfigDisplay.qml:602
 msgid "Arcs:"
 msgstr "弧线："
 
-#: contents/ui/config/ConfigDisplay.qml:611
+#: contents/ui/config/ConfigDisplay.qml:616
 msgid "Hide the whole sparkline under Panel flyout or Desktop widget below."
 msgstr "在下方的面板弹出或桌面小组件中隐藏整条迷你图。"
 
-#: contents/ui/config/ConfigDisplay.qml:615
+#: contents/ui/config/ConfigDisplay.qml:620
 msgid "Find location:"
 msgstr "查找地点："
 
-#: contents/ui/config/ConfigDisplay.qml:624
+#: contents/ui/config/ConfigDisplay.qml:629
 msgid "City, region, or address…"
 msgstr "城市、地区或地址…"
 
-#: contents/ui/config/ConfigDisplay.qml:637
-#: contents/ui/config/ConfigDisplay.qml:645
+#: contents/ui/config/ConfigDisplay.qml:642
+#: contents/ui/config/ConfigDisplay.qml:650
 msgid "Search"
 msgstr "搜索"
 
-#: contents/ui/config/ConfigDisplay.qml:699
+#: contents/ui/config/ConfigDisplay.qml:704
 msgid "Using %1"
 msgstr "使用 %1"
 
-#: contents/ui/config/ConfigDisplay.qml:716
+#: contents/ui/config/ConfigDisplay.qml:721
 msgid "Current place: %1"
 msgstr "当前地点：%1"
 
-#: contents/ui/config/ConfigDisplay.qml:721
+#: contents/ui/config/ConfigDisplay.qml:726
 msgid "Latitude:"
 msgstr "纬度："
 
-#: contents/ui/config/ConfigDisplay.qml:736
+#: contents/ui/config/ConfigDisplay.qml:741
 msgid "Longitude:"
 msgstr "经度："
 
-#: contents/ui/config/ConfigDisplay.qml:756
+#: contents/ui/config/ConfigDisplay.qml:761
 msgid "Search a place or enter coordinates for sunrise/sunset coloring. Powered by OpenStreetMap Nominatim."
 msgstr "搜索地点或输入坐标，用于日出/日落着色。由 OpenStreetMap Nominatim 提供。"
 
-#: contents/ui/config/ConfigDisplay.qml:761
+#: contents/ui/config/ConfigDisplay.qml:766
 msgid "Panel (taskbar)"
 msgstr "面板（任务栏）"
 
-#: contents/ui/config/ConfigDisplay.qml:767
-#: contents/ui/config/ConfigDisplay.qml:814
-#: contents/ui/config/ConfigDisplay.qml:869
+#: contents/ui/config/ConfigDisplay.qml:772
+#: contents/ui/config/ConfigDisplay.qml:852
+#: contents/ui/config/ConfigDisplay.qml:907
 msgid "Show:"
 msgstr "显示："
 
-#: contents/ui/config/ConfigDisplay.qml:770
+#: contents/ui/config/ConfigDisplay.qml:775
 msgid "Elapsed time"
 msgstr "已用时间"
 
-#: contents/ui/config/ConfigDisplay.qml:778
+#: contents/ui/config/ConfigDisplay.qml:783
 msgid "Project name"
 msgstr "项目名称"
 
-#: contents/ui/config/ConfigDisplay.qml:786
+#: contents/ui/config/ConfigDisplay.qml:791
 msgid "Activity name"
 msgstr "活动名称"
 
-#: contents/ui/config/ConfigDisplay.qml:794
+#: contents/ui/config/ConfigDisplay.qml:799
 msgid "Customer color pill"
 msgstr "客户颜色点"
 
-#: contents/ui/config/ConfigDisplay.qml:802
+#: contents/ui/config/ConfigDisplay.qml:807
 msgid "Project color pill"
 msgstr "项目颜色点"
 
-#: contents/ui/config/ConfigDisplay.qml:808
+#: contents/ui/config/ConfigDisplay.qml:813
+msgid "Running timer:"
+msgstr "运行中的计时器:"
+
+#: contents/ui/config/ConfigDisplay.qml:818
+msgid "Red dot"
+msgstr "红点"
+
+#: contents/ui/config/ConfigDisplay.qml:819
+msgid "Red bottom edge"
+msgstr "红色底边"
+
+#: contents/ui/config/ConfigDisplay.qml:820
+msgid "Red side stripe"
+msgstr "左侧红条"
+
+#: contents/ui/config/ConfigDisplay.qml:826
+msgid "Preview:"
+msgstr "预览:"
+
+#: contents/ui/config/ConfigDisplay.qml:841
+msgid "The Kante styles mark a running timer with a small red indicator. The System style keeps the Plasma theme's green."
+msgstr "Kante 样式用小红标记显示运行中的计时器。系统样式保留 Plasma 主题的绿色。"
+
+#: contents/ui/config/ConfigDisplay.qml:846
 msgid "Panel flyout"
 msgstr "面板弹出窗口"
 
-#: contents/ui/config/ConfigDisplay.qml:817
-#: contents/ui/config/ConfigDisplay.qml:872
+#: contents/ui/config/ConfigDisplay.qml:855
+#: contents/ui/config/ConfigDisplay.qml:910
 msgid "Work summary (today / week / remaining)"
 msgstr "工作摘要（今日 / 本周 / 剩余）"
 
-#: contents/ui/config/ConfigDisplay.qml:841
-#: contents/ui/config/ConfigDisplay.qml:896
-#: contents/ui/config/ConfigDisplay.qml:910
+#: contents/ui/config/ConfigDisplay.qml:879
+#: contents/ui/config/ConfigDisplay.qml:934
+#: contents/ui/config/ConfigDisplay.qml:948
 msgid "Recent list"
 msgstr "最近列表"
 
-#: contents/ui/config/ConfigDisplay.qml:849
+#: contents/ui/config/ConfigDisplay.qml:887
 msgid "Continue last activity"
 msgstr "继续上次活动"
 
-#: contents/ui/config/ConfigDisplay.qml:857
+#: contents/ui/config/ConfigDisplay.qml:895
 msgid "Start / switch activity controls"
 msgstr "开始 / 切换活动控件"
 
-#: contents/ui/config/ConfigDisplay.qml:863
+#: contents/ui/config/ConfigDisplay.qml:901
 msgid "Desktop widget"
 msgstr "桌面小部件"
 
-#: contents/ui/config/ConfigDisplay.qml:904
+#: contents/ui/config/ConfigDisplay.qml:942
 msgid "New activity picker"
 msgstr "新活动选择器"
 
-#: contents/ui/config/ConfigDisplay.qml:916
+#: contents/ui/config/ConfigDisplay.qml:954
 msgid "Activities shown:"
 msgstr "显示的活动："
 
-#: contents/ui/config/ConfigDisplay.qml:930
+#: contents/ui/config/ConfigDisplay.qml:968
 msgid "Applies to both the panel flyout and the desktop widget."
 msgstr "同时适用于面板弹出和桌面小组件。"
 
-#: contents/ui/config/ConfigDisplay.qml:935
+#: contents/ui/config/ConfigDisplay.qml:973
 msgid "Kimai plugins"
 msgstr "Kimai 插件"
 
-#: contents/ui/config/ConfigDisplay.qml:944
+#: contents/ui/config/ConfigDisplay.qml:982
 msgid "Log trips and show detected trips"
 msgstr "记录行程并显示检测到的行程"
 
-#: contents/ui/config/ConfigDisplay.qml:955
+#: contents/ui/config/ConfigDisplay.qml:993
 msgid "Only when the Anfahrten plugin (MileageBundle) is installed on the Kimai server and your account may use it."
 msgstr "仅当 Kimai 服务器安装了 Anfahrten 插件 (MileageBundle) 且你的账户可以使用时。"
 
@@ -2203,71 +2227,71 @@ msgstr "已拆分条目"
 msgid "Open or close the Plasmai popup"
 msgstr "打开或关闭 Plasmai 弹出窗口"
 
-#: contents/ui/main.qml:2906
+#: contents/ui/main.qml:2917
 msgid "Stop tracking %1 · %2?"
 msgstr "停止计时 %1 · %2？"
 
-#: contents/ui/main.qml:3020
+#: contents/ui/main.qml:3031
 msgid "Current"
 msgstr "当前"
 
-#: contents/ui/main.qml:3039
+#: contents/ui/main.qml:3050
 msgid "Switch to"
 msgstr "切换到"
 
-#: contents/ui/main.qml:3088
+#: contents/ui/main.qml:3099
 msgid "Delete this finished entry? This cannot be undone."
 msgstr "删除这条已结束的条目？此操作无法撤销。"
 
-#: contents/ui/main.qml:3090
+#: contents/ui/main.qml:3101
 msgid "Delete \"%1 · %2\"? This cannot be undone."
 msgstr "删除“%1 · %2”？此操作无法撤销。"
 
-#: contents/ui/main.qml:3155
+#: contents/ui/main.qml:3166
 msgid "The first half keeps the original start. The second half starts at the split time."
 msgstr "前半段保留原来的开始时间。后半段从拆分时刻开始。"
 
-#: contents/ui/main.qml:3160
+#: contents/ui/main.qml:3171
 msgid "Split at"
 msgstr "拆分于"
 
-#: contents/ui/main.qml:3196
+#: contents/ui/main.qml:3207
 msgid "Both halves will have a positive duration."
 msgstr "两段都会有正的时长。"
 
-#: contents/ui/main.qml:3228
+#: contents/ui/main.qml:3239
 msgid "Keep the time, discard the idle gap, or discard and continue the same activity."
 msgstr "保留这段时间、丢弃空闲间隔，或丢弃后继续同一活动。"
 
-#: contents/ui/main.qml:3361
+#: contents/ui/main.qml:3372
 msgid "Trip"
 msgstr "行程"
 
-#: contents/ui/main.qml:3407
+#: contents/ui/main.qml:3418
 msgid "Add a manual time entry"
 msgstr "添加手动时间条目"
 
-#: contents/ui/main.qml:3422
+#: contents/ui/main.qml:3433
 msgid "Show statistics"
 msgstr "显示统计"
 
-#: contents/ui/main.qml:3436
+#: contents/ui/main.qml:3447
 msgid "Log a shooting day"
 msgstr "记录拍摄日"
 
-#: contents/ui/main.qml:3450
+#: contents/ui/main.qml:3461
 msgid "Log a trip (Anfahrten plugin)"
 msgstr "记录行程 (Anfahrten 插件)"
 
-#: contents/ui/main.qml:3459
+#: contents/ui/main.qml:3470
 msgid "Back"
 msgstr "返回"
 
-#: contents/ui/main.qml:3464
+#: contents/ui/main.qml:3475
 msgid "Back to timer"
 msgstr "返回计时器"
 
-#: contents/ui/main.qml:3506
+#: contents/ui/main.qml:3517
 msgid "Add your service, server URL (if needed), and API token to start tracking from the panel."
 msgstr "添加您的服务、服务器 URL（如需要）和 API 令牌，即可从面板开始计时。"
 

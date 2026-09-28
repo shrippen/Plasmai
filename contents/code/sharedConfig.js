@@ -45,7 +45,8 @@ var SHARED_KEYS = [
     "showTrips",
     "locationName",
     "touchMode",
-    "visualStyle"
+    "visualStyle",
+    "trackingIndicator"
 ]
 
 function applyToConfiguration(config, shared) {

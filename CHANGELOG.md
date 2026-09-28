@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Changed
+- Widget (Kante styles): a running timer no longer tints the whole panel entry in the accent color. It is marked by a small red indicator instead; Display settings offer a red dot, a red bottom edge or a red side stripe, with a preview
+
 ## 2.0.1
 
 Released 2026-09-28.

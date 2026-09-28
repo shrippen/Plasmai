@@ -8,6 +8,19 @@ Column order: en, de, fr, es, it, nl, pt_BR, pl, uk, ru, ja, zh_CN
 LANGS = ["en", "de", "fr", "es", "it", "nl", "pt_BR", "pl", "uk", "ru", "ja", "zh_CN"]
 
 ROWS = [
+    # Panel indicator for a running timer (2026-09)
+    ("Running timer:",
+     "Laufender Timer:", "Minuteur en cours :", "Temporizador en marcha:", "Timer in corso:", "Lopende timer:", "Timer em andamento:", "Działający timer:", "Активний таймер:", "Работающий таймер:", "実行中のタイマー:", "运行中的计时器:"),
+    ("Red dot",
+     "Roter Punkt", "Point rouge", "Punto rojo", "Punto rosso", "Rode stip", "Ponto vermelho", "Czerwona kropka", "Червона крапка", "Красная точка", "赤い点", "红点"),
+    ("Red bottom edge",
+     "Rote Unterkante", "Bord inférieur rouge", "Borde inferior rojo", "Bordo inferiore rosso", "Rode onderrand", "Borda inferior vermelha", "Czerwona dolna krawędź", "Червона нижня межа", "Красная нижняя кромка", "赤い下端", "红色底边"),
+    ("Red side stripe",
+     "Roter Streifen links", "Bande rouge à gauche", "Franja roja a la izquierda", "Striscia rossa a sinistra", "Rode streep links", "Faixa vermelha à esquerda", "Czerwony pasek z lewej", "Червона смужка ліворуч", "Красная полоса слева", "左側の赤い帯", "左侧红条"),
+    ("Preview:",
+     "Vorschau:", "Aperçu :", "Vista previa:", "Anteprima:", "Voorbeeld:", "Pré-visualização:", "Podgląd:", "Попередній перегляд:", "Предпросмотр:", "プレビュー:", "预览:"),
+    ("The Kante styles mark a running timer with a small red indicator. The System style keeps the Plasma theme's green.",
+     "Die Kante-Stile markieren einen laufenden Timer mit einem kleinen roten Zeichen. Der System-Stil behält das Grün des Plasma-Themes.", "Les styles Kante signalent un minuteur en cours par un petit repère rouge. Le style Système garde le vert du thème Plasma.", "Los estilos Kante marcan un temporizador en marcha con un pequeño indicador rojo. El estilo Sistema mantiene el verde del tema de Plasma.", "Gli stili Kante segnalano un timer in corso con un piccolo indicatore rosso. Lo stile Sistema mantiene il verde del tema Plasma.", "De Kante-stijlen markeren een lopende timer met een kleine rode indicator. De stijl Systeem behoudt het groen van het Plasma-thema.", "Os estilos Kante marcam um timer em andamento com um pequeno indicador vermelho. O estilo Sistema mantém o verde do tema do Plasma.", "Style Kante oznaczają działający timer małym czerwonym znacznikiem. Styl Systemowy zachowuje zieleń motywu Plasma.", "Стилі Kante позначають активний таймер невеликим червоним індикатором. Системний стиль зберігає зелений колір теми Plasma.", "Стили Kante отмечают работающий таймер небольшим красным индикатором. Системный стиль сохраняет зелёный цвет темы Plasma.", "Kante スタイルでは、実行中のタイマーを小さな赤い印で示します。システムスタイルは Plasma テーマの緑のままです。", "Kante 样式用小红标记显示运行中的计时器。系统样式保留 Plasma 主题的绿色。"),
     # Film day: engagement, start / stop, direct save (2026-09)
     ("The film day was not saved: %1",
      "Der Drehtag wurde nicht gespeichert: %1", "La journée de tournage n’a pas été enregistrée : %1", "No se guardó el día de rodaje: %1", "La giornata di riprese non è stata salvata: %1", "De draaidag is niet opgeslagen: %1", "O dia de filmagem não foi salvo: %1", "Nie zapisano dnia zdjęciowego: %1", "Знімальний день не збережено: %1", "Съёмочный день не сохранён: %1", "撮影日を保存できませんでした: %1", "未保存拍摄日: %1"),

@@ -77,6 +77,7 @@ ConfigPageBase {
     property var cfg_locationNameDefault
     property var cfg_touchModeDefault
     property var cfg_visualStyleDefault
+    property var cfg_trackingIndicatorDefault
 
     // Aliases so Plasma's isConfigurationChanged / cfg_*Changed see toggles.
     property alias cfg_refreshInterval: refreshIntervalSpin.value
@@ -103,6 +104,7 @@ ConfigPageBase {
     property alias cfg_desktopShowNewActivity: desktopNewActivityCheck.checked
     property alias cfg_touchMode: touchModeCombo.currentIndex
     property alias cfg_visualStyle: visualStyleCombo.currentIndex
+    property alias cfg_trackingIndicator: trackingIndicatorCombo.currentIndex
 
     readonly property int pageMargin: Kirigami.Units.gridUnit
     /** Stack FormLayout labels above fields when the config window is narrow. */
@@ -234,7 +236,8 @@ ConfigPageBase {
             desktopShowNewActivity: desktopNewActivityCheck.checked,
             showFavorites: popupFavoritesCheck.checked || desktopFavoritesCheck.checked,
             touchMode: page.cfg_touchMode,
-            visualStyle: page.cfg_visualStyle
+            visualStyle: page.cfg_visualStyle,
+            trackingIndicator: page.cfg_trackingIndicator
         }
     }
 
@@ -264,6 +267,7 @@ ConfigPageBase {
         page.cfg_showFavorites = popupFavoritesCheck.checked || desktopFavoritesCheck.checked
         page.cfg_touchMode = touchModeCombo.currentIndex
         page.cfg_visualStyle = visualStyleCombo.currentIndex
+        page.cfg_trackingIndicator = trackingIndicatorCombo.currentIndex
     }
 
     function applyCfgToControls() {
@@ -301,6 +305,8 @@ ConfigPageBase {
             page.cfg_touchMode, page.cfg_touchModeDefault || 0, 0, 2)
         visualStyleCombo.currentIndex = SharedConfig.coerceInt(
             page.cfg_visualStyle, page.cfg_visualStyleDefault || 0, 0, 2)
+        trackingIndicatorCombo.currentIndex = SharedConfig.coerceInt(
+            page.cfg_trackingIndicator, page.cfg_trackingIndicatorDefault || 0, 0, 2)
         page.syncLocationFields()
         syncControlsToCfg()
         suppressNotify = false
@@ -362,6 +368,11 @@ ConfigPageBase {
             page.cfg_visualStyle = SharedConfig.coerceInt(
                 shared.visualStyle, visualStyleCombo.currentIndex, 0, 2)
             visualStyleCombo.currentIndex = page.cfg_visualStyle
+        }
+        if (typeof shared.trackingIndicator !== "undefined") {
+            page.cfg_trackingIndicator = SharedConfig.coerceInt(
+                shared.trackingIndicator, trackingIndicatorCombo.currentIndex, 0, 2)
+            trackingIndicatorCombo.currentIndex = page.cfg_trackingIndicator
         }
         if (typeof shared.latitude !== "undefined") {
             page.cfg_latitude = Number(shared.latitude)
@@ -801,6 +812,39 @@ ConfigPageBase {
                     Layout.maximumWidth: page.buddyMaxWidth(displayForm)
                     text: i18n("Project color pill")
                     onToggled: page.notifyEdited()
+                }
+
+                QQC2.ComboBox {
+                    id: trackingIndicatorCombo
+                    Kirigami.FormData.label: i18n("Running timer:")
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
+                    enabled: visualStyleCombo.currentIndex > 0
+                    model: [
+                        i18n("Red dot"),
+                        i18n("Red bottom edge"),
+                        i18n("Red side stripe")
+                    ]
+                    onActivated: page.notifyEdited()
+                }
+
+                PanelPreview {
+                    Kirigami.FormData.label: i18n("Preview:")
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
+                    mode: trackingIndicatorCombo.currentIndex
+                    showProject: panelProjectCheck.checked
+                    showElapsed: panelElapsedCheck.checked
+                }
+
+                PlasmaComponents3.Label {
+                    Kirigami.FormData.label: page.formWide ? " " : ""
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: page.buddyMaxWidth(displayForm)
+                    wrapMode: Text.WordWrap
+                    opacity: 0.7
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    text: i18n("The Kante styles mark a running timer with a small red indicator. The System style keeps the Plasma theme's green.")
                 }
 
                 // —— Panel flyout ——
