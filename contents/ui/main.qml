@@ -2245,8 +2245,13 @@ PlasmoidItem {
                     projects = result.data || []
                     function afterActivities(acts) {
                         allActivities = acts || []
-                        CatalogCache.storeEntities(profileId, customers, projects, allActivities)
-                        Platform.saveCatalog(execSource, CatalogCache.exportPayload())
+                        if (result.offline) {
+                            // The snapshot: shown, but not a fresh catalog (fetched again once online).
+                            CatalogCache.setFetching(false)
+                        } else {
+                            CatalogCache.storeEntities(profileId, customers, projects, allActivities)
+                            Platform.saveCatalog(execSource, CatalogCache.exportPayload())
+                        }
                         rebuildCatalogViews()
                         refreshPinnedEntries(true)
                         if (!isTracking) {
