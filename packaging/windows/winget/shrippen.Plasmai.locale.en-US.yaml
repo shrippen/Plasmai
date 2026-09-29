@@ -1,0 +1,23 @@
+# Draft winget manifest (default locale).
+PackageIdentifier: shrippen.Plasmai
+PackageVersion: VERSION
+PackageLocale: en-US
+Publisher: shrippen
+PublisherUrl: https://github.com/shrippen
+PublisherSupportUrl: https://github.com/shrippen/Plasmai/issues
+PackageName: Plasmai
+PackageUrl: https://github.com/shrippen/Plasmai
+License: GPL-3.0-or-later
+LicenseUrl: https://github.com/shrippen/Plasmai/blob/main/LICENSE
+ShortDescription: Time tracking for Kimai from the tray, with film days and trips.
+Description: |-
+  Plasmai tracks time in Kimai from a tray icon: start and stop the timer, add entries,
+  see statistics, film days (Drehzettel plugin) and trips. It keeps working offline and
+  syncs when the connection is back. The API token is kept in the Windows Credential Manager.
+Tags:
+  - kimai
+  - time-tracking
+  - timesheet
+  - tray
+ManifestType: defaultLocale
+ManifestVersion: 1.9.0

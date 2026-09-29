@@ -129,8 +129,10 @@ if(PLASMAI_TRAY AND NOT ANDROID)
     target_link_libraries(plasmai-app PRIVATE Qt6::Widgets)
 endif()
 if(WIN32)
-    # A GUI app: no console window next to the tray icon.
+    # A GUI app: no console window next to the tray icon. Icon and version: windows/plasmai.rc.in.
     set_target_properties(plasmai-app PROPERTIES WIN32_EXECUTABLE ON)
+    configure_file(windows/plasmai.rc.in plasmai.rc @ONLY)
+    target_sources(plasmai-app PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/plasmai.rc)
 endif()
 
 if(PLASMAI_PLATFORM_SOURCES MATCHES "_dbus")

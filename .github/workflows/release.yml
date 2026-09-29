@@ -3,7 +3,8 @@ name: Release
 # A tag v* reaches GitHub through the Gitea push mirror; the release itself is also made on
 # Gitea (tea). Here the GitHub release is created with the same notes
 # (scripts/release-notes.sh) and every platform's asset is built and attached (RELEASING.md 6):
-# the signed APK (IzzyOnDroid fetches it here), the AppImage, the Flatpak bundle and the widget.
+# the signed APK (IzzyOnDroid fetches it here), the AppImage, the Flatpak bundle, the widget
+# and the Windows installer and zip.
 #
 # Run by hand (workflow_dispatch):
 #   - without `tag`: builds everything as a test, no release (the APK is signed and checked
@@ -228,3 +229,61 @@ jobs:
         with:
           tag: ${{ needs.release.outputs.tag }}
           name: plasmoid
+
+  windows:
+    needs: release
+    runs-on: windows-latest
+    timeout-minutes: 60
+    env:
+      KF_VERSION: '6.30.0'
+      QTKEYCHAIN_VERSION: '0.15.0'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.release.outputs.tag || github.ref }}
+
+      # An older tag lacks the Windows tooling: take it from this workflow's commit.
+      - name: Release tooling of this workflow
+        shell: bash
+        run: |
+          git fetch -q --depth=1 origin "$GITHUB_SHA"
+          git checkout "$GITHUB_SHA" -- .github scripts/build-deps.sh scripts/package-windows.sh packaging/windows
+
+      # Qt 6.10: see checks.yml (aqtinstall has no Windows packages of 6.11.x yet).
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.10.3'
+          modules: qtshadertools
+          cache: true
+
+      - uses: ilammy/msvc-dev-cmd@v1
+      - uses: seanmiddleditch/gha-setup-ninja@v5
+
+      - name: Cache dependencies
+        id: deps
+        uses: actions/cache@v4
+        with:
+          path: deps
+          key: deps-windows-latest-qt6.10.3-kf${{ env.KF_VERSION }}-qtkeychain${{ env.QTKEYCHAIN_VERSION }}-${{ hashFiles('scripts/build-deps.sh') }}
+
+      - name: ECM, QtKeychain, Kirigami
+        if: steps.deps.outputs.cache-hit != 'true'
+        shell: bash
+        run: ./scripts/build-deps.sh "$GITHUB_WORKSPACE/deps" --kirigami
+
+      - name: Inno Setup
+        shell: bash
+        run: |
+          [ -x "/c/Program Files (x86)/Inno Setup 6/ISCC.exe" ] || choco install innosetup -y --no-progress > /dev/null
+
+      # Installer and zip (unsigned: signing needs a certificate, see RELEASING.md).
+      - name: Build installer and zip
+        shell: bash
+        run: |
+          DEPS="$GITHUB_WORKSPACE/deps" ./scripts/package-windows.sh
+          mkdir -p assets && mv dist/windows/*.exe dist/windows/*.zip assets/
+
+      - uses: ./.github/actions/release-asset
+        with:
+          tag: ${{ needs.release.outputs.tag }}
+          name: windows

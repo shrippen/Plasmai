@@ -1,0 +1,15 @@
+# Draft winget manifest (installer): the Inno Setup installer of the GitHub release.
+PackageIdentifier: shrippen.Plasmai
+PackageVersion: VERSION
+InstallerType: inno
+Scope: user
+InstallModes:
+  - interactive
+  - silent
+UpgradeBehavior: install
+Installers:
+  - Architecture: x64
+    InstallerUrl: https://github.com/shrippen/Plasmai/releases/download/vVERSION/Plasmai-VERSION-setup.exe
+    InstallerSha256: SHA256
+ManifestType: installer
+ManifestVersion: 1.9.0

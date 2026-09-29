@@ -1,0 +1,7 @@
+# Draft winget manifest (version manifest). Submitted to microsoft/winget-pkgs per release,
+# with VERSION and the installer's SHA256 filled in (packaging/windows/README.md).
+PackageIdentifier: shrippen.Plasmai
+PackageVersion: VERSION
+DefaultLocale: en-US
+ManifestType: version
+ManifestVersion: 1.9.0

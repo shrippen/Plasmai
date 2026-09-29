@@ -121,31 +121,15 @@ jobs:
         uses: actions/cache@v4
         with:
           path: deps
-          key: deps-${{ matrix.os }}-qt${{ matrix.qt }}-kf${{ env.KF_VERSION }}-qtkeychain${{ env.QTKEYCHAIN_VERSION }}
+          key: deps-${{ matrix.os }}-qt${{ matrix.qt }}-kf${{ env.KF_VERSION }}-qtkeychain${{ env.QTKEYCHAIN_VERSION }}-${{ hashFiles('scripts/build-deps.sh') }}
 
       - name: ECM, QtKeychain, Kirigami
         if: steps.deps.outputs.cache-hit != 'true'
         shell: bash
         run: |
-          prefix="$GITHUB_WORKSPACE/deps"
-          git clone -q --depth 1 --branch "v$KF_VERSION" https://invent.kde.org/frameworks/extra-cmake-modules.git ecm
-          cmake -S ecm -B ecm/build -G Ninja -DCMAKE_INSTALL_PREFIX="$prefix" -DBUILD_TESTING=OFF \
-            -DBUILD_HTML_DOCS=OFF -DBUILD_MAN_DOCS=OFF -DBUILD_QTHELP_DOCS=OFF
-          cmake --install ecm/build
-          git clone -q --depth 1 --branch "$QTKEYCHAIN_VERSION" https://github.com/frankosterfeld/qtkeychain.git qtkeychain
-          cmake -S qtkeychain -B qtkeychain/build -G Ninja -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX="$prefix" -DBUILD_WITH_QT6=ON -DBUILD_TRANSLATIONS=OFF \
-            -DBUILD_TEST_APPLICATION=OFF
-          cmake --build qtkeychain/build
-          cmake --install qtkeychain/build
-          if [ "$RUNNER_OS" = "Windows" ]; then
-            git clone -q --depth 1 --branch "v$KF_VERSION" https://invent.kde.org/frameworks/kirigami.git kirigami
-            cmake -S kirigami -B kirigami/build -G Ninja -DCMAKE_BUILD_TYPE=Release \
-              -DCMAKE_INSTALL_PREFIX="$prefix" -DCMAKE_PREFIX_PATH="$prefix" -DBUILD_TESTING=OFF \
-              -DBUILD_EXAMPLES=OFF
-            cmake --build kirigami/build
-            cmake --install kirigami/build
-          fi
+          kirigami=""
+          [ "$RUNNER_OS" = "Windows" ] && kirigami="--kirigami"
+          ./scripts/build-deps.sh "$GITHUB_WORKSPACE/deps" $kirigami
 
       # A keychain of its own, unlocked, so the token storage test does not depend on the
       # runner's login keychain.
