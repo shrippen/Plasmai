@@ -27,10 +27,15 @@ cmake -S app -B "$BUILD" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH
 cmake --build "$BUILD"
 
 cp "$BUILD/plasmai-app.exe" "$STAGE/"
-# QtKeychain and Kirigami's libraries next to the exe, and on PATH: windeployqt looks for
-# the exe's dependencies there (otherwise only in Qt's own bin).
+# QtKeychain and Kirigami's libraries next to the exe.
 cp "$DEPS"/bin/*.dll "$STAGE/"
-export PATH="$DEPS/bin:$PATH"
+# windeployqt takes qt6keychain.dll for a Qt library (its name) and looks for it only in
+# Qt's own bin: put it there while windeployqt runs, removed again afterwards.
+QT_BIN="$(dirname "$(command -v windeployqt)")"
+if [ ! -e "$QT_BIN/qt6keychain.dll" ]; then
+    cp "$DEPS/bin/qt6keychain.dll" "$QT_BIN/"
+    trap 'rm -f "$QT_BIN/qt6keychain.dll"' EXIT
+fi
 # Qt, its QML modules and plugins. Kirigami's QML module comes from $DEPS (--qmlimport);
 # windeployqt follows the imports of the app's QML and of the shared components.
 windeployqt --release --no-translations --compiler-runtime \
