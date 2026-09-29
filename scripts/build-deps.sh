@@ -28,6 +28,9 @@ cmake --install "$WORK/qtkeychain/build"
 
 if [ "$KIRIGAMI" = "--kirigami" ]; then
     git clone -q --depth 1 --branch "v$KF_VERSION" https://invent.kde.org/frameworks/kirigami.git "$WORK/kirigami"
+    # Its KDevelop project templates are packed with tar, which on Windows (Git's GNU tar)
+    # reads "C:" as a remote host; the app does not need them.
+    : > "$WORK/kirigami/templates/CMakeLists.txt"
     cmake -S "$WORK/kirigami" -B "$WORK/kirigami/build" -G Ninja -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_PREFIX_PATH="$PREFIX" -DBUILD_TESTING=OFF \
         -DBUILD_EXAMPLES=OFF
