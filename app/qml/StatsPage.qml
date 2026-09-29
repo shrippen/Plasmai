@@ -52,7 +52,8 @@ Kirigami.Page {
             loading = false
             if (r.ok) {
                 timesheets = KimaiApi.hydrateTimesheets(r.data || [], root.projects, root.activityCatalog(), root.activitiesByProject)
-                _rangeBeginMs = bMs; _rangeEndMs = eMs
+                // An offline answer (the snapshot) does not count as loaded: fetch again once online.
+                _rangeBeginMs = r.offline ? 0 : bMs; _rangeEndMs = r.offline ? 0 : eMs
             }
         })
     }

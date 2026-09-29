@@ -1038,8 +1038,9 @@ PlasmoidItem {
                     result.data || [], root.projects,
                     root.activityCatalog(),
                     root.activitiesByProject)
-                statsRangeBeginMs = fetchBegin.getTime()
-                statsRangeEndMs = fetchEnd.getTime()
+                // An offline answer (the snapshot) does not count as loaded: fetch again once online.
+                statsRangeBeginMs = result.offline ? 0 : fetchBegin.getTime()
+                statsRangeEndMs = result.offline ? 0 : fetchEnd.getTime()
             }
         })
     }
