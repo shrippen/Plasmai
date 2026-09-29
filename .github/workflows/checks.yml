@@ -151,7 +151,8 @@ jobs:
           cmake -S app -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DPLASMAI_BUILD_TESTS=ON $extra \
             -DCMAKE_PREFIX_PATH="$GITHUB_WORKSPACE/deps"
           cmake --build build
-          ctest --test-dir build --output-on-failure
+          # Windows passes no test output to ctest: show the logs when a test fails.
+          ctest --test-dir build --output-on-failure || { cat build/*.log; exit 1; }
           grep -q "PASS   : TstTokenStore::withKeychain()" build/tokenstore.log
 
       # The Windows app on the demo (offscreen: no tray there, so the window itself): its pages

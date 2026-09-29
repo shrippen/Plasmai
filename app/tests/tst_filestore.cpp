@@ -45,7 +45,11 @@ private slots:
             + QStringLiteral("/app/offline-state-p1.json");
         const auto perms = QFile(path).permissions();
         QVERIFY(perms & QFileDevice::ReadOwner);
+#ifndef Q_OS_WIN
+        // Windows has no group/other bits (Qt reports them set): the profile's ACLs keep
+        // %LOCALAPPDATA% to its user.
         QVERIFY(!(perms & (QFileDevice::ReadGroup | QFileDevice::ReadOther)));
+#endif
     }
 
     void rejectsPaths()
