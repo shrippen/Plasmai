@@ -435,7 +435,8 @@ Kirigami.ApplicationWindow {
         tracker.loadCustomers(url, apiToken, function(result) {
             if (result.ok) { customers = result.data || []; customersById = {}; for (var i = 0; i < customers.length; i++) customersById[String(customers[i].id)] = customers[i] }
         })
-        tracker.loadActivities(url, apiToken, null, function(result) {
+        // The whole catalog (loadActivities needs a project and answered nothing here).
+        if (typeof tracker.loadAllActivities === "function") tracker.loadAllActivities(url, apiToken, function(result) {
             if (result.ok) { activities = result.data || []; allActivities = result.data || [] }
         })
         refreshWorkTotals(); refreshPinnedEntries()
