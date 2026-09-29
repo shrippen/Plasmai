@@ -281,6 +281,29 @@ jobs:
         shell: bash
         run: |
           DEPS="$GITHUB_WORKSPACE/deps" ./scripts/package-windows.sh
+
+      # The packaged app starts with only what it ships (no Qt on PATH): a file left out
+      # shows as a missing DLL or QML module. Offscreen, so the platform plugin comes from Qt.
+      - name: Start the packaged app
+        shell: bash
+        run: |
+          export QT_QPA_PLATFORM=offscreen QT_QPA_PLATFORM_PLUGIN_PATH="$QT_ROOT_DIR/plugins/platforms"
+          export QT_FORCE_STDERR_LOGGING=1
+          code=0
+          timeout 20 env PATH="/c/Windows/system32:/c/Windows" dist/windows/Plasmai/plasmai-app.exe \
+            > start.log 2>&1 || code=$?
+          cat start.log
+          # 124: still running after 20 s, the QML loaded.
+          [ "$code" = 124 ] || { echo "::error::the packaged app exited with $code"; exit 1; }
+          if grep -E "is not installed|failed to load|Cannot load library" start.log; then
+            echo "::error::the packaged app misses files"; exit 1
+          fi
+
+      - name: Collect installer and zip
+        shell: bash
+        run: |
+          du -sh dist/windows/Plasmai
+          ls -l dist/windows
           mkdir -p assets && mv dist/windows/*.exe dist/windows/*.zip assets/
 
       - uses: ./.github/actions/release-asset

@@ -103,9 +103,18 @@ cp "$QT/plugins/wayland-graphics-integration-client/libqt-plugin-wayland-egl.so"
     export EXTRA_PLATFORM_PLUGINS="libqwayland.so"   # Qt 6.10+: one Wayland plugin (was -egl and -generic)
     export EXTRA_QT_MODULES="svg;dbus"
     export LINUXDEPLOY_OUTPUT_VERSION="$VERSION"
-    "$TOOLS/linuxdeploy-x86_64.AppImage" --appdir "$APPDIR" --plugin qt --output appimage \
+    "$TOOLS/linuxdeploy-x86_64.AppImage" --appdir "$APPDIR" --plugin qt \
         -d "$APPDIR/usr/share/applications/io.github.shrippen.Plasmai.desktop" \
         -i "$APPDIR/usr/share/icons/hicolor/256x256/apps/io.github.shrippen.Plasmai.png" 2>&1 | show 15
+    # What the Qt plugin deploys but the app never loads (~20 MB unpacked): Qt's own
+    # translations (the app has its JSON catalogs and installs no QTranslator) and the
+    # Controls styles it does not use (it imports Material; Fusion/Basic are the fallbacks).
+    rm -rf "$APPDIR/usr/translations"
+    for style in FluentWinUI3 Imagine Universal; do
+        rm -rf "$APPDIR/usr/qml/QtQuick/Controls/$style"
+        rm -f "$APPDIR"/usr/lib/libQt6QuickControls2"$style"*.so*
+    done
+    "$TOOLS/linuxdeploy-x86_64.AppImage" --appdir "$APPDIR" --output appimage 2>&1 | show 15
 )
 mkdir -p "$ROOT/dist/appimage"
 OUT="$ROOT/dist/appimage/Plasmai-$VERSION-$ARCH.AppImage"

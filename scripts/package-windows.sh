@@ -13,6 +13,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 : "${DEPS:?set DEPS to the prefix with ECM, QtKeychain and Kirigami}"
+: "${VCToolsRedistDir:?run in an MSVC environment (vcvars64): the runtime DLLs come from there}"
 
 VERSION="$(sed -n 's/.*"Version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' metadata.json | head -n1)"
 [ -n "$VERSION" ] || { echo "error: could not read Version from metadata.json" >&2; exit 1; }
@@ -38,9 +39,20 @@ if [ ! -e "$QT_BIN/qt6keychain.dll" ]; then
 fi
 # Qt, its QML modules and plugins. Kirigami's QML module comes from $DEPS (--qmlimport);
 # windeployqt follows the imports of the app's QML and of the shared components.
-windeployqt --release --no-translations --compiler-runtime \
+# Left out: Qt's translations (the app has its JSON catalogs), the software OpenGL
+# (Qt Quick draws with Direct3D on Windows), d3dcompiler (part of Windows 10 and later)
+# and the compiler runtime's ~25 MB installer (its DLLs are copied below instead).
+windeployqt --release --no-translations --no-opengl-sw --no-system-d3d-compiler \
     --qmldir app/qml --qmldir contents/ui --qmlimport "$DEPS/lib/qml" \
     "$STAGE/plasmai-app.exe"
+# The MSVC runtime next to the exe (app-local deployment, allowed by Microsoft).
+cp "$(cygpath -u "$VCToolsRedistDir")"/x64/Microsoft.VC*.CRT/*.dll "$STAGE/"
+# Controls styles the app never uses: it imports Material; Windows' default styles
+# (FluentWinUI3, Windows) and the fallbacks (Fusion, Basic) stay.
+for style in Imagine Universal; do
+    rm -rf "$STAGE/qml/QtQuick/Controls/$style"
+    rm -f "$STAGE"/Qt6QuickControls2"$style"*.dll
+done
 # Kirigami's QML module whole (its styles are loaded at run time, not imported, so
 # windeployqt misses some of them).
 mkdir -p "$STAGE/qml/org/kde"
