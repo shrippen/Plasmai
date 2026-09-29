@@ -19,6 +19,8 @@ RowLayout {
     property int unsynced: 0
     /** Of those: refused by the server or changed there meanwhile (need a decision). */
     property int stuck: 0
+    /** "Show" (the list of waiting changes); off where that list is shown already. */
+    property bool showDetails: true
 
     signal detailsRequested()
 
@@ -61,7 +63,7 @@ RowLayout {
     }
 
     Controls.Button {
-        visible: root.unsynced > 0
+        visible: root.showDetails && root.unsynced > 0
         text: i18n("Show")
         onClicked: root.detailsRequested()
     }

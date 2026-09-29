@@ -903,6 +903,7 @@ Kirigami.ApplicationWindow {
             stateAt: root.offlineStateAt
             unsynced: root.unsyncedCount
             stuck: root.unsyncedStuck
+            showDetails: !pageStack.currentItem || pageStack.currentItem.objectName !== "unsyncedPage"
             onDetailsRequested: root.navigateTo(unsyncedComponent)
         }
     }

@@ -9,6 +9,7 @@ import "Kante"
 /** Changes made offline that are not on the server yet (offline.js outbox). */
 Kirigami.Page {
     id: page
+    objectName: "unsyncedPage"
     KantePageTitle { page: page }
     title: i18n("Not synced")
 
@@ -23,14 +24,6 @@ Kirigami.Page {
             width: Math.min((pageScroll.availableWidth - page.rightPadding), Kirigami.Units.gridUnit * 28)
             x: Math.max(0, ((pageScroll.availableWidth - page.rightPadding) - width) / 2)
             spacing: Kirigami.Units.largeSpacing
-
-            OfflineStatus {
-                Layout.fillWidth: true
-                offline: root.offline
-                stateAt: root.offlineStateAt
-                unsynced: root.unsyncedCount
-                stuck: root.unsyncedStuck
-            }
 
             UnsyncedList {
                 Layout.fillWidth: true

@@ -3505,6 +3505,7 @@ PlasmoidItem {
                         stateAt: root.offlineStateAt
                         unsynced: root.unsyncedCount
                         stuck: root.unsyncedStuck
+                        showDetails: false
                     }
 
                     UnsyncedList {

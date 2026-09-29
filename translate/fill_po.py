@@ -218,6 +218,13 @@ def main():
         for msgid, forms in film_trips.PLURALS.items():
             if lang in forms:
                 trans.setdefault(msgid, {"p": forms[lang]})
+        # Offline mode (pillar 6)
+        import offline
+        for msgid, val in offline.T_BY_LANG.get(lang, {}).items():
+            trans.setdefault(msgid, {"s": val})
+        for msgid, forms in offline.PLURALS.items():
+            if lang in forms:
+                trans.setdefault(msgid, {"p": forms[lang]})
         write_po(lang, items, trans)
         print(f"Wrote {lang}.po ({len(items)} strings)")
 

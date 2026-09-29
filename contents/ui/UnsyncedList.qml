@@ -70,13 +70,20 @@ ColumnLayout {
         return bits.filter(function(b) { return !!b }).join(" · ")
     }
 
+    /** The fields a conflict names, in the words of the forms. */
+    function fieldNames(detail) {
+        var names = { begin: i18n("Begin"), end: i18n("End"), description: i18n("Description"),
+                      project: i18n("Project"), activity: i18n("Activity") }
+        return String(detail || "").split(", ").map(function(k) { return names[k] || k }).join(", ")
+    }
+
     function stateText(op) {
         if (op.state === Offline.State.FAILED) {
             return i18n("Not accepted: %1", (op.error && op.error.detail) || ApiErrors.text(op.error))
         }
         if (op.state === Offline.State.CONFLICT) {
             return i18n("Changed on the server meanwhile (%1). Overwrite it with this change, or discard this change?",
-                        op.error ? op.error.detail : "")
+                        fieldNames(op.error ? op.error.detail : ""))
         }
         return i18n("Waiting for the connection")
     }
