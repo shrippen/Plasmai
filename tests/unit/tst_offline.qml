@@ -183,6 +183,29 @@ TestCase {
         compare(none.data.length, 0)
     }
 
+    // The poll reads the same answers again: the snapshot is written when they
+    // change, and to keep its time current at most every SAVE_AGE_MS otherwise.
+    function test_sameAnswersSaveOnce() {
+        var k = fakeKimai()
+        k.server[1] = { id: 1, begin: stamp(9, 0), end: stamp(10, 0), project: 10, activity: 20 }
+        var h = fakeHost()
+        var saves = 0
+        var save = h.save
+        h.save = function(name, obj) { if (name.indexOf("offline-state-") === 0) saves++; return save(name, obj) }
+        var t = session(k, h).tracker
+        for (var i = 0; i < 3; i++) {
+            h.clock = t0 + i * 30000
+            call(function(cb) { t.fetchRecentTimesheets("u", "t", 10, cb) })
+        }
+        compare(saves, 1)
+        h.clock = t0 + Offline.SAVE_AGE_MS + 1
+        call(function(cb) { t.fetchRecentTimesheets("u", "t", 10, cb) })
+        compare(saves, 2)
+        k.server[2] = { id: 2, begin: stamp(11, 0), project: 10, activity: 21 }
+        call(function(cb) { t.fetchRecentTimesheets("u", "t", 10, cb) })
+        compare(saves, 3)
+    }
+
     function test_startAndStopOffline() {
         var k = fakeKimai()
         var h = fakeHost()

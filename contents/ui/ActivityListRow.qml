@@ -255,10 +255,11 @@ QQC2.ItemDelegate {
                 Controls.Label {
                     id: runningHintBottom
                     Layout.fillWidth: true
-                    visible: runningHintCounterText.length > 0
+                    visible: text.length > 0
                     horizontalAlignment: Text.AlignRight
                     wrapMode: Text.NoWrap
-                    text: runningHintCounterText
+                    // The counter ticks every second on every row: laid out only while shown.
+                    text: root.runningHintVisible ? root.runningHintCounterText : ""
                     font.family: KanteStyle.monoFamily
                     font.bold: true
                     font.pointSize: KanteStyle.smallFont.pointSize

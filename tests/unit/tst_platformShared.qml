@@ -8,6 +8,7 @@ TestCase {
 
     property var disk: null
     property var pendingLoads: []
+    property int saves: 0
 
     // Loads answer only when release() is called, so two patches can overlap.
     function fakeBackend() {
@@ -15,8 +16,13 @@ TestCase {
             loadSharedConfig: function(ds, cb) {
                 pendingLoads.push(function() { cb(disk ? JSON.parse(JSON.stringify(disk)) : null) })
             },
+            saveCatalogCache: function(ds, payload, cb) {
+                saves++
+                cb(true, null)
+            },
             saveSharedConfig: function(ds, obj, cb) {
                 disk = obj
+                saves++
                 cb(true, null)
             }
         }
@@ -30,6 +36,7 @@ TestCase {
     function init() {
         disk = { recentCount: 5, pluginProbesJson: JSON.stringify({ app: 1 }) }
         pendingLoads = []
+        saves = 0
         Platform.setBackend(fakeBackend())
     }
 
@@ -64,5 +71,31 @@ TestCase {
         var map = JSON.parse(disk.pluginProbesJson)
         compare(map.a, 1)
         compare(map.b, 2)
+    }
+
+    // A patch that changes nothing on disk is not written (startup patches the same values).
+    function test_unchangedPatchNotWritten() {
+        var done = 0
+        Platform.patchShared(null, {}, { recentCount: 5 }).then(function() { done++ })
+        release()
+        tryVerify(function() { return done === 1 })
+        compare(saves, 0)
+        Platform.patchShared(null, {}, { recentCount: 7 }).then(function() { done++ })
+        release()
+        tryVerify(function() { return done === 2 })
+        compare(saves, 1)
+        compare(disk.recentCount, 7)
+    }
+
+    // The catalog arrives in parts, each storing the whole cache: the same payload is written once.
+    function test_sameCatalogWrittenOnce() {
+        var done = 0
+        Platform.saveCatalog(null, { p1: { projects: [1] } }).then(function() { done++ })
+        Platform.saveCatalog(null, { p1: { projects: [1] } }).then(function() { done++ })
+        tryVerify(function() { return done === 2 })
+        compare(saves, 1)
+        Platform.saveCatalog(null, { p1: { projects: [1, 2] } }).then(function() { done++ })
+        tryVerify(function() { return done === 3 })
+        compare(saves, 2)
     }
 }

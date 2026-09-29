@@ -64,6 +64,8 @@ var DUPLICATE_WINDOW_MS = 3 * 60 * 1000
 /** Fields compared for conflicts (what Plasmai edits). */
 var CHECKED_FIELDS = ["begin", "end", "description", "project", "activity"]
 var SNAPSHOT_VERSION = 1
+/** Unchanged answers (the poll) write the snapshot again only this often, to keep its time. */
+var SAVE_AGE_MS = 5 * 60 * 1000
 
 /** Reads answered from the snapshot by their call (catalogs, user). */
 var CACHED_READS = ["loadProjects", "loadCustomers", "loadAllActivities", "loadActivities",
@@ -143,14 +145,17 @@ function pruneEntries(s) {
     }
 }
 
+/** Written when its content changed (compared without the time) or the file's time is old. */
 function saveSnapshot(s) {
-    s.snapshot.savedAt = nowOf(s)
     pruneEntries(s)
+    s.snapshot.savedAt = 0
     var text = JSON.stringify(s.snapshot)
-    if (text === s.savedSnapshotText) {
+    s.snapshot.savedAt = nowOf(s)
+    if (text === s.savedSnapshotText && s.snapshot.savedAt - s.savedSnapshotAt < SAVE_AGE_MS) {
         return
     }
     s.savedSnapshotText = text
+    s.savedSnapshotAt = s.snapshot.savedAt
     s.host.save(stateName(s), s.snapshot)
 }
 
@@ -1064,6 +1069,7 @@ function createSession(inner, host) {
         counter: 0,
         snapshot: emptySnapshot(),
         savedSnapshotText: "",
+        savedSnapshotAt: 0,
         replaying: false,
         replayWaiters: []
     }
@@ -1080,7 +1086,10 @@ function load(s) {
         var state = parts[0]
         if (state && state.v === SNAPSHOT_VERSION) {
             s.snapshot = state
+            s.savedSnapshotAt = state.savedAt || 0
+            state.savedAt = 0
             s.savedSnapshotText = JSON.stringify(state)
+            state.savedAt = s.savedSnapshotAt
         }
         var outbox = parts[1]
         if (outbox && outbox.v === SNAPSHOT_VERSION) {

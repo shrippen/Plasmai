@@ -113,6 +113,8 @@ Kirigami.ApplicationWindow {
     property var filmDayPing: null
     /** Plain cache handed to filmDaySync (engagement lists); not reactive. */
     property var filmDayMemo: ({})
+    /** Plain cache handed to workTotals.js (user, absences); not reactive. */
+    property var workTotalsMemo: ({})
     readonly property string filmDayProfileKey: FilmDaySync.profileKey(activeProfile ? activeProfile.id : "", TimeTracker.resolveUrl(activeProfile))
     /** The film day is offered only with the Drehzettel plugin and its view permission, like trips. */
     readonly property bool filmDayAvailable: isConfigured && providerCapabilities.filmDays
@@ -368,7 +370,8 @@ Kirigami.ApplicationWindow {
     // Keeps polling after an error too, so the app recovers by itself once the network is back.
     Timer { id: refreshTimer; interval: root.refreshInterval * 1000; running: root.isConfigured && (root.connectionState === "online" || root.connectionState === "error"); repeat: true; onTriggered: root.refreshAll() }
     Timer { id: alreadyRunningHintTimer; interval: 1400; repeat: false; onTriggered: root.alreadyRunningHintKey = "" }
-    Timer { id: sparklineTimer; interval: 30000; running: root.isConfigured; repeat: true; onTriggered: root.sparklineNowTick++ }
+    // Only while the window shows (the tray client hides it); catches up when shown again.
+    Timer { id: sparklineTimer; interval: 30000; running: root.isConfigured && root.visible; repeat: true; triggeredOnStart: true; onTriggered: root.sparklineNowTick++ }
     Timer { id: descriptionSaveTimer; interval: 800; repeat: false; onTriggered: root.saveCurrentDescription() }
     Timer { id: descriptionFlashTimer; interval: 2500; repeat: false; onTriggered: root.descriptionSavedFlash = false }
     Timer { id: idlePollTimer; interval: 60000; running: root.isTracking && root.idleStopEnabled && root.supportsIdleDetection; repeat: true; onTriggered: root.checkIdle() }
@@ -544,7 +547,7 @@ Kirigami.ApplicationWindow {
     /** Totals, targets and absence credit: workTotals.js, shared with the Plasmoid. */
     function refreshWorkTotals() {
         if (!apiToken) return
-        WorkTotals.load({ tracker: tracker, url: TimeTracker.resolveUrl(activeProfile), token: apiToken,
+        WorkTotals.load({ tracker: tracker, url: TimeTracker.resolveUrl(activeProfile), token: apiToken, memo: workTotalsMemo,
                           holidayBundle: providerCapabilities.holidayBundle }, new Date(), function(t) {
             workPrefs = t.prefs; hasWorkContract = t.hasWorkContract
             todayTargetSeconds = t.todayTargetSeconds; weekTargetSeconds = t.weekEffectiveTargetSeconds

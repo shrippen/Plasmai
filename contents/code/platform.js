@@ -11,6 +11,7 @@ var _backend = null
 
 function setBackend(backend) {
     _backend = backend
+    _savedCatalogText = ""
 }
 
 // -- Token (kwallet / qtkeychain / …)
@@ -96,6 +97,11 @@ function patchShared(dataSource, configuration, patch, bases) {
                 base = SharedConfig.sanitizeProfilesForPersistence(base, configuration)
                 var effective = bases ? SharedConfig.mergeDataPatch(base, bases, patch || {}) : (patch || {})
                 var shared = SharedConfig.merge(base, effective)
+                // Nothing new (startup patches mostly repeat the file): no write.
+                if (existing && JSON.stringify(shared) === JSON.stringify(existing)) {
+                    resolve(effective)
+                    return
+                }
                 _backend.saveSharedConfig(dataSource, shared,
                     function(ok, err) {
                         if (!ok) { reject(err) } else { resolve(effective) }
@@ -124,11 +130,18 @@ function loadCatalogText(dataSource) {
     })
 }
 
+/** The last payload written: the same one again is not written. */
+var _savedCatalogText = ""
+
 function saveCatalog(dataSource, payload) {
+    var text = JSON.stringify(payload)
+    if (text === _savedCatalogText) {
+        return Promise.resolve(true)
+    }
     return new Promise(function(resolve, reject) {
         _backend.saveCatalogCache(dataSource, payload,
             function(ok, err) {
-                if (!ok) { reject(err) } else { resolve(true) }
+                if (!ok) { reject(err) } else { _savedCatalogText = text; resolve(true) }
             })
     })
 }

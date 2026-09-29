@@ -365,25 +365,33 @@ Kirigami.Page {
                         }
                     }
 
-                    KanteDayStrip {
+                    // One of the two, built only while shown (both rebuild on every tick otherwise).
+                    Loader {
                         Layout.fillWidth: true; Layout.topMargin: Kirigami.Units.smallSpacing
-                        visible: KanteStyle.active && root.isConfigured && !page.editingActive && root.showSparkline
-                        entries: root.todayTimesheets
-                        customersById: root.customersById
-                        workDayBegin: root.workDayBegin; workDayEnd: root.workDayEnd
-                        nowTick: root.sparklineNowTick
+                        active: root.isConfigured && !page.editingActive && root.showSparkline
+                        visible: active
+                        sourceComponent: KanteStyle.active ? dayStrip : daySparkline
                     }
-
-                    DaySparkline {
-                        Layout.fillWidth: true; Layout.topMargin: Kirigami.Units.smallSpacing
-                        visible: !KanteStyle.active && root.isConfigured && !page.editingActive && root.showSparkline
-                        entries: root.todayTimesheets
-                        targetSeconds: root.todayTargetSeconds
-                        workDayBegin: root.workDayBegin; workDayEnd: root.workDayEnd
-                        latitude: root.latitude; longitude: root.longitude
-                        nowTick: root.sparklineNowTick
-                        showArcs: root.showSparklineArcs
-                        flyoutOpen: page.visible
+                    Component {
+                        id: dayStrip
+                        KanteDayStrip {
+                            entries: root.todayTimesheets
+                            customersById: root.customersById
+                            workDayBegin: root.workDayBegin; workDayEnd: root.workDayEnd
+                            nowTick: root.sparklineNowTick
+                        }
+                    }
+                    Component {
+                        id: daySparkline
+                        DaySparkline {
+                            entries: root.todayTimesheets
+                            targetSeconds: root.todayTargetSeconds
+                            workDayBegin: root.workDayBegin; workDayEnd: root.workDayEnd
+                            latitude: root.latitude; longitude: root.longitude
+                            nowTick: root.sparklineNowTick
+                            showArcs: root.showSparklineArcs
+                            flyoutOpen: page.visible
+                        }
                     }
 
                     // Kante: activity as the heading, project and customer below.

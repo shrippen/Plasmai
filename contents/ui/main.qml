@@ -203,6 +203,8 @@ PlasmoidItem {
     property string filmDayLoadMode: ""
     /** Plain cache handed to filmDaySync (engagement lists); not reactive. */
     property var filmDayMemo: ({})
+    /** Plain cache handed to workTotals.js (user, absences); not reactive. */
+    property var workTotalsMemo: ({})
     readonly property var pluginProbeCache: KimaiApi.parsePluginCache(plasmoid.configuration.pluginProbesJson)
     // ── Trips (kimai-anfahrten / MileageBundle), see mileage.js ──
     /** KimaiApi.PluginState of /api/mileage/ping for the active profile. */
@@ -452,29 +454,33 @@ PlasmoidItem {
         }
     }
 
+    // Profile changes made in the app (shared.json): read by a shell process, so often only
+    // while the popup is open; collapsed a minute is soon enough (the panel shows no profile).
     Timer {
         id: sharedConfigPollTimer
-        interval: 5000
+        interval: root.expanded ? 5000 : 60000
         running: !root.credentialsLoading && root.tokenLoaded
         repeat: true
-        onTriggered: {
-            Platform.loadShared(execSource).then(function(shared) {
-                if (!shared) return
-                var newProfileId = shared.activeProfileId || "default"
-                var newProfilesJson = shared.profilesJson || ""
-                var changed = false
-                if (newProfileId !== (plasmoid.configuration.activeProfileId || "default")) {
-                    changed = true
-                }
-                if (newProfilesJson !== (plasmoid.configuration.profilesJson || "")) {
-                    changed = true
-                }
-                if (changed) {
-                    SharedConfig.applyToConfiguration(plasmoid.configuration, shared)
-                    root.softReload()
-                }
-            })
-        }
+        onTriggered: root.pollSharedConfig()
+    }
+
+    function pollSharedConfig() {
+        Platform.loadShared(execSource).then(function(shared) {
+            if (!shared) return
+            var newProfileId = shared.activeProfileId || "default"
+            var newProfilesJson = shared.profilesJson || ""
+            var changed = false
+            if (newProfileId !== (plasmoid.configuration.activeProfileId || "default")) {
+                changed = true
+            }
+            if (newProfilesJson !== (plasmoid.configuration.profilesJson || "")) {
+                changed = true
+            }
+            if (changed) {
+                SharedConfig.applyToConfiguration(plasmoid.configuration, shared)
+                root.softReload()
+            }
+        })
     }
 
     Timer {
@@ -2135,7 +2141,7 @@ PlasmoidItem {
 
         // Totals, targets and absence credit: workTotals.js, shared with the app.
         var now = new Date()
-        WorkTotals.load({ tracker: tracker, url: kimaiUrl, token: apiToken,
+        WorkTotals.load({ tracker: tracker, url: kimaiUrl, token: apiToken, memo: workTotalsMemo,
                           holidayBundle: providerCapabilities.holidayBundle }, now, function(t) {
             workPrefs = t.prefs
             hasWorkContract = t.hasWorkContract
@@ -3608,23 +3614,29 @@ PlasmoidItem {
                     onCreateActivityRequested: root.openCreateEntity("activity")
                 }
 
-                StatsView {
+                // Built while shown only: its charts recompute on every poll's new entries.
+                Loader {
                     Layout.fillWidth: true
-                    visible: root.mainViewMode === "stats" && root.isConfigured
-                             && root.providerCapabilities.statistics
-                    timesheets: root.statsTimesheets
-                    customersById: root.customersById
-                    todayTargetSeconds: root.todayTargetSeconds
-                    weekTargetSeconds: root.weekTargetSeconds
-                    hasWorkContract: root.hasWorkContract
-                                     && root.providerCapabilities.workContract
-                    workDayBegin: root.workDayBegin
-                    workDayEnd: root.workDayEnd
-                    supportsBillableFilter: root.providerCapabilities.billableFilter
-                    tripSummary: root.statsTrips ? StatsData.tripKmSummary(root.statsTrips, new Date()) : null
-                    onBackRequested: root.returnToMainView()
-                    onNeedMoreHistory: function(rangeBegin, rangeEnd) {
-                        root.loadStatsRange(rangeBegin, rangeEnd)
+                    active: root.mainViewMode === "stats" && root.isConfigured
+                            && root.providerCapabilities.statistics
+                    visible: active
+                    sourceComponent: Component {
+                        StatsView {
+                            timesheets: root.statsTimesheets
+                            customersById: root.customersById
+                            todayTargetSeconds: root.todayTargetSeconds
+                            weekTargetSeconds: root.weekTargetSeconds
+                            hasWorkContract: root.hasWorkContract
+                                             && root.providerCapabilities.workContract
+                            workDayBegin: root.workDayBegin
+                            workDayEnd: root.workDayEnd
+                            supportsBillableFilter: root.providerCapabilities.billableFilter
+                            tripSummary: root.statsTrips ? StatsData.tripKmSummary(root.statsTrips, new Date()) : null
+                            onBackRequested: root.returnToMainView()
+                            onNeedMoreHistory: function(rangeBegin, rangeEnd) {
+                                root.loadStatsRange(rangeBegin, rangeEnd)
+                            }
+                        }
                     }
                 }
 
@@ -3664,7 +3676,8 @@ PlasmoidItem {
                     onDayChosen: function(date) {
                         root.loadFilmDayForDate(date)
                     }
-                    elapsedSeconds: root.elapsedSeconds
+                    // Ticks only while shown (it stays built, holding the chosen day).
+                    elapsedSeconds: root.mainViewMode === "filmday" ? root.elapsedSeconds : 0
                     onSaveRequested: function(projectId, activityId, beginText, endText, filmDayFields) {
                         root.saveFilmDay(projectId, activityId, beginText, endText, filmDayFields, false)
                     }

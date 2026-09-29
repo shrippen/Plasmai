@@ -80,4 +80,28 @@ TestCase {
         verify(!got.entriesLoaded)
         compare(got.todayTargetSeconds, 3600)
     }
+
+    // With a memo the user (work preferences) is fetched once per MEMO_MS: the poll
+    // reloads the week's entries only. Another week or an older memo fetches again.
+    function test_loadMemo() {
+        var users = 0
+        var t = tracker({ prefs: { day: 3600 } }, [])
+        var fetchUser = t.fetchCurrentUser
+        t.fetchCurrentUser = function(url, token, cb) { users++; fetchUser(url, token, cb) }
+        var memo = {}
+        var got = null
+        function load(ms, when) {
+            WorkTotals.load({ tracker: t, url: "u", token: "t", holidayBundle: false, nowMs: ms, memo: memo },
+                            when, function(r) { got = r })
+        }
+        load(now.getTime(), now)
+        load(now.getTime() + 60000, now)
+        compare(users, 1)
+        compare(got.todayTargetSeconds, 3600)
+        load(now.getTime() + WorkTotals.MEMO_MS + 1, now)
+        compare(users, 2)
+        var nextWeek = new Date(2026, 9, 7, 12, 0)
+        load(nextWeek.getTime(), nextWeek)
+        compare(users, 3)
+    }
 }
