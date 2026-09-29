@@ -1,0 +1,18 @@
+size 420 860
+wait 3000
+js demoHook.item.start()
+wait 6000
+grab 1-timer
+js navigateTo(filmDayPageComponent)
+wait 3000
+grab 2-filmday
+js navigateTo(statsPageComponent)
+wait 2500
+grab 3-stats
+js navigateTo(tripsPageComponent)
+wait 2500
+grab 4-trips
+js navigateTo(settingsComponent)
+wait 1500
+grab 5-settings
+quit

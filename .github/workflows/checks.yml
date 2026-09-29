@@ -113,9 +113,18 @@ jobs:
 
       - uses: seanmiddleditch/gha-setup-ninja@v5
 
-      # ECM (CMake modules only) and QtKeychain: required by app/CMakeLists.txt. Kirigami is
-      # optional there (QUIET), so this job checks the C++ side only.
-      - name: ECM and QtKeychain
+      # ECM and QtKeychain: required by app/CMakeLists.txt. Kirigami (Windows only): the
+      # tray client is the Windows build, so it is built whole and run (see below); macOS
+      # checks the C++ side only. Cached: they change only with their versions.
+      - name: Cache dependencies
+        id: deps
+        uses: actions/cache@v4
+        with:
+          path: deps
+          key: deps-${{ matrix.os }}-qt${{ matrix.qt }}-kf${{ env.KF_VERSION }}-qtkeychain${{ env.QTKEYCHAIN_VERSION }}
+
+      - name: ECM, QtKeychain, Kirigami
+        if: steps.deps.outputs.cache-hit != 'true'
         shell: bash
         run: |
           prefix="$GITHUB_WORKSPACE/deps"
@@ -129,6 +138,14 @@ jobs:
             -DBUILD_TEST_APPLICATION=OFF
           cmake --build qtkeychain/build
           cmake --install qtkeychain/build
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            git clone -q --depth 1 --branch "v$KF_VERSION" https://invent.kde.org/frameworks/kirigami.git kirigami
+            cmake -S kirigami -B kirigami/build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_INSTALL_PREFIX="$prefix" -DCMAKE_PREFIX_PATH="$prefix" -DBUILD_TESTING=OFF \
+              -DBUILD_EXAMPLES=OFF
+            cmake --build kirigami/build
+            cmake --install kirigami/build
+          fi
 
       # A keychain of its own, unlocked, so the token storage test does not depend on the
       # runner's login keychain.
@@ -144,8 +161,37 @@ jobs:
       - name: Build the app and its C++ tests
         shell: bash
         run: |
-          cmake -S app -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DPLASMAI_BUILD_TESTS=ON \
+          # Windows: with the scripted test driver and the demo, for the run below.
+          extra=""
+          [ "$RUNNER_OS" = "Windows" ] && extra="-DPLASMAI_TEST_DRIVER=ON"
+          cmake -S app -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DPLASMAI_BUILD_TESTS=ON $extra \
             -DCMAKE_PREFIX_PATH="$GITHUB_WORKSPACE/deps"
           cmake --build build
           ctest --test-dir build --output-on-failure
           grep -q "PASS   : TstTokenStore::withKeychain()" build/tokenstore.log
+
+      # The Windows app on the demo (offscreen: no tray there, so the window itself): its pages
+      # load with Kirigami, and the screenshots show them. The tray itself needs a desktop.
+      - name: Run the app (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          export PATH="$GITHUB_WORKSPACE/deps/bin:$PATH"
+          export QML_IMPORT_PATH="$(cygpath -m "$GITHUB_WORKSPACE/deps/lib/qml")"
+          export QT_QPA_PLATFORM=offscreen PLASMAI_TEST_SCRIPT=tests/app/demo-screens.txt PLASMAI_TEST_OUT=screens
+          mkdir -p screens
+          timeout 120 build/plasmai-app.exe > screens/app.log 2>&1 || { cat screens/app.log; exit 1; }
+          cat screens/app.log
+          for n in 1-timer 2-filmday 3-stats 4-trips 5-settings; do
+            test -s "screens/$n.png" || { echo "::error::no screenshot $n"; exit 1; }
+          done
+          if grep -E "TypeError|ReferenceError|is not defined|failed to load|module .* is not installed" screens/app.log; then
+            echo "::error::QML errors in the Windows run"; exit 1
+          fi
+
+      - uses: actions/upload-artifact@v7
+        if: always() && runner.os == 'Windows'
+        with:
+          name: windows-screens
+          path: screens
+          if-no-files-found: ignore
