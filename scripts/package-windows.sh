@@ -27,14 +27,17 @@ cmake -S app -B "$BUILD" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH
 cmake --build "$BUILD"
 
 cp "$BUILD/plasmai-app.exe" "$STAGE/"
+# QtKeychain and Kirigami's libraries next to the exe, and on PATH: windeployqt looks for
+# the exe's dependencies there (otherwise only in Qt's own bin).
+cp "$DEPS"/bin/*.dll "$STAGE/"
+export PATH="$DEPS/bin:$PATH"
 # Qt, its QML modules and plugins. Kirigami's QML module comes from $DEPS (--qmlimport);
 # windeployqt follows the imports of the app's QML and of the shared components.
 windeployqt --release --no-translations --compiler-runtime \
     --qmldir app/qml --qmldir contents/ui --qmlimport "$DEPS/lib/qml" \
     "$STAGE/plasmai-app.exe"
-# QtKeychain and Kirigami's libraries; Kirigami's QML module whole (its styles are loaded
-# at run time, not imported, so windeployqt misses some of them).
-cp "$DEPS"/bin/*.dll "$STAGE/"
+# Kirigami's QML module whole (its styles are loaded at run time, not imported, so
+# windeployqt misses some of them).
 mkdir -p "$STAGE/qml/org/kde"
 cp -r "$DEPS/lib/qml/org/kde/kirigami" "$STAGE/qml/org/kde/"
 cp LICENSE "$STAGE/LICENSE.txt"
