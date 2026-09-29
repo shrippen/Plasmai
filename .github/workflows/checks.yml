@@ -28,9 +28,9 @@ jobs:
     container: archlinux:latest
     timeout-minutes: 20
     steps:
-      - name: Install Qt, Kirigami (+ addons for the app's pickers), libplasma
+      - name: Install Qt, Kirigami (+ addons for the app's pickers), libplasma, Plasma5Support (qmllint)
         run: |
-          pacman -Syu --noconfirm --needed qt6-declarative kirigami kirigami-addons libplasma tzdata python python-pytest git
+          pacman -Syu --noconfirm --needed qt6-declarative kirigami kirigami-addons libplasma plasma5support tzdata python python-pytest git
       - uses: actions/checkout@v7
 
       # Stamps are local days: run where Berlin assumptions break (UTC runner, UTC-8, UTC+14).
