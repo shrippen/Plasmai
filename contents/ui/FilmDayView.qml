@@ -20,7 +20,8 @@ import "KantePlasma"
  *   done     begin – end of the day's entry, saved as soon as they change
  *   manual   a past day without an entry: begin, end and Save
  * plus the film-specific extras (break, catering, day category/type,
- * surcharge day from "running" on, extra pay, note), saved directly. The
+ * surcharge day from "running" on, extra pay), saved directly, and the note:
+ * the description of the Kimai entry (noteEdited, saved on the entry). The
  * production shooting day is counted from the engagement's entries, never
  * typed.
  *
@@ -134,6 +135,8 @@ ColumnLayout {
     signal timesEdited(string beginText, string endText)
     /** Extras changed (before, running, done): save them now. */
     signal extrasEdited(var filmDayFields)
+    /** Note changed: the description of the shown entry (none yet: keep it for the new one). */
+    signal noteEdited(string text)
     /** Engagement chooser: use this engagement's project. */
     signal engagementPicked(var projectId)
     signal tripRequested()
@@ -291,6 +294,44 @@ ColumnLayout {
         onTriggered: root.timesEdited(root.stampText(root.selectedDay, beginTime), root.stampText(root.selectedDay, endTime))
     }
 
+    /** A user change of the note: save after a short pause. */
+    function noteTouched() {
+        if (!root.fillingExtras) {
+            noteSaveTimer.restart()
+        }
+    }
+
+    Timer {
+        id: noteSaveTimer
+        interval: 800
+        onTriggered: root.noteEdited(root.noteText())
+    }
+
+    function noteText() {
+        return FilmDays.trimmedNote(noteField.text)
+    }
+
+    /**
+     * Saves what still waits: text the input method holds back (not in `text`
+     * before it is committed) and the pause of a direct save. The caller runs it
+     * before the view goes away (popup closed) or loses focus.
+     */
+    function flushPending() {
+        Qt.inputMethod.commit()
+        if (noteSaveTimer.running) {
+            noteSaveTimer.stop()
+            root.noteEdited(root.noteText())
+        }
+        if (extrasSaveTimer.running) {
+            extrasSaveTimer.stop()
+            root.extrasEdited(root.currentEntryFields())
+        }
+        if (timesSaveTimer.running) {
+            timesSaveTimer.stop()
+            root.timesEdited(root.stampText(root.selectedDay, beginTime), root.stampText(root.selectedDay, endTime))
+        }
+    }
+
     function applyEntryFields(entry) {
         root.fillingExtras = true
         var e = entry || FilmDays.entryDefaults()
@@ -308,7 +349,6 @@ ColumnLayout {
         root.serverProductionDay = e.productionDay || null
         surchargeDaySpin.value = e.surchargeDay || 0
         extraPayField.text = e.extraPayCents ? (e.extraPayCents / 100).toFixed(2) : ""
-        noteField.text = String(e.note || "").substring(0, FilmDays.NOTE_MAX_LENGTH)
         root.fillingExtras = false
     }
 
@@ -321,8 +361,7 @@ ColumnLayout {
             dayType: root.dayTypeOptions[Math.max(0, dayTypeCombo.currentIndex)].value,
             productionDay: root.serverProductionDay,
             surchargeDay: surchargeDaySpin.value > 0 ? surchargeDaySpin.value : null,
-            extraPayCents: isNaN(extraPay) ? 0 : Math.max(0, Math.min(FilmDays.EXTRA_PAY_MAX_CENTS, Math.round(extraPay * 100))),
-            note: String(noteField.text).trim()
+            extraPayCents: isNaN(extraPay) ? 0 : Math.max(0, Math.min(FilmDays.EXTRA_PAY_MAX_CENTS, Math.round(extraPay * 100)))
         }
     }
 
@@ -422,6 +461,10 @@ ColumnLayout {
         dayField.setDate(d)
         suppressDayChosen = false
         applyEntryFields(filmEntry)
+        noteSaveTimer.stop()
+        root.fillingExtras = true
+        noteField.text = FilmDays.noteOf(timesheet)
+        root.fillingExtras = false
 
         var defaultBegin = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 9, 0, 0, 0)
         var defaultEnd = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 18, 0, 0, 0)
@@ -1063,14 +1106,19 @@ ColumnLayout {
         enabled: root.extrasEnabled
         wrapMode: Text.WordWrap
         placeholderText: i18n("Note (optional)")
-        // TextArea has no maximumLength; the plugin rejects more than 500 characters.
+        // TextArea has no maximumLength; the note is kept to 500 characters.
         onTextChanged: {
             if (length > FilmDays.NOTE_MAX_LENGTH) {
                 var pos = cursorPosition
                 text = text.substring(0, FilmDays.NOTE_MAX_LENGTH)
                 cursorPosition = Math.min(pos, length)
             }
-            root.extrasTouched()
+            root.noteTouched()
+        }
+        onActiveFocusChanged: {
+            if (!activeFocus) {
+                root.flushPending()
+            }
         }
         background: Rectangle {
             // Material centers the first line in the background's implicit height;

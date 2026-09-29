@@ -23,6 +23,10 @@ Kirigami.Page {
     property var filmDayServer: null
     property string filmDayLoadMode: ""
     property int loadSerial: 0
+    /** Entry the note belongs to (running or the day's), null before it exists. */
+    property var noteEntry: null
+    /** The note as last loaded or saved (its entry's description). */
+    property string savedNote: ""
 
     function currentUrl() { return TimeTracker.resolveUrl(root.activeProfile) }
 
@@ -75,6 +79,8 @@ Kirigami.Page {
                         timeOf: page.spanText
                     })
                     page.filmDayTimesheet = r.match
+                    page.noteEntry = info.timesheet
+                    page.savedNote = FilmDays.noteOf(info.timesheet)
                     filmDayView.applyLoadedDay(date, info.timesheet, day,
                         KimaiApi.customerCurrencyOfProject(root.projectById(r.projectId), root.customers),
                         r.others, r.projectId, {
@@ -129,6 +135,21 @@ Kirigami.Page {
         })
     }
 
+    /** The note is the entry's description; before the entry exists it goes with Start / Save. */
+    function saveNote(text) {
+        FilmDaySync.saveNote(root.filmDayContext(), {
+            timesheetId: page.noteEntry ? page.noteEntry.id : null, note: text, previous: page.savedNote
+        }, function(result) {
+            if (result.saved === "failed") {
+                root.reportWriteError({ ok: false, error: result.error }, i18n("Could not save the entry"))
+                return
+            }
+            if (result.saved === "saved") {
+                page.savedNote = result.note
+            }
+        })
+    }
+
     function parseLocalStamp(text) {
         var s = String(text || "").trim().replace(" ", "T")
         if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(s)) {
@@ -160,16 +181,22 @@ Kirigami.Page {
         var breakMinutes = filmDayView.extrasVisible ? filmDayView.effectiveBreakMinutes : 0
         // B3: the other entries of the project on this day, deleted after a successful save.
         var mergeIds = filmDayView.mergeOthers ? filmDayView.otherEntryIds() : []
+        var existingId = FilmDays.saveTargetId(page.filmDayTimesheet, projectId, KimaiApi.projectId)
+        var timesheetFields = {
+            begin: KimaiApi.localDateTimeString(beginDate),
+            end: KimaiApi.localDateTimeString(endDate),
+            project: projectId,
+            activity: activityId
+        }
+        // A new entry takes the note typed before it existed.
+        if (!existingId) {
+            timesheetFields.description = filmDayView.noteText()
+        }
         FilmDaySync.saveDay(root.filmDayContext(), {
             projectId: projectId,
             dateStr: KimaiApi.localDateString(page.selectedDate),
-            existingId: FilmDays.saveTargetId(page.filmDayTimesheet, projectId, KimaiApi.projectId),
-            timesheetFields: {
-                begin: KimaiApi.localDateTimeString(beginDate),
-                end: KimaiApi.localDateTimeString(endDate),
-                project: projectId,
-                activity: activityId
-            },
+            existingId: existingId,
+            timesheetFields: timesheetFields,
             fields: filmDayFields,
             server: page.filmDayServer,
             dayMode: page.filmDayLoadMode
@@ -262,8 +289,9 @@ Kirigami.Page {
                                 beginText, endText, filmDayView.currentEntryFields(), true)
                 }
                 onExtrasEdited: function(fields) { page.saveExtrasNow(fields) }
+                onNoteEdited: function(text) { page.saveNote(text) }
                 onStartRequested: function(projectId, activityId, projectLabel, activityLabel) {
-                    root.switchToActivity(projectId, activityId, projectLabel, activityLabel, "")
+                    root.switchToActivity(projectId, activityId, projectLabel, activityLabel, filmDayView.noteText())
                 }
                 onStopRequested: root.stopTracking()
                 onRunningBeginEdited: function(beginText) {
@@ -290,6 +318,18 @@ Kirigami.Page {
     Connections {
         target: root
         function onIsTrackingChanged() { page.loadForDate(page.selectedDate) }
+    }
+
+    // Leaving the page or the app must not drop a note still being typed: the
+    // save starts right away (the request outlives the page).
+    Component.onDestruction: filmDayView.flushPending()
+    Connections {
+        target: Qt.application
+        function onStateChanged() {
+            if (Qt.application.state !== Qt.ApplicationActive) {
+                filmDayView.flushPending()
+            }
+        }
     }
 
     CreateEntityDialog {

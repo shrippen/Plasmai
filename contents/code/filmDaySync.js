@@ -5,8 +5,8 @@
 /**
  * Film-day orchestration shared by the Plasmoid (contents/ui/main.qml) and
  * the app (app/qml/FilmDayPage.qml): whether the Drehzettel plugin can take
- * the extras, loading a day, and the two-step save (Kimai timesheet, then
- * film-day PUT).
+ * the extras, loading a day, the two-step save (Kimai timesheet, then
+ * film-day PUT) and the note (the timesheet's description, saveNote).
  *
  * Online only: the extras live in the plugin on the server. Plasmai keeps
  * no copy on the device and queues nothing; a failed write is reported.
@@ -457,6 +457,29 @@ function saveExtras(ctx, req, callback) {
             return
         }
         callback(result("failed", { error: put.error }))
+    })
+}
+
+/**
+ * The note is the description of the day's Kimai entry, saved on the entry
+ * itself (with or without the plugin):
+ *   req = { timesheetId, note, previous }   previous: the note as loaded
+ * callback({ saved, note, error }) where saved is
+ *   "saved" | "unchanged" | "pending" (no entry yet: the caller keeps the note
+ *   for the entry it creates) | "failed"
+ */
+function saveNote(ctx, req, callback) {
+    var note = FilmDays.trimmedNote(req.note)
+    if (note === FilmDays.trimmedNote(req.previous)) {
+        callback({ saved: "unchanged", note: note, error: null })
+        return
+    }
+    if (!hasId(req.timesheetId)) {
+        callback({ saved: "pending", note: note, error: null })
+        return
+    }
+    trackerOf(ctx).patchTimesheet(ctx.url, ctx.token, req.timesheetId, { description: note }, function(res) {
+        callback({ saved: res.ok ? "saved" : "failed", note: note, error: res.ok ? null : res.error })
     })
 }
 

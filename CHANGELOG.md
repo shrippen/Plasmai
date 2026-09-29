@@ -4,6 +4,10 @@
 
 ### Changed
 - Widget (Kante styles): a running timer no longer tints the whole panel entry in the accent color. It is marked by a small red indicator instead; Display settings offer a red dot, a red bottom edge or a red side stripe, with a preview
+- Film day: the note is the Kimai entry's description, no longer a second field in the Drehzettel plugin. Typed before the entry exists, it goes with Start or Save
+
+### Fixed
+- Film day: the note was lost when leaving the page (or closing the popup) right after typing, and on Android the last word held back by the keyboard's predictive text was not saved
 
 ## 2.0.1
 
