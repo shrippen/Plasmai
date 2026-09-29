@@ -195,8 +195,8 @@ Kirigami.ApplicationWindow {
             mileagePing = det.data || null
             if (det.cacheEntry) persistDataMaps({ pluginProbesJson: JSON.stringify(KimaiApi.storePluginCache(pluginProbeCache, key, det.cacheEntry)) })
             if (mileageAvailable && !mileageMeta) {
-                KimaiApi.fetchMileageMeta(url, apiToken, function(r) { if (r.ok) mileageMeta = r.data })
-                KimaiApi.fetchVehicles(url, apiToken, function(r) { if (r.ok) mileageVehicles = r.data })
+                tracker.fetchMileageMeta(url, apiToken, function(r) { if (r.ok) mileageMeta = r.data })
+                tracker.fetchVehicles(url, apiToken, function(r) { if (r.ok) mileageVehicles = r.data })
             }
             if (callback) callback()
         })

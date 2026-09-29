@@ -1382,10 +1382,10 @@ PlasmoidItem {
                 persistDataMaps({ pluginProbesJson: JSON.stringify(KimaiApi.storePluginCache(pluginProbeCache, key, det.cacheEntry)) })
             }
             if (mileageAvailable && !mileageMeta) {
-                KimaiApi.fetchMileageMeta(kimaiUrl, apiToken, function(r) {
+                tracker.fetchMileageMeta(kimaiUrl, apiToken, function(r) {
                     if (r.ok) mileageMeta = r.data
                 })
-                KimaiApi.fetchVehicles(kimaiUrl, apiToken, function(r) {
+                tracker.fetchVehicles(kimaiUrl, apiToken, function(r) {
                     if (r.ok) mileageVehicles = r.data
                 })
             }
@@ -1419,7 +1419,7 @@ PlasmoidItem {
             from.setDate(from.getDate() - 14)
             range = { from: Mileage.dateString(from), to: Mileage.dateString(new Date()) }
         }
-        KimaiApi.fetchTripSuggestions(kimaiUrl, apiToken, range, function(r) {
+        tracker.fetchTripSuggestions(kimaiUrl, apiToken, range, function(r) {
             if (r.ok) {
                 tripSuggestions = r.data
             }
@@ -1501,7 +1501,7 @@ PlasmoidItem {
         tripBusy = true
         if (tripSheetSuggestion) {
             var sg = tripSheetSuggestion
-            KimaiApi.acceptTripSuggestion(kimaiUrl, apiToken, sg.id, Mileage.acceptBodyFromForm(mileagePing, form, sg), function(r) {
+            tracker.acceptTripSuggestion(kimaiUrl, apiToken, sg.id, Mileage.acceptBodyFromForm(mileagePing, form, sg), function(r) {
                 if (r.ok) {
                     tripSaved(i18n("%1 km", Mileage.displayKm(Mileage.tripKm(r.data))))
                 } else {
@@ -1515,13 +1515,13 @@ PlasmoidItem {
                 tripSaved("")
                 return
             }
-            KimaiApi.patchTrip(kimaiUrl, apiToken, tripId, body, function(r) {
+            tracker.patchTrip(kimaiUrl, apiToken, tripId, body, function(r) {
                 if (r.ok) tripSaved(i18n("%1 km", Mileage.displayKm(Mileage.tripKm(r.data))))
                 else tripFailed(r.error)
             })
             return
         }
-        KimaiApi.createTrip(kimaiUrl, apiToken, body, function(r) {
+        tracker.createTrip(kimaiUrl, apiToken, body, function(r) {
             if (r.ok) tripSaved(i18n("%1 km", Mileage.displayKm(Mileage.tripKm(r.data))))
             else tripFailed(r.error)
         })
@@ -1532,7 +1532,7 @@ PlasmoidItem {
             return
         }
         tripBusy = true
-        KimaiApi.deleteTrip(kimaiUrl, apiToken, tripId, function(r) {
+        tracker.deleteTrip(kimaiUrl, apiToken, tripId, function(r) {
             if (r.ok) {
                 tripSaved("")
             } else {
@@ -1551,7 +1551,7 @@ PlasmoidItem {
             return
         }
         tripBusy = true
-        KimaiApi.acceptTripSuggestion(kimaiUrl, apiToken, sg.id, {}, function(r) {
+        tracker.acceptTripSuggestion(kimaiUrl, apiToken, sg.id, {}, function(r) {
             tripBusy = false
             if (r.ok || (r.error && r.error.status === 409)) {
                 // 409: accepted or dismissed elsewhere meanwhile.
@@ -1568,7 +1568,7 @@ PlasmoidItem {
             return
         }
         tripBusy = true
-        KimaiApi.dismissTripSuggestion(kimaiUrl, apiToken, sg.id, function(r) {
+        tracker.dismissTripSuggestion(kimaiUrl, apiToken, sg.id, function(r) {
             tripBusy = false
             if (r.ok) {
                 removeSuggestion(sg)
@@ -1586,7 +1586,7 @@ PlasmoidItem {
         }
         var now = new Date()
         var range = Mileage.hasFeature(mileagePing, "dateRange") ? StatsData.tripRangeFor(now) : { year: now.getFullYear() }
-        KimaiApi.fetchTrips(kimaiUrl, apiToken, range, function(r) {
+        tracker.fetchTrips(kimaiUrl, apiToken, range, function(r) {
             statsTrips = r.ok ? r.data : null
         })
     }

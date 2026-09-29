@@ -48,20 +48,20 @@ Kirigami.Page {
         page.busy = true
         var handle = function(r) { if (r.ok) page.done(r.data); else page.failed(r.error) }
         if (page.suggestion) {
-            KimaiApi.acceptTripSuggestion(currentUrl(), root.apiToken, page.suggestion.id,
+            root.tracker.acceptTripSuggestion(currentUrl(), root.apiToken, page.suggestion.id,
                                           Mileage.acceptBodyFromForm(root.mileagePing, form, page.suggestion), handle)
         } else if (tripId !== null && tripId !== undefined) {
             if (Mileage.isEmptyBody(body)) { page.done(null); return }
-            KimaiApi.patchTrip(currentUrl(), root.apiToken, tripId, body, handle)
+            root.tracker.patchTrip(currentUrl(), root.apiToken, tripId, body, handle)
         } else {
-            KimaiApi.createTrip(currentUrl(), root.apiToken, body, handle)
+            root.tracker.createTrip(currentUrl(), root.apiToken, body, handle)
         }
     }
 
     function remove(tripId) {
         if (page.busy) return
         page.busy = true
-        KimaiApi.deleteTrip(currentUrl(), root.apiToken, tripId, function(r) {
+        root.tracker.deleteTrip(currentUrl(), root.apiToken, tripId, function(r) {
             if (r.ok) page.done(null); else page.failed(r.error)
         })
     }

@@ -7,6 +7,7 @@ import "Controls" as Controls
 import "../code/kimaiApi.js" as KimaiApi
 import "../code/dateTimeFormat.js" as DTF
 import "../code/offline.js" as Offline
+import "../code/mileage.js" as Mileage
 
 /**
  * The outbox of the offline layer (offline.js), oldest first: what each change
@@ -39,6 +40,15 @@ ColumnLayout {
         if (op.kind === Offline.Op.DELETE) {
             return i18n("Entry deleted")
         }
+        if (op.kind === Offline.Op.TRIP_CREATE) {
+            return i18n("Trip added")
+        }
+        if (op.kind === Offline.Op.TRIP_PATCH) {
+            return i18n("Trip changed")
+        }
+        if (op.kind === Offline.Op.TRIP_DELETE) {
+            return i18n("Trip deleted")
+        }
         if (op.kind === Offline.Op.FILM_DAY) {
             return i18n("Film day details of %1",
                         new Date(op.dateStr + "T12:00:00").toLocaleDateString(Qt.locale(), Locale.ShortFormat))
@@ -46,8 +56,24 @@ ColumnLayout {
         return op.kind
     }
 
+    /** "Start – Destination · 28.09.26 · 12 km" of a trip change (a delete knows only its id). */
+    function tripText(op) {
+        var b = op.body || {}
+        var bits = [Mileage.routeText(b.start || "", b.destination || "")]
+        if (b.date) {
+            bits.push(new Date(b.date + "T12:00:00").toLocaleDateString(Qt.locale(), Locale.ShortFormat))
+        }
+        if (b.distanceKm !== undefined && b.distanceKm !== null) {
+            bits.push(i18n("%1 km", Mileage.displayKm(Mileage.tripKm(b))))
+        }
+        return bits.filter(function(x) { return !!x }).join(" · ")
+    }
+
     /** "Project · Activity · 28.09. 09:00–10:00" from the change or the entry it changes. */
     function entryText(op) {
+        if (op.kind === Offline.Op.TRIP_CREATE || op.kind === Offline.Op.TRIP_PATCH || op.kind === Offline.Op.TRIP_DELETE) {
+            return tripText(op)
+        }
         var f = op.kind === Offline.Op.CREATE ? op.fields : (op.base || {})
         if (op.kind === Offline.Op.FILM_DAY) {
             f = { project: op.projectId }

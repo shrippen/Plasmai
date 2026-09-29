@@ -284,12 +284,12 @@ ColumnLayout {
     KantePlasmaHeading {
     Layout.fillWidth: true
         level: 4
-        visible: widget.canEditTrips && widget.tripSuggestions.length > 0
+        visible: widget.canEditTrips && widget.tripSuggestions.length > 0 && !widget.offline
         text: i18n("Detected trips")
     }
     TripSuggestionList {
     Layout.fillWidth: true
-        visible: widget.canEditTrips && widget.tripSuggestions.length > 0
+        visible: widget.canEditTrips && widget.tripSuggestions.length > 0 && !widget.offline
         suggestions: widget.tripSuggestions
         maxRows: widget.compactPopupLayout ? 2 : 3
         busy: widget.isBusy || widget.tripBusy

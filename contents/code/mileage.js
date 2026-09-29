@@ -353,8 +353,16 @@ function isEmptyBody(body) {
 }
 
 /** POST body of "commute today": the plugin fills distance and addresses. */
-function commuteBody(dateStr) {
-    return { purpose: Purpose.COMMUTE, date: isDateString(dateStr) ? dateStr : dateString(new Date()) }
+/**
+ * A commute on dateStr. Without km the plugin takes the profile's commute
+ * distance; offline the caller passes that distance, so the waiting trip shows it.
+ */
+function commuteBody(dateStr, km) {
+    var body = { purpose: Purpose.COMMUTE, date: isDateString(dateStr) ? dateStr : dateString(new Date()) }
+    if (km > 0) {
+        body.distanceKm = km
+    }
+    return body
 }
 
 /**

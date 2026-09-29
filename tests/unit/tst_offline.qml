@@ -92,6 +92,34 @@ TestCase {
         k.createProject = function(u, t, f, cb) {
             answer("createProject", cb, function() { return { ok: true, data: { id: 11 } } })
         }
+        // Trips (kimai-anfahrten)
+        k.trips = {}
+        k.nextTrip = 500
+        k.fetchTrips = function(u, t, range, cb) {
+            answer("trips", cb, function() {
+                var out = []
+                for (var id in k.trips) out.push(JSON.parse(JSON.stringify(k.trips[id])))
+                return { ok: true, data: out }
+            })
+        }
+        k.createTrip = function(u, t, body, cb) {
+            answer("createTrip", cb, function() {
+                var trip = JSON.parse(JSON.stringify(body)); trip.id = k.nextTrip++; k.trips[trip.id] = trip
+                return { ok: true, data: trip }
+            })
+        }
+        k.patchTrip = function(u, t, id, body, cb) {
+            answer("patchTrip " + id, cb, function() {
+                for (var key in body) k.trips[id][key] = body[key]
+                return { ok: true, data: k.trips[id] }
+            })
+        }
+        k.deleteTrip = function(u, t, id, cb) {
+            answer("deleteTrip " + id, cb, function() { delete k.trips[id]; return { ok: true, data: null } })
+        }
+        k.acceptTripSuggestion = function(u, t, id, body, cb) {
+            answer("accept", cb, function() { return { ok: true, data: {} } })
+        }
         return k
     }
 
@@ -412,5 +440,64 @@ TestCase {
         Offline.load(s2).then(function() { loaded = true })
         tryVerify(function() { return loaded })
         verify(Offline.filmDays(s2)["2026-09-28"].timesheets.result.ok)
+    }
+
+    function test_tripsOffline() {
+        var k = fakeKimai()
+        k.trips[7] = { id: 7, date: "2026-09-28", distanceKm: 12, timesheet: null }
+        var s = session(k)
+        var t = s.tracker
+        var range = { year: 2026, month: 9 }
+        call(function(cb) { t.fetchTrips("u", "t", range, cb) })
+        k.net = false
+        call(function(cb) { t.fetchActiveTimesheet("u", "t", cb) })
+        // A trip of an entry made offline: it waits for the entry's server id.
+        var entry = call(function(cb) { t.createTimesheet("u", "t", { begin: stamp(8, 0), end: stamp(9, 0), project: 10, activity: 20 }, cb) })
+        var trip = call(function(cb) { t.createTrip("u", "t", { date: "2026-09-28", distanceKm: 30, timesheet: entry.data.id }, cb) })
+        verify(trip.ok && trip.queued)
+        verify(Offline.isUnsyncedTrip(s, trip.data.id))
+        call(function(cb) { t.patchTrip("u", "t", trip.data.id, { distanceKm: 31 }, cb) })
+        call(function(cb) { t.patchTrip("u", "t", 7, { distanceKm: 13 }, cb) })
+        compare(Offline.pendingCount(s), 3, "entry, trip (with its patch), patch of trip 7")
+        var list = call(function(cb) { t.fetchTrips("u", "t", range, cb) })
+        verify(list.offline)
+        compare(list.data.length, 2)
+        compare(list.data[0].distanceKm, 13)
+        compare(list.data[1].distanceKm, 31)
+        var other = call(function(cb) { t.fetchTrips("u", "t", { year: 2026, month: 8 }, cb) })
+        verify(!other.ok, "an unknown range stays an error")
+        var accept = call(function(cb) { t.acceptTripSuggestion("u", "t", 1, {}, cb) })
+        compare(accept.error.type, "offline")
+
+        k.net = true
+        call(function(cb) { Offline.replay(s, cb) })
+        compare(Offline.pendingCount(s), 0)
+        compare(k.trips[500].timesheet, 100, "linked to the entry's server id")
+        compare(k.trips[500].distanceKm, 31)
+        compare(k.trips[7].distanceKm, 13)
+    }
+
+    function test_tripDeleteAndDiscardedEntry() {
+        var k = fakeKimai()
+        k.trips[7] = { id: 7, date: "2026-09-28", distanceKm: 12 }
+        var s = session(k)
+        var t = s.tracker
+        call(function(cb) { t.fetchTrips("u", "t", null, cb) })
+        k.net = false
+        call(function(cb) { t.fetchActiveTimesheet("u", "t", cb) })
+        call(function(cb) { t.deleteTrip("u", "t", 7, cb) })
+        var entry = call(function(cb) { t.createTimesheet("u", "t", { begin: stamp(8, 0), end: stamp(9, 0), project: 10, activity: 20 }, cb) })
+        call(function(cb) { t.createTrip("u", "t", { date: "2026-09-28", distanceKm: 5, timesheet: entry.data.id }, cb) })
+        var list = call(function(cb) { t.fetchTrips("u", "t", null, cb) })
+        compare(list.data.length, 1)
+        compare(list.data[0].distanceKm, 5)
+        // Discarding the entry keeps its trip, unlinked.
+        var createOp = Offline.ops(s).filter(function(o) { return o.kind === Offline.Op.CREATE })[0]
+        Offline.discard(s, createOp.opId)
+        compare(Offline.pendingCount(s), 2)
+        k.net = true
+        call(function(cb) { Offline.replay(s, cb) })
+        verify(!k.trips[7])
+        compare(k.trips[500].timesheet, null)
     }
 }

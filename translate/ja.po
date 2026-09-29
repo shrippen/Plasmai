@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-09-29 15:58+0000\n"
+"POT-Creation-Date: 2026-09-29 16:05+0000\n"
 "PO-Revision-Date: 2026-08-09 19:45+0200\n"
 "Last-Translator: Cursor Agent\n"
 "Language-Team: Japanese\n"
@@ -449,7 +449,7 @@ msgstr "%1 (%2) に接続済み"
 msgid "Connected to %1"
 msgstr "%1 に接続済み"
 
-#: app/qml/TimerPage.qml:171 contents/ui/main.qml:3537
+#: app/qml/TimerPage.qml:171 contents/ui/main.qml:3538
 msgid "Connect a time tracker"
 msgstr "時間記録サービスを接続"
 
@@ -457,16 +457,16 @@ msgstr "時間記録サービスを接続"
 msgid "Add your service, server URL (if needed), and API token to start tracking."
 msgstr "サービス、サーバーURL (必要な場合)、APIトークンを追加して計測を始めましょう。"
 
-#: app/qml/TimerPage.qml:173 contents/ui/main.qml:3540
+#: app/qml/TimerPage.qml:173 contents/ui/main.qml:3541
 msgid "Configure Plasmai"
 msgstr "Plasmai を設定"
 
-#: app/qml/TimerPage.qml:182 contents/ui/UnsyncedList.qml:130
-#: contents/ui/main.qml:3554
+#: app/qml/TimerPage.qml:182 contents/ui/UnsyncedList.qml:156
+#: contents/ui/main.qml:3555
 msgid "Retry"
 msgstr "再試行"
 
-#: app/qml/TimerPage.qml:183 contents/ui/main.qml:3559
+#: app/qml/TimerPage.qml:183 contents/ui/main.qml:3560
 msgid "Configure"
 msgstr "設定"
 
@@ -484,7 +484,7 @@ msgid "Not tracking"
 msgstr "記録していません"
 
 #: app/qml/TimerPage.qml:301 app/qml/TimerPage.qml:330
-#: app/qml/TripEditPage.qml:19 app/qml/TripsPage.qml:119
+#: app/qml/TripEditPage.qml:19 app/qml/TripsPage.qml:121
 #: contents/ui/ActivityListRow.qml:358 contents/ui/FilmDayView.qml:852
 #: contents/ui/TimerCard.qml:97 contents/ui/TimerCardKante.qml:88
 #: contents/ui/TripSheet.qml:204 contents/ui/TripSheet.qml:419
@@ -690,67 +690,67 @@ msgstr "私用"
 msgid "Trips could not be loaded: %1"
 msgstr "移動を読み込めませんでした: %1"
 
-#: app/qml/TripsPage.qml:81
+#: app/qml/TripsPage.qml:83
 msgid "Commute logged: %1 km"
 msgstr "通勤を記録しました: %1 km"
 
-#: app/qml/TripsPage.qml:95 contents/ui/main.qml:1561
+#: app/qml/TripsPage.qml:97 contents/ui/main.qml:1561
 msgid "The trip could not be accepted: %1"
 msgstr "移動を承認できませんでした: %1"
 
-#: app/qml/TripsPage.qml:108 contents/ui/main.qml:1576
+#: app/qml/TripsPage.qml:110 contents/ui/main.qml:1576
 msgid "The trip could not be dismissed: %1"
 msgstr "移動を破棄できませんでした: %1"
 
-#: app/qml/TripsPage.qml:125
+#: app/qml/TripsPage.qml:127
 msgid "Commute today"
 msgstr "今日の通勤"
 
-#: app/qml/TripsPage.qml:131
+#: app/qml/TripsPage.qml:133
 msgid "Refresh"
 msgstr "更新"
 
-#: app/qml/TripsPage.qml:155 contents/ui/EntryLists.qml:288
+#: app/qml/TripsPage.qml:157 contents/ui/EntryLists.qml:288
 msgid "Detected trips"
 msgstr "検出された移動"
 
-#: app/qml/TripsPage.qml:174
+#: app/qml/TripsPage.qml:177
 msgid "Previous month"
 msgstr "前の月"
 
-#: app/qml/TripsPage.qml:186
+#: app/qml/TripsPage.qml:189
 msgid "Next month"
 msgstr "次の月"
 
-#: app/qml/TripsPage.qml:196
+#: app/qml/TripsPage.qml:199
 msgid "%2 km in 1 trip"
 msgid_plural "%2 km in %1 trips"
 msgstr[0] "%1 件の移動で %2 km"
 
-#: app/qml/TripsPage.qml:197
+#: app/qml/TripsPage.qml:200
 msgid "month closed"
 msgstr "月締め済み"
 
-#: app/qml/TripsPage.qml:210
+#: app/qml/TripsPage.qml:213
 msgid "No trips this month"
 msgstr "今月の移動はありません"
 
-#: app/qml/TripsPage.qml:219
+#: app/qml/TripsPage.qml:222
 msgid "Time entry #%1"
 msgstr "時間エントリー #%1"
 
-#: app/qml/TripsPage.qml:240
+#: app/qml/TripsPage.qml:243
 msgid "round trip"
 msgstr "往復"
 
-#: app/qml/TripsPage.qml:247 contents/ui/StatsView.qml:227
+#: app/qml/TripsPage.qml:250 contents/ui/StatsView.qml:227
 #: contents/ui/StatsView.qml:309 contents/ui/TripSuggestionList.qml:84
-#: contents/ui/main.qml:1506 contents/ui/main.qml:1519
-#: contents/ui/main.qml:1525
+#: contents/ui/UnsyncedList.qml:67 contents/ui/main.qml:1506
+#: contents/ui/main.qml:1519 contents/ui/main.qml:1525
 msgid "%1 km"
 msgstr "%1 km"
 
-#: app/qml/UnsyncedPage.qml:13 contents/ui/main.qml:3344
+#: app/qml/UnsyncedPage.qml:14 contents/ui/main.qml:3344
 msgid "Not synced"
 msgstr "未同期"
 
@@ -1067,7 +1067,7 @@ msgstr "日付を選択"
 msgid "Today's tracked time"
 msgstr "今日の記録時間"
 
-#: contents/ui/DescriptionField.qml:29 contents/ui/UnsyncedList.qml:75
+#: contents/ui/DescriptionField.qml:29 contents/ui/UnsyncedList.qml:101
 msgid "Description"
 msgstr "説明"
 
@@ -1159,7 +1159,7 @@ msgstr "翌日"
 msgid "Engagement"
 msgstr "契約"
 
-#: contents/ui/FilmDayView.qml:597 contents/ui/UnsyncedList.qml:76
+#: contents/ui/FilmDayView.qml:597 contents/ui/UnsyncedList.qml:102
 msgid "Project"
 msgstr "プロジェクト"
 
@@ -1192,12 +1192,12 @@ msgid "Enter times instead"
 msgstr "時刻を入力する"
 
 #: contents/ui/FilmDayView.qml:766 contents/ui/ManualEntryView.qml:295
-#: contents/ui/UnsyncedList.qml:75
+#: contents/ui/UnsyncedList.qml:101
 msgid "Begin"
 msgstr "開始"
 
 #: contents/ui/FilmDayView.qml:789 contents/ui/ManualEntryView.qml:319
-#: contents/ui/UnsyncedList.qml:75
+#: contents/ui/UnsyncedList.qml:101
 msgid "End"
 msgstr "終了"
 
@@ -1319,25 +1319,25 @@ msgstr "変更を保存"
 msgid "Save entry"
 msgstr "エントリを保存"
 
-#: contents/ui/OfflineStatus.qml:38
+#: contents/ui/OfflineStatus.qml:40
 msgid "Offline · as of %1"
 msgstr "オフライン · %1 時点"
 
-#: contents/ui/OfflineStatus.qml:38 contents/ui/main.qml:386
+#: contents/ui/OfflineStatus.qml:40 contents/ui/main.qml:386
 msgid "Offline"
 msgstr "オフライン"
 
-#: contents/ui/OfflineStatus.qml:41
+#: contents/ui/OfflineStatus.qml:43
 msgid "%1 change needs your decision"
 msgid_plural "%1 changes need your decision"
 msgstr[0] "%1 件の変更に判断が必要です"
 
-#: contents/ui/OfflineStatus.qml:43 contents/ui/main.qml:389
+#: contents/ui/OfflineStatus.qml:45 contents/ui/main.qml:389
 msgid "%1 change not synced yet"
 msgid_plural "%1 changes not synced yet"
 msgstr[0] "%1 件の変更が未同期です"
 
-#: contents/ui/OfflineStatus.qml:65
+#: contents/ui/OfflineStatus.qml:67
 msgid "Show"
 msgstr "表示"
 
@@ -1664,55 +1664,67 @@ msgid "+%1 more detected trip"
 msgid_plural "+%1 more detected trips"
 msgstr[0] "+ 検出された移動 %1 件"
 
-#: contents/ui/UnsyncedList.qml:33
+#: contents/ui/UnsyncedList.qml:34
 msgid "New entry"
 msgstr "新しいエントリー"
 
-#: contents/ui/UnsyncedList.qml:33
+#: contents/ui/UnsyncedList.qml:34
 msgid "Timer started"
 msgstr "タイマーを開始"
 
-#: contents/ui/UnsyncedList.qml:37
+#: contents/ui/UnsyncedList.qml:38
 msgid "Timer stopped"
 msgstr "タイマーを停止"
 
-#: contents/ui/UnsyncedList.qml:37
+#: contents/ui/UnsyncedList.qml:38
 msgid "Entry changed"
 msgstr "エントリーを変更"
 
-#: contents/ui/UnsyncedList.qml:40 contents/ui/main.qml:2627
+#: contents/ui/UnsyncedList.qml:41 contents/ui/main.qml:2627
 msgid "Entry deleted"
 msgstr "エントリを削除しました"
 
-#: contents/ui/UnsyncedList.qml:43
+#: contents/ui/UnsyncedList.qml:44
+msgid "Trip added"
+msgstr "移動を追加"
+
+#: contents/ui/UnsyncedList.qml:47
+msgid "Trip changed"
+msgstr "移動を変更"
+
+#: contents/ui/UnsyncedList.qml:50
+msgid "Trip deleted"
+msgstr "移動を削除"
+
+#: contents/ui/UnsyncedList.qml:53
 msgid "Film day details of %1"
 msgstr "%1 の撮影日の詳細"
 
-#: contents/ui/UnsyncedList.qml:76
+#: contents/ui/UnsyncedList.qml:102
 msgid "Activity"
 msgstr "アクティビティ"
 
-#: contents/ui/UnsyncedList.qml:82
+#: contents/ui/UnsyncedList.qml:108
 msgid "Not accepted: %1"
 msgstr "受け付けられませんでした: %1"
 
-#: contents/ui/UnsyncedList.qml:85
+#: contents/ui/UnsyncedList.qml:111
 msgid "Changed on the server meanwhile (%1). Overwrite it with this change, or discard this change?"
 msgstr "その間にサーバーで変更されました (%1)。この変更で上書きしますか、それともこの変更を破棄しますか?"
 
-#: contents/ui/UnsyncedList.qml:88
+#: contents/ui/UnsyncedList.qml:114
 msgid "Waiting for the connection"
 msgstr "接続を待っています"
 
-#: contents/ui/UnsyncedList.qml:94
+#: contents/ui/UnsyncedList.qml:120
 msgid "Everything is synced."
 msgstr "すべて同期済みです。"
 
-#: contents/ui/UnsyncedList.qml:135
+#: contents/ui/UnsyncedList.qml:161
 msgid "Overwrite"
 msgstr "上書き"
 
-#: contents/ui/UnsyncedList.qml:139
+#: contents/ui/UnsyncedList.qml:165
 msgid "Discard"
 msgstr "破棄"
 
@@ -2340,6 +2352,6 @@ msgstr "戻る"
 msgid "Back to timer"
 msgstr "タイマーに戻る"
 
-#: contents/ui/main.qml:3538
+#: contents/ui/main.qml:3539
 msgid "Add your service, server URL (if needed), and API token to start tracking from the panel."
 msgstr "サービス、サーバー URL（必要な場合）、API トークンを追加してパネルから記録を開始します。"

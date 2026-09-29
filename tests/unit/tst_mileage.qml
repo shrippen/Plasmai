@@ -190,4 +190,11 @@ TestCase {
         compare(Mileage.routeText("A", "B"), "A → B")
         compare(Mileage.routeText("", "B"), "B")
     }
+
+    // Offline the local trip needs a distance to show; online the plugin takes the profile's.
+    function test_commuteBodyWithKnownDistance() {
+        compare(Mileage.commuteBody("2026-09-28").distanceKm, undefined)
+        compare(Mileage.commuteBody("2026-09-28", 12.5).distanceKm, 12.5)
+        compare(Mileage.commuteBody("2026-09-28", null).distanceKm, undefined)
+    }
 }

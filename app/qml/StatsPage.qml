@@ -25,7 +25,7 @@ Kirigami.Page {
         if (!root.mileageAvailable) { trips = null; return }
         var now = new Date()
         var range = Mileage.hasFeature(root.mileagePing, "dateRange") ? StatsData.tripRangeFor(now) : { year: now.getFullYear() }
-        KimaiApi.fetchTrips(TimeTracker.resolveUrl(root.activeProfile), root.apiToken, range, function(r) {
+        root.tracker.fetchTrips(TimeTracker.resolveUrl(root.activeProfile), root.apiToken, range, function(r) {
             page.trips = r.ok ? r.data : null
         })
     }

@@ -19,8 +19,10 @@
  *   loaded → "conflict" (overwrite / discard). Nothing is dropped silently.
  *
  * Offline-capable: start, stop, add entry, edit and delete an entry, restart
- * (continue), film day extras. Everything else (master data, split, merge)
- * answers { type: "offline" } while offline; the views disable it.
+ * (continue), film day extras, trips (add, edit, delete; a trip of an entry
+ * made offline gets the entry's server id). Everything else (master data,
+ * split, merge, trip suggestions) answers { type: "offline" } while offline;
+ * the views disable it.
  *
  * State lives in the session object, never in module globals: widgets in one
  * plasmashell share this library.
@@ -42,7 +44,10 @@ var Op = {
     CREATE: "create",
     PATCH: "patch",
     DELETE: "delete",
-    FILM_DAY: "filmDay"
+    FILM_DAY: "filmDay",
+    TRIP_CREATE: "tripCreate",
+    TRIP_PATCH: "tripPatch",
+    TRIP_DELETE: "tripDelete"
 }
 
 var State = {
@@ -62,7 +67,8 @@ var SNAPSHOT_VERSION = 1
 
 /** Reads answered from the snapshot by their call (catalogs, user). */
 var CACHED_READS = ["loadProjects", "loadCustomers", "loadAllActivities", "loadActivities",
-                    "fetchCurrentUser", "testConnection"]
+                    "fetchCurrentUser", "testConnection", "fetchMileageMeta", "fetchVehicles",
+                    "fetchTripSuggestions"]
 
 function isLocalId(id) {
     return String(id).indexOf(LOCAL_PREFIX) === 0
@@ -378,8 +384,16 @@ function localNowString(s) {
 
 function rewriteId(s, localId, serverId) {
     for (var i = 0; i < s.ops.length; i++) {
-        if (String(s.ops[i].entryId) === String(localId)) {
-            s.ops[i].entryId = serverId
+        var op = s.ops[i]
+        if (String(op.entryId) === String(localId)) {
+            op.entryId = serverId
+        }
+        if (String(op.tripId) === String(localId)) {
+            op.tripId = serverId
+        }
+        // A trip linked to an entry made offline.
+        if (op.body && String(op.body.timesheet) === String(localId)) {
+            op.body.timesheet = serverId
         }
     }
     if (s.host.idChanged) {
@@ -509,6 +523,25 @@ function runOp(s, op, done) {
         KimaiApi.putFilmDay(url, token, op.projectId, op.dateStr, op.patch, done)
         return
     }
+    if (op.kind === Op.TRIP_CREATE) {
+        s.inner.createTrip(url, token, op.body, function(result) {
+            if (result.ok && result.data) {
+                rewriteId(s, op.tripId, result.data.id)
+            }
+            done(result)
+        })
+        return
+    }
+    if (op.kind === Op.TRIP_PATCH) {
+        s.inner.patchTrip(url, token, op.tripId, op.body, done)
+        return
+    }
+    if (op.kind === Op.TRIP_DELETE) {
+        s.inner.deleteTrip(url, token, op.tripId, function(result) {
+            done(result.ok || (result.error && result.error.status === 404) ? { ok: true } : result)
+        })
+        return
+    }
     done({ ok: false, error: { type: "unknown", status: 0, detail: "unknown op " + op.kind } })
 }
 
@@ -555,6 +588,155 @@ function replay(s, callback) {
     next()
 }
 
+// -- Trips (kimai-anfahrten) -----------------------------------------------------
+
+function tripOps(s, tripId) {
+    return s.ops.filter(function(op) { return op.tripId !== undefined && String(op.tripId) === String(tripId) })
+}
+
+function pendingTripCreate(s, tripId) {
+    var ops = tripOps(s, tripId).filter(function(op) { return op.kind === Op.TRIP_CREATE })
+    return ops.length ? ops[0] : null
+}
+
+/** trip with its waiting patches, or null when a delete waits for it. */
+function overlayTrip(s, trip) {
+    var out = trip
+    var ops = tripOps(s, trip.id)
+    for (var i = 0; i < ops.length; i++) {
+        if (ops[i].kind === Op.TRIP_DELETE) {
+            return null
+        }
+        if (ops[i].kind === Op.TRIP_PATCH) {
+            out = applyTripBody(out, ops[i].body)
+        }
+    }
+    return out
+}
+
+function applyTripBody(trip, body) {
+    var out = copy(trip)
+    for (var k in body) {
+        out[k] = body[k]
+    }
+    return out
+}
+
+/** range {from, to} ("YYYY-MM-DD") or {year, month}, as fetchTrips takes it; none = all. */
+function tripInRange(trip, range) {
+    var date = String(trip.date || "")
+    if (!range) {
+        return true
+    }
+    if (range.from && range.to) {
+        return date >= range.from && date <= range.to
+    }
+    var prefix = range.year ? String(range.year) : ""
+    if (range.month) {
+        prefix += "-" + (range.month < 10 ? "0" : "") + range.month
+    }
+    return date.indexOf(prefix) === 0
+}
+
+function localTrips(s) {
+    var out = []
+    for (var i = 0; i < s.ops.length; i++) {
+        var op = s.ops[i]
+        if (op.kind === Op.TRIP_CREATE) {
+            var trip = overlayTrip(s, applyTripBody({ id: op.tripId }, op.body))
+            if (trip) {
+                out.push(trip)
+            }
+        }
+    }
+    return out
+}
+
+function overlayTrips(s, list, range) {
+    var out = []
+    for (var i = 0; i < (list || []).length; i++) {
+        var trip = overlayTrip(s, list[i])
+        if (trip) {
+            out.push(trip)
+        }
+    }
+    return out.concat(localTrips(s).filter(function(t) { return tripInRange(t, range) }))
+}
+
+/** The last known version of a trip: made offline, or from a cached trips answer. */
+function knownTrip(s, tripId) {
+    var local = localTrips(s).filter(function(t) { return String(t.id) === String(tripId) })
+    if (local.length) {
+        return local[0]
+    }
+    for (var key in s.snapshot.reads) {
+        if (key.indexOf("fetchTrips|") !== 0) {
+            continue
+        }
+        var list = s.snapshot.reads[key] || []
+        for (var i = 0; i < list.length; i++) {
+            if (list[i] && String(list[i].id) === String(tripId)) {
+                return overlayTrip(s, list[i])
+            }
+        }
+    }
+    return null
+}
+
+function wrapTrips(s, t) {
+    var inner = s.inner
+    t.fetchTrips = wrapRead(s, "fetchTrips", function(result, args) {
+        s.snapshot.reads[readKey("fetchTrips", args, callbackIndex(args))] = result.data
+    }, function(data, args) {
+        return overlayTrips(s, data, args[2])
+    }, function(args) {
+        var hit = s.snapshot.reads[readKey("fetchTrips", args, callbackIndex(args))]
+        return hit === undefined ? undefined : overlayTrips(s, copy(hit), args[2])
+    })
+
+    t.createTrip = function(url, token, body, callback) {
+        write(s, function(done) {
+            inner.createTrip(url, token, body, function(result) { done(result, callback) })
+        }, function() {
+            var id = newLocalId(s)
+            enqueue(s, { kind: Op.TRIP_CREATE, tripId: id, body: copy(body || {}) })
+            callback({ ok: true, data: knownTrip(s, id), queued: true })
+        })
+    }
+
+    t.patchTrip = function(url, token, tripId, body, callback) {
+        write(s, function(done) {
+            inner.patchTrip(url, token, tripId, body, function(result) { done(result, callback) })
+        }, function() {
+            var create = pendingTripCreate(s, tripId)
+            if (create && create.state === State.PENDING) {
+                create.body = applyTripBody(create.body, body || {})
+                saveOutbox(s)
+                notify(s)
+            } else {
+                enqueue(s, { kind: Op.TRIP_PATCH, tripId: tripId, body: copy(body || {}) })
+            }
+            callback({ ok: true, data: knownTrip(s, tripId), queued: true })
+        })
+    }
+
+    t.deleteTrip = function(url, token, tripId, callback) {
+        write(s, function(done) {
+            inner.deleteTrip(url, token, tripId, function(result) { done(result, callback) })
+        }, function() {
+            var create = pendingTripCreate(s, tripId)
+            if (create && create.state === State.PENDING) {
+                s.ops = s.ops.filter(function(op) { return String(op.tripId) !== String(tripId) })
+                saveOutbox(s)
+                notify(s)
+            } else {
+                enqueue(s, { kind: Op.TRIP_DELETE, tripId: tripId })
+            }
+            callback({ ok: true, data: null, queued: true })
+        })
+    }
+}
+
 // -- The wrapped tracker -------------------------------------------------------
 
 /** Last argument that is a function: the callback of a tracker call. */
@@ -569,7 +751,9 @@ function callbackIndex(args) {
 
 function readKey(name, args, cbIndex) {
     // url and token are not part of the key; the snapshot is per profile already.
-    return [name].concat(Array.prototype.slice.call(args, 2, cbIndex)).join("|")
+    return [name].concat(Array.prototype.slice.call(args, 2, cbIndex).map(function(arg) {
+        return JSON.stringify(arg === undefined ? null : arg)
+    })).join("|")
 }
 
 /**
@@ -838,8 +1022,13 @@ function wrapTracker(s) {
         })
     }
 
-    // Online only: new ids others depend on.
-    var onlineOnly = ["createCustomer", "createProject", "createActivity"]
+    if (typeof inner.createTrip === "function") {
+        wrapTrips(s, t)
+    }
+
+    // Online only: new ids others depend on (trip suggestions are the server's to turn into trips).
+    var onlineOnly = ["createCustomer", "createProject", "createActivity",
+                      "acceptTripSuggestion", "dismissTripSuggestion"]
     for (i = 0; i < onlineOnly.length; i++) {
         (function(name) {
             if (typeof inner[name] !== "function") {
@@ -925,6 +1114,11 @@ function isUnsynced(s, entryId) {
     return isLocalId(entryId) || opsFor(s, entryId).length > 0
 }
 
+/** The same for a trip. */
+function isUnsyncedTrip(s, tripId) {
+    return isLocalId(tripId) || tripOps(s, tripId).length > 0
+}
+
 function findOp(s, opId) {
     for (var i = 0; i < s.ops.length; i++) {
         if (s.ops[i].opId === opId) {
@@ -955,7 +1149,7 @@ function overwrite(s, opId, callback) {
     retry(s, opId, callback)
 }
 
-/** Drops an op; dropping a create drops what waits on its entry too. */
+/** Drops an op; dropping a create drops what waits on its entry (or trip) too. */
 function discard(s, opId) {
     var op = findOp(s, opId)
     if (!op) {
@@ -963,6 +1157,14 @@ function discard(s, opId) {
     }
     if (op.kind === Op.CREATE && isLocalId(op.entryId)) {
         s.ops = s.ops.filter(function(o) { return String(o.entryId) !== String(op.entryId) })
+        // Trips of that entry stay, without the link to an entry that will never exist.
+        for (var i = 0; i < s.ops.length; i++) {
+            if (s.ops[i].body && String(s.ops[i].body.timesheet) === String(op.entryId)) {
+                s.ops[i].body.timesheet = null
+            }
+        }
+    } else if (op.kind === Op.TRIP_CREATE && isLocalId(op.tripId)) {
+        s.ops = s.ops.filter(function(o) { return String(o.tripId) !== String(op.tripId) })
     } else {
         removeOp(s, op)
     }

@@ -40,13 +40,13 @@ Kirigami.Page {
         var r = page.range
         var query = Mileage.hasFeature(root.mileagePing, "dateRange") ? r
             : { year: page.month.getFullYear(), month: page.month.getMonth() + 1 }
-        KimaiApi.fetchTrips(currentUrl(), root.apiToken, query, function(res) {
+        root.tracker.fetchTrips(currentUrl(), root.apiToken, query, function(res) {
             page.loading = false
             if (res.ok) page.trips = Mileage.sortTrips(res.data)
             else root.showPassiveNotification(i18n("Trips could not be loaded: %1", ApiErrors.text(res.error)))
         })
         if (page.hasDawarich && root.canEditTrips) {
-            KimaiApi.fetchTripSuggestions(currentUrl(), root.apiToken, null, function(res) {
+            root.tracker.fetchTripSuggestions(currentUrl(), root.apiToken, null, function(res) {
                 if (res.ok) page.suggestions = res.data
             })
         } else {
@@ -75,7 +75,9 @@ Kirigami.Page {
             return
         }
         page.busy = true
-        KimaiApi.createTrip(currentUrl(), root.apiToken, Mileage.commuteBody(Mileage.dateString(new Date())), function(r) {
+        // Offline (or behind waiting changes) the local trip shows the profile's distance.
+        var km = root.offline || root.unsyncedCount > 0 ? Mileage.commuteKm(root.mileagePing) : null
+        root.tracker.createTrip(currentUrl(), root.apiToken, Mileage.commuteBody(Mileage.dateString(new Date()), km), function(r) {
             page.busy = false
             if (r.ok) {
                 root.showPassiveNotification(i18n("Commute logged: %1 km", Mileage.displayKm(Mileage.tripKm(r.data))))
@@ -89,7 +91,7 @@ Kirigami.Page {
     function accept(sg) {
         if (page.busy || !sg) return
         page.busy = true
-        KimaiApi.acceptTripSuggestion(currentUrl(), root.apiToken, sg.id, {}, function(r) {
+        root.tracker.acceptTripSuggestion(currentUrl(), root.apiToken, sg.id, {}, function(r) {
             page.busy = false
             if (!r.ok && !(r.error && r.error.status === 409)) {
                 root.showPassiveNotification(i18n("The trip could not be accepted: %1", (r.error && r.error.detail) || ApiErrors.text(r.error)))
@@ -102,7 +104,7 @@ Kirigami.Page {
     function dismiss(sg) {
         if (page.busy || !sg) return
         page.busy = true
-        KimaiApi.dismissTripSuggestion(currentUrl(), root.apiToken, sg.id, function(r) {
+        root.tracker.dismissTripSuggestion(currentUrl(), root.apiToken, sg.id, function(r) {
             page.busy = false
             if (!r.ok) {
                 root.showPassiveNotification(i18n("The trip could not be dismissed: %1", (r.error && r.error.detail) || ApiErrors.text(r.error)))
@@ -156,7 +158,8 @@ Kirigami.Page {
             }
             TripSuggestionList {
                 Layout.fillWidth: true
-                visible: page.suggestions.length > 0
+                // Suggestions are the server's (accept creates the trip there): hidden offline.
+                visible: page.suggestions.length > 0 && !root.offline
                 suggestions: page.suggestions
                 busy: page.busy
                 canEdit: root.canEditTrips

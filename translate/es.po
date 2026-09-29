@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-09-29 15:58+0000\n"
+"POT-Creation-Date: 2026-09-29 16:05+0000\n"
 "PO-Revision-Date: 2026-08-09 19:45+0200\n"
 "Last-Translator: Cursor Agent\n"
 "Language-Team: Spanish\n"
@@ -450,7 +450,7 @@ msgstr "Conectado a %1 (%2)"
 msgid "Connected to %1"
 msgstr "Conectado a %1"
 
-#: app/qml/TimerPage.qml:171 contents/ui/main.qml:3537
+#: app/qml/TimerPage.qml:171 contents/ui/main.qml:3538
 msgid "Connect a time tracker"
 msgstr "Conectar un rastreador de tiempo"
 
@@ -458,16 +458,16 @@ msgstr "Conectar un rastreador de tiempo"
 msgid "Add your service, server URL (if needed), and API token to start tracking."
 msgstr "Añade tu servicio, la URL del servidor (si hace falta) y el token de API para empezar a registrar."
 
-#: app/qml/TimerPage.qml:173 contents/ui/main.qml:3540
+#: app/qml/TimerPage.qml:173 contents/ui/main.qml:3541
 msgid "Configure Plasmai"
 msgstr "Configurar Plasmai"
 
-#: app/qml/TimerPage.qml:182 contents/ui/UnsyncedList.qml:130
-#: contents/ui/main.qml:3554
+#: app/qml/TimerPage.qml:182 contents/ui/UnsyncedList.qml:156
+#: contents/ui/main.qml:3555
 msgid "Retry"
 msgstr "Reintentar"
 
-#: app/qml/TimerPage.qml:183 contents/ui/main.qml:3559
+#: app/qml/TimerPage.qml:183 contents/ui/main.qml:3560
 msgid "Configure"
 msgstr "Configurar"
 
@@ -485,7 +485,7 @@ msgid "Not tracking"
 msgstr "Sin seguimiento activo"
 
 #: app/qml/TimerPage.qml:301 app/qml/TimerPage.qml:330
-#: app/qml/TripEditPage.qml:19 app/qml/TripsPage.qml:119
+#: app/qml/TripEditPage.qml:19 app/qml/TripsPage.qml:121
 #: contents/ui/ActivityListRow.qml:358 contents/ui/FilmDayView.qml:852
 #: contents/ui/TimerCard.qml:97 contents/ui/TimerCardKante.qml:88
 #: contents/ui/TripSheet.qml:204 contents/ui/TripSheet.qml:419
@@ -691,68 +691,68 @@ msgstr "Privado"
 msgid "Trips could not be loaded: %1"
 msgstr "No se pudieron cargar los trayectos: %1"
 
-#: app/qml/TripsPage.qml:81
+#: app/qml/TripsPage.qml:83
 msgid "Commute logged: %1 km"
 msgstr "Trayecto al trabajo registrado: %1 km"
 
-#: app/qml/TripsPage.qml:95 contents/ui/main.qml:1561
+#: app/qml/TripsPage.qml:97 contents/ui/main.qml:1561
 msgid "The trip could not be accepted: %1"
 msgstr "No se pudo aceptar el trayecto: %1"
 
-#: app/qml/TripsPage.qml:108 contents/ui/main.qml:1576
+#: app/qml/TripsPage.qml:110 contents/ui/main.qml:1576
 msgid "The trip could not be dismissed: %1"
 msgstr "No se pudo descartar el trayecto: %1"
 
-#: app/qml/TripsPage.qml:125
+#: app/qml/TripsPage.qml:127
 msgid "Commute today"
 msgstr "Trayecto al trabajo hoy"
 
-#: app/qml/TripsPage.qml:131
+#: app/qml/TripsPage.qml:133
 msgid "Refresh"
 msgstr "Actualizar"
 
-#: app/qml/TripsPage.qml:155 contents/ui/EntryLists.qml:288
+#: app/qml/TripsPage.qml:157 contents/ui/EntryLists.qml:288
 msgid "Detected trips"
 msgstr "Trayectos detectados"
 
-#: app/qml/TripsPage.qml:174
+#: app/qml/TripsPage.qml:177
 msgid "Previous month"
 msgstr "Mes anterior"
 
-#: app/qml/TripsPage.qml:186
+#: app/qml/TripsPage.qml:189
 msgid "Next month"
 msgstr "Mes siguiente"
 
-#: app/qml/TripsPage.qml:196
+#: app/qml/TripsPage.qml:199
 msgid "%2 km in 1 trip"
 msgid_plural "%2 km in %1 trips"
 msgstr[0] "%2 km en %1 trayecto"
 msgstr[1] "%2 km en %1 trayectos"
 
-#: app/qml/TripsPage.qml:197
+#: app/qml/TripsPage.qml:200
 msgid "month closed"
 msgstr "mes cerrado"
 
-#: app/qml/TripsPage.qml:210
+#: app/qml/TripsPage.qml:213
 msgid "No trips this month"
 msgstr "No hay trayectos este mes"
 
-#: app/qml/TripsPage.qml:219
+#: app/qml/TripsPage.qml:222
 msgid "Time entry #%1"
 msgstr "Registro de tiempo n.º %1"
 
-#: app/qml/TripsPage.qml:240
+#: app/qml/TripsPage.qml:243
 msgid "round trip"
 msgstr "ida y vuelta"
 
-#: app/qml/TripsPage.qml:247 contents/ui/StatsView.qml:227
+#: app/qml/TripsPage.qml:250 contents/ui/StatsView.qml:227
 #: contents/ui/StatsView.qml:309 contents/ui/TripSuggestionList.qml:84
-#: contents/ui/main.qml:1506 contents/ui/main.qml:1519
-#: contents/ui/main.qml:1525
+#: contents/ui/UnsyncedList.qml:67 contents/ui/main.qml:1506
+#: contents/ui/main.qml:1519 contents/ui/main.qml:1525
 msgid "%1 km"
 msgstr "%1 km"
 
-#: app/qml/UnsyncedPage.qml:13 contents/ui/main.qml:3344
+#: app/qml/UnsyncedPage.qml:14 contents/ui/main.qml:3344
 msgid "Not synced"
 msgstr "Sin sincronizar"
 
@@ -1069,7 +1069,7 @@ msgstr "Elegir fecha"
 msgid "Today's tracked time"
 msgstr "Tiempo registrado hoy"
 
-#: contents/ui/DescriptionField.qml:29 contents/ui/UnsyncedList.qml:75
+#: contents/ui/DescriptionField.qml:29 contents/ui/UnsyncedList.qml:101
 msgid "Description"
 msgstr "Descripción"
 
@@ -1161,7 +1161,7 @@ msgstr "Día siguiente"
 msgid "Engagement"
 msgstr "Contratación"
 
-#: contents/ui/FilmDayView.qml:597 contents/ui/UnsyncedList.qml:76
+#: contents/ui/FilmDayView.qml:597 contents/ui/UnsyncedList.qml:102
 msgid "Project"
 msgstr "Proyecto"
 
@@ -1194,12 +1194,12 @@ msgid "Enter times instead"
 msgstr "Introducir horas en su lugar"
 
 #: contents/ui/FilmDayView.qml:766 contents/ui/ManualEntryView.qml:295
-#: contents/ui/UnsyncedList.qml:75
+#: contents/ui/UnsyncedList.qml:101
 msgid "Begin"
 msgstr "Inicio"
 
 #: contents/ui/FilmDayView.qml:789 contents/ui/ManualEntryView.qml:319
-#: contents/ui/UnsyncedList.qml:75
+#: contents/ui/UnsyncedList.qml:101
 msgid "End"
 msgstr "Fin"
 
@@ -1323,27 +1323,27 @@ msgstr "Guardar cambios"
 msgid "Save entry"
 msgstr "Guardar entrada"
 
-#: contents/ui/OfflineStatus.qml:38
+#: contents/ui/OfflineStatus.qml:40
 msgid "Offline · as of %1"
 msgstr "Sin conexión · estado de %1"
 
-#: contents/ui/OfflineStatus.qml:38 contents/ui/main.qml:386
+#: contents/ui/OfflineStatus.qml:40 contents/ui/main.qml:386
 msgid "Offline"
 msgstr "Sin conexión"
 
-#: contents/ui/OfflineStatus.qml:41
+#: contents/ui/OfflineStatus.qml:43
 msgid "%1 change needs your decision"
 msgid_plural "%1 changes need your decision"
 msgstr[0] "%1 cambio necesita tu decisión"
 msgstr[1] "%1 cambios necesitan tu decisión"
 
-#: contents/ui/OfflineStatus.qml:43 contents/ui/main.qml:389
+#: contents/ui/OfflineStatus.qml:45 contents/ui/main.qml:389
 msgid "%1 change not synced yet"
 msgid_plural "%1 changes not synced yet"
 msgstr[0] "%1 cambio aún sin sincronizar"
 msgstr[1] "%1 cambios aún sin sincronizar"
 
-#: contents/ui/OfflineStatus.qml:65
+#: contents/ui/OfflineStatus.qml:67
 msgid "Show"
 msgstr "Mostrar"
 
@@ -1672,55 +1672,67 @@ msgid_plural "+%1 more detected trips"
 msgstr[0] "+%1 trayecto detectado más"
 msgstr[1] "+%1 trayectos detectados más"
 
-#: contents/ui/UnsyncedList.qml:33
+#: contents/ui/UnsyncedList.qml:34
 msgid "New entry"
 msgstr "Nueva entrada"
 
-#: contents/ui/UnsyncedList.qml:33
+#: contents/ui/UnsyncedList.qml:34
 msgid "Timer started"
 msgstr "Temporizador iniciado"
 
-#: contents/ui/UnsyncedList.qml:37
+#: contents/ui/UnsyncedList.qml:38
 msgid "Timer stopped"
 msgstr "Temporizador detenido"
 
-#: contents/ui/UnsyncedList.qml:37
+#: contents/ui/UnsyncedList.qml:38
 msgid "Entry changed"
 msgstr "Entrada modificada"
 
-#: contents/ui/UnsyncedList.qml:40 contents/ui/main.qml:2627
+#: contents/ui/UnsyncedList.qml:41 contents/ui/main.qml:2627
 msgid "Entry deleted"
 msgstr "Entrada eliminada"
 
-#: contents/ui/UnsyncedList.qml:43
+#: contents/ui/UnsyncedList.qml:44
+msgid "Trip added"
+msgstr "Trayecto añadido"
+
+#: contents/ui/UnsyncedList.qml:47
+msgid "Trip changed"
+msgstr "Trayecto modificado"
+
+#: contents/ui/UnsyncedList.qml:50
+msgid "Trip deleted"
+msgstr "Trayecto eliminado"
+
+#: contents/ui/UnsyncedList.qml:53
 msgid "Film day details of %1"
 msgstr "Datos del día de rodaje del %1"
 
-#: contents/ui/UnsyncedList.qml:76
+#: contents/ui/UnsyncedList.qml:102
 msgid "Activity"
 msgstr "Actividad"
 
-#: contents/ui/UnsyncedList.qml:82
+#: contents/ui/UnsyncedList.qml:108
 msgid "Not accepted: %1"
 msgstr "No aceptado: %1"
 
-#: contents/ui/UnsyncedList.qml:85
+#: contents/ui/UnsyncedList.qml:111
 msgid "Changed on the server meanwhile (%1). Overwrite it with this change, or discard this change?"
 msgstr "Modificado mientras tanto en el servidor (%1). ¿Sobrescribirlo con este cambio o descartar este cambio?"
 
-#: contents/ui/UnsyncedList.qml:88
+#: contents/ui/UnsyncedList.qml:114
 msgid "Waiting for the connection"
 msgstr "Esperando la conexión"
 
-#: contents/ui/UnsyncedList.qml:94
+#: contents/ui/UnsyncedList.qml:120
 msgid "Everything is synced."
 msgstr "Todo está sincronizado."
 
-#: contents/ui/UnsyncedList.qml:135
+#: contents/ui/UnsyncedList.qml:161
 msgid "Overwrite"
 msgstr "Sobrescribir"
 
-#: contents/ui/UnsyncedList.qml:139
+#: contents/ui/UnsyncedList.qml:165
 msgid "Discard"
 msgstr "Descartar"
 
@@ -2352,6 +2364,6 @@ msgstr "Atrás"
 msgid "Back to timer"
 msgstr "Volver al temporizador"
 
-#: contents/ui/main.qml:3538
+#: contents/ui/main.qml:3539
 msgid "Add your service, server URL (if needed), and API token to start tracking from the panel."
 msgstr "Añade tu servicio, la URL del servidor (si es necesario) y el token de API para iniciar el seguimiento desde el panel."
