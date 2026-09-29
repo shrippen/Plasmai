@@ -221,7 +221,7 @@ Kirigami.ApplicationWindow {
         })
     }
 
-    // ── Platform capability flags (native idle/notification bridge, Linux-only) ──
+    // ── Platform services offered by main.cpp (idle time, notifications, network, tray, autostart) ──
     readonly property bool supportsIdleDetection: typeof idleWatcher !== "undefined"
     readonly property bool supportsNotifications: typeof notifier !== "undefined"
     readonly property var networkStatusService: typeof networkStatus !== "undefined" ? networkStatus : null
@@ -332,7 +332,7 @@ Kirigami.ApplicationWindow {
     property bool showSparkline: true; property bool showSparklineArcs: true
     property bool showContinue: true; property bool showNewActivity: true
 
-    // ── Idle detection / notifications (native bridge on Linux, no-op on Android) ──
+    // ── Idle detection / notifications (where main.cpp offers them: D-Bus, Windows, tray) ──
     property bool idleStopEnabled: false; property int idleStopMinutes: 10
     property bool notifyOnStart: true; property bool notifyOnStop: true
     property bool notifyOnIdleStop: true; property bool notifyForgotToStart: false

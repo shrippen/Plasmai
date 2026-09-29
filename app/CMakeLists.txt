@@ -28,17 +28,23 @@ find_package(Qt6Keychain REQUIRED)
 # Plasmoid. The Windows build; elsewhere on request (-DPLASMAI_TRAY=ON, to test it).
 option(PLASMAI_TRAY "Run as a tray icon with a popup (the Windows client)" ${WIN32})
 
-# Platform services: one implementation per platform (ROADMAP pillar 5, step 3).
-# D-Bus (idle time, notifications) on Linux and Plasma Mobile; not offered elsewhere.
-# Windows: GetLastInputInfo for the idle time, the tray icon for notifications.
+# Platform services: one implementation per platform (ROADMAP pillar 5, step 3), chosen
+# by what the platform offers. D-Bus (idle time, notifications) on Linux and Plasma Mobile;
+# otherwise the idle time from Windows (GetLastInputInfo) and notifications through the
+# tray icon of a tray build; none elsewhere (not offered to QML).
 if(TARGET Qt6::DBus AND UNIX AND NOT APPLE AND NOT ANDROID)
     set(PLASMAI_PLATFORM_SOURCES platform/idlewatcher_dbus.cpp platform/notifier_dbus.cpp)
-elseif(WIN32 AND PLASMAI_TRAY)
-    set(PLASMAI_PLATFORM_SOURCES platform/idlewatcher_win.cpp platform/notifier_tray.cpp)
-elseif(WIN32)
-    set(PLASMAI_PLATFORM_SOURCES platform/idlewatcher_win.cpp platform/notifier_none.cpp)
 else()
-    set(PLASMAI_PLATFORM_SOURCES platform/idlewatcher_none.cpp platform/notifier_none.cpp)
+    if(WIN32)
+        set(PLASMAI_PLATFORM_SOURCES platform/idlewatcher_win.cpp)
+    else()
+        set(PLASMAI_PLATFORM_SOURCES platform/idlewatcher_none.cpp)
+    endif()
+    if(PLASMAI_TRAY AND NOT ANDROID)
+        list(APPEND PLASMAI_PLATFORM_SOURCES platform/notifier_tray.cpp)
+    else()
+        list(APPEND PLASMAI_PLATFORM_SOURCES platform/notifier_none.cpp)
+    endif()
 endif()
 # Tray client: QtWidgets for the tray icon's menu. Autostart: Windows only so far.
 if(PLASMAI_TRAY AND NOT ANDROID)
