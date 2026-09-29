@@ -148,6 +148,11 @@ if(PLASMAI_BUILD_TESTS AND NOT ANDROID)
     add_test(NAME i18nfallback COMMAND tst_i18nfallback)
 
     # With a Secret Service in the session: round trip and migration; without: no plain text.
+    qt_add_executable(tst_filestore tests/tst_filestore.cpp platform/filestore.h)
+    target_include_directories(tst_filestore PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(tst_filestore PRIVATE Qt6::Core Qt6::Test)
+    add_test(NAME filestore COMMAND tst_filestore)
+
     qt_add_executable(tst_tokenstore tests/tst_tokenstore.cpp platform/tokenstore.cpp)
     target_include_directories(tst_tokenstore PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     target_link_libraries(tst_tokenstore PRIVATE Qt6::Core Qt6::Test Qt6Keychain::Qt6Keychain)

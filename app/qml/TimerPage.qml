@@ -429,7 +429,7 @@ Kirigami.Page {
                         connectionOk: root.connectionState !== "error"
                         supportsBillableEdit: root.providerCapabilities.billableEdit
                         supportsTags: root.providerCapabilities.tags
-                        showCreateActions: root.providerCapabilities.createEntities
+                        showCreateActions: root.canCreateEntities
                         tagLookupUrl: root.tagLookupUrl
                         tagLookupToken: root.apiToken
                         // Recent is deduped per project/activity, so it can hide the latest stopped entry; the Plasmoid scans today too.
@@ -586,7 +586,7 @@ Kirigami.Page {
                             Layout.fillWidth: true
                             projectPickerModel: root.projectPickerModel
                             activityPickerModel: page.newActivityPickerModel
-                            showCreateActions: root.providerCapabilities.createEntities
+                            showCreateActions: root.canCreateEntities
                             onProjectActivated: function(index) {
                                 var projectId = index >= 0 ? root.projectPickerModel[index].value.id : null
                                 root.loadActivitiesForProject(projectId, function(model) { page.newActivityPickerModel = model })
@@ -728,7 +728,9 @@ Kirigami.Page {
                         showHistoryActions: true
                         canPin: true; isPinned: root.isPinned(KimaiApi.projectId(modelData), KimaiApi.activityId(modelData))
                         canEditStopped: root.providerCapabilities.editStopped
-                        canSplitEntry: root.providerCapabilities.editStopped
+                        // Split makes a second entry from one: online only, and not for an unsynced one.
+                        canSplitEntry: root.providerCapabilities.editStopped && !root.offline && !root.isUnsynced(modelData.id)
+                        unsynced: root.isUnsynced(modelData.id)
                         canDeleteEntry: root.providerCapabilities.deleteEntry
                         canLogTrip: root.canEditTrips
                         onTripRequested: root.openTripForTimesheet(modelData)
@@ -851,8 +853,14 @@ Kirigami.Page {
                 text: i18n("You were idle for %1. Keep this time, discard it, or discard and continue?", KimaiApi.formatDurationShort(Math.round(root.pendingIdleMs / 1000)))
             }
             KanteButton { Layout.fillWidth: true; text: i18n("Keep time"); onClicked: root.keepIdleTime() }
-            KanteButton { Layout.fillWidth: true; text: i18n("Discard idle"); onClicked: root.discardIdleTime(false) }
-            KanteButton { Layout.fillWidth: true; text: i18n("Discard and continue"); onClicked: root.discardIdleTime(true) }
+            // Discarding rewrites the running entry's end: online only (offline.js).
+            QQC2.Label {
+                visible: root.offline
+                Layout.fillWidth: true; wrapMode: Text.WordWrap
+                text: i18n("Discarding idle time needs a connection to the server.")
+            }
+            KanteButton { Layout.fillWidth: true; enabled: !root.offline; text: i18n("Discard idle"); onClicked: root.discardIdleTime(false) }
+            KanteButton { Layout.fillWidth: true; enabled: !root.offline; text: i18n("Discard and continue"); onClicked: root.discardIdleTime(true) }
         }
     }
 

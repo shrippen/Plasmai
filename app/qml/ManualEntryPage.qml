@@ -102,7 +102,7 @@ Kirigami.Page {
                 editingExisting: page.editMode
                 supportsBillableEdit: root.providerCapabilities.billableEdit
                 supportsTags: root.providerCapabilities.tags
-                showCreateActions: root.providerCapabilities.createEntities
+                showCreateActions: root.canCreateEntities
                 tagLookupUrl: root.tagLookupUrl
                 tagLookupToken: root.apiToken
                 onProjectChosen: function(projectId) {

@@ -28,3 +28,5 @@ DaySparkline 1.0 ../../contents/ui/DaySparkline.qml
 DateField 1.0 ../../contents/ui/DateField.qml
 TimeField 1.0 ../../contents/ui/TimeField.qml
 CreateEntityDialog 1.0 ../../contents/ui/CreateEntityDialog.qml
+OfflineStatus 1.0 ../../contents/ui/OfflineStatus.qml
+UnsyncedList 1.0 ../../contents/ui/UnsyncedList.qml

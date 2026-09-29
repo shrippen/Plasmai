@@ -251,11 +251,36 @@ function saveCatalogCache(dataSource, scriptPath, payload, callback) {
               "catalogCache.sh", callback)
 }
 
+/** The Plasmoid's own file `name` (localStore.sh): callback(object or null, error). */
+function loadLocal(dataSource, scriptPath, name, callback) {
+    _run(dataSource, "sh " + shQuote(scriptPath) + " load " + shQuote(name), function(data) {
+        var exitCode = data["exit code"]
+        if (exitCode === 1) {
+            callback(null, null)
+            return
+        }
+        if (exitCode !== 0) {
+            var stderr = (data["stderr"] || "").toString().trim()
+            callback(null, stderr || ("localStore.sh load failed (exit " + exitCode + ")"))
+            return
+        }
+        var parsed = parseJsonPayload(data["stdout"])
+        callback(parsed, parsed ? null : "Invalid JSON in " + name)
+    })
+}
+
+function saveLocal(dataSource, scriptPath, name, payload, callback) {
+    storeJson(dataSource, scriptPath, "PLASMAI_LOCAL_JSON", JSON.stringify(payload || {}),
+              "localStore.sh", callback, [name])
+}
+
 /**
- * Write json through a store script (catalogCache.sh / sharedConfig.sh):
- * one `store` call, or `append` chunks + `commit` above one argv.
+ * Write json through a store script (catalogCache.sh / sharedConfig.sh / localStore.sh):
+ * one `store` call, or `append` chunks + `commit` above one argv. names: arguments
+ * after the subcommand (localStore.sh's file name).
  */
-function storeJson(dataSource, scriptPath, envName, json, scriptName, callback) {
+function storeJson(dataSource, scriptPath, envName, json, scriptName, callback, names) {
+    var named = names || []
     function finish(data, what) {
         var exitCode = data["exit code"]
         if (callback) {
@@ -268,7 +293,7 @@ function storeJson(dataSource, scriptPath, envName, json, scriptName, callback) 
         }
     }
     if (json.length <= CATALOG_CHUNK_CHARS) {
-        _run(dataSource, storeCommand(envName, json, scriptPath, ["store"]), function(data) {
+        _run(dataSource, storeCommand(envName, json, scriptPath, ["store"].concat(named)), function(data) {
             finish(data, "store")
         })
         return
@@ -279,12 +304,15 @@ function storeJson(dataSource, scriptPath, envName, json, scriptName, callback) 
     var index = 0
     function next() {
         if (index >= chunks.length) {
-            _run(dataSource, "exec sh " + shQuote(scriptPath) + " commit " + shQuote(job), function(data) {
+            var commit = "exec sh " + shQuote(scriptPath) + " commit" + named.concat([job]).map(function(arg) {
+                return " " + shQuote(arg)
+            }).join("")
+            _run(dataSource, commit, function(data) {
                 finish(data, "commit")
             })
             return
         }
-        var cmd = storeCommand(envName, chunks[index], scriptPath, ["append", job])
+        var cmd = storeCommand(envName, chunks[index], scriptPath, ["append"].concat(named, [job]))
         index += 1
         _run(dataSource, cmd, function(data) {
             if (data["exit code"] !== 0) {

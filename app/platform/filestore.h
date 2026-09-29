@@ -3,6 +3,7 @@
 #include <QDir>
 #include <QFile>
 #include <QObject>
+#include <QRegularExpression>
 #include <QSaveFile>
 #include <QStandardPaths>
 
@@ -39,7 +40,43 @@ public:
         emit saved(fileName, ok);
     }
 
+    // The app's own files (offline snapshot, outbox): data, not config, and not
+    // shared with the widget. name: letters, digits, "_", "-", "." (no path).
+    Q_INVOKABLE void loadLocal(const QString &name) {
+        QString data;
+        if (validName(name)) {
+            QFile f(localDir() + "/" + name + ".json");
+            if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                data = QString::fromUtf8(f.readAll());
+            }
+        }
+        emit localLoaded(name, data);
+    }
+
+    Q_INVOKABLE void saveLocal(const QString &name, const QString &json) {
+        bool ok = validName(name) && QDir().mkpath(localDir());
+        if (ok) {
+            QSaveFile f(localDir() + "/" + name + ".json");
+            ok = f.open(QIODevice::WriteOnly | QIODevice::Text);
+            if (ok) {
+                f.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner);
+                f.write(json.toUtf8());
+                ok = f.commit();
+            }
+        }
+        emit localSaved(name, ok);
+    }
+
 private:
+    static bool validName(const QString &name) {
+        static const QRegularExpression pattern(QStringLiteral("^[A-Za-z0-9_-][A-Za-z0-9_.-]*$"));
+        return pattern.match(name).hasMatch();
+    }
+
+    static QString localDir() {
+        return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/app";
+    }
+
     static QString configDir() {
 #ifdef Q_OS_ANDROID
         return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
@@ -52,4 +89,6 @@ private:
 signals:
     void loaded(const QString &fileName, const QString &data);
     void saved(const QString &fileName, bool ok);
+    void localLoaded(const QString &name, const QString &data);
+    void localSaved(const QString &name, bool ok);
 };

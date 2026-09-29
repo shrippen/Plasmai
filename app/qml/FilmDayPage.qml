@@ -229,12 +229,13 @@ Kirigami.Page {
 
             FilmDayView {
                 id: filmDayView
+                onlineActions: !root.offline
                 Layout.fillWidth: true
                 projectPickerModel: root.projectPickerModel
                 busy: page.loadingFilmDay || page.saving
                 configured: root.isConfigured
                 connectionOk: root.connectionState !== "error"
-                showCreateActions: root.providerCapabilities.createEntities
+                showCreateActions: root.canCreateEntities
                 onProjectChosen: function(projectId) {
                     root.loadActivitiesForProject(projectId, function(model) { filmDayView.activityPickerModel = model })
                 }

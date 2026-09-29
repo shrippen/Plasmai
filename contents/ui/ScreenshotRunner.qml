@@ -1,11 +1,12 @@
 import QtQuick
 import org.kde.kirigami as Kirigami
 import "../code/secret.js" as Secret
+import "../code/kimaiApi.js" as KimaiApi
 
 /**
  * Landing-page screenshots, only when a plan file exists:
  *   $XDG_CONFIG_HOME/com.github.shrippen.plasmai/screenshots.json
- *   { "dir": "/out", "shots": [ { "name": "timer", "view": "main|manual|stats|filmday|edit|datepicker|timepicker|create" } ] }
+ *   { "dir": "/out", "shots": [ { "name": "timer", "view": "main|manual|stats|filmday|edit|datepicker|timepicker|create|offline|unsynced|online" } ] }
  * demo/shots.sh writes it into a scratch config home together with a demo profile, then
  * runs plasmoidviewer offscreen. Each view is grabbed with grabToImage into dir/name.png
  * (popup views: the whole X screen with ImageMagick's import, use a planar viewer),
@@ -85,6 +86,28 @@ Item {
                         d.open()
                     }
                 })
+            } else if (item.value === "offline") {
+                // The network goes away (every request fails), then: stop, start another activity.
+                var route = KimaiApi.urlRoute
+                KimaiApi.setUrlRoute({ original: route, handles: route.handles, token: route.token,
+                                       request: function() { return runner.deadRequest() } })
+                r.returnToMainView()
+                r.refreshAll(true)
+                Qt.callLater(function() {
+                    r.stopTracking(false)
+                    Qt.callLater(function() { r.startTracking(10, 21, "Harbour Lights", "Vorproduktion", "offline") })
+                })
+            } else if (item.value === "stop") {
+                r.returnToMainView()
+                r.stopTracking(false)
+            } else if (item.value === "unsynced") {
+                r.openUnsyncedView()
+            } else if (item.value === "online") {
+                if (KimaiApi.urlRoute && KimaiApi.urlRoute.original) {
+                    KimaiApi.setUrlRoute(KimaiApi.urlRoute.original)
+                }
+                r.returnToMainView()
+                r.refreshAll(true)
             } else {
                 r.returnToMainView()
             }
@@ -120,6 +143,22 @@ Item {
         }
         ticker.interval = wait
         ticker.restart()
+    }
+
+    // A request that fails like a lost network (status 0), for the offline views.
+    function deadRequest() {
+        var x = {
+            readyState: 0, status: 0, statusText: "", responseText: "",
+            open: function() {}, setRequestHeader: function() {}, abort: function() {},
+            getResponseHeader: function() { return null },
+            send: function() {
+                x.readyState = 4
+                if (x.onreadystatechange) {
+                    x.onreadystatechange()
+                }
+            }
+        }
+        return x
     }
 
     // First item under `item` (children, then popups' content) with a function `name`;

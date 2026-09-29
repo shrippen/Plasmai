@@ -29,6 +29,8 @@ QQC2.ItemDelegate {
     /** Recent rows: "Log trip" for this entry (kimai-anfahrten plugin present). */
     property bool canLogTrip: false
     property bool isPinned: false
+    /** Made or changed offline, not on the server yet (offline.js): a small sync mark. */
+    property bool unsynced: false
     property bool ignoreNextRowClick: false
 
     enum Presentation {
@@ -198,6 +200,15 @@ QQC2.ItemDelegate {
                 opacity: KanteStyle.active ? 1 : 0.7
                 elide: Text.ElideRight
             }
+        }
+
+        Kirigami.Icon {
+            visible: root.unsynced
+            Layout.preferredWidth: Kirigami.Units.iconSizes.small
+            Layout.preferredHeight: Kirigami.Units.iconSizes.small
+            Layout.alignment: Qt.AlignVCenter
+            source: "view-refresh"
+            Accessible.name: i18n("Not synced yet")
         }
 
         Controls.Label {

@@ -5,7 +5,7 @@ import "../../contents/code/filmDays.js" as FilmDays
 import "../../contents/code/filmDaySync.js" as Sync
 
 /**
- * filmDaySync.js (mode, load, two-step save; online only, nothing on the device)
+ * filmDaySync.js (mode, load, two-step save, day cache, offline fallbacks)
  * against a fake XMLHttpRequest. Responses are consumed in request order.
  */
 TestCase {
@@ -686,5 +686,72 @@ TestCase {
         Sync.saveDay(ctx("server"), saveReq(fields, server, 5), function(r) { got = r })
         compare(requests.length, 1)
         compare(got.extras, "unchanged")
+    }
+
+    // -- Offline (offline.js answers the tracker; plugin calls fail with a network error)
+
+    function test_engagementsOfflineUseLastList() {
+        var c = ctx("server", { ping: ping(["engagements"]), nowMs: 10 * 3600 * 1000 })
+        c.memo = { engagements: {} }
+        c.memo.engagements[c.profileKey + "|2026-09-14"] = { at: 0, list: [{ projectId: 1, rulesetName: "R" }] }
+        responses = [{ status: 0 }]
+        var got = "unset"
+        Sync.dayEngagements(c, "2026-09-14", function(list) { got = list })
+        compare(requests.length, 1, "still asks the server first")
+        compare(got.length, 1)
+        compare(got[0].rulesetName, "R")
+    }
+
+    function test_productionDayOfflineKeepsLastCount() {
+        function at(d, h, m) { return new Date(2026, 8, d, h, m).toISOString() }
+        var tracker = {
+            fetchTimesheetsRange: function(u, t, b, e, cb) {
+                // The snapshot does not reach back to the engagement's start.
+                cb({ ok: true, offline: true, data: [] })
+            }
+        }
+        var c = ctx("server", { tracker: tracker, nowMs: new Date(2026, 8, 25, 12, 0).getTime() })
+        c.memo = { productionDays: {} }
+        c.memo.productionDays[[c.profileKey, 155, "2026-05-18"].join("|")] = { at: 0, toStr: "2026-09-25", entries: [
+            { id: 1, project: 155, activity: 40, begin: at(10, 8, 0), end: at(10, 18, 0) },
+            { id: 3, project: 155, activity: 40, begin: at(24, 11, 50), end: at(24, 22, 9) }] }
+        var got = null
+        Sync.productionDay(c, 155, 40, [], "2026-05-18", "2026-09-25", ids, function(r) { got = r })
+        compare(got.count, 2)
+    }
+
+    function test_saveExtrasThroughTracker() {
+        var server = serverDay()
+        var fields = FilmDays.fromApi(server)
+        fields.note = "offline"
+        var sent = []
+        var tracker = {
+            patchTimesheet: function(u, t, id, f, cb) { sent.push("patch " + id); cb({ ok: true, data: { id: id }, queued: true }) },
+            putFilmDay: function(u, t, pid, date, patch, cb) { sent.push("put " + pid + " " + date + " " + patch.note); cb({ ok: true, data: null, queued: true }) }
+        }
+        var got = null
+        Sync.saveDay(ctx("server", { tracker: tracker }), saveReq(fields, server, 77), function(r) { got = r })
+        compare(requests.length, 0)
+        compare(sent, ["patch 77", "put 1 2026-09-14 offline"])
+        verify(got.ok)
+        compare(got.extras, "saved")
+    }
+
+    function test_persistAndRestoreMemo() {
+        var saved = null
+        var c = ctx("server", { persist: function(part) { saved = part } })
+        c.memo = { days: {}, engagements: {}, productionDays: {} }
+        c.memo.days[c.profileKey] = { "2026-09-14": { timesheets: { at: 1, result: { ok: true, data: [] } } } }
+        c.memo.days["other"] = { "2026-09-14": {} }
+        c.memo.engagements[c.profileKey + "|2026-09-14"] = { at: 1, list: [] }
+        c.memo.engagements["other|2026-09-14"] = { at: 1, list: [] }
+        Sync.persistMemo(c)
+        verify(saved.days["2026-09-14"].timesheets.result.ok)
+        compare(Object.keys(saved.engagements), [c.profileKey + "|2026-09-14"])
+
+        var fresh = ctx("server")
+        Sync.restoreMemo(fresh, JSON.parse(JSON.stringify(saved)))
+        verify(fresh.memo.days[fresh.profileKey]["2026-09-14"].timesheets)
+        verify(fresh.memo.engagements[fresh.profileKey + "|2026-09-14"])
     }
 }

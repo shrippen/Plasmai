@@ -18,6 +18,7 @@ import "../contents/code/timesheetFields.js" as TimesheetFields
 import "../contents/code/dateTimeFormat.js" as DTF
 import "../contents/code/workTotals.js" as WorkTotals
 import "../contents/code/timerSession.js" as TimerSession
+import "../contents/code/offline.js" as Offline
 import "shared"
 import "Kante"
 
@@ -141,6 +142,7 @@ Kirigami.ApplicationWindow {
             url: TimeTracker.resolveUrl(activeProfile),
             token: apiToken,
             profileKey: filmDayProfileKey,
+            persist: function(part) { if (root.offlineSession) Offline.rememberFilmDays(root.offlineSession, part) },
             mode: filmDayMode,
             ping: filmDayPing,
             memo: filmDayMemo,
@@ -229,7 +231,18 @@ Kirigami.ApplicationWindow {
     readonly property string providerId: activeProfile && activeProfile.provider ? activeProfile.provider : "kimai"
     readonly property var providerMeta: TimeTracker.providerMeta(providerId)
     readonly property string tagLookupUrl: TimeTracker.resolveUrl(activeProfile)
-    readonly property var tracker: TimeTracker.api(providerId)
+    // Offline layer (offline.js, Kimai only): reads answer from the snapshot, writes wait in the outbox.
+    property var offlineSession: null
+    property int offlineRevision: 0
+    readonly property var tracker: offlineSession ? offlineSession.tracker : TimeTracker.api(providerId)
+    readonly property bool offline: offlineRevision >= 0 && !!offlineSession && Offline.isOffline(offlineSession)
+    readonly property int unsyncedCount: offlineRevision >= 0 && offlineSession ? Offline.pendingCount(offlineSession) : 0
+    readonly property double offlineStateAt: offlineRevision >= 0 && offlineSession ? Offline.stateAt(offlineSession) : 0
+    readonly property int unsyncedStuck: offlineRevision >= 0 && offlineSession
+        ? Offline.ops(offlineSession).filter(function(op) { return op.state !== Offline.State.PENDING }).length : 0
+    /** Master data and multi-entry changes need the server (offline.js: online only). */
+    readonly property bool canCreateEntities: providerCapabilities.createEntities && !offline
+    function isUnsynced(entryId) { return offlineRevision >= 0 && !!offlineSession && Offline.isUnsynced(offlineSession, entryId) }
     property string apiToken: ""; property bool tokenLoaded: false
     property bool isConfigured: apiToken.length > 0
     property string connectionState: "offline"; property string errorMessage: ""
@@ -407,8 +420,34 @@ Kirigami.ApplicationWindow {
         })
     }
 
+    /** Offline session of the active profile (its own files, "app-" + profile). Resolves once loaded. */
+    function openOfflineSession() {
+        var key = providerId === TimeTracker.PROVIDER_KIMAI && activeProfile
+            ? "app-" + String(activeProfile.id).replace(/[^A-Za-z0-9_-]/g, "_") : ""
+        if (offlineSession && offlineSession.host.key === key) return Promise.resolve()
+        var session = Offline.createSession(TimeTracker.api(providerId), {
+            key: key,
+            url: function() { return TimeTracker.resolveUrl(root.activeProfile) },
+            token: function() { return root.apiToken },
+            load: function(name) { return Platform.loadLocal(null, name) },
+            save: function(name, obj) { return Platform.saveLocal(null, name, obj).catch(function(err) { console.warn("Plasmai: could not save", name, err) }) },
+            changed: function() { root.offlineRevision++ },
+            // A timer started offline got its server id: keep following it.
+            idChanged: function(localId, serverId) { if (String(root.currentTimesheetId) === String(localId)) root.currentTimesheetId = serverId }
+        })
+        offlineSession = session
+        return Offline.load(session).then(function() {
+            FilmDaySync.restoreMemo(root.filmDayContext(), Offline.filmDays(session))
+        })
+    }
+
     function loadApiToken() {
         if (!activeProfile) { apiToken = ""; tokenLoaded = true; return }
+        openOfflineSession().then(function() { root.readToken() })
+    }
+
+    /** The profile's token, then the first refresh (after the offline session is loaded). */
+    function readToken() {
         var routedToken = KimaiApi.routeToken(activeProfile.url); // internal builds: the demo brings its own
         (routedToken ? Promise.resolve(routedToken) : Platform.loadToken(null, activeProfile.id)).then(function(token) {
             apiToken = token || ""; tokenLoaded = true; connectionState = token ? "online" : "offline"
@@ -851,6 +890,23 @@ Kirigami.ApplicationWindow {
         function onDepthChanged() { drawerButtonNamer.restart() }
     }
 
+    // Offline and sync state under every page; "Show" lists what is not synced yet.
+    footer: QQC2.Pane {
+        visible: root.offline || root.unsyncedCount > 0
+        padding: Kirigami.Units.smallSpacing
+        leftPadding: Kirigami.Units.largeSpacing
+        rightPadding: Kirigami.Units.largeSpacing
+        OfflineStatus {
+            id: offlineBar
+            anchors.fill: parent
+            offline: root.offline
+            stateAt: root.offlineStateAt
+            unsynced: root.unsyncedCount
+            stuck: root.unsyncedStuck
+            onDetailsRequested: root.navigateTo(unsyncedComponent)
+        }
+    }
+
     pageStack.initialPage: TimerPage { }
     Component.onCompleted: {
         drawerButtonNamer.restart()
@@ -876,5 +932,6 @@ Kirigami.ApplicationWindow {
     Component { id: connectionComponent; ConnectionPage { } }
     Component { id: favoritesComponent; FavoritesPage { } }
     Component { id: aboutComponent; AboutPage { } }
+    Component { id: unsyncedComponent; UnsyncedPage { } }
 }
 

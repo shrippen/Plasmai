@@ -295,9 +295,19 @@ Kirigami.Page {
                     KanteButton {
                         text: i18n("Use this")
                         icon.name: "emblem-default"
-                        enabled: page.profiles.length > 0
+                        // Switching profiles is online only (offline.js): the outbox belongs to the profile.
+                        enabled: page.profiles.length > 0 && !root.offline
                         onClicked: { page.setActiveProfile(); page.checkStoredToken() }
                     }
+                }
+
+                QQC2.Label {
+                    visible: root.offline
+                    Kirigami.FormData.label: " "
+                    Layout.fillWidth: true
+                    Layout.preferredWidth: formCol.width
+                    wrapMode: Text.WordWrap
+                    text: i18n("Switching profiles needs a connection to the server.")
                 }
 
                 QQC2.Label {

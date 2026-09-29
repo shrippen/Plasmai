@@ -82,7 +82,7 @@ ColumnLayout {
                      && !!widget.selectedProjectId
         projectVisible: !widget.loadingProjects
         activityVisible: !widget.loadingProjects || widget.activityPickerModel.length > 0
-        showCreateActions: widget.providerCapabilities.createEntities
+        showCreateActions: widget.canCreateEntities
         onAboutToOpenPicker: function(projectField, activityField) {
             widget.updatePickerOpenDirection(projectField, activityField)
         }
@@ -405,7 +405,9 @@ ColumnLayout {
                     }
                     canEditStopped: widget.providerCapabilities.editStopped
                     canDeleteEntry: widget.providerCapabilities.deleteEntry
-                    canSplitEntry: widget.providerCapabilities.editStopped
+                    // Split makes a second entry from one: online only, and not for an unsynced one.
+                    canSplitEntry: widget.providerCapabilities.editStopped && !widget.offline && !widget.isUnsynced(ts.id)
+                    unsynced: widget.isUnsynced(ts.id)
                                    && !!(widget.recentTimesheets[rowIndex] && widget.recentTimesheets[rowIndex].end)
                     canPin: true
                     canLogTrip: widget.canEditTrips

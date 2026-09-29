@@ -121,6 +121,13 @@ typography stack, badge format, and social-preview spec.
   Stores write through `mktemp` + `mv` (app: `QSaveFile`). Idle
   prefers the session idle hint on Wayland (`loginctl` /
   `org.freedesktop.ScreenSaver`) and `xprintidle` on X11.
+- **Offline snapshot and outbox** (`offline.js`, Kimai only): each client keeps
+  its own two files per profile, never shared (two writers on one file was the
+  `filmDaysPending` problem): the Plasmoid in
+  `$XDG_DATA_HOME/com.github.shrippen.plasmai/plasmoid/` via `localStore.sh`
+  (widget id in the name, so two widgets in one plasmashell keep apart), the app
+  in `<AppData>/app/` via `FileStore.saveLocal` (mode 0600 on both). The token
+  never goes to disk. See "Offline" below.
 
 ### Configuration UI
 
@@ -352,10 +359,11 @@ read as Kante. It is the design system's `KanteStyle.Kind.KanteLight`:
   (`FilmDaySync.deleteEntries`; failures are reported, never retried silently). The film-specific extras — break, catering, day category, day type,
   production shooting day, surcharge day, extra pay, note — belong to
   [kimai-drehzettel-bundle](https://github.com/shrippen/kimai-drehzettel-bundle).
-- **Online only** (`filmDaySync.js`, shared by Plasmoid and app so the
-  orchestration exists once): the extras live only in the plugin; Plasmai keeps
-  no copy on the device, queues nothing and never compares device and server
-  values.
+- **Server first** (`filmDaySync.js`, shared by Plasmoid and app so the
+  orchestration exists once): the extras live in the plugin. The day cache
+  (last month) is kept on disk by the offline layer, so a day opens without a
+  connection; a save made offline waits in the outbox like any entry (see
+  "Offline").
   - Plugin answers `ping` with `v1` → **server mode**: the view loads
     `GET /v1/film-days/{date}?project=` and shows the extras.
   - `ping` 404 (or no `v1`) → no plugin: extras hidden, "only begin and end are
@@ -576,6 +584,43 @@ read as Kante. It is the design system's `KanteStyle.Kind.KanteLight`:
   own in-memory hourly probe.
 - Failures set `connectionState` / `errorMessage` and offer Retry +
   Configure. Do not toast every poll failure.
+
+## Offline
+
+Bad reception on set: Plasmai keeps working and syncs once the server answers
+(`offline.js`, ROADMAP pillar 6). Kimai only; other providers pass through.
+
+- **One layer at the tracker**: a session wraps the provider API with the same
+  calls, so pages do not know about it. Reads go to the server first; a network
+  error (status 0, a timeout) answers from the snapshot, with the waiting
+  changes laid over. 401, 403, 4xx and 5xx are not "offline".
+- **Snapshot**: the last active entry, recent list, entries of the last 45 days
+  (week totals, stats, film days), catalogs, the film day cache. Written after
+  good answers, only when changed.
+- **Outbox**: offline, or while changes wait, writes go to an ordered list and
+  answer with a local result (`local:…` ids). A later change of an entry not
+  sent yet goes into its create (a stop becomes its end). Offline-capable:
+  start, stop, add, edit and delete an entry, continue a recent one, film day
+  extras. Online only (disabled offline, with a hint): create customer, project
+  or activity, split, film day "merge", idle "discard", switching profiles.
+- **Replay** after every good answer (and in the app when the network comes
+  back), strictly in order, stopping at the first op that does not go through.
+  Network error: later. Refused by the server (overlap, lockdown, …): the op
+  waits as "not accepted" with the reason, retry or discard. Before changing or
+  deleting a server entry the replay reads it: changed elsewhere since it was
+  loaded (the other client, the web) → "changed on the server", overwrite or
+  discard. A create whose first try may have reached the server looks for that
+  entry first (a lost answer must not create it twice). Nothing is dropped
+  silently.
+- **Offline begin**: a timer started offline sends its begin explicitly (the
+  device's time); online Kimai stamps its own "now".
+- **UI**: a status line ("Offline · as of 12:04 · 2 changes not synced yet",
+  app: under every page; Plasmoid: under the header, and in the panel tooltip),
+  "Show" opens the list of waiting changes; entries not synced yet carry a sync
+  mark. Week totals and stats include waiting changes.
+- The reads a view makes itself (plugin pings, film day plugin GETs) keep their
+  own caches: plugin probes 24 h in `shared.json`, engagement lists and
+  production-day counts fall back to their last answer while offline.
 
 ---
 

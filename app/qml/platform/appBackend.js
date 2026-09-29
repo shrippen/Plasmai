@@ -112,6 +112,26 @@ function create(tokenStore, fileStore, idleWatcher, notifier) {
                 if (cb) { cb(ok, ok ? null : "Failed to save catalog") }
             })
             fileStore.save("catalog.json", JSON.stringify(payload || {}))
+        },
+
+        loadLocal: function(_ds, name, cb) {
+            _connectOnce(fileStore.localLoaded, name, function(_name, data) {
+                var obj = null
+                try {
+                    obj = data ? JSON.parse(data) : null
+                } catch (e) {
+                    obj = null
+                }
+                cb(obj)
+            })
+            fileStore.loadLocal(name)
+        },
+
+        saveLocal: function(_ds, name, payload, cb) {
+            _connectOnce(fileStore.localSaved, name, function(_name, ok) {
+                if (cb) { cb(ok, ok ? null : "Failed to save " + name) }
+            })
+            fileStore.saveLocal(name, JSON.stringify(payload || {}))
         }
     }
 }

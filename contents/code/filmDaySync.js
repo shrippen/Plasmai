@@ -156,7 +156,8 @@ function loadEngagements(ctx, dateStr, callback) {
     }
     KimaiApi.fetchDrehzettelEngagements(ctx.url, ctx.token, dateStr, function(result) {
         if (!result.ok) {
-            callback(null)
+            // Offline: the last known list, whatever its age.
+            callback(cached && result.error && result.error.type === KimaiApi.ErrorType.Network ? cached.list : null)
             return
         }
         if (cached && JSON.stringify(cached.list) !== JSON.stringify(result.data)) {
@@ -268,6 +269,11 @@ function productionDay(ctx, projectId, activityId, activityIds, fromDateStr, dat
     var from = new Date(fromDateStr + "T00:00:00")
     var to = new Date(toStr + "T23:59:59")
     trackerOf(ctx).fetchTimesheetsRange(ctx.url, ctx.token, from, to, function(result) {
+        // Offline the snapshot may not reach back to the engagement's start: the last count wins.
+        if (cached && (!result.ok || result.offline)) {
+            answer(cached.entries)
+            return
+        }
         if (!result.ok) {
             callback(null)
             return
@@ -516,7 +522,10 @@ function saveExtras(ctx, req, callback) {
         callback(result("unchanged", { server: req.server }))
         return
     }
-    KimaiApi.putFilmDay(ctx.url, ctx.token, req.projectId, req.dateStr, patch, function(put) {
+    // Through the tracker when it has it: the offline layer queues the extras.
+    var tracker = trackerOf(ctx)
+    var put = typeof tracker.putFilmDay === "function" ? tracker.putFilmDay : KimaiApi.putFilmDay
+    put(ctx.url, ctx.token, req.projectId, req.dateStr, patch, function(put) {
         if (put.ok) {
             forgetDay(ctx, req.dateStr)
             callback(result("saved", { server: put.data }))
@@ -678,8 +687,54 @@ function openDay(ctx, date, selectedProjectId, ids, hydrate, callback, preferSel
         if (!shown || live.changed) {
             callback(r, entries, Source.LIVE)
         }
+        if (live.changed) {
+            persistMemo(ctx)
+        }
         prefetchDays(ctx)
     })
+}
+
+/**
+ * This profile's part of the memo (days, engagement lists, production day
+ * entries), handed to ctx.persist(part) so the offline layer keeps it on disk.
+ */
+function persistMemo(ctx) {
+    if (!ctx.persist) {
+        return
+    }
+    var memo = memoOf(ctx)
+    var prefix = String(ctx.profileKey) + "|"
+    function mine(map) {
+        var out = {}
+        for (var k in map) {
+            if (k.indexOf(prefix) === 0) {
+                out[k] = map[k]
+            }
+        }
+        return out
+    }
+    ctx.persist({ days: memo.days[ctx.profileKey] || {}, engagements: mine(memo.engagements),
+                  productionDays: mine(memo.productionDays) })
+}
+
+/** Puts a part saved by persistMemo back (app start); answers already in memory win. */
+function restoreMemo(ctx, part) {
+    if (!part) {
+        return
+    }
+    var memo = memoOf(ctx)
+    if (!memo.days[ctx.profileKey]) {
+        memo.days[ctx.profileKey] = part.days || {}
+    }
+    var maps = ["engagements", "productionDays"]
+    for (var i = 0; i < maps.length; i++) {
+        var from = part[maps[i]] || {}
+        for (var k in from) {
+            if (!memo[maps[i]][k]) {
+                memo[maps[i]][k] = from[k]
+            }
+        }
+    }
 }
 
 /** Local "YYYY-MM-DD" keys of the days `ts` overlaps (a running entry until now). */
@@ -727,13 +782,17 @@ function prefetchDays(ctx, done) {
 
     trackerOf(ctx).fetchTimesheetsRange(ctx.url, ctx.token,
         KimaiApi.startOfLocalDay(first), KimaiApi.endOfLocalDay(today), function(result) {
-        if (!result.ok) {
+        // An offline answer is the snapshot: prefetch again once the server is back.
+        if (!result.ok || result.offline) {
             delete memo.prefetched[ctx.profileKey]
             finish()
             return
         }
         splitTimesheets(live, dates, result.data || [])
-        prefetchExtras(live, dates, 0, finish)
+        prefetchExtras(live, dates, 0, function() {
+            persistMemo(ctx)
+            finish()
+        })
     })
 }
 

@@ -312,7 +312,7 @@ Rectangle {
     supportsTags: widget.providerCapabilities.tags
     tagLookupUrl: widget.kimaiUrl
     tagLookupToken: widget.apiToken
-    showCreateActions: widget.providerCapabilities.createEntities
+    showCreateActions: widget.canCreateEntities
     onAboutToOpenPicker: function(projectField, activityField) {
         widget.updatePickerOpenDirection(projectField, activityField)
     }

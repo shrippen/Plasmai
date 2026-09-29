@@ -132,3 +132,51 @@ function saveCatalog(dataSource, payload) {
             })
     })
 }
+
+// -- Client-private files (offline snapshot, outbox; not shared with the other client)
+
+function loadLocal(dataSource, name) {
+    return new Promise(function(resolve) {
+        _backend.loadLocal(dataSource, name, function(payload) { resolve(payload || null) })
+    })
+}
+
+/**
+ * Writes of one name run one after the other, and only the newest waiting
+ * payload is written (a desktop store is an async process: an older write
+ * must never land after a newer one).
+ */
+var _localWrites = {}
+
+function saveLocal(dataSource, name, payload) {
+    var slot = _localWrites[name] || (_localWrites[name] = { running: false, next: null, waiters: [] })
+    return new Promise(function(resolve, reject) {
+        slot.next = payload
+        slot.waiters.push({ resolve: resolve, reject: reject })
+        if (!slot.running) {
+            writeNext(dataSource, name, slot)
+        }
+    })
+}
+
+function writeNext(dataSource, name, slot) {
+    if (slot.next === null) {
+        slot.running = false
+        return
+    }
+    var payload = slot.next
+    var waiters = slot.waiters
+    slot.next = null
+    slot.waiters = []
+    slot.running = true
+    _backend.saveLocal(dataSource, name, payload, function(ok, err) {
+        for (var i = 0; i < waiters.length; i++) {
+            if (ok) {
+                waiters[i].resolve(true)
+            } else {
+                waiters[i].reject(err)
+            }
+        }
+        writeNext(dataSource, name, slot)
+    })
+}

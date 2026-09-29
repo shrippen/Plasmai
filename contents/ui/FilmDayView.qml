@@ -170,9 +170,11 @@ ColumnLayout {
     readonly property var beginInstant: combineStamp(root.selectedDay, beginTime)
     readonly property var endInstant: combineStamp(root.selectedDay, endTime)
     readonly property bool rangeValid: beginInstant && endInstant && endInstant.getTime() > beginInstant.getTime()
+    /** False while offline: merging deletes entries, which needs the server. */
+    property bool onlineActions: true
     /** Merging needs every other entry inside the selected calendar day (the view edits times of one day). */
     readonly property bool mergeable: {
-        if (otherEntries.length === 0 || isNaN(otherSpan.beginMs) || isNaN(otherSpan.endMs)) {
+        if (!onlineActions || otherEntries.length === 0 || isNaN(otherSpan.beginMs) || isNaN(otherSpan.endMs)) {
             return false
         }
         var b = new Date(otherSpan.beginMs)

@@ -84,4 +84,37 @@ TestCase {
         verify(ds.sources[n - 1].indexOf("exec sh '/p/sharedConfig.sh' commit '") === 0)
         compare(saved, true)
     }
+
+    // The Plasmoid's own files: the name follows every subcommand.
+    function test_localStoreNamesTheFile() {
+        var ds = fakeSource()
+        var saved = null
+        Secret.saveLocal(ds, "/p/localStore.sh", "offline-outbox-p1", { ops: [] }, function(ok) { saved = ok })
+        compare(answerAll(ds), 1)
+        verify(ds.sources[0].indexOf("PLASMAI_LOCAL_JSON='{\"ops\":[]}' exec sh '/p/localStore.sh' 'store' 'offline-outbox-p1'") === 0)
+        compare(saved, true)
+
+        var big = ""
+        for (var i = 0; i < 70000; i++) {
+            big += "x"
+        }
+        ds = fakeSource()
+        Secret.saveLocal(ds, "/p/localStore.sh", "offline-state-p1", { big: big }, function(ok) { saved = ok })
+        var n = answerAll(ds)
+        verify(n > 2)
+        verify(ds.sources[0].indexOf("' 'append' 'offline-state-p1' '") > 0)
+        verify(ds.sources[n - 1].indexOf("exec sh '/p/localStore.sh' commit 'offline-state-p1' '") === 0)
+    }
+
+    function test_loadLocal() {
+        var ds = fakeSource()
+        var got = "unset"
+        Secret.loadLocal(ds, "/p/localStore.sh", "offline-state-p1", function(obj, err) { got = obj })
+        verify(ds.sources[0].indexOf("sh '/p/localStore.sh' load 'offline-state-p1'") === 0)
+        Secret.handleData(ds, ds.sources[0], { "exit code": 0, stdout: '{"v":1}\n', stderr: "" })
+        compare(got.v, 1)
+        Secret.loadLocal(ds, "/p/localStore.sh", "none", function(obj, err) { got = [obj, err] })
+        Secret.handleData(ds, ds.sources[1], { "exit code": 1, stdout: "", stderr: "" })
+        compare(got, [null, null])
+    }
 }

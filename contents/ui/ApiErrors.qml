@@ -16,6 +16,9 @@ QtObject {
                 ? i18n("URL and API token are required")
                 : i18n("Configure your time tracker URL and API token")
         }
+        if (error.type === "offline") {
+            return i18n("This needs a connection to the server.")
+        }
         if (error.type === "unsupported") {
             return i18n("This action is not supported for the selected service yet.")
         }

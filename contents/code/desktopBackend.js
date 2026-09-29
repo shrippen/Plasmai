@@ -8,7 +8,7 @@
 .import "secret.js" as Secret
 
 function create(kwalletScript, idleScript, notifyScript,
-                sharedConfigScript, catalogCacheScript) {
+                sharedConfigScript, catalogCacheScript, localStoreScript) {
     return {
         loadToken: function(ds, id, cb) {
             Secret.load(ds, kwalletScript, id, cb)
@@ -39,6 +39,12 @@ function create(kwalletScript, idleScript, notifyScript,
         },
         saveCatalogCache: function(ds, payload, cb) {
             Secret.saveCatalogCache(ds, catalogCacheScript, payload, cb)
+        },
+        loadLocal: function(ds, name, cb) {
+            Secret.loadLocal(ds, localStoreScript, name, cb)
+        },
+        saveLocal: function(ds, name, payload, cb) {
+            Secret.saveLocal(ds, localStoreScript, name, payload, cb)
         }
     }
 }

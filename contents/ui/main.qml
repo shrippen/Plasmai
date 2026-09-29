@@ -26,6 +26,7 @@ import "../code/statsData.js" as StatsData
 import "../code/providerUtil.js" as ProviderUtil
 import "../code/workTotals.js" as WorkTotals
 import "../code/timerSession.js" as TimerSession
+import "../code/offline.js" as Offline
 import "."
 import "Kante"
 import "KantePlasma"
@@ -58,12 +59,23 @@ PlasmoidItem {
         ? activeProfile.provider : "kimai"
     readonly property var providerMeta: TimeTracker.providerMeta(providerId)
     readonly property var providerCapabilities: TimeTracker.providerCapabilities(providerId)
-    readonly property var tracker: TimeTracker.api(providerId)
+    // Offline layer (offline.js, Kimai only): reads answer from the snapshot, writes wait in the outbox.
+    property var offlineSession: null
+    property int offlineRevision: 0
+    readonly property var tracker: offlineSession ? offlineSession.tracker : TimeTracker.api(providerId)
+    readonly property bool offline: offlineRevision >= 0 && !!offlineSession && Offline.isOffline(offlineSession)
+    readonly property int unsyncedCount: offlineRevision >= 0 && offlineSession ? Offline.pendingCount(offlineSession) : 0
+    readonly property double offlineStateAt: offlineRevision >= 0 && offlineSession ? Offline.stateAt(offlineSession) : 0
+    readonly property int unsyncedStuck: offlineRevision >= 0 && offlineSession
+        ? Offline.ops(offlineSession).filter(function(op) { return op.state !== Offline.State.PENDING }).length : 0
+    /** Master data and multi-entry changes need the server (offline.js: online only). */
+    readonly property bool canCreateEntities: providerCapabilities.createEntities && !offline
+    readonly property string localStoreScript: Secret.fileUrlToPath(Qt.resolvedUrl("../code/localStore.sh"))
     property string kimaiUrl: TimeTracker.resolveUrl(activeProfile || { url: plasmoid.configuration.kimaiUrl, provider: providerId })
     property string apiToken: ""
     property bool tokenLoaded: false
     property bool isConfigured: apiToken.length > 0 && (!providerMeta.needsUrl || kimaiUrl.length > 0)
-    property string mainViewMode: "main"  // main | manual | stats | filmday | trip
+    property string mainViewMode: "main"  // main | manual | stats | filmday | trip | unsynced
     /** Inline editor for the running timesheet (start / project / activity). */
     property bool editingActiveEntry: false
     /** Stopped Recent timesheet currently in the Add-entry form (null = new entry). */
@@ -369,7 +381,14 @@ PlasmoidItem {
         if (connectionState === "error" && errorMessage) {
             return errorMessage
         }
-        return panelTooltipBody()
+        var sync = []
+        if (offline) {
+            sync.push(i18n("Offline"))
+        }
+        if (unsyncedCount > 0) {
+            sync.push(i18np("%1 change not synced yet", "%1 changes not synced yet", unsyncedCount))
+        }
+        return sync.length ? sync.join(" · ") + "\n" + panelTooltipBody() : panelTooltipBody()
     }
 
     // BEGIN internal demo: scripts/package.sh removes this block and DemoHook.qml.
@@ -814,6 +833,54 @@ PlasmoidItem {
         TimeTracker.applySession(providerId, activeProfile)
     }
 
+    function isUnsynced(entryId) {
+        return offlineRevision >= 0 && !!offlineSession && Offline.isUnsynced(offlineSession, entryId)
+    }
+
+    /** Files of this widget and profile: two widgets in one plasmashell must not share an outbox. */
+    function offlineKey() {
+        if (providerId !== TimeTracker.PROVIDER_KIMAI || !activeProfile) {
+            return ""
+        }
+        return ("plasmoid-" + Plasmoid.id + "-" + activeProfile.id).replace(/[^A-Za-z0-9_-]/g, "_")
+    }
+
+    /** Offline session of the active profile; resolves once snapshot and outbox are loaded. */
+    function openOfflineSession() {
+        var key = offlineKey()
+        if (offlineSession && offlineSession.host.key === key) {
+            return Promise.resolve()
+        }
+        var session = Offline.createSession(TimeTracker.api(providerId), {
+            key: key,
+            url: function() { return root.kimaiUrl },
+            token: function() { return root.apiToken },
+            load: function(name) { return Platform.loadLocal(execSource, name) },
+            save: function(name, obj) {
+                return Platform.saveLocal(execSource, name, obj).catch(function(err) {
+                    console.warn("Plasmai: could not save", name, err)
+                })
+            },
+            changed: function() { root.offlineRevision++ },
+            // A timer started offline got its server id: keep following it.
+            idChanged: function(localId, serverId) {
+                if (String(root.currentTimesheetId) === String(localId)) {
+                    root.currentTimesheetId = serverId
+                }
+            }
+        })
+        offlineSession = session
+        return Offline.load(session).then(function() {
+            FilmDaySync.restoreMemo(root.filmDayContext(), Offline.filmDays(session))
+        })
+    }
+
+    function openUnsyncedView() {
+        editingActiveEntry = false
+        editingStoppedTimesheet = null
+        mainViewMode = "unsynced"
+    }
+
     function openManualEntry() {
         if (!isConfigured) {
             return
@@ -1047,6 +1114,11 @@ PlasmoidItem {
             url: kimaiUrl,
             token: apiToken,
             profileKey: filmDayProfileKey,
+            persist: function(part) {
+                if (root.offlineSession) {
+                    Offline.rememberFilmDays(root.offlineSession, part)
+                }
+            },
             mode: filmDayMode,
             ping: filmDayPing,
             memo: filmDayMemo,
@@ -1654,7 +1726,7 @@ PlasmoidItem {
 
     function switchProfile(profileId) {
         var currentId = plasmoid.configuration.activeProfileId || "default"
-        resetTrackingState()
+        resetProfileState()
         CatalogCache.clear()
         if (currentId !== profileId) {
             // Connections.onActiveProfileIdChanged performs the soft reload.
@@ -1704,10 +1776,15 @@ PlasmoidItem {
         })
     }
 
-    function resetTrackingState() {
+    /** Another profile: its plugins are probed again (resetTrackingState keeps them, a stop is no reason). */
+    function resetProfileState() {
         resetMileageState()
         filmDayMode = FilmDaySync.Mode.NO_PLUGIN
         filmDayPing = null
+        resetTrackingState()
+    }
+
+    function resetTrackingState() {
         isTracking = false
         editingActiveEntry = false
         editingStoppedTimesheet = null
@@ -2239,6 +2316,11 @@ PlasmoidItem {
     function refreshAll(quiet, forceCatalog) {
         reloadProfiles()
         syncTrackerSession()
+        // First the profile's offline session (snapshot and outbox from disk), then the refresh.
+        if (!offlineSession || offlineSession.host.key !== offlineKey()) {
+            openOfflineSession().then(function() { root.refreshAll(quiet, forceCatalog) })
+            return
+        }
         if (!isConfigured) {
             connectionState = "offline"
             if (tokenLoaded) {
@@ -3121,6 +3203,13 @@ PlasmoidItem {
                     wrapMode: Text.WordWrap
                     text: i18n("Keep the time, discard the idle gap, or discard and continue the same activity.")
                 }
+                // Discarding rewrites the running entry's end: online only (offline.js).
+                PlasmaComponents3.Label {
+                    visible: root.offline
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
+                    text: i18n("Discarding idle time needs a connection to the server.")
+                }
             }
 
             footer: RowLayout {
@@ -3137,6 +3226,7 @@ PlasmoidItem {
                 }
                 KantePlasmaButton {
                     Layout.fillWidth: true
+                    enabled: !root.offline
                     text: i18n("Discard idle")
                     Accessible.name: text
                     onClicked: {
@@ -3146,6 +3236,7 @@ PlasmoidItem {
                 }
                 KantePlasmaButton {
                     Layout.fillWidth: true
+                    enabled: !root.offline
                     text: i18n("Discard and continue")
                     Accessible.name: text
                     onClicked: {
@@ -3250,7 +3341,8 @@ PlasmoidItem {
                             Layout.fillWidth: true
                             level: 3
                             pageTitle: true
-                            text: root.mainViewMode === "stats" ? i18n("Statistics")
+                            text: root.mainViewMode === "unsynced" ? i18n("Not synced")
+                                  : root.mainViewMode === "stats" ? i18n("Statistics")
                                   : (root.mainViewMode === "filmday" ? i18n("Film day")
                                   : (root.mainViewMode === "trip" ? (root.tripSheetRef ? root.tripSheetRef.title : i18n("Trip"))
                                   : (root.mainViewMode === "manual"
@@ -3349,6 +3441,7 @@ PlasmoidItem {
                         KantePlasmaToolButton {
                             visible: root.mainViewMode === "manual" || root.mainViewMode === "stats"
                                      || root.mainViewMode === "filmday" || root.mainViewMode === "trip"
+                                     || root.mainViewMode === "unsynced"
                             icon.name: "go-previous"
                             text: i18n("Back")
                             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
@@ -3366,6 +3459,8 @@ PlasmoidItem {
                     KanteFieldSkin { control: parent }
                     id: profileSwitcher
                     Layout.fillWidth: true
+                    // Switching profiles is online only (offline.js): the outbox belongs to the profile.
+                    enabled: !root.offline
                     visible: root.profiles.length > 1
                              && (root.mainViewMode === "main"
                                  || root.mainViewMode === "stats")
@@ -3384,6 +3479,49 @@ PlasmoidItem {
                     onActivated: function(index) {
                         if (index >= 0 && index < root.profiles.length) {
                             root.switchProfile(root.profiles[index].id)
+                        }
+                    }
+                }
+
+                // Offline and sync state; "Show" opens the list of what is not synced yet.
+                OfflineStatus {
+                    Layout.fillWidth: true
+                    visible: (root.offline || root.unsyncedCount > 0) && root.mainViewMode !== "unsynced"
+                    offline: root.offline
+                    stateAt: root.offlineStateAt
+                    unsynced: root.unsyncedCount
+                    stuck: root.unsyncedStuck
+                    onDetailsRequested: root.openUnsyncedView()
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    visible: root.mainViewMode === "unsynced"
+                    spacing: Kirigami.Units.largeSpacing
+
+                    OfflineStatus {
+                        Layout.fillWidth: true
+                        offline: root.offline
+                        stateAt: root.offlineStateAt
+                        unsynced: root.unsyncedCount
+                        stuck: root.unsyncedStuck
+                    }
+
+                    UnsyncedList {
+                        Layout.fillWidth: true
+                        ops: root.offlineRevision >= 0 && root.offlineSession ? Offline.ops(root.offlineSession) : []
+                        projects: root.projects
+                        activities: root.allActivities
+                        activitiesByProject: root.activitiesByProject
+                        onRetryRequested: function(opId) {
+                            Offline.retry(root.offlineSession, opId, function() { root.refreshAll(true) })
+                        }
+                        onOverwriteRequested: function(opId) {
+                            Offline.overwrite(root.offlineSession, opId, function() { root.refreshAll(true) })
+                        }
+                        onDiscardRequested: function(opId) {
+                            Offline.discard(root.offlineSession, opId)
+                            root.refreshAll(true)
                         }
                     }
                 }
@@ -3447,7 +3585,7 @@ PlasmoidItem {
                     supportsTags: root.providerCapabilities.tags
                     tagLookupUrl: root.kimaiUrl
                     tagLookupToken: root.apiToken
-                    showCreateActions: root.providerCapabilities.createEntities
+                    showCreateActions: root.canCreateEntities
                     editingExisting: root.editingStoppedTimesheet !== null && root.editingStoppedTimesheet !== undefined
                     onAboutToOpenPicker: function(projectField, activityField) {
                         root.updatePickerOpenDirection(projectField, activityField)
@@ -3485,6 +3623,7 @@ PlasmoidItem {
 
                 FilmDayView {
                     id: filmDayView
+                    onlineActions: !root.offline
                     Component.onCompleted: root.filmDayViewRef = filmDayView
                     Component.onDestruction: {
                         if (root.filmDayViewRef === filmDayView) {
@@ -3502,7 +3641,7 @@ PlasmoidItem {
                     busy: root.isBusy || root.loadingFilmDay
                     configured: root.isConfigured
                     connectionOk: root.connectionState !== "error"
-                    showCreateActions: root.providerCapabilities.createEntities
+                    showCreateActions: root.canCreateEntities
                     onAboutToOpenPicker: function(projectField, activityField) {
                         root.updatePickerOpenDirection(projectField, activityField)
                     }
@@ -3730,7 +3869,7 @@ PlasmoidItem {
 
     Component.onCompleted: {
         Platform.setBackend(DesktopBackend.create(kwalletScript, idleScript, notifyScript,
-            sharedConfigScript, catalogCacheScript))
+            sharedConfigScript, catalogCacheScript, localStoreScript))
         showNewActivityForm = !compactPopupLayout && plasmoid.configuration.desktopShowNewActivity
         hardReload()
     }
@@ -3761,7 +3900,7 @@ PlasmoidItem {
             }
         }
         function onActiveProfileIdChanged() {
-            root.resetTrackingState()
+            root.resetProfileState()
             if (!plasmoid.userConfiguring) {
                 root.softReload()
             } else {

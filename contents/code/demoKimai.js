@@ -329,6 +329,9 @@ function timesheets(method, rest, q, body) {
     if (!entry) {
         return notFound()
     }
+    if (method === "GET" && !m[2]) {
+        return ok(entryJson(entry))
+    }
     if (method === "PATCH" && m[2] === "/stop") {
         entry.end = entry.end || nowMs()
         return ok(entryJson(entry))

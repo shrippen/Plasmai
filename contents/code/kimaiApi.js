@@ -332,6 +332,11 @@ function fetchActiveTimesheet(kimaiUrl, apiToken, callback) {
     getJson(kimaiUrl, apiToken, "/api/timesheets/active", [], callback)
 }
 
+/** One timesheet by id (the offline replay checks it before changing it). */
+function fetchTimesheet(kimaiUrl, apiToken, timesheetId, callback) {
+    getJson(kimaiUrl, apiToken, "/api/timesheets/" + encodeURIComponent(timesheetId), null, callback)
+}
+
 function fetchRecentTimesheets(kimaiUrl, apiToken, size, callback) {
     getJson(kimaiUrl, apiToken, "/api/timesheets/recent?size=" + (size || 10), [], callback)
 }

@@ -12,6 +12,7 @@
         <file alias="qml/SettingsPage.qml">qml/SettingsPage.qml</file>
         <file alias="qml/FavoritesPage.qml">qml/FavoritesPage.qml</file>
         <file alias="qml/AboutPage.qml">qml/AboutPage.qml</file>
+        <file alias="qml/UnsyncedPage.qml">qml/UnsyncedPage.qml</file>
         <file alias="qml/icons/plasmai.png">../packaging/linux/io.github.shrippen.Plasmai.png</file>
         <file alias="qml/shared/qmldir">qml/shared/qmldir</file>
         <!-- Kante lives at contents/ui/Kante as in the Plasmoid, so the shared components
@@ -71,6 +72,8 @@
         <file alias="contents/ui/DateField.qml">../contents/ui/DateField.qml</file>
         <file alias="contents/ui/DaySparkline.qml">../contents/ui/DaySparkline.qml</file>
         <file alias="contents/ui/StatsView.qml">../contents/ui/StatsView.qml</file>
+        <file alias="contents/ui/OfflineStatus.qml">../contents/ui/OfflineStatus.qml</file>
+        <file alias="contents/ui/UnsyncedList.qml">../contents/ui/UnsyncedList.qml</file>
         <file alias="contents/ui/ActiveEditView.qml">../contents/ui/ActiveEditView.qml</file>
         <file alias="contents/ui/FilmDayView.qml">../contents/ui/FilmDayView.qml</file>
         <file alias="contents/ui/TouchUi.qml">../contents/ui/TouchUi.qml</file>
@@ -100,6 +103,7 @@
         <file alias="contents/code/timesheetFields.js">../contents/code/timesheetFields.js</file>
         <file alias="contents/code/workTotals.js">../contents/code/workTotals.js</file>
         <file alias="contents/code/timerSession.js">../contents/code/timerSession.js</file>
+        <file alias="contents/code/offline.js">../contents/code/offline.js</file>
         <file alias="contents/code/workContractAdjust.js">../contents/code/workContractAdjust.js</file>
         <file alias="contents/code/statsData.js">../contents/code/statsData.js</file>
         <file alias="contents/code/buildInfo.js">../contents/code/buildInfo.js</file>
