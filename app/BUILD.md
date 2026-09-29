@@ -15,6 +15,22 @@ sudo pacman -S extra-cmake-modules qt6-base qt6-declarative kirigami2 \
   qt6-svg qtkeychain-qt6
 ```
 
+Tray-Client unter Linux ausprobieren (braucht einen Tray-Host):
+`cmake -B build -DPLASMAI_TRAY=ON …`
+
+## Windows (Tray-Client)
+
+In Git Bash mit MSVC (`vcvars64`), Qt 6 im `PATH` und Ninja:
+
+```bash
+./scripts/build-deps.sh "$PWD/deps" --kirigami   # ECM, QtKeychain, Kirigami
+cmake -S app -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$PWD/deps"
+cmake --build build
+DEPS="$PWD/deps" ./scripts/package-windows.sh     # Installer + Zip nach dist/windows
+```
+
+Details, Signieren und winget: `packaging/windows/README.md`.
+
 ## Android (Craft-Container)
 
 Docker muss laufen (`sudo systemctl start docker`).

@@ -27,8 +27,10 @@ typography stack, badge format, and social-preview spec.
   reuses the provider layer and the shared logic (`contents/code/*`) and the
   Plasmoid's components themselves (`contents/ui/`, platform controls via
   `contents/ui/Controls/`), and should match the Plasmoid in features
-  and look. On the desktop the Plasmoid stays the product; the app is not a
-  desktop window or tray replacement.
+  and look. On the Linux desktop the Plasmoid stays the product; the app is not
+  a desktop window or tray replacement there.
+- Windows: the same app as a tray client (see "Windows tray client"), a tray
+  icon with the app as its popup, conceptually the Plasmoid. No main window.
 - App pages support pull to refresh (`KantePullToRefresh` from the Kante module,
   attached to each page's scroll view, since the pages use Kirigami.Page +
   QQC2.ScrollView instead of Kirigami.ScrollablePage).
@@ -584,6 +586,19 @@ read as Kante. It is the design system's `KanteStyle.Kind.KanteLight`:
   own in-memory hourly probe.
 - Failures set `connectionState` / `errorMessage` and offer Retry +
   Configure. Do not toast every poll failure.
+- **Idle work** (measured on the demo, CPU and started processes over a
+  minute): in the Plasmoid every file read or write is a shell process.
+  - Write only what changed: the offline snapshot compares without its time,
+    `platform.js` skips a `shared.json` patch that changes nothing and a catalog
+    payload it just wrote.
+  - The poll reloads what changes: the week's entries every poll, the user and
+    absences from a memo for 10 min (`workTotals.js` `MEMO_MS`).
+  - `shared.json` (profile changes from the app) is read every 5 s while the
+    popup is open, once a minute collapsed.
+  - Hidden views do not work: the Plasmoid's stats are built when shown, the film
+    day's labels tick only while shown, a list row lays out its running counter
+    only while it shows it; the app builds one day chart, and its 30 s tick
+    pauses while the window is hidden.
 
 ## Offline
 
@@ -596,7 +611,8 @@ Bad reception on set: Plasmai keeps working and syncs once the server answers
   changes laid over. 401, 403, 4xx and 5xx are not "offline".
 - **Snapshot**: the last active entry, recent list, entries of the last 45 days
   (week totals, stats, film days), catalogs, the film day cache. Written after
-  good answers, only when changed.
+  good answers when its content changed (compared without its time), otherwise
+  at most every 5 minutes to keep "as of" current.
 - **Outbox**: offline, or while changes wait, writes go to an ordered list and
   answer with a local result (`local:…` ids). A later change of an entry not
   sent yet goes into its create (a stop becomes its end). Offline-capable:
@@ -621,6 +637,27 @@ Bad reception on set: Plasmai keeps working and syncs once the server answers
 - The reads a view makes itself (plugin pings, film day plugin GETs) keep their
   own caches: plugin probes 24 h in `shared.json`, engagement lists and
   production-day counts fall back to their last answer while offline.
+
+## Windows tray client
+
+The app built for Windows (`PLASMAI_TRAY`, ROADMAP pillar 7). The Plasmoid's
+rules hold: a click on the icon opens, never starts or stops.
+
+- **Icon**: the app icon; while tracking with a red dot (Kante's running
+  indicator). Tooltip: project · activity · duration, or "Offline".
+- **Popup**: the app's window, frameless, no taskbar button, placed next to the
+  icon on whichever edge the taskbar is (`TrayPlacement`), hidden when another
+  window gets the focus. A click on the icon right after that does not reopen it.
+- **Menu** (right click): open, stop the running entry or start the last used
+  one, start at login, quit. Built in QML (`trayMenu()`), so it is translated
+  like everything else.
+- **One instance per user**: a second start opens the running one's popup.
+  Started at login (`--hidden`): the icon only.
+- **Services**: token in the Credential Manager (QtKeychain), idle time from
+  Windows, notifications as the tray icon's message, local files in
+  `%LOCALAPPDATA%`.
+- **Code**: platform-neutral Qt except autostart and idle time; a tray build
+  elsewhere needs no new code (`-DPLASMAI_TRAY=ON` on Linux for testing).
 
 ---
 

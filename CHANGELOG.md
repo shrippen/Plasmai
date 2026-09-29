@@ -4,6 +4,7 @@
 
 ### New
 - **Offline mode** (Kimai): with bad reception the widget and the app keep working from the last known state ("Offline · as of 12:04"). Starting and stopping the timer, adding, editing and deleting entries, film day details and trips are kept on the device and sent in order once the server answers again. A change the server does not accept, or an entry changed elsewhere meanwhile, waits in "Not synced" to retry, overwrite or discard; nothing is dropped silently. Creating customers, projects and activities, splitting and merging entries, discarding idle time and switching profiles need a connection
+- **Windows** (preview): Plasmai as a tray icon whose popup is the app, like the widget in the Plasma panel. The icon shows a running timer with a red dot, its menu stops the running entry or starts the last used one, and it can start at login. Installer (per user, no administrator rights) and zip. Not signed yet, so Windows warns on the first start
 
 ### Changed
 - Widget (Kante styles): a running timer no longer tints the whole panel entry in the accent color. It is marked by a small red indicator instead; Display settings offer a red dot, a red bottom edge or a red side stripe, with a preview
@@ -11,6 +12,7 @@
 - App: after a lost connection the app refreshes as soon as the network is back, instead of at the next poll
 - App (desktop style): the statistics filter looks like the widget's (three segments side by side)
 - Statistics: in touch mode the filter segments get the larger touch height they were meant to have
+- Less work in the background: the widget no longer rewrites its files when nothing changed, reads the shared settings once a minute while collapsed (every 5 s while open), and the regular refresh reloads your work hours and absences every 10 minutes instead of every 30 seconds. Hidden views (statistics, film day) no longer update every second
 
 ### Security
 - App: API tokens are now always kept in the platform's secure storage (Secret Service / KWallet, Android Keystore, Windows Credential Manager, macOS Keychain). Up to 2.0.1 the app stored them in plain files on Linux (AppImage, Flatpak) and on Android, although it was meant to use the keychain. Such a file moves into the secure storage on the next start and is deleted; without secure storage the token is not saved

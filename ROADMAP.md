@@ -140,10 +140,10 @@ Stay on Kirigami, but make the code portable: one source for components and logi
 
 1. ~~**Logic out of `main.qml`**~~ — done: the rules both clients had in their own `main.qml` live in `contents/code/`, with tests: `workTotals.js` (today/week totals, targets, absence credit), `timerSession.js` (idle prompt, keep/discard, forgot-to-start, running-entry state, when a refresh may replace a typed description, the stop-then-start switch), `favorites.js` in the app too (one pin format: the app wrote `,`, the Plasmoid `;`, so each dropped the other's pins). What stays per client is binding and UI: dialogs, messages, notifications, which refresh follows. Found on the way: the app lost typed descriptions on every refresh, the Plasmoid's "continue last" ignored a switch.
 2. ~~**One component source**~~ — done: all shared components live in `contents/ui/` only; `app/qml/shared/` keeps a qmldir pointing there (and the app-only `WrapCheckBox`). Controls that differ per platform sit in `contents/ui/Controls/`: Plasma wrappers in the Plasmoid, while the app's qrc puts `app/qml/controls/` at that path (Label, ToolTip, CheckBox, Button, ToolButton, Heading, SegmentButton, DatePicker, TimePicker, FormDialog). The app's Kante lives at `contents/ui/Kante` (one KanteStyle singleton). `DaySparkline` uses `MultiEffect` instead of Qt5Compat. CI compiles every shared component against libplasma (`tst_controls.qml`); screenshots of both clients in both styles, before and after, guard the look.
-3. ~~**Platform services, one file per platform**~~ — done: `app/platform/` (TokenStore, FileStore, UserAgentNam, AndroidBackFilter; IdleWatcher and Notifier with `*_dbus.cpp` / `*_none.cpp` picked in CMake, offered to QML only where supported; NetworkStatus from `QNetworkInformation`: the app refreshes as soon as the network is back). Autostart and outbox storage come with their first user, the tray client (7, stage 2) and the outbox (6, stage B): alone they would be unused code.
+3. ~~**Platform services, one file per platform**~~ — done: `app/platform/` (TokenStore, FileStore, UserAgentNam, AndroidBackFilter; IdleWatcher and Notifier with `*_dbus.cpp` / `*_none.cpp` picked in CMake, offered to QML only where supported; NetworkStatus from `QNetworkInformation`: the app refreshes as soon as the network is back). Later: `FileStore.saveLocal` for the outbox (6), Autostart (`autostart_win.cpp` / `autostart_none.cpp`) and the Windows services (7). CMake picks the implementations by what a build has, not by operating system: D-Bus where it exists; otherwise the Windows idle time (`idlewatcher_win.cpp`) and, in any tray build, notifications through the tray icon (`notifier_tray.cpp`).
 4. ~~**JSON i18n in the app everywhere**~~ — done: no KI18n/KCoreAddons in the app. The catalogs now carry all plural forms and the language's rule (`app/i18nfallback.cpp`, C++ tests); this fixed wrong plurals on Android in ru, uk, pl, ja, zh_CN and fr.
 5. ~~**One timestamp parser**~~ — done: `DTF.parseStamp` / `DTF.stampMs` in `dateTimeFormat.js` parse every server stamp and form input (JS libraries, providers, Plasmoid and app QML). Qt 6.4 already parsed Kimai's formats; the gain is one place instead of six variants, and a date alone as local midnight. Film day tests no longer assume Berlin time.
-6. ~~**CI as the guard**~~ — done: `.github/workflows/checks.yml` — unit tests in an Arch container (Kirigami, libplasma) in three time zones, `qmllint` on `contents/ui` (without the "unqualified" and "missing-property" noise), app resources, the app built on Linux, Windows (Qt 6.10) and macOS with its C++ tests, the token storage against a real keychain on all three. Not linted: the app's own pages (they resolve only through the qrc; needs `qt_add_qml_module`).
+6. ~~**CI as the guard**~~ — done: `.github/workflows/checks.yml` — unit tests in an Arch container (Kirigami, libplasma) in three time zones, `qmllint` on `contents/ui` (without the "unqualified" and "missing-property" noise), app resources, the app built on Linux, Windows (Qt 6.10) and macOS with its C++ tests, the token storage against a real keychain on all three. Windows builds the whole app with Kirigami (`scripts/build-deps.sh`, cached) and runs it offscreen on the demo (`tests/app/demo-screens.txt`): QML errors fail the job, the screenshots are the `windows-screens` artifact. Not linted: the app's own pages (they resolve only through the qrc; needs `qt_add_qml_module`).
 
 
 ### 6. Offline mode — done
@@ -154,6 +154,7 @@ Bad reception on set: Plasmai keeps working and syncs as soon as the server answ
 - A create whose first try may have reached the server looks for that entry before it is sent again (a lost answer must not duplicate it).
 - Conflicts are checked for entries (read before patch/delete). Trips have no conflict check (the plugin has no single-trip read): last writer wins.
 - The Plasmoid's files carry the widget id: two widgets in one plasmashell keep their own outboxes.
+- The snapshot is written when its content changes, and to keep its time at most every 5 min otherwise (measured afterwards: its time counted as a change, so every poll wrote it, in the Plasmoid through a shell process).
 - Not done: Android background sync (WorkManager), still a separate project.
 
 The plan as written before:
@@ -215,7 +216,23 @@ Edit and delete of stopped entries, trips (`createTrip`/`patchTrip`/`deleteTrip`
 - App and Plasmoid each queue: the Plasmoid may stop a timer the app started offline → conflict on replay, resolved by the read-before-patch check.
 - Clock skew between device and server for offline begin/end.
 
-### 7. Windows tray client — planned
+### 7. Windows tray client — built, not yet tried on a Windows desktop
+
+The app built for Windows is a tray client: a tray icon with the app's window as its popup, like the Plasmoid in the panel. Built as planned below, with these decisions (details: `packaging/windows/README.md`, DESIGN.md "Windows tray client"):
+
+- **Same app, a switch:** `PLASMAI_TRAY` (CMake, on for Windows) wraps the existing window; no `TrayPopup` QML and no third copy of the pages. Elsewhere the tray is opt-in (`-DPLASMAI_TRAY=ON`), which is how it was tested on Linux (Xvfb, a tray host): hidden start, placement above the taskbar, hide on focus loss, context menu, red dot, single instance.
+- **Platform-neutral C++:** `TrayController` (icon, popup, `QLocalServer` single instance, menu from QML so its texts are translated there) and `TrayPlacement` (pure placement for every taskbar edge, `tst_trayplacement`) are plain Qt. Windows-only are just `autostart_win.cpp` (HKCU `Run`, `--hidden`) and `idlewatcher_win.cpp` (`GetLastInputInfo`).
+- **Menu:** open, stop the running entry / start the last used one, start at login, quit. No "open Kimai" or settings entries: the popup has them.
+- **Build and package:** CI builds Kirigami from source and runs the app offscreen on the demo. `release.yml` job `windows`: `windeployqt`, an Inno Setup installer (per user, no admin rights, optional start at login writing the same `Run` value as the app) and a zip; `.exe` icon and version resource; a draft winget manifest.
+
+Open:
+
+- **Signing:** unsigned, so SmartScreen warns. Needs a certificate (SignPath for OSS, or OV/EV) as secrets; then `signtool` before and after `iscc`.
+- **Live test on Windows 10 and 11** (stage 5): tray placement with the overflow area and several monitors, focus behavior, autostart, notifications, Kimai live. CI runs offscreen only, where there is no tray.
+- **winget:** submit the manifest per release, better after signing.
+- Light/dark from Windows and per-monitor DPI come from Qt; not checked on a real desktop.
+
+The plan as written before:
 
 A native Windows client: **tray icon + popup only**, conceptually the Plasmoid (icon shows the timer state, click opens the popup, nothing else on screen). Linux keeps the Plasmoid; this is Windows only. Reverses “no tray app” (pillar 4, “Won’t do”, DESIGN.md “Product intent”) for Windows — update both files in the same change.
 
@@ -285,14 +302,14 @@ Peers are **desktop/panel trackers**, not the full Kimai/Clockify web apps.
 ### Clockify desktop
 
 - **Have:** timer, manual entry, continue, last-used, idle, notifications, billable, edit/delete/split recents.
-- **Gap:** tags (API is id-based); offline queue (planned, pillar 6).
+- **Gap:** tags (API is id-based).
 - **Skip:** auto-tracker, screenshots, Pomodoro as the product, mini window.
 
 ### Toggl Track desktop
 
 - **Have:** timer, description, tags, idle, continue.
 - **Gap:** `#` tags and `@` project in the description field (pickers remain the path).
-- **Skip:** app timeline; tray-only app.
+- **Skip:** app timeline; a tray-only app on Linux (the Plasmoid is that; Windows has the tray client, pillar 7).
 
 ### SolidTime desktop
 
