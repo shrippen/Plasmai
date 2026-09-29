@@ -1,6 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file alias="qml/main.qml">qml/main.qml</file>
+        <file alias="plasmai.svg">../contents/images/plasmai.svg</file>
         <file alias="qml/platform/appBackend.js">qml/platform/appBackend.js</file>
         <file alias="qml/ConnectionPage.qml">qml/ConnectionPage.qml</file>
         <file alias="qml/TimerPage.qml">qml/TimerPage.qml</file>

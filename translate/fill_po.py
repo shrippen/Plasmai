@@ -225,6 +225,10 @@ def main():
         for msgid, forms in offline.PLURALS.items():
             if lang in forms:
                 trans.setdefault(msgid, {"p": forms[lang]})
+        # Tray client (pillar 7)
+        import tray
+        for msgid, val in tray.T_BY_LANG.get(lang, {}).items():
+            trans.setdefault(msgid, {"s": val})
         write_po(lang, items, trans)
         print(f"Wrote {lang}.po ({len(items)} strings)")
 

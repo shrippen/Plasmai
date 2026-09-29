@@ -24,18 +24,39 @@ find_package(KF6 COMPONENTS Kirigami QUIET)
 # Qt6Keychain on every platform (Android too): API tokens never go to plain files.
 find_package(Qt6Keychain REQUIRED)
 
+# Tray client (ROADMAP pillar 7): a tray icon with the app as its popup, like the
+# Plasmoid. The Windows build; elsewhere on request (-DPLASMAI_TRAY=ON, to test it).
+option(PLASMAI_TRAY "Run as a tray icon with a popup (the Windows client)" ${WIN32})
+
 # Platform services: one implementation per platform (ROADMAP pillar 5, step 3).
 # D-Bus (idle time, notifications) on Linux and Plasma Mobile; not offered elsewhere.
+# Windows: GetLastInputInfo for the idle time, the tray icon for notifications.
 if(TARGET Qt6::DBus AND UNIX AND NOT APPLE AND NOT ANDROID)
     set(PLASMAI_PLATFORM_SOURCES platform/idlewatcher_dbus.cpp platform/notifier_dbus.cpp)
+elseif(WIN32 AND PLASMAI_TRAY)
+    set(PLASMAI_PLATFORM_SOURCES platform/idlewatcher_win.cpp platform/notifier_tray.cpp)
+elseif(WIN32)
+    set(PLASMAI_PLATFORM_SOURCES platform/idlewatcher_win.cpp platform/notifier_none.cpp)
 else()
     set(PLASMAI_PLATFORM_SOURCES platform/idlewatcher_none.cpp platform/notifier_none.cpp)
+endif()
+# Tray client: QtWidgets for the tray icon's menu. Autostart: Windows only so far.
+if(PLASMAI_TRAY AND NOT ANDROID)
+    find_package(Qt6 REQUIRED COMPONENTS Widgets)
+    list(APPEND PLASMAI_PLATFORM_SOURCES platform/traycontroller.h platform/traycontroller.cpp
+        platform/trayplacement.h)
+endif()
+if(WIN32)
+    list(APPEND PLASMAI_PLATFORM_SOURCES platform/autostart_win.cpp)
+else()
+    list(APPEND PLASMAI_PLATFORM_SOURCES platform/autostart_none.cpp)
 endif()
 
 qt_add_executable(plasmai-app
     main.cpp
     i18nfallback.cpp
     plasmai-app.qrc
+    platform/autostart.h
     platform/filestore.h
     platform/idlewatcher.h
     platform/networkstatus.h
@@ -103,6 +124,15 @@ target_link_libraries(plasmai-app PRIVATE
 
 target_link_libraries(plasmai-app PRIVATE Qt6Keychain::Qt6Keychain)
 
+if(PLASMAI_TRAY AND NOT ANDROID)
+    target_compile_definitions(plasmai-app PRIVATE PLASMAI_TRAY)
+    target_link_libraries(plasmai-app PRIVATE Qt6::Widgets)
+endif()
+if(WIN32)
+    # A GUI app: no console window next to the tray icon.
+    set_target_properties(plasmai-app PROPERTIES WIN32_EXECUTABLE ON)
+endif()
+
 if(PLASMAI_PLATFORM_SOURCES MATCHES "_dbus")
     message(STATUS "Qt6::DBus found — building with idle detection + native notifications")
     target_link_libraries(plasmai-app PRIVATE Qt6::DBus)
@@ -147,12 +177,17 @@ if(PLASMAI_BUILD_TESTS AND NOT ANDROID)
     target_link_libraries(tst_i18nfallback PRIVATE Qt6::Core Qt6::Test)
     add_test(NAME i18nfallback COMMAND tst_i18nfallback)
 
-    # With a Secret Service in the session: round trip and migration; without: no plain text.
+    qt_add_executable(tst_trayplacement tests/tst_trayplacement.cpp platform/trayplacement.h)
+    target_include_directories(tst_trayplacement PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(tst_trayplacement PRIVATE Qt6::Core Qt6::Gui Qt6::Test)
+    add_test(NAME trayplacement COMMAND tst_trayplacement)
+
     qt_add_executable(tst_filestore tests/tst_filestore.cpp platform/filestore.h)
     target_include_directories(tst_filestore PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     target_link_libraries(tst_filestore PRIVATE Qt6::Core Qt6::Test)
     add_test(NAME filestore COMMAND tst_filestore)
 
+    # With a Secret Service in the session: round trip and migration; without: no plain text.
     qt_add_executable(tst_tokenstore tests/tst_tokenstore.cpp platform/tokenstore.cpp)
     target_include_directories(tst_tokenstore PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     target_link_libraries(tst_tokenstore PRIVATE Qt6::Core Qt6::Test Qt6Keychain::Qt6Keychain)

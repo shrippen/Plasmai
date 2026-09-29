@@ -1,4 +1,7 @@
 #include <QGuiApplication>
+#ifdef PLASMAI_TRAY
+#include <QApplication>
+#endif
 #include <QIcon>
 #include <QtQml>
 #include <QQmlApplicationEngine>
@@ -10,12 +13,16 @@
 #include "addons/infinitecalendarviewmodel.h"
 #include "appid.h"
 #include "i18nfallback.h"
+#include "platform/autostart.h"
 #include "platform/filestore.h"
 #include "platform/idlewatcher.h"
 #include "platform/networkstatus.h"
 #include "platform/notifier.h"
 #include "platform/tokenstore.h"
 #include "platform/useragentnam.h"
+#ifdef PLASMAI_TRAY
+#include "platform/traycontroller.h"
+#endif
 #ifdef Q_OS_ANDROID
 #include "platform/androidbackfilter.h"
 #endif
@@ -38,7 +45,12 @@ int main(int argc, char *argv[])
     qputenv("QT_QUICK_CONTROLS_STYLE", "Material");
 #endif
 
+#ifdef PLASMAI_TRAY
+    // The tray icon's menu is a QMenu: widgets need a QApplication.
+    QApplication app(argc, argv);
+#else
     QGuiApplication app(argc, argv);
+#endif
 
 #ifdef Q_OS_ANDROID
     // Android has no system icon theme: use the Breeze Dark subset bundled in the QRC
@@ -61,6 +73,20 @@ int main(int argc, char *argv[])
     QGuiApplication::setDesktopFileName(QStringLiteral("io.github.shrippen.Plasmai"));
 #endif
     app.setApplicationVersion(QStringLiteral("2.0.1"));
+
+#ifdef PLASMAI_TRAY
+    // One tray client per user: a second start opens the running one's popup.
+    if (TrayController::handOverToRunning()) {
+        return 0;
+    }
+    // Started at login (Autostart): the icon only, the popup on the first click.
+    const bool startHidden = app.arguments().contains(QStringLiteral("--hidden"));
+    TrayController *tray = TrayController::isSupported() ? new TrayController(&app) : nullptr;
+    if (tray) {
+        // The popup hides instead of closing; only "Quit" ends the app.
+        app.setQuitOnLastWindowClosed(false);
+    }
+#endif
 
     // Singletons
     auto *tokenStore = new TokenStore(&app);
@@ -95,6 +121,14 @@ int main(int argc, char *argv[])
     if (Notifier::isSupported()) {
         engine.rootContext()->setContextProperty(QStringLiteral("notifier"), new Notifier(&app));
     }
+    if (Autostart::isSupported()) {
+        engine.rootContext()->setContextProperty(QStringLiteral("autostart"), new Autostart(&app));
+    }
+#ifdef PLASMAI_TRAY
+    if (tray) {
+        engine.rootContext()->setContextProperty(QStringLiteral("trayClient"), tray);
+    }
+#endif
     if (NetworkStatus::isSupported()) {
         engine.rootContext()->setContextProperty(QStringLiteral("networkStatus"), new NetworkStatus(&app));
     }
@@ -111,6 +145,11 @@ int main(int argc, char *argv[])
     }
 #ifdef Q_OS_ANDROID
     app.installEventFilter(new AndroidBackFilter(&engine));
+#endif
+#ifdef PLASMAI_TRAY
+    if (tray) {
+        tray->setWindow(qobject_cast<QQuickWindow *>(engine.rootObjects().first()), startHidden);
+    }
 #endif
 #ifdef PLASMAI_TEST_DRIVER
     if (qEnvironmentVariableIsSet("PLASMAI_TEST_SCRIPT")) {

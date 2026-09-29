@@ -223,9 +223,69 @@ Kirigami.ApplicationWindow {
     readonly property bool supportsIdleDetection: typeof idleWatcher !== "undefined"
     readonly property bool supportsNotifications: typeof notifier !== "undefined"
     readonly property var networkStatusService: typeof networkStatus !== "undefined" ? networkStatus : null
+    readonly property var trayService: typeof trayClient !== "undefined" ? trayClient : null
+    readonly property var autostartService: typeof autostart !== "undefined" ? autostart : null
+
+    // ── Tray client (Windows, ROADMAP pillar 7): icon state, tooltip and menu, like the Plasmoid's panel icon ──
+    Binding {
+        target: root.trayService
+        when: !!root.trayService
+        property: "tracking"
+        value: root.isTracking
+    }
+    Binding {
+        target: root.trayService
+        when: !!root.trayService
+        property: "toolTip"
+        value: root.isTracking
+            ? root.currentProject + " · " + root.currentActivity + " · " + KimaiApi.formatDurationShort(root.elapsedSeconds)
+            : (root.offline ? i18n("Plasmai") + " · " + i18n("Offline") : i18n("Plasmai"))
+    }
+    Binding {
+        target: root.trayService
+        when: !!root.trayService
+        property: "menu"
+        value: root.trayMenu()
+    }
+    Connections {
+        target: root.trayService
+        function onMenuTriggered(id) { root.trayAction(id) }
+    }
+
+    /** The tray icon's context menu (TrayController.menu): the timer, the popup, autostart, quit. */
+    function trayMenu() {
+        var items = [{ id: "open", text: i18n("Open Plasmai") }, { separator: true }]
+        if (isTracking) {
+            items.push({ id: "stop", text: i18n("Stop %1 · %2", currentProject, currentActivity), enabled: !isBusy })
+        } else if (hasLastUsed) {
+            items.push({ id: "startLast", text: i18n("Start %1 · %2", lastUsedProjectName, lastUsedActivityName),
+                         enabled: !isBusy && isConfigured })
+        }
+        items.push({ separator: true })
+        if (autostartService) {
+            items.push({ id: "autostart", text: i18n("Start at login"), checkable: true, checked: autostartService.enabled })
+        }
+        items.push({ id: "quit", text: i18n("Quit") })
+        return items
+    }
+
+    function trayAction(id) {
+        if (id === "open") {
+            trayService.showPopup()
+        } else if (id === "stop") {
+            stopTracking()
+        } else if (id === "startLast") {
+            startLastUsed()
+        } else if (id === "autostart") {
+            autostartService.enabled = !autostartService.enabled
+        } else if (id === "quit") {
+            Qt.quit()
+        }
+    }
 
     title: i18n("Plasmai")
-    width: 420; height: 720; visible: true
+    // The tray client shows the window as its popup (main.cpp, TrayController).
+    width: 420; height: 720; visible: !trayService
 
     property var profiles: []; property var activeProfile: null
     readonly property string providerId: activeProfile && activeProfile.provider ? activeProfile.provider : "kimai"
