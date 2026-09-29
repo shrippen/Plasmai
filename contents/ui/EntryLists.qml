@@ -1,9 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Controls as QQC2
 import org.kde.plasma.plasmoid
 import org.kde.plasma.components as PlasmaComponents3
-import org.kde.plasma.extras as PlasmaExtras
 import org.kde.kirigami as Kirigami
 import "../code/kimaiApi.js" as KimaiApi
 import "../code/favorites.js" as Favorites

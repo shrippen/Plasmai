@@ -486,7 +486,6 @@ ColumnLayout {
     DateField {
         id: dayField
         visible: false
-        height: 0
         enabled: root.configured && !root.busy
         onDateEdited: {
             if (!root.suppressDayChosen) {

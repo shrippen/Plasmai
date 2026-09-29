@@ -2,7 +2,6 @@ import "../code/kimaiApi.js" as KimaiApi
 import "../code/statsData.js" as StatsData
 import "../code/mileage.js" as Mileage
 import QtQuick
-import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import "."
@@ -179,7 +178,7 @@ ColumnLayout {
             Controls.SegmentButton {
                 Layout.fillWidth: true
                 Layout.preferredWidth: 1
-                height: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+                Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                 checkable: true
                 autoExclusive: true
                 checked: root.billableFilter === StatsData.BILLABLE_ALL
@@ -189,7 +188,7 @@ ColumnLayout {
             Controls.SegmentButton {
                 Layout.fillWidth: true
                 Layout.preferredWidth: 1
-                height: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+                Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                 checkable: true
                 autoExclusive: true
                 checked: root.billableFilter === StatsData.BILLABLE_ONLY
@@ -199,7 +198,7 @@ ColumnLayout {
             Controls.SegmentButton {
                 Layout.fillWidth: true
                 Layout.preferredWidth: 1
-                height: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+                Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                 checkable: true
                 autoExclusive: true
                 checked: root.billableFilter === StatsData.BILLABLE_NONE

@@ -1,7 +1,7 @@
 name: Checks
 
 # Guards for the shared code (ROADMAP pillar 5, step 6):
-#   unit      QML unit tests in three time zones, app resources, pytest log classifier
+#   unit      QML unit tests in three time zones, qmllint, app resources, pytest log classifier
 #   app       build-only of the Kirigami app on Linux (with KF6), Windows and macOS
 #             (C++ only): fails when Linux-only code creeps into the app; publishes nothing
 #
@@ -41,6 +41,14 @@ jobs:
             TZ=$tz QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input tests/unit
             echo "::endgroup::"
           done
+
+      # Shared components and the Plasmoid. Off: "unqualified" (the plasmoid object, i18n and
+      # the parent scope are context properties by design) and "missing-property" (properties
+      # typed var / Item hide the real type). The app's pages resolve only through its qrc.
+      - name: qmllint
+        run: |
+          /usr/lib/qt6/bin/qmllint --unqualified disable --missing-property disable --max-warnings 0 \
+            -I contents/ui $(find contents/ui -name '*.qml' | sort)
 
       - name: App resources
         run: python3 tests/test_app_resources.py

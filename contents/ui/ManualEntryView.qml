@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
 import "../code/kimaiApi.js" as KimaiApi
 import "../code/dateTimeFormat.js" as DTF

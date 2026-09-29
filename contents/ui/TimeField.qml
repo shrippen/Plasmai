@@ -194,7 +194,8 @@ RowLayout {
     Controls.TimePicker {
         id: timePicker
         parent: root
-        y: timeField.height + Kirigami.Units.smallSpacing
+        // A popup, not a layout child.
+        y: timeField.height + Kirigami.Units.smallSpacing // qmllint disable Quick.layout-positioning
         onPicked: function(hours, minutes) { root.editTime(hours, minutes) }
     }
 

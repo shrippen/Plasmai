@@ -214,7 +214,8 @@ RowLayout {
     Controls.DatePicker {
         id: datePicker
         parent: root
-        y: dateField.height + Kirigami.Units.smallSpacing
+        // A popup, not a layout child.
+        y: dateField.height + Kirigami.Units.smallSpacing // qmllint disable Quick.layout-positioning
         onPicked: function(date) { root.setDate(date) }
     }
 

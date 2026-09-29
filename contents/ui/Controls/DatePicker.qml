@@ -5,7 +5,6 @@ import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
 import "../../code/dateTimeFormat.js" as DTF
 import ".."
-import "../Kante"
 import "." as Controls
 
 // Date picker of DateField, see Label.qml: a calendar popup under the field.
@@ -86,6 +85,7 @@ QQC2.Popup {
             spacing: 2
 
             delegate: QQC2.ItemDelegate {
+                id: dayCell
                 required property var model
                 implicitWidth: Kirigami.Units.gridUnit * TouchUi.calendarCellGu
                 implicitHeight: Kirigami.Units.gridUnit * TouchUi.calendarCellGu
@@ -102,7 +102,7 @@ QQC2.Popup {
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                     opacity: model.month === monthGrid.month ? 1 : 0.35
-                    font.bold: parent.highlighted
+                    font.bold: dayCell.highlighted
                 }
                 onClicked: {
                     picker.picked(new Date(model.year, model.month, model.day, 12, 0, 0, 0))

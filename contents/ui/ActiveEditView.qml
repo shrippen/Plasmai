@@ -365,13 +365,14 @@ ColumnLayout {
         }
     }
 
+    // A popup, not a layout child: qmllint does not see KanteDialog's base type.
     KanteDialog {
         id: overlapDialog
         parent: root.dialogParent || root
-        anchors.centerIn: parent
+        anchors.centerIn: parent // qmllint disable Quick.layout-positioning
         title: i18n("Overlapping start")
         modal: true
-        width: Math.min(Kirigami.Units.gridUnit * 22, (root.dialogParent || root).width * 0.95)
+        width: Math.min(Kirigami.Units.gridUnit * 22, (root.dialogParent || root).width * 0.95) // qmllint disable Quick.layout-positioning
         standardButtons: QQC2.Dialog.NoButton
         padding: Kirigami.Units.largeSpacing
 

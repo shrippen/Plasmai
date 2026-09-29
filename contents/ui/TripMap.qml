@@ -1,9 +1,8 @@
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
 import "../code/geocode.js" as Geocode
-import "../code/tripMap.js" as TripMap
+import "../code/tripMap.js" as MapMath
 import "Kante"
 import "Controls" as Controls
 import "."
@@ -28,8 +27,8 @@ ColumnLayout {
 
     readonly property bool hasQuery: from.trim().length > 0 || to.trim().length > 0
     readonly property var points: [fromPlace, toPlace].filter(function(p) { return !!p })
-    readonly property real straightKm: fromPlace && toPlace ? TripMap.distanceKm(fromPlace, toPlace) : NaN
-    readonly property string distanceCheck: TripMap.checkDistance(straightKm, enteredKm)
+    readonly property real straightKm: fromPlace && toPlace ? MapMath.distanceKm(fromPlace, toPlace) : NaN
+    readonly property string distanceCheck: MapMath.checkDistance(straightKm, enteredKm)
 
     visible: hasQuery
     spacing: Kirigami.Units.smallSpacing
@@ -40,7 +39,7 @@ ColumnLayout {
     // One place after the other: Nominatim allows one request per second.
     /** Coordinates need no search. */
     function place(query, callback) {
-        var p = TripMap.parseCoordinates(query)
+        var p = MapMath.parseCoordinates(query)
         if (p) {
             callback(p)
             return
@@ -89,18 +88,18 @@ ColumnLayout {
         visible: root.points.length > 0
 
         readonly property var view: root.points.length > 0 && width > 0
-            ? TripMap.fitView(root.points, width, height, Kirigami.Units.gridUnit * 1.5, 15) : null
-        readonly property var fromPos: view && root.fromPlace ? TripMap.toView(root.fromPlace, view) : null
-        readonly property var toPos: view && root.toPlace ? TripMap.toView(root.toPlace, view) : null
+            ? MapMath.fitView(root.points, width, height, Kirigami.Units.gridUnit * 1.5, 15) : null
+        readonly property var fromPos: view && root.fromPlace ? MapMath.toView(root.fromPlace, view) : null
+        readonly property var toPos: view && root.toPlace ? MapMath.toView(root.toPlace, view) : null
 
         Repeater {
-            model: mapBox.view ? TripMap.tiles(mapBox.view) : []
+            model: mapBox.view ? MapMath.tiles(mapBox.view) : []
             Image {
                 required property var modelData
                 x: modelData.x
                 y: modelData.y
-                width: TripMap.TILE
-                height: TripMap.TILE
+                width: MapMath.TILE
+                height: MapMath.TILE
                 source: modelData.url
                 asynchronous: true
                 cache: true
@@ -169,7 +168,7 @@ ColumnLayout {
             anchors.fill: parent
             enabled: !!root.fromPlace && !!root.toPlace
             cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-            onClicked: Qt.openUrlExternally(TripMap.routeUrl(root.fromPlace, root.toPlace))
+            onClicked: Qt.openUrlExternally(MapMath.routeUrl(root.fromPlace, root.toPlace))
         }
     }
 
