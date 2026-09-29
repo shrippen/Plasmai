@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### New
+- **Offline mode** (Kimai): with bad reception the widget and the app keep working from the last known state ("Offline · as of 12:04"). Starting and stopping the timer, adding, editing and deleting entries, film day details and trips are kept on the device and sent in order once the server answers again. A change the server does not accept, or an entry changed elsewhere meanwhile, waits in "Not synced" to retry, overwrite or discard; nothing is dropped silently. Creating customers, projects and activities, splitting and merging entries, discarding idle time and switching profiles need a connection
+
 ### Changed
 - Widget (Kante styles): a running timer no longer tints the whole panel entry in the accent color. It is marked by a small red indicator instead; Display settings offer a red dot, a red bottom edge or a red side stripe, with a preview
 - Film day: switching days is instant. The last month is loaded in the background; a day opens from it and is then checked against the server, so what is shown can still change a moment later. Older days load as before
@@ -19,6 +22,8 @@
 - App: the time picker opens at the field's time (it showed the minutes of its first opening)
 - Favorites pinned in the app show in the widget and the other way round (the two wrote the list in different formats and dropped each other's pins)
 - Widget: "continue last" offers the activity you switched to, not the one before the switch
+- Widget: the film day and trips buttons no longer disappear after stopping the timer until the next refresh
+- App: the activity catalog is loaded (favorites showed ids until a project was opened)
 - Widget: without GPU acceleration the day bar is shown (unrounded) instead of missing
 - Film day: only the activities the Drehzettel engagement counts (its activity list) make up the film day, its begin and end and the shooting day count, as in the plugin. A private commute on the same project no longer becomes the film day
 

@@ -146,9 +146,17 @@ Stay on Kirigami, but make the code portable: one source for components and logi
 6. ~~**CI as the guard**~~ — done: `.github/workflows/checks.yml` — unit tests in an Arch container (Kirigami, libplasma) in three time zones, `qmllint` on `contents/ui` (without the "unqualified" and "missing-property" noise), app resources, the app built on Linux, Windows (Qt 6.10) and macOS with its C++ tests, the token storage against a real keychain on all three. Not linted: the app's own pages (they resolve only through the qrc; needs `qt_add_qml_module`).
 
 
-### 6. Offline mode — planned
+### 6. Offline mode — done
 
-Bad reception on set: Plasmai keeps working and syncs as soon as the server answers again. Reverses “online only” (film day, see above; the first 2.0 builds had a queue and removed it — read why before starting). Update DESIGN.md in the same change.
+Bad reception on set: Plasmai keeps working and syncs as soon as the server answers again. `contents/code/offline.js` (tests: `tst_offline.qml`), described in DESIGN.md "Offline". Built as planned below, with these decisions:
+
+- The layer wraps the tracker (pages keep their calls); reads answer from the snapshot on a network error, not only at start. Trips go through it too.
+- A create whose first try may have reached the server looks for that entry before it is sent again (a lost answer must not duplicate it).
+- Conflicts are checked for entries (read before patch/delete). Trips have no conflict check (the plugin has no single-trip read): last writer wins.
+- The Plasmoid's files carry the widget id: two widgets in one plasmashell keep their own outboxes.
+- Not done: Android background sync (WorkManager), still a separate project.
+
+The plan as written before:
 
 Scope: **app and Plasmoid**, Kimai only. The layer sits in the shared code (`contents/code/`), so both get it; storage goes through `platform.js` like the catalog cache already does (`saveCatalog`: `catalogCache.sh` on the desktop, `FileStore` in the app).
 
