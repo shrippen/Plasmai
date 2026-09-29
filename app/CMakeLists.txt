@@ -38,6 +38,7 @@ qt_add_executable(plasmai-app
     plasmai-app.qrc
     platform/filestore.h
     platform/idlewatcher.h
+    platform/networkstatus.h
     platform/notifier.h
     platform/tokenstore.h
     platform/tokenstore.cpp

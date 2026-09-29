@@ -12,6 +12,7 @@
 #include "i18nfallback.h"
 #include "platform/filestore.h"
 #include "platform/idlewatcher.h"
+#include "platform/networkstatus.h"
 #include "platform/notifier.h"
 #include "platform/tokenstore.h"
 #include "platform/useragentnam.h"
@@ -93,6 +94,9 @@ int main(int argc, char *argv[])
     }
     if (Notifier::isSupported()) {
         engine.rootContext()->setContextProperty(QStringLiteral("notifier"), new Notifier(&app));
+    }
+    if (NetworkStatus::isSupported()) {
+        engine.rootContext()->setContextProperty(QStringLiteral("networkStatus"), new NetworkStatus(&app));
     }
 
     // Add QRC import path so Kirigami platform plugin can find style modules

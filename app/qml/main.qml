@@ -220,6 +220,7 @@ Kirigami.ApplicationWindow {
     // ── Platform capability flags (native idle/notification bridge, Linux-only) ──
     readonly property bool supportsIdleDetection: typeof idleWatcher !== "undefined"
     readonly property bool supportsNotifications: typeof notifier !== "undefined"
+    readonly property var networkStatusService: typeof networkStatus !== "undefined" ? networkStatus : null
 
     title: i18n("Plasmai")
     width: 420; height: 720; visible: true
@@ -836,6 +837,11 @@ Kirigami.ApplicationWindow {
         id: drawerButtonNamer
         interval: 300
         onTriggered: root.nameDrawerButtons(root.contentItem)
+    }
+    // Back online: refresh now instead of on the next poll (which after an error can be minutes away).
+    Connections {
+        target: root.networkStatusService
+        function onReachableChanged() { if (root.networkStatusService.reachable && root.isConfigured) root.refreshAll() }
     }
     Connections {
         target: root.pageStack
