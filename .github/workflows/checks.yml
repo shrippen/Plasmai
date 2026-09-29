@@ -139,5 +139,5 @@ jobs:
           cmake -S app -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DPLASMAI_BUILD_TESTS=ON \
             -DCMAKE_PREFIX_PATH="$GITHUB_WORKSPACE/deps"
           cmake --build build
-          ctest --test-dir build --output-on-failure -V | tee ctest.log
-          if [ "$RUNNER_OS" != Linux ]; then grep -q "PASS   : TstTokenStore::withKeychain()" ctest.log; fi
+          ctest --test-dir build --output-on-failure
+          grep -q "PASS   : TstTokenStore::withKeychain()" build/tokenstore.log

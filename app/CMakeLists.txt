@@ -150,7 +150,8 @@ if(PLASMAI_BUILD_TESTS AND NOT ANDROID)
     qt_add_executable(tst_tokenstore tests/tst_tokenstore.cpp platform/tokenstore.cpp)
     target_include_directories(tst_tokenstore PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     target_link_libraries(tst_tokenstore PRIVATE Qt6::Core Qt6::Test Qt6Keychain::Qt6Keychain)
-    add_test(NAME tokenstore COMMAND tst_tokenstore -v2)
+    # Log to the console and to a file: CI checks the file (Windows passes no test output to ctest).
+    add_test(NAME tokenstore COMMAND tst_tokenstore -v2 -o -,txt -o tokenstore.log,txt)
     # A keychain call that blocks must fail the run, not hang it.
     set_tests_properties(tokenstore PROPERTIES TIMEOUT 180)
     if(WIN32)
