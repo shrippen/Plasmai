@@ -153,6 +153,18 @@ if(PLASMAI_BUILD_TESTS AND NOT ANDROID)
     add_test(NAME tokenstore COMMAND tst_tokenstore -v2)
     # A keychain call that blocks must fail the run, not hang it.
     set_tests_properties(tokenstore PROPERTIES TIMEOUT 180)
+    if(WIN32)
+        # QtKeychain's DLL is not next to the test: without it on PATH Windows shows a
+        # "DLL not found" dialog and the test never starts.
+        set_tests_properties(tokenstore PROPERTIES ENVIRONMENT_MODIFICATION
+            "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6Keychain::Qt6Keychain>")
+    endif()
+    if(APPLE)
+        # QtKeychain answers through the main dispatch queue, which only a Core Foundation
+        # event loop runs; a QCoreApplication (the GUI-less test) uses the UNIX one unless
+        # told otherwise. The app's QGuiApplication runs Core Foundation anyway.
+        set_tests_properties(tokenstore PROPERTIES ENVIRONMENT "QT_EVENT_DISPATCHER_CORE_FOUNDATION=1")
+    endif()
 endif()
 
 install(TARGETS plasmai-app

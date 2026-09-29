@@ -28,9 +28,9 @@ jobs:
     container: archlinux:latest
     timeout-minutes: 20
     steps:
-      - name: Install Qt, Kirigami, libplasma
+      - name: Install Qt, Kirigami (+ addons for the app's pickers), libplasma
         run: |
-          pacman -Syu --noconfirm --needed qt6-declarative kirigami libplasma tzdata python python-pytest git
+          pacman -Syu --noconfirm --needed qt6-declarative kirigami kirigami-addons libplasma tzdata python python-pytest git
       - uses: actions/checkout@v7
 
       # Stamps are local days: run where Berlin assumptions break (UTC runner, UTC-8, UTC+14).
@@ -122,8 +122,8 @@ jobs:
           cmake --build qtkeychain/build
           cmake --install qtkeychain/build
 
-      # The runner's login keychain is locked (reads wait for a prompt): an unlocked one
-      # for the token storage test.
+      # A keychain of its own, unlocked, so the token storage test does not depend on the
+      # runner's login keychain.
       - name: Keychain
         if: runner.os == 'macOS'
         run: |
