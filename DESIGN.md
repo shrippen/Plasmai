@@ -24,8 +24,9 @@ typography stack, badge format, and social-preview spec.
   first-class applet: compact representation in the panel, Kirigami-styled
   popup, standard Configure / context menu, KWallet for secrets.
 - Phone companion: a Kirigami app (`app/`) for Android and Plasma Mobile. It
-  reuses the provider layer (`contents/code/*`) and copies of the Plasmoid
-  components (`app/qml/shared/`), and should match the Plasmoid in features
+  reuses the provider layer and the shared logic (`contents/code/*`) and the
+  Plasmoid's components themselves (`contents/ui/`, platform controls via
+  `contents/ui/Controls/`), and should match the Plasmoid in features
   and look. On the desktop the Plasmoid stays the product; the app is not a
   desktop window or tray replacement.
 - App pages support pull to refresh (`KantePullToRefresh` from the Kante module,

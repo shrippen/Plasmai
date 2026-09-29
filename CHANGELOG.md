@@ -5,12 +5,21 @@
 ### Changed
 - Widget (Kante styles): a running timer no longer tints the whole panel entry in the accent color. It is marked by a small red indicator instead; Display settings offer a red dot, a red bottom edge or a red side stripe, with a preview
 - Film day: switching days is instant. The last month is loaded in the background; a day opens from it and is then checked against the server, so what is shown can still change a moment later. Older days load as before
+- App: after a lost connection the app refreshes as soon as the network is back, instead of at the next poll
+- App (desktop style): the statistics filter looks like the widget's (three segments side by side)
+- Statistics: in touch mode the filter segments get the larger touch height they were meant to have
 
 ### Security
 - App: API tokens are now always kept in the platform's secure storage (Secret Service / KWallet, Android Keystore, Windows Credential Manager, macOS Keychain). Up to 2.0.1 the app stored them in plain files on Linux (AppImage, Flatpak) and on Android, although it was meant to use the keychain. Such a file moves into the secure storage on the next start and is deleted; without secure storage the token is not saved
 
 ### Fixed
 - App (Android): plurals in Russian, Ukrainian and Polish use the right form ("5 минут"), Japanese and Chinese no longer show English, French counts 0 as singular
+- App: the dialogs to create a customer, project or activity, to split an entry and after idle time showed only their title and buttons; their fields and choices are back
+- App: text typed into the description is no longer replaced by the server's text when the entry refreshes while typing; text typed while saving is saved afterwards
+- App: the time picker opens at the field's time (it showed the minutes of its first opening)
+- Favorites pinned in the app show in the widget and the other way round (the two wrote the list in different formats and dropped each other's pins)
+- Widget: "continue last" offers the activity you switched to, not the one before the switch
+- Widget: without GPU acceleration the day bar is shown (unrounded) instead of missing
 - Film day: only the activities the Drehzettel engagement counts (its activity list) make up the film day, its begin and end and the shooting day count, as in the plugin. A private commute on the same project no longer becomes the film day
 
 ## 2.0.1
