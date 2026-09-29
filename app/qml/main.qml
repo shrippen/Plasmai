@@ -457,41 +457,23 @@ Kirigami.ApplicationWindow {
         })
     }
 
+    // Favorites: favorites.js, the same pins and rows as the Plasmoid (shared setting).
     function refreshPinnedEntries() {
-        var pinStr = pinnedActivities
-        if (!pinStr || pinStr.length === 0) { pinnedEntries = []; return }
-        var pinIds = pinStr.split(",").map(function(s) { return s.trim() }).filter(function(s) { return s.length > 0 })
-        var entries = []
-        for (var i = 0; i < pinIds.length; i++) {
-            var parts = pinIds[i].split(":"); var pid = parts[0] || ""; var aid = parts.length > 1 ? parts[1] : ""
-            var proj = null; var act = null
-            for (var p = 0; p < projects.length; p++) { if (String(projects[p].id) === pid || String(projects[p].name) === pid) { proj = projects[p]; break } }
-            if (proj && aid) { for (var a = 0; a < allActivities.length; a++) { if (String(allActivities[a].id) === aid) { act = allActivities[a]; break } } }
-            if (!act && aid) { var byProj = activitiesByProject[pid] || []; for (var b = 0; b < byProj.length; b++) { if (String(byProj[b].id) === aid) { act = byProj[b]; break } } }
-            entries.push({ projectId: pid, projectName: proj ? proj.name : pid, activityId: aid, activityName: act ? act.name : aid, color: proj ? KimaiApi.barColorInfo(act, proj, customersById).color : KimaiApi.DEFAULT_CUSTOMER_COLOR })
-        }
+        var entries = Favorites.resolvePinnedEntries(pinnedActivities, projects, activitiesByProject, customersById, allActivities)
         if (JSON.stringify(entries) !== JSON.stringify(pinnedEntries)) pinnedEntries = entries
         for (var k = 0; k < entries.length; k++) {
-            var ePid = String(entries[k].projectId)
-            if (entries[k].activityId && entries[k].activityName === entries[k].activityId && !activitiesByProject[ePid] && projects.length > 0)
-                loadActivitiesForProject(ePid, function() {})
+            var pid = String(entries[k].projectId)
+            if (!entries[k].activityKnown && !activitiesByProject[pid] && projects.length > 0) loadActivitiesForProject(pid, function() {})
         }
     }
 
     function togglePin(projectId, activityId) {
-        var key = projectId + ":" + activityId
-        var pins = pinnedActivities ? pinnedActivities.split(",").map(function(s) { return s.trim() }).filter(function(s) { return s.length > 0 }) : []
-        var idx = -1; for (var i = 0; i < pins.length; i++) { if (pins[i] === key) { idx = i; break } }
-        if (idx >= 0) pins.splice(idx, 1); else pins.push(key)
-        pinnedActivities = pins.join(",")
+        pinnedActivities = Favorites.togglePinned(pinnedActivities, projectId, activityId)
         Platform.patchShared(null, currentConfig(), { pinnedActivities: pinnedActivities })
         refreshPinnedEntries()
     }
 
-    function isPinned(projectId, activityId) {
-        var key = projectId + ":" + activityId
-        return pinnedActivities.split(",").some(function(s) { return s.trim() === key })
-    }
+    function isPinned(projectId, activityId) { return Favorites.isPinned(pinnedActivities, projectId, activityId) }
 
     function applyActiveTimesheet(ts) {
         var wasTracking = isTracking

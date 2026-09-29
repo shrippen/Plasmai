@@ -5,7 +5,8 @@ function parsePinned(pinnedStr) {
     if (!pinnedStr) {
         return []
     }
-    var pairs = String(pinnedStr).split(";")
+    // ";" separates pins; older app builds wrote "," into the shared setting.
+    var pairs = String(pinnedStr).split(/[;,]/)
     var result = []
     for (var i = 0; i < pairs.length; i++) {
         var pair = pairs[i].split(":")
@@ -38,11 +39,16 @@ function serializePinned(entries) {
     return parts.join(";")
 }
 
+// Ids compare as text: views pass numbers from the catalog or strings.
+function samePin(entry, projectId, activityId) {
+    return String(entry.projectId) === String(projectId) && String(entry.activityId) === String(activityId)
+}
+
 function togglePinned(pinnedStr, projectId, activityId) {
     var entries = parsePinned(pinnedStr)
     var found = -1
     for (var i = 0; i < entries.length; i++) {
-        if (entries[i].projectId === projectId && entries[i].activityId === activityId) {
+        if (samePin(entries[i], projectId, activityId)) {
             found = i
             break
         }
@@ -58,7 +64,7 @@ function togglePinned(pinnedStr, projectId, activityId) {
 function isPinned(pinnedStr, projectId, activityId) {
     var entries = parsePinned(pinnedStr)
     for (var i = 0; i < entries.length; i++) {
-        if (entries[i].projectId === projectId && entries[i].activityId === activityId) {
+        if (samePin(entries[i], projectId, activityId)) {
             return true
         }
     }
@@ -107,6 +113,8 @@ function resolvePinnedEntries(pinnedStr, projects, activitiesByProject, customer
             activityId: entry.activityId,
             projectName: projectName,
             activityName: activityName,
+            // False while the activity is in no catalog yet (name shows "#id").
+            activityKnown: !!activity,
             customerName: customerName,
             customerColor: bar.color
         })

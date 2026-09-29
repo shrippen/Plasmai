@@ -35,6 +35,28 @@ TestCase {
         compare(s, "")
     }
 
+    // The app wrote "4:35,9:1" into the shared setting before it used this module;
+    // the Plasmoid dropped such pins. Both separators read, ";" is written.
+    function test_parseAppCommaList() {
+        var entries = Favorites.parsePinned("4:35, 9:1")
+        compare(entries.length, 2)
+        compare(entries[1].projectId, 9)
+        compare(entries[1].activityId, 1)
+        compare(Favorites.togglePinned("4:35,9:1", 7, 2), "4:35;9:1;7:2")
+    }
+
+    // Ids arrive as numbers from the catalog and as strings from some views.
+    function test_idsCompareAsText() {
+        verify(Favorites.isPinned("4:35", "4", "35"))
+        compare(Favorites.togglePinned("4:35", "4", "35"), "")
+    }
+
+    function test_resolvePinnedMarksUnknownActivity() {
+        var rows = Favorites.resolvePinnedEntries("4:35", [{ id: 4, name: "P" }], {}, {}, [])
+        compare(rows[0].activityName, "#35")
+        verify(!rows[0].activityKnown)
+    }
+
     function test_resolvePinnedUsesCatalog() {
         var projects = [{ id: 4, name: "P", customer: 1 }]
         var customersById = { "1": { id: 1, name: "C", color: "#ff0000" } }

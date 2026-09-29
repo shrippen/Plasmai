@@ -651,7 +651,7 @@ Kirigami.Page {
                     property string pinKey: root.switchHintKey({ project: modelData.projectId, activity: modelData.activityId })
                     titleText: modelData.activityName || ""
                     subtitleText: modelData.projectName || ""
-                    customerColor: modelData.color || KimaiApi.DEFAULT_CUSTOMER_COLOR
+                    customerColor: modelData.customerColor || KimaiApi.DEFAULT_CUSTOMER_COLOR
                     showHistoryActions: true
                     canPin: true; isPinned: true
                     runningHintVisible: root.alreadyRunningHintKey === pinKey
