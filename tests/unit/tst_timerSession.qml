@@ -76,4 +76,34 @@ TestCase {
         compare(TimerSession.switchHintKey({ project: 3, activity: 7, id: 11 }), "3|7|11")
         compare(TimerSession.switchHintKey({ project: 3, activity: 7 }), "3|7|")
     }
+
+    function test_editingDescription() {
+        // Unsaved text, focus or a pending edit: a refresh keeps the draft.
+        verify(TimerSession.editingDescription({ draft: "typed", current: "saved" }))
+        verify(TimerSession.editingDescription({ draft: "saved", current: "saved", focused: true }))
+        verify(TimerSession.editingDescription({ draft: "saved", current: "saved", dirty: true }))
+        verify(!TimerSession.editingDescription({ draft: "saved", current: "saved" }))
+        verify(!TimerSession.editingDescription({ draft: "", current: "saved" }))
+        // Another entry runs now: its text wins.
+        verify(!TimerSession.editingDescription({ draft: "typed", current: "saved", focused: true, sameEntry: false }))
+        verify(TimerSession.editingDescription({ draft: "typed", current: "saved", sameEntry: true }))
+    }
+
+    function test_activeState() {
+        var begin = new Date(2026, 8, 28, 9, 0)
+        var ts = { id: 5, begin: begin.toISOString(), description: "d",
+                   project: { id: 3, name: "P", customer: { id: 1, name: "C", color: "#ff0000" } },
+                   activity: { id: 7, name: "A" } }
+        var state = TimerSession.activeState(ts, {}, begin.getTime() + 90500)
+        compare(state.timesheetId, 5)
+        compare(state.project, "P")
+        compare(state.activity, "A")
+        compare(state.customer, "C")
+        compare(state.description, "d")
+        compare(state.elapsedSeconds, 90)
+        // Clock behind the begin: no negative time.
+        compare(TimerSession.activeState(ts, {}, begin.getTime() - 5000).elapsedSeconds, 0)
+        // No begin: elapsed unknown.
+        compare(TimerSession.activeState({ id: 6 }, {}, begin.getTime()).elapsedSeconds, -1)
+    }
 }

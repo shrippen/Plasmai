@@ -1,6 +1,7 @@
 .pragma library
 .import "./kimaiApi.js" as KimaiApi
 .import "./timesheetFields.js" as TimesheetFields
+.import "./dateTimeFormat.js" as DTF
 
 /**
  * Timer session rules shared by the Plasmoid and the app (ROADMAP pillar 5,
@@ -80,6 +81,35 @@ function forgotToStartDay(state, now) {
     }
     var day = Qt.formatDate(now, "yyyy-MM-dd")
     return day === state.lastDay ? "" : day
+}
+
+/**
+ * What the timer shows for the running entry. catalogs: { projects, activities,
+ * activitiesByProject, customersById }. elapsedSeconds is -1 without a begin.
+ */
+function activeState(timesheet, catalogs, nowMs) {
+    var begin = DTF.parseStamp(timesheet.begin)
+    return {
+        timesheetId: timesheet.id,
+        project: KimaiApi.displayProjectName(timesheet, catalogs.projects),
+        activity: KimaiApi.displayActivityName(timesheet, catalogs.activities, catalogs.activitiesByProject),
+        customer: KimaiApi.customerNameFromTimesheet(timesheet, catalogs.customersById),
+        customerColor: KimaiApi.customerColorFromTimesheet(timesheet, catalogs.customersById),
+        description: timesheet.description || "",
+        elapsedSeconds: isNaN(begin.getTime()) ? -1 : Math.max(0, Math.floor((nowMs - begin.getTime()) / 1000))
+    }
+}
+
+/**
+ * True while the user edits the running entry's description (focus, a pending
+ * edit, unsaved text): a refresh must not replace the draft with the server's
+ * text then. A different entry (started elsewhere) always takes its own text.
+ */
+function editingDescription(field) {
+    if (field.sameEntry === false) {
+        return false
+    }
+    return !!field.focused || !!field.dirty || (field.draft.length > 0 && field.draft !== field.current)
 }
 
 /** Key of project, activity and entry id: marks the row an "already running" hint belongs to. */

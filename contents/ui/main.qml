@@ -1749,27 +1749,25 @@ PlasmoidItem {
         }
 
         var wasTracking = isTracking
+        var sameEntry = wasTracking && currentTimesheetId === timesheet.id
+        var state = TimerSession.activeState(timesheet, sessionCatalogs(), Date.now())
         isTracking = true
         activeTimesheet = timesheet
-        currentTimesheetId = timesheet.id
-        currentProject = KimaiApi.displayProjectName(timesheet, projects)
-        currentActivity = KimaiApi.displayActivityName(timesheet, allActivities, activitiesByProject)
-        currentCustomer = KimaiApi.customerNameFromTimesheet(timesheet, customersById)
-        currentCustomerColor = KimaiApi.customerColorFromTimesheet(timesheet, customersById)
+        currentTimesheetId = state.timesheetId
+        currentProject = state.project
+        currentActivity = state.activity
+        currentCustomer = state.customer
+        currentCustomerColor = state.customerColor
         if (!compactPopupLayout) {
             showNewActivityForm = plasmoid.configuration.desktopShowNewActivity
         }
-
-        var beginDate = DTF.parseStamp(timesheet.begin)
-        if (!isNaN(beginDate.getTime())) {
-            elapsedSeconds = Math.max(0, Math.floor((Date.now() - beginDate.getTime()) / 1000))
+        if (state.elapsedSeconds >= 0) {
+            elapsedSeconds = state.elapsedSeconds
         }
-
-        var serverDescription = timesheet.description || ""
-        var editing = descriptionFieldFocused || descriptionDirty
-            || (descriptionDraft.length > 0 && descriptionDraft !== currentDescription)
-        if (!editing) {
-            syncDescriptionField(serverDescription)
+        if (!TimerSession.editingDescription({ focused: descriptionFieldFocused, dirty: descriptionDirty,
+                                               draft: descriptionDraft, current: currentDescription,
+                                               sameEntry: sameEntry })) {
+            syncDescriptionField(state.description)
         }
 
         if (!wasTracking && !fromLocalStart) {
@@ -2449,6 +2447,10 @@ PlasmoidItem {
                 setError(result.error)
             }
         })
+    }
+
+    function sessionCatalogs() {
+        return { projects: projects, activities: allActivities, activitiesByProject: activitiesByProject, customersById: customersById }
     }
 
     function switchHintKey(timesheet) {

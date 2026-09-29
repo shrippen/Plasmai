@@ -497,13 +497,17 @@ Kirigami.ApplicationWindow {
         var wasTracking = isTracking
         if (!ts) { isTracking = false; currentTimesheetId = null; currentProject = ""; currentActivity = ""
             currentCustomer = ""; currentDescription = ""; activeTimesheet = null; elapsedSeconds = 0; return }
-        isTracking = true; currentTimesheetId = ts.id; activeTimesheet = ts
-        currentProject = KimaiApi.displayProjectName(ts, projects)
-        currentActivity = KimaiApi.displayActivityName(ts, allActivities, activitiesByProject)
-        currentCustomer = KimaiApi.customerNameFromTimesheet(ts, customersById)
-        currentDescription = ts.description || ""; descriptionDraft = currentDescription
-        var begin = DTF.parseStamp(ts.begin)
-        if (!isNaN(begin.getTime())) elapsedSeconds = Math.max(0, Math.floor((Date.now() - begin.getTime()) / 1000))
+        var state = TimerSession.activeState(ts, sessionCatalogs(), Date.now())
+        // A refresh while the user types must not replace the unsaved text.
+        var editing = TimerSession.editingDescription({ draft: descriptionDraft, current: currentDescription,
+                                                        sameEntry: wasTracking && currentTimesheetId === ts.id })
+        isTracking = true; currentTimesheetId = state.timesheetId; activeTimesheet = ts
+        currentProject = state.project
+        currentActivity = state.activity
+        currentCustomer = state.customer
+        currentDescription = state.description
+        if (!editing) descriptionDraft = currentDescription
+        if (state.elapsedSeconds >= 0) elapsedSeconds = state.elapsedSeconds
         // Starts from this app set isTracking before the refresh, so only foreign timers get here.
         if (!wasTracking && notifyOnStart) sendNotification(i18n("Tracking in progress"), currentProject + " · " + currentActivity + " · " + KimaiApi.formatDurationShort(elapsedSeconds))
     }
@@ -645,6 +649,7 @@ Kirigami.ApplicationWindow {
     }
 
     function switchHintKey(ts) { return TimerSession.switchHintKey(ts) }
+    function sessionCatalogs() { return { projects: projects, activities: allActivities, activitiesByProject: activitiesByProject, customersById: customersById } }
 
     function startPinned(entry) {
         if (!entry || !isConfigured || isBusy) return
@@ -681,9 +686,12 @@ Kirigami.ApplicationWindow {
         if (savingDescription) return
         if (descriptionDraft === currentDescription) return
         savingDescription = true
-        tracker.patchTimesheet(TimeTracker.resolveUrl(activeProfile), apiToken, currentTimesheetId, { description: descriptionDraft }, function(result) {
+        // Text typed while the request runs stays unsaved (and is saved next).
+        var text = descriptionDraft
+        tracker.patchTimesheet(TimeTracker.resolveUrl(activeProfile), apiToken, currentTimesheetId, { description: text }, function(result) {
             savingDescription = false
-            if (result.ok) { currentDescription = descriptionDraft; descriptionSavedFlash = true; descriptionFlashTimer.restart() }
+            if (result.ok) { currentDescription = text; descriptionSavedFlash = true; descriptionFlashTimer.restart() }
+            if (descriptionDraft !== text) descriptionSaveTimer.restart()
         })
     }
 
