@@ -754,4 +754,27 @@ TestCase {
         verify(fresh.memo.days[fresh.profileKey]["2026-09-14"].timesheets)
         verify(fresh.memo.engagements[fresh.profileKey + "|2026-09-14"])
     }
+
+    // The offline layer answers the day's timesheets from its snapshot: that
+    // is no news for the day cache (not stored, the cached view stays).
+    function test_openDayOfflineSnapshotIsNoChange() {
+        var tracker = {
+            fetchTimesheetsRange: function(u, t, b, e, cb) {
+                cb({ ok: true, offline: true, data: [{ id: 9, project: 1, activity: 40, begin: "2026-09-14T08:00:00" }] })
+            }
+        }
+        var c = ctx("server", { tracker: tracker, ping: ping(["errorCodes"]) })
+        c.memo = { days: {} }
+        c.memo.days[c.profileKey] = { "2026-09-14": {
+            timesheets: { at: 1, result: { ok: true, data: [] } },
+            "filmDay|1": { at: 1, result: { ok: true, data: serverDay() } },
+            "status|1": { at: 1, result: { ok: true, data: { active: true, rulesetName: "R" } } } } }
+        responses = [{ status: 0 }, { status: 0 }, { status: 0 }]
+        var sources = []
+        Sync.openDay(c, new Date(2026, 8, 14, 12, 0), 1, ids, function(raw) { return raw }, function(r, entries, source) {
+            sources.push(source)
+        })
+        compare(sources, [Sync.Source.CACHE], "the cached view stays")
+        compare(c.memo.days[c.profileKey]["2026-09-14"].timesheets.result.data.length, 0, "snapshot answer not stored")
+    }
 }

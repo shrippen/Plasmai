@@ -605,8 +605,9 @@ function cacheable(result) {
 }
 
 function storeAnswer(ctx, dateStr, what, result) {
-    if (!cacheable(result)) {
-        // Network error: a view shown from the cache stays (offline stays usable).
+    // Network error, or the offline layer's snapshot (result.offline): no news
+    // from the server, a view shown from the cache stays.
+    if (!cacheable(result) || result.offline) {
         return
     }
     var store = dayStore(ctx, dateStr)
