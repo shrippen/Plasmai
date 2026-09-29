@@ -106,4 +106,55 @@ TestCase {
         // No begin: elapsed unknown.
         compare(TimerSession.activeState({ id: 6 }, {}, begin.getTime()).elapsedSeconds, -1)
     }
+
+    // Fake tracker: answers at once, records the calls.
+    function fakeTracker(stopOk, startOk) {
+        var calls = []
+        return {
+            calls: calls,
+            stopTracking: function(url, token, id, cb) { calls.push("stop " + id); cb({ ok: stopOk, error: "e1" }) },
+            startTracking: function(url, token, pid, aid, desc, cb, extras) {
+                calls.push("start " + pid + ":" + aid + " " + desc + " " + JSON.stringify(extras))
+                cb(startOk ? { ok: true, data: { id: 99 } } : { ok: false, error: "e2" })
+            }
+        }
+    }
+
+    function steps(log) {
+        return {
+            stopped: function() { log.push("stopped") },
+            started: function(ts) { log.push("started " + ts.id) },
+            failed: function(phase, result) { log.push("failed " + phase + " " + result.error) }
+        }
+    }
+
+    function test_switchTimer() {
+        var t = fakeTracker(true, true)
+        var log = []
+        TimerSession.switchTimer(t, "u", "k", 5, { projectId: 1, activityId: 2, description: "d" }, steps(log))
+        compare(t.calls, ["stop 5", "start 1:2 d {}"])
+        compare(log, ["stopped", "started 99"])
+    }
+
+    function test_switchTimerStopFails() {
+        var t = fakeTracker(false, true)
+        var log = []
+        TimerSession.switchTimer(t, "u", "k", 5, { projectId: 1, activityId: 2 }, steps(log))
+        compare(t.calls, ["stop 5"])
+        compare(log, ["failed stop e1"])
+    }
+
+    function test_switchTimerStartFails() {
+        var t = fakeTracker(true, false)
+        var log = []
+        TimerSession.switchTimer(t, "u", "k", 5, { projectId: 1, activityId: 2, extras: { tags: "x" } }, steps(log))
+        compare(t.calls, ["stop 5", "start 1:2  {\"tags\":\"x\"}"])
+        compare(log, ["stopped", "failed start e2"])
+    }
+
+    function test_sameActivity() {
+        verify(TimerSession.sameActivity({ project: 1, activity: 2 }, { project: "1", activity: { id: 2 } }))
+        verify(!TimerSession.sameActivity({ project: 1, activity: 2 }, { project: 1, activity: 3 }))
+        verify(!TimerSession.sameActivity(null, { project: 1, activity: 2 }))
+    }
 }

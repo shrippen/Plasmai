@@ -617,17 +617,19 @@ Kirigami.ApplicationWindow {
         if (!isConfigured || isBusy) return
         if (!isTracking) { startTracking(projectId, activityId, projectLabel, activityLabel, description, extras); return }
         isBusy = true
-        tracker.stopTracking(TimeTracker.resolveUrl(activeProfile), apiToken, currentTimesheetId, function(stopResult) {
-            if (!stopResult.ok) { isBusy = false; reportWriteError(stopResult, i18n("Could not stop tracking")); return }
-            applyActiveTimesheet(null)
-            tracker.startTracking(TimeTracker.resolveUrl(activeProfile), apiToken, projectId, activityId, description || "", function(startResult) {
+        TimerSession.switchTimer(tracker, TimeTracker.resolveUrl(activeProfile), apiToken, currentTimesheetId,
+                                 { projectId: projectId, activityId: activityId, description: description, extras: extras }, {
+            stopped: function() { applyActiveTimesheet(null) },
+            started: function(ts) {
                 isBusy = false
-                if (startResult.ok && startResult.data) {
-                    rememberLastUsed(projectId, activityId, projectLabel, activityLabel)
-                    applyActiveTimesheet(KimaiApi.hydrateTimesheets([startResult.data], projects, activityCatalog(), activitiesByProject)[0] || startResult.data); refreshAll()
-                }
-                else { reportWriteError(startResult, i18n("Could not start tracking")); refreshAll() }
-            }, extras || {})
+                rememberLastUsed(projectId, activityId, projectLabel, activityLabel)
+                applyActiveTimesheet(KimaiApi.hydrateTimesheets([ts], projects, activityCatalog(), activitiesByProject)[0] || ts); refreshAll()
+            },
+            failed: function(phase, result) {
+                isBusy = false
+                reportWriteError(result, phase === "stop" ? i18n("Could not stop tracking") : i18n("Could not start tracking"))
+                if (phase === "start") refreshAll()
+            }
         })
     }
 
@@ -643,8 +645,7 @@ Kirigami.ApplicationWindow {
     function requestRestartFromRecent(ts) {
         if (!isConfigured || isBusy || !ts) return
         if (!isTracking) { continueRecent(ts); return }
-        var pid = KimaiApi.projectId(ts); var aid = KimaiApi.activityId(ts)
-        if (activeTimesheet && String(KimaiApi.projectId(activeTimesheet)) === String(pid) && String(KimaiApi.activityId(activeTimesheet)) === String(aid)) {
+        if (TimerSession.sameActivity(activeTimesheet, ts)) {
             alreadyRunningHintKey = switchHintKey(ts); alreadyRunningHintTimer.restart(); return
         }
         pendingSwitchTimesheet = ts; switchConfirmRequested()

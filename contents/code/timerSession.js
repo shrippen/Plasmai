@@ -112,6 +112,38 @@ function editingDescription(field) {
     return !!field.focused || !!field.dirty || (field.draft.length > 0 && field.draft !== field.current)
 }
 
+/** True when timesheet b has a's project and activity (b restarts what already runs). */
+function sameActivity(a, b) {
+    if (!a || !b) {
+        return false
+    }
+    return String(KimaiApi.projectId(a)) === String(KimaiApi.projectId(b))
+        && String(KimaiApi.activityId(a)) === String(KimaiApi.activityId(b))
+}
+
+/**
+ * Switch the running timer: stop entry runningId, then start target
+ * { projectId, activityId, description, extras }. The views react in steps:
+ * stopped() between the two requests, started(timesheet), failed(phase, result)
+ * with phase "stop" (nothing changed) or "start" (the timer is stopped).
+ */
+function switchTimer(tracker, url, token, runningId, target, steps) {
+    tracker.stopTracking(url, token, runningId, function(stop) {
+        if (!stop.ok) {
+            steps.failed("stop", stop)
+            return
+        }
+        steps.stopped()
+        tracker.startTracking(url, token, target.projectId, target.activityId, target.description || "", function(start) {
+            if (!start.ok || !start.data) {
+                steps.failed("start", start)
+                return
+            }
+            steps.started(start.data)
+        }, target.extras || {})
+    })
+}
+
 /** Key of project, activity and entry id: marks the row an "already running" hint belongs to. */
 function switchHintKey(timesheet) {
     var id = timesheet && timesheet.id !== undefined && timesheet.id !== null ? timesheet.id : ""

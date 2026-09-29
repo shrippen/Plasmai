@@ -2317,30 +2317,31 @@ PlasmoidItem {
         isBusy = true
         lastError = null
         userMessage = ""
-        tracker.stopTracking(kimaiUrl, apiToken, currentTimesheetId, function(stopResult) {
-            if (!stopResult.ok) {
+        TimerSession.switchTimer(tracker, kimaiUrl, apiToken, currentTimesheetId,
+                                 { projectId: projectId, activityId: activityId, description: description }, {
+            stopped: function() {
+                resetTrackingState()
+            },
+            started: function(timesheet) {
                 isBusy = false
-                setError(stopResult.error)
-                return
-            }
-            resetTrackingState()
-            tracker.startTracking(kimaiUrl, apiToken, projectId, activityId, description, function(startResult) {
+                clearError()
+                applyActiveTimesheet(timesheet, true)
+                rememberLastUsed(projectId, activityId, projectLabel, activityLabel)
+                refreshRecentTimesheets()
+                refreshWorkTotals()
+                if (plasmoid.configuration.notifyOnStart) {
+                    sendNotification(
+                        i18n("Switched activity"),
+                        projectLabel + " · " + activityLabel)
+                }
+            },
+            failed: function(phase, result) {
                 isBusy = false
-                if (startResult.ok && startResult.data) {
-                    clearError()
-                    applyActiveTimesheet(startResult.data, true)
-                    refreshRecentTimesheets()
-                    refreshWorkTotals()
-                    if (plasmoid.configuration.notifyOnStart) {
-                        sendNotification(
-                            i18n("Switched activity"),
-                            projectLabel + " · " + activityLabel)
-                    }
-                } else {
-                    setError(startResult.error)
+                setError(result.error)
+                if (phase === "start") {
                     refreshRecentTimesheets()
                 }
-            })
+            }
         })
     }
 
@@ -2466,11 +2467,7 @@ PlasmoidItem {
             return
         }
 
-        var pid = KimaiApi.projectId(timesheet)
-        var aid = KimaiApi.activityId(timesheet)
-        if (activeTimesheet
-                && String(KimaiApi.projectId(activeTimesheet)) === String(pid)
-                && String(KimaiApi.activityId(activeTimesheet)) === String(aid)) {
+        if (TimerSession.sameActivity(activeTimesheet, timesheet)) {
             alreadyRunningHintKey = switchHintKey(timesheet)
             alreadyRunningHintTimer.restart()
             userMessage = ""
