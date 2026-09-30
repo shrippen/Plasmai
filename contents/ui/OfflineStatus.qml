@@ -8,8 +8,9 @@ import "Controls" as Controls
  * Offline and sync state of the offline layer (offline.js), shared by the
  * Plasmoid and the app: "Offline · as of 12:04", changes not synced yet,
  * changes the server did not take. Hidden when online with nothing waiting.
+ * Kante: a KanteCallout with "Show" as its action; System: icon, text, button.
  */
-RowLayout {
+Item {
     id: root
 
     property bool offline: false
@@ -25,7 +26,8 @@ RowLayout {
     signal detailsRequested()
 
     visible: offline || unsynced > 0
-    spacing: Kirigami.Units.smallSpacing
+    implicitWidth: KanteStyle.active ? callout.implicitWidth : systemRow.implicitWidth
+    implicitHeight: KanteStyle.active ? callout.implicitHeight : systemRow.implicitHeight
 
     function stateTime() {
         var at = new Date(root.stateAt)
@@ -47,24 +49,47 @@ RowLayout {
         return parts.join(" · ")
     }
 
-    Kirigami.Icon {
-        Layout.alignment: Qt.AlignVCenter
-        implicitWidth: Kirigami.Units.iconSizes.small
-        implicitHeight: Kirigami.Units.iconSizes.small
-        source: root.stuck > 0 ? "dialog-warning" : (root.offline ? "network-disconnect" : "view-refresh")
-    }
-
-    Controls.Label {
-        Layout.fillWidth: true
-        Layout.alignment: Qt.AlignVCenter
+    // Kante: stuck changes warn, anything else informs.
+    KanteCallout {
+        id: callout
+        anchors.left: parent.left
+        anchors.right: parent.right
+        visible: KanteStyle.active
+        kind: root.stuck > 0 ? KanteCallout.Kind.Warn : KanteCallout.Kind.Info
         text: root.text()
-        wrapMode: Text.WordWrap
-        color: root.stuck > 0 ? KanteStyle.negativeTextColor : KanteStyle.textColor
+
+        Controls.Button {
+            visible: root.showDetails && root.unsynced > 0
+            text: i18n("Show")
+            onClicked: root.detailsRequested()
+        }
     }
 
-    Controls.Button {
-        visible: root.showDetails && root.unsynced > 0
-        text: i18n("Show")
-        onClicked: root.detailsRequested()
+    RowLayout {
+        id: systemRow
+        anchors.fill: parent
+        visible: !KanteStyle.active
+        spacing: Kirigami.Units.smallSpacing
+
+        Kirigami.Icon {
+            Layout.alignment: Qt.AlignVCenter
+            implicitWidth: Kirigami.Units.iconSizes.small
+            implicitHeight: Kirigami.Units.iconSizes.small
+            source: root.stuck > 0 ? "dialog-warning" : (root.offline ? "network-disconnect" : "view-refresh")
+        }
+
+        Controls.Label {
+            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignVCenter
+            text: root.text()
+            wrapMode: Text.WordWrap
+            color: root.stuck > 0 ? KanteStyle.negativeTextColor : KanteStyle.textColor
+        }
+
+        Controls.Button {
+            visible: root.showDetails && root.unsynced > 0
+            text: i18n("Show")
+            onClicked: root.detailsRequested()
+        }
     }
 }
