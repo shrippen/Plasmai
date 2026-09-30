@@ -60,7 +60,9 @@ cp -r "$DEPS/lib/qml/org/kde/kirigami" "$STAGE/qml/org/kde/"
 # Kirigami answers Breeze Light whatever the system is set to; the app's Basic style (its own
 # Theme.qml) follows the system's light/dark. Kirigami finds a style by its folder next to
 # the others, so it goes there and not into the app's resources (a dynamic build reads files).
+mkdir -p "$STAGE/qml/org/kde/kirigami/styles"
 cp -r app/qml/kirigami-styles/org/kde/kirigami/styles/Basic "$STAGE/qml/org/kde/kirigami/styles/"
+test -f "$STAGE/qml/org/kde/kirigami/styles/Basic/Theme.qml"
 rm -f "$STAGE/qml/org/kde/kirigami/styles/Basic/README.md"
 rm -f "$STAGE/qml/org/kde/kirigami/styles/Basic/qmldir"
 cp LICENSE "$STAGE/LICENSE.txt"
