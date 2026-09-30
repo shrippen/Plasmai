@@ -68,6 +68,37 @@ TestCase {
         compare(pin.color, data.kante ? KanteStyle.mapMarkerColor : KanteStyle.accentColor)
     }
 
+    // Recent entries: Kante draws a KanteListRow (time, swatch, two lines, duration).
+    function test_activityLine_data() {
+        return [
+            { tag: "system", kind: KanteStyle.Kind.System, kante: false },
+            { tag: "kante", kind: KanteStyle.Kind.Kante, kante: true },
+            { tag: "kanteLight", kind: KanteStyle.Kind.KanteLight, kante: true }
+        ]
+    }
+
+    function test_activityLine(data) {
+        KanteStyle.kind = data.kind
+        var row = createTemporaryObject(Qt.createComponent(Qt.resolvedUrl("../../contents/ui/ActivityListRow.qml")), this,
+                                        { width: 300, titleText: "Design", subtitleText: "ACME · Web",
+                                          timeText: "07:42", durationText: "1:05", customerColor: "#458588" })
+        verify(row !== null)
+        var line = findItem(row, function(i) { return i.leadingText !== undefined })
+        verify(line !== null)
+        compare(line.visible, data.kante)
+        compare(line.leadingText, "07:42")
+        compare(line.text, "Design")
+        compare(line.subtitle, "ACME · Web")
+        compare(line.meta, "1:05")
+        verify(!line.activeFocusOnTab)
+        if (data.kante) {
+            verify(row.implicitHeight >= line.implicitHeight)
+        }
+
+        row.runningHintVisible = true
+        compare(line.meta, "")
+    }
+
     function test_tagChip_data() {
         return [
             { tag: "system", kind: KanteStyle.Kind.System, chip: false },

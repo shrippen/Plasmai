@@ -80,7 +80,8 @@ QQC2.ItemDelegate {
     Accessible.name: titleText
     Accessible.description: i18n("Starts or switches this activity")
     implicitHeight: Math.max(contentItem.implicitHeight + topPadding + bottomPadding,
-                             TouchUi.rowMinHeight)
+                             TouchUi.rowMinHeight,
+                             kanteLine ? kanteLineRow.implicitHeight : 0)
     // Fill-width rows: a tiny implicitWidth so eliding labels / Menu do not
     // stretch the flyout Flickable (horizontal scrollbar + early ellipsis).
     implicitWidth: 1
@@ -95,7 +96,8 @@ QQC2.ItemDelegate {
     QQC2.ToolTip.delay: 600
 
     // Kante: tiles are cards with the customer color on top, time line rows
-    // show a sunken tint on hover. The style's highlight stays hidden.
+    // are KanteListRows (drawn only: the delegate keeps clicks, menu and hint).
+    // The style's highlight stays hidden.
     KanteCard {
         z: -1
         anchors.fill: parent
@@ -104,11 +106,25 @@ QQC2.ItemDelegate {
         barColor: root.customerColor
         chamfer: KanteStyle.chamferSmall
     }
-    Rectangle {
+    KanteListRow {
+        id: kanteLineRow
         z: -1
         anchors.fill: parent
-        visible: root.kanteLine && (root.hovered || root.visualFocus)
-        color: KanteStyle.sunkenColor
+        visible: root.kanteLine
+        activeFocusOnTab: false
+        focusOnClick: false
+        leadingText: root.timeText
+        leadingWidth: Math.ceil(timeMetrics.width)
+        text: root.titleText
+        subtitle: root.unsynced
+                  ? [root.subtitleText, i18n("Not synced yet")].filter(function(t) { return t.length > 0 }).join(" · ")
+                  : root.subtitleText
+        meta: root.runningHintVisible ? "" : root.durationText
+
+        KanteSwatch {
+            size: KanteSwatch.Size.Small
+            swatchColor: root.customerColor
+        }
     }
     Binding {
         target: root.background
@@ -137,22 +153,10 @@ QQC2.ItemDelegate {
     contentItem: RowLayout {
         spacing: Kirigami.Units.smallSpacing
 
-        Controls.Label {
-            visible: root.kanteLine && root.timeText.length > 0
-            Layout.preferredWidth: Math.ceil(timeMetrics.width) + Kirigami.Units.smallSpacing
-            text: root.timeText
-            font: KanteStyle.monoFont(KanteStyle.smallFont.pointSize, false)
-            color: KanteStyle.mutedTextColor
-            elide: Text.ElideRight
-        }
-
-        Rectangle {
+        // Kante time line: KanteListRow draws the row; only the running hint stays here.
+        Item {
             visible: root.kanteLine
-            Layout.preferredWidth: 3
-            Layout.fillHeight: true
-            Layout.topMargin: 2
-            Layout.bottomMargin: 2
-            color: root.customerColor
+            Layout.fillWidth: true
         }
 
         CustomerColorDot {
@@ -176,6 +180,7 @@ QQC2.ItemDelegate {
         }
 
         ColumnLayout {
+            visible: !root.kanteLine
             Layout.fillWidth: true
             Layout.preferredWidth: 0
             Layout.minimumWidth: 0
@@ -185,8 +190,8 @@ QQC2.ItemDelegate {
                 Layout.fillWidth: true
                 Layout.preferredWidth: 0
                 text: root.titleText
-                font.weight: root.kanteLine ? Font.Bold : (root.kanteTile ? Font.DemiBold : KanteStyle.defaultFont.weight)
-                color: root.kanteLine ? KanteStyle.strongTextColor : Kirigami.Theme.textColor
+                font.weight: root.kanteTile ? Font.DemiBold : KanteStyle.defaultFont.weight
+                color: Kirigami.Theme.textColor
                 elide: Text.ElideRight
             }
 
@@ -203,20 +208,12 @@ QQC2.ItemDelegate {
         }
 
         Kirigami.Icon {
-            visible: root.unsynced
+            visible: root.unsynced && !root.kanteLine
             Layout.preferredWidth: Kirigami.Units.iconSizes.small
             Layout.preferredHeight: Kirigami.Units.iconSizes.small
             Layout.alignment: Qt.AlignVCenter
             source: "view-refresh"
             Accessible.name: i18n("Not synced yet")
-        }
-
-        Controls.Label {
-            visible: root.kanteLine && root.durationText.length > 0 && !root.runningHintVisible
-            text: root.durationText
-            font: KanteStyle.monoFont(KanteStyle.smallFont.pointSize, false)
-            color: KanteStyle.textColor
-            horizontalAlignment: Text.AlignRight
         }
 
         Item {
@@ -316,10 +313,11 @@ QQC2.ItemDelegate {
         }
     }
 
-    // Widest time label (the time line shows the begin), so the colored bars line up.
+    // Widest time label (the time line shows the begin), so the swatches line up.
+    // Font of KanteListRow's leading figure.
     TextMetrics {
         id: timeMetrics
-        font: KanteStyle.monoFont(KanteStyle.smallFont.pointSize, false)
+        font: KanteStyle.monoFont(KanteStyle.defaultFont.pointSize * 0.9, false)
         // The widest time in the user's format ("22:59", "10:59 PM").
         text: DTF.formatLocaleTime(22, 59)
     }

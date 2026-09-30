@@ -60,6 +60,26 @@ Kirigami.Page {
         reload()
     }
 
+    // Trip row texts: "Home → Studio", "12.03.26 · Customer visit · round trip", "42 km".
+    function tripTitle(trip) {
+        return Mileage.routeText(trip.start, trip.destination)
+               || Mileage.labelOf(root.mileageMeta ? root.mileageMeta.purposes : null, trip.purpose, page.purposeFallback)
+    }
+
+    function tripDetails(trip) {
+        var d = Mileage.parseDateString(trip.date)
+        var bits = [d ? d.toLocaleDateString(Qt.locale(), Locale.ShortFormat) : trip.date,
+                    Mileage.labelOf(root.mileageMeta ? root.mileageMeta.purposes : null, trip.purpose, page.purposeFallback)]
+        if (trip.roundTrip) {
+            bits.push(i18n("round trip"))
+        }
+        return bits.join(" · ")
+    }
+
+    function tripDistance(trip) {
+        return i18n("%1 km", Mileage.displayKm(Mileage.tripKm(trip)))
+    }
+
     function pushEdit(props) {
         var p = pageStack.push(tripEditPageComponent, props)
         if (p) p.saved.connect(page.reload)
@@ -215,39 +235,56 @@ Kirigami.Page {
 
             Repeater {
                 model: page.trips
-                delegate: QQC2.ItemDelegate {
+                delegate: Item {
+                    id: tripRow
+                    required property var modelData
                     Layout.fillWidth: true
+                    implicitHeight: KanteStyle.active ? tripKanteRow.implicitHeight : tripSystemRow.implicitHeight
                     enabled: root.canEditTrips
-                    onClicked: page.pushEdit({ form: Mileage.formFromTrip(modelData), original: modelData,
-                                               linkedText: modelData.timesheet ? i18n("Time entry #%1", modelData.timesheet) : "" })
-                    contentItem: RowLayout {
-                        spacing: Kirigami.Units.smallSpacing
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            spacing: 0
-                            QQC2.Label {
+
+                    function edit() {
+                        page.pushEdit({ form: Mileage.formFromTrip(modelData), original: modelData,
+                                        linkedText: modelData.timesheet ? i18n("Time entry #%1", modelData.timesheet) : "" })
+                    }
+
+                    // Kante: route, then date and purpose; the distance as the meta figure.
+                    KanteListRow {
+                        id: tripKanteRow
+                        anchors.fill: parent
+                        visible: KanteStyle.active
+                        text: page.tripTitle(tripRow.modelData)
+                        subtitle: page.tripDetails(tripRow.modelData)
+                        meta: page.tripDistance(tripRow.modelData)
+                        onClicked: tripRow.edit()
+                    }
+
+                    QQC2.ItemDelegate {
+                        id: tripSystemRow
+                        anchors.fill: parent
+                        visible: !KanteStyle.active
+                        onClicked: tripRow.edit()
+                        contentItem: RowLayout {
+                            spacing: Kirigami.Units.smallSpacing
+                            ColumnLayout {
                                 Layout.fillWidth: true
-                                elide: Text.ElideRight
-                                text: Mileage.routeText(modelData.start, modelData.destination)
-                                      || Mileage.labelOf(root.mileageMeta ? root.mileageMeta.purposes : null, modelData.purpose, page.purposeFallback)
-                            }
-                            QQC2.Label {
-                                Layout.fillWidth: true
-                                elide: Text.ElideRight
-                                font.pointSize: KanteStyle.smallFont.pointSize
-                                opacity: 0.7
-                                text: {
-                                    var d = Mileage.parseDateString(modelData.date)
-                                    var bits = [d ? d.toLocaleDateString(Qt.locale(), Locale.ShortFormat) : modelData.date,
-                                                Mileage.labelOf(root.mileageMeta ? root.mileageMeta.purposes : null, modelData.purpose, page.purposeFallback)]
-                                    if (modelData.roundTrip) bits.push(i18n("round trip"))
-                                    return bits.join(" · ")
+                                spacing: 0
+                                QQC2.Label {
+                                    Layout.fillWidth: true
+                                    elide: Text.ElideRight
+                                    text: page.tripTitle(tripRow.modelData)
+                                }
+                                QQC2.Label {
+                                    Layout.fillWidth: true
+                                    elide: Text.ElideRight
+                                    font.pointSize: KanteStyle.smallFont.pointSize
+                                    opacity: 0.7
+                                    text: page.tripDetails(tripRow.modelData)
                                 }
                             }
-                        }
-                        QQC2.Label {
-                            font.bold: true
-                            text: i18n("%1 km", Mileage.displayKm(Mileage.tripKm(modelData)))
+                            QQC2.Label {
+                                font.bold: true
+                                text: page.tripDistance(tripRow.modelData)
+                            }
                         }
                     }
                 }
