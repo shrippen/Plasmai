@@ -230,8 +230,7 @@ Open:
 - **Signing:** unsigned, so SmartScreen warns. Needs a certificate (SignPath for OSS, or OV/EV) as secrets; then `signtool` before and after `iscc`.
 - **Live test on Windows** (stage 5): done on Windows 11 (see `packaging/windows/README.md`); still open: Windows 10, several monitors, scaling, idle time, the installer.
 - **winget:** submit the manifest per release, better after signing.
-- Light only for now (Basic style, light scheme, bundled light icons): the dark mode of Windows is not followed. Per-monitor DPI comes from Qt; not checked on a real desktop.
-- Found on the way, open: an offline stop writes the device's time, which is off when the Kimai profile has another time zone (known limit above); the "Stopped" notification carries the icon with the red dot.
+- Light and dark follow the system (tried on Windows 11); a change while the app runs updates colors and icon theme, only some icons may need a restart. Per-monitor DPI comes from Qt; not checked on a real desktop.
 
 The plan as written before:
 
@@ -283,7 +282,7 @@ Keystore, CI run on GitHub, signed APK, Flatpak build, aarch64 tarball, app ID a
 
 ## Known limits
 
-- Times use the device time zone, not the Kimai profile time zone (QML JS has no IANA zones).
+- Times are shown in the device time zone. Times the app writes carry the device's offset, so Kimai converts them into the profile's zone; the query filters (begin/end) and the trips' departure and arrival (HH:MM in the profile's zone) still use the device's wall clock.
 - Night shoots (end after midnight) cannot be entered in the film day view.
 - KCM settings pages have no 30 s request watchdog.
 - Absence credit cannot yet tell WorkContract auto-bookings apart reliably.

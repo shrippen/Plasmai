@@ -47,6 +47,10 @@ demo offscreen; the screenshots are the `windows-screens` artifact.
   notifications, token in the Credential Manager, Kimai live (timer, entry form, date picker,
   statistics, film day with the Drehzettel plugin), offline stop and the sync afterwards. Not
   tried: Windows 10, several monitors, scaling other than 100 %, idle time, the installer.
-- **Light only.** The app runs in the Basic style with the light color scheme and the light
-  icon subset (`app/icons/breeze-light`), whatever the system setting is: Basic does not
-  follow the dark mode, and Kirigami's dark text on its light windows was unreadable.
+- **Light and dark.** The app runs in the Basic style and follows the system's setting. Qt is
+  handed Breeze colors of that scheme (`app/main.cpp`), the icons come from the matching
+  bundled subset (`app/icons/breeze-light`, `breeze-dark`), and Kirigami, which answers Breeze
+  Light whatever the system says, gets the Basic style of `app/qml/kirigami-styles/.../Basic`:
+  `package-windows.sh` copies it next to Kirigami's own styles (a dynamic build reads them as
+  files). Tried in Kante, Kante Light and System, light and dark, on Windows 11.
+
