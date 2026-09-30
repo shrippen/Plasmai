@@ -883,10 +883,8 @@ Kirigami.ApplicationWindow {
         var name = String(item)
         if (name.indexOf("PrivateActionToolButton") !== 0 && name.indexOf("HandleButton") !== 0
                 && name.indexOf("BackButton") !== 0 && name.indexOf("NavigationButton") !== 0) {
-            if (item.display !== undefined) console.log("PLASMAI-DIAG button", name)
             return
         }
-        console.log("PLASMAI-DIAG flat", name)
         flatButtons.push(item)
         item.background.opacity = Qt.binding(function() { return item.hovered || item.down || item.checked ? 1 : 0 })
     }
