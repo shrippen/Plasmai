@@ -2736,13 +2736,9 @@ PlasmoidItem {
             anchors.fill: parent
             radius: 3
             visible: root.isTracking && !KanteStyle.active
-            color: Qt.rgba(compactRoot.trackingColor.r,
-                           compactRoot.trackingColor.g,
-                           compactRoot.trackingColor.b, 0.12)
+            color: KanteStyle.tint(compactRoot.trackingColor, 0.12)
             border.width: 1
-            border.color: Qt.rgba(compactRoot.trackingColor.r,
-                                  compactRoot.trackingColor.g,
-                                  compactRoot.trackingColor.b, 0.35)
+            border.color: KanteStyle.tint(compactRoot.trackingColor, 0.35)
         }
 
         RecEdge {
@@ -2940,20 +2936,12 @@ PlasmoidItem {
 
                 radius: 6
                 color: emphasize
-                       ? Qt.rgba(KanteStyle.highlightColor.r,
-                                 KanteStyle.highlightColor.g,
-                                 KanteStyle.highlightColor.b, 0.12)
-                       : Qt.rgba(KanteStyle.textColor.r,
-                                 KanteStyle.textColor.g,
-                                 KanteStyle.textColor.b, 0.05)
+                       ? KanteStyle.tint(KanteStyle.highlightColor, 0.12)
+                       : KanteStyle.tint(KanteStyle.textColor, 0.05)
                 border.width: 1
                 border.color: emphasize
-                              ? Qt.rgba(KanteStyle.highlightColor.r,
-                                        KanteStyle.highlightColor.g,
-                                        KanteStyle.highlightColor.b, 0.35)
-                              : Qt.rgba(KanteStyle.textColor.r,
-                                        KanteStyle.textColor.g,
-                                        KanteStyle.textColor.b, 0.14)
+                              ? KanteStyle.tint(KanteStyle.highlightColor, 0.35)
+                              : KanteStyle.tint(KanteStyle.textColor, 0.14)
                 implicitHeight: cardColumn.implicitHeight + Kirigami.Units.smallSpacing * 2
 
                 ColumnLayout {

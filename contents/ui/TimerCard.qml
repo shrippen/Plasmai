@@ -32,20 +32,12 @@ Rectangle {
     visible: shown
     radius: 6
     color: widget.isTracking
-           ? Qt.rgba(KanteStyle.positiveTextColor.r,
-                     KanteStyle.positiveTextColor.g,
-                     KanteStyle.positiveTextColor.b, 0.08)
-           : Qt.rgba(KanteStyle.textColor.r,
-                     KanteStyle.textColor.g,
-                     KanteStyle.textColor.b, 0.04)
+           ? KanteStyle.tint(KanteStyle.positiveTextColor, 0.08)
+           : KanteStyle.tint(KanteStyle.textColor, 0.04)
     border.width: 1
     border.color: widget.isTracking
-                  ? Qt.rgba(KanteStyle.positiveTextColor.r,
-                            KanteStyle.positiveTextColor.g,
-                            KanteStyle.positiveTextColor.b, 0.28)
-                  : Qt.rgba(KanteStyle.textColor.r,
-                            KanteStyle.textColor.g,
-                            KanteStyle.textColor.b, 0.12)
+                  ? KanteStyle.tint(KanteStyle.positiveTextColor, 0.28)
+                  : KanteStyle.tint(KanteStyle.textColor, 0.12)
     implicitHeight: heroColumn.implicitHeight + Kirigami.Units.smallSpacing * 2
 
     RowLayout {

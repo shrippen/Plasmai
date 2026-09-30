@@ -118,9 +118,7 @@ Item {
             width: Kirigami.Units.iconSizes.small
             height: width
             radius: width / 2
-            color: Qt.rgba(widget.descriptionSaveMutedColor.r,
-                           widget.descriptionSaveMutedColor.g,
-                           widget.descriptionSaveMutedColor.b, 0.18)
+            color: KanteStyle.tint(widget.descriptionSaveMutedColor, 0.18)
             border.width: 1
             border.color: widget.descriptionSaveMutedColor
         }

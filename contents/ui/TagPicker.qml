@@ -195,16 +195,12 @@ ColumnLayout {
         Layout.fillWidth: true
         radius: KanteStyle.themed ? 0 : Kirigami.Units.smallSpacing
         color: KanteStyle.themed ? KanteStyle.sunkenColor
-                           : Qt.rgba(KanteStyle.textColor.r,
-                                     KanteStyle.textColor.g,
-                                     KanteStyle.textColor.b, 0.04)
+                           : KanteStyle.tint(KanteStyle.textColor, 0.04)
         border.width: searchField.activeFocus && !KanteStyle.themed ? 2 : 1
         border.color: searchField.activeFocus
                       ? KanteStyle.highlightColor
                       : (KanteStyle.themed ? KanteStyle.frameColor
-                                     : Qt.rgba(KanteStyle.textColor.r,
-                                               KanteStyle.textColor.g,
-                                               KanteStyle.textColor.b, 0.18))
+                                     : KanteStyle.tint(KanteStyle.textColor, 0.18))
         implicitHeight: tagFlow.implicitHeight + Kirigami.Units.smallSpacing * 2
 
         // The search field is only as wide as its text; a tap on the rest of the frame must focus it too.
@@ -236,11 +232,9 @@ ColumnLayout {
                     required property var modelData
                     readonly property color pillColor: Qt.color(modelData.color)
                     radius: KanteStyle.themed ? 0 : Kirigami.Units.smallSpacing
-                    color: Qt.rgba(KanteStyle.textColor.r,
-                                   KanteStyle.textColor.g,
-                                   KanteStyle.textColor.b, 0.06)
+                    color: KanteStyle.tint(KanteStyle.textColor, 0.06)
                     border.width: 1
-                    border.color: Qt.rgba(pillColor.r, pillColor.g, pillColor.b, 0.45)
+                    border.color: KanteStyle.tint(pillColor, 0.45)
                     implicitWidth: pillRow.implicitWidth + Kirigami.Units.smallSpacing * 2
                     implicitHeight: Math.max(pillRow.implicitHeight + Kirigami.Units.smallSpacing,
                                              searchField.implicitHeight - Kirigami.Units.smallSpacing)
@@ -266,9 +260,7 @@ ColumnLayout {
                 placeholderText: root.selectedTagEntries.length > 0
                                  ? i18n("Add tag…")
                                  : i18n("Add tags…")
-                placeholderTextColor: Qt.rgba(KanteStyle.textColor.r,
-                                              KanteStyle.textColor.g,
-                                              KanteStyle.textColor.b, 0.45)
+                placeholderTextColor: KanteStyle.tint(KanteStyle.textColor, 0.45)
                 background: Item {}
                 // Predictive keyboards deliver text as uncommitted preedit, so suggestions would only update after commit.
                 inputMethodHints: Qt.ImhNoPredictiveText | Qt.ImhNoAutoUppercase
