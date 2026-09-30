@@ -1,0 +1,3 @@
+module org.kde.kirigami.styles.Basic
+prefer :/qt/qml/org/kde/kirigami/styles/Basic/
+Theme 2.0 Theme.qml

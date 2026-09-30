@@ -865,8 +865,30 @@ Kirigami.ApplicationWindow {
         if (String(item).indexOf("HandleButton") === 0) {
             item.Accessible.name = i18n("Menu")
         }
+        flattenHeaderButton(item)
         var kids = item.children || []
         for (var i = 0; i < kids.length; ++i) nameDrawerButtons(kids[i])
+    }
+
+    property var flatButtons: []
+
+    /** Windows and macOS (Basic style): the header's buttons draw a filled plate even at rest,
+     *  a lighter grey on the bar. Like Kirigami's own header and the Plasmoid's, they show a
+     *  plate on hover, press and check only. */
+    function flattenHeaderButton(item) {
+        if (!root.desktopPalette || flatButtons.indexOf(item) >= 0 || item.background === undefined
+                || item.hovered === undefined || item.down === undefined || item.checked === undefined) {
+            return
+        }
+        var name = String(item)
+        if (name.indexOf("PrivateActionToolButton") !== 0 && name.indexOf("HandleButton") !== 0
+                && name.indexOf("BackButton") !== 0 && name.indexOf("NavigationButton") !== 0) {
+            if (item.display !== undefined) console.log("PLASMAI-DIAG button", name)
+            return
+        }
+        console.log("PLASMAI-DIAG flat", name)
+        flatButtons.push(item)
+        item.background.opacity = Qt.binding(function() { return item.hovered || item.down || item.checked ? 1 : 0 })
     }
 
     /** Drawer navigation is flat: return to the timer page first so pages don't stack up. */
