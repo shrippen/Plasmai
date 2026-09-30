@@ -113,7 +113,7 @@ ColumnLayout {
                     Layout.preferredWidth: implicitWidth
                     Layout.preferredHeight: 14
                     Layout.alignment: Qt.AlignVCenter
-                    customerColor: modelData.color || KimaiApi.DEFAULT_CUSTOMER_COLOR
+                    customerColor: modelData.color || PlasmaiColors.entityFallback
                     sizeFactor: 0.55
                     slotSizeFactor: 0.7
                 }

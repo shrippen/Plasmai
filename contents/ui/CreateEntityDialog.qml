@@ -108,7 +108,7 @@ Controls.FormDialog {
                 customerRole: true
                 customerColor: visible
                                ? root.customerRows[customerCombo.currentIndex].color
-                               : KimaiApi.DEFAULT_CUSTOMER_COLOR
+                               : PlasmaiColors.entityFallback
                 label: visible ? root.customerRows[customerCombo.currentIndex].name : ""
                 labelPointSize: KanteStyle.defaultFont.pointSize
                 labelBold: false
@@ -139,7 +139,7 @@ Controls.FormDialog {
             contentItem: ColorLabelRow {
                 width: parent ? parent.width : implicitWidth
                 customerRole: true
-                customerColor: modelData.color || KimaiApi.DEFAULT_CUSTOMER_COLOR
+                customerColor: modelData.color || PlasmaiColors.entityFallback
                 label: modelData.name
                 labelPointSize: KanteStyle.defaultFont.pointSize
                 labelBold: false

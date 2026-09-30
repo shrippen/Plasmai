@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
-import "../contents/code/kimaiApi.js" as KimaiApi
 import "shared"
 import "Kante"
 
@@ -71,7 +70,7 @@ Kirigami.Page {
                         onClicked: page.toggleExpanded(projectDelegate.modelData.value.id)
 
                         KanteSwatch {
-                            swatchColor: projectDelegate.modelData.rowColor || KimaiApi.DEFAULT_CUSTOMER_COLOR
+                            swatchColor: projectDelegate.modelData.rowColor || PlasmaiColors.entityFallback
                         }
                     }
 
@@ -80,7 +79,7 @@ Kirigami.Page {
                         visible: !KanteStyle.active
                         contentItem: ColorLabelRow {
                             customerRole: false
-                            customerColor: projectDelegate.modelData.rowColor || KimaiApi.DEFAULT_CUSTOMER_COLOR
+                            customerColor: projectDelegate.modelData.rowColor || PlasmaiColors.entityFallback
                             label: (projectDelegate.modelData.section ? projectDelegate.modelData.section + " · " : "") + projectDelegate.modelData.label
                         }
                         onClicked: page.toggleExpanded(projectDelegate.modelData.value.id)

@@ -4,7 +4,7 @@ import "Kante"
 
 /**
  * Colored hierarchy marker as a short vertical pill; a KanteSwatch in Kante.
- * Thickness encodes importance (sizeFactor, System only).
+ * Thickness (System) or swatch size (Kante) encodes importance (sizeFactor).
  */
 Item {
     id: root
@@ -22,7 +22,7 @@ Item {
     property real slotSizeFactor: 0.85
 
     readonly property real slotSize: KanteStyle.active
-                                     ? swatch.implicitWidth
+                                     ? Math.max(slotProbe.implicitWidth, swatch.implicitWidth)
                                      : Math.max(8, Kirigami.Units.iconSizes.small * slotSizeFactor)
     /** Thin ≈4–5px, thick ≈7–8px */
     readonly property real lineWidth: Math.max(4, Math.round(3.5 + root.sizeFactor * 4))
@@ -50,9 +50,25 @@ Item {
         border.color: Qt.rgba(0, 0, 0, 0.18)
     }
 
+    /** Kante swatch size for an importance: customer Normal, project Small, below Dense. */
+    function swatchSize(factor) {
+        if (factor >= 0.85) {
+            return KanteSwatch.Size.Normal
+        }
+        return factor >= 0.45 ? KanteSwatch.Size.Small : KanteSwatch.Size.Dense
+    }
+
+    // Slot of the section size, so swatches of all sizes share one vertical axis.
+    KanteSwatch {
+        id: slotProbe
+        visible: false
+        size: root.swatchSize(root.slotSizeFactor)
+    }
+
     // Kante: the entity colour is a swatch (a square); shrinks into short legend rows.
     KanteSwatch {
         id: swatch
+        size: root.swatchSize(root.sizeFactor)
         anchors.centerIn: parent
         width: root.height > 0 ? Math.min(implicitWidth, root.height) : implicitWidth
         height: width

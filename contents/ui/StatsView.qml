@@ -550,7 +550,7 @@ ColumnLayout {
                         CustomerColorDot {
                             anchors.verticalCenter: parent.verticalCenter
                             height: 14
-                            customerColor: modelData.color || KimaiApi.DEFAULT_CUSTOMER_COLOR
+                            customerColor: modelData.color || PlasmaiColors.entityFallback
                             sizeFactor: 0.55
                             slotSizeFactor: 0.7
                         }
@@ -650,7 +650,7 @@ ColumnLayout {
                         CustomerColorDot {
                             anchors.verticalCenter: parent.verticalCenter
                             height: 14
-                            customerColor: modelData.color || KimaiApi.DEFAULT_CUSTOMER_COLOR
+                            customerColor: modelData.color || PlasmaiColors.entityFallback
                             sizeFactor: 0.55
                             slotSizeFactor: 0.7
                         }

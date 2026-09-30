@@ -367,7 +367,7 @@ Kirigami.ApplicationWindow {
 
     readonly property var lastRecent: recentTimesheets.length > 0 ? recentTimesheets[0] : null
     readonly property var currentBarColorInfo: KimaiApi.barColorInfoFromTimesheet(activeTimesheet, customersById)
-    readonly property color currentCustomerColor: currentBarColorInfo.color || KimaiApi.DEFAULT_CUSTOMER_COLOR
+    readonly property color currentCustomerColor: currentBarColorInfo.color || PlasmaiColors.entityFallback
 
     // Totals include the running entry up to their load (workTotals.js); add the timer's progress since.
     property real totalsElapsedAnchor: 0

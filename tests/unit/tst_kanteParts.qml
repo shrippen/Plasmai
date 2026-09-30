@@ -36,6 +36,38 @@ TestCase {
         return null
     }
 
+    function findItem(item, test) {
+        if (test(item)) {
+            return item
+        }
+        for (var i = 0; i < item.children.length; i++) {
+            var found = findItem(item.children[i], test)
+            if (found) {
+                return found
+            }
+        }
+        return null
+    }
+
+    // Trip map pins: Kante squares in the map marker role; System round accent dots.
+    function test_tripMapPins_data() {
+        return [
+            { tag: "system", kind: KanteStyle.Kind.System, kante: false },
+            { tag: "kante", kind: KanteStyle.Kind.Kante, kante: true },
+            { tag: "kanteLight", kind: KanteStyle.Kind.KanteLight, kante: true }
+        ]
+    }
+
+    function test_tripMapPins(data) {
+        KanteStyle.kind = data.kind
+        var map = createTemporaryObject(Qt.createComponent(Qt.resolvedUrl("../../contents/ui/TripMap.qml")), this, { width: 300 })
+        verify(map !== null)
+        var pin = findItem(map, function(i) { return i.modelData !== undefined && i.modelData.label === "A" })
+        verify(pin !== null)
+        compare(pin.radius === 0, data.kante)
+        compare(pin.color, data.kante ? KanteStyle.mapMarkerColor : KanteStyle.accentColor)
+    }
+
     function test_tagChip_data() {
         return [
             { tag: "system", kind: KanteStyle.Kind.System, chip: false },

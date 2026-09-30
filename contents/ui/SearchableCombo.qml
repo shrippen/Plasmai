@@ -3,7 +3,6 @@ import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import QtQuick.Window
 import org.kde.kirigami as Kirigami
-import "../code/kimaiApi.js" as KimaiApi
 import "."
 import "Kante"
 
@@ -401,7 +400,7 @@ Item {
                     anchors.rightMargin: Kirigami.Units.smallSpacing
                     customerRole: true
                     showDot: root.sectionColor(section).length > 0
-                    customerColor: root.sectionColor(section) || KimaiApi.DEFAULT_CUSTOMER_COLOR
+                    customerColor: root.sectionColor(section) || PlasmaiColors.entityFallback
                     label: root.sectionLabel(section)
                 }
             }
@@ -426,7 +425,7 @@ Item {
                     width: parent ? parent.width : implicitWidth
                     customerRole: false
                     showDot: modelData.color && String(modelData.color).length > 0
-                    customerColor: modelData.color || KimaiApi.DEFAULT_CUSTOMER_COLOR
+                    customerColor: modelData.color || PlasmaiColors.entityFallback
                     label: modelData.label
                     labelBold: false
                 }

@@ -2923,7 +2923,7 @@ PlasmoidItem {
                 : ""
             readonly property var pendingBarInfo: root.pendingSwitchTimesheet
                 ? KimaiApi.barColorInfoFromTimesheet(root.pendingSwitchTimesheet, root.customersById)
-                : ({ color: KimaiApi.DEFAULT_CUSTOMER_COLOR, category: "", id: null })
+                : ({ color: PlasmaiColors.entityFallback, category: "", id: null })
 
             component ActivityCard: Rectangle {
                 id: card
@@ -2931,7 +2931,7 @@ PlasmoidItem {
                 property string customerName: ""
                 property string projectName: ""
                 property string activityName: ""
-                property color accentColor: KimaiApi.DEFAULT_CUSTOMER_COLOR
+                property color accentColor: PlasmaiColors.entityFallback
                 property bool emphasize: false
 
                 radius: 6

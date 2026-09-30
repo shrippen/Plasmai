@@ -186,7 +186,7 @@ ColumnLayout {
                 readonly property var pinSheet: Favorites.asTimesheet(widget.pinnedEntries[index])
                 readonly property string pinKey: widget.switchHintKey(pinSheet)
                 Layout.fillWidth: true
-                customerColor: widget.pinnedEntries[index].customerColor || KimaiApi.DEFAULT_CUSTOMER_COLOR
+                customerColor: widget.pinnedEntries[index].customerColor || PlasmaiColors.entityFallback
                 titleText: widget.pinnedEntries[index].activityName
                 subtitleText: {
                     var entry = widget.pinnedEntries[index]

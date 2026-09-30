@@ -116,7 +116,7 @@ ColumnLayout {
                 if (!mapBox.fromPos || !mapBox.toPos) {
                     return
                 }
-                ctx.strokeStyle = KanteStyle.accentColor
+                ctx.strokeStyle = KanteStyle.mapRouteColor
                 ctx.lineWidth = 3
                 ctx.setLineDash([6, 4])
                 ctx.beginPath()
@@ -138,17 +138,18 @@ ColumnLayout {
                 visible: !!modelData.pos
                 width: Kirigami.Units.gridUnit * 1.4
                 height: width
-                radius: width / 2
+                // Kante: square pins in the map marker role.
+                radius: KanteStyle.active ? 0 : width / 2
                 x: modelData.pos ? modelData.pos.x - width / 2 : 0
                 y: modelData.pos ? modelData.pos.y - height / 2 : 0
-                color: KanteStyle.accentColor
+                color: KanteStyle.active ? KanteStyle.mapMarkerColor : KanteStyle.accentColor
                 border.width: 2
                 border.color: "white"
                 Controls.Label {
                     anchors.centerIn: parent
                     text: parent.modelData.label
                     font.bold: true
-                    color: "black"
+                    color: KanteStyle.active ? KanteStyle.onStateColor : "black"
                 }
             }
         }
