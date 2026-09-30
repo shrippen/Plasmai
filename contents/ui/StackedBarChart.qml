@@ -42,7 +42,9 @@ Item {
                 var key = stacks[k].key !== undefined ? stacks[k].key : stacks[k].name
                 if (seen[key] === undefined) {
                     seen[key] = out.length
-                    out.push({ key: key, color: stacks[k].color })
+                    // statsData.js has no i18n; its catch-all part is keyed "_other".
+                    out.push({ key: key, color: stacks[k].color,
+                               name: key === "_other" ? i18n("Other") : (stacks[k].name || "") })
                 }
             }
         }
@@ -257,5 +259,6 @@ Item {
         values: (root.days || []).map(function(day) { return root.partHours(day) })
         labels: (root.days || []).map(function(day) { return day.label || "" })
         stackColors: root.parts.map(function(part) { return part.color })
+        partNames: root.parts.map(function(part) { return part.name })
     }
 }

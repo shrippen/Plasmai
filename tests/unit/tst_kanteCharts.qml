@@ -14,7 +14,7 @@ TestCase {
     height: 400
 
     readonly property var week: [
-        { label: "Mo", totalSeconds: 27000, stacks: [{ key: "a", seconds: 18000, color: "#d65d0e" }, { key: "b", seconds: 9000, color: "#458588" }] },
+        { label: "Mo", totalSeconds: 27000, stacks: [{ key: "a", name: "Web", seconds: 18000, color: "#d65d0e" }, { key: "b", name: "App", seconds: 9000, color: "#458588" }] },
         { label: "Tu", totalSeconds: 7200, stacks: [{ key: "b", seconds: 7200, color: "#458588" }] }
     ]
 
@@ -69,6 +69,8 @@ TestCase {
         compare(bars.stackColors.length, 2)
         compare(Qt.color(bars.stackColors[1]), Qt.color("#458588"))
         compare(bars.labels, ["Mo", "Tu"])
+        compare(bars.partNames, ["Web", "App"])
+        verify(bars.readout)
     }
 
     // Kante has no pie: one bar per row in the row's colour.
@@ -81,6 +83,7 @@ TestCase {
         verify(bars.visible)
         compare(bars.values, [[2, 0], [0, 0.5]])
         compare(Qt.color(bars.stackColors[0]), Qt.color("#d65d0e"))
+        verify(!bars.readout)
     }
 
     function test_weeklyHourChart() {

@@ -56,6 +56,10 @@ RowLayout {
 
     /** Opens the calendar popup programmatically (e.g. from a custom big-text header). */
     function openPicker() {
+        if (KanteStyle.active) {
+            kanteDate.open()
+            return
+        }
         datePicker.openFor(DTF.coerceDate(root.selectedDate) || new Date())
     }
 

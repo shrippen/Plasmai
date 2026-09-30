@@ -44,6 +44,8 @@ ColumnLayout {
             return root.rows.map(function(other, k) { return k === i ? (Number(row.seconds) || 0) / root.secondsPerHour : 0 })
         })
         stackColors: (root.rows || []).map(function(row) { return row.color || PlasmaiColors.chart })
+        // The legend below names each bar; the read-out would list every row (zeros too).
+        readout: false
     }
 
     Controls.Label {

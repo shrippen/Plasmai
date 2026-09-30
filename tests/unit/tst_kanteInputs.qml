@@ -84,6 +84,11 @@ TestCase {
         verify(kante !== null)
         compare(kante.visible, data.kante)
 
+        // 12-hour clock where the locale's short time has AM/PM.
+        compare(kante.twelveHour, /a/i.test(Qt.locale().timeFormat(Locale.ShortFormat)))
+
+        field.setTime(21, 30)
+        compare(kante.hour, 21)
         field.setTime(9, 30)
         compare(kante.hour, 9)
         compare(kante.minute, 30)
@@ -100,7 +105,7 @@ TestCase {
         compare(kante.hour, 14)
     }
 
-    // Pickers: Kante shows a KanteSearchCombo; a row names its customer (no section heads).
+    // Pickers: Kante shows a KanteSearchCombo with the customers as headings.
     function test_searchableCombo_data() {
         return test_dateField_data()
     }
@@ -114,9 +119,11 @@ TestCase {
         var kante = findItem(combo, function(i) { return i.newEntered !== undefined })
         verify(kante !== null)
         compare(kante.visible, data.kante)
-        compare(combo.kanteModel[0].text, "Website · ACME")
+        compare(kante.sectionRole, "section")
+        compare(combo.kanteModel[0].text, "Website")
+        compare(combo.kanteModel[0].section, "ACME")
         compare(Qt.color(combo.kanteModel[0].color), Qt.color("#d65d0e"))
-        compare(combo.kanteModel[1].text, "Support")
+        compare(combo.kanteModel[1].section, "Global activities")
 
         combo.currentIndex = 1
         compare(kante.currentIndex, 1)
@@ -127,5 +134,28 @@ TestCase {
         compare(combo.currentIndex, 0)
         compare(editSpy.count, 1)
         compare(editSpy.signalArguments[0][0], 0)
+    }
+
+    // closePopup() (e.g. when the flyout closes) closes the Kante list too.
+    function test_searchableComboCloses() {
+        KanteStyle.kind = KanteStyle.Kind.Kante
+        var combo = createTemporaryObject(Qt.createComponent(Qt.resolvedUrl("../../contents/ui/SearchableCombo.qml")), this,
+                                          { width: 300, items: [{ label: "Website" }] })
+        var kante = findItem(combo, function(i) { return i.newEntered !== undefined })
+        kante.openList()
+        tryCompare(combo, "popupOpen", true)
+        combo.closePopup()
+        tryCompare(combo, "popupOpen", false)
+    }
+
+    // openPicker() opens the Kante month grid.
+    function test_dateFieldOpens() {
+        KanteStyle.kind = KanteStyle.Kind.Kante
+        var field = create("DateField")
+        var kante = findItem(field, function(i) { return i.dateEdited !== undefined && i.todayText !== undefined })
+        field.openPicker()
+        tryCompare(kante, "popupOpen", true)
+        kante.close()
+        tryCompare(kante, "popupOpen", false)
     }
 }

@@ -57,14 +57,16 @@ Item {
         return ""
     }
 
-    /** Kante rows: {text, color}; a named section (a customer) follows the label. */
+    /** Kante rows: {text, color, section}; the section (customer) is a heading over its rows. */
     readonly property var kanteModel: items.map(function(item) {
-        var named = item.section && !(sectionTitleMap && sectionTitleMap[item.section])
-        return { text: named ? item.label + " · " + item.section : item.label,
-                 color: item.rowColor || item.color || "" }
+        return { text: item.label, color: item.rowColor || item.color || "", section: sectionLabel(item.section) }
     })
 
     function closePopup() {
+        if (KanteStyle.active) {
+            kanteCombo.close()
+            return
+        }
         if (popup.opened) {
             popup.close()
         }
@@ -281,7 +283,7 @@ Item {
         }
     }
 
-    // Kante: a KanteSearchCombo. It has no section heads, so a row names its customer.
+    // Kante: a KanteSearchCombo with the sections as headings.
     KanteSearchCombo {
         id: kanteCombo
         anchors.fill: parent
@@ -290,6 +292,7 @@ Item {
         model: root.kanteModel
         textRole: "text"
         colorRole: "color"
+        sectionRole: "section"
         placeholderText: root.placeholderText
         onActivated: function(index) {
             root.currentIndex = index
