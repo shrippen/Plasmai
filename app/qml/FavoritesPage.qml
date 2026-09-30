@@ -70,6 +70,7 @@ Kirigami.Page {
                         onClicked: page.toggleExpanded(projectDelegate.modelData.value.id)
 
                         KanteSwatch {
+                            size: KanteSwatch.Size.Small
                             swatchColor: projectDelegate.modelData.rowColor || PlasmaiColors.entityFallback
                         }
                     }
