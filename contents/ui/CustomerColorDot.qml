@@ -3,8 +3,8 @@ import org.kde.kirigami as Kirigami
 import "Kante"
 
 /**
- * Colored hierarchy marker as a short vertical pill (a bar in Kante).
- * Thickness encodes importance (sizeFactor).
+ * Colored hierarchy marker as a short vertical pill; a KanteSwatch in Kante.
+ * Thickness encodes importance (sizeFactor, System only).
  */
 Item {
     id: root
@@ -21,7 +21,9 @@ Item {
     /** Slot width uses the section size so bars share one vertical axis. */
     property real slotSizeFactor: 0.85
 
-    readonly property real slotSize: Math.max(8, Kirigami.Units.iconSizes.small * slotSizeFactor)
+    readonly property real slotSize: KanteStyle.active
+                                     ? swatch.implicitWidth
+                                     : Math.max(8, Kirigami.Units.iconSizes.small * slotSizeFactor)
     /** Thin ≈4–5px, thick ≈7–8px */
     readonly property real lineWidth: Math.max(4, Math.round(3.5 + root.sizeFactor * 4))
 
@@ -41,11 +43,20 @@ Item {
             }
             return Math.max(root.lineWidth * 2.2, Math.round(root.slotSize * 0.72))
         }
-        // Kante: entity colours are squares.
-        radius: KanteStyle.active ? 0 : height / 2
-        visible: root.showDot
+        radius: height / 2
+        visible: root.showDot && !KanteStyle.active
         color: root.customerColor
         border.width: 1
         border.color: Qt.rgba(0, 0, 0, 0.18)
+    }
+
+    // Kante: the entity colour is a swatch (a square); shrinks into short legend rows.
+    KanteSwatch {
+        id: swatch
+        anchors.centerIn: parent
+        width: root.height > 0 ? Math.min(implicitWidth, root.height) : implicitWidth
+        height: width
+        visible: root.showDot && KanteStyle.active
+        swatchColor: root.customerColor
     }
 }

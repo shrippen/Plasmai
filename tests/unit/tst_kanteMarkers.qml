@@ -16,20 +16,35 @@ TestCase {
         KanteStyle.kind = KanteStyle.Kind.System
     }
 
+    // System: a round bar; Kante: a KanteSwatch in the entity colour.
     function test_colorDotShape_data() {
         return [
-            { tag: "system", kind: KanteStyle.Kind.System, round: true },
-            { tag: "kante", kind: KanteStyle.Kind.Kante, round: false },
-            { tag: "kanteLight", kind: KanteStyle.Kind.KanteLight, round: false }
+            { tag: "system", kind: KanteStyle.Kind.System, swatch: false },
+            { tag: "kante", kind: KanteStyle.Kind.Kante, swatch: true },
+            { tag: "kanteLight", kind: KanteStyle.Kind.KanteLight, swatch: true }
         ]
     }
 
     function test_colorDotShape(data) {
         KanteStyle.kind = data.kind
-        var dot = createTemporaryObject(Qt.createComponent(Qt.resolvedUrl("../../contents/ui/CustomerColorDot.qml")), this)
+        var dot = createTemporaryObject(Qt.createComponent(Qt.resolvedUrl("../../contents/ui/CustomerColorDot.qml")), this,
+                                        { customerColor: "#336699" })
         verify(dot !== null)
         var bar = dot.children[0]
-        compare(bar.radius > 0, data.round)
+        var swatch = dot.children[1]
+        verify(bar.radius > 0)
+        compare(bar.visible, !data.swatch)
+        compare(swatch.visible, data.swatch)
+        compare(swatch.swatchColor, Qt.color("#336699"))
+        compare(swatch.width, swatch.height)
+    }
+
+    // Kante: a swatch fits a short legend row.
+    function test_colorDotSwatchFits() {
+        KanteStyle.kind = KanteStyle.Kind.Kante
+        var dot = createTemporaryObject(Qt.createComponent(Qt.resolvedUrl("../../contents/ui/CustomerColorDot.qml")), this,
+                                        { height: 10 })
+        compare(dot.children[1].height, 10)
     }
 
     function test_recDotShape() {

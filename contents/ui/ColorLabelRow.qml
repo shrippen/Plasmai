@@ -21,7 +21,7 @@ Item {
                                  ? KanteStyle.smallFont.pointSize
                                  : KanteStyle.defaultFont.pointSize
 
-    readonly property real slotSize: Kirigami.Units.iconSizes.small * 0.85
+    readonly property real slotSize: colorBar.slotSize
     /** Gap after the shared bar slot — larger for projects. */
     readonly property real labelGap: customerRole
                                      ? Kirigami.Units.smallSpacing

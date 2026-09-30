@@ -2967,6 +2967,7 @@ PlasmoidItem {
                     }
 
                     ColorLabelRow {
+                        id: cardProjectRow
                         Layout.fillWidth: true
                         visible: card.projectName.length > 0
                         customerRole: false
@@ -2976,9 +2977,7 @@ PlasmoidItem {
 
                     PlasmaComponents3.Label {
                         Layout.fillWidth: true
-                        Layout.leftMargin: Kirigami.Units.iconSizes.small * 0.85
-                                           + Kirigami.Units.largeSpacing
-                                           + Kirigami.Units.smallSpacing
+                        Layout.leftMargin: cardProjectRow.labelX
                         text: card.activityName
                         font.bold: true
                         wrapMode: Text.WordWrap
