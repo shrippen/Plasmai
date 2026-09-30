@@ -1006,7 +1006,6 @@ Kirigami.ApplicationWindow {
 
     pageStack.initialPage: TimerPage { }
     Component.onCompleted: {
-        console.log("PLASMAI-DIAG scheme", Qt.styleHints.colorScheme, "theme bg", Kirigami.Theme.backgroundColor, "text", Kirigami.Theme.textColor, "pal window", root.palette.window, "button", root.palette.button, "windowText", root.palette.windowText, "light", KanteStyle.light)
         drawerButtonNamer.restart()
         Platform.setBackend(AppBackend.create(TokenStore, FileStore,
             typeof idleWatcher !== "undefined" ? idleWatcher : undefined,
