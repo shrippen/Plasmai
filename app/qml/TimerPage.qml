@@ -762,7 +762,8 @@ Kirigami.Page {
     // ══════ DIALOGS ══════
     Kirigami.PromptDialog {
         id: confirmDialog
-        KanteDialogSkin { dialog: confirmDialog }
+        // A property, not a child: an Item child would count as dialog content (its ScrollView then sizes to 0).
+        readonly property Item kanteSkin: KanteDialogSkin { dialog: confirmDialog }
         title: i18n("Stop tracking?")
         subtitle: i18n("Stop %1 · %2?", root.currentProject, root.currentActivity)
         // Own footer actions: Qt's standard button texts stay English on Android.
@@ -775,7 +776,8 @@ Kirigami.Page {
     }
     Kirigami.PromptDialog {
         id: deleteDialog
-        KanteDialogSkin { dialog: deleteDialog }
+        // A property, not a child: an Item child would count as dialog content (its ScrollView then sizes to 0).
+        readonly property Item kanteSkin: KanteDialogSkin { dialog: deleteDialog }
         property var target: null
         title: i18n("Delete entry?")
         subtitle: i18n("Really delete this entry?")
@@ -789,7 +791,8 @@ Kirigami.Page {
     }
     Kirigami.PromptDialog {
         id: switchDialog
-        KanteDialogSkin { dialog: switchDialog }
+        // A property, not a child: an Item child would count as dialog content (its ScrollView then sizes to 0).
+        readonly property Item kanteSkin: KanteDialogSkin { dialog: switchDialog }
         title: i18n("Switch activity")
         subtitle: root.pendingSwitchTimesheet ? i18n("Switch to %1 · %2?", KimaiApi.displayProjectName(root.pendingSwitchTimesheet, root.projects), KimaiApi.displayActivityName(root.pendingSwitchTimesheet, root.allActivities, root.activitiesByProject)) : ""
         // Own footer actions: Qt's standard button texts stay English on Android.
@@ -806,7 +809,8 @@ Kirigami.Page {
     }
     Kirigami.Dialog {
         id: splitDialog
-        KanteDialogSkin { dialog: splitDialog }
+        // A property, not a child: an Item child would count as dialog content (its ScrollView then sizes to 0).
+        readonly property Item kanteSkin: KanteDialogSkin { dialog: splitDialog }
         property var target: null
         title: i18n("Split entry")
         // Own footer actions: Qt's standard button texts stay English on Android.
@@ -848,7 +852,8 @@ Kirigami.Page {
 
     Kirigami.Dialog {
         id: idleDialog
-        KanteDialogSkin { dialog: idleDialog }
+        // A property, not a child: an Item child would count as dialog content (its ScrollView then sizes to 0).
+        readonly property Item kanteSkin: KanteDialogSkin { dialog: idleDialog }
         title: i18n("You were idle")
         standardButtons: Kirigami.Dialog.NoButton
         padding: Kirigami.Units.largeSpacing

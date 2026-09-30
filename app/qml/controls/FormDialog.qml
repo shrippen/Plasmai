@@ -13,7 +13,8 @@ Kirigami.Dialog {
     property bool acceptEnabled: true
     default property alias formData: form.data
 
-    KanteDialogSkin { dialog: dialog }
+    // A property, not a child: an Item child would count as dialog content (its ScrollView then sizes to 0).
+    readonly property Item kanteSkin: KanteDialogSkin { dialog: dialog }
 
     standardButtons: Kirigami.Dialog.NoButton
     customFooterActions: [
