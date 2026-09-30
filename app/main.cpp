@@ -2,7 +2,9 @@
 #ifdef PLASMAI_TRAY
 #include <QApplication>
 #endif
+#include <QColor>
 #include <QIcon>
+#include <QPalette>
 #include <QStyleHints>
 #include <QtQml>
 #include <QQmlApplicationEngine>
