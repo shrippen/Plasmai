@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Changed
+- Film day: the note is the Kimai entry's description, no longer a second field in the Drehzettel plugin. Typed before the entry exists, it goes with Start or Save
+
+### Fixed
+- Film day: the note was lost when leaving the page (or closing the popup) right after typing, and on Android the last word held back by the keyboard's predictive text was not saved
+
 ## 2.1.0
 
 Released 2026-09-30.

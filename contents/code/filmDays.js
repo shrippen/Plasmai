@@ -235,7 +235,9 @@ function daySpan(entries) {
 //   productionDay 0/n   shootingDayNumber  null | 1–999
 //   surchargeDay        productionDay      null | 1–7
 //   extraPayCents       extraPayCents      int 0–10,000,000
-//   note ""             note               null | trimmed, ≤ 500
+//   note ""             note               read only: the plugin answers with the
+//                                          description of the day's Kimai entry;
+//                                          Plasmai writes the entry itself (noteOf)
 
 var BREAK_MAX_MINUTES = 720
 var DEFAULT_BREAK_MINUTES = 45
@@ -244,9 +246,12 @@ var DAY_NUMBER_MAX = 999
 var SURCHARGE_DAY_MAX = 7
 var EXTRA_PAY_MAX_CENTS = 10000000
 
-/** Keys the client may send in a PUT, in a stable order. */
+/**
+ * Keys the client may send in a PUT, in a stable order. Not "note": it is the
+ * Kimai entry's description, saved on the entry (FilmDaySync.saveNote).
+ */
 var API_FIELDS = ["breakMinutes", "catering", "category", "dayType",
-                  "shootingDayNumber", "productionDay", "extraPayCents", "note"]
+                  "shootingDayNumber", "productionDay", "extraPayCents"]
 
 function clampInt(value, min, max) {
     var n = Math.round(Number(value))
@@ -271,6 +276,11 @@ function optionalDayNumber(value, max) {
 function trimmedNote(note) {
     var s = String(note === null || note === undefined ? "" : note).trim()
     return s.length > NOTE_MAX_LENGTH ? s.substring(0, NOTE_MAX_LENGTH).trim() : s
+}
+
+/** Note of the film day: the description of its Kimai entry, "" without one. */
+function noteOf(timesheet) {
+    return trimmedNote(timesheet ? timesheet.description : "")
 }
 
 /** Full API representation of a local/form entry (all API_FIELDS). */

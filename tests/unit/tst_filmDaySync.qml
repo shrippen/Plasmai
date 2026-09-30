@@ -582,18 +582,71 @@ TestCase {
     function test_saveServerTwoStepOnlyChangedKeys() {
         var server = serverDay({ catering: true })
         var fields = FilmDays.fromApi(server)
-        fields.note = "Nacht"
-        responses = [{ status: 200, body: { id: 77 } }, { status: 200, body: serverDay({ catering: true, note: "Nacht" }) }]
+        fields.breakMinutes = 30
+        responses = [{ status: 200, body: { id: 77 } }, { status: 200, body: serverDay({ catering: true, breakMinutes: 30 }) }]
         var got = null
         Sync.saveDay(ctx("server"), saveReq(fields, server, 77), function(r) { got = r })
         compare(requests[0].method, "PATCH")
         compare(requests[0].url, "http://k/api/timesheets/77")
         compare(requests[1].method, "PUT")
-        compare(JSON.parse(requests[1].body).note, "Nacht")
+        compare(JSON.parse(requests[1].body).breakMinutes, 30)
         compare(Object.keys(JSON.parse(requests[1].body)).length, 1)
         verify(got.ok)
         compare(got.extras, "saved")
-        compare(got.server.note, "Nacht")
+        compare(got.server.breakMinutes, 30)
+    }
+
+    // The note is the Kimai entry's description (one field in Kimai, not a second one in the plugin).
+    function test_extrasNeverSendNote() {
+        var server = serverDay({ note: "alt" })
+        var fields = FilmDays.fromApi(server)
+        fields.note = "neu"
+        fields.breakMinutes = 30
+        responses = [{ status: 200, body: { id: 77 } }, { status: 200, body: serverDay({ breakMinutes: 30 }) }]
+        Sync.saveDay(ctx("server"), saveReq(fields, server, 77), function(r) {})
+        compare(Object.keys(bodyOf(1)).join(","), "breakMinutes")
+    }
+
+    function test_saveNoteWritesDescription() {
+        responses = [{ status: 200, body: { id: 77, description: "Regen" } }]
+        var got = null
+        Sync.saveNote(ctx("server"), { timesheetId: 77, note: "  Regen ", previous: "" }, function(r) { got = r })
+        compare(requests.length, 1)
+        compare(requests[0].method, "PATCH")
+        compare(requests[0].url, "http://k/api/timesheets/77")
+        compare(bodyOf(0).description, "Regen")
+        compare(got.saved, "saved")
+        compare(got.note, "Regen")
+    }
+
+    function test_saveNoteWithoutPlugin() {
+        responses = [{ status: 200, body: { id: 77 } }]
+        var got = null
+        Sync.saveNote(ctx("noPlugin"), { timesheetId: 77, note: "Regen", previous: "" }, function(r) { got = r })
+        compare(requests.length, 1)
+        compare(got.saved, "saved")
+    }
+
+    function test_saveNoteUnchangedSendsNothing() {
+        var got = null
+        Sync.saveNote(ctx("server"), { timesheetId: 77, note: "Regen ", previous: "Regen" }, function(r) { got = r })
+        compare(requests.length, 0)
+        compare(got.saved, "unchanged")
+    }
+
+    function test_saveNoteWithoutEntryWaits() {
+        var got = null
+        Sync.saveNote(ctx("server"), { timesheetId: null, note: "Regen", previous: "" }, function(r) { got = r })
+        compare(requests.length, 0)
+        compare(got.saved, "pending")
+    }
+
+    function test_saveNoteFailureIsReported() {
+        responses = [{ status: 500, body: {} }]
+        var got = null
+        Sync.saveNote(ctx("server"), { timesheetId: 77, note: "Regen", previous: "" }, function(r) { got = r })
+        compare(got.saved, "failed")
+        verify(got.error !== null)
     }
 
     function test_saveUnchangedSkipsPut() {
@@ -723,16 +776,16 @@ TestCase {
     function test_saveExtrasThroughTracker() {
         var server = serverDay()
         var fields = FilmDays.fromApi(server)
-        fields.note = "offline"
+        fields.catering = true
         var sent = []
         var tracker = {
             patchTimesheet: function(u, t, id, f, cb) { sent.push("patch " + id); cb({ ok: true, data: { id: id }, queued: true }) },
-            putFilmDay: function(u, t, pid, date, patch, cb) { sent.push("put " + pid + " " + date + " " + patch.note); cb({ ok: true, data: null, queued: true }) }
+            putFilmDay: function(u, t, pid, date, patch, cb) { sent.push("put " + pid + " " + date + " " + patch.catering); cb({ ok: true, data: null, queued: true }) }
         }
         var got = null
         Sync.saveDay(ctx("server", { tracker: tracker }), saveReq(fields, server, 77), function(r) { got = r })
         compare(requests.length, 0)
-        compare(sent, ["patch 77", "put 1 2026-09-14 offline"])
+        compare(sent, ["patch 77", "put 1 2026-09-14 true"])
         verify(got.ok)
         compare(got.extras, "saved")
     }

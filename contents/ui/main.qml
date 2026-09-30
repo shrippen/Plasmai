@@ -192,6 +192,10 @@ PlasmoidItem {
     property var filmDaySelectedDate: new Date()
     /** The Kimai entry for filmDaySelectedDate + the picked project, if any. */
     property var filmDayTimesheet: null
+    /** Entry the film day's note belongs to (running or the day's), null before it exists. */
+    property var filmDayNoteEntry: null
+    /** The note as last loaded or saved (its entry's description). */
+    property string filmDaySavedNote: ""
     property bool loadingFilmDay: false
     property int filmDayLoadSerial: 0
     /** Where film-day extras live for the active profile (FilmDaySync.Mode), see filmDaySync.js. */
@@ -1218,6 +1222,8 @@ PlasmoidItem {
                         },
                         timeOf: root.filmDaySpanText
                     })
+                    filmDayNoteEntry = info.timesheet
+                    filmDaySavedNote = FilmDays.noteOf(info.timesheet)
                     root.filmDayViewRef.applyLoadedDay(date, info.timesheet, day,
                         KimaiApi.customerCurrencyOfProject(root.projectOfId(r.projectId), root.customers),
                         r.others, r.projectId, {
@@ -1282,6 +1288,21 @@ PlasmoidItem {
         })
     }
 
+    /** The note is the entry's description; before the entry exists it goes with Start / Save. */
+    function saveFilmDayNote(text) {
+        FilmDaySync.saveNote(filmDayContext(), {
+            timesheetId: filmDayNoteEntry ? filmDayNoteEntry.id : null, note: text, previous: filmDaySavedNote
+        }, function(result) {
+            if (result.saved === "failed") {
+                setError(result.error)
+                return
+            }
+            if (result.saved === "saved") {
+                filmDaySavedNote = result.note
+            }
+        })
+    }
+
     // The film day follows the timer (Start, Stop, a switch from the main view).
     Connections {
         target: root
@@ -1318,16 +1339,22 @@ PlasmoidItem {
         var breakMinutes = (view && view.extrasVisible) ? view.effectiveBreakMinutes : 0
         // B3: the other entries of the project on this day, deleted after a successful save.
         var mergeIds = (view && view.mergeOthers) ? view.otherEntryIds() : []
+        var existingId = FilmDays.saveTargetId(filmDayTimesheet, projectId, KimaiApi.projectId)
+        var timesheetFields = {
+            begin: KimaiApi.localDateTimeString(beginDate),
+            end: KimaiApi.localDateTimeString(endDate),
+            project: projectId,
+            activity: activityId
+        }
+        // A new entry takes the note typed before it existed.
+        if (!existingId && view) {
+            timesheetFields.description = view.noteText()
+        }
         FilmDaySync.saveDay(filmDayContext(), {
             projectId: projectId,
             dateStr: dateStr,
-            existingId: FilmDays.saveTargetId(filmDayTimesheet, projectId, KimaiApi.projectId),
-            timesheetFields: {
-                begin: KimaiApi.localDateTimeString(beginDate),
-                end: KimaiApi.localDateTimeString(endDate),
-                project: projectId,
-                activity: activityId
-            },
+            existingId: existingId,
+            timesheetFields: timesheetFields,
             fields: filmDayFields,
             server: filmDayServer,
             dayMode: filmDayLoadMode
@@ -3680,8 +3707,17 @@ PlasmoidItem {
                     onExtrasEdited: function(fields) {
                         root.saveFilmDayExtras(fields)
                     }
+                    onNoteEdited: function(text) {
+                        root.saveFilmDayNote(text)
+                    }
+                    // Closing the popup or leaving the film day must not drop a note still being typed.
+                    onVisibleChanged: {
+                        if (!visible) {
+                            filmDayView.flushPending()
+                        }
+                    }
                     onStartRequested: function(projectId, activityId, projectLabel, activityLabel) {
-                        root.switchToActivity(projectId, activityId, projectLabel, activityLabel, "")
+                        root.switchToActivity(projectId, activityId, projectLabel, activityLabel, filmDayView.noteText())
                     }
                     onStopRequested: root.stopTracking(false)
                     onRunningBeginEdited: function(beginText) {
@@ -3940,6 +3976,10 @@ PlasmoidItem {
         target: root
         function onExpandedChanged() {
             if (!root.expanded) {
+                // A note still being typed in the film day is saved on close.
+                if (root.filmDayViewRef) {
+                    root.filmDayViewRef.flushPending()
+                }
                 return
             }
             root.sparklineNowTick++

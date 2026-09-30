@@ -263,9 +263,15 @@ TestCase {
         local.breakMinutes = 30
         local.note = "neu"
         var patch = FilmDays.toApiPatch(local, server)
-        compare(Object.keys(patch).sort().join(","), "breakMinutes,note")
+        // The note is the Kimai entry's description: never part of the film-day PUT.
+        compare(Object.keys(patch).sort().join(","), "breakMinutes")
         compare(patch.breakMinutes, 30)
-        compare(patch.note, "neu")
+    }
+
+    function test_noteOfEntry() {
+        compare(FilmDays.noteOf({ description: "  Regen " }), "Regen")
+        compare(FilmDays.noteOf({ description: null }), "")
+        compare(FilmDays.noteOf(null), "")
     }
 
     function test_toApiPatchResetToDefaultSendsNull() {
