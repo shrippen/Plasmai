@@ -132,38 +132,44 @@ TestCase {
         verify(strip.sunset > strip.sunrise)
     }
 
-    function test_tagChip_data() {
+    // Tags: Kante shows a KanteTagPicker (chips + search), System its own pills.
+    function test_tagPicker_data() {
         return [
-            { tag: "system", kind: KanteStyle.Kind.System, chip: false },
-            { tag: "kante", kind: KanteStyle.Kind.Kante, chip: true },
-            { tag: "kanteLight", kind: KanteStyle.Kind.KanteLight, chip: true }
+            { tag: "system", kind: KanteStyle.Kind.System, kante: false },
+            { tag: "kante", kind: KanteStyle.Kind.Kante, kante: true },
+            { tag: "kanteLight", kind: KanteStyle.Kind.KanteLight, kante: true }
         ]
     }
 
-    function test_tagChip(data) {
+    function test_tagPicker(data) {
         KanteStyle.kind = data.kind
         var picker = createTemporaryObject(Qt.createComponent(Qt.resolvedUrl("../../contents/ui/TagPicker.qml")), this,
                                            { width: 300, selectedTagEntries: tags })
         verify(picker !== null)
-        var tag = findTagDelegate(picker)
-        verify(tag !== null)
-        var chip = tag.children[0]
-        var pill = tag.children[1]
-        compare(chip.visible, data.chip)
-        compare(pill.visible, !data.chip)
-        compare(chip.text, "urgent")
-        compare(chip.chipColor, Qt.color("#cc241d"))
-        verify(chip.removable)
-        compare(tag.implicitWidth, data.chip ? chip.implicitWidth : pill.implicitWidth)
+        var kante = findItem(picker, function(i) { return i.tagNames !== undefined })
+        var chrome = findTagDelegate(picker)
+        while (chrome.parent !== picker) {
+            chrome = chrome.parent
+        }
+        compare(kante.visible, data.kante)
+        compare(chrome.visible, !data.kante)
+        compare(kante.tagNames, ["urgent"])
     }
 
-    // The chip's cross removes the tag from the picker.
-    function test_tagChipRemoves() {
+    // Edits in the Kante picker come back as {name, color} entries.
+    function test_tagPickerEdits() {
         KanteStyle.kind = KanteStyle.Kind.Kante
         var picker = createTemporaryObject(Qt.createComponent(Qt.resolvedUrl("../../contents/ui/TagPicker.qml")), this,
                                            { width: 300, selectedTagEntries: tags })
-        findTagDelegate(picker).children[0].removeRequested()
-        compare(picker.selectedTagEntries.length, 0)
+        var kante = findItem(picker, function(i) { return i.tagNames !== undefined })
+        kante.add("meeting")
+        compare(picker.selectedTagEntries.length, 2)
+        compare(picker.selectedTagEntries[1].name, "meeting")
+        verify(picker.selectedTagEntries[1].color !== undefined)
+        compare(picker.normalizedTags, ["urgent", "meeting"])
+
+        kante.remove(0)
+        compare(picker.normalizedTags, ["meeting"])
     }
 
     function test_offlineStatus_data() {

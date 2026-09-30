@@ -27,7 +27,7 @@ Item {
     readonly property int minVisibleEntries: TouchUi.pickerMinVisibleEntries
     /** Rows worth of space required before preferring that open direction. */
     readonly property int directionVisibleEntries: TouchUi.pickerDirectionEntries
-    readonly property bool popupOpen: popup.opened
+    readonly property bool popupOpen: KanteStyle.active ? kanteCombo.popupOpen : popup.opened
 
     /** Scroll view for measuring visible space inside panel flyouts. */
     property Item viewportItem: null
@@ -56,6 +56,13 @@ Item {
         }
         return ""
     }
+
+    /** Kante rows: {text, color}; a named section (a customer) follows the label. */
+    readonly property var kanteModel: items.map(function(item) {
+        var named = item.section && !(sectionTitleMap && sectionTitleMap[item.section])
+        return { text: named ? item.label + " · " + item.section : item.label,
+                 color: item.rowColor || item.color || "" }
+    })
 
     function closePopup() {
         if (popup.opened) {
@@ -274,9 +281,36 @@ Item {
         }
     }
 
+    // Kante: a KanteSearchCombo. It has no section heads, so a row names its customer.
+    KanteSearchCombo {
+        id: kanteCombo
+        anchors.fill: parent
+        visible: KanteStyle.active
+        enabled: root.enabled
+        model: root.kanteModel
+        textRole: "text"
+        colorRole: "color"
+        placeholderText: root.placeholderText
+        onActivated: function(index) {
+            root.currentIndex = index
+            root.activated(index)
+        }
+        onPopupOpenChanged: {
+            if (popupOpen) {
+                root.aboutToOpen()
+            }
+        }
+    }
+    Binding {
+        target: kanteCombo
+        property: "currentIndex"
+        value: root.currentIndex
+    }
+
     KanteTextField {
         id: field
         anchors.fill: parent
+        visible: !KanteStyle.active
         enabled: root.enabled
         placeholderText: root.placeholderText
         selectByMouse: true

@@ -99,4 +99,33 @@ TestCase {
         compare(field.hours, 14)
         compare(kante.hour, 14)
     }
+
+    // Pickers: Kante shows a KanteSearchCombo; a row names its customer (no section heads).
+    function test_searchableCombo_data() {
+        return test_dateField_data()
+    }
+
+    function test_searchableCombo(data) {
+        KanteStyle.kind = data.kind
+        var items = [{ label: "Website", section: "ACME", rowColor: "#d65d0e" },
+                     { label: "Support", section: "global" }]
+        var combo = createTemporaryObject(Qt.createComponent(Qt.resolvedUrl("../../contents/ui/SearchableCombo.qml")), this,
+                                          { width: 300, items: items, sectionTitleMap: { global: "Global activities" } })
+        var kante = findItem(combo, function(i) { return i.newEntered !== undefined })
+        verify(kante !== null)
+        compare(kante.visible, data.kante)
+        compare(combo.kanteModel[0].text, "Website · ACME")
+        compare(Qt.color(combo.kanteModel[0].color), Qt.color("#d65d0e"))
+        compare(combo.kanteModel[1].text, "Support")
+
+        combo.currentIndex = 1
+        compare(kante.currentIndex, 1)
+
+        editSpy.signalName = "activated"
+        editSpy.target = combo
+        kante.choose(0)
+        compare(combo.currentIndex, 0)
+        compare(editSpy.count, 1)
+        compare(editSpy.signalArguments[0][0], 0)
+    }
 }

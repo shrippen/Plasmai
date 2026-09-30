@@ -10,6 +10,7 @@ import "Controls" as Controls
 
 /**
  * Searchable multi-tag picker: Kimai tags as inline color pills, optional create.
+ * Kante: a KanteTagPicker (chips, a search over the tracker's tags, typed new tags).
  */
 ColumnLayout {
     id: root
@@ -190,8 +191,35 @@ ColumnLayout {
         return true
     }
 
+    // Kante: KanteTagPicker; it filters the tracker's tags itself, loaded when the list opens.
+    KanteTagPicker {
+        id: kanteTags
+        Layout.fillWidth: true
+        visible: KanteStyle.active
+        enabled: root.enabled
+        tags: root.selectedTagEntries
+        suggestions: root.suggestionModel
+        allowNew: true
+        placeholderText: i18n("Add tags…")
+        removeText: i18n("Remove") + " %1"
+        onEdited: function(tags) {
+            root.selectedTagEntries = tags.map(function(tag) {
+                return typeof tag === "object" ? tag : root.entryFromName(tag, "")
+            }).filter(function(entry) { return entry !== null })
+        }
+    }
+    Connections {
+        target: kanteTags.search
+        function onPopupOpenChanged() {
+            if (kanteTags.search.popupOpen) {
+                root.refreshSuggestions()
+            }
+        }
+    }
+
     Rectangle {
         id: fieldChrome
+        visible: !KanteStyle.active
         Layout.fillWidth: true
         radius: KanteStyle.themed ? 0 : Kirigami.Units.smallSpacing
         color: KanteStyle.themed ? KanteStyle.sunkenColor
@@ -228,44 +256,24 @@ ColumnLayout {
 
             Repeater {
                 model: root.selectedTagEntries
-                delegate: Item {
-                    id: tagDelegate
+                delegate: Rectangle {
                     required property var modelData
                     readonly property color pillColor: Qt.color(modelData.color)
-                    implicitWidth: KanteStyle.active ? tagChip.implicitWidth : pillFrame.implicitWidth
-                    implicitHeight: KanteStyle.active ? tagChip.implicitHeight : pillFrame.implicitHeight
+                    radius: KanteStyle.themed ? 0 : Kirigami.Units.smallSpacing
+                    color: KanteStyle.tint(KanteStyle.textColor, 0.06)
+                    border.width: 1
+                    border.color: KanteStyle.tint(pillColor, 0.45)
+                    implicitWidth: pillRow.implicitWidth + Kirigami.Units.smallSpacing * 2
+                    implicitHeight: Math.max(pillRow.implicitHeight + Kirigami.Units.smallSpacing,
+                                             searchField.implicitHeight - Kirigami.Units.smallSpacing)
 
-                    // Kante: a chip in the tag's colour; its cross removes the tag.
-                    KanteChip {
-                        id: tagChip
-                        anchors.fill: parent
-                        visible: KanteStyle.active
-                        text: tagDelegate.modelData.name
-                        chipColor: tagDelegate.pillColor
+                    TagPill {
+                        id: pillRow
+                        anchors.centerIn: parent
+                        tagName: modelData.name
+                        tagColor: pillColor
                         removable: root.enabled
-                        onRemoveRequested: root.removeTag(tagDelegate.modelData.name)
-                    }
-
-                    Rectangle {
-                        id: pillFrame
-                        anchors.fill: parent
-                        visible: !KanteStyle.active
-                        radius: Kirigami.Units.smallSpacing
-                        color: KanteStyle.tint(KanteStyle.textColor, 0.06)
-                        border.width: 1
-                        border.color: KanteStyle.tint(tagDelegate.pillColor, 0.45)
-                        implicitWidth: pillRow.implicitWidth + Kirigami.Units.smallSpacing * 2
-                        implicitHeight: Math.max(pillRow.implicitHeight + Kirigami.Units.smallSpacing,
-                                                 searchField.implicitHeight - Kirigami.Units.smallSpacing)
-
-                        TagPill {
-                            id: pillRow
-                            anchors.centerIn: parent
-                            tagName: tagDelegate.modelData.name
-                            tagColor: tagDelegate.pillColor
-                            removable: root.enabled
-                            onRemoveRequested: root.removeTag(tagDelegate.modelData.name)
-                        }
+                        onRemoveRequested: root.removeTag(modelData.name)
                     }
                 }
             }
