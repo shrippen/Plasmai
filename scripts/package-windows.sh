@@ -57,6 +57,12 @@ done
 # windeployqt misses some of them).
 mkdir -p "$STAGE/qml/org/kde"
 cp -r "$DEPS/lib/qml/org/kde/kirigami" "$STAGE/qml/org/kde/"
+# Kirigami answers Breeze Light whatever the system is set to; the app's Basic style (its own
+# Theme.qml) follows the system's light/dark. Kirigami finds a style by its folder next to
+# the others, so it goes there and not into the app's resources (a dynamic build reads files).
+cp -r app/qml/kirigami-styles/org/kde/kirigami/styles/Basic "$STAGE/qml/org/kde/kirigami/styles/"
+rm -f "$STAGE/qml/org/kde/kirigami/styles/Basic/README.md"
+rm -f "$STAGE/qml/org/kde/kirigami/styles/Basic/qmldir"
 cp LICENSE "$STAGE/LICENSE.txt"
 
 # Zip: the same files, unpack anywhere and start plasmai-app.exe (settings and the token

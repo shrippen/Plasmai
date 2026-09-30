@@ -192,9 +192,8 @@ int main(int argc, char *argv[])
         engine.rootContext()->setContextProperty(QStringLiteral("networkStatus"), new NetworkStatus(&app));
     }
 
-    // Add QRC import path so Kirigami platform plugin can find style modules (Android: the Material
-    // colors; Windows and macOS: the Basic colors that follow the system's scheme)
-#if defined(Q_OS_ANDROID) || defined(Q_OS_WIN) || defined(Q_OS_MACOS)
+    // Add QRC import path so Kirigami platform plugin can find style modules
+#ifdef Q_OS_ANDROID
     engine.addImportPath(QStringLiteral("qrc:/qt/qml"));
 #endif
 
