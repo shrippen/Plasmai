@@ -37,7 +37,7 @@
         <file alias="contents/ui/Kante/KanteCommandBox.qml">../contents/ui/Kante/KanteCommandBox.qml</file>
         <file alias="contents/ui/Kante/KanteCounter.qml">../contents/ui/Kante/KanteCounter.qml</file>
         <file alias="contents/ui/Kante/KanteCurveEditor.qml">../contents/ui/Kante/KanteCurveEditor.qml</file>
-        <file alias="contents/ui/Kante/KanteDayStrip.qml">../contents/ui/Kante/KanteDayStrip.qml</file>
+        <file alias="contents/ui/Kante/EntryDayStrip.qml">../contents/ui/Kante/EntryDayStrip.qml</file>
         <file alias="contents/ui/Kante/KanteDialog.qml">../contents/ui/Kante/KanteDialog.qml</file>
         <file alias="contents/ui/Kante/KanteDialogSkin.qml">../contents/ui/Kante/KanteDialogSkin.qml</file>
         <file alias="contents/ui/Kante/KanteDropZone.qml">../contents/ui/Kante/KanteDropZone.qml</file>
@@ -111,7 +111,7 @@
         <file alias="contents/ui/BarChart.qml">../contents/ui/BarChart.qml</file>
         <file alias="contents/ui/ColorLabelRow.qml">../contents/ui/ColorLabelRow.qml</file>
         <file alias="contents/ui/CustomerColorDot.qml">../contents/ui/CustomerColorDot.qml</file>
-        <file alias="contents/ui/KanteDayStrip.qml">../contents/ui/KanteDayStrip.qml</file>
+        <file alias="contents/ui/EntryDayStrip.qml">../contents/ui/EntryDayStrip.qml</file>
         <file alias="contents/ui/PieChart.qml">../contents/ui/PieChart.qml</file>
         <file alias="contents/ui/PlasmaiColors.qml">../contents/ui/PlasmaiColors.qml</file>
         <file alias="contents/ui/StackedBarChart.qml">../contents/ui/StackedBarChart.qml</file>

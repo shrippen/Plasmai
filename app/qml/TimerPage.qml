@@ -375,7 +375,7 @@ Kirigami.Page {
                     }
                     Component {
                         id: dayStrip
-                        KanteDayStrip {
+                        EntryDayStrip {
                             entries: root.todayTimesheets
                             customersById: root.customersById
                             workDayBegin: root.workDayBegin; workDayEnd: root.workDayEnd
