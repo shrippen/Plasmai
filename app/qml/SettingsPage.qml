@@ -206,17 +206,44 @@ Kirigami.Page {
 
                     Repeater {
                         model: page.locationResults
-                        delegate: QQC2.ItemDelegate {
+                        delegate: Item {
+                            id: locationRow
                             required property var modelData
                             Layout.fillWidth: true
-                            text: modelData.displayName
-                            icon.name: "mark-location"
-                            onClicked: {
+                            // The name's width; KanteListRow's own (320 px) would widen the form on phones.
+                            implicitWidth: locationSystemRow.implicitWidth
+                            implicitHeight: KanteStyle.active ? locationKanteRow.implicitHeight : locationSystemRow.implicitHeight
+
+                            function pick() {
                                 root.latitude = modelData.latitude; root.longitude = modelData.longitude; root.locationName = modelData.displayName
                                 page.saveSetting("latitude", modelData.latitude)
                                 page.saveSetting("longitude", modelData.longitude)
                                 page.saveSetting("locationName", modelData.displayName)
                                 page.locationResults = []; locationField.text = ""
+                            }
+
+                            // Kante: a list row with the place icon as its marker.
+                            KanteListRow {
+                                id: locationKanteRow
+                                anchors.fill: parent
+                                visible: KanteStyle.active
+                                text: locationRow.modelData.displayName
+                                onClicked: locationRow.pick()
+
+                                Kirigami.Icon {
+                                    source: "mark-location"
+                                    width: Kirigami.Units.iconSizes.small
+                                    height: Kirigami.Units.iconSizes.small
+                                }
+                            }
+
+                            QQC2.ItemDelegate {
+                                id: locationSystemRow
+                                anchors.fill: parent
+                                visible: !KanteStyle.active
+                                text: locationRow.modelData.displayName
+                                icon.name: "mark-location"
+                                onClicked: locationRow.pick()
                             }
                         }
                     }

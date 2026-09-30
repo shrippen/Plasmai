@@ -62,8 +62,22 @@ Kirigami.Page {
                     Layout.fillWidth: true
                     spacing: 0
 
+                    // Kante: a list row with the project's swatch; the open project is selected.
+                    KanteListRow {
+                        Layout.fillWidth: true
+                        visible: KanteStyle.active
+                        text: (projectDelegate.modelData.section ? projectDelegate.modelData.section + " · " : "") + projectDelegate.modelData.label
+                        selected: page.expandedProjectId === projectDelegate.modelData.value.id
+                        onClicked: page.toggleExpanded(projectDelegate.modelData.value.id)
+
+                        KanteSwatch {
+                            swatchColor: projectDelegate.modelData.rowColor || KimaiApi.DEFAULT_CUSTOMER_COLOR
+                        }
+                    }
+
                     QQC2.ItemDelegate {
                         Layout.fillWidth: true
+                        visible: !KanteStyle.active
                         contentItem: ColorLabelRow {
                             customerRole: false
                             customerColor: projectDelegate.modelData.rowColor || KimaiApi.DEFAULT_CUSTOMER_COLOR
