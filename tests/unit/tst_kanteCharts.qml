@@ -83,7 +83,8 @@ TestCase {
         verify(bars.visible)
         compare(bars.values, [[2, 0], [0, 0.5]])
         compare(Qt.color(bars.stackColors[0]), Qt.color("#d65d0e"))
-        verify(!bars.readout)
+        verify(bars.readout)
+        compare(bars.partNames, ["Web", "App"])
     }
 
     function test_weeklyHourChart() {
