@@ -228,24 +228,44 @@ ColumnLayout {
 
             Repeater {
                 model: root.selectedTagEntries
-                delegate: Rectangle {
+                delegate: Item {
+                    id: tagDelegate
                     required property var modelData
                     readonly property color pillColor: Qt.color(modelData.color)
-                    radius: KanteStyle.themed ? 0 : Kirigami.Units.smallSpacing
-                    color: KanteStyle.tint(KanteStyle.textColor, 0.06)
-                    border.width: 1
-                    border.color: KanteStyle.tint(pillColor, 0.45)
-                    implicitWidth: pillRow.implicitWidth + Kirigami.Units.smallSpacing * 2
-                    implicitHeight: Math.max(pillRow.implicitHeight + Kirigami.Units.smallSpacing,
-                                             searchField.implicitHeight - Kirigami.Units.smallSpacing)
+                    implicitWidth: KanteStyle.active ? tagChip.implicitWidth : pillFrame.implicitWidth
+                    implicitHeight: KanteStyle.active ? tagChip.implicitHeight : pillFrame.implicitHeight
 
-                    TagPill {
-                        id: pillRow
-                        anchors.centerIn: parent
-                        tagName: modelData.name
-                        tagColor: pillColor
+                    // Kante: a chip in the tag's colour; its cross removes the tag.
+                    KanteChip {
+                        id: tagChip
+                        anchors.fill: parent
+                        visible: KanteStyle.active
+                        text: tagDelegate.modelData.name
+                        chipColor: tagDelegate.pillColor
                         removable: root.enabled
-                        onRemoveRequested: root.removeTag(modelData.name)
+                        onRemoveRequested: root.removeTag(tagDelegate.modelData.name)
+                    }
+
+                    Rectangle {
+                        id: pillFrame
+                        anchors.fill: parent
+                        visible: !KanteStyle.active
+                        radius: Kirigami.Units.smallSpacing
+                        color: KanteStyle.tint(KanteStyle.textColor, 0.06)
+                        border.width: 1
+                        border.color: KanteStyle.tint(tagDelegate.pillColor, 0.45)
+                        implicitWidth: pillRow.implicitWidth + Kirigami.Units.smallSpacing * 2
+                        implicitHeight: Math.max(pillRow.implicitHeight + Kirigami.Units.smallSpacing,
+                                                 searchField.implicitHeight - Kirigami.Units.smallSpacing)
+
+                        TagPill {
+                            id: pillRow
+                            anchors.centerIn: parent
+                            tagName: tagDelegate.modelData.name
+                            tagColor: tagDelegate.pillColor
+                            removable: root.enabled
+                            onRemoveRequested: root.removeTag(tagDelegate.modelData.name)
+                        }
                     }
                 }
             }
