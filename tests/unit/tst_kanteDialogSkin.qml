@@ -17,7 +17,7 @@ TestCase {
         id: dialogComponent
         Kirigami.Dialog {
             id: dialog
-            readonly property Item kanteSkin: KanteDialogSkin { dialog: dialog }
+            readonly property QtObject kanteSkin: KanteDialogSkin { dialog: dialog }
             Rectangle { implicitWidth: 100; implicitHeight: 80 }
         }
     }
