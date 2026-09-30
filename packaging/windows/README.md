@@ -41,6 +41,12 @@ demo offscreen; the screenshots are the `windows-screens` artifact.
   with `winget validate` and open a pull request against `microsoft/winget-pkgs`
   (`manifests/s/shrippen/Plasmai/<version>/`). Better after signing: unsigned installers
   are accepted, but the SmartScreen warning stays.
-- **Tested on a Windows desktop.** CI builds and runs the app offscreen only; the tray icon,
-  the popup next to it, autostart and notifications were tried on Linux (Xvfb, a tray host)
-  with the same code, not on Windows itself.
+- **Tested on more Windows desktops.** Tried on Windows 11 24H2 (one 1920x1080 monitor, dark mode)
+  with the zip: tray icon and its overflow, popup placement above the taskbar, closing on focus
+  loss, the menu, start at login (`Run` value, `--hidden`), a second start opening the popup,
+  notifications, token in the Credential Manager, Kimai live (timer, entry form, date picker,
+  statistics, film day with the Drehzettel plugin), offline stop and the sync afterwards. Not
+  tried: Windows 10, several monitors, scaling other than 100 %, idle time, the installer.
+- **Light only.** The app runs in the Basic style with the light color scheme and the light
+  icon subset (`app/icons/breeze-light`), whatever the system setting is: Basic does not
+  follow the dark mode, and Kirigami's dark text on its light windows was unreadable.

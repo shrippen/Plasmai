@@ -228,9 +228,10 @@ The app built for Windows is a tray client: a tray icon with the app's window as
 Open:
 
 - **Signing:** unsigned, so SmartScreen warns. Needs a certificate (SignPath for OSS, or OV/EV) as secrets; then `signtool` before and after `iscc`.
-- **Live test on Windows 10 and 11** (stage 5): tray placement with the overflow area and several monitors, focus behavior, autostart, notifications, Kimai live. CI runs offscreen only, where there is no tray.
+- **Live test on Windows** (stage 5): done on Windows 11 (see `packaging/windows/README.md`); still open: Windows 10, several monitors, scaling, idle time, the installer.
 - **winget:** submit the manifest per release, better after signing.
-- Light/dark from Windows and per-monitor DPI come from Qt; not checked on a real desktop.
+- Light only for now (Basic style, light scheme, bundled light icons): the dark mode of Windows is not followed. Per-monitor DPI comes from Qt; not checked on a real desktop.
+- Found on the way, open: an offline stop writes the device's time, which is off when the Kimai profile has another time zone (known limit above); the "Stopped" notification carries the icon with the red dot.
 
 The plan as written before:
 
