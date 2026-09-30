@@ -30,6 +30,39 @@ Item {
     readonly property int axisSeconds: StatsData.axisMaxSeconds(maxSeconds)
 
     readonly property int axisWidth: Kirigami.Units.gridUnit * 2.4
+    readonly property int secondsPerHour: 3600
+
+    /** Kante: the stacks' parts across all days (by key), so part k has one colour. */
+    readonly property var parts: {
+        var out = []
+        var seen = {}
+        for (var i = 0; i < (days || []).length; i++) {
+            var stacks = days[i].stacks || []
+            for (var k = 0; k < stacks.length; k++) {
+                var key = stacks[k].key !== undefined ? stacks[k].key : stacks[k].name
+                if (seen[key] === undefined) {
+                    seen[key] = out.length
+                    out.push({ key: key, color: stacks[k].color })
+                }
+            }
+        }
+        return out
+    }
+
+    /** Kante: one list of hours per day, part k at index k (0 where the day has none). */
+    function partHours(day) {
+        var hours = parts.map(function() { return 0 })
+        var stacks = (day && day.stacks) || []
+        for (var k = 0; k < stacks.length; k++) {
+            var key = stacks[k].key !== undefined ? stacks[k].key : stacks[k].name
+            for (var p = 0; p < parts.length; p++) {
+                if (parts[p].key === key) {
+                    hours[p] += (Number(stacks[k].seconds) || 0) / secondsPerHour
+                }
+            }
+        }
+        return hours
+    }
 
     implicitHeight: barMaxHeight + Kirigami.Units.gridUnit * 1.6
     implicitWidth: Kirigami.Units.gridUnit * 16
@@ -46,7 +79,7 @@ Item {
         anchors.left: parent.left
         anchors.top: parent.top
         width: root.axisWidth
-        visible: root.maxSeconds > 0
+        visible: root.maxSeconds > 0 && !KanteStyle.active
         horizontalAlignment: Text.AlignRight
         font.pointSize: KanteStyle.smallFont.pointSize - 1
         opacity: 0.55
@@ -62,7 +95,7 @@ Item {
         anchors.bottom: parent.bottom
         anchors.bottomMargin: Kirigami.Units.gridUnit * 1.2
         width: root.axisWidth
-        visible: root.maxSeconds > 0
+        visible: root.maxSeconds > 0 && !KanteStyle.active
 
         Controls.Label {
             anchors.left: parent.left
@@ -103,7 +136,7 @@ Item {
         anchors.top: yAxis.top
         anchors.bottom: parent.bottom
         anchors.bottomMargin: Kirigami.Units.gridUnit * 1.2
-        visible: root.maxSeconds > 0
+        visible: root.maxSeconds > 0 && !KanteStyle.active
 
         Repeater {
             model: root.gridLineCount + 1
@@ -212,5 +245,17 @@ Item {
                 }
             }
         }
+    }
+
+    // Kante: a stacked KanteBarChart, each project in its colour, hours on the axis.
+    KanteBarChart {
+        id: kanteChart
+        anchors.fill: parent
+        visible: KanteStyle.active && root.maxSeconds > 0
+        axis: true
+        valueFormat: KanteBarChart.ValueFormat.Hours
+        values: (root.days || []).map(function(day) { return root.partHours(day) })
+        labels: (root.days || []).map(function(day) { return day.label || "" })
+        stackColors: root.parts.map(function(part) { return part.color })
     }
 }

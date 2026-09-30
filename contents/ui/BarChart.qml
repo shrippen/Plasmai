@@ -30,6 +30,7 @@ Item {
     readonly property int axisSeconds: StatsData.axisMaxSeconds(maxSeconds)
 
     readonly property int axisWidth: Kirigami.Units.gridUnit * 2.4
+    readonly property int secondsPerHour: 3600
 
     implicitHeight: barMaxHeight + Kirigami.Units.gridUnit * 1.6
     implicitWidth: Kirigami.Units.gridUnit * 16
@@ -46,7 +47,7 @@ Item {
         anchors.left: parent.left
         anchors.top: parent.top
         width: root.axisWidth
-        visible: root.maxSeconds > 0
+        visible: root.maxSeconds > 0 && !KanteStyle.active
         horizontalAlignment: Text.AlignRight
         font.pointSize: KanteStyle.smallFont.pointSize - 1
         opacity: 0.55
@@ -62,7 +63,7 @@ Item {
         anchors.bottom: parent.bottom
         anchors.bottomMargin: Kirigami.Units.gridUnit * 1.2
         width: root.axisWidth
-        visible: root.maxSeconds > 0
+        visible: root.maxSeconds > 0 && !KanteStyle.active
 
         Controls.Label {
             anchors.left: parent.left
@@ -103,7 +104,7 @@ Item {
         anchors.top: yAxis.top
         anchors.bottom: parent.bottom
         anchors.bottomMargin: Kirigami.Units.gridUnit * 1.2
-        visible: root.maxSeconds > 0
+        visible: root.maxSeconds > 0 && !KanteStyle.active
 
         // Faint horizontal grid lines
         Repeater {
@@ -157,5 +158,16 @@ Item {
                 }
             }
         }
+    }
+
+    // Kante: a KanteBarChart, hours on the axis (h:mm).
+    KanteBarChart {
+        id: kanteChart
+        anchors.fill: parent
+        visible: KanteStyle.active && root.maxSeconds > 0
+        axis: true
+        valueFormat: KanteBarChart.ValueFormat.Hours
+        values: (root.model || []).map(function(bar) { return (Number(bar.seconds) || 0) / root.secondsPerHour })
+        labels: (root.model || []).map(function(bar) { return bar.label || "" })
     }
 }

@@ -6,7 +6,8 @@ import "../code/kimaiApi.js" as KimaiApi
 import "Kante"
 
 /**
- * Pie chart + legend.
+ * Pie chart + legend. Kante has no pie: there each row is a bar in its colour
+ * (KanteBarChart, hours on the axis) over the same legend.
  * rows: [{ name, seconds, color, ratio }, ...]
  */
 ColumnLayout {
@@ -17,18 +18,44 @@ ColumnLayout {
     property string title: ""
     property string emptyText: ""
     property int chartSize: Kirigami.Units.gridUnit * 7
+    readonly property int secondsPerHour: 3600
 
     spacing: Kirigami.Units.smallSpacing
 
     Controls.Label {
         Layout.fillWidth: true
-        visible: root.title.length > 0
-        text: root.title
+        visible: root.title.length > 0 || (KanteStyle.active && root.totalSeconds > 0)
+        // Kante: the total moves from the donut's hole to the title ("Today · 5:30").
+        text: KanteStyle.active && root.totalSeconds > 0
+              ? [root.title, KimaiApi.formatDurationShort(root.totalSeconds)].filter(function(t) { return t.length > 0 }).join(" · ")
+              : root.title
         font.bold: true
         opacity: 0.85
     }
 
+    // Kante: one bar per row; a row's hours sit at its own index, so it takes its colour.
+    KanteBarChart {
+        Layout.fillWidth: true
+        Layout.preferredHeight: root.chartSize
+        visible: KanteStyle.active && root.totalSeconds > 0
+        axis: true
+        valueFormat: KanteBarChart.ValueFormat.Hours
+        values: (root.rows || []).map(function(row, i) {
+            return root.rows.map(function(other, k) { return k === i ? (Number(row.seconds) || 0) / root.secondsPerHour : 0 })
+        })
+        stackColors: (root.rows || []).map(function(row) { return row.color || PlasmaiColors.chart })
+    }
+
+    Controls.Label {
+        Layout.fillWidth: true
+        visible: KanteStyle.active && root.totalSeconds <= 0
+        opacity: 0.6
+        wrapMode: Text.WordWrap
+        text: root.emptyText
+    }
+
     Item {
+        visible: !KanteStyle.active
         Layout.alignment: Qt.AlignHCenter
         Layout.preferredWidth: root.chartSize
         Layout.preferredHeight: root.chartSize

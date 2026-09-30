@@ -46,6 +46,40 @@ ColumnLayout {
         return labels
     }
 
+    // Kante hour heads: every 2 h on a work day, every 6 h past 12 h.
+    readonly property real wideSpanHours: 12
+    readonly property real wideTickHours: 6
+    readonly property real narrowTickHours: 2
+
+    /** Kante: segments as KanteWeekTimeline entries {day, start, end, color, title, seconds}. */
+    readonly property var timelineEntries: {
+        var out = []
+        for (var i = 0; i < (days || []).length; i++) {
+            var segments = days[i].segments || []
+            for (var k = 0; k < segments.length; k++) {
+                var seg = segments[k]
+                out.push({ day: i, start: seg.startHour, end: seg.endHour, color: seg.color,
+                           title: seg.name || "", seconds: seg.seconds || 0 })
+            }
+        }
+        return out
+    }
+
+    /** Kante: row of today (-1: not this week) and now in hours. */
+    readonly property int todayRow: {
+        var today = new Date().toDateString()
+        for (var i = 0; i < (days || []).length; i++) {
+            if (days[i].date && new Date(days[i].date).toDateString() === today) {
+                return i
+            }
+        }
+        return -1
+    }
+    readonly property real nowHours: {
+        var now = new Date()
+        return now.getHours() + now.getMinutes() / 60
+    }
+
     spacing: Kirigami.Units.smallSpacing / 2
 
     Controls.Label {
@@ -64,7 +98,7 @@ ColumnLayout {
         Layout.preferredHeight: Kirigami.Units.gridUnit * 0.85
         Layout.leftMargin: root.labelWidth + Kirigami.Units.smallSpacing
         Layout.rightMargin: Kirigami.Units.gridUnit * 2.2 + Kirigami.Units.smallSpacing
-        visible: root.hasData
+        visible: root.hasData && !KanteStyle.active
 
         Repeater {
             model: root.hourLabels
@@ -90,8 +124,36 @@ ColumnLayout {
         }
     }
 
+    // Kante: a KanteWeekTimeline; a tapped block names its entry.
+    KanteWeekTimeline {
+        id: kanteTimeline
+        Layout.fillWidth: true
+        visible: KanteStyle.active && root.hasData
+        dayNames: (root.days || []).map(function(day) { return day.label || "" })
+        spanFrom: root.hourMin
+        spanTo: root.hourMax
+        tickStep: root.hourSpan > root.wideSpanHours ? root.wideTickHours : root.narrowTickHours
+        entries: root.timelineEntries
+        today: root.todayRow
+        now: root.todayRow >= 0 ? root.nowHours : -1
+
+        property string tip: ""
+        onEntryClicked: function(index) {
+            var entry = root.timelineEntries[index]
+            tip = entry.title + " · " + KimaiApi.formatDurationShort(entry.seconds)
+        }
+        Controls.ToolTip.visible: tip.length > 0
+        Controls.ToolTip.text: tip
+        Controls.ToolTip.timeout: Kirigami.Units.humanMoment
+        Controls.ToolTip.onVisibleChanged: {
+            if (!Controls.ToolTip.visible) {
+                tip = ""
+            }
+        }
+    }
+
     Repeater {
-        model: root.hasData ? root.days : []
+        model: root.hasData && !KanteStyle.active ? root.days : []
         delegate: RowLayout {
             id: dayRow
             Layout.fillWidth: true
