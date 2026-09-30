@@ -13,6 +13,25 @@ TestCase {
         compare(KimaiApi.formatDurationShort(0), "0m")
     }
 
+    // A time to write carries the device's offset, so Kimai converts it into the profile's zone.
+    function test_localDateTimeStringCarriesTheOffset() {
+        var d = new Date(2026, 8, 30, 4, 5, 6)
+        var offset = -d.getTimezoneOffset()
+        var abs = Math.abs(offset)
+        var expected = "+0000"
+        expected = (offset < 0 ? "-" : "+") + (Math.floor(abs / 60) < 10 ? "0" : "") + Math.floor(abs / 60)
+            + (abs % 60 < 10 ? "0" : "") + (abs % 60)
+        compare(KimaiApi.localDateTimeString(d), "2026-09-30T04:05:06" + expected)
+        verify(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{4}$/.test(KimaiApi.localDateTimeString(d)))
+        // The parser reads it back to the same instant.
+        compare(new Date(KimaiApi.localDateTimeString(d).replace(/([+-]\d{2})(\d{2})$/, "$1:$2")).getTime(), d.getTime())
+    }
+
+    // The query filters (begin/end) stay without an offset: Kimai answers 400 to one.
+    function test_localQueryStringHasNoOffset() {
+        compare(KimaiApi.localQueryString(new Date(2026, 8, 30, 4, 5, 6)), "2026-09-30T04:05:06")
+    }
+
     function test_normalizeUrl() {
         compare(KimaiApi.normalizeUrl("https://ki.example.com/"), "https://ki.example.com")
         compare(KimaiApi.normalizeUrl("https://ki.example.com///"), "https://ki.example.com")

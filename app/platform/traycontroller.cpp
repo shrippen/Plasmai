@@ -162,7 +162,9 @@ void TrayController::hidePopup()
 
 void TrayController::showMessage(const QString &title, const QString &body)
 {
-    m_icon.showMessage(title, body, trayIcon(m_tracking));
+    // The plain app icon: the message is sent as the state changes, and the icon with the red
+    // dot on "Stopped" (the tracking flag follows a moment later) was wrong.
+    m_icon.showMessage(title, body, trayIcon(false));
 }
 
 void TrayController::toggle()

@@ -34,6 +34,50 @@
 // Platform code lives in platform/ (one file per service, per platform where it
 // differs; CMakeLists.txt picks them). This file wires them into QML.
 
+
+#if defined(Q_OS_WIN) || defined(Q_OS_MACOS)
+// Breeze, the colors Kirigami's own apps use: what the Kirigami and Basic controls draw with here.
+static QPalette desktopPalette(bool dark)
+{
+    struct Colors { QColor window, base, text, disabled, mid, highlight; };
+    auto rgb = [](const char *hex) { return QColor(QString::fromLatin1(hex)); };
+    const Colors c = dark ? Colors{rgb("#31363b"), rgb("#232629"), rgb("#eff0f1"), rgb("#7f8c8d"), rgb("#4d5359"), rgb("#3daee9")}
+                          : Colors{rgb("#eff0f1"), rgb("#fcfcfc"), rgb("#232629"), rgb("#a1a9b1"), rgb("#bcc0c4"), rgb("#3daee9")};
+    QPalette p;
+    p.setColor(QPalette::Window, c.window);
+    p.setColor(QPalette::WindowText, c.text);
+    p.setColor(QPalette::Base, c.base);
+    p.setColor(QPalette::AlternateBase, c.window);
+    p.setColor(QPalette::Text, c.text);
+    // Button = Window: the tool bar, its buttons and the flat buttons are one surface; a
+    // button shows itself by its border (Mid) and on hover.
+    p.setColor(QPalette::Button, c.window);
+    p.setColor(QPalette::ButtonText, c.text);
+    p.setColor(QPalette::Mid, c.mid);
+    p.setColor(QPalette::Light, rgb(dark ? "#4d5359" : "#ffffff"));
+    p.setColor(QPalette::Dark, rgb(dark ? "#1b1e20" : "#a0a4a8"));
+    p.setColor(QPalette::Highlight, c.highlight);
+    p.setColor(QPalette::HighlightedText, rgb("#fcfcfc"));
+    p.setColor(QPalette::ToolTipBase, c.base);
+    p.setColor(QPalette::ToolTipText, c.text);
+    p.setColor(QPalette::PlaceholderText, c.disabled);
+    p.setColor(QPalette::Link, rgb("#2980b9"));
+    for (auto role : {QPalette::WindowText, QPalette::Text, QPalette::ButtonText}) {
+        p.setColor(QPalette::Disabled, role, c.disabled);
+    }
+    return p;
+}
+
+static void applyDesktopScheme()
+{
+    const bool dark = QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark;
+    QGuiApplication::setPalette(desktopPalette(dark));
+    const QString icons = dark ? QStringLiteral("breeze-dark") : QStringLiteral("breeze-light");
+    QIcon::setThemeName(icons);
+    QIcon::setFallbackThemeName(icons);
+}
+#endif
+
 // -- main ----------------------------------------------------------------
 
 int main(int argc, char *argv[])
@@ -66,13 +110,13 @@ int main(int argc, char *argv[])
     QIcon::setThemeName(QStringLiteral("breeze-dark"));
     QIcon::setFallbackThemeName(QStringLiteral("breeze-dark"));
 #elif defined(Q_OS_WIN) || defined(Q_OS_MACOS)
-    // No system icon theme here either. The app runs light on these systems: the Basic style
-    // does not follow the dark mode, and its light windows under Kirigami's light text made
-    // the pages unreadable. The bundled subset is the light one (dark icons).
-    QGuiApplication::styleHints()->setColorScheme(Qt::ColorScheme::Light);
+    // No system icon theme and no Kirigami platform theme here: the app hands Qt the Breeze
+    // colors itself, light or dark as the system is set (the Basic style follows neither, and
+    // Kirigami's light text on its light windows was unreadable), and picks the matching
+    // subset of the bundled icons (dark icons for the light scheme and the other way round).
     QIcon::setThemeSearchPaths(QIcon::themeSearchPaths() << QStringLiteral(":/icons"));
-    QIcon::setThemeName(QStringLiteral("breeze-light"));
-    QIcon::setFallbackThemeName(QStringLiteral("breeze-light"));
+    applyDesktopScheme();
+    QObject::connect(QGuiApplication::styleHints(), &QStyleHints::colorSchemeChanged, &app, &applyDesktopScheme);
 #endif
 
     // Names the token files and QStandardPaths depend on: keep them as the builds had them

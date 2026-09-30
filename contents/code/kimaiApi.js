@@ -1633,7 +1633,21 @@ function loadTags(kimaiUrl, apiToken, term, callback) {
     getJson(kimaiUrl, apiToken, tagsFindEndpoint(term), [], callback)
 }
 
+/**
+ * A time to write (begin / end of an entry), "2026-09-25T13:15:00+0200": the device's
+ * clock with the device's offset. Kimai reads it in the user's own time zone; without the
+ * offset it would take the device's wall clock as its own, which is hours off when the
+ * Kimai profile lives in another zone (checked against Kimai 2.67: it converts).
+ */
 function localDateTimeString(date) {
+    var offset = -date.getTimezoneOffset()
+    var abs = Math.abs(offset)
+    return localQueryString(date)
+        + (offset < 0 ? "-" : "+") + WorkAdjust.pad2(Math.floor(abs / 60)) + WorkAdjust.pad2(abs % 60)
+}
+
+/** The same without an offset, for the query filters (begin/end), which Kimai rejects with one. */
+function localQueryString(date) {
     return WorkAdjust.dateKey(date)
         + "T" + WorkAdjust.pad2(date.getHours()) + ":" + WorkAdjust.pad2(date.getMinutes())
         + ":" + WorkAdjust.pad2(date.getSeconds())
@@ -1797,8 +1811,8 @@ function fetchTimesheetsRange(kimaiUrl, apiToken, beginDate, endDate, callback, 
         return
     }
 
-    var begin = encodeURIComponent(localDateTimeString(beginDate))
-    var end = encodeURIComponent(localDateTimeString(endDate))
+    var begin = encodeURIComponent(localQueryString(beginDate))
+    var end = encodeURIComponent(localQueryString(endDate))
     var page = 1
     var size = 100
     var collected = []

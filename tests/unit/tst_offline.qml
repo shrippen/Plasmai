@@ -1,6 +1,7 @@
 import QtQuick
 import QtTest
 import "../../contents/code/offline.js" as Offline
+import "../../contents/code/kimaiApi.js" as KimaiApi
 
 /**
  * offline.js: snapshot answers, outbox, replay, local ids, conflicts. A fake
@@ -13,9 +14,8 @@ TestCase {
     readonly property double t0: new Date(2026, 8, 28, 12, 0).getTime()
 
     function stamp(h, m) {
-        var d = new Date(2026, 8, 28, h, m)
-        var p = function(n) { return (n < 10 ? "0" : "") + n }
-        return "2026-09-28T" + p(h) + ":" + p(m) + ":00"
+        // What the layer writes: the device time with its offset (see KimaiApi.localDateTimeString).
+        return KimaiApi.localDateTimeString(new Date(2026, 8, 28, h, m))
     }
 
     function netErr() { return { ok: false, error: { type: "network", status: 0, detail: "" } } }

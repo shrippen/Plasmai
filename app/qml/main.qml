@@ -38,8 +38,11 @@ Kirigami.ApplicationWindow {
     Binding {
         target: KanteStyle
         property: "preferDark"
-        // Android always runs Material Dark (main.cpp), whatever Kirigami reports.
+        // Android always runs Material Dark (main.cpp), whatever Kirigami reports. Windows and
+        // macOS have no Kirigami platform theme: the system's setting decides (main.cpp hands the
+        // matching Breeze colors to Qt).
         value: Qt.platform.os === "android"
+            || ((Qt.platform.os === "windows" || Qt.platform.os === "osx") && Qt.styleHints.colorScheme === Qt.ColorScheme.Dark)
     }
     Binding {
         target: KanteStyle
@@ -48,6 +51,16 @@ Kirigami.ApplicationWindow {
         // through the Material colors below, not through Kirigami.Theme.
         value: Qt.platform.os === "android"
     }
+
+    // Windows and macOS: the tool bar and the Basic controls draw with the window's palette, not
+    // with Kirigami.Theme. In Kante it takes Kante's ground and ink, so the header is one surface
+    // with the page and its buttons show themselves only on hover (flat, like the Plasmoid's).
+    readonly property bool desktopPalette: Qt.platform.os === "windows" || Qt.platform.os === "osx"
+    Binding { target: root.palette; property: "window"; value: KanteStyle.backgroundColor; when: root.desktopPalette && KanteStyle.themed }
+    Binding { target: root.palette; property: "button"; value: KanteStyle.backgroundColor; when: root.desktopPalette && KanteStyle.themed }
+    Binding { target: root.palette; property: "windowText"; value: KanteStyle.textColor; when: root.desktopPalette && KanteStyle.themed }
+    Binding { target: root.palette; property: "buttonText"; value: KanteStyle.textColor; when: root.desktopPalette && KanteStyle.themed }
+    Binding { target: root.palette; property: "mid"; value: KanteStyle.ruleColor; when: root.desktopPalette && KanteStyle.themed }
 
     // Kante: Gruvbox ground and accent for the window, Material (Android) and
     // Kirigami (Plasma Mobile) controls. Restored when switched back; Kante Light
@@ -973,6 +986,7 @@ Kirigami.ApplicationWindow {
 
     pageStack.initialPage: TimerPage { }
     Component.onCompleted: {
+        console.log("PLASMAI-DIAG scheme", Qt.styleHints.colorScheme, "theme bg", Kirigami.Theme.backgroundColor, "text", Kirigami.Theme.textColor, "pal window", root.palette.window, "button", root.palette.button, "windowText", root.palette.windowText, "light", KanteStyle.light)
         drawerButtonNamer.restart()
         Platform.setBackend(AppBackend.create(TokenStore, FileStore,
             typeof idleWatcher !== "undefined" ? idleWatcher : undefined,
