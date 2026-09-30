@@ -379,6 +379,9 @@ Kirigami.Page {
                             entries: root.todayTimesheets
                             customersById: root.customersById
                             workDayBegin: root.workDayBegin; workDayEnd: root.workDayEnd
+                            // 0, 0 is "not set" (Settings): no daylight then.
+                            latitude: root.latitude === 0 && root.longitude === 0 ? NaN : root.latitude
+                            longitude: root.longitude
                             nowTick: root.sparklineNowTick
                         }
                     }

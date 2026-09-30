@@ -179,6 +179,8 @@ Item {
             customersById: widget.customersById
             workDayBegin: widget.workDayBegin
             workDayEnd: widget.workDayEnd
+            latitude: Plasmoid.configuration.latitude
+            longitude: Plasmoid.configuration.longitude
             nowTick: widget.sparklineNowTick
         }
 

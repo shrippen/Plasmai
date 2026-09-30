@@ -99,6 +99,39 @@ TestCase {
         compare(line.meta, "")
     }
 
+    function stamp(h, m) {
+        var d = new Date()
+        d.setHours(h, m, 0, 0)
+        return d.toISOString()
+    }
+
+    // Day strip: Kimai entries become KanteDayStrip segments in hours, the work day
+    // the work band, the location daylight.
+    function test_entryDayStrip() {
+        KanteStyle.kind = KanteStyle.Kind.Kante
+        var strip = createTemporaryObject(Qt.createComponent(Qt.resolvedUrl("../../contents/ui/EntryDayStrip.qml")), this, {
+            width: 300, workDayBegin: "08:30", workDayEnd: "17:00",
+            customersById: { 1: { id: 1, color: "#d65d0e" } },
+            entries: [{ begin: stamp(8, 15), end: stamp(9, 45), project: { customer: 1 } },
+                      { begin: stamp(10, 0), end: null }]
+        })
+        verify(strip !== null)
+        compare(strip.segments.length, 2)
+        compare(strip.segments[0].from, 8.25)
+        compare(strip.segments[0].to, 9.75)
+        verify(strip.segments[0].color !== undefined)
+        compare(strip.segments[1].color, undefined)
+        compare(strip.workFrom, 8.5)
+        compare(strip.workTo, 17)
+        compare(strip.spanFrom, 8)
+        compare(strip.sunrise, -1)
+
+        strip.latitude = 52.52
+        strip.longitude = 13.405
+        verify(strip.sunrise > 0)
+        verify(strip.sunset > strip.sunrise)
+    }
+
     function test_tagChip_data() {
         return [
             { tag: "system", kind: KanteStyle.Kind.System, chip: false },

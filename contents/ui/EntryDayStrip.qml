@@ -1,31 +1,31 @@
 import QtQuick
-import QtQuick.Layouts
-import org.kde.kirigami as Kirigami
-import "Controls" as Controls
 import "../code/kimaiApi.js" as KimaiApi
 import "../code/dateTimeFormat.js" as DTF
+import "../code/solar.js" as Solar
 import "."
 import "Kante"
 
 /**
- * Day strip: today's entries as flat segments on one track, the work
- * day tinted, a thin "now" mark, hour labels below. The System style keeps
- * the DaySparkline instead.
- *
- *   06        10        14        18        22
- *   [##][###]       |[####]
+ * Day strip (Kante): today's entries on a KanteDayStrip, each in its project
+ * colour (a running entry in the accent), daylight from the location, the work
+ * day as the work band, a "now" mark. The System style keeps the DaySparkline.
+ * This file only turns Kimai timesheets into the strip's hours.
  */
-ColumnLayout {
+KanteDayStrip {
     id: strip
 
     property var entries: []
     property var customersById: ({})
     property string workDayBegin: "09:00"
     property string workDayEnd: "18:00"
+    /** Location for daylight (NaN: no daylight). */
+    property real latitude: NaN
+    property real longitude: NaN
     /** Bump to move the "now" mark (the widget's minute tick). */
     property int nowTick: 0
 
-    spacing: 2
+    /** Label every other hour: the strip usually spans a work day. */
+    readonly property int labelStep: 2
 
     function hourOf(hhmm, fallback) {
         var parts = String(hhmm || "").split(":")
@@ -43,6 +43,15 @@ ColumnLayout {
     readonly property real nowHours: {
         nowTick
         return hoursOfDay(new Date())
+    }
+
+    // Sunrise and sunset in hours; invalid without a location.
+    readonly property var sun: {
+        nowTick
+        if (isNaN(latitude) || isNaN(longitude)) {
+            return { valid: false }
+        }
+        return Solar.daySolarFractions(new Date(), latitude, longitude)
     }
 
     // Axis: the work day, widened to whole hours around entries and "now".
@@ -64,77 +73,32 @@ ColumnLayout {
         return { lo: lo, hi: Math.max(lo + 1, hi) }
     }
 
-    function xOf(hours) {
-        return (hours - span.lo) / (span.hi - span.lo) * track.width
-    }
+    spanFrom: span.lo
+    spanTo: span.hi
+    tickStep: labelStep
+    now: nowHours
+    workFrom: workBegin
+    workTo: workEnd
+    sunrise: sun.valid ? sun.sunrise * 24 : -1
+    sunset: sun.valid ? sun.sunset * 24 : -1
 
-    Rectangle {
-        id: track
-        Layout.fillWidth: true
-        Layout.preferredHeight: Math.round(Kirigami.Units.gridUnit * 0.55)
-        // A groove like the web's --bg-hard track: opaque and darker than the card. The
-        // translucent sunken tint nearly matches the card on a dark ground (phones).
-        color: KanteStyle.themed ? Qt.darker(KanteStyle.backgroundColor, KanteStyle.light ? 1.08 : 1.45)
-                                 : KanteStyle.sunkenColor
-
-        // The work day stands out from the rest of the track.
-        Rectangle {
-            x: strip.xOf(strip.workBegin)
-            width: Math.max(0, strip.xOf(strip.workEnd) - x)
-            height: parent.height
-            color: KanteStyle.tint(KanteStyle.textColor, 0.22)
-        }
-
-        Repeater {
-            model: strip.entries || []
-            delegate: Rectangle {
-                readonly property var ts: modelData
-                readonly property var begin: DTF.parseStamp(ts.begin)
-                readonly property var end: ts.end ? DTF.parseStamp(ts.end) : new Date()
-                x: strip.xOf(strip.hoursOfDay(begin))
-                width: Math.max(2, strip.xOf(strip.hoursOfDay(end)) - x)
-                height: parent.height
-                color: ts.end ? KimaiApi.barColorInfoFromTimesheet(ts, strip.customersById).color : KanteStyle.accentColor
+    // Entries as segments: {from, to, color}; a running entry has no colour (the accent).
+    segments: {
+        var out = []
+        var list = entries || []
+        for (var i = 0; i < list.length; i++) {
+            var ts = list[i]
+            var begin = DTF.parseStamp(ts.begin)
+            if (isNaN(begin.getTime())) {
+                continue
             }
-        }
-
-        // Sunken like a field: the frame keeps the track apart from the card, whose
-        // tint is close to the sunken one on a dark ground (phones).
-        Rectangle {
-            anchors.fill: parent
-            color: "transparent"
-            border.width: 1
-            border.color: KanteStyle.frameColor
-        }
-
-        Rectangle {
-            x: strip.xOf(strip.nowHours)
-            y: -2
-            width: 1
-            height: parent.height + 4
-            color: KanteStyle.textColor
-        }
-    }
-
-    Item {
-        Layout.fillWidth: true
-        Layout.preferredHeight: tickMetrics.height
-
-        Repeater {
-            model: Math.floor((strip.span.hi - strip.span.lo) / 2) + 1
-            delegate: Controls.Label {
-                readonly property int hour: strip.span.lo + index * 2
-                x: Math.min(strip.width - width, Math.max(0, strip.xOf(hour) - width / 2))
-                text: (hour < 10 ? "0" : "") + hour
-                font: KanteStyle.monoFont(KanteStyle.smallFont.pointSize * 0.85, false)
-                color: KanteStyle.mutedTextColor
+            var end = ts.end ? DTF.parseStamp(ts.end) : null
+            var segment = { from: hoursOfDay(begin), to: end ? hoursOfDay(end) : nowHours, kind: "work" }
+            if (end) {
+                segment.color = String(KimaiApi.barColorInfoFromTimesheet(ts, customersById).color)
             }
+            out.push(segment)
         }
-
-        TextMetrics {
-            id: tickMetrics
-            font: KanteStyle.monoFont(KanteStyle.smallFont.pointSize * 0.85, false)
-            text: "00"
-        }
+        return out
     }
 }
