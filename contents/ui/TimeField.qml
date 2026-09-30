@@ -9,7 +9,8 @@ import "Controls" as Controls
 
 /**
  * Locale-formatted time field with click-to-select segments (hour/minute)
- * and a tumbler popup.
+ * and a tumbler popup. Kante: a KanteTimeField (typed time, hour and minute
+ * cells); the API below stays.
  */
 RowLayout {
     id: root
@@ -119,6 +120,7 @@ RowLayout {
 
     KanteTextField {
         id: timeField
+        visible: !KanteStyle.active
         Layout.fillWidth: true
         Layout.preferredHeight: Math.max(implicitHeight, TouchUi.controlMinHeight)
         placeholderText: text.length > 0 ? "" : DTF.timePlaceholder()  // Material floats the placeholder above filled fields
@@ -178,6 +180,7 @@ RowLayout {
     }
 
     Controls.ToolButton {
+        visible: !KanteStyle.active
         Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
         Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
         icon.name: "clock-symbolic"
@@ -199,5 +202,30 @@ RowLayout {
         onPicked: function(hours, minutes) { root.editTime(hours, minutes) }
     }
 
-    Component.onCompleted: refreshText()
+    // Kante: KanteTimeField; it keeps `hours` and `minutes`, which code sets with setTime().
+    KanteTimeField {
+        id: kanteTime
+        Layout.fillWidth: true
+        Layout.preferredHeight: Math.max(implicitHeight, TouchUi.controlMinHeight)
+        visible: KanteStyle.active
+        hourText: i18n("Hours")
+        minuteText: i18n("Minutes")
+        onTimeEdited: function(hour, minute) {
+            // Emptied: a time entry always has a time, so the field shows it again.
+            if (hour < 0 || minute < 0) {
+                kanteTime.hour = root.hours
+                kanteTime.minute = root.minutes
+                return
+            }
+            root.editTime(hour, minute)
+        }
+    }
+    onHoursChanged: kanteTime.hour = hours
+    onMinutesChanged: kanteTime.minute = minutes
+
+    Component.onCompleted: {
+        refreshText()
+        kanteTime.hour = hours
+        kanteTime.minute = minutes
+    }
 }

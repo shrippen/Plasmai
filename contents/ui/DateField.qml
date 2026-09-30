@@ -9,7 +9,8 @@ import "Controls" as Controls
 
 /**
  * Locale-formatted date field with click-to-select segments (day/month/year)
- * and a calendar popup.
+ * and a calendar popup. Kante: a KanteDateField (typed date, month grid) in the
+ * locale's short format; the API below stays.
  */
 RowLayout {
     id: root
@@ -130,8 +131,35 @@ RowLayout {
         }
     }
 
+    /** Kante weekday heads, Monday first ("MO", "TU", …). */
+    readonly property var kanteDayNames: [1, 2, 3, 4, 5, 6, 0].map(function(day) {
+        return Qt.locale().dayName(day, Locale.ShortFormat).toUpperCase()
+    })
+
+    // Kante: KanteDateField; it keeps `selectedDate`, which code sets with setDate().
+    KanteDateField {
+        id: kanteDate
+        Layout.fillWidth: true
+        Layout.preferredHeight: Math.max(implicitHeight, TouchUi.controlMinHeight)
+        visible: KanteStyle.active
+        format: DTF.localeDateFormat()
+        placeholderText: DTF.datePlaceholder()
+        dayNames: root.kanteDayNames
+        todayText: i18n("Today")
+        onDateEdited: function(date) {
+            if (date) {
+                root.setDate(date)
+            } else {
+                // Emptied: an entry always has a date, so the field shows it again.
+                kanteDate.date = DTF.coerceDate(root.selectedDate)
+            }
+        }
+    }
+    onSelectedDateChanged: kanteDate.date = DTF.coerceDate(selectedDate)
+
     KanteTextField {
         id: dateField
+        visible: !KanteStyle.active
         Layout.fillWidth: true
         Layout.preferredHeight: Math.max(implicitHeight, TouchUi.controlMinHeight)
         placeholderText: text.length > 0 ? "" : DTF.datePlaceholder()  // Material floats the placeholder above filled fields
@@ -198,6 +226,7 @@ RowLayout {
     }
 
     Controls.ToolButton {
+        visible: !KanteStyle.active
         Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
         Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
         icon.name: "view-calendar"
@@ -219,5 +248,8 @@ RowLayout {
         onPicked: function(date) { root.setDate(date) }
     }
 
-    Component.onCompleted: refreshText()
+    Component.onCompleted: {
+        refreshText()
+        kanteDate.date = DTF.coerceDate(selectedDate)
+    }
 }
