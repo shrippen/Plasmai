@@ -1,0 +1,1 @@
+Plasmai 2.1: Offline-Modus (die App arbeitet ohne Verbindung weiter und gleicht später ab), schneller Wechsel zwischen Drehtagen, Tokens immer im sicheren Speicher der Plattform, korrekte Zeiten bei abweichender Zeitzone des Kimai-Profils. Neu außerdem: ein Windows-Client (Vorschau).

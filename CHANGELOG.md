@@ -2,9 +2,13 @@
 
 ## Unreleased
 
+## 2.1.0
+
+Released 2026-09-30.
+
 ### New
 - **Offline mode** (Kimai): with bad reception the widget and the app keep working from the last known state ("Offline · as of 12:04"). Starting and stopping the timer, adding, editing and deleting entries, film day details and trips are kept on the device and sent in order once the server answers again. A change the server does not accept, or an entry changed elsewhere meanwhile, waits in "Not synced" to retry, overwrite or discard; nothing is dropped silently. Creating customers, projects and activities, splitting and merging entries, discarding idle time and switching profiles need a connection
-- **Windows** (preview): Plasmai as a tray icon whose popup is the app, like the widget in the Plasma panel. The icon shows a running timer with a red dot, its menu stops the running entry or starts the last used one, and it can start at login. Installer (per user, no administrator rights) and zip. Not signed yet, so Windows warns on the first start
+- **Windows** (preview): Plasmai as a tray icon whose popup is the app, like the widget in the Plasma panel. The icon shows a running timer with a red dot, its menu stops the running entry or starts the last used one, and it can start at login. Installer (per user, no administrator rights) and zip. Not signed yet, so Windows warns on the first start It follows the system's light or dark setting.
 
 ### Changed
 - Widget (Kante styles): a running timer no longer tints the whole panel entry in the accent color. It is marked by a small red indicator instead; Display settings offer a red dot, a red bottom edge or a red side stripe, with a preview
@@ -18,6 +22,7 @@
 - App: API tokens are now always kept in the platform's secure storage (Secret Service / KWallet, Android Keystore, Windows Credential Manager, macOS Keychain). Up to 2.0.1 the app stored them in plain files on Linux (AppImage, Flatpak) and on Android, although it was meant to use the keychain. Such a file moves into the secure storage on the next start and is deleted; without secure storage the token is not saved
 
 ### Fixed
+- Times the widget and the app write (an entry added, edited or split by hand, a timer stopped or started while offline) carry the device's offset, and Kimai converts them into the profile's time zone. With a Kimai profile in another zone than the device they used to land hours off (an offline stop, for example, made the entry hours too long)
 - App (Android): plurals in Russian, Ukrainian and Polish use the right form ("5 минут"), Japanese and Chinese no longer show English, French counts 0 as singular
 - App: the dialogs to create a customer, project or activity, to split an entry and after idle time showed only their title and buttons; their fields and choices are back
 - App: text typed into the description is no longer replaced by the server's text when the entry refreshes while typing; text typed while saving is saved afterwards

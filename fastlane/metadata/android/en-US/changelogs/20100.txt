@@ -1,0 +1,1 @@
+Plasmai 2.1: offline mode (the app keeps working without a connection and syncs later), instant switching between film days, tokens always in the platform's secure storage, correct times when the Kimai profile is in another time zone. Also new: a Windows client (preview).

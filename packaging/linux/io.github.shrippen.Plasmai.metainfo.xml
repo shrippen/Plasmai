@@ -89,6 +89,14 @@
     <binary>plasmai-app</binary>
   </provides>
   <releases>
+    <release version="2.1.0" date="2026-09-30">
+      <description>
+        <p>Offline mode: the app keeps working without a connection and syncs once the server
+        answers again. New: a Windows tray client (preview). The film day opens instantly,
+        tokens always live in the platform's secure storage, and times written to Kimai carry
+        the device's offset.</p>
+      </description>
+    </release>
     <release version="2.0.1" date="2026-09-28">
       <description>
         <p>Adds an About page, fixes the Back button on Android and the clipboard notice when
