@@ -3368,9 +3368,14 @@ PlasmoidItem {
                                 text: root.connectionLabel()
                             }
 
+                            KanteLoader {
+                                visible: KanteStyle.active && (root.isBusy || root.connectionState === "connecting" || root.credentialsLoading)
+                                Layout.alignment: Qt.AlignVCenter
+                            }
+
                             QQC2.BusyIndicator {
                                 running: root.isBusy || root.connectionState === "connecting" || root.credentialsLoading
-                                visible: running
+                                visible: running && !KanteStyle.active
                                 Layout.preferredWidth: Kirigami.Units.iconSizes.small
                                 Layout.preferredHeight: Kirigami.Units.iconSizes.small
                             }

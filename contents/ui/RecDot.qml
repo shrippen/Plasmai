@@ -6,6 +6,7 @@ import "Kante"
 Rectangle {
     implicitWidth: Math.round(Kirigami.Units.gridUnit * 0.45)
     implicitHeight: implicitWidth
-    radius: width / 2
+    // Kante: markers are squares.
+    radius: KanteStyle.active ? 0 : width / 2
     color: KanteStyle.negativeTextColor
 }

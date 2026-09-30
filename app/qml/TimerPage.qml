@@ -161,7 +161,8 @@ Kirigami.Page {
                 color: Qt.alpha(KanteStyle.textColor, 0.7); font.pointSize: KanteStyle.smallFont.pointSize; elide: Text.ElideRight
                 Layout.fillWidth: true; maximumLineCount: 1
             }
-            QQC2.BusyIndicator { running: root.isBusy || root.connectionState === "connecting"; visible: running; Layout.preferredWidth: Kirigami.Units.iconSizes.small; Layout.preferredHeight: Kirigami.Units.iconSizes.small }
+            KanteLoader { visible: KanteStyle.active && (root.isBusy || root.connectionState === "connecting"); Layout.alignment: Qt.AlignVCenter }
+            QQC2.BusyIndicator { running: root.isBusy || root.connectionState === "connecting"; visible: running && !KanteStyle.active; Layout.preferredWidth: Kirigami.Units.iconSizes.small; Layout.preferredHeight: Kirigami.Units.iconSizes.small }
         }
 
         Kirigami.PlaceholderMessage {
