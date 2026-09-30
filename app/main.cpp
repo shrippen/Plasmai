@@ -3,6 +3,7 @@
 #include <QApplication>
 #endif
 #include <QIcon>
+#include <QStyleHints>
 #include <QtQml>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
@@ -43,6 +44,12 @@ int main(int argc, char *argv[])
     qputenv("QT_QUICK_CONTROLS_MATERIAL_ACCENT", "#27ae60");
     qputenv("QT_QUICK_CONTROLS_MATERIAL_PRIMARY", "#2d2d2d");
     qputenv("QT_QUICK_CONTROLS_STYLE", "Material");
+#elif defined(Q_OS_WIN) || defined(Q_OS_MACOS)
+    // The native styles cannot be customized (a Button with our own contentItem shows
+    // no label): the app draws its controls itself, on Basic. An explicit choice wins.
+    if (!qEnvironmentVariableIsSet("QT_QUICK_CONTROLS_STYLE")) {
+        qputenv("QT_QUICK_CONTROLS_STYLE", "Basic");
+    }
 #endif
 
 #ifdef PLASMAI_TRAY
@@ -52,12 +59,20 @@ int main(int argc, char *argv[])
     QGuiApplication app(argc, argv);
 #endif
 
-#ifdef Q_OS_ANDROID
+#if defined(Q_OS_ANDROID)
     // Android has no system icon theme: use the Breeze Dark subset bundled in the QRC
     // (icons/breeze-dark) so icon.name / Kirigami.Icon resolve like on the Plasmoid.
     QIcon::setThemeSearchPaths(QIcon::themeSearchPaths() << QStringLiteral(":/icons"));
     QIcon::setThemeName(QStringLiteral("breeze-dark"));
     QIcon::setFallbackThemeName(QStringLiteral("breeze-dark"));
+#elif defined(Q_OS_WIN) || defined(Q_OS_MACOS)
+    // No system icon theme here either. The app runs light on these systems: the Basic style
+    // does not follow the dark mode, and its light windows under Kirigami's light text made
+    // the pages unreadable. The bundled subset is the light one (dark icons).
+    QGuiApplication::styleHints()->setColorScheme(Qt::ColorScheme::Light);
+    QIcon::setThemeSearchPaths(QIcon::themeSearchPaths() << QStringLiteral(":/icons"));
+    QIcon::setThemeName(QStringLiteral("breeze-light"));
+    QIcon::setFallbackThemeName(QStringLiteral("breeze-light"));
 #endif
 
     // Names the token files and QStandardPaths depend on: keep them as the builds had them
