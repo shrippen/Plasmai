@@ -171,7 +171,7 @@ Item {
         }
 
         // Not tracking: today at a glance.
-        KanteDayStrip {
+        EntryDayStrip {
             Layout.fillWidth: true
             Layout.topMargin: Kirigami.Units.smallSpacing
             visible: !widget.isTracking && widget.showSparklineHere

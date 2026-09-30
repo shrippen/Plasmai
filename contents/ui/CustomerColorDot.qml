@@ -1,8 +1,9 @@
 import QtQuick
 import org.kde.kirigami as Kirigami
+import "Kante"
 
 /**
- * Colored hierarchy marker as a short vertical pill.
+ * Colored hierarchy marker as a short vertical pill (a bar in Kante).
  * Thickness encodes importance (sizeFactor).
  */
 Item {
@@ -40,7 +41,8 @@ Item {
             }
             return Math.max(root.lineWidth * 2.2, Math.round(root.slotSize * 0.72))
         }
-        radius: height / 2
+        // Kante: entity colours are squares.
+        radius: KanteStyle.active ? 0 : height / 2
         visible: root.showDot
         color: root.customerColor
         border.width: 1

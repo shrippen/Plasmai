@@ -473,8 +473,14 @@ Kirigami.Page {
             }
 
             // ── Status message ──
-            Rectangle { Layout.fillWidth: true; visible: page.statusMessage.length > 0; radius: Kirigami.Units.smallSpacing; height: statusLabel.implicitHeight + Kirigami.Units.smallSpacing * 2
-                color: page.statusIsError ? Qt.rgba(KanteStyle.negativeTextColor.r, KanteStyle.negativeTextColor.g, KanteStyle.negativeTextColor.b, 0.15) : Qt.rgba(KanteStyle.positiveTextColor.r, KanteStyle.positiveTextColor.g, KanteStyle.positiveTextColor.b, 0.15)
+            KanteCallout {
+                Layout.fillWidth: true
+                visible: KanteStyle.active && page.statusMessage.length > 0
+                kind: page.statusIsError ? KanteCallout.Kind.Danger : KanteCallout.Kind.Ok
+                text: page.statusMessage
+            }
+            Rectangle { Layout.fillWidth: true; visible: !KanteStyle.active && page.statusMessage.length > 0; radius: Kirigami.Units.smallSpacing; height: statusLabel.implicitHeight + Kirigami.Units.smallSpacing * 2
+                color: page.statusIsError ? KanteStyle.tint(KanteStyle.negativeTextColor, 0.15) : KanteStyle.tint(KanteStyle.positiveTextColor, 0.15)
                 border.width: 1; border.color: page.statusIsError ? KanteStyle.negativeTextColor : KanteStyle.positiveTextColor
                 QQC2.Label { id: statusLabel; anchors.fill: parent; anchors.margins: Kirigami.Units.smallSpacing
                     text: page.statusMessage; wrapMode: Text.WordWrap

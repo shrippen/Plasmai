@@ -17,7 +17,7 @@ KanteToolButton {
         restoreMode: Binding.RestoreBindingOrValue
         value: Rectangle {
             radius: Kirigami.Units.smallSpacing
-            color: control.checked ? Qt.rgba(KanteStyle.highlightColor.r, KanteStyle.highlightColor.g, KanteStyle.highlightColor.b, 0.18) : "transparent"
+            color: control.checked ? KanteStyle.tint(KanteStyle.highlightColor, 0.18) : "transparent"
             border.width: control.checked ? 1 : 0
             border.color: KanteStyle.highlightColor
         }

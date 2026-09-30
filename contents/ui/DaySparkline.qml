@@ -148,20 +148,14 @@ Item {
     readonly property real workArcCtrlY: (2 * workArcApexY) - 0.5
 
     readonly property bool lightBg: KanteStyle.backgroundColor.hslLightness > 0.5
-    readonly property color trackOutline: Qt.rgba(
-        KanteStyle.textColor.r, KanteStyle.textColor.g,
-        KanteStyle.textColor.b, lightBg ? 0.22 : 0.32)
+    readonly property color trackOutline: KanteStyle.tint(KanteStyle.textColor, lightBg ? 0.22 : 0.32)
     readonly property color sunStroke: Qt.rgba(1, 0.78, 0.28, lightBg ? 0.85 : 0.9)
     // Soft ribbons along arcs (not solid humps) so overlaps stay readable
     readonly property color sunRibbon: Qt.rgba(1, 0.78, 0.35, lightBg ? 0.28 : 0.35)
     readonly property color moonStroke: Qt.rgba(0.75, 0.82, 1, lightBg ? 0.75 : 0.85)
     readonly property color moonRibbon: Qt.rgba(0.6, 0.7, 1, lightBg ? 0.22 : 0.28)
-    readonly property color workStroke: Qt.rgba(
-        KanteStyle.highlightColor.r, KanteStyle.highlightColor.g,
-        KanteStyle.highlightColor.b, lightBg ? 0.75 : 0.85)
-    readonly property color workRibbon: Qt.rgba(
-        KanteStyle.highlightColor.r, KanteStyle.highlightColor.g,
-        KanteStyle.highlightColor.b, lightBg ? 0.2 : 0.26)
+    readonly property color workStroke: KanteStyle.tint(KanteStyle.highlightColor, lightBg ? 0.75 : 0.85)
+    readonly property color workRibbon: KanteStyle.tint(KanteStyle.highlightColor, lightBg ? 0.2 : 0.26)
 
     /** Y center of an on-path icon on a sky arc (matches workArcApexY math). */
     function skyArcIconCenterY(containerHeight, peak, yNorm) {
@@ -204,7 +198,7 @@ Item {
             ctx.beginPath()
             ctx.moveTo(prev.x, prev.y)
             ctx.lineTo(p.x, p.y)
-            ctx.strokeStyle = Qt.rgba(color.r, color.g, color.b, color.a * env)
+            ctx.strokeStyle = KanteStyle.tint(color, color.a * env)
             ctx.lineWidth = maxWidth * (0.35 + 0.65 * env)
             ctx.lineCap = "round"
             ctx.lineJoin = "round"
@@ -240,10 +234,7 @@ Item {
         // Background disc
         ctx.beginPath()
         ctx.arc(0, 0, s * 0.48, 0, Math.PI * 2)
-        ctx.fillStyle = Qt.rgba(
-            KanteStyle.backgroundColor.r,
-            KanteStyle.backgroundColor.g,
-            KanteStyle.backgroundColor.b, 0.94)
+        ctx.fillStyle = KanteStyle.tint(KanteStyle.backgroundColor, 0.94)
         ctx.fill()
 
         // Outline stroke
@@ -278,10 +269,7 @@ Item {
         // Background disc
         ctx.beginPath()
         ctx.arc(cx, cy, s * 0.48, 0, Math.PI * 2)
-        ctx.fillStyle = Qt.rgba(
-            KanteStyle.backgroundColor.r,
-            KanteStyle.backgroundColor.g,
-            KanteStyle.backgroundColor.b, 0.94)
+        ctx.fillStyle = KanteStyle.tint(KanteStyle.backgroundColor, 0.94)
         ctx.fill()
 
         // Outer ring
@@ -792,10 +780,7 @@ Item {
 
                     ctx.beginPath()
                     ctx.arc(cx, cy, s * 0.48, 0, Math.PI * 2)
-                    ctx.fillStyle = Qt.rgba(
-                        KanteStyle.backgroundColor.r,
-                        KanteStyle.backgroundColor.g,
-                        KanteStyle.backgroundColor.b, 0.94)
+                    ctx.fillStyle = KanteStyle.tint(KanteStyle.backgroundColor, 0.94)
                     ctx.fill()
                     ctx.strokeStyle = root.moonStroke
                     ctx.lineWidth = Math.max(1.2, s * 0.06)
@@ -883,7 +868,7 @@ Item {
 
                     var c = sunLayerCanvas.sunColor
                     var rgba = function (a) {
-                        return Qt.rgba(c.r, c.g, c.b, c.a * a)
+                        return KanteStyle.tint(c, c.a * a)
                     }
 
                     if (sun.polarDay) {
@@ -1102,10 +1087,7 @@ Item {
 
                     ctx.beginPath()
                     ctx.arc(cx, cy, s * 0.48, 0, Math.PI * 2)
-                    ctx.fillStyle = Qt.rgba(
-                        KanteStyle.backgroundColor.r,
-                        KanteStyle.backgroundColor.g,
-                        KanteStyle.backgroundColor.b, 0.94)
+                    ctx.fillStyle = KanteStyle.tint(KanteStyle.backgroundColor, 0.94)
                     ctx.fill()
                     ctx.strokeStyle = root.workStroke
                     ctx.lineWidth = Math.max(1.2, s * 0.06)
@@ -1150,10 +1132,7 @@ Item {
                     ctx.beginPath()
                     ctx.moveTo(bx + 1, by + bh * 0.4)
                     ctx.lineTo(bx + bw - 1, by + bh * 0.4)
-                    ctx.strokeStyle = Qt.rgba(
-                        KanteStyle.backgroundColor.r,
-                        KanteStyle.backgroundColor.g,
-                        KanteStyle.backgroundColor.b, 0.65)
+                    ctx.strokeStyle = KanteStyle.tint(KanteStyle.backgroundColor, 0.65)
                     ctx.lineWidth = Math.max(1, s * 0.06)
                     ctx.stroke()
                 }

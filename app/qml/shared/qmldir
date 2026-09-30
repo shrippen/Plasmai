@@ -5,7 +5,7 @@ CustomerColorDot 1.0 ../../contents/ui/CustomerColorDot.qml
 WrapCheckBox 1.0 WrapCheckBox.qml
 # One source with the Plasmoid (ROADMAP pillar 5, step 2): the files in contents/ui.
 BarChart 1.0 ../../contents/ui/BarChart.qml
-KanteDayStrip 1.0 ../../contents/ui/KanteDayStrip.qml
+EntryDayStrip 1.0 ../../contents/ui/EntryDayStrip.qml
 PieChart 1.0 ../../contents/ui/PieChart.qml
 StackedBarChart 1.0 ../../contents/ui/StackedBarChart.qml
 TagPill 1.0 ../../contents/ui/TagPill.qml

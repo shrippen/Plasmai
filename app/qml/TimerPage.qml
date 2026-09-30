@@ -161,7 +161,8 @@ Kirigami.Page {
                 color: Qt.alpha(KanteStyle.textColor, 0.7); font.pointSize: KanteStyle.smallFont.pointSize; elide: Text.ElideRight
                 Layout.fillWidth: true; maximumLineCount: 1
             }
-            QQC2.BusyIndicator { running: root.isBusy || root.connectionState === "connecting"; visible: running; Layout.preferredWidth: Kirigami.Units.iconSizes.small; Layout.preferredHeight: Kirigami.Units.iconSizes.small }
+            KanteLoader { visible: KanteStyle.active && (root.isBusy || root.connectionState === "connecting"); Layout.alignment: Qt.AlignVCenter }
+            QQC2.BusyIndicator { running: root.isBusy || root.connectionState === "connecting"; visible: running && !KanteStyle.active; Layout.preferredWidth: Kirigami.Units.iconSizes.small; Layout.preferredHeight: Kirigami.Units.iconSizes.small }
         }
 
         Kirigami.PlaceholderMessage {
@@ -374,7 +375,7 @@ Kirigami.Page {
                     }
                     Component {
                         id: dayStrip
-                        KanteDayStrip {
+                        EntryDayStrip {
                             entries: root.todayTimesheets
                             customersById: root.customersById
                             workDayBegin: root.workDayBegin; workDayEnd: root.workDayEnd
@@ -762,7 +763,8 @@ Kirigami.Page {
     // ══════ DIALOGS ══════
     Kirigami.PromptDialog {
         id: confirmDialog
-        KanteDialogSkin { dialog: confirmDialog }
+        // A property, not a child: an Item child would count as dialog content (its ScrollView then sizes to 0).
+        readonly property QtObject kanteSkin: KanteDialogSkin { dialog: confirmDialog }
         title: i18n("Stop tracking?")
         subtitle: i18n("Stop %1 · %2?", root.currentProject, root.currentActivity)
         // Own footer actions: Qt's standard button texts stay English on Android.
@@ -775,7 +777,8 @@ Kirigami.Page {
     }
     Kirigami.PromptDialog {
         id: deleteDialog
-        KanteDialogSkin { dialog: deleteDialog }
+        // A property, not a child: an Item child would count as dialog content (its ScrollView then sizes to 0).
+        readonly property QtObject kanteSkin: KanteDialogSkin { dialog: deleteDialog }
         property var target: null
         title: i18n("Delete entry?")
         subtitle: i18n("Really delete this entry?")
@@ -789,7 +792,8 @@ Kirigami.Page {
     }
     Kirigami.PromptDialog {
         id: switchDialog
-        KanteDialogSkin { dialog: switchDialog }
+        // A property, not a child: an Item child would count as dialog content (its ScrollView then sizes to 0).
+        readonly property QtObject kanteSkin: KanteDialogSkin { dialog: switchDialog }
         title: i18n("Switch activity")
         subtitle: root.pendingSwitchTimesheet ? i18n("Switch to %1 · %2?", KimaiApi.displayProjectName(root.pendingSwitchTimesheet, root.projects), KimaiApi.displayActivityName(root.pendingSwitchTimesheet, root.allActivities, root.activitiesByProject)) : ""
         // Own footer actions: Qt's standard button texts stay English on Android.
@@ -806,7 +810,8 @@ Kirigami.Page {
     }
     Kirigami.Dialog {
         id: splitDialog
-        KanteDialogSkin { dialog: splitDialog }
+        // A property, not a child: an Item child would count as dialog content (its ScrollView then sizes to 0).
+        readonly property QtObject kanteSkin: KanteDialogSkin { dialog: splitDialog }
         property var target: null
         title: i18n("Split entry")
         // Own footer actions: Qt's standard button texts stay English on Android.
@@ -848,7 +853,8 @@ Kirigami.Page {
 
     Kirigami.Dialog {
         id: idleDialog
-        KanteDialogSkin { dialog: idleDialog }
+        // A property, not a child: an Item child would count as dialog content (its ScrollView then sizes to 0).
+        readonly property QtObject kanteSkin: KanteDialogSkin { dialog: idleDialog }
         title: i18n("You were idle")
         standardButtons: Kirigami.Dialog.NoButton
         padding: Kirigami.Units.largeSpacing

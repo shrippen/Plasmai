@@ -8,7 +8,7 @@ import "."
 import "Kante"
 
 /**
- * Kante day strip: today's entries as flat segments on one track, the work
+ * Day strip: today's entries as flat segments on one track, the work
  * day tinted, a thin "now" mark, hour labels below. The System style keeps
  * the DaySparkline instead.
  *

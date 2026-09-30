@@ -3,9 +3,10 @@ import QtTest
 import org.kde.kirigami as Kirigami
 import "../../contents/ui/Kante"
 
-// A skin inside a Kirigami.Dialog must not count as content: the dialog's
-// ScrollView sizes itself only from a single content item, a second one
-// left the form (fields, buttons) at height 0.
+// Kante 1.4's skin is an Item: as a child of a Kirigami.Dialog it counts as
+// content, and the dialog's ScrollView sizes itself only from a single content
+// item, so the form (fields, buttons) got height 0. Call sites hold the skin
+// in a property instead.
 TestCase {
     name: "KanteDialogSkin"
     when: windowShown
@@ -16,7 +17,7 @@ TestCase {
         id: dialogComponent
         Kirigami.Dialog {
             id: dialog
-            KanteDialogSkin { dialog: dialog }
+            readonly property QtObject kanteSkin: KanteDialogSkin { dialog: dialog }
             Rectangle { implicitWidth: 100; implicitHeight: 80 }
         }
     }

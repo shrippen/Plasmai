@@ -17,7 +17,7 @@ Rectangle {
     clip: true
     color: Kirigami.Theme.backgroundColor
     border.width: 1
-    border.color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.2)
+    border.color: KanteStyle.tint(Kirigami.Theme.textColor, 0.2)
 
     RowLayout {
         anchors.fill: parent
@@ -30,7 +30,7 @@ Rectangle {
             Rectangle {
                 Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
                 Layout.preferredHeight: Layout.preferredWidth
-                                color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.18)
+                                color: KanteStyle.tint(Kirigami.Theme.textColor, 0.18)
             }
         }
         Item { Layout.fillWidth: true }
