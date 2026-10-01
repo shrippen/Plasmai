@@ -33,7 +33,8 @@ option(PLASMAI_TRAY "Run as a tray icon with a popup (the Windows client)" ${WIN
 # otherwise the idle time from Windows (GetLastInputInfo) and notifications through the
 # tray icon of a tray build; none elsewhere (not offered to QML).
 if(TARGET Qt6::DBus AND UNIX AND NOT APPLE AND NOT ANDROID)
-    set(PLASMAI_PLATFORM_SOURCES platform/idlewatcher_dbus.cpp platform/notifier_dbus.cpp)
+    set(PLASMAI_PLATFORM_SOURCES platform/idlewatcher_dbus.cpp platform/notifier_dbus.cpp
+        platform/runningnotice_dbus.cpp)
 else()
     if(WIN32)
         set(PLASMAI_PLATFORM_SOURCES platform/idlewatcher_win.cpp)
@@ -44,6 +45,12 @@ else()
         list(APPEND PLASMAI_PLATFORM_SOURCES platform/notifier_tray.cpp)
     else()
         list(APPEND PLASMAI_PLATFORM_SOURCES platform/notifier_none.cpp)
+    endif()
+    # The running-timer notice: Android has its own; elsewhere without D-Bus there is none.
+    if(ANDROID)
+        list(APPEND PLASMAI_PLATFORM_SOURCES platform/runningnotice_android.cpp)
+    else()
+        list(APPEND PLASMAI_PLATFORM_SOURCES platform/runningnotice_none.cpp)
     endif()
 endif()
 # Tray client: QtWidgets for the tray icon's menu. Autostart: Windows only so far.
@@ -67,6 +74,7 @@ qt_add_executable(plasmai-app
     platform/idlewatcher.h
     platform/networkstatus.h
     platform/notifier.h
+    platform/runningnotice.h
     platform/tokenstore.h
     platform/tokenstore.cpp
     platform/useragentnam.h

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### New
+- App (Android, Plasma Mobile): a notification stays while a timer runs, with project, activity and the running time (Android) or the start time (Plasma Mobile). On Android 13+ the first one asks for the notification permission
+
 ### Changed
 - Film day: the note is the Kimai entry's description, no longer a second field in the Drehzettel plugin. Typed before the entry exists, it goes with Start or Save
 

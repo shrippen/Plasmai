@@ -21,6 +21,7 @@
 #include "platform/idlewatcher.h"
 #include "platform/networkstatus.h"
 #include "platform/notifier.h"
+#include "platform/runningnotice.h"
 #include "platform/tokenstore.h"
 #include "platform/useragentnam.h"
 #ifdef PLASMAI_TRAY
@@ -181,6 +182,9 @@ int main(int argc, char *argv[])
     }
     if (Notifier::isSupported()) {
         engine.rootContext()->setContextProperty(QStringLiteral("notifier"), new Notifier(&app));
+    }
+    if (RunningNotice::isSupported()) {
+        engine.rootContext()->setContextProperty(QStringLiteral("runningNotice"), new RunningNotice(&app));
     }
     if (Autostart::isSupported()) {
         engine.rootContext()->setContextProperty(QStringLiteral("autostart"), new Autostart(&app));

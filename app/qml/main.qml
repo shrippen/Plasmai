@@ -240,6 +240,30 @@ Kirigami.ApplicationWindow {
     readonly property var networkStatusService: typeof networkStatus !== "undefined" ? networkStatus : null
     readonly property var trayService: typeof trayClient !== "undefined" ? trayClient : null
     readonly property var autostartService: typeof autostart !== "undefined" ? autostart : null
+    readonly property var runningNoticeService: typeof runningNotice !== "undefined" ? runningNotice : null
+
+    // ── Running-timer notification (Android, Plasma Mobile): stays while a timer runs ──
+    // Start of the running entry in epoch ms, 0 when none runs or its begin is unreadable.
+    readonly property double runningSinceMs: {
+        if (!isTracking || !activeTimesheet) return 0
+        var since = DTF.parseStamp(activeTimesheet.begin).getTime()
+        return isNaN(since) ? 0 : since
+    }
+    onIsTrackingChanged: runningNoticeTimer.restart()
+    onCurrentProjectChanged: runningNoticeTimer.restart()
+    onCurrentActivityChanged: runningNoticeTimer.restart()
+    onRunningSinceMsChanged: runningNoticeTimer.restart()
+    // One update per refresh: a new entry changes all four values at once.
+    Timer {
+        id: runningNoticeTimer
+        interval: 0
+        onTriggered: {
+            if (!root.runningNoticeService) return
+            if (!root.isTracking) { root.runningNoticeService.clear(); return }
+            root.runningNoticeService.show(i18n("Tracking in progress"),
+                root.currentProject + " · " + root.currentActivity, root.runningSinceMs)
+        }
+    }
 
     // ── Tray client (Windows, ROADMAP pillar 7): icon state, tooltip and menu, like the Plasmoid's panel icon ──
     Binding {
@@ -1007,6 +1031,8 @@ Kirigami.ApplicationWindow {
     pageStack.initialPage: TimerPage { }
     Component.onCompleted: {
         drawerButtonNamer.restart()
+        // A notice left from an earlier run goes unless a timer is found running.
+        runningNoticeTimer.restart()
         Platform.setBackend(AppBackend.create(TokenStore, FileStore,
             typeof idleWatcher !== "undefined" ? idleWatcher : undefined,
             typeof notifier !== "undefined" ? notifier : undefined))
