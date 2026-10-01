@@ -6,6 +6,8 @@
 - Film day: the note is the Kimai entry's description, no longer a second field in the Drehzettel plugin. Typed before the entry exists, it goes with Start or Save
 
 ### Fixed
+- Statistics (Kante styles): the chosen filter segment was beige text on yellow and hard to read; it is now marked by a yellow bar under the label
+- Styles System and Kante Light: text in the system accent colour (headings, the film day date, chips) is lightened until it reads, also with a dark Plasma accent
 - Film day: the note was lost when leaving the page (or closing the popup) right after typing, and on Android the last word held back by the keyboard's predictive text was not saved
 
 ## 2.1.0
