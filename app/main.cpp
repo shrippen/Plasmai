@@ -22,6 +22,7 @@
 #include "platform/networkstatus.h"
 #include "platform/notifier.h"
 #include "platform/tokenstore.h"
+#include "platform/trackingnotice.h"
 #include "platform/useragentnam.h"
 #ifdef PLASMAI_TRAY
 #include "platform/traycontroller.h"
@@ -181,6 +182,9 @@ int main(int argc, char *argv[])
     }
     if (Notifier::isSupported()) {
         engine.rootContext()->setContextProperty(QStringLiteral("notifier"), new Notifier(&app));
+    }
+    if (TrackingNotice::isSupported()) {
+        engine.rootContext()->setContextProperty(QStringLiteral("trackingNotice"), new TrackingNotice(&app));
     }
     if (Autostart::isSupported()) {
         engine.rootContext()->setContextProperty(QStringLiteral("autostart"), new Autostart(&app));

@@ -7,6 +7,7 @@
 //   wait MS         wait
 //   grab NAME       save the window content to $PLASMAI_TEST_OUT/NAME.png (this window only)
 //   click X Y       left click at window coordinates
+//   rclick X Y      right click at window coordinates
 //   text STRING     type text into the focused item
 //   key NAME        Return, Escape, Backspace, Tab, Down, Up
 //   scroll X Y DY   mouse wheel (positive = up)
@@ -60,7 +61,9 @@ private:
         } else if (cmd == QLatin1String("grab") && !a.isEmpty()) {
             m_window->grabWindow().save(m_out + QLatin1Char('/') + a[0] + QStringLiteral(".png"));
         } else if (cmd == QLatin1String("click") && a.size() >= 2) {
-            click(QPointF(a[0].toDouble(), a[1].toDouble()));
+            click(QPointF(a[0].toDouble(), a[1].toDouble()), Qt::LeftButton);
+        } else if (cmd == QLatin1String("rclick") && a.size() >= 2) {
+            click(QPointF(a[0].toDouble(), a[1].toDouble()), Qt::RightButton);
         } else if (cmd == QLatin1String("text")) {
             for (const QChar c : arg) key(0, QString(c));
         } else if (cmd == QLatin1String("key") && !a.isEmpty()) {
@@ -85,10 +88,10 @@ private:
         QTimer::singleShot(delay, this, &TestDriver::next);
     }
 
-    void click(const QPointF &p) {
+    void click(const QPointF &p, Qt::MouseButton button) {
         for (auto type : {QEvent::MouseButtonPress, QEvent::MouseButtonRelease}) {
-            QMouseEvent ev(type, p, m_window->mapToGlobal(p), Qt::LeftButton,
-                           type == QEvent::MouseButtonPress ? Qt::LeftButton : Qt::NoButton, Qt::NoModifier);
+            QMouseEvent ev(type, p, m_window->mapToGlobal(p), button,
+                           type == QEvent::MouseButtonPress ? button : Qt::NoButton, Qt::NoModifier);
             QCoreApplication::sendEvent(m_window, &ev);
         }
     }
