@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 2.3.0
+
+Released 2026-10-02.
+
 ### Changed
 - Film day: a day without saved details starts with catering on when the engagement's catering default in the Drehzettel plugin says so (needs the updated plugin)
 

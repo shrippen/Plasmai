@@ -89,6 +89,12 @@
     <binary>plasmai-app</binary>
   </provides>
   <releases>
+    <release version="2.3.0" date="2026-10-02">
+      <description>
+        <p>A film day without saved details starts with catering on when the engagement's
+        catering default in the Drehzettel plugin says so.</p>
+      </description>
+    </release>
     <release version="2.2.0" date="2026-10-02">
       <description>
         <p>A permanent notification while a timer runs, on Android and Plasma Mobile. In the
