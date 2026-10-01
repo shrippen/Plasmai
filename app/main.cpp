@@ -22,6 +22,7 @@
 #include "platform/networkstatus.h"
 #include "platform/notifier.h"
 #include "platform/tokenstore.h"
+#include "platform/trackingnotice.h"
 #include "platform/useragentnam.h"
 #ifdef PLASMAI_TRAY
 #include "platform/traycontroller.h"
@@ -133,7 +134,7 @@ int main(int argc, char *argv[])
     // Desktop identity (Flathub ID); APP_ID stays the keychain service and the config folder shared with the widget.
     QGuiApplication::setDesktopFileName(QStringLiteral("io.github.shrippen.Plasmai"));
 #endif
-    app.setApplicationVersion(QStringLiteral("2.1.0"));
+    app.setApplicationVersion(QStringLiteral("2.2.0"));
 
 #ifdef PLASMAI_TRAY
     // One tray client per user: a second start opens the running one's popup.
@@ -181,6 +182,9 @@ int main(int argc, char *argv[])
     }
     if (Notifier::isSupported()) {
         engine.rootContext()->setContextProperty(QStringLiteral("notifier"), new Notifier(&app));
+    }
+    if (TrackingNotice::isSupported()) {
+        engine.rootContext()->setContextProperty(QStringLiteral("trackingNotice"), new TrackingNotice(&app));
     }
     if (Autostart::isSupported()) {
         engine.rootContext()->setContextProperty(QStringLiteral("autostart"), new Autostart(&app));

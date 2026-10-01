@@ -27,6 +27,7 @@ import "../code/providerUtil.js" as ProviderUtil
 import "../code/workTotals.js" as WorkTotals
 import "../code/timerSession.js" as TimerSession
 import "../code/offline.js" as Offline
+import "../code/rowHit.js" as RowHit
 import "."
 import "Kante"
 import "KantePlasma"
@@ -3868,11 +3869,19 @@ PlasmoidItem {
 
         // Labels/buttons steal right-clicks from the containment. Capture RMB
         // anywhere on the widget and open the standard applet context menu.
+        // A Recent row opens its entry menu instead.
         MouseArea {
+            id: rightClickCatcher
             anchors.fill: parent
             z: 1000
             acceptedButtons: Qt.RightButton
             onPressed: function(mouse) {
+                var row = RowHit.historyRowAt(popupRoot, mouse.x, mouse.y, rightClickCatcher)
+                if (row) {
+                    var p = popupRoot.mapToItem(row, mouse.x, mouse.y)
+                    row.openHistoryMenu(p.x, p.y)
+                    return
+                }
                 root.openPlasmoidContextMenu(popupRoot, mouse.x, mouse.y)
             }
         }

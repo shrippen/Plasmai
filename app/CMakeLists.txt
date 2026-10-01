@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(plasmai-app VERSION 2.1.0 LANGUAGES CXX)
+project(plasmai-app VERSION 2.2.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -33,7 +33,8 @@ option(PLASMAI_TRAY "Run as a tray icon with a popup (the Windows client)" ${WIN
 # otherwise the idle time from Windows (GetLastInputInfo) and notifications through the
 # tray icon of a tray build; none elsewhere (not offered to QML).
 if(TARGET Qt6::DBus AND UNIX AND NOT APPLE AND NOT ANDROID)
-    set(PLASMAI_PLATFORM_SOURCES platform/idlewatcher_dbus.cpp platform/notifier_dbus.cpp)
+    set(PLASMAI_PLATFORM_SOURCES platform/idlewatcher_dbus.cpp platform/notifier_dbus.cpp
+        platform/trackingnotice_dbus.cpp)
 else()
     if(WIN32)
         set(PLASMAI_PLATFORM_SOURCES platform/idlewatcher_win.cpp)
@@ -44,6 +45,12 @@ else()
         list(APPEND PLASMAI_PLATFORM_SOURCES platform/notifier_tray.cpp)
     else()
         list(APPEND PLASMAI_PLATFORM_SOURCES platform/notifier_none.cpp)
+    endif()
+    # The permanent notification while a timer runs: Android (TrackingNotice.java) or none.
+    if(ANDROID)
+        list(APPEND PLASMAI_PLATFORM_SOURCES platform/trackingnotice_android.cpp)
+    else()
+        list(APPEND PLASMAI_PLATFORM_SOURCES platform/trackingnotice_none.cpp)
     endif()
 endif()
 # Tray client: QtWidgets for the tray icon's menu. Autostart: Windows only so far.
@@ -67,6 +74,7 @@ qt_add_executable(plasmai-app
     platform/idlewatcher.h
     platform/networkstatus.h
     platform/notifier.h
+    platform/trackingnotice.h
     platform/tokenstore.h
     platform/tokenstore.cpp
     platform/useragentnam.h
@@ -82,8 +90,8 @@ if(ANDROID)
     )
     set_target_properties(plasmai-app PROPERTIES
         QT_ANDROID_PACKAGE_NAME "com.github.shrippen.plasmai"
-        QT_ANDROID_VERSION_NAME "2.1.0"
-        QT_ANDROID_VERSION_CODE "20100"
+        QT_ANDROID_VERSION_NAME "2.2.0"
+        QT_ANDROID_VERSION_CODE "20200"
         QT_ANDROID_MIN_SDK_VERSION "28"
         QT_ANDROID_TARGET_SDK_VERSION "34"
         # Pinned instead of "newest installed": GitHub's runner and F-Droid's buildserver have
