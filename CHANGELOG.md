@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 2.2.0
+
+Released 2026-10-02.
+
 ### New
 - App (Android, Plasma Mobile): a permanent notification while a timer runs, with the project, activity and start time (on Android with the running time). A tap opens the app
 
