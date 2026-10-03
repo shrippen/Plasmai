@@ -14,7 +14,12 @@
 
 var DEMO_URL = "https://demo.invalid"
 var DEMO_TOKEN = "demo"
-var DEMO_USER = "jonas"
+var DEMO_USER = World.data.film_engagement.user   // Jonas: the camera assistant on the shoot
+
+/** The world's person the demo shows. */
+function demoPerson() {
+    return World.data.people.filter(function(p) { return p.id === DEMO_USER })[0]
+}
 
 var HOUR = 3600
 var DAY_MS = 86400000
@@ -60,8 +65,11 @@ var ENGAGEMENT = World.data.film_engagement
 var FILM_PROJECT = PROJECT_IDS[ENGAGEMENT.project]
 var SHOOTING = ACTIVITY_IDS.shoot
 var TRAVEL = ACTIVITY_IDS.travel
-var DAY_RATE_CENTS = 38000
-var HOURLY_CENTS = 3800
+var PAY = ENGAGEMENT.pay
+var DAY_RATE_CENTS = Math.round(PAY.day_rate * 100)
+var HOURLY_CENTS = Math.round(PAY.hourly * 100)
+var LOGBOOK = World.data.logbook
+var VEHICLE = World.data.vehicles.filter(function(v) { return v.id === LOGBOOK.vehicle })[0]
 
 var state = null
 
@@ -141,18 +149,18 @@ function placeOf(id) {
     return null
 }
 
-/** Road distance estimate: straight line × 1.3, one decimal. */
+/** Road distance estimate: straight line × the world's road factor, one decimal. */
 function roadKm(a, b) {
     var rad = Math.PI / 180
     var dLat = (b.lat - a.lat) * rad
     var dLon = (b.lon - a.lon) * rad * Math.cos((a.lat + b.lat) / 2 * rad)
-    return Math.round(Math.sqrt(dLat * dLat + dLon * dLon) * 6371 * 1.3 * 10) / 10
+    return Math.round(Math.sqrt(dLat * dLat + dLon * dLon) * 6371 * LOGBOOK.road_factor * 10) / 10
 }
 
 function addTrip(entry, from, to, km, comment) {
     state.trips.push({ id: state.nextTripId++, date: dateKey(new Date(entry.begin)),
                        departure: stamp(entry.begin), arrival: stamp(entry.end),
-                       purpose: "business", vehicle: "company_car", vehicleId: 1, licensePlate: "HH-SW 204",
+                       purpose: "business", vehicle: "company_car", vehicleId: 1, licensePlate: VEHICLE.plate,
                        start: from.address, destination: to.address, distanceKm: km, roundTrip: true,
                        totalKm: km * 2, overnight: false, project: entry.project, timesheet: entry.id,
                        comment: comment || "", source: "manual" })
@@ -200,10 +208,11 @@ function reset(nowDate, lang) {
         if (begin > now) {
             continue
         }
-        var drive = addEntry(FILM_PROJECT, TRAVEL, begin - 40 * 60000, begin - 5 * 60000, World.t(place.name, lang))
+        var drive = addEntry(FILM_PROJECT, TRAVEL, begin - e.travel.leave_min * 60000, begin - e.travel.arrive_min * 60000,
+                             World.t(place.name, lang))
         addTrip(drive, studio, place, roadKm(studio, place), note)
         addEntry(FILM_PROJECT, SHOOTING, begin, end > now ? null : end, World.t(d.note, lang))
-        state.filmDays[key] = { catering: i % 3 === 0, breakMinutes: d.break_min, note: note, shootingDayNumber: i + 1 }
+        state.filmDays[key] = { catering: i % PAY.catering_every === 0, breakMinutes: d.break_min, note: note, shootingDayNumber: i + 1 }
     }
 
     // Everything else Jonas worked on, from the world's week templates.
@@ -222,12 +231,13 @@ function reset(nowDate, lang) {
                  World.dateTime(row.day, row.end, fixed).getTime(), World.t(row.description, lang))
     }
 
-    // Nothing running yet (no shoot today): the showreel is being cut.
+    // Nothing running yet (no shoot today): the world's standby timer.
     var running = state.entries.some(function(x) { return !x.end })
+    var standby = w.standby_timer
     if (!running) {
         var earliest = at(today, 0, 5)
-        var from = Math.max(earliest, now - 85 * 60000)
-        addEntry(PROJECT_IDS.showreel, ACTIVITY_IDS.edit, from, null, lang === "de" ? "Kamera-Reel schneiden" : "Cut the camera reel")
+        var from = Math.max(earliest, now - standby.minutes_ago * 60000)
+        addEntry(PROJECT_IDS[standby.project], ACTIVITY_IDS[standby.activity], from, null, World.t(standby.description, lang))
     }
 }
 
@@ -375,7 +385,7 @@ function engagementOn(dateStr, projectId) {
     return {
         engagementId: 5, projectId: FILM_PROJECT, projectName: byId(state.projects, FILM_PROJECT).name,
         customerName: byId(state.customers, byId(state.projects, FILM_PROJECT).customer).name,
-        rulesetName: "TV FFS 2024", crewRole: World.t(ENGAGEMENT.position, state.lang),
+        rulesetName: PAY.ruleset_name, crewRole: World.t(ENGAGEMENT.position, state.lang),
         validFrom: dateKey(new Date(state.engagementFrom)), validTo: dateKey(new Date(state.engagementTo)),
         toggleDefault: true, azvEligible: true, travelDays: "counted", cateringDefault: false
     }
@@ -390,7 +400,7 @@ function filmDayJson(dateStr) {
         catering: !!d.catering, category: d.category || null, note: d.note || null,
         dayType: d.dayType || "workday", productionDay: d.productionDay || null,
         extraPayCents: d.extraPayCents || 0, shootingDayNumber: d.shootingDayNumber || null,
-        defaultBreakMinutes: 45,
+        defaultBreakMinutes: PAY.default_break_min,
         effectiveCategory: d.category || (weekday === 0 ? "sunday" : weekday === 6 ? "saturday" : "workday")
     }
 }
@@ -485,7 +495,7 @@ function mileage(method, rest, q, body) {
                     features: ["tripTimesheet", "dateRange", "acceptFields", "commuteCheck"],
                     permissions: { view: true, editOwn: true, deleteOwn: true, editLocked: false,
                                    viewTeam: false, viewOther: false, editOther: false },
-                    profile: { commuteKm: 14.5, defaultVehicle: "own_car", defaultVehicleId: 1, dawarichConfigured: false },
+                    profile: { commuteKm: demoPerson().commute_km, defaultVehicle: "own_car", defaultVehicleId: 1, dawarichConfigured: false },
                     lockedMonths: [] })
     }
     if (rest === "/meta") {
@@ -496,8 +506,8 @@ function mileage(method, rest, q, body) {
                     taxProfiles: [] })
     }
     if (rest === "/vehicles") {
-        return ok([{ id: 1, name: World.t(World.data.vehicles[0].name, state.lang), type: "company_car",
-                     licensePlate: World.data.vehicles[0].plate, active: true }])
+        return ok([{ id: 1, name: World.t(VEHICLE.name, state.lang), type: "company_car",
+                     licensePlate: VEHICLE.plate, active: true }])
     }
     if (rest === "/suggestions") {
         return ok([])
@@ -508,7 +518,7 @@ function mileage(method, rest, q, body) {
         return ok(state.trips.filter(function(t) { return t.date >= from && t.date <= to }).map(tripJson))
     }
     if (rest === "/trips" && method === "POST") {
-        var t = { id: state.nextTripId++, source: "manual", licensePlate: World.data.vehicles[0].plate, roundTrip: false }
+        var t = { id: state.nextTripId++, source: "manual", licensePlate: VEHICLE.plate, roundTrip: false }
         for (var i = 0; i < TRIP_KEYS.length; i++) {
             if (body && body.hasOwnProperty(TRIP_KEYS[i])) {
                 t[TRIP_KEYS[i]] = body[TRIP_KEYS[i]]
