@@ -154,6 +154,19 @@ TestCase {
         verify(got.server !== null)
     }
 
+    function test_loadEmptyDayTakesEngagementCateringDefault() {
+        // A day without stored data comes back with the engagement's catering default.
+        responses = [
+            { status: 200, body: serverDay({ catering: true }) },
+            { status: 200, body: [{ engagementId: 1, projectId: 1, rulesetName: "TV-FFS", cateringDefault: true }] },
+            { status: 200, body: { payCents: 41000, currency: "EUR" } }
+        ]
+        var got = null
+        Sync.loadDay(ctx("server"), 1, "2026-09-14", function(r) { got = r })
+        compare(got.fields.catering, "yes")
+        compare(got.server.catering, true)
+    }
+
     function test_loadEngagementListCached() {
         var c = ctx("server", { ping: ping(["engagements"]) })
         responses = [

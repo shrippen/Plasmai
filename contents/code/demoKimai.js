@@ -377,7 +377,7 @@ function engagementOn(dateStr, projectId) {
         customerName: byId(state.customers, byId(state.projects, FILM_PROJECT).customer).name,
         rulesetName: "TV FFS 2024", crewRole: World.t(ENGAGEMENT.position, state.lang),
         validFrom: dateKey(new Date(state.engagementFrom)), validTo: dateKey(new Date(state.engagementTo)),
-        toggleDefault: true, azvEligible: true, travelDays: "counted"
+        toggleDefault: true, azvEligible: true, travelDays: "counted", cateringDefault: false
     }
 }
 

@@ -240,30 +240,7 @@ Kirigami.ApplicationWindow {
     readonly property var networkStatusService: typeof networkStatus !== "undefined" ? networkStatus : null
     readonly property var trayService: typeof trayClient !== "undefined" ? trayClient : null
     readonly property var autostartService: typeof autostart !== "undefined" ? autostart : null
-    readonly property var runningNoticeService: typeof runningNotice !== "undefined" ? runningNotice : null
-
-    // ── Running-timer notification (Android, Plasma Mobile): stays while a timer runs ──
-    // Start of the running entry in epoch ms, 0 when none runs or its begin is unreadable.
-    readonly property double runningSinceMs: {
-        if (!isTracking || !activeTimesheet) return 0
-        var since = DTF.parseStamp(activeTimesheet.begin).getTime()
-        return isNaN(since) ? 0 : since
-    }
-    onIsTrackingChanged: runningNoticeTimer.restart()
-    onCurrentProjectChanged: runningNoticeTimer.restart()
-    onCurrentActivityChanged: runningNoticeTimer.restart()
-    onRunningSinceMsChanged: runningNoticeTimer.restart()
-    // One update per refresh: a new entry changes all four values at once.
-    Timer {
-        id: runningNoticeTimer
-        interval: 0
-        onTriggered: {
-            if (!root.runningNoticeService) return
-            if (!root.isTracking) { root.runningNoticeService.clear(); return }
-            root.runningNoticeService.show(i18n("Tracking in progress"),
-                root.currentProject + " · " + root.currentActivity, root.runningSinceMs)
-        }
-    }
+    readonly property var trackingNoticeService: typeof trackingNotice !== "undefined" ? trackingNotice : null
 
     // ── Tray client (Windows, ROADMAP pillar 7): icon state, tooltip and menu, like the Plasmoid's panel icon ──
     Binding {
@@ -289,6 +266,44 @@ Kirigami.ApplicationWindow {
     Connections {
         target: root.trayService
         function onMenuTriggered(id) { root.trayAction(id) }
+    }
+
+    // ── Permanent notification while a timer runs (Android, Plasma Mobile) ──
+    /** What the notification shows ("" = none): a change posts it again. */
+    readonly property string trackingNoticeKey: trackingNoticeService && Kirigami.Settings.isMobile && isTracking
+        ? [currentTimesheetId, currentProject, currentActivity].join("|") : ""
+    onTrackingNoticeKeyChanged: Qt.callLater(updateTrackingNotice)
+    Connections {
+        target: Qt.application
+        // Back in front after Android's permission dialog: now the notification can be posted.
+        function onStateChanged() {
+            if (Qt.platform.os === "android" && Qt.application.state === Qt.ApplicationActive) {
+                root.updateTrackingNotice()
+            }
+        }
+    }
+    Connections {
+        target: root.trackingNoticeService
+        function onActivated() { root.show(); root.raise(); root.requestActivate() }
+    }
+
+    function updateTrackingNotice() {
+        if (!trackingNoticeService) {
+            return
+        }
+        if (trackingNoticeKey === "") {
+            trackingNoticeService.hide()
+            return
+        }
+
+        // The begin of the entry: Android counts the elapsed time from it.
+        var begin = activeTimesheet && activeTimesheet.begin ? DTF.parseStamp(activeTimesheet.begin) : null
+        if (!begin || isNaN(begin.getTime())) {
+            begin = new Date(Date.now() - elapsedSeconds * 1000)
+        }
+        trackingNoticeService.show(currentProject + " · " + currentActivity,
+                                   i18n("Running since %1", DTF.formatLocaleTime(begin.getHours(), begin.getMinutes())),
+                                   begin.getTime())
     }
 
     /** The tray icon's context menu (TrayController.menu): the timer, the popup, autostart, quit. */
@@ -1031,8 +1046,6 @@ Kirigami.ApplicationWindow {
     pageStack.initialPage: TimerPage { }
     Component.onCompleted: {
         drawerButtonNamer.restart()
-        // A notice left from an earlier run goes unless a timer is found running.
-        runningNoticeTimer.restart()
         Platform.setBackend(AppBackend.create(TokenStore, FileStore,
             typeof idleWatcher !== "undefined" ? idleWatcher : undefined,
             typeof notifier !== "undefined" ? notifier : undefined))

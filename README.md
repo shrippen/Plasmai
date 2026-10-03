@@ -28,7 +28,7 @@ A KDE Plasma 6 panel widget for time tracking — Kimai, Clockify, Toggl Track, 
 - Today/week work summary (Kimai work contract; remaining hours skip vacation/holidays when kimai-holiday-bundle or the official WorkContract plugin is installed)
 - Day sparkline: zoomed work-hours bar, sun/moon/work arcs, overtime segments, hour ticks
 - Shared settings across all widget instances
-- Desktop notifications; a notification that stays while a timer runs (Android, Plasma Mobile app); optional idle auto-stop
+- Desktop notifications; optional idle auto-stop
 - Translations: EN, DE, FR, ES, IT, NL, PT (BR), PL, UK, RU, JA, ZH (CN)
 
 ## Requirements

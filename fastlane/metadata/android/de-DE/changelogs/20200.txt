@@ -1,0 +1,1 @@
+Plasmai 2.2: Dauer-Benachrichtigung, solange ein Timer läuft (Android, Plasma Mobile). Im Widget öffnet ein Rechtsklick auf einen letzten Eintrag sein Menü.

@@ -1,0 +1,1 @@
+Plasmai 2.2: a permanent notification while a timer runs (Android, Plasma Mobile). In the widget, a right click on a recent entry opens its menu.
