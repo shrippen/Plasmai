@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Plasmai 2.3.0\n"
+"Project-Id-Version: Plasmai 2.3.1\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-10-02 00:24+0200\n"
+"POT-Creation-Date: 2026-10-05 23:00+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: app/qml/AboutPage.qml:11 app/qml/main.qml:997
+#: app/qml/AboutPage.qml:11 app/qml/main.qml:1008
 msgid "About"
 msgstr ""
 
@@ -46,7 +46,7 @@ msgstr ""
 msgid "More projects"
 msgstr ""
 
-#: app/qml/ConnectionPage.qml:15 app/qml/main.qml:989
+#: app/qml/ConnectionPage.qml:15 app/qml/main.qml:1000
 #: contents/config/config.qml:6 contents/ui/config/ConfigConnection.qml:366
 msgid "Connection"
 msgstr ""
@@ -184,7 +184,7 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
-#: app/qml/FavoritesPage.qml:11 app/qml/main.qml:985 app/qml/TimerPage.qml:649
+#: app/qml/FavoritesPage.qml:11 app/qml/main.qml:996 app/qml/TimerPage.qml:649
 #: contents/config/config.qml:11 contents/ui/config/ConfigDisplay.qml:877
 #: contents/ui/config/ConfigDisplay.qml:932
 #: contents/ui/config/ConfigFavorites.qml:423 contents/ui/EntryLists.qml:165
@@ -208,7 +208,7 @@ msgstr ""
 msgid "The film day was not saved: %1"
 msgstr ""
 
-#: app/qml/FilmDayPage.qml:142 app/qml/main.qml:692 app/qml/main.qml:706
+#: app/qml/FilmDayPage.qml:142 app/qml/main.qml:703 app/qml/main.qml:717
 msgid "Could not save the entry"
 msgstr ""
 
@@ -281,7 +281,7 @@ msgstr ""
 msgid "Minutes"
 msgstr ""
 
-#: app/qml/main.qml:258 app/qml/main.qml:340 app/qml/main.qml:939
+#: app/qml/main.qml:258 app/qml/main.qml:351 app/qml/main.qml:950
 #: app/qml/TimerPage.qml:17 contents/ui/main.qml:377 contents/ui/main.qml:379
 #: contents/ui/main.qml:2748 contents/ui/main.qml:3377
 msgid "Plasmai"
@@ -292,156 +292,156 @@ msgstr ""
 msgid "Offline"
 msgstr ""
 
-#: app/qml/main.qml:305 app/qml/TimerPage.qml:292
+#: app/qml/main.qml:316 app/qml/TimerPage.qml:292
 #: contents/ui/TimerCardKante.qml:78
 msgid "Running since %1"
 msgstr ""
 
-#: app/qml/main.qml:311
+#: app/qml/main.qml:322
 msgid "Open Plasmai"
 msgstr ""
 
-#: app/qml/main.qml:313
+#: app/qml/main.qml:324
 msgid "Stop %1 · %2"
 msgstr ""
 
-#: app/qml/main.qml:315
+#: app/qml/main.qml:326
 msgid "Start %1 · %2"
 msgstr ""
 
-#: app/qml/main.qml:320
+#: app/qml/main.qml:331
 msgid "Start at login"
 msgstr ""
 
-#: app/qml/main.qml:322
+#: app/qml/main.qml:333
 msgid "Quit"
 msgstr ""
 
-#: app/qml/main.qml:418 contents/ui/main.qml:1947
+#: app/qml/main.qml:429 contents/ui/main.qml:1947
 msgid "%1 left today"
 msgstr ""
 
-#: app/qml/main.qml:418 contents/ui/main.qml:1949
+#: app/qml/main.qml:429 contents/ui/main.qml:1949
 msgid "%1 over today"
 msgstr ""
 
-#: app/qml/main.qml:419 contents/ui/main.qml:1954
+#: app/qml/main.qml:430 contents/ui/main.qml:1954
 msgid "%1 left this week"
 msgstr ""
 
-#: app/qml/main.qml:419 contents/ui/main.qml:1956
+#: app/qml/main.qml:430 contents/ui/main.qml:1956
 msgid "%1 over this week"
 msgstr ""
 
-#: app/qml/main.qml:486 app/qml/main.qml:666 app/qml/main.qml:785
+#: app/qml/main.qml:497 app/qml/main.qml:677 app/qml/main.qml:796
 msgid "Could not stop tracking"
 msgstr ""
 
-#: app/qml/main.qml:488 contents/ui/main.qml:712
+#: app/qml/main.qml:499 contents/ui/main.qml:712
 msgid "Idle time discarded"
 msgstr ""
 
-#: app/qml/main.qml:502 contents/ui/main.qml:735
+#: app/qml/main.qml:513 contents/ui/main.qml:735
 msgid "Nothing is tracking"
 msgstr ""
 
-#: app/qml/main.qml:502
+#: app/qml/main.qml:513
 msgid "Start tracking when you begin work."
 msgstr ""
 
-#: app/qml/main.qml:505
+#: app/qml/main.qml:516
 msgid "%1h %2m"
 msgstr ""
 
-#: app/qml/main.qml:505
+#: app/qml/main.qml:516
 msgid "%1m %2s"
 msgstr ""
 
-#: app/qml/main.qml:650 contents/ui/main.qml:1887
+#: app/qml/main.qml:661 contents/ui/main.qml:1887
 msgid "Tracking in progress"
 msgstr ""
 
-#: app/qml/main.qml:657
+#: app/qml/main.qml:668
 msgid "%1: %2"
 msgstr ""
 
-#: app/qml/main.qml:667
+#: app/qml/main.qml:678
 msgid "Stopped"
 msgstr ""
 
-#: app/qml/main.qml:675 app/qml/main.qml:762 app/qml/main.qml:785
+#: app/qml/main.qml:686 app/qml/main.qml:773 app/qml/main.qml:796
 msgid "Could not start tracking"
 msgstr ""
 
-#: app/qml/main.qml:685 contents/ui/main.qml:613
+#: app/qml/main.qml:696 contents/ui/main.qml:613
 msgid ""
 "Saved without the billable change: your Kimai account is not allowed to edit "
 "billable."
 msgstr ""
 
-#: app/qml/main.qml:699
+#: app/qml/main.qml:710
 msgid "Could not delete the entry"
 msgstr ""
 
-#: app/qml/main.qml:717 contents/ui/main.qml:2699 contents/ui/main.qml:3200
+#: app/qml/main.qml:728 contents/ui/main.qml:2699 contents/ui/main.qml:3200
 msgid "Split time must be between begin and end."
 msgstr ""
 
-#: app/qml/main.qml:721
+#: app/qml/main.qml:732
 msgid "Could not split the entry"
 msgstr ""
 
-#: app/qml/main.qml:730 contents/ui/main.qml:2737
+#: app/qml/main.qml:741 contents/ui/main.qml:2737
 msgid "The first half was saved, but the second half could not be created."
 msgstr ""
 
-#: app/qml/main.qml:764
+#: app/qml/main.qml:775
 msgid "Started"
 msgstr ""
 
-#: app/qml/main.qml:813 contents/ui/main.qml:546
+#: app/qml/main.qml:824 contents/ui/main.qml:546
 msgid "just now"
 msgstr ""
 
-#: app/qml/main.qml:815
+#: app/qml/main.qml:826
 msgid "%1m ago"
 msgstr ""
 
-#: app/qml/main.qml:817
+#: app/qml/main.qml:828
 msgid "%1h ago"
 msgstr ""
 
-#: app/qml/main.qml:819 contents/ui/main.qml:558
+#: app/qml/main.qml:830 contents/ui/main.qml:558
 msgid "yesterday"
 msgstr ""
 
-#: app/qml/main.qml:820
+#: app/qml/main.qml:831
 #, javascript-format
 msgid "%1d ago"
 msgstr ""
 
-#: app/qml/main.qml:905
+#: app/qml/main.qml:916
 msgid "Menu"
 msgstr ""
 
-#: app/qml/main.qml:968
+#: app/qml/main.qml:979
 msgid "Timer"
 msgstr ""
 
-#: app/qml/main.qml:972
+#: app/qml/main.qml:983
 msgid "Add Entry"
 msgstr ""
 
-#: app/qml/main.qml:976 app/qml/StatsPage.qml:15 app/qml/TimerPage.qml:51
+#: app/qml/main.qml:987 app/qml/StatsPage.qml:15 app/qml/TimerPage.qml:51
 #: contents/ui/main.qml:3372 contents/ui/main.qml:3434
 msgid "Statistics"
 msgstr ""
 
-#: app/qml/main.qml:980 app/qml/TripsPage.qml:18
+#: app/qml/main.qml:991 app/qml/TripsPage.qml:18
 msgid "Trips"
 msgstr ""
 
-#: app/qml/main.qml:993 app/qml/SettingsPage.qml:13
+#: app/qml/main.qml:1004 app/qml/SettingsPage.qml:13
 msgid "Settings"
 msgstr ""
 
