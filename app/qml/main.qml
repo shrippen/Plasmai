@@ -271,12 +271,15 @@ Kirigami.ApplicationWindow {
     // ── Permanent notification while a timer runs (Android, Plasma Mobile) ──
     /** What the notification shows ("" = none): a change posts it again. */
     readonly property string trackingNoticeKey: trackingNoticeService && Kirigami.Settings.isMobile && isTracking
-        ? [currentTimesheetId, currentProject, currentActivity].join("|") : ""
+        ? [currentTimesheetId, currentProject, currentActivity, activeTimesheet ? activeTimesheet.begin : ""].join("|") : ""
     onTrackingNoticeKeyChanged: Qt.callLater(updateTrackingNotice)
     Connections {
         target: Qt.application
         // Back in front after Android's permission dialog: now the notification can be posted.
         function onStateChanged() {
+            if (Qt.application.state === Qt.ApplicationActive) {
+                root.syncElapsed()
+            }
             if (Qt.platform.os === "android" && Qt.application.state === Qt.ApplicationActive) {
                 root.updateTrackingNotice()
             }
@@ -285,6 +288,14 @@ Kirigami.ApplicationWindow {
     Connections {
         target: root.trackingNoticeService
         function onActivated() { root.show(); root.raise(); root.requestActivate() }
+    }
+
+    /** The counter from the entry's begin: ticks stand still while the app is suspended. */
+    function syncElapsed() {
+        var begin = activeTimesheet && activeTimesheet.begin ? DTF.parseStamp(activeTimesheet.begin) : null
+        if (begin && !isNaN(begin.getTime())) {
+            elapsedSeconds = Math.max(0, Math.floor((Date.now() - begin.getTime()) / 1000))
+        }
     }
 
     function updateTrackingNotice() {
@@ -418,7 +429,7 @@ Kirigami.ApplicationWindow {
     function remainingTodayText() { return remainingTodaySeconds >= 0 ? i18n("%1 left today", KimaiApi.formatDurationShort(remainingTodaySeconds)) : i18n("%1 over today", KimaiApi.formatDurationShort(-remainingTodaySeconds)) }
     function remainingWeekText() { return remainingWeekSeconds >= 0 ? i18n("%1 left this week", KimaiApi.formatDurationShort(remainingWeekSeconds)) : i18n("%1 over this week", KimaiApi.formatDurationShort(-remainingWeekSeconds)) }
 
-    Timer { id: elapsedTimer; interval: 1000; running: root.isTracking; repeat: true; onTriggered: root.elapsedSeconds++ }
+    Timer { id: elapsedTimer; interval: 1000; running: root.isTracking; repeat: true; onTriggered: { root.elapsedSeconds++; root.syncElapsed() } }
     // Keeps polling after an error too, so the app recovers by itself once the network is back.
     Timer { id: refreshTimer; interval: root.refreshInterval * 1000; running: root.isConfigured && (root.connectionState === "online" || root.connectionState === "error"); repeat: true; onTriggered: root.refreshAll() }
     Timer { id: alreadyRunningHintTimer; interval: 1400; repeat: false; onTriggered: root.alreadyRunningHintKey = "" }
