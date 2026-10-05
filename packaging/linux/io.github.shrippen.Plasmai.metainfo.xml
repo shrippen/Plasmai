@@ -89,6 +89,12 @@
     <binary>plasmai-app</binary>
   </provides>
   <releases>
+    <release version="2.3.1" date="2026-10-05">
+      <description>
+        <p>The running time is right as soon as the app is opened again, and the notification
+        follows an edit of the running entry.</p>
+      </description>
+    </release>
     <release version="2.3.0" date="2026-10-02">
       <description>
         <p>A film day without saved details starts with catering on when the engagement's

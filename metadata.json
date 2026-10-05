@@ -27,9 +27,9 @@
         "License": "GPL-3.0-or-later",
         "Name": "Plasmai",
         "Name[de]": "Plasmai",
-        "Version": "2.3.0",
+        "Version": "2.3.1",
         "Website": "https://github.com/shrippen/Plasmai",
-        "Build": "15"
+        "Build": "16"
     },
     "X-Plasma-API-Minimum-Version": "6.0"
 }

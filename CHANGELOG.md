@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 2.3.1
+
+Released 2026-10-05.
+
+### Fixed
+- App: the running time is right as soon as the app is opened again, no longer stuck at the value from when it was closed until the server answers
+- App (Android, Plasma Mobile): the notification follows an edit of the running entry, e.g. an earlier start time
+
 ## 2.3.0
 
 Released 2026-10-02.

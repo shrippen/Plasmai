@@ -1,0 +1,1 @@
+Plasmai 2.3.1: the running time is right as soon as the app is opened again, and the notification follows an edit of the running entry.

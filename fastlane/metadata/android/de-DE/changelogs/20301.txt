@@ -1,0 +1,1 @@
+Plasmai 2.3.1: Die laufende Zeit stimmt sofort beim erneuten Öffnen, und die Benachrichtigung folgt einer Bearbeitung des laufenden Eintrags.
