@@ -370,6 +370,24 @@ Kirigami.ApplicationWindow {
     function isUnsynced(entryId) { return offlineRevision >= 0 && !!offlineSession && Offline.isUnsynced(offlineSession, entryId) }
     property string apiToken: ""; property bool tokenLoaded: false
     property bool isConfigured: apiToken.length > 0
+    /** The setup wizard connected a profile; its Day step stays until it is finished or skipped. */
+    property bool setupAwaitingDay: false
+    readonly property bool showSetupWizard: (tokenLoaded && !isConfigured) || setupAwaitingDay
+
+    /** Setup wizard: the profile works (token tested and stored). */
+    function applySetupConnection(patch) {
+        setupAwaitingDay = true
+        Platform.patchShared(null, currentConfig(), patch).then(loadSharedAndConnect, loadSharedAndConnect)
+    }
+
+    /** Setup wizard: Day step done ({} when skipped). */
+    function finishSetup(patch) {
+        setupAwaitingDay = false
+        if (Object.keys(patch).length === 0) {
+            return
+        }
+        Platform.patchShared(null, currentConfig(), patch).then(loadSharedAndConnect, loadSharedAndConnect)
+    }
     property string connectionState: "offline"; property string errorMessage: ""
 
     property bool isTracking: false; property bool isBusy: false

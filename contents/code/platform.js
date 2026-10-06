@@ -43,6 +43,22 @@ function clearToken(dataSource, profileId) {
     })
 }
 
+// -- System check (first-start wizard)
+
+/**
+ * What blocks or limits Plasmai here, as setupWizard.js assess() reads it.
+ * Backends without a check (the app: QtKeychain needs nothing installed) give {}.
+ */
+function checkSystem(dataSource) {
+    return new Promise(function(resolve) {
+        if (!_backend.checkSystem) {
+            resolve({})
+            return
+        }
+        _backend.checkSystem(dataSource, function(result) { resolve(result || {}) })
+    })
+}
+
 // -- Idle detection
 
 function checkIdle(dataSource) {

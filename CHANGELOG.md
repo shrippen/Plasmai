@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### New
+- First start: a setup wizard in the widget and the app instead of the "Configure" hint. It checks the system (Plasmoid: secret-tool and KWallet, with the install command for the distribution), lets you pick the service (Clockify, Toggl Track and SolidTime marked experimental), tests address and token before storing the token, and asks for work hours, the place for the sun arcs and the start reminder (all optional)
+
+### Changed
+- Server addresses are cleaned when set up: https is added, a Kimai page or API address is cut back to the instance, plain http outside the machine is warned about; a pasted token loses blanks and "Bearer "
+
 ## 2.3.1
 
 Released 2026-10-05.

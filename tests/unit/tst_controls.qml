@@ -41,7 +41,7 @@ TestCase {
     // (singletons ApiErrors and PlasmaiColors are not creatable; they import no controls).
     function test_sharedComponentsCompile_data() {
         return ["ActiveEditView", "ActivityListRow", "BarChart", "ColorLabelRow", "CreateEntityDialog", "CustomerColorDot", "DateField", "DaySparkline", "StatsView", "FilmDayView", "EntryDayStrip",
-                "LoadingRow", "ManualEntryView", "OfflineStatus", "PieChart", "ProjectActivityPickers", "SearchableCombo",
+                "LoadingRow", "ManualEntryView", "OfflineStatus", "PieChart", "ProjectActivityPickers", "SearchableCombo", "SetupWizard",
                 "StackedBarChart", "TagPicker", "TagPill", "TimeField", "TimesheetMetaFields", "TripMap", "TripSheet",
                 "TripSuggestionList", "UnsyncedList", "WeeklyHourChart"].map(function(n) { return { tag: n, name: n } })
     }

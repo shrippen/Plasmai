@@ -18,6 +18,7 @@ ManualEntryView 1.0 ../../contents/ui/ManualEntryView.qml
 TripSuggestionList 1.0 ../../contents/ui/TripSuggestionList.qml
 SearchableCombo 1.0 ../../contents/ui/SearchableCombo.qml
 TripSheet 1.0 ../../contents/ui/TripSheet.qml
+SetupWizard 1.0 ../../contents/ui/SetupWizard.qml
 ActivityListRow 1.0 ../../contents/ui/ActivityListRow.qml
 ProjectActivityPickers 1.0 ../../contents/ui/ProjectActivityPickers.qml
 singleton TouchUi 1.0 ../../contents/ui/TouchUi.qml

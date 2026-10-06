@@ -40,6 +40,24 @@ TestCase {
         Platform.setBackend(fakeBackend())
     }
 
+    function test_checkSystemWithoutBackendCheck() {
+        // The app's backend has no check: nothing to report, no System step.
+        var got = null
+        Platform.checkSystem(null).then(function(r) { got = r })
+        tryVerify(function() { return got !== null })
+        compare(Object.keys(got).length, 0)
+    }
+
+    function test_checkSystemAsksBackend() {
+        var backend = fakeBackend()
+        backend.checkSystem = function(ds, cb) { cb({ secretTool: false }) }
+        Platform.setBackend(backend)
+        var got = null
+        Platform.checkSystem(null).then(function(r) { got = r })
+        tryVerify(function() { return got !== null })
+        compare(got.secretTool, false)
+    }
+
     function test_dataMapMergedWithOtherWriter() {
         // This process last saw {app:1}; the Plasmoid has added "widget" on disk since.
         disk.pluginProbesJson = JSON.stringify({ app: 1, widget: 2 })

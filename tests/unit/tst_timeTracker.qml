@@ -38,6 +38,23 @@ TestCase {
         verify(TimeTracker.isImplemented("kimai"))
     }
 
+    function test_onlyKimaiIsTested() {
+        // The setup wizard marks the others experimental.
+        compare(TimeTracker.providerMeta("kimai").tested, true)
+        compare(TimeTracker.providerMeta("clockify").tested, false)
+        compare(TimeTracker.providerMeta("toggl").tested, false)
+        compare(TimeTracker.providerMeta("solidtime").tested, false)
+    }
+
+    function test_apiHasWizardCalls() {
+        // SetupWizard.qml tests, then greets by name, on every service.
+        var ids = TimeTracker.providerIds()
+        for (var i = 0; i < ids.length; i++) {
+            compare(typeof TimeTracker.api(ids[i]).testConnection, "function", ids[i])
+            compare(typeof TimeTracker.api(ids[i]).fetchCurrentUser, "function", ids[i])
+        }
+    }
+
     function test_resolveUrl() {
         compare(TimeTracker.resolveUrl({ provider: "kimai", url: "https://a.example/" }),
                 "https://a.example")
