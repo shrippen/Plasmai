@@ -106,6 +106,28 @@ TestCase {
         verify(ds.sources[n - 1].indexOf("exec sh '/p/localStore.sh' commit 'offline-state-p1' '") === 0)
     }
 
+    function test_systemCheckResult() {
+        var r = Secret.systemCheckResult("secretTool=yes\nsecretService=no\nnotifySend=no\nosId=ubuntu\nosLike=debian\n")
+        compare(r.secretTool, true)
+        compare(r.secretService, "no")
+        compare(r.notifySend, false)
+        compare(r.osId, "ubuntu")
+        compare(r.osLike, "debian")
+        // A failed or missing script checks nothing.
+        compare(Object.keys(Secret.systemCheckResult("")).length, 0)
+        compare(Secret.systemCheckResult("secretTool=no\nosId=\n").osId, "")
+    }
+
+    function test_runSystemCheck() {
+        var ds = fakeSource()
+        var got = null
+        Secret.runSystemCheck(ds, "/p/systemCheck.sh", function(result) { got = result })
+        verify(ds.sources[0].indexOf("sh '/p/systemCheck.sh'") === 0)
+        Secret.handleData(ds, ds.sources[0], { "exit code": 0, stdout: "secretTool=no\nsecretService=unknown\n", stderr: "" })
+        compare(got.secretTool, false)
+        compare(got.secretService, "unknown")
+    }
+
     function test_loadLocal() {
         var ds = fakeSource()
         var got = "unset"

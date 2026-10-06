@@ -136,6 +136,7 @@
         <file alias="contents/ui/ProjectActivityPickers.qml">../contents/ui/ProjectActivityPickers.qml</file>
         <file alias="contents/ui/ActivityListRow.qml">../contents/ui/ActivityListRow.qml</file>
         <file alias="contents/ui/TripSheet.qml">../contents/ui/TripSheet.qml</file>
+        <file alias="contents/ui/SetupWizard.qml">../contents/ui/SetupWizard.qml</file>
         <file alias="contents/ui/SearchableCombo.qml">../contents/ui/SearchableCombo.qml</file>
         <file alias="contents/ui/TripSuggestionList.qml">../contents/ui/TripSuggestionList.qml</file>
         <file alias="contents/ui/ManualEntryView.qml">../contents/ui/ManualEntryView.qml</file>
@@ -166,6 +167,7 @@
         <file alias="contents/code/solar.js">../contents/code/solar.js</file>
         <file alias="contents/code/dateTimeFormat.js">../contents/code/dateTimeFormat.js</file>
         <file alias="contents/code/geocode.js">../contents/code/geocode.js</file>
+        <file alias="contents/code/setupWizard.js">../contents/code/setupWizard.js</file>
         <file alias="contents/code/providers/_stub.js">../contents/code/providers/_stub.js</file>
         <file alias="contents/code/providers/clockify.js">../contents/code/providers/clockify.js</file>
         <file alias="contents/code/providers/toggl.js">../contents/code/providers/toggl.js</file>

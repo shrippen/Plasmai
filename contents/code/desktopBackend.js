@@ -8,8 +8,15 @@
 .import "secret.js" as Secret
 
 function create(kwalletScript, idleScript, notifyScript,
-                sharedConfigScript, catalogCacheScript, localStoreScript) {
+                sharedConfigScript, catalogCacheScript, localStoreScript, systemCheckScript) {
     return {
+        checkSystem: function(ds, cb) {
+            if (!systemCheckScript) {
+                cb({})
+                return
+            }
+            Secret.runSystemCheck(ds, systemCheckScript, cb)
+        },
         loadToken: function(ds, id, cb) {
             Secret.load(ds, kwalletScript, id, cb)
         },

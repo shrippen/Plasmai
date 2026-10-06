@@ -135,6 +135,46 @@ function runIdle(dataSource, scriptPath, callback) {
     })
 }
 
+/** "a=yes\nb=no" → { a: "yes", b: "no" }; lines without "=" are skipped. */
+function parseKeyValues(text) {
+    var out = {}
+    var lines = String(text || "").split("\n")
+    for (var i = 0; i < lines.length; i++) {
+        var at = lines[i].indexOf("=")
+        if (at <= 0) {
+            continue
+        }
+        out[lines[i].substring(0, at).trim()] = lines[i].substring(at + 1).trim()
+    }
+    return out
+}
+
+/**
+ * systemCheck.sh output as the wizard reads it (setupWizard.js assess()):
+ * yes / no become booleans, secretService keeps yes / no / unknown.
+ * Empty output (script missing or failed) checks nothing: {}.
+ */
+function systemCheckResult(text) {
+    var v = parseKeyValues(text)
+    if (!v.secretTool) {
+        return {}
+    }
+    return {
+        secretTool: v.secretTool === "yes",
+        secretService: v.secretService || "unknown",
+        notifySend: v.notifySend === "yes",
+        osId: v.osId || "",
+        osLike: v.osLike || ""
+    }
+}
+
+function runSystemCheck(dataSource, scriptPath, callback) {
+    var cmd = "sh " + shQuote(scriptPath)
+    _run(dataSource, cmd, function(data) {
+        callback(systemCheckResult((data["stdout"] || "").toString()))
+    })
+}
+
 function notify(dataSource, scriptPath, summary, body, callback) {
     var cmd = "sh " + shQuote(scriptPath) + " " + shQuote(summary) + " " + shQuote(body || "")
     _run(dataSource, cmd, function(data) {

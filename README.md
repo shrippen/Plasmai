@@ -67,10 +67,15 @@ Or download a `.plasmoid` yourself and run `kpackagetool6 -i <file> -t Plasma/Ap
 ## Setup
 
 1. Right-click the panel → **Add Widgets** → search for **Plasmai**
-2. Right-click the widget → **Configure Plasmai**
-3. **Connection** tab: choose service (Kimai / Clockify / Toggl / SolidTime), set URL if needed, save API token, test connection
-4. **Favorites** tab: pin frequently used project/activity pairs
-5. **Display** / **Behavior** tabs: recent count, panel labels, sparkline arcs, idle stop, notifications
+2. Click the widget. A setup wizard checks the system (secret-tool, KWallet), asks for the service, server address and API token, tests the connection and stores the token, then asks for work hours and your place (both optional)
+3. More later: right-click the widget → **Configure Plasmai**
+   - **Connection** tab: more profiles, change service, URL or token
+   - **Favorites** tab: pin frequently used project/activity pairs
+   - **Display** / **Behavior** tabs: recent count, panel labels, sparkline arcs, idle stop, notifications
+
+The app (Android, Plasma Mobile, Windows) starts with the same wizard, without the system check.
+
+Updating from 2.3.x or older resets all settings and removes the stored API tokens once; the wizard then sets Plasmai up again.
 
 Use **+** on the widget for manual entries and the chart icon for statistics.
 
