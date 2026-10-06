@@ -1,0 +1,1 @@
+Plasmai 2.5.1: behebt, dass die App (Android, Windows, Linux) in 2.5.0 nicht startete. Das Plasma-Widget war nicht betroffen.

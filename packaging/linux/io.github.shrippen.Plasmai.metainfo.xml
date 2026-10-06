@@ -89,6 +89,11 @@
     <binary>plasmai-app</binary>
   </provides>
   <releases>
+    <release version="2.5.1" date="2026-10-06">
+      <description>
+        <p>Fixes the app (Android, Windows, Linux) not starting in 2.5.0.</p>
+      </description>
+    </release>
     <release version="2.5.0" date="2026-10-06">
       <description>
         <p>The setup wizard has a new step, Look: choose System, Kante or Kante Light with a
