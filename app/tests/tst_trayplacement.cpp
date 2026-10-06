@@ -69,6 +69,27 @@ private slots:
         QCOMPARE(p, QPoint(0, 0));
     }
 
+    // 1920×1080 at 250 % is 768×432 logical px: the 400×640 popup must shrink to the
+    // available area, or its bottom and the buttons there are off the screen.
+    void fitSizeHighDpi()
+    {
+        const QSize s = TrayPlacement::fitSize(QSize(400, 640), QSize(320, 400), QRect(0, 0, 768, 416));
+        QCOMPARE(s, QSize(400, 416));
+    }
+
+    // The wanted size where it fits; never below the minimum while the screen allows it.
+    void fitSizeKeepsWanted()
+    {
+        QCOMPARE(TrayPlacement::fitSize(QSize(400, 640), QSize(320, 400), QRect(0, 0, 1920, 1040)), QSize(400, 640));
+        QCOMPARE(TrayPlacement::fitSize(QSize(100, 100), QSize(320, 400), QRect(0, 0, 1920, 1040)), QSize(320, 400));
+    }
+
+    // A screen smaller than the minimum: the screen wins.
+    void fitSizeTinyScreen()
+    {
+        QCOMPARE(TrayPlacement::fitSize(QSize(400, 640), QSize(320, 400), QRect(0, 0, 300, 380)), QSize(300, 380));
+    }
+
     // A second screen to the right (negative and offset coordinates).
     void secondScreen()
     {
