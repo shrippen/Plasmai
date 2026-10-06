@@ -1,0 +1,1 @@
+Plasmai 2.5.3: Unter Windows blendet das Tray-Popup beim Öffnen und Schließen weich ein und aus und gleitet dabei aus der Taskleiste.

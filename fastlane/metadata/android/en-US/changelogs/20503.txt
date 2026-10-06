@@ -1,0 +1,1 @@
+Plasmai 2.5.3: On Windows the tray popup fades and slides in from the taskbar as it opens, and back out as it closes.
