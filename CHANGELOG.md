@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Fixed
+- Windows: the app did not save its settings. Windows refused to replace the settings file, so the setup wizard stored the token but not the server address, and the app showed a connection problem. Settings are now written directly when the file cannot be replaced
+
 ## 2.5.1
 
 Released 2026-10-06.

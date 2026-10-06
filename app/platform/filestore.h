@@ -6,7 +6,6 @@
 #include <QRegularExpression>
 #include <QSaveFile>
 #include <QStandardPaths>
-#include <QThread>
 
 #include "../appid.h"
 
@@ -56,28 +55,22 @@ public:
 private:
     /**
      * QSaveFile: temp file + rename (like mktemp + mv in sharedConfig.sh), so a
-     * killed app never leaves a half-written file. On Windows the rename can be
-     * refused ("Access denied") while a scanner still holds the fresh temp file:
-     * try again shortly, and as a last resort write the file in place.
+     * killed app never leaves a half-written file. On Windows the rename over an
+     * existing file is refused ("Access denied", every time, also after waiting):
+     * then the file is written in place.
      */
     static bool write(const QString &path, const QByteArray &data, bool ownerOnly) {
-        QString error;
-        for (int attempt = 0; attempt < 5; ++attempt) {
-            if (attempt > 0) {
-                QThread::msleep(50 * attempt);
+        QSaveFile f(path);
+        if (f.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            if (ownerOnly) {
+                f.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner);
             }
-            QSaveFile f(path);
-            if (f.open(QIODevice::WriteOnly | QIODevice::Text)) {
-                if (ownerOnly) {
-                    f.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner);
-                }
-                f.write(data);
-                if (f.commit()) {
-                    return true;
-                }
+            f.write(data);
+            if (f.commit()) {
+                return true;
             }
-            error = f.errorString();
         }
+        const QString error = f.errorString();
 
         QFile direct(path);
         if (direct.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text)
