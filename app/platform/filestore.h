@@ -6,6 +6,7 @@
 #include <QRegularExpression>
 #include <QSaveFile>
 #include <QStandardPaths>
+#include <QThread>
 
 #include "../appid.h"
 
@@ -29,17 +30,7 @@ public:
     Q_INVOKABLE void save(const QString &fileName, const QString &json) {
         QString dir = configDir();
         QDir().mkpath(dir);
-        // QSaveFile: temp file + rename (like mktemp + mv in sharedConfig.sh),
-        // so a killed app never leaves a half-written shared.json.
-        QSaveFile f(dir + "/" + fileName);
-        bool ok = f.open(QIODevice::WriteOnly | QIODevice::Text);
-        if (ok) {
-            f.write(json.toUtf8());
-            ok = f.commit();
-        }
-        if (!ok) {
-            qWarning("plasmai: could not save %s: %s", qPrintable(fileName), qPrintable(f.errorString()));
-        }
+        const bool ok = write(dir + "/" + fileName, json.toUtf8(), false);
         emit saved(fileName, ok);
     }
 
@@ -57,23 +48,47 @@ public:
     }
 
     Q_INVOKABLE void saveLocal(const QString &name, const QString &json) {
-        bool ok = validName(name) && QDir().mkpath(localDir());
-        if (ok) {
-            QSaveFile f(localDir() + "/" + name + ".json");
-            ok = f.open(QIODevice::WriteOnly | QIODevice::Text);
-            if (ok) {
-                f.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner);
-                f.write(json.toUtf8());
-                ok = f.commit();
-            }
-            if (!ok) {
-                qWarning("plasmai: could not save %s: %s", qPrintable(name), qPrintable(f.errorString()));
-            }
-        }
+        const bool ok = validName(name) && QDir().mkpath(localDir())
+            && write(localDir() + "/" + name + ".json", json.toUtf8(), true);
         emit localSaved(name, ok);
     }
 
 private:
+    /**
+     * QSaveFile: temp file + rename (like mktemp + mv in sharedConfig.sh), so a
+     * killed app never leaves a half-written file. On Windows the rename can be
+     * refused ("Access denied") while a scanner still holds the fresh temp file:
+     * try again shortly, and as a last resort write the file in place.
+     */
+    static bool write(const QString &path, const QByteArray &data, bool ownerOnly) {
+        QString error;
+        for (int attempt = 0; attempt < 5; ++attempt) {
+            if (attempt > 0) {
+                QThread::msleep(50 * attempt);
+            }
+            QSaveFile f(path);
+            if (f.open(QIODevice::WriteOnly | QIODevice::Text)) {
+                if (ownerOnly) {
+                    f.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner);
+                }
+                f.write(data);
+                if (f.commit()) {
+                    return true;
+                }
+            }
+            error = f.errorString();
+        }
+
+        QFile direct(path);
+        if (direct.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text)
+                && direct.write(data) == data.size() && direct.flush()) {
+            qWarning("plasmai: %s written in place (%s)", qPrintable(path), qPrintable(error));
+            return true;
+        }
+        qWarning("plasmai: could not save %s: %s", qPrintable(path), qPrintable(error));
+        return false;
+    }
+
     static bool validName(const QString &name) {
         static const QRegularExpression pattern(QStringLiteral("^[A-Za-z0-9_-][A-Za-z0-9_.-]*$"));
         return pattern.match(name).hasMatch();
