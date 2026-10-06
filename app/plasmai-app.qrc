@@ -68,6 +68,7 @@
         <file alias="contents/ui/Kante/KanteRunner.qml">../contents/ui/Kante/KanteRunner.qml</file>
         <file alias="contents/ui/Kante/KanteScope.qml">../contents/ui/Kante/KanteScope.qml</file>
         <file alias="contents/ui/Kante/KanteScrollMeter.qml">../contents/ui/Kante/KanteScrollMeter.qml</file>
+        <file alias="contents/ui/Kante/KanteSectionLabel.qml">../contents/ui/Kante/KanteSectionLabel.qml</file>
         <file alias="contents/ui/Kante/KanteSearchCombo.qml">../contents/ui/Kante/KanteSearchCombo.qml</file>
         <file alias="contents/ui/Kante/KanteSegmented.qml">../contents/ui/Kante/KanteSegmented.qml</file>
         <file alias="contents/ui/Kante/KanteSettingRow.qml">../contents/ui/Kante/KanteSettingRow.qml</file>
