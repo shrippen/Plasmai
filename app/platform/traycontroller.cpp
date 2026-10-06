@@ -100,14 +100,8 @@ TrayController::TrayController(QObject *parent)
         });
     });
 
-    connect(&m_anim, &QVariantAnimation::valueChanged, this, [this](const QVariant &value) {
-        applyShown(value.toReal());
-    });
-    connect(&m_anim, &QAbstractAnimation::finished, this, [this]() {
-        if (m_hiding) {
-            finishHide();
-        }
-    });
+    m_animTimer.setTimerType(Qt::PreciseTimer);
+    connect(&m_animTimer, &QTimer::timeout, this, &TrayController::animationStep);
 
     m_icon.setContextMenu(&m_menu);
     connect(&m_icon, &QSystemTrayIcon::activated, this, [this](QSystemTrayIcon::ActivationReason reason) {
@@ -201,7 +195,7 @@ void TrayController::showPopup()
         applyShown(m_shown);
         animateTo(1);
     } else {
-        m_anim.stop();
+        m_animTimer.stop();
         applyShown(1);
     }
     m_window->show();
@@ -229,14 +223,30 @@ void TrayController::hidePopup()
 // Animates m_shown to `shown` (0 or 1); a turn halfway takes only the rest of the time.
 void TrayController::animateTo(qreal shown)
 {
-    m_anim.stop();
     const bool opening = shown > m_shown;
     const int full = opening ? SHOW_MS : HIDE_MS;
-    m_anim.setDuration(qMax(1, qRound(full * qAbs(shown - m_shown))));
-    m_anim.setEasingCurve(opening ? QEasingCurve::OutCubic : QEasingCurve::InCubic);
-    m_anim.setStartValue(m_shown);
-    m_anim.setEndValue(shown);
-    m_anim.start();
+    m_animDuration = qMax(1, qRound(full * qAbs(shown - m_shown)));
+    m_animCurve = QEasingCurve(opening ? QEasingCurve::OutCubic : QEasingCurve::InCubic);
+    m_animFrom = m_shown;
+    m_animTo = shown;
+    m_animClock.start();
+    // One step per frame of the popup's screen.
+    const qreal hz = m_window && m_window->screen() ? m_window->screen()->refreshRate() : 60;
+    m_animTimer.start(qBound(4, qRound(1000 / qMax(hz, 1.0)), 16));
+}
+
+// Progress from the time actually passed: a late timer skips ahead instead of slowing down.
+void TrayController::animationStep()
+{
+    const qreal t = qMin(1.0, m_animClock.elapsed() / qreal(m_animDuration));
+    applyShown(m_animFrom + (m_animTo - m_animFrom) * m_animCurve.valueForProgress(t));
+    if (t < 1) {
+        return;
+    }
+    m_animTimer.stop();
+    if (m_hiding) {
+        finishHide();
+    }
 }
 
 void TrayController::applyShown(qreal shown)
@@ -251,7 +261,7 @@ void TrayController::applyShown(qreal shown)
 
 void TrayController::finishHide()
 {
-    m_anim.stop();
+    m_animTimer.stop();
     m_hiding = false;
     m_shown = 0;
     if (m_window) {

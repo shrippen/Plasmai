@@ -9,7 +9,8 @@
 #include <QQuickWindow>
 #include <QSize>
 #include <QSystemTrayIcon>
-#include <QVariantAnimation>
+#include <QEasingCurve>
+#include <QTimer>
 #include <QVariantList>
 
 // -- TrayController: the tray client (ROADMAP pillar 7) -------------------------
@@ -65,6 +66,7 @@ private:
     void toggle();
     void place();
     void animateTo(qreal shown);
+    void animationStep();
     void applyShown(qreal shown);
     void finishHide();
     static bool animationsEnabled();
@@ -96,7 +98,13 @@ private:
 
     // Open/close animation: 0 hidden, 1 shown; the popup fades and moves by m_slide towards
     // its resting position m_restPos. m_hiding while it slides out (still visible then).
-    QVariantAnimation m_anim;
+    // Own precise timer: Qt's animation timer (16 ms) fires only every ~31 ms on Windows.
+    QTimer m_animTimer;
+    QElapsedTimer m_animClock;
+    QEasingCurve m_animCurve;
+    int m_animDuration = 0;
+    qreal m_animFrom = 0;
+    qreal m_animTo = 0;
     qreal m_shown = 0;
     bool m_hiding = false;
     QPoint m_restPos;
