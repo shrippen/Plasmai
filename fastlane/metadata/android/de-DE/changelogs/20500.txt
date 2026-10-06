@@ -1,0 +1,1 @@
+Plasmai 2.5.0: der Einrichtungsassistent hat einen neuen Schritt "Aussehen": System, Kante oder Kante Light mit Vorschau. Der Assistent ändert sich mit der Wahl, später in den Einstellungen änderbar.

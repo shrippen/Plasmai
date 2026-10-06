@@ -89,6 +89,12 @@
     <binary>plasmai-app</binary>
   </provides>
   <releases>
+    <release version="2.5.0" date="2026-10-06">
+      <description>
+        <p>The setup wizard has a new step, Look: choose System, Kante or Kante Light with a
+        preview. The wizard changes with the choice, and it can be changed later in the settings.</p>
+      </description>
+    </release>
     <release version="2.4.0" date="2026-10-06">
       <description>
         <p>A setup wizard on first start: service, address and token, tested before the token is
