@@ -28,7 +28,7 @@ Add the widget to a panel and verify start/stop, pickers, sparkline, stats, and 
 | Field | Value |
 |---|---|
 | **Name** | Plasmai |
-| **Version** | 2.3.1 |
+| **Version** | 2.4.0 |
 | **License** | GPL-3.0-or-later |
 | **Homepage / Source** | https://github.com/shrippen/Plasmai |
 | **Bug tracker** | https://github.com/shrippen/Plasmai/issues |

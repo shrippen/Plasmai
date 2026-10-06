@@ -1,0 +1,1 @@
+Plasmai 2.4.0: a setup wizard on first start (service, address and token, work hours and place). Updating from 2.3.x resets all settings once and removes the stored tokens. Small text is smaller than normal text again.

@@ -1,0 +1,1 @@
+Plasmai 2.4.0: Ein Einrichtungsassistent beim ersten Start (Dienst, Adresse und Token, Arbeitszeit und Ort). Das Update von 2.3.x setzt alle Einstellungen einmalig zurück und entfernt die gespeicherten Tokens. Kleine Schrift ist wieder kleiner als die normale.
