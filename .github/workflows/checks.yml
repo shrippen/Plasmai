@@ -163,6 +163,8 @@ jobs:
         run: |
           export PATH="$GITHUB_WORKSPACE/deps/bin:$PATH"
           export QML_IMPORT_PATH="$(cygpath -m "$GITHUB_WORKSPACE/deps/lib/qml")"
+          # Windows apps log to the debugger unless told otherwise: without this the QML error is lost.
+          export QT_FORCE_STDERR_LOGGING=1
           export QT_QPA_PLATFORM=offscreen PLASMAI_TEST_SCRIPT=tests/app/demo-screens.txt PLASMAI_TEST_OUT=screens
           mkdir -p screens
           timeout 120 build/plasmai-app.exe > screens/app.log 2>&1 || { cat screens/app.log; exit 1; }
