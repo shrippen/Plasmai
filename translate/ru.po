@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-10-06 22:10+0200\n"
+"POT-Creation-Date: 2026-10-06 22:13+0200\n"
 "PO-Revision-Date: 2026-08-09 19:45+0200\n"
 "Last-Translator: Cursor Agent\n"
 "Language-Team: Russian\n"
@@ -547,7 +547,7 @@ msgid "When editing the running timer, the previous entry's end is shown. Saving
 msgstr "При редактировании запущенного таймера показывается конец предыдущей записи. Сохранение более раннего начала требует подтверждения."
 
 #: app/qml/SettingsPage.qml:165 contents/ui/config/ConfigDisplay.qml:566
-#: contents/ui/SetupWizard.qml:726
+#: contents/ui/SetupWizard.qml:723
 msgid "Work hours"
 msgstr "Рабочие часы"
 
@@ -650,7 +650,7 @@ msgstr "Неделя %1"
 msgid "Not configured"
 msgstr "Не настроено"
 
-#: app/qml/TimerPage.qml:155 contents/ui/SetupWizard.qml:881
+#: app/qml/TimerPage.qml:155 contents/ui/SetupWizard.qml:878
 msgid "Connecting…"
 msgstr "Подключение…"
 
@@ -1292,7 +1292,7 @@ msgid "City, region, or address…"
 msgstr "Город, регион или адрес…"
 
 #: contents/ui/config/ConfigDisplay.qml:648
-#: contents/ui/config/ConfigDisplay.qml:656 contents/ui/SetupWizard.qml:774
+#: contents/ui/config/ConfigDisplay.qml:656 contents/ui/SetupWizard.qml:771
 msgid "Search"
 msgstr "Поиск"
 
@@ -1958,7 +1958,7 @@ msgstr "Записать съёмочный день"
 msgid "Log a trip (Anfahrten plugin)"
 msgstr "Записать поездку (плагин Anfahrten)"
 
-#: contents/ui/main.qml:3536 contents/ui/SetupWizard.qml:849
+#: contents/ui/main.qml:3536 contents/ui/SetupWizard.qml:846
 msgid "Back"
 msgstr "Назад"
 
@@ -2006,7 +2006,7 @@ msgstr[1] "%1 изменения ждут вашего решения"
 msgstr[2] "%1 изменений ждут вашего решения"
 
 #: contents/ui/OfflineStatus.qml:63 contents/ui/OfflineStatus.qml:91
-#: contents/ui/SetupWizard.qml:689
+#: contents/ui/SetupWizard.qml:686
 msgid "Show"
 msgstr "Показать"
 
@@ -2176,139 +2176,139 @@ msgstr "Предпросмотр"
 msgid "%1 – %2"
 msgstr "%1 – %2"
 
-#: contents/ui/SetupWizard.qml:526
+#: contents/ui/SetupWizard.qml:523
 msgid "Ground"
 msgstr "Фон"
 
-#: contents/ui/SetupWizard.qml:527
+#: contents/ui/SetupWizard.qml:524
 msgid "Card"
 msgstr "Карточка"
 
-#: contents/ui/SetupWizard.qml:528
+#: contents/ui/SetupWizard.qml:525
 msgid "Text"
 msgstr "Текст"
 
-#: contents/ui/SetupWizard.qml:529
+#: contents/ui/SetupWizard.qml:526
 msgid "Accent"
 msgstr "Акцент"
 
-#: contents/ui/SetupWizard.qml:532
+#: contents/ui/SetupWizard.qml:529
 msgid "Focus"
 msgstr "Фокус"
 
-#: contents/ui/SetupWizard.qml:575
+#: contents/ui/SetupWizard.qml:572
 msgid "Which service do you track your time with? More profiles can be added later in the settings."
 msgstr "Каким сервисом вы учитываете время? Другие профили можно добавить позже в настройках."
 
-#: contents/ui/SetupWizard.qml:610
+#: contents/ui/SetupWizard.qml:607
 msgid "Tested with real accounts."
 msgstr "Проверено на реальных учётных записях."
 
-#: contents/ui/SetupWizard.qml:611
+#: contents/ui/SetupWizard.qml:608
 msgid "Experimental: not yet tested with real accounts."
 msgstr "Экспериментально: ещё не проверено на реальных учётных записях."
 
-#: contents/ui/SetupWizard.qml:626 contents/ui/SetupWizard.qml:636
+#: contents/ui/SetupWizard.qml:623 contents/ui/SetupWizard.qml:633
 msgid "Server address"
 msgstr "Адрес сервера"
 
-#: contents/ui/SetupWizard.qml:649
+#: contents/ui/SetupWizard.qml:646
 msgid "Shortened to the address of the Kimai instance: %1"
 msgstr "Сокращено до адреса экземпляра Kimai: %1"
 
-#: contents/ui/SetupWizard.qml:657
+#: contents/ui/SetupWizard.qml:654
 msgid "This address is not encrypted (http). Your token would travel readable through the network."
 msgstr "Этот адрес не шифруется (http). Токен будет передаваться по сети в открытом виде."
 
-#: contents/ui/SetupWizard.qml:662
+#: contents/ui/SetupWizard.qml:659
 msgid "Use another address"
 msgstr "Использовать другой адрес"
 
-#: contents/ui/SetupWizard.qml:671 contents/ui/SetupWizard.qml:683
+#: contents/ui/SetupWizard.qml:668 contents/ui/SetupWizard.qml:680
 msgid "API key"
 msgstr "Ключ API"
 
-#: contents/ui/SetupWizard.qml:671 contents/ui/SetupWizard.qml:683
+#: contents/ui/SetupWizard.qml:668 contents/ui/SetupWizard.qml:680
 msgid "API token"
 msgstr "API-токен"
 
-#: contents/ui/SetupWizard.qml:689
+#: contents/ui/SetupWizard.qml:686
 msgid "Hide"
 msgstr "Скрыть"
 
-#: contents/ui/SetupWizard.qml:698
+#: contents/ui/SetupWizard.qml:695
 msgid "The token is kept in the system's password storage, never in a plain file."
 msgstr "Токен хранится в системном хранилище паролей, а не в обычном файле."
 
-#: contents/ui/SetupWizard.qml:714
+#: contents/ui/SetupWizard.qml:711
 msgid "Connected as %1."
 msgstr "Подключено как %1."
 
-#: contents/ui/SetupWizard.qml:715
+#: contents/ui/SetupWizard.qml:712
 msgid "Connected to %1."
 msgstr "Подключено к %1."
 
-#: contents/ui/SetupWizard.qml:721
+#: contents/ui/SetupWizard.qml:718
 msgid "So the day bar and the remaining hours fit you. All of this can be changed later in the settings."
 msgstr "Чтобы полоса дня и оставшиеся часы подходили вам. Всё можно изменить позже в настройках."
 
-#: contents/ui/SetupWizard.qml:736
+#: contents/ui/SetupWizard.qml:733
 msgid "Work day begins"
 msgstr "Начало рабочего дня"
 
-#: contents/ui/SetupWizard.qml:745
+#: contents/ui/SetupWizard.qml:742
 msgid "Work day ends"
 msgstr "Конец рабочего дня"
 
-#: contents/ui/SetupWizard.qml:753
+#: contents/ui/SetupWizard.qml:750
 msgid "The work day must end after it begins."
 msgstr "Рабочий день должен заканчиваться после начала."
 
-#: contents/ui/SetupWizard.qml:759
+#: contents/ui/SetupWizard.qml:756
 msgid "Place for sunrise and sunset"
 msgstr "Место для восхода и заката"
 
-#: contents/ui/SetupWizard.qml:769
+#: contents/ui/SetupWizard.qml:766
 msgid "City"
 msgstr "Город"
 
-#: contents/ui/SetupWizard.qml:770
+#: contents/ui/SetupWizard.qml:767
 msgid "Place"
 msgstr "Место"
 
-#: contents/ui/SetupWizard.qml:787
+#: contents/ui/SetupWizard.qml:784
 msgid "Current: %1"
 msgstr "Сейчас: %1"
 
-#: contents/ui/SetupWizard.qml:817
+#: contents/ui/SetupWizard.qml:814
 msgid "Remind me on work days when no timer runs"
 msgstr "Напоминать в рабочие дни, если таймер не запущен"
 
-#: contents/ui/SetupWizard.qml:826
+#: contents/ui/SetupWizard.qml:823
 msgid "Reminders need notify-send: %1"
 msgstr "Для напоминаний нужен notify-send: %1"
 
-#: contents/ui/SetupWizard.qml:827
+#: contents/ui/SetupWizard.qml:824
 msgid "Reminders need notify-send (libnotify)."
 msgstr "Для напоминаний нужен notify-send (libnotify)."
 
-#: contents/ui/SetupWizard.qml:855
+#: contents/ui/SetupWizard.qml:852
 msgid "Skip"
 msgstr "Пропустить"
 
-#: contents/ui/SetupWizard.qml:866
+#: contents/ui/SetupWizard.qml:863
 msgid "Check again"
 msgstr "Проверить снова"
 
-#: contents/ui/SetupWizard.qml:873
+#: contents/ui/SetupWizard.qml:870
 msgid "Next"
 msgstr "Далее"
 
-#: contents/ui/SetupWizard.qml:881
+#: contents/ui/SetupWizard.qml:878
 msgid "Connect"
 msgstr "Подключить"
 
-#: contents/ui/SetupWizard.qml:888
+#: contents/ui/SetupWizard.qml:885
 msgid "Done"
 msgstr "Готово"
 

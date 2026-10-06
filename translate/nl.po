@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-10-06 22:10+0200\n"
+"POT-Creation-Date: 2026-10-06 22:13+0200\n"
 "PO-Revision-Date: 2026-08-09 19:45+0200\n"
 "Last-Translator: Cursor Agent\n"
 "Language-Team: Dutch\n"
@@ -546,7 +546,7 @@ msgid "When editing the running timer, the previous entry's end is shown. Saving
 msgstr "Bij het bewerken van de lopende timer wordt het einde van de vorige invoer getoond. Een eerdere start opslaan vraagt om bevestiging."
 
 #: app/qml/SettingsPage.qml:165 contents/ui/config/ConfigDisplay.qml:566
-#: contents/ui/SetupWizard.qml:726
+#: contents/ui/SetupWizard.qml:723
 msgid "Work hours"
 msgstr "Werkuren"
 
@@ -649,7 +649,7 @@ msgstr "Week %1"
 msgid "Not configured"
 msgstr "Niet geconfigureerd"
 
-#: app/qml/TimerPage.qml:155 contents/ui/SetupWizard.qml:881
+#: app/qml/TimerPage.qml:155 contents/ui/SetupWizard.qml:878
 msgid "Connecting…"
 msgstr "Verbinden…"
 
@@ -1289,7 +1289,7 @@ msgid "City, region, or address…"
 msgstr "Stad, regio of adres…"
 
 #: contents/ui/config/ConfigDisplay.qml:648
-#: contents/ui/config/ConfigDisplay.qml:656 contents/ui/SetupWizard.qml:774
+#: contents/ui/config/ConfigDisplay.qml:656 contents/ui/SetupWizard.qml:771
 msgid "Search"
 msgstr "Zoeken"
 
@@ -1949,7 +1949,7 @@ msgstr "Een draaidag vastleggen"
 msgid "Log a trip (Anfahrten plugin)"
 msgstr "Een rit vastleggen (Anfahrten-plugin)"
 
-#: contents/ui/main.qml:3536 contents/ui/SetupWizard.qml:849
+#: contents/ui/main.qml:3536 contents/ui/SetupWizard.qml:846
 msgid "Back"
 msgstr "Terug"
 
@@ -1996,7 +1996,7 @@ msgstr[0] "%1 wijziging wacht op je beslissing"
 msgstr[1] "%1 wijzigingen wachten op je beslissing"
 
 #: contents/ui/OfflineStatus.qml:63 contents/ui/OfflineStatus.qml:91
-#: contents/ui/SetupWizard.qml:689
+#: contents/ui/SetupWizard.qml:686
 msgid "Show"
 msgstr "Tonen"
 
@@ -2166,139 +2166,139 @@ msgstr "Voorbeeld"
 msgid "%1 – %2"
 msgstr "%1 – %2"
 
-#: contents/ui/SetupWizard.qml:526
+#: contents/ui/SetupWizard.qml:523
 msgid "Ground"
 msgstr "Achtergrond"
 
-#: contents/ui/SetupWizard.qml:527
+#: contents/ui/SetupWizard.qml:524
 msgid "Card"
 msgstr "Kaart"
 
-#: contents/ui/SetupWizard.qml:528
+#: contents/ui/SetupWizard.qml:525
 msgid "Text"
 msgstr "Tekst"
 
-#: contents/ui/SetupWizard.qml:529
+#: contents/ui/SetupWizard.qml:526
 msgid "Accent"
 msgstr "Accent"
 
-#: contents/ui/SetupWizard.qml:532
+#: contents/ui/SetupWizard.qml:529
 msgid "Focus"
 msgstr "Focus"
 
-#: contents/ui/SetupWizard.qml:575
+#: contents/ui/SetupWizard.qml:572
 msgid "Which service do you track your time with? More profiles can be added later in the settings."
 msgstr "Met welke dienst registreer je je tijd? Meer profielen kun je later in de instellingen toevoegen."
 
-#: contents/ui/SetupWizard.qml:610
+#: contents/ui/SetupWizard.qml:607
 msgid "Tested with real accounts."
 msgstr "Getest met echte accounts."
 
-#: contents/ui/SetupWizard.qml:611
+#: contents/ui/SetupWizard.qml:608
 msgid "Experimental: not yet tested with real accounts."
 msgstr "Experimenteel: nog niet getest met echte accounts."
 
-#: contents/ui/SetupWizard.qml:626 contents/ui/SetupWizard.qml:636
+#: contents/ui/SetupWizard.qml:623 contents/ui/SetupWizard.qml:633
 msgid "Server address"
 msgstr "Serveradres"
 
-#: contents/ui/SetupWizard.qml:649
+#: contents/ui/SetupWizard.qml:646
 msgid "Shortened to the address of the Kimai instance: %1"
 msgstr "Ingekort tot het adres van de Kimai-instantie: %1"
 
-#: contents/ui/SetupWizard.qml:657
+#: contents/ui/SetupWizard.qml:654
 msgid "This address is not encrypted (http). Your token would travel readable through the network."
 msgstr "Dit adres is niet versleuteld (http). Je token zou leesbaar over het netwerk gaan."
 
-#: contents/ui/SetupWizard.qml:662
+#: contents/ui/SetupWizard.qml:659
 msgid "Use another address"
 msgstr "Ander adres gebruiken"
 
-#: contents/ui/SetupWizard.qml:671 contents/ui/SetupWizard.qml:683
+#: contents/ui/SetupWizard.qml:668 contents/ui/SetupWizard.qml:680
 msgid "API key"
 msgstr "API-sleutel"
 
-#: contents/ui/SetupWizard.qml:671 contents/ui/SetupWizard.qml:683
+#: contents/ui/SetupWizard.qml:668 contents/ui/SetupWizard.qml:680
 msgid "API token"
 msgstr "API-token"
 
-#: contents/ui/SetupWizard.qml:689
+#: contents/ui/SetupWizard.qml:686
 msgid "Hide"
 msgstr "Verbergen"
 
-#: contents/ui/SetupWizard.qml:698
+#: contents/ui/SetupWizard.qml:695
 msgid "The token is kept in the system's password storage, never in a plain file."
 msgstr "Het token staat in de wachtwoordopslag van het systeem, nooit in een gewoon bestand."
 
-#: contents/ui/SetupWizard.qml:714
+#: contents/ui/SetupWizard.qml:711
 msgid "Connected as %1."
 msgstr "Verbonden als %1."
 
-#: contents/ui/SetupWizard.qml:715
+#: contents/ui/SetupWizard.qml:712
 msgid "Connected to %1."
 msgstr "Verbonden met %1."
 
-#: contents/ui/SetupWizard.qml:721
+#: contents/ui/SetupWizard.qml:718
 msgid "So the day bar and the remaining hours fit you. All of this can be changed later in the settings."
 msgstr "Zodat de dagbalk en de resterende uren bij je passen. Alles is later in de instellingen te wijzigen."
 
-#: contents/ui/SetupWizard.qml:736
+#: contents/ui/SetupWizard.qml:733
 msgid "Work day begins"
 msgstr "Werkdag begint"
 
-#: contents/ui/SetupWizard.qml:745
+#: contents/ui/SetupWizard.qml:742
 msgid "Work day ends"
 msgstr "Werkdag eindigt"
 
-#: contents/ui/SetupWizard.qml:753
+#: contents/ui/SetupWizard.qml:750
 msgid "The work day must end after it begins."
 msgstr "De werkdag moet na het begin eindigen."
 
-#: contents/ui/SetupWizard.qml:759
+#: contents/ui/SetupWizard.qml:756
 msgid "Place for sunrise and sunset"
 msgstr "Plaats voor zonsopgang en -ondergang"
 
-#: contents/ui/SetupWizard.qml:769
+#: contents/ui/SetupWizard.qml:766
 msgid "City"
 msgstr "Stad"
 
-#: contents/ui/SetupWizard.qml:770
+#: contents/ui/SetupWizard.qml:767
 msgid "Place"
 msgstr "Plaats"
 
-#: contents/ui/SetupWizard.qml:787
+#: contents/ui/SetupWizard.qml:784
 msgid "Current: %1"
 msgstr "Huidig: %1"
 
-#: contents/ui/SetupWizard.qml:817
+#: contents/ui/SetupWizard.qml:814
 msgid "Remind me on work days when no timer runs"
 msgstr "Herinner me op werkdagen als er geen timer loopt"
 
-#: contents/ui/SetupWizard.qml:826
+#: contents/ui/SetupWizard.qml:823
 msgid "Reminders need notify-send: %1"
 msgstr "Herinneringen hebben notify-send nodig: %1"
 
-#: contents/ui/SetupWizard.qml:827
+#: contents/ui/SetupWizard.qml:824
 msgid "Reminders need notify-send (libnotify)."
 msgstr "Herinneringen hebben notify-send (libnotify) nodig."
 
-#: contents/ui/SetupWizard.qml:855
+#: contents/ui/SetupWizard.qml:852
 msgid "Skip"
 msgstr "Overslaan"
 
-#: contents/ui/SetupWizard.qml:866
+#: contents/ui/SetupWizard.qml:863
 msgid "Check again"
 msgstr "Opnieuw controleren"
 
-#: contents/ui/SetupWizard.qml:873
+#: contents/ui/SetupWizard.qml:870
 msgid "Next"
 msgstr "Volgende"
 
-#: contents/ui/SetupWizard.qml:881
+#: contents/ui/SetupWizard.qml:878
 msgid "Connect"
 msgstr "Verbinden"
 
-#: contents/ui/SetupWizard.qml:888
+#: contents/ui/SetupWizard.qml:885
 msgid "Done"
 msgstr "Klaar"
 

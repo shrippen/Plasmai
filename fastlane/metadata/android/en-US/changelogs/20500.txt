@@ -1,0 +1,1 @@
+Plasmai 2.5.0: the setup wizard has a new step, Look: choose System, Kante or Kante Light with a preview. The wizard changes with the choice and it can be changed later in the settings.
