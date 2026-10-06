@@ -84,10 +84,27 @@ Kirigami.BasicThemeDefinition {
     headerFocusColor: _accent
 
     defaultFont: fontMetrics.font
+    // Kirigami's small font otherwise: the platform's smallest readable one (12 pt next to a
+    // 9 pt default: small text came out larger) or the default's point size - 2, which is -3 for
+    // a font sized in pixels (Android: "QFont::setPointSize: Point size <= 0"). Breeze's ratio
+    // instead (8 pt next to 10 pt). A pixel-sized default gets its point size from the
+    // height of the same family at 10 pt, so the screen's dpi does not matter.
+    readonly property real _defaultPointSize: fontMetrics.font.pointSize > 0
+        ? fontMetrics.font.pointSize
+        : 10 * defaultHeight.height / Math.max(1, tenPointHeight.height)
+    smallFont: Qt.font({ family: fontMetrics.font.family, pointSize: _defaultPointSize * 0.8 })
 
     property list<QtObject> children: [
         TextMetrics {
             id: fontMetrics
+        },
+        FontMetrics {
+            id: defaultHeight
+            font: fontMetrics.font
+        },
+        FontMetrics {
+            id: tenPointHeight
+            font: Qt.font({ family: fontMetrics.font.family, pointSize: 10 })
         }
     ]
 }

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Fixed
+- App (Android, Windows, macOS): small text (hints, durations, secondary lines) was larger than the normal text; it is now smaller, as in the widget
+
 ## 2.3.1
 
 Released 2026-10-05.
