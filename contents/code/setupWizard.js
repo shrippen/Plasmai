@@ -7,18 +7,20 @@
  *
  *   Platform.checkSystem() ──▶ assess() ──▶ steps()
  *
- *   [System] ──▶ Service ──▶ Access ──▶ Day
- *       │                       │          │
- *   only when the token     test, then  work hours, place,
- *   cannot be stored        store token reminder (all optional)
+ *   [System] ──▶ Look ──▶ Service ──▶ Access ──▶ Day
+ *       │            │                      │          │
+ *   only when the  visualStyle,          test, then  work hours, place,
+ *   token cannot   applied at once       store token reminder (all optional)
+ *   be stored
  *
  * The System step exists only where something blocks storing the token: the
  * Plasmoid needs secret-tool and a Secret Service (KWallet). The app stores
- * through QtKeychain and has nothing to install, so it starts at Service.
+ * through QtKeychain and has nothing to install, so it starts at Look.
  */
 
 var Step = {
     SYSTEM: "system",
+    LOOK: "look",
     SERVICE: "service",
     ACCESS: "access",
     DAY: "day"
@@ -52,6 +54,13 @@ var Availability = {
 var Tool = {
     SECRET_TOOL: "secret-tool",
     NOTIFY_SEND: "notify-send"
+}
+
+/** Values of visualStyle (KanteStyle.Kind): the platform theme, Kante, Kante Light. */
+var Look = {
+    SYSTEM: 0,
+    KANTE: 1,
+    KANTE_LIGHT: 2
 }
 
 var UrlProblem = {
@@ -185,11 +194,20 @@ function issueById(issues, id) {
 
 /** Steps for these findings; SystemStep.KEEP keeps System after it was fixed. */
 function steps(issues, systemStep) {
-    var list = [Step.SERVICE, Step.ACCESS, Step.DAY]
+    var list = [Step.LOOK, Step.SERVICE, Step.ACCESS, Step.DAY]
     if (systemStep === SystemStep.KEEP || hasBlocking(issues)) {
         list.unshift(Step.SYSTEM)
     }
     return list
+}
+
+/** shared.json keys of the Look step: the chosen visualStyle, or {} when it is no Look. */
+function lookPatch(style) {
+    var v = Number(style)
+    if (v !== Look.SYSTEM && v !== Look.KANTE && v !== Look.KANTE_LIGHT) {
+        return {}
+    }
+    return { visualStyle: v }
 }
 
 /**

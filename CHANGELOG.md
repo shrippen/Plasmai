@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### New
+- Setup wizard: a new "Look" step after the system check lets you choose System, Kante or Kante Light. The wizard changes with your choice, with a preview and the colors of the look; the choice is saved and can be changed later in the settings
+
 ## 2.4.0
 
 Released 2026-10-06.

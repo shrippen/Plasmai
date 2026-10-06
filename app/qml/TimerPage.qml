@@ -212,6 +212,8 @@ Kirigami.Page {
                     workDayEnd: root.workDayEnd
                     locationName: root.locationName
                     notifyForgotToStart: root.notifyForgotToStart
+                    visualStyle: root.visualStyle
+                    onStyleChosen: function(style) { root.applySetupStyle(style) }
                     onConnected: function(patch) { root.applySetupConnection(patch) }
                     onFinished: function(patch) { root.finishSetup(patch) }
                 }

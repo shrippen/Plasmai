@@ -32,6 +32,11 @@ TestCase {
     }
 
     SignalSpy {
+        id: styleSpy
+        signalName: "styleChosen"
+    }
+
+    SignalSpy {
         id: finishedSpy
         signalName: "finished"
     }
@@ -106,14 +111,30 @@ TestCase {
 
     function test_noSystemStepWithoutFindings() {
         var w = makeWizard()
-        compare(w.stepList, ["service", "access", "day"])
-        compare(w.step, "service")
+        compare(w.stepList, ["look", "service", "access", "day"])
+        compare(w.step, "look")
         compare(w.providerId, "kimai")
+    }
+
+    function test_lookReportsTheChosenStyle() {
+        var w = makeWizard()
+        w.visualStyle = 0
+        styleSpy.target = w
+        styleSpy.clear()
+        w.styleChosen(2)
+        compare(styleSpy.count, 1)
+        compare(styleSpy.signalArguments[0][0], 2)
+        // The wizard shows what the host applied, not what it was asked to.
+        compare(w.looks[w.visualStyle].style, 0)
+        w.visualStyle = 1
+        compare(w.looks[w.visualStyle].style, 1)
+        w.stepIndex++
+        compare(w.step, "service")
     }
 
     function test_connectKimaiAndFinish() {
         var w = makeWizard()
-        w.stepIndex = 1
+        w.stepIndex = 2
         compare(w.step, "access")
         field(w, "setupUrlField").text = "kimai.example.com/de/timesheet/"
         field(w, "setupTokenField").text = "Bearer abc123\n"
@@ -151,7 +172,7 @@ TestCase {
 
     function test_failedTestStoresNothing() {
         var w = makeWizard()
-        w.stepIndex = 1
+        w.stepIndex = 2
         field(w, "setupUrlField").text = "https://kimai.example.com"
         field(w, "setupTokenField").text = "wrong"
         responses = [{ status: 401, body: { message: "Unauthorized" } }]
@@ -165,7 +186,7 @@ TestCase {
 
     function test_missingInput() {
         var w = makeWizard()
-        w.stepIndex = 1
+        w.stepIndex = 2
         w.connect()
         verify(w.errorText.length > 0)
         compare(requests.length, 0)
@@ -178,7 +199,7 @@ TestCase {
     function test_storeFailureIsReported() {
         storeWorks = false
         var w = makeWizard()
-        w.stepIndex = 1
+        w.stepIndex = 2
         field(w, "setupUrlField").text = "https://kimai.example.com"
         field(w, "setupTokenField").text = "abc"
         responses = [{ status: 200, body: { version: "2.67.0" } }]
@@ -200,9 +221,9 @@ TestCase {
         tryCompare(w, "checking", false)
         compare(w.blockingIssue, null)
         // The step stays, so Next leads on to the service.
-        compare(w.stepList, ["system", "service", "access", "day"])
+        compare(w.stepList, ["system", "look", "service", "access", "day"])
         w.stepIndex++
-        compare(w.step, "service")
+        compare(w.step, "look")
     }
 
     function test_skip() {

@@ -3633,6 +3633,8 @@ PlasmoidItem {
                         workDayEnd: plasmoid.configuration.workDayEnd
                         locationName: plasmoid.configuration.locationName
                         notifyForgotToStart: plasmoid.configuration.notifyForgotToStart
+                        visualStyle: plasmoid.configuration.visualStyle
+                        onStyleChosen: function(style) { root.applySetupKeys({ visualStyle: style }) }
                         onConnected: function(patch) { root.applySetupConnection(patch) }
                         onFinished: function(patch) { root.finishSetup(patch) }
                     }

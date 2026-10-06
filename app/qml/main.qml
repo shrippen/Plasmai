@@ -374,6 +374,12 @@ Kirigami.ApplicationWindow {
     property bool setupAwaitingDay: false
     readonly property bool showSetupWizard: (tokenLoaded && !isConfigured) || setupAwaitingDay
 
+    /** Setup wizard: the Look step changed the visual style; shown at once, then saved. */
+    function applySetupStyle(style) {
+        visualStyle = style
+        Platform.patchShared(null, currentConfig(), { visualStyle: style })
+    }
+
     /** Setup wizard: the profile works (token tested and stored). */
     function applySetupConnection(patch) {
         setupAwaitingDay = true
