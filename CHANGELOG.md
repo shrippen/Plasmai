@@ -6,12 +6,14 @@
 
 Released 2026-10-06.
 
+### Breaking
+- **The old configuration is deleted.** On the first start after updating from 2.3.x or older, Plasmai (widget and app) resets every setting to its default and removes the stored API tokens of all profiles, then the setup wizard starts. Profiles, favorites, display and behavior settings, work hours and place have to be set up again. Sync offline changes before updating: unsynced entries of an old profile are only sent again if the new profile has the same id
+
 ### New
 - First start: a setup wizard in the widget and the app instead of the "Configure" hint. It checks the system (Plasmoid: secret-tool and KWallet, with the install command for the distribution), lets you pick the service (Clockify, Toggl Track and SolidTime marked experimental), tests address and token before storing the token, and asks for work hours, the place for the sun arcs and the start reminder (all optional)
 - Windows: the popup can be resized by dragging its border; the size is kept for the next start
 
 ### Changed
-- **Updating from 2.3.x or older resets Plasmai once:** all settings go back to their defaults and the stored API tokens are removed, then the setup wizard starts. Profiles, favorites and display settings have to be set up again
 - Server addresses are cleaned when set up: https is added, a Kimai page or API address is cut back to the instance, plain http outside the machine is warned about; a pasted token loses blanks and "Bearer "
 
 ### Fixed
