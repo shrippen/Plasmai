@@ -16,9 +16,11 @@ import "Controls" as Controls
  * on every platform. Shown while nothing is connected; the host keeps it up
  * until finished() so the Day step still shows after connected().
  *
- *   [System] → Service → Access → Day        (setupWizard.js)
+ *   [System] → Look → Service → Access → Day        (setupWizard.js)
  *
  * The host passes the current settings and applies what comes back:
+ *   styleChosen(style) visualStyle (0 System, 1 Kante, 2 Kante Light): apply and
+ *                     save it at once, so the wizard itself shows the look
  *   connected(patch)  profilesJson, activeProfileId, kimaiUrl: the profile is
  *                     usable now (token tested and stored)
  *   finished(patch)   workDayBegin/End, latitude, longitude, locationName,
@@ -40,7 +42,10 @@ ColumnLayout {
     property string workDayEnd: "18:00"
     property string locationName: ""
     property bool notifyForgotToStart: false
+    /** The look in use (host's visualStyle); the Look step reports a change by styleChosen. */
+    property int visualStyle: 0
 
+    signal styleChosen(int style)
     signal connected(var patch)
     signal finished(var patch)
 
@@ -131,6 +136,8 @@ ColumnLayout {
         switch (stepName) {
         case Wizard.Step.SYSTEM:
             return i18n("System")
+        case Wizard.Step.LOOK:
+            return i18n("Look")
         case Wizard.Step.SERVICE:
             return i18n("Service")
         case Wizard.Step.ACCESS:
@@ -144,6 +151,8 @@ ColumnLayout {
         switch (stepName) {
         case Wizard.Step.SYSTEM:
             return i18n("Check your system")
+        case Wizard.Step.LOOK:
+            return i18n("Choose a look")
         case Wizard.Step.SERVICE:
             return i18n("Choose your time tracker")
         case Wizard.Step.ACCESS:
@@ -152,6 +161,16 @@ ColumnLayout {
             return i18n("Your work day")
         }
     }
+
+    /** The three looks of the Look step, by visualStyle. */
+    readonly property var looks: [
+        { style: Wizard.Look.SYSTEM, name: i18n("System"),
+          text: i18n("Your Plasma theme, unchanged.") },
+        { style: Wizard.Look.KANTE, name: i18n("Kante"),
+          text: i18n("Own dark palette, cut corners, Rajdhani titles. Light on a light Plasma theme.") },
+        { style: Wizard.Look.KANTE_LIGHT, name: i18n("Kante Light"),
+          text: i18n("Kante shapes and type with the colors of your theme.") }
+    ]
 
     /** Where the user finds the token in the service's web interface. */
     function tokenHelp(id) {
@@ -405,6 +424,138 @@ ColumnLayout {
             Controls.Button {
                 text: i18n("Copy")
                 onClicked: root.copyText(root.blockingIssue.command)
+            }
+        }
+    }
+
+    // —— Look ——
+    ColumnLayout {
+        Layout.fillWidth: true
+        visible: root.step === Wizard.Step.LOOK
+        spacing: Kirigami.Units.smallSpacing
+
+        Controls.Label {
+            Layout.fillWidth: true
+            wrapMode: Text.WordWrap
+            text: i18n("The wizard changes with your choice. You can change it later in the settings.")
+        }
+
+        Rectangle {
+            Layout.fillWidth: true
+            implicitHeight: lookButtons.implicitHeight + 2
+            color: "transparent"
+            border.width: 1
+            border.color: KanteStyle.frameColor
+
+            RowLayout {
+                id: lookButtons
+                anchors.fill: parent
+                anchors.margins: 1
+                spacing: 0
+
+                Repeater {
+                    model: root.looks
+                    delegate: Controls.SegmentButton {
+                        required property var modelData
+                        Layout.fillWidth: true
+                        Layout.preferredWidth: 1
+                        checkable: true
+                        autoExclusive: true
+                        checked: root.visualStyle === modelData.style
+                        text: modelData.name
+                        onClicked: root.styleChosen(modelData.style)
+                    }
+                }
+            }
+        }
+
+        KanteCard {
+            Layout.fillWidth: true
+            Layout.topMargin: Kirigami.Units.smallSpacing
+            implicitHeight: preview.implicitHeight + Kirigami.Units.largeSpacing * 2
+            color: KanteStyle.cardColor
+            barColor: KanteStyle.active ? KanteStyle.accentColor : "transparent"
+            borderColor: KanteStyle.active ? "transparent" : KanteStyle.frameColor
+
+            ColumnLayout {
+                id: preview
+                anchors.fill: parent
+                anchors.margins: Kirigami.Units.largeSpacing
+                spacing: Kirigami.Units.smallSpacing
+
+                KanteSectionLabel {
+                    Layout.fillWidth: true
+                    text: i18n("Preview")
+                }
+                Controls.Label {
+                    Layout.fillWidth: true
+                    text: i18n("%1 – %2", root.workDayBegin, root.workDayEnd)
+                    font.family: KanteStyle.monoFamily
+                    font.pointSize: Kirigami.Theme.defaultFont.pointSize * 1.4
+                }
+                KanteProgressBar {
+                    Layout.fillWidth: true
+                    value: 0.6
+                }
+                Controls.Button {
+                    emphasis: Controls.Button.Emphasis.Primary
+                    text: i18n("Start")
+                }
+            }
+        }
+
+        Controls.Label {
+            Layout.fillWidth: true
+            wrapMode: Text.WordWrap
+            text: root.looks[Math.max(0, Math.min(root.visualStyle, root.looks.length - 1))].text
+        }
+
+        // The look's colors as one strip with a name under each; the focus color only
+        // when it differs from the accent (System and Kante Light share the highlight).
+        RowLayout {
+            id: palette
+            Layout.fillWidth: true
+            Layout.topMargin: Kirigami.Units.smallSpacing
+            spacing: Kirigami.Units.smallSpacing
+
+            readonly property var colors: {
+                var list = [
+                    { name: i18n("Ground"), color: KanteStyle.backgroundColor },
+                    { name: i18n("Card"), color: KanteStyle.cardColor },
+                    { name: i18n("Text"), color: KanteStyle.textColor },
+                    { name: i18n("Accent"), color: KanteStyle.accentColor }
+                ]
+                if (!Qt.colorEqual(KanteStyle.focusColor, KanteStyle.accentColor)) {
+                    list.push({ name: i18n("Focus"), color: KanteStyle.focusColor })
+                }
+                return list
+            }
+
+            Repeater {
+                model: palette.colors
+                delegate: ColumnLayout {
+                    required property var modelData
+                    Layout.fillWidth: true
+                    Layout.preferredWidth: 1
+                    spacing: Kirigami.Units.smallSpacing
+
+                    Rectangle {
+                        Layout.fillWidth: true
+                        implicitHeight: Kirigami.Units.gridUnit * 1.6
+                        color: modelData.color
+                        border.width: 1
+                        border.color: KanteStyle.frameColor
+                    }
+                    Controls.Label {
+                        Layout.fillWidth: true
+                        horizontalAlignment: Text.AlignHCenter
+                        elide: Text.ElideRight
+                        opacity: 0.75
+                        font.family: KanteStyle.monoFamily
+                        font.pointSize: KanteStyle.smallFont.pointSize
+                        text: modelData.name
+                    }
+                }
             }
         }
     }
@@ -713,7 +864,7 @@ ColumnLayout {
             onClicked: root.checkSystem()
         }
         Controls.Button {
-            visible: root.step === Wizard.Step.SYSTEM || root.step === Wizard.Step.SERVICE
+            visible: root.step === Wizard.Step.SYSTEM || root.step === Wizard.Step.LOOK || root.step === Wizard.Step.SERVICE
             enabled: !root.checking && !root.blockingIssue
             emphasis: root.blockingIssue ? Controls.Button.Emphasis.Normal : Controls.Button.Emphasis.Primary
             text: i18n("Next")

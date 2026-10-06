@@ -61,11 +61,20 @@ TestCase {
     }
 
     function test_steps() {
-        compare(Wizard.steps([], Wizard.SystemStep.AUTO), ["service", "access", "day"])
+        compare(Wizard.steps([], Wizard.SystemStep.AUTO), ["look", "service", "access", "day"])
         var blocking = Wizard.assess({ secretTool: false })
-        compare(Wizard.steps(blocking, Wizard.SystemStep.AUTO), ["system", "service", "access", "day"])
+        compare(Wizard.steps(blocking, Wizard.SystemStep.AUTO), ["system", "look", "service", "access", "day"])
         // Fixed after it was shown: the step stays, indices do not shift.
-        compare(Wizard.steps([], Wizard.SystemStep.KEEP), ["system", "service", "access", "day"])
+        compare(Wizard.steps([], Wizard.SystemStep.KEEP), ["system", "look", "service", "access", "day"])
+    }
+
+    function test_lookPatch() {
+        compare(Wizard.lookPatch(0), { visualStyle: 0 })
+        compare(Wizard.lookPatch(1), { visualStyle: 1 })
+        compare(Wizard.lookPatch("2"), { visualStyle: 2 })
+        compare(Wizard.lookPatch(3), {})
+        compare(Wizard.lookPatch(-1), {})
+        compare(Wizard.lookPatch("x"), {})
     }
 
     function test_cleanToken() {
