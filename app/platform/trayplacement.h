@@ -87,4 +87,21 @@ inline QPoint popupPosition(const QRect &icon, const QRect &screen, const QRect 
     return QPoint(x, y);
 }
 
+// Where the popup slides from as it opens (and back to as it closes): `distance` px
+// towards the taskbar, so it seems to come out of it.
+inline QPoint slideOffset(const QRect &icon, const QRect &screen, const QRect &avail, int distance)
+{
+    switch (taskbarEdge(icon, screen, avail)) {
+    case Edge::Bottom:
+        return QPoint(0, distance);
+    case Edge::Top:
+        return QPoint(0, -distance);
+    case Edge::Left:
+        return QPoint(-distance, 0);
+    case Edge::Right:
+        return QPoint(distance, 0);
+    }
+    return QPoint(0, distance);
+}
+
 } // namespace TrayPlacement

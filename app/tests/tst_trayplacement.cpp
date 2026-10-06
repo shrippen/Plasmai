@@ -17,6 +17,17 @@ private slots:
         QCOMPARE(p, QPoint(1520, 420));        // right edge of the screen, above the taskbar
     }
 
+    // The open/close animation slides from the taskbar's side.
+    void slideOffset()
+    {
+        const QRect screen(0, 0, 1920, 1080);
+        const QRect icon(1800, 1044, 32, 32);
+        QCOMPARE(TrayPlacement::slideOffset(icon, screen, QRect(0, 0, 1920, 1040), 20), QPoint(0, 20));
+        QCOMPARE(TrayPlacement::slideOffset(icon, screen, QRect(0, 40, 1920, 1040), 20), QPoint(0, -20));
+        QCOMPARE(TrayPlacement::slideOffset(icon, screen, QRect(48, 0, 1872, 1080), 20), QPoint(-20, 0));
+        QCOMPARE(TrayPlacement::slideOffset(icon, screen, QRect(0, 0, 1872, 1080), 20), QPoint(20, 0));
+    }
+
     void taskbarBottomIconInMiddle()
     {
         const QPoint p = TrayPlacement::popupPosition(QRect(900, 1044, 32, 32), QRect(0, 0, 1920, 1080),
