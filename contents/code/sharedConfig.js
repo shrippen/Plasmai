@@ -46,8 +46,123 @@ var SHARED_KEYS = [
     "locationName",
     "touchMode",
     "visualStyle",
-    "trackingIndicator"
+    "trackingIndicator",
+    "settingsVersion"
 ]
+
+/**
+ * Version of the settings in shared.json; every write through Platform.patchShared
+ * carries it. Settings without it were written by a version before the setup wizard
+ * (2.3.x and older): they are reset once (needsReset, resetShared), so the wizard runs.
+ *
+ *   shared.json  ──▶ needsReset? ──yes──▶ clear tokens, write resetShared() ──▶ wizard
+ *                         │no
+ *                         ▼
+ *                  load as before
+ */
+var SETTINGS_VERSION = 2
+var VERSION_KEY = "settingsVersion"
+
+/** The single profile of a fresh start (profiles.js defaultProfiles()). */
+var DEFAULT_PROFILES_JSON = '[{"id":"default","name":"Default","url":"","provider":"kimai"}]'
+
+/**
+ * main.xml's defaults of SHARED_KEYS (tests/test_shared_defaults.py keeps them equal;
+ * profilesJson is the default profile instead of "", which applyToConfiguration skips).
+ * Written in full on a reset: the app reads only the keys shared.json has.
+ */
+var DEFAULTS = {
+    kimaiUrl: "",
+    profilesJson: DEFAULT_PROFILES_JSON,
+    activeProfileId: "default",
+    pinnedActivities: "",
+    refreshInterval: 30,
+    recentCount: 10,
+    workDayBegin: "08:00",
+    workDayEnd: "18:00",
+    latitude: 52.52,
+    longitude: 13.405,
+    popupShowSparkline: true,
+    desktopShowSparkline: true,
+    showSparklineArcs: true,
+    showElapsedInPanel: true,
+    showProjectInPanel: true,
+    showActivityInPanel: false,
+    showCustomerColorInPanel: false,
+    showProjectColorInPanel: false,
+    popupShowWorkSummary: true,
+    popupShowFavorites: true,
+    popupShowRecent: true,
+    popupShowContinue: true,
+    popupShowNewActivity: true,
+    desktopShowWorkSummary: true,
+    desktopShowFavorites: true,
+    desktopShowRecent: true,
+    desktopShowNewActivity: true,
+    showFavorites: true,
+    confirmBeforeStop: false,
+    confirmStartBeforePreviousEnd: true,
+    idleStopEnabled: false,
+    idleStopMinutes: 15,
+    notifyOnStart: true,
+    notifyOnStop: true,
+    notifyOnIdleStop: true,
+    notifyForgotToStart: false,
+    lastUsedProjectId: "",
+    lastUsedActivityId: "",
+    lastUsedProjectName: "",
+    lastUsedActivityName: "",
+    pluginProbesJson: "",
+    showTrips: true,
+    locationName: "",
+    touchMode: 0,
+    visualStyle: 0,
+    trackingIndicator: 0
+}
+
+/** Settings of a version before the setup wizard: some setting, but no settings version. */
+function needsReset(shared) {
+    if (!shared || typeof shared !== "object") {
+        return false
+    }
+    if (Number(shared[VERSION_KEY]) >= SETTINGS_VERSION) {
+        return false
+    }
+    for (var i = 0; i < SHARED_KEYS.length; i++) {
+        if (SHARED_KEYS[i] !== VERSION_KEY && Object.prototype.hasOwnProperty.call(shared, SHARED_KEYS[i])) {
+            return true
+        }
+    }
+    return false
+}
+
+/** Every setting at its default, with the current settings version. */
+function resetShared() {
+    var obj = {}
+    for (var key in DEFAULTS) {
+        obj[key] = DEFAULTS[key]
+    }
+    obj[VERSION_KEY] = SETTINGS_VERSION
+    return obj
+}
+
+/** Profile ids whose tokens a reset clears: those in the settings, and "default". */
+function profileIds(shared) {
+    var ids = ["default"]
+    var list = []
+    try {
+        list = JSON.parse((shared && shared.profilesJson) || "[]") || []
+    } catch (e) {
+        list = []
+    }
+    for (var i = 0; i < list.length; i++) {
+        var id = list[i] && list[i].id ? String(list[i].id) : ""
+        if (id && ids.indexOf(id) < 0) {
+            ids.push(id)
+        }
+    }
+    return ids
+}
 
 function applyToConfiguration(config, shared) {
     if (!shared || !config) {

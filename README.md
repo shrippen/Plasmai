@@ -75,6 +75,8 @@ Or download a `.plasmoid` yourself and run `kpackagetool6 -i <file> -t Plasma/Ap
 
 The app (Android, Plasma Mobile, Windows) starts with the same wizard, without the system check.
 
+Updating from 2.3.x or older resets all settings and removes the stored API tokens once; the wizard then sets Plasmai up again.
+
 Use **+** on the widget for manual entries and the chart icon for statistics.
 
 ## Shared settings

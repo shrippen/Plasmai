@@ -34,10 +34,22 @@ TestCase {
     }
 
     function init() {
-        disk = { recentCount: 5, pluginProbesJson: JSON.stringify({ app: 1 }) }
+        // A file of this version (settingsVersion): one without it is reset before any patch.
+        disk = { recentCount: 5, pluginProbesJson: JSON.stringify({ app: 1 }), settingsVersion: 2 }
         pendingLoads = []
         saves = 0
         Platform.setBackend(fakeBackend())
+    }
+
+    function test_patchStampsSettingsVersion() {
+        // Written by this version: never mistaken for pre-wizard settings.
+        disk = { recentCount: 5 }
+        var done = false
+        Platform.patchShared(null, {}, { recentCount: 7 }).then(function() { done = true })
+        release()
+        tryVerify(function() { return done })
+        compare(disk.recentCount, 7)
+        compare(disk.settingsVersion, 2)
     }
 
     function test_checkSystemWithoutBackendCheck() {

@@ -215,6 +215,17 @@ is finished or skipped (`setupAwaitingDay`).
   arcs (`main.xml` defaults are Berlin and 08–18). Only what was set is
   written; skip keeps every value.
 - No demo mode here: it is internal (screenshots), never offered.
+- **Update from a version without the wizard** (2.3.x and older): once, every
+  setting goes back to its default and the profiles' tokens are cleared, so
+  the wizard runs (decided 2026-10-06: losing the settings is fine for this
+  one migration). The marker is `settingsVersion` in shared.json
+  (`SharedConfig.SETTINGS_VERSION`), stamped by every `Platform.patchShared`;
+  settings without it are old (`needsReset`). The Plasmoid (`resetOldSettings`
+  before the settings load; an instance with its own connection and no
+  shared.json counts as old) and the app do the same. A fresh start has nothing
+  to reset. `SharedConfig.DEFAULTS` is written in full, since the app reads only
+  the keys shared.json has; `tests/test_shared_defaults.py` keeps it equal to
+  `main.xml`. Offline data and the catalog cache stay.
 - The wizard writes the active profile only; more profiles and everything
   else stay in Configure ("More options in the settings"). Cloud services
   use their default address unless "Use another address" is chosen.

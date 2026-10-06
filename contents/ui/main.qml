@@ -1733,6 +1733,8 @@ PlasmoidItem {
         }
         credentialsLoading = true
         Platform.loadShared(execSource).then(function(shared) {
+            return root.resetOldSettings(shared)
+        }).then(function(shared) {
             if (shared) {
                 SharedConfig.applyToConfiguration(plasmoid.configuration, shared)
             } else if ((plasmoid.configuration.kimaiUrl || "").length > 0
@@ -1754,6 +1756,31 @@ PlasmoidItem {
                 }
             })
         })
+    }
+
+    /**
+     * Settings of a version before the setup wizard (sharedConfig.js needsReset): once,
+     * tokens cleared and every setting at its default, so the wizard runs. Resolves with
+     * the settings to load. An instance without shared.json but with a connection of its
+     * own (older still) counts as old too; a fresh one does not.
+     */
+    function resetOldSettings(shared) {
+        var ownConnection = (plasmoid.configuration.kimaiUrl || "").length > 0
+                            || (plasmoid.configuration.profilesJson || "").length > 0
+        var old = shared || (ownConnection ? SharedConfig.fromConfiguration(plasmoid.configuration) : null)
+        if (!SharedConfig.needsReset(old)) {
+            return shared
+        }
+        var fresh = SharedConfig.resetShared()
+        var ids = SharedConfig.profileIds(old).concat(SharedConfig.profileIds(SharedConfig.fromConfiguration(plasmoid.configuration)))
+        var clears = ids.map(function(id) {
+            return Platform.clearToken(execSource, id).catch(function() {})
+        })
+        resetProfileState()
+        CatalogCache.clear()
+        return Promise.all(clears).then(function() {
+            return Platform.saveShared(execSource, fresh)
+        }).then(function() { return fresh }, function() { return fresh })
     }
 
     function persistSharedConfig(callback) {

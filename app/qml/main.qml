@@ -868,8 +868,26 @@ Kirigami.ApplicationWindow {
         descriptionSaveTimer.restart()
     }
 
+    /**
+     * Settings of a version before the setup wizard (sharedConfig.js needsReset): once,
+     * tokens cleared and every setting at its default, so the wizard runs. Resolves with
+     * the settings to load.
+     */
+    function resetOldSettings(shared) {
+        if (!SharedConfig.needsReset(shared)) {
+            return Promise.resolve(shared)
+        }
+        var fresh = SharedConfig.resetShared()
+        var clears = SharedConfig.profileIds(shared).map(function(id) {
+            return Platform.clearToken(null, id).catch(function() {})
+        })
+        return Promise.all(clears).then(function() {
+            return Platform.saveShared(null, fresh)
+        }).then(function() { return fresh }, function() { return fresh })
+    }
+
     function loadSharedAndConnect() {
-        Platform.loadShared(null).then(function(shared) {
+        Platform.loadShared(null).then(resetOldSettings).then(function(shared) {
             if (shared) SharedConfig.applyToConfiguration(currentConfig(), shared)
             profiles = Profiles.parseProfiles(shared ? shared.profilesJson : "", shared ? shared.kimaiUrl : "")
             activeProfile = Profiles.profileById(profiles, shared ? shared.activeProfileId : "default")

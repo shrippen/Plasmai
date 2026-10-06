@@ -113,6 +113,8 @@ function patchShared(dataSource, configuration, patch, bases) {
                 base = SharedConfig.sanitizeProfilesForPersistence(base, configuration)
                 var effective = bases ? SharedConfig.mergeDataPatch(base, bases, patch || {}) : (patch || {})
                 var shared = SharedConfig.merge(base, effective)
+                // Written by this version: never taken for pre-wizard settings (needsReset).
+                shared[SharedConfig.VERSION_KEY] = SharedConfig.SETTINGS_VERSION
                 // Nothing new (startup patches mostly repeat the file): no write.
                 if (existing && JSON.stringify(shared) === JSON.stringify(existing)) {
                     resolve(effective)
