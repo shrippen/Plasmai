@@ -39,6 +39,25 @@ def test_every_loaded_script_is_in_the_qrc():
     assert not missing, f"add to app/plasmai-app.qrc (or app/demo.qrc for demo files): {missing}"
 
 
+KANTE_TYPE = re.compile(r'\b(Kante\w+)\s*\{')
+
+
+def test_every_kante_type_a_listed_view_uses_is_in_the_qrc():
+    """A Kante type used by a bundled view but missing from the resources builds fine and
+    fails at startup: "Type … unavailable" (Windows CI: KanteSectionLabel)."""
+    aliases = qrc_aliases() | qrc_aliases(DEMO_QRC)
+    views = [ROOT / "contents" / "ui" / a.removeprefix("contents/ui/") for a in aliases
+             if a.startswith("contents/ui/") and a.endswith(".qml")]
+    views += list((ROOT / "app" / "qml").rglob("*.qml"))
+    missing = set()
+    for qml in views:
+        for name in KANTE_TYPE.findall(qml.read_text(encoding="utf-8")):
+            if (ROOT / "contents" / "ui" / "Kante" / f"{name}.qml").exists() \
+                    and f"contents/ui/Kante/{name}.qml" not in aliases:
+                missing.add(f"{name} (used in {qml.name})")
+    assert not missing, f"add to app/plasmai-app.qrc: {sorted(missing)}"
+
+
 def test_published_resources_have_no_demo():
     """The demo is internal: the resources of every build must not contain it."""
     leaked = sorted(a for a in qrc_aliases() if "demo" in a.lower())
@@ -47,5 +66,6 @@ def test_published_resources_have_no_demo():
 
 if __name__ == "__main__":  # CI runs it without pytest
     test_every_loaded_script_is_in_the_qrc()
+    test_every_kante_type_a_listed_view_uses_is_in_the_qrc()
     test_published_resources_have_no_demo()
     print("app resources: ok")
