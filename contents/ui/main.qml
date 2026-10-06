@@ -3593,12 +3593,8 @@ PlasmoidItem {
                 // First start: created only while needed, with the settings of that moment.
                 Loader {
                     id: setupWizardLoader
+                    // Flush with the header like the other views (add entry, film day, trip).
                     Layout.fillWidth: true
-                    // Inset like the timer card and lists of the main view, not flush with the popup.
-                    Layout.leftMargin: Kirigami.Units.gridUnit
-                    Layout.rightMargin: Kirigami.Units.gridUnit
-                    Layout.topMargin: Kirigami.Units.largeSpacing
-                    Layout.bottomMargin: Kirigami.Units.largeSpacing
                     active: root.showSetupWizard && root.mainViewMode === "main"
                     visible: active
                     sourceComponent: SetupWizard {

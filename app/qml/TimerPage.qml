@@ -187,24 +187,22 @@ Kirigami.Page {
     QQC2.ScrollView {
         id: setupScroll
         anchors.top: topBar.bottom; anchors.left: parent.left; anchors.right: parent.right; anchors.bottom: parent.bottom
-        anchors.topMargin: Kirigami.Units.largeSpacing
+        // The scroll bar sits at the screen edge; the content keeps the page margin.
         anchors.rightMargin: -page.rightPadding
         visible: root.showSetupWizard
         Material.theme: Material.Dark
         contentWidth: availableWidth
         QQC2.ScrollBar.horizontal.policy: QQC2.ScrollBar.AlwaysOff
 
+        // Width and centring like the connection and settings pages.
         ColumnLayout {
-            width: setupScroll.availableWidth - page.rightPadding
-            spacing: Kirigami.Units.largeSpacing
+            id: setupCol
+            width: Math.min((setupScroll.availableWidth - page.rightPadding), Kirigami.Units.gridUnit * 40)
+            x: Math.max(0, ((setupScroll.availableWidth - page.rightPadding) - width) / 2)
+            spacing: Kirigami.Units.smallSpacing
 
             Loader {
                 Layout.fillWidth: true
-                Layout.maximumWidth: Kirigami.Units.gridUnit * 30
-                Layout.alignment: Qt.AlignHCenter
-                // Inset like the timer card and lists of the main view, not flush with the page.
-                Layout.leftMargin: Kirigami.Units.gridUnit
-                Layout.rightMargin: Kirigami.Units.gridUnit
                 active: root.showSetupWizard
                 sourceComponent: SetupWizard {
                     profiles: root.profiles
