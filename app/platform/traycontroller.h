@@ -9,6 +9,8 @@
 #include <QQuickWindow>
 #include <QSize>
 #include <QSystemTrayIcon>
+#include <QEasingCurve>
+#include <QTimer>
 #include <QVariantList>
 
 // -- TrayController: the tray client (ROADMAP pillar 7) -------------------------
@@ -17,7 +19,8 @@
 // losing focus hides it again; the right-click menu comes from QML (its texts
 // are translated there). One instance per user: a second start opens the
 // running one's popup and exits. The popup's border resizes it (TrayResize);
-// the size is kept for the next start and fitted to each screen.
+// the size is kept for the next start and fitted to each screen. It fades and
+// slides in from the taskbar and back out (not when the system turns animations off).
 class TrayController : public QObject {
     Q_OBJECT
     Q_PROPERTY(bool tracking READ tracking WRITE setTracking NOTIFY trackingChanged)
@@ -62,6 +65,11 @@ protected:
 private:
     void toggle();
     void place();
+    void animateTo(qreal shown);
+    void animationStep();
+    void applyShown(qreal shown);
+    void finishHide();
+    static bool animationsEnabled();
     bool onBorderEvent(QEvent *event);
     void loadSize();
     void saveSize();
@@ -87,4 +95,18 @@ private:
     Qt::Edges m_dragEdges;
     QRect m_dragStart;
     QPoint m_dragOrigin;
+
+    // Open/close animation: 0 hidden, 1 shown; the popup fades and moves by m_slide towards
+    // its resting position m_restPos. m_hiding while it slides out (still visible then).
+    // Own precise timer: Qt's animation timer (16 ms) fires only every ~31 ms on Windows.
+    QTimer m_animTimer;
+    QElapsedTimer m_animClock;
+    QEasingCurve m_animCurve;
+    int m_animDuration = 0;
+    qreal m_animFrom = 0;
+    qreal m_animTo = 0;
+    qreal m_shown = 0;
+    bool m_hiding = false;
+    QPoint m_restPos;
+    QPoint m_slide;
 };

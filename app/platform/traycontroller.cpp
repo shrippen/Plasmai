@@ -14,6 +14,13 @@
 #include "trayplacement.h"
 #include "trayresize.h"
 
+#ifdef Q_OS_WIN
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#endif
+
 namespace {
 
 // A click on the icon right after the popup hid on focus loss (the click took
@@ -26,6 +33,10 @@ constexpr int POPUP_MIN_WIDTH = 320;
 constexpr int POPUP_MIN_HEIGHT = 400;
 // Logical px inside the popup's edge that resize it (no frame to grab otherwise).
 constexpr int RESIZE_BORDER = 6;
+// Open/close animation: fade in while sliding this far out of the taskbar, and back.
+constexpr int SHOW_MS = 180;
+constexpr int HIDE_MS = 130;
+constexpr int SLIDE_DISTANCE = 16;
 const QString SIZE_KEY = QStringLiteral("popup/size");
 constexpr int HANDOVER_TIMEOUT_MS = 500;
 const QByteArray SHOW_COMMAND = QByteArrayLiteral("show");
@@ -89,6 +100,9 @@ TrayController::TrayController(QObject *parent)
         });
     });
 
+    m_animTimer.setTimerType(Qt::PreciseTimer);
+    connect(&m_animTimer, &QTimer::timeout, this, &TrayController::animationStep);
+
     m_icon.setContextMenu(&m_menu);
     connect(&m_icon, &QSystemTrayIcon::activated, this, [this](QSystemTrayIcon::ActivationReason reason) {
         if (reason == QSystemTrayIcon::Trigger) {
@@ -123,7 +137,7 @@ void TrayController::setWindow(QQuickWindow *window, bool hidden)
     m_window->installEventFilter(this);
     // Like a Plasma popup: gone as soon as something else gets the focus.
     connect(m_window, &QWindow::activeChanged, this, [this]() {
-        if (m_window && !m_window->isActive() && m_window->isVisible()) {
+        if (m_window && !m_window->isActive() && m_window->isVisible() && !m_hiding) {
             hidePopup();
         }
     });
@@ -167,7 +181,23 @@ void TrayController::showPopup()
     if (!m_window) {
         return;
     }
-    place();
+    const bool opening = !m_window->isVisible();
+    // Sliding out: turns around where it is. Otherwise (re)placed next to the icon.
+    if (!m_hiding) {
+        place();
+    }
+    m_hiding = false;
+    if (opening) {
+        m_shown = 0;
+    }
+    if (animationsEnabled()) {
+        // Invisible at the start position before the first frame shows.
+        applyShown(m_shown);
+        animateTo(1);
+    } else {
+        m_animTimer.stop();
+        applyShown(1);
+    }
     m_window->show();
     m_window->raise();
     m_window->requestActivate();
@@ -175,11 +205,82 @@ void TrayController::showPopup()
 
 void TrayController::hidePopup()
 {
-    if (m_window && m_window->isVisible()) {
-        saveSize();
-        m_window->hide();
-        m_hiddenAt.start();
+    if (!m_window || !m_window->isVisible() || m_hiding) {
+        return;
     }
+    saveSize();
+    m_hiddenAt.start();
+    if (!animationsEnabled()) {
+        finishHide();
+        return;
+    }
+    // Slides out from where it is now (dragging the border may have moved it).
+    m_restPos = m_window->position();
+    m_hiding = true;
+    animateTo(0);
+}
+
+// Animates m_shown to `shown` (0 or 1); a turn halfway takes only the rest of the time.
+void TrayController::animateTo(qreal shown)
+{
+    const bool opening = shown > m_shown;
+    const int full = opening ? SHOW_MS : HIDE_MS;
+    m_animDuration = qMax(1, qRound(full * qAbs(shown - m_shown)));
+    m_animCurve = QEasingCurve(opening ? QEasingCurve::OutCubic : QEasingCurve::InCubic);
+    m_animFrom = m_shown;
+    m_animTo = shown;
+    m_animClock.start();
+    // One step per frame of the popup's screen.
+    const qreal hz = m_window && m_window->screen() ? m_window->screen()->refreshRate() : 60;
+    m_animTimer.start(qBound(4, qRound(1000 / qMax(hz, 1.0)), 16));
+}
+
+// Progress from the time actually passed: a late timer skips ahead instead of slowing down.
+void TrayController::animationStep()
+{
+    const qreal t = qMin(1.0, m_animClock.elapsed() / qreal(m_animDuration));
+    applyShown(m_animFrom + (m_animTo - m_animFrom) * m_animCurve.valueForProgress(t));
+    if (t < 1) {
+        return;
+    }
+    m_animTimer.stop();
+    if (m_hiding) {
+        finishHide();
+    }
+}
+
+void TrayController::applyShown(qreal shown)
+{
+    m_shown = shown;
+    if (!m_window) {
+        return;
+    }
+    m_window->setOpacity(shown);
+    m_window->setPosition(m_restPos + m_slide * (1 - shown));
+}
+
+void TrayController::finishHide()
+{
+    m_animTimer.stop();
+    m_hiding = false;
+    m_shown = 0;
+    if (m_window) {
+        m_window->hide();
+        m_window->setOpacity(1);
+        m_window->setPosition(m_restPos);
+    }
+}
+
+// The system's "animation effects" setting (Windows: Accessibility > Visual effects).
+bool TrayController::animationsEnabled()
+{
+#ifdef Q_OS_WIN
+    BOOL enabled = TRUE;
+    if (SystemParametersInfoW(SPI_GETCLIENTAREAANIMATION, 0, &enabled, 0)) {
+        return enabled;
+    }
+#endif
+    return true;
 }
 
 void TrayController::showMessage(const QString &title, const QString &body)
@@ -194,7 +295,8 @@ void TrayController::toggle()
     if (!m_window) {
         return;
     }
-    if (m_window->isVisible()) {
+    // Sliding out counts as hidden: the click that took the focus started it.
+    if (m_window->isVisible() && !m_hiding) {
         hidePopup();
         return;
     }
@@ -224,7 +326,9 @@ void TrayController::place()
     m_window->setMinimumSize(minimum.boundedTo(avail.size()));
     m_window->resize(size);
     m_placedSize = size;
-    m_window->setPosition(TrayPlacement::popupPosition(icon, screen->geometry(), avail, size));
+    m_restPos = TrayPlacement::popupPosition(icon, screen->geometry(), avail, size);
+    m_slide = TrayPlacement::slideOffset(icon, screen->geometry(), avail, SLIDE_DISTANCE);
+    m_window->setPosition(m_restPos);
 }
 
 bool TrayController::eventFilter(QObject *watched, QEvent *event)
