@@ -7,6 +7,7 @@
 #include <QObject>
 #include <QPointer>
 #include <QQuickWindow>
+#include <QSize>
 #include <QSystemTrayIcon>
 #include <QVariantList>
 
@@ -15,7 +16,8 @@
 // state, a left click opens the app's window as a frameless popup next to it,
 // losing focus hides it again; the right-click menu comes from QML (its texts
 // are translated there). One instance per user: a second start opens the
-// running one's popup and exits.
+// running one's popup and exits. The popup's border resizes it (TrayResize);
+// the size is kept for the next start and fitted to each screen.
 class TrayController : public QObject {
     Q_OBJECT
     Q_PROPERTY(bool tracking READ tracking WRITE setTracking NOTIFY trackingChanged)
@@ -54,9 +56,15 @@ signals:
     void menuChanged();
     void menuTriggered(const QString &id);
 
+protected:
+    bool eventFilter(QObject *watched, QEvent *event) override;
+
 private:
     void toggle();
     void place();
+    bool onBorderEvent(QEvent *event);
+    void loadSize();
+    void saveSize();
     void rebuildMenu();
     void updateIcon();
     static QIcon trayIcon(bool tracking);
@@ -69,4 +77,14 @@ private:
     QElapsedTimer m_hiddenAt;
     bool m_tracking = false;
     QString m_toolTip;
+
+    // Size the user chose by dragging the border (logical px); fitted to the screen on show.
+    QSize m_wantedSize;
+    // The size place() gave the popup; another size when it hides was dragged by the user.
+    QSize m_placedSize;
+    bool m_resizeCursor = false;
+    // Dragging the border ourselves where the window system cannot (no startSystemResize).
+    Qt::Edges m_dragEdges;
+    QRect m_dragStart;
+    QPoint m_dragOrigin;
 };

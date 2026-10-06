@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### New
+- Windows: the popup can be resized by dragging its border; the size is kept for the next start
+
+### Fixed
+- Windows: with display scaling (e.g. 250 % on a full HD screen) the popup was taller than the screen and its lower part, with the buttons, was cut off. It now fits the screen
+
 ## 2.3.1
 
 Released 2026-10-05.

@@ -4,11 +4,15 @@
 #include <QCursor>
 #include <QGuiApplication>
 #include <QLocalSocket>
+#include <QMouseEvent>
 #include <QPainter>
 #include <QScreen>
+#include <QSettings>
+#include <QStandardPaths>
 
 #include "../appid.h"
 #include "trayplacement.h"
+#include "trayresize.h"
 
 namespace {
 
@@ -17,10 +21,23 @@ namespace {
 constexpr int REOPEN_GUARD_MS = 300;
 constexpr int POPUP_WIDTH = 400;
 constexpr int POPUP_HEIGHT = 640;
+// Smallest popup the border can drag to: the timer card and a few rows still fit.
+constexpr int POPUP_MIN_WIDTH = 320;
+constexpr int POPUP_MIN_HEIGHT = 400;
+// Logical px inside the popup's edge that resize it (no frame to grab otherwise).
+constexpr int RESIZE_BORDER = 6;
+const QString SIZE_KEY = QStringLiteral("popup/size");
 constexpr int HANDOVER_TIMEOUT_MS = 500;
 const QByteArray SHOW_COMMAND = QByteArrayLiteral("show");
 
 TrayController *s_instance = nullptr;
+
+// tray.ini next to the app's other local files; QSettings without names would write nowhere.
+QSettings traySettings()
+{
+    const QString dir = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
+    return QSettings(dir + QStringLiteral("/tray.ini"), QSettings::IniFormat);
+}
 
 QString serverName()
 {
@@ -86,6 +103,7 @@ TrayController::TrayController(QObject *parent)
 
 TrayController::~TrayController()
 {
+    saveSize();
     if (s_instance == this) {
         s_instance = nullptr;
     }
@@ -99,7 +117,10 @@ void TrayController::setWindow(QQuickWindow *window, bool hidden)
     }
     // A popup, not a window: no frame, no taskbar button, above the others.
     m_window->setFlags(Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
-    m_window->resize(POPUP_WIDTH, POPUP_HEIGHT);
+    loadSize();
+    m_window->resize(m_wantedSize);
+    // The border resizes: pointer events reach this filter before the QML items.
+    m_window->installEventFilter(this);
     // Like a Plasma popup: gone as soon as something else gets the focus.
     connect(m_window, &QWindow::activeChanged, this, [this]() {
         if (m_window && !m_window->isActive() && m_window->isVisible()) {
@@ -155,6 +176,7 @@ void TrayController::showPopup()
 void TrayController::hidePopup()
 {
     if (m_window && m_window->isVisible()) {
+        saveSize();
         m_window->hide();
         m_hiddenAt.start();
     }
@@ -194,8 +216,95 @@ void TrayController::place()
         return;
     }
     m_window->setScreen(screen);
-    m_window->setPosition(TrayPlacement::popupPosition(icon, screen->geometry(), screen->availableGeometry(),
-                                                       m_window->size()));
+    // Logical px: at 250 % a full HD screen has 432 px of height, less than the default popup.
+    const QRect avail = screen->availableGeometry();
+    const QSize minimum(POPUP_MIN_WIDTH, POPUP_MIN_HEIGHT);
+    const QSize size = TrayPlacement::fitSize(m_wantedSize, minimum, avail);
+    // The window system's resize (Windows: WM_GETMINMAXINFO) stops here too; never above the screen.
+    m_window->setMinimumSize(minimum.boundedTo(avail.size()));
+    m_window->resize(size);
+    m_placedSize = size;
+    m_window->setPosition(TrayPlacement::popupPosition(icon, screen->geometry(), avail, size));
+}
+
+bool TrayController::eventFilter(QObject *watched, QEvent *event)
+{
+    if (watched == m_window && onBorderEvent(event)) {
+        return true;
+    }
+    return QObject::eventFilter(watched, event);
+}
+
+// Pointer on the popup's border: resize cursor, and a press there resizes. Returns
+// true when the event was the border's (the QML items below do not get it then).
+bool TrayController::onBorderEvent(QEvent *event)
+{
+    const QEvent::Type type = event->type();
+    if (type != QEvent::MouseMove && type != QEvent::MouseButtonPress && type != QEvent::MouseButtonRelease) {
+        return false;
+    }
+    auto *mouse = static_cast<QMouseEvent *>(event);
+    const QRect avail = m_window->screen() ? m_window->screen()->availableGeometry() : m_window->geometry();
+    const QSize minimum(POPUP_MIN_WIDTH, POPUP_MIN_HEIGHT);
+
+    // Block: our own drag (platforms without startSystemResize) follows the pointer.
+    if (m_dragEdges) {
+        if (type == QEvent::MouseMove) {
+            const QPoint delta = mouse->globalPosition().toPoint() - m_dragOrigin;
+            m_window->setGeometry(TrayResize::resized(m_dragStart, m_dragEdges, delta, minimum, avail));
+        } else if (type == QEvent::MouseButtonRelease) {
+            m_dragEdges = Qt::Edges();
+            saveSize();
+        }
+        return true;
+    }
+
+    const Qt::Edges edges = TrayResize::edgesAt(mouse->position(), m_window->size(), RESIZE_BORDER);
+
+    // Block: hover. The resize cursor on the border; leaving it hands the cursor back to QML.
+    if (type == QEvent::MouseMove && mouse->buttons() == Qt::NoButton) {
+        if (edges) {
+            m_window->setCursor(TrayResize::cursorFor(edges));
+            m_resizeCursor = true;
+            return true;
+        }
+        if (m_resizeCursor) {
+            m_window->unsetCursor();
+            m_resizeCursor = false;
+        }
+        return false;
+    }
+
+    // Block: press on the border. The window system resizes where it can (Windows, X11,
+    // Wayland); otherwise the moves above do.
+    if (type != QEvent::MouseButtonPress || mouse->button() != Qt::LeftButton || !edges) {
+        return false;
+    }
+    if (m_window->startSystemResize(edges)) {
+        return true;
+    }
+    m_dragEdges = edges;
+    m_dragStart = m_window->geometry();
+    m_dragOrigin = mouse->globalPosition().toPoint();
+    return true;
+}
+
+void TrayController::loadSize()
+{
+    const QSize stored = traySettings().value(SIZE_KEY).toSize();
+    m_wantedSize = stored.isValid() ? stored : QSize(POPUP_WIDTH, POPUP_HEIGHT);
+}
+
+// Only a size the user dragged to (it differs from the one place() set): a size fitted to a
+// small screen must not stick on a large one, and a click on the border changes nothing.
+void TrayController::saveSize()
+{
+    if (!m_window || !m_placedSize.isValid() || m_window->size() == m_placedSize) {
+        return;
+    }
+    m_wantedSize = m_window->size();
+    m_placedSize = m_wantedSize;
+    traySettings().setValue(SIZE_KEY, m_wantedSize);
 }
 
 void TrayController::rebuildMenu()

@@ -648,6 +648,13 @@ rules hold: a click on the icon opens, never starts or stops.
 - **Popup**: the app's window, frameless, no taskbar button, placed next to the
   icon on whichever edge the taskbar is (`TrayPlacement`), hidden when another
   window gets the focus. A click on the icon right after that does not reopen it.
+- **Size**: 400 × 640 logical px by default, fitted to the screen's available
+  area on every show (`fitSize`: at 250 % a full HD screen is 768 × 432
+  logical px). The border (6 logical px) resizes it with the matching cursor
+  (`TrayResize`): `startSystemResize` where the window system offers it
+  (Windows, X11, Wayland), otherwise our own drag; at least 320 × 400, never
+  past the available area. Only a size the user dragged to is kept
+  (`tray.ini` in the app's config folder), not one fitted to a small screen.
 - **Menu** (right click): open, stop the running entry or start the last used
   one, start at login, quit. Built in QML (`trayMenu()`), so it is translated
   like everything else.
