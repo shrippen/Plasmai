@@ -229,6 +229,10 @@ def main():
         import tray
         for msgid, val in tray.T_BY_LANG.get(lang, {}).items():
             trans.setdefault(msgid, {"s": val})
+        # First-start wizard
+        import setup
+        for msgid, val in setup.T_BY_LANG.get(lang, {}).items():
+            trans.setdefault(msgid, {"s": val})
         write_po(lang, items, trans)
         print(f"Wrote {lang}.po ({len(items)} strings)")
 

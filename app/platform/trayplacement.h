@@ -47,6 +47,16 @@ inline Edge taskbarEdge(const QRect &icon, const QRect &screen, const QRect &ava
     return nearest == toLeft ? Edge::Left : Edge::Right;
 }
 
+// The popup's size on this screen: the wanted size, at least `minimum`, never larger
+// than the available area. Sizes are logical pixels, so scaling shrinks the room:
+// 1920×1080 at 250 % is 768×432, where a 640 px high popup would run off the screen.
+inline QSize fitSize(const QSize &wanted, const QSize &minimum, const QRect &avail)
+{
+    const int w = std::min(std::max(wanted.width(), minimum.width()), avail.width());
+    const int h = std::min(std::max(wanted.height(), minimum.height()), avail.height());
+    return QSize(w, h);
+}
+
 // Top left of a popup of `size`. icon may be empty (unknown): the popup then
 // opens at the corner of the taskbar's side, bottom right by default.
 inline QPoint popupPosition(const QRect &icon, const QRect &screen, const QRect &avail, const QSize &size)

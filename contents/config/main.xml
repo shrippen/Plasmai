@@ -157,6 +157,10 @@
         <entry name="locationName" type="String">
             <default></default>
         </entry>
+        <!-- shared.json's settings version (sharedConfig.js SETTINGS_VERSION); 0: before the setup wizard -->
+        <entry name="settingsVersion" type="Int">
+            <default>0</default>
+        </entry>
 
         <!-- 0=auto (Plasma tablet mode), 1=on, 2=off -->
         <entry name="touchMode" type="Int">

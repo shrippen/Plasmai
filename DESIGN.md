@@ -182,6 +182,54 @@ typography stack, badge format, and social-preview spec.
   Parse `catalog-cache.json` off the UI thread (`WorkerScript`); never
   `JSON.parse` a large catalog on the same frame as becoming visible.
 
+### First start (setup wizard)
+
+`SetupWizard.qml` (shared, one file for the Plasmoid and the app on every
+platform), logic in `setupWizard.js`. Shown while no profile is connected
+(`showSetupState`), and kept up after `connected()` until its last step
+is finished or skipped (`setupAwaitingDay`).
+
+```
+[System] ──▶ Service ──▶ Access ──▶ Day
+   │            │           │          │
+ only when    Kimai      test first,  work hours, place,
+ the token    tested,    then store   reminder; all optional
+ cannot be    others     the token    ({} = skipped)
+ stored       experimental
+```
+
+- **System** exists only where something blocks storing the token:
+  `Platform.checkSystem()`. The Plasmoid runs `systemCheck.sh`
+  (secret-tool, a Secret Service on the session bus, notify-send,
+  os-release); the install command comes from ID / ID_LIKE. The app stores
+  through QtKeychain and needs nothing installed, so its backend has no
+  check and the wizard starts at Service (Android, Windows, Plasma Mobile).
+  Once shown, System stays in the list so fixing it does not shift the steps.
+- **Access** tests the connection before the token is stored; a wrong token
+  never reaches the keychain. The address is cleaned (`checkUrl`: https
+  added, Kimai page and `/api` addresses cut back to the instance, plain
+  http outside the machine warned). The token loses blanks and a pasted
+  "Bearer ". Success writes `profilesJson`, `activeProfileId`, `kimaiUrl`
+  (shared.json first, then the instance: the reload reads shared.json).
+- **Day** asks instead of assuming: work hours and the place for the sun
+  arcs (`main.xml` defaults are Berlin and 08–18). Only what was set is
+  written; skip keeps every value.
+- No demo mode here: it is internal (screenshots), never offered.
+- **Update from a version without the wizard** (2.3.x and older): once, every
+  setting goes back to its default and the profiles' tokens are cleared, so
+  the wizard runs (decided 2026-10-06: losing the settings is fine for this
+  one migration). The marker is `settingsVersion` in shared.json
+  (`SharedConfig.SETTINGS_VERSION`), stamped by every `Platform.patchShared`;
+  settings without it are old (`needsReset`). The Plasmoid (`resetOldSettings`
+  before the settings load; an instance with its own connection and no
+  shared.json counts as old) and the app do the same. A fresh start has nothing
+  to reset. `SharedConfig.DEFAULTS` is written in full, since the app reads only
+  the keys shared.json has; `tests/test_shared_defaults.py` keeps it equal to
+  `main.xml`. Offline data and the catalog cache stay.
+- The wizard writes the active profile only; more profiles and everything
+  else stay in Configure ("More options in the settings"). Cloud services
+  use their default address unless "Use another address" is chosen.
+
 ---
 
 ## Visual language
@@ -538,9 +586,9 @@ read as Kante. It is the design system's `KanteStyle.Kind.KanteLight`:
   Manual **Add entry** is a separate `mainViewMode` and uses the same
   `TimesheetMetaFields` extras. Editing a stopped Recent reuses that
   form (`editingStoppedTimesheet`); Save patches instead of creating.
-- **Configure** is the only path to tokens, profiles, and display flags.
-  Placeholder “Connect a time tracker” when unconfigured; don’t hide the
-  widget.
+- **First start** is the setup wizard (see "First start" below), in the
+  popup and on the app's timer page; don't hide the widget. After that,
+  **Configure** is the path to tokens, profiles, and display flags.
 - Right-click anywhere on the full UI opens the standard applet menu
   (a capturing `MouseArea` is required because labels steal RMB).
 - Do not click-test live Start/Stop/Continue/favorite/recent in default CI
@@ -648,6 +696,13 @@ rules hold: a click on the icon opens, never starts or stops.
 - **Popup**: the app's window, frameless, no taskbar button, placed next to the
   icon on whichever edge the taskbar is (`TrayPlacement`), hidden when another
   window gets the focus. A click on the icon right after that does not reopen it.
+- **Size**: 400 × 640 logical px by default, fitted to the screen's available
+  area on every show (`fitSize`: at 250 % a full HD screen is 768 × 432
+  logical px). The border (6 logical px) resizes it with the matching cursor
+  (`TrayResize`): `startSystemResize` where the window system offers it
+  (Windows, X11, Wayland), otherwise our own drag; at least 320 × 400, never
+  past the available area. Only a size the user dragged to is kept
+  (`tray.ini` in the app's config folder), not one fitted to a small screen.
 - **Menu** (right click): open, stop the running entry or start the last used
   one, start at login, quit. Built in QML (`trayMenu()`), so it is translated
   like everything else.

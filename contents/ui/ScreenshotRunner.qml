@@ -195,10 +195,12 @@ Item {
         onTriggered: runner.step()
     }
 
-    // Starts once the demo profile is connected and the first data is in.
+    // Starts once the demo profile is connected and the first data is in; without a
+    // profile once the setup wizard shows (its screenshots: view "main").
     Timer {
         interval: 6000
-        running: runner.active && runner.plasmoidRoot && runner.plasmoidRoot.isConfigured
+        running: runner.active && runner.plasmoidRoot
+                 && (runner.plasmoidRoot.isConfigured || runner.plasmoidRoot.showSetupState)
         repeat: false
         onTriggered: runner.start()
     }

@@ -47,6 +47,9 @@ demo offscreen; the screenshots are the `windows-screens` artifact.
   notifications, token in the Credential Manager, Kimai live (timer, entry form, date picker,
   statistics, film day with the Drehzettel plugin), offline stop and the sync afterwards. Not
   tried: Windows 10, several monitors, scaling other than 100 %, idle time, the installer.
+  Scaling and resizing the popup by its border were only tried with the Linux tray build
+  (Xvfb, openbox, tint2, `QT_SCALE_FACTOR` 1 / 2 / 2.5): the popup fits the screen, our own
+  border drag works; Windows' own resize (`startSystemResize`) still needs a try on Windows.
 - **Light and dark.** The app runs in the Basic style and follows the system's setting. Qt is
   handed Breeze colors of that scheme (`app/main.cpp`), the icons come from the matching
   bundled subset (`app/icons/breeze-light`, `breeze-dark`), and Kirigami, which answers Breeze

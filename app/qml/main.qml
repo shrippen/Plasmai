@@ -370,6 +370,24 @@ Kirigami.ApplicationWindow {
     function isUnsynced(entryId) { return offlineRevision >= 0 && !!offlineSession && Offline.isUnsynced(offlineSession, entryId) }
     property string apiToken: ""; property bool tokenLoaded: false
     property bool isConfigured: apiToken.length > 0
+    /** The setup wizard connected a profile; its Day step stays until it is finished or skipped. */
+    property bool setupAwaitingDay: false
+    readonly property bool showSetupWizard: (tokenLoaded && !isConfigured) || setupAwaitingDay
+
+    /** Setup wizard: the profile works (token tested and stored). */
+    function applySetupConnection(patch) {
+        setupAwaitingDay = true
+        Platform.patchShared(null, currentConfig(), patch).then(loadSharedAndConnect, loadSharedAndConnect)
+    }
+
+    /** Setup wizard: Day step done ({} when skipped). */
+    function finishSetup(patch) {
+        setupAwaitingDay = false
+        if (Object.keys(patch).length === 0) {
+            return
+        }
+        Platform.patchShared(null, currentConfig(), patch).then(loadSharedAndConnect, loadSharedAndConnect)
+    }
     property string connectionState: "offline"; property string errorMessage: ""
 
     property bool isTracking: false; property bool isBusy: false
@@ -850,8 +868,26 @@ Kirigami.ApplicationWindow {
         descriptionSaveTimer.restart()
     }
 
+    /**
+     * Settings of a version before the setup wizard (sharedConfig.js needsReset): once,
+     * tokens cleared and every setting at its default, so the wizard runs. Resolves with
+     * the settings to load.
+     */
+    function resetOldSettings(shared) {
+        if (!SharedConfig.needsReset(shared)) {
+            return Promise.resolve(shared)
+        }
+        var fresh = SharedConfig.resetShared()
+        var clears = SharedConfig.profileIds(shared).map(function(id) {
+            return Platform.clearToken(null, id).catch(function() {})
+        })
+        return Promise.all(clears).then(function() {
+            return Platform.saveShared(null, fresh)
+        }).then(function() { return fresh }, function() { return fresh })
+    }
+
     function loadSharedAndConnect() {
-        Platform.loadShared(null).then(function(shared) {
+        Platform.loadShared(null).then(resetOldSettings).then(function(shared) {
             if (shared) SharedConfig.applyToConfiguration(currentConfig(), shared)
             profiles = Profiles.parseProfiles(shared ? shared.profilesJson : "", shared ? shared.kimaiUrl : "")
             activeProfile = Profiles.profileById(profiles, shared ? shared.activeProfileId : "default")

@@ -34,10 +34,40 @@ TestCase {
     }
 
     function init() {
-        disk = { recentCount: 5, pluginProbesJson: JSON.stringify({ app: 1 }) }
+        // A file of this version (settingsVersion): one without it is reset before any patch.
+        disk = { recentCount: 5, pluginProbesJson: JSON.stringify({ app: 1 }), settingsVersion: 2 }
         pendingLoads = []
         saves = 0
         Platform.setBackend(fakeBackend())
+    }
+
+    function test_patchStampsSettingsVersion() {
+        // Written by this version: never mistaken for pre-wizard settings.
+        disk = { recentCount: 5 }
+        var done = false
+        Platform.patchShared(null, {}, { recentCount: 7 }).then(function() { done = true })
+        release()
+        tryVerify(function() { return done })
+        compare(disk.recentCount, 7)
+        compare(disk.settingsVersion, 2)
+    }
+
+    function test_checkSystemWithoutBackendCheck() {
+        // The app's backend has no check: nothing to report, no System step.
+        var got = null
+        Platform.checkSystem(null).then(function(r) { got = r })
+        tryVerify(function() { return got !== null })
+        compare(Object.keys(got).length, 0)
+    }
+
+    function test_checkSystemAsksBackend() {
+        var backend = fakeBackend()
+        backend.checkSystem = function(ds, cb) { cb({ secretTool: false }) }
+        Platform.setBackend(backend)
+        var got = null
+        Platform.checkSystem(null).then(function(r) { got = r })
+        tryVerify(function() { return got !== null })
+        compare(got.secretTool, false)
     }
 
     function test_dataMapMergedWithOtherWriter() {

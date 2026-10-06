@@ -43,6 +43,22 @@ function clearToken(dataSource, profileId) {
     })
 }
 
+// -- System check (first-start wizard)
+
+/**
+ * What blocks or limits Plasmai here, as setupWizard.js assess() reads it.
+ * Backends without a check (the app: QtKeychain needs nothing installed) give {}.
+ */
+function checkSystem(dataSource) {
+    return new Promise(function(resolve) {
+        if (!_backend.checkSystem) {
+            resolve({})
+            return
+        }
+        _backend.checkSystem(dataSource, function(result) { resolve(result || {}) })
+    })
+}
+
 // -- Idle detection
 
 function checkIdle(dataSource) {
@@ -97,6 +113,8 @@ function patchShared(dataSource, configuration, patch, bases) {
                 base = SharedConfig.sanitizeProfilesForPersistence(base, configuration)
                 var effective = bases ? SharedConfig.mergeDataPatch(base, bases, patch || {}) : (patch || {})
                 var shared = SharedConfig.merge(base, effective)
+                // Written by this version: never taken for pre-wizard settings (needsReset).
+                shared[SharedConfig.VERSION_KEY] = SharedConfig.SETTINGS_VERSION
                 // Nothing new (startup patches mostly repeat the file): no write.
                 if (existing && JSON.stringify(shared) === JSON.stringify(existing)) {
                     resolve(effective)

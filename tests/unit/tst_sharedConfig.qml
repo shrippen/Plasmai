@@ -5,6 +5,53 @@ import "../../contents/code/sharedConfig.js" as SharedConfig
 TestCase {
     name: "SharedConfig"
 
+    // Settings of 2.3.x and older (no settings version) are reset once, so the wizard runs.
+    function test_needsReset() {
+        verify(SharedConfig.needsReset({ kimaiUrl: "https://k", recentCount: 5 }))
+        verify(SharedConfig.needsReset({ profilesJson: "[]", settingsVersion: 1 }))
+        verify(!SharedConfig.needsReset({ kimaiUrl: "https://k", settingsVersion: SharedConfig.SETTINGS_VERSION }))
+        verify(!SharedConfig.needsReset({ kimaiUrl: "https://k", settingsVersion: SharedConfig.SETTINGS_VERSION + 1 }))
+        // Nothing stored yet: a fresh start, nothing to reset.
+        verify(!SharedConfig.needsReset(null))
+        verify(!SharedConfig.needsReset({}))
+        verify(!SharedConfig.needsReset({ unknownKey: 1 }))
+    }
+
+    function test_resetShared() {
+        var r = SharedConfig.resetShared()
+        compare(r.settingsVersion, SharedConfig.SETTINGS_VERSION)
+        compare(r.kimaiUrl, "")
+        compare(r.activeProfileId, "default")
+        compare(JSON.parse(r.profilesJson)[0].id, "default")
+        compare(JSON.parse(r.profilesJson)[0].url, "")
+        compare(r.pinnedActivities, "")
+        compare(r.workDayBegin, "08:00")
+        verify(!SharedConfig.needsReset(r))
+        // Every shared key has a value, so the app (which reads only present keys) resets too.
+        for (var i = 0; i < SharedConfig.SHARED_KEYS.length; i++) {
+            verify(r.hasOwnProperty(SharedConfig.SHARED_KEYS[i]), SharedConfig.SHARED_KEYS[i])
+        }
+        // A fresh copy each time.
+        r.kimaiUrl = "x"
+        compare(SharedConfig.resetShared().kimaiUrl, "")
+    }
+
+    function test_resetReachesConfiguration() {
+        // The Plasmoid's own settings follow (applyToConfiguration skips an empty profilesJson).
+        var config = { profilesJson: '[{"id":"p1","url":"https://a"}]', activeProfileId: "p1", kimaiUrl: "https://a", settingsVersion: 0 }
+        SharedConfig.applyToConfiguration(config, SharedConfig.resetShared())
+        compare(JSON.parse(config.profilesJson)[0].id, "default")
+        compare(config.activeProfileId, "default")
+        compare(config.kimaiUrl, "")
+        compare(config.settingsVersion, SharedConfig.SETTINGS_VERSION)
+    }
+
+    function test_profileIds() {
+        compare(SharedConfig.profileIds({ profilesJson: '[{"id":"p1"},{"id":"default"},{"id":"p2"}]' }), ["default", "p1", "p2"])
+        compare(SharedConfig.profileIds({ profilesJson: "broken" }), ["default"])
+        compare(SharedConfig.profileIds(null), ["default"])
+    }
+
     function test_mergePatchWins() {
         var merged = SharedConfig.merge(
             { kimaiUrl: "https://old", recentCount: 5, touchMode: 0 },
