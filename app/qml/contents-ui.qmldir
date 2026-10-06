@@ -16,6 +16,7 @@ ManualEntryView 1.0 ManualEntryView.qml
 TripSuggestionList 1.0 TripSuggestionList.qml
 SearchableCombo 1.0 SearchableCombo.qml
 TripSheet 1.0 TripSheet.qml
+SetupWizard 1.0 SetupWizard.qml
 ActivityListRow 1.0 ActivityListRow.qml
 ProjectActivityPickers 1.0 ProjectActivityPickers.qml
 singleton TouchUi 1.0 TouchUi.qml

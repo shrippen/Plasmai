@@ -147,7 +147,7 @@ Kirigami.Page {
         spacing: Kirigami.Units.smallSpacing
 
         RowLayout { Layout.fillWidth: true; spacing: Kirigami.Units.smallSpacing
-            visible: Profiles.showsConnection(root.profiles, root.isConfigured, root.connectionState)
+            visible: !root.showSetupWizard && Profiles.showsConnection(root.profiles, root.isConfigured, root.connectionState)
             Kirigami.Icon { source: page.connIcon(); color: page.connColor(); Layout.preferredWidth: Kirigami.Units.iconSizes.small; Layout.preferredHeight: Kirigami.Units.iconSizes.small }
             QQC2.Label {
                 text: {
@@ -165,14 +165,6 @@ Kirigami.Page {
             QQC2.BusyIndicator { running: root.isBusy || root.connectionState === "connecting"; visible: running && !KanteStyle.active; Layout.preferredWidth: Kirigami.Units.iconSizes.small; Layout.preferredHeight: Kirigami.Units.iconSizes.small }
         }
 
-        Kirigami.PlaceholderMessage {
-            Layout.fillWidth: true; Layout.topMargin: Kirigami.Units.largeSpacing
-            visible: !root.isConfigured
-            icon.name: "configure"
-            text: i18n("Connect a time tracker")
-            explanation: i18n("Add your service, server URL (if needed), and API token to start tracking.")
-            helpfulAction: Kirigami.Action { text: i18n("Configure Plasmai"); onTriggered: pageStack.push(connectionComponent) }
-        }
         Kirigami.InlineMessage {
             KanteMessageSkin { message: parent }
             Layout.fillWidth: true
@@ -191,9 +183,53 @@ Kirigami.Page {
     // between these hosts via their `parent:` binding rather than duplicated, so ids like
     // activeEditView and descField keep working from page-level code no matter which layout
     // is active. ══════
+    // ══════ FIRST START — the setup wizard instead of the content until it is finished ══════
+    QQC2.ScrollView {
+        id: setupScroll
+        anchors.top: topBar.bottom; anchors.left: parent.left; anchors.right: parent.right; anchors.bottom: parent.bottom
+        // The scroll bar sits at the screen edge; the content keeps the page margin.
+        anchors.rightMargin: -page.rightPadding
+        visible: root.showSetupWizard
+        Material.theme: Material.Dark
+        contentWidth: availableWidth
+        QQC2.ScrollBar.horizontal.policy: QQC2.ScrollBar.AlwaysOff
+
+        // Width and centring like the connection and settings pages.
+        ColumnLayout {
+            id: setupCol
+            width: Math.min((setupScroll.availableWidth - page.rightPadding), Kirigami.Units.gridUnit * 40)
+            x: Math.max(0, ((setupScroll.availableWidth - page.rightPadding) - width) / 2)
+            spacing: Kirigami.Units.smallSpacing
+
+            Loader {
+                Layout.fillWidth: true
+                active: root.showSetupWizard
+                sourceComponent: SetupWizard {
+                    profiles: root.profiles
+                    activeProfileId: root.activeProfile ? root.activeProfile.id : "default"
+                    supportsReminders: root.supportsNotifications
+                    workDayBegin: root.workDayBegin
+                    workDayEnd: root.workDayEnd
+                    locationName: root.locationName
+                    notifyForgotToStart: root.notifyForgotToStart
+                    onConnected: function(patch) { root.applySetupConnection(patch) }
+                    onFinished: function(patch) { root.finishSetup(patch) }
+                }
+            }
+            KanteButton {
+                Layout.alignment: Qt.AlignHCenter
+                visible: !root.isConfigured
+                flat: true
+                text: i18n("More options in the settings")
+                onClicked: pageStack.push(connectionComponent)
+            }
+        }
+    }
+
     Item {
         id: contentArea
         anchors.top: topBar.bottom; anchors.left: parent.left; anchors.right: parent.right; anchors.bottom: parent.bottom
+        visible: !root.showSetupWizard
 
         QQC2.ScrollView {
             id: narrowScroll

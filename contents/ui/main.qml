@@ -53,6 +53,7 @@ PlasmoidItem {
     readonly property string notifyScript: Secret.fileUrlToPath(Qt.resolvedUrl("../code/notify.sh"))
     readonly property string sharedConfigScript: Secret.fileUrlToPath(Qt.resolvedUrl("../code/sharedConfig.sh"))
     readonly property string catalogCacheScript: Secret.fileUrlToPath(Qt.resolvedUrl("../code/catalogCache.sh"))
+    readonly property string systemCheckScript: Secret.fileUrlToPath(Qt.resolvedUrl("../code/systemCheck.sh"))
 
     property var profiles: Profiles.parseProfiles(plasmoid.configuration.profilesJson, plasmoid.configuration.kimaiUrl)
     property var activeProfile: Profiles.profileById(profiles, plasmoid.configuration.activeProfileId || "default")
@@ -317,6 +318,9 @@ PlasmoidItem {
 
     readonly property string errorMessage: userMessage.length > 0 ? userMessage : ApiErrors.text(lastError)
     readonly property bool showSetupState: tokenLoaded && !isConfigured
+    /** The wizard connected a profile; its Day step stays until it is finished or skipped. */
+    property bool setupAwaitingDay: false
+    readonly property bool showSetupWizard: showSetupState || setupAwaitingDay
     readonly property bool showErrorState: errorMessage.length > 0 && connectionState === "error"
 
     function dismissPickerPopups() {
@@ -383,7 +387,7 @@ PlasmoidItem {
             return i18n("Loading…")
         }
         if (!isConfigured) {
-            return i18n("Not configured — right-click to configure")
+            return i18n("Not configured — click to set up")
         }
         if (connectionState === "error" && errorMessage) {
             return errorMessage
@@ -612,6 +616,33 @@ PlasmoidItem {
         if (result && result.droppedFields && result.droppedFields.indexOf("billable") >= 0) {
             userMessage = i18n("Saved without the billable change: your Kimai account is not allowed to edit billable.")
         }
+    }
+
+    /** Setup wizard: the profile works (token tested and stored). The wizard stays for its Day step. */
+    function applySetupConnection(patch) {
+        setupAwaitingDay = true
+        applySetupKeys(patch).then(function() {
+            softReload()
+        })
+    }
+
+    /** Setup wizard: Day step done ({} when skipped). */
+    function finishSetup(patch) {
+        setupAwaitingDay = false
+        applySetupKeys(patch)
+    }
+
+    /**
+     * shared.json first, then this instance: the config change starts a reload
+     * that reads shared.json, which must already hold the new values.
+     */
+    function applySetupKeys(patch) {
+        function apply() {
+            for (var key in patch) {
+                plasmoid.configuration[key] = patch[key]
+            }
+        }
+        return Platform.patchShared(execSource, plasmoid.configuration, patch).then(apply, apply)
     }
 
     function openConfigure() {
@@ -1702,6 +1733,8 @@ PlasmoidItem {
         }
         credentialsLoading = true
         Platform.loadShared(execSource).then(function(shared) {
+            return root.resetOldSettings(shared)
+        }).then(function(shared) {
             if (shared) {
                 SharedConfig.applyToConfiguration(plasmoid.configuration, shared)
             } else if ((plasmoid.configuration.kimaiUrl || "").length > 0
@@ -1723,6 +1756,31 @@ PlasmoidItem {
                 }
             })
         })
+    }
+
+    /**
+     * Settings of a version before the setup wizard (sharedConfig.js needsReset): once,
+     * tokens cleared and every setting at its default, so the wizard runs. Resolves with
+     * the settings to load. An instance without shared.json but with a connection of its
+     * own (older still) counts as old too; a fresh one does not.
+     */
+    function resetOldSettings(shared) {
+        var ownConnection = (plasmoid.configuration.kimaiUrl || "").length > 0
+                            || (plasmoid.configuration.profilesJson || "").length > 0
+        var old = shared || (ownConnection ? SharedConfig.fromConfiguration(plasmoid.configuration) : null)
+        if (!SharedConfig.needsReset(old)) {
+            return shared
+        }
+        var fresh = SharedConfig.resetShared()
+        var ids = SharedConfig.profileIds(old).concat(SharedConfig.profileIds(SharedConfig.fromConfiguration(plasmoid.configuration)))
+        var clears = ids.map(function(id) {
+            return Platform.clearToken(execSource, id).catch(function() {})
+        })
+        resetProfileState()
+        CatalogCache.clear()
+        return Promise.all(clears).then(function() {
+            return Platform.saveShared(execSource, fresh)
+        }).then(function() { return fresh }, function() { return fresh })
     }
 
     function persistSharedConfig(callback) {
@@ -2864,7 +2922,7 @@ PlasmoidItem {
             in landscape. Below the threshold everything stacks in the single popupScroll,
             unchanged from before. */
         readonly property bool isWideLayout: width >= Kirigami.Units.gridUnit * 44
-        readonly property bool splitActive: root.mainViewMode === "main" && !root.showSetupState
+        readonly property bool splitActive: root.mainViewMode === "main" && !root.showSetupWizard
                                              && isWideLayout
 
         /** Move heroCard/listSection between the single-column host (mainPaneHost) and the
@@ -3380,7 +3438,7 @@ PlasmoidItem {
                         RowLayout {
                             Layout.fillWidth: true
                             spacing: Kirigami.Units.smallSpacing / 2
-                            visible: Profiles.showsConnection(root.profiles, root.isConfigured, root.connectionState)
+                            visible: !root.showSetupWizard && Profiles.showsConnection(root.profiles, root.isConfigured, root.connectionState)
 
                             Kirigami.Icon {
                                 Layout.preferredWidth: Kirigami.Units.iconSizes.small
@@ -3559,27 +3617,39 @@ PlasmoidItem {
                     }
                 }
 
-                Kirigami.PlaceholderMessage {
+                // First start: created only while needed, with the settings of that moment.
+                Loader {
+                    id: setupWizardLoader
+                    // Flush with the header like the other views (add entry, film day, trip).
                     Layout.fillWidth: true
-                    // Layout.preferredHeight ignores `visible` (Qt Quick Layouts still
-                    // reserve it), so an explicit fixed height here would otherwise leave a
-                    // permanent gap above the wide split view even while this is hidden.
-                    Layout.preferredHeight: root.showSetupState ? Kirigami.Units.gridUnit * 8 : 0
-                    visible: root.showSetupState
-                    icon.name: "configure"
-                    text: i18n("Connect a time tracker")
-                    explanation: i18n("Add your service, server URL (if needed), and API token to start tracking from the panel.")
-                    helpfulAction: Kirigami.Action {
-                        text: i18n("Configure Plasmai")
-                        icon.name: "configure"
-                        onTriggered: root.openConfigure()
+                    active: root.showSetupWizard && root.mainViewMode === "main"
+                    visible: active
+                    sourceComponent: SetupWizard {
+                        dataSource: execSource
+                        profiles: root.profiles
+                        activeProfileId: plasmoid.configuration.activeProfileId || "default"
+                        supportsReminders: true
+                        workDayBegin: plasmoid.configuration.workDayBegin
+                        workDayEnd: plasmoid.configuration.workDayEnd
+                        locationName: plasmoid.configuration.locationName
+                        notifyForgotToStart: plasmoid.configuration.notifyForgotToStart
+                        onConnected: function(patch) { root.applySetupConnection(patch) }
+                        onFinished: function(patch) { root.finishSetup(patch) }
                     }
+                }
+
+                KantePlasmaButton {
+                    Layout.alignment: Qt.AlignHCenter
+                    visible: setupWizardLoader.active && root.showSetupState
+                    flat: true
+                    text: i18n("More options in the settings")
+                    onClicked: root.openConfigure()
                 }
 
                 Kirigami.InlineMessage {
                     KanteMessageSkin { message: parent }
                     Layout.fillWidth: true
-                    visible: root.showErrorState && !root.showSetupState
+                    visible: root.showErrorState && !root.showSetupWizard
                     type: Kirigami.MessageType.Error
                     text: root.errorMessage
                     actions: [
@@ -3769,7 +3839,7 @@ PlasmoidItem {
                     spacing: Kirigami.Units.smallSpacing
                     // Also hidden (not just emptied by relayoutMainPane()) once the wide split
                     // view takes over, so it never reserves layout space in popupColumn.
-                    visible: root.mainViewMode === "main" && !root.showSetupState && !popupRoot.splitActive
+                    visible: root.mainViewMode === "main" && !root.showSetupWizard && !popupRoot.splitActive
 
                 // —— Hero —— (heroCard/listSection below are moved into the wide split-view
                 // panes via popupRoot.relayoutMainPane() when there's room for both side by
@@ -3926,7 +3996,7 @@ PlasmoidItem {
 
     Component.onCompleted: {
         Platform.setBackend(DesktopBackend.create(kwalletScript, idleScript, notifyScript,
-            sharedConfigScript, catalogCacheScript, localStoreScript))
+            sharedConfigScript, catalogCacheScript, localStoreScript, systemCheckScript))
         showNewActivityForm = !compactPopupLayout && plasmoid.configuration.desktopShowNewActivity
         hardReload()
     }
