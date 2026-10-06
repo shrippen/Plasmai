@@ -37,6 +37,9 @@ public:
             f.write(json.toUtf8());
             ok = f.commit();
         }
+        if (!ok) {
+            qWarning("plasmai: could not save %s: %s", qPrintable(fileName), qPrintable(f.errorString()));
+        }
         emit saved(fileName, ok);
     }
 
@@ -62,6 +65,9 @@ public:
                 f.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner);
                 f.write(json.toUtf8());
                 ok = f.commit();
+            }
+            if (!ok) {
+                qWarning("plasmai: could not save %s: %s", qPrintable(name), qPrintable(f.errorString()));
             }
         }
         emit localSaved(name, ok);
