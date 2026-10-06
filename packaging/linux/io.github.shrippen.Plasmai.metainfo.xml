@@ -89,6 +89,13 @@
     <binary>plasmai-app</binary>
   </provides>
   <releases>
+    <release version="2.4.0" date="2026-10-06">
+      <description>
+        <p>A setup wizard on first start: service, address and token, tested before the token is
+        stored, then work hours and place. Updating from 2.3.x resets all settings once and
+        removes the stored tokens. Small text on Android and Windows is smaller again.</p>
+      </description>
+    </release>
     <release version="2.3.1" date="2026-10-05">
       <description>
         <p>The running time is right as soon as the app is opened again, and the notification
