@@ -25,7 +25,7 @@ Einzige Übersicht über das, was noch fehlt. Details stehen in der jeweiligen D
 
 **Kleinigkeiten, ungeprüft**
 - [ ] → Gesamtliste. Datum-Popup: leerer Button zwischen `<` und `>` (Icons sind im QRC, auf dem Gerät nicht erneut angesehen)
-- [ ] Log-Warnung `QFont::setPointSize: Point size <= 0 (-3)`
+- [ ] Log-Warnung `QFont::setPointSize: Point size <= 0 (-3)`: Ursache Kirigamis `smallFont` (Punktgröße − 2 einer Pixel-Schrift); Fix in `fix/app-small-font`, auf dem Gerät noch nicht geprüft
 - [ ] Statistik: Tortendiagramme weiter unten nicht visuell verglichen
 - [ ] `Kirigami.Page` + `ScrollView` statt `ScrollablePage` und Dark-Literale in `kirigami-styles/.../Material/Theme.qml` (Workaround, Ursache unbekannt)
 

@@ -12,6 +12,7 @@
 
 ### Fixed
 - Windows: with display scaling (e.g. 250 % on a full HD screen) the popup was taller than the screen and its lower part, with the buttons, was cut off. It now fits the screen
+- App (Android, Windows, macOS): small text (hints, durations, secondary lines) was larger than the normal text; it is now smaller, as in the widget
 
 ## 2.3.1
 
