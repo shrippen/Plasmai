@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 2.5.1
+
+Released 2026-10-06.
+
+### Fixed
+- App (Android, Windows, Linux): 2.5.0 did not start; a file of the new Look step was missing from the app. The Plasma widget was not affected
+
 ## 2.5.0
 
 Released 2026-10-06.

@@ -1,0 +1,1 @@
+Plasmai 2.5.1: fixes the app (Android, Windows, Linux) not starting in 2.5.0. The Plasma widget was not affected.
