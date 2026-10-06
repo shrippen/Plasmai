@@ -89,6 +89,12 @@
     <binary>plasmai-app</binary>
   </provides>
   <releases>
+    <release version="2.5.3" date="2026-10-07">
+      <description>
+        <p>Windows: the tray popup fades and slides in from the taskbar, and back out as it
+        closes.</p>
+      </description>
+    </release>
     <release version="2.5.2" date="2026-10-06">
       <description>
         <p>Windows: the app saves its settings again; the setup wizard stored the token but not the

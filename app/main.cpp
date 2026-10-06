@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
     // Desktop identity (Flathub ID); APP_ID stays the keychain service and the config folder shared with the widget.
     QGuiApplication::setDesktopFileName(QStringLiteral("io.github.shrippen.Plasmai"));
 #endif
-    app.setApplicationVersion(QStringLiteral("2.5.2"));
+    app.setApplicationVersion(QStringLiteral("2.5.3"));
 
 #ifdef PLASMAI_TRAY
     // One tray client per user: a second start opens the running one's popup.

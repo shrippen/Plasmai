@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 2.5.3
+
+Released 2026-10-07.
+
+### Changed
+- Windows: the tray popup fades in while sliding out of the taskbar, and back out as it closes. It follows Windows' animation effects setting
+
 ## 2.5.2
 
 Released 2026-10-06.
