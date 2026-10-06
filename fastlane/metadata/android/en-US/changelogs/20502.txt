@@ -1,0 +1,1 @@
+Plasmai 2.5.2: Windows saves the settings again; the setup wizard stored the token but not the server address.

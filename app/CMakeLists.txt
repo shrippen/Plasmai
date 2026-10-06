@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(plasmai-app VERSION 2.5.1 LANGUAGES CXX)
+project(plasmai-app VERSION 2.5.2 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -90,8 +90,8 @@ if(ANDROID)
     )
     set_target_properties(plasmai-app PROPERTIES
         QT_ANDROID_PACKAGE_NAME "com.github.shrippen.plasmai"
-        QT_ANDROID_VERSION_NAME "2.5.1"
-        QT_ANDROID_VERSION_CODE "20501"
+        QT_ANDROID_VERSION_NAME "2.5.2"
+        QT_ANDROID_VERSION_CODE "20502"
         QT_ANDROID_MIN_SDK_VERSION "28"
         QT_ANDROID_TARGET_SDK_VERSION "34"
         # Pinned instead of "newest installed": GitHub's runner and F-Droid's buildserver have

@@ -1,0 +1,1 @@
+Plasmai 2.5.2: Windows speichert die Einstellungen wieder; der Einrichtungsassistent hatte das Token gespeichert, aber nicht die Serveradresse.
