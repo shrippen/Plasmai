@@ -355,3 +355,12 @@ Not required for 2.0.
 Pick work from the 2.0 pillars; pillar 1 unblocks the tag. Prefer slices that are useful alone (one live backend pass, Clockify tags, one parity gap). When something ships, mention it in the changelog and update this file — do not leave a second source of truth that contradicts DESIGN.md.
 
 If a proposal needs a new visual language, interaction, or `cfg_*` key, update DESIGN.md in the same change.
+
+## Update check (Kante 1.22)
+
+A hint when a newer release exists, for installs nothing else updates. Format and rules: `shrippen.github.io/overview/VERSIONS.md`.
+
+- [ ] Only in the package attached to Gitea/GitHub releases (installed with `kpackagetool6`); the KDE Store build and the app (`app/`) leave it out, because Discover and the app stores announce updates there. Build switch in the packaging script, checked like the demo exclusion
+- [ ] `KanteUpdateCheck { project: "plasmai"; version: Plasmoid.metaData.version; enabled: … }` with `KanteCallout` (link, dismiss); config keys `updateCheck` (default on) and `updateMemory` (persist `memory`); always off in demo mode
+- [ ] README: what is fetched (`https://shrippen.github.io/versions.json`, no parameters, at most once a day) and how to switch it off
+- [ ] After every release run `python3 ../shrippen.github.io/overview/tools/build-versions.py` and commit `docs/versions.json` there
