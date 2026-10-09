@@ -9,7 +9,7 @@ mkdir -p "${CONFIG}/com.github.shrippen.plasmai"
 cp -p "${XDG_CONFIG_HOME:-${HOME}/.config}/kdeglobals" "${CONFIG}/" 2>/dev/null || true
 cat > "${CONFIG}/com.github.shrippen.plasmai/shared.json" <<'JSON'
 {"profilesJson": "[{\"id\":\"demo\",\"name\":\"Demo\",\"url\":\"https://demo.invalid\",\"provider\":\"kimai\"}]",
- "activeProfileId": "demo"}
+ "activeProfileId": "demo", "settingsVersion": 2}
 JSON
 LANG_="${1:-${DEMO_LANG:-de}}"
 case "${LANG_}" in de) LOCALE=de_DE.UTF-8 ;; *) LOCALE=en_GB.UTF-8 ;; esac
