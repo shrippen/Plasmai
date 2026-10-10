@@ -33,6 +33,8 @@ ColumnLayout {
     property int weekOffset: 0
     //* 0 = current week; negative = past weeks — Projects by hour
     property int hourWeekOffset: 0
+    //* 0 = today; negative = past days — Activity distribution (day)
+    property int pieDayOffset: 0
     //* 0 = current week; negative = past weeks — Activity distribution
     property int pieWeekOffset: 0
     /** Hide billable segmented control when the provider has no billable flag. */
@@ -44,6 +46,7 @@ ColumnLayout {
     // addDays() lands on noon (DST-safe); week starts must be midnight or Monday mornings drop out.
     readonly property var selectedWeekStart: StatsData.startOfDay(StatsData.addDays(StatsData.startOfWeek(nowDate), weekOffset * 7))
     readonly property var selectedHourWeekStart: StatsData.startOfDay(StatsData.addDays(StatsData.startOfWeek(nowDate), hourWeekOffset * 7))
+    readonly property var selectedPieDay: StatsData.addDays(StatsData.startOfDay(nowDate), pieDayOffset)
     readonly property var selectedPieWeekStart: StatsData.startOfDay(StatsData.addDays(StatsData.startOfWeek(nowDate), pieWeekOffset * 7))
     readonly property var filteredTimesheets: StatsData.filterBillable(timesheets, billableFilter)
     readonly property string filterAllLabel: i18n("All")
@@ -69,16 +72,16 @@ ColumnLayout {
     readonly property var weekHourLegend: (weekHourData && weekHourData.legend) ? weekHourData.legend : []
     readonly property real weekHourMin: (weekHourData && weekHourData.hourMin !== undefined) ? weekHourData.hourMin : 0
     readonly property real weekHourMax: (weekHourData && weekHourData.hourMax !== undefined) ? weekHourData.hourMax : 24
-    readonly property var todayPie: {
-        var day = StatsData.startOfDay(nowDate);
+    readonly property var dayPie: {
+        var day = StatsData.startOfDay(root.selectedPieDay);
         return StatsData.activityBreakdown(filteredTimesheets, day, StatsData.endOfDay(day), Date.now(), 6, customersById);
     }
     readonly property var weekPie: {
         var ws = root.selectedPieWeekStart;
         return StatsData.activityBreakdown(filteredTimesheets, ws, StatsData.endOfWeek(ws), Date.now(), 6, customersById);
     }
-    readonly property var todayPieRows: (todayPie && todayPie.rows) ? todayPie.rows : []
-    readonly property int todayPieTotal: (todayPie && todayPie.totalSeconds) ? todayPie.totalSeconds : 0
+    readonly property var dayPieRows: (dayPie && dayPie.rows) ? dayPie.rows : []
+    readonly property int dayPieTotal: (dayPie && dayPie.totalSeconds) ? dayPie.totalSeconds : 0
     readonly property var weekPieRows: (weekPie && weekPie.rows) ? weekPie.rows : []
     readonly property int weekPieTotal: (weekPie && weekPie.totalSeconds) ? weekPie.totalSeconds : 0
     readonly property int filteredTodaySeconds: StatsData.sumSecondsInRange(filteredTimesheets, StatsData.startOfDay(nowDate), StatsData.endOfDay(nowDate), Date.now())
@@ -102,12 +105,17 @@ ColumnLayout {
         requestRangeForOffsets();
     }
 
+    function shiftPieDay(delta) {
+        pieDayOffset += delta;
+        requestRangeForOffsets();
+    }
+
     function shiftPieWeek(delta) {
         pieWeekOffset += delta;
         requestRangeForOffsets();
     }
 
-    function requestRangeFor(day, weekBegin, hourWeekBegin, pieWeekBegin) {
+    function requestRangeFor(day, weekBegin, hourWeekBegin, pieWeekBegin, pieDay) {
         var weekEnd = StatsData.endOfWeek(weekBegin);
         var hourWeekEnd = StatsData.endOfWeek(hourWeekBegin);
         var pieWeekEnd = StatsData.endOfWeek(pieWeekBegin);
@@ -131,6 +139,15 @@ ColumnLayout {
         if (pieWeekEnd > end)
             end = pieWeekEnd;
 
+        if (pieDay !== undefined) {
+            if (StatsData.startOfDay(pieDay) < begin)
+                begin = StatsData.startOfDay(pieDay);
+
+            if (StatsData.endOfDay(pieDay) > end)
+                end = StatsData.endOfDay(pieDay);
+
+        }
+
         var todayWeekBegin = StatsData.startOfWeek(new Date());
         var todayWeekEnd = StatsData.endOfWeek(todayWeekBegin);
         if (todayWeekBegin < begin)
@@ -143,7 +160,7 @@ ColumnLayout {
     }
 
     function requestRangeForOffsets() {
-        requestRangeFor(selectedDay, selectedWeekStart, selectedHourWeekStart, selectedPieWeekStart);
+        requestRangeFor(selectedDay, selectedWeekStart, selectedHourWeekStart, selectedPieWeekStart, selectedPieDay);
     }
 
     function ensureRangeForOffsets() {
@@ -420,17 +437,65 @@ ColumnLayout {
                 columnSpacing: Kirigami.Units.largeSpacing
                 rowSpacing: Kirigami.Units.largeSpacing
 
-                PieChart {
+                // Day and week share the width equally, also when one of them is empty.
+                ColumnLayout {
                     Layout.fillWidth: true
-                    Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
-                    title: i18n("Today")
-                    rows: root.todayPieRows
-                    totalSeconds: root.todayPieTotal
-                    emptyText: i18n("No activities today")
+                    Layout.preferredWidth: 1
+                    Layout.alignment: Qt.AlignTop
+                    spacing: Kirigami.Units.smallSpacing
+
+                    RowLayout {
+                        Layout.fillWidth: true
+
+                        Controls.ToolButton {
+                            Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
+                            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+                            icon.name: "go-previous"
+                            onClicked: root.shiftPieDay(-1)
+                            Controls.ToolTip.text: i18n("Previous day")
+                            Controls.ToolTip.visible: hovered && !TouchUi.active
+                        }
+
+                        Controls.Label {
+                            Layout.fillWidth: true
+                            horizontalAlignment: Text.AlignHCenter
+                            font.bold: true
+                            text: {
+                                if (root.pieDayOffset === 0)
+                                    return i18n("Today");
+
+                                if (root.pieDayOffset === -1)
+                                    return i18n("Yesterday");
+
+                                return StatsData.formatDayLabel(root.selectedPieDay);
+                            }
+                        }
+
+                        Controls.ToolButton {
+                            Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
+                            Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+                            icon.name: "go-next"
+                            enabled: root.pieDayOffset < 0
+                            onClicked: root.shiftPieDay(1)
+                            Controls.ToolTip.text: i18n("Next day")
+                            Controls.ToolTip.visible: hovered && !TouchUi.active
+                        }
+                    }
+
+                    PieChart {
+                        Layout.fillWidth: true
+                        Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
+                        title: ""
+                        rows: root.dayPieRows
+                        totalSeconds: root.dayPieTotal
+                        emptyText: i18n("No activities this day")
+                    }
                 }
 
                 ColumnLayout {
                     Layout.fillWidth: true
+                    Layout.preferredWidth: 1
+                    Layout.alignment: Qt.AlignTop
                     spacing: Kirigami.Units.smallSpacing
 
                     RowLayout {
