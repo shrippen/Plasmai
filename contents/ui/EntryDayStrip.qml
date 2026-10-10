@@ -2,7 +2,6 @@ import QtQuick
 import "../code/kimaiApi.js" as KimaiApi
 import "../code/dateTimeFormat.js" as DTF
 import "../code/solar.js" as Solar
-import "."
 import "Kante"
 
 /**
@@ -41,13 +40,13 @@ KanteDayStrip {
     readonly property real workBegin: hourOf(workDayBegin, 9)
     readonly property real workEnd: hourOf(workDayEnd, 18)
     readonly property real nowHours: {
-        nowTick
+        void nowTick // re-evaluate when the minute ticks
         return hoursOfDay(new Date())
     }
 
     // Sunrise and sunset in hours; invalid without a location.
     readonly property var sun: {
-        nowTick
+        void nowTick // re-evaluate when the minute ticks
         if (isNaN(latitude) || isNaN(longitude)) {
             return { valid: false }
         }

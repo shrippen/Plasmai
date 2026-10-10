@@ -513,7 +513,7 @@ ColumnLayout {
         // The look's colors as one strip with a name under each; the focus color only
         // when it differs from the accent (System and Kante Light share the highlight).
         RowLayout {
-            id: palette
+            id: paletteRow
             Layout.fillWidth: true
             Layout.topMargin: Kirigami.Units.smallSpacing
             spacing: Kirigami.Units.smallSpacing
@@ -532,7 +532,7 @@ ColumnLayout {
             }
 
             Repeater {
-                model: palette.colors
+                model: paletteRow.colors
                 delegate: ColumnLayout {
                     required property var modelData
                     Layout.fillWidth: true

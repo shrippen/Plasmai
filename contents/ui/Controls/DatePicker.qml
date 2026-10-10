@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Controls
 import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
 import "../../code/dateTimeFormat.js" as DTF
@@ -71,12 +70,12 @@ QQC2.Popup {
             }
         }
 
-        DayOfWeekRow {
+        QQC2.DayOfWeekRow {
             Layout.fillWidth: true
             locale: Qt.locale()
         }
 
-        MonthGrid {
+        QQC2.MonthGrid {
             id: monthGrid
             Layout.fillWidth: true
             month: picker.calendarMonth

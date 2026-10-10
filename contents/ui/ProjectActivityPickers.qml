@@ -24,8 +24,8 @@ ColumnLayout {
     property bool requireProjectSelection: true
     property bool showCreateActions: false
 
-    readonly property alias projectCombo: projectCombo
-    readonly property alias activityCombo: activityCombo
+    readonly property alias projectCombo: projectPicker
+    readonly property alias activityCombo: activityPicker
 
     signal aboutToOpenPicker(var projectField, var activityField)
     signal projectActivated(int index)
@@ -36,8 +36,8 @@ ColumnLayout {
     spacing: Kirigami.Settings.isMobile ? Kirigami.Units.largeSpacing : 0
 
     function closePickers() {
-        projectCombo.closePopup()
-        activityCombo.closePopup()
+        projectPicker.closePopup()
+        activityPicker.closePopup()
     }
 
     RowLayout {
@@ -46,7 +46,7 @@ ColumnLayout {
         spacing: Kirigami.Units.smallSpacing
 
         SearchableCombo {
-            id: projectCombo
+            id: projectPicker
             Layout.fillWidth: true
             enabled: root.projectEnabled
             items: root.projectPickerModel
@@ -54,7 +54,7 @@ ColumnLayout {
             viewportItem: root.pickerViewport
             useSharedDirection: true
             openBelow: root.pickerOpenBelow
-            onAboutToOpen: root.aboutToOpenPicker(projectCombo, activityCombo)
+            onAboutToOpen: root.aboutToOpenPicker(projectPicker, activityPicker)
             onActivated: function(index) {
                 root.projectActivated(index)
             }
@@ -81,17 +81,17 @@ ColumnLayout {
         spacing: Kirigami.Units.smallSpacing
 
         SearchableCombo {
-            id: activityCombo
+            id: activityPicker
             Layout.fillWidth: true
             enabled: root.activityEnabled
-                     && (!root.requireProjectSelection || projectCombo.currentIndex >= 0)
+                     && (!root.requireProjectSelection || projectPicker.currentIndex >= 0)
             items: root.activityPickerModel
             placeholderText: i18n("Select activity…")
             sectionTitleMap: root.activitySectionTitles
             viewportItem: root.pickerViewport
             useSharedDirection: true
             openBelow: root.pickerOpenBelow
-            onAboutToOpen: root.aboutToOpenPicker(projectCombo, activityCombo)
+            onAboutToOpen: root.aboutToOpenPicker(projectPicker, activityPicker)
             onActivated: function(index) {
                 root.activityActivated(index)
             }
@@ -103,7 +103,7 @@ ColumnLayout {
             icon.name: "list-add"
             display: QQC2.AbstractButton.IconOnly
             Accessible.name: text
-            enabled: root.activityEnabled && projectCombo.currentIndex >= 0
+            enabled: root.activityEnabled && projectPicker.currentIndex >= 0
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             onClicked: root.createActivityRequested()
             Controls.ToolTip.text: text
