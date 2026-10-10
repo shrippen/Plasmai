@@ -14,6 +14,12 @@ on:
       - '.github/workflows/android.yml'
   workflow_dispatch:
 
+# One runner works the queue in order. A newer push to main replaces the older APK build
+# instead of queueing behind it.
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-apk:
     # GitHub only: Gitea Actions also reads .github/workflows, the mirror builds there.
