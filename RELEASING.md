@@ -247,9 +247,9 @@ but not releases. So a release is made in two places, the second one automatical
 
 1. `CHANGELOG.md` has a section `## X.Y.Z` (the release notes: `scripts/release-notes.sh X.Y.Z`).
 2. Tag and push to Gitea: `git tag -a vX.Y.Z -m "X.Y.Z" && git push origin vX.Y.Z`.
-3. Gitea release with `tea` (no APK there):
+3. Gitea release with `tea`, notes only, no files (GitHub is the public channel and the only one
+   with release files; Gitea runs the checks):
    `tea releases create --login git.arianw.de --repo shrippen/plasmai --tag vX.Y.Z --title "Plasmai X.Y.Z" --note "$(scripts/release-notes.sh X.Y.Z)"`
-   plus `--asset` for the `.plasmoid` and the Linux tarball.
 4. The mirror pushes the tag to GitHub; `.github/workflows/release.yml` builds the release APK,
    signs it with the secrets from 4.3, checks the signature and creates the GitHub release
    with the same notes and the APK (`Plasmai-X.Y.Z.apk`), attached for direct install.

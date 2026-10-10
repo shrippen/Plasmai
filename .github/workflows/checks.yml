@@ -22,9 +22,9 @@ concurrency:
 
 jobs:
   unit:
-    # GitHub only: Gitea Actions also reads .github/workflows, the mirror builds there.
+    # GitHub only (Gitea runs .gitea/workflows/checks.yml).
     if: github.server_url == 'https://github.com'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     container: archlinux:latest
     timeout-minutes: 20
     steps:
@@ -42,13 +42,12 @@ jobs:
             echo "::endgroup::"
           done
 
-      # Shared components and the Plasmoid. Off: "unqualified" (the plasmoid object, i18n and
-      # the parent scope are context properties by design) and "missing-property" (properties
-      # typed var / Item hide the real type). The app's pages resolve only through its qrc.
-      - name: qmllint
-        run: |
-          /usr/lib/qt6/bin/qmllint --unqualified disable --missing-property disable --max-warnings 0 \
-            -I contents/ui $(find contents/ui -name '*.qml' | sort)
+      # Shared components and the Plasmoid; what is off and why: scripts/qmllint.sh. Reports
+      # without blocking: the container is the latest Arch, a Qt update can bring new warning
+      # categories at any time (Qt 6.12, October 2026). Tests block, lint reports.
+      - name: qmllint (reports, does not block)
+        continue-on-error: true
+        run: scripts/qmllint.sh || { echo "::warning::qmllint has findings (see this step)"; exit 1; }
 
       - name: App resources
         run: python3 tests/test_app_resources.py
@@ -59,7 +58,7 @@ jobs:
 
   app-linux:
     if: github.server_url == 'https://github.com'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     container: archlinux:latest
     timeout-minutes: 30
     steps:

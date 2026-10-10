@@ -38,6 +38,11 @@ Rule 7: Use the body to explain what and why vs. how. Assume the code explains t
 
 - If the prompt indicates that a bug is being fixed, don't write the fix right away. First write the test. Observe it failing. Then write the fix. And observe the test passing.
 
+## QML lint
+
+- `scripts/qmllint.sh`, also in CI (reports, does not block). A finding in `contents/ui/Kante*` is fixed in Kante, then `scripts/sync-kante.sh`.
+- **`var` in blocks, review when you touch a file:** Qt 6.12 reports every `var` inside a block (`block-scope-var-declaration`, about 200 here, October 2026); the rule is off in the script, the code works as written. When you change a file anyway, switch its `var`s to `let`/`const`, but check each: if the variable is read after its block or by a closure relying on function scope, `let` breaks it, at runtime only. Run the unit tests and try the view afterwards. A file's cases: `/usr/lib/qt6/bin/qmllint -I contents/ui --json - <file>`.
+
 ## GUI rule
 
 - Every GUI of this project is generated from Kante, not inspired by it: landing pages,
