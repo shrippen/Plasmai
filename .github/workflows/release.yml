@@ -27,7 +27,7 @@ permissions:
 jobs:
   release:
     if: github.server_url == 'https://github.com'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.version.outputs.tag }}
       version: ${{ steps.version.outputs.version }}
@@ -65,7 +65,7 @@ jobs:
 
   apk:
     needs: release
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
@@ -170,7 +170,7 @@ jobs:
 
   flatpak:
     needs: release
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
@@ -206,7 +206,7 @@ jobs:
 
   plasmoid:
     needs: release
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
         with:

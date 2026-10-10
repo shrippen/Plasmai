@@ -1,0 +1,84 @@
+name: Checks
+
+# Gitea copy of .github/workflows/checks.yml: the Linux checks (unit, app-linux) on the Gitea
+# runner. The Windows and macOS builds (job `app`) run on GitHub only, Gitea has no such runner.
+# As long as .gitea/workflows exists, Gitea does not read .github/workflows (release, APK).
+#
+# Guards for the shared code (ROADMAP pillar 5, step 6):
+#   unit      QML unit tests in three time zones, qmllint, app resources, pytest log classifier
+#   app       build-only of the Kirigami app on Linux (with KF6), Windows and macOS
+#             (C++ only): fails when Linux-only code creeps into the app; publishes nothing
+#
+# Arch Linux container: the only runner image with KF6 (Kirigami, libplasma) as packages,
+# the same stack as a developer machine.
+
+on:
+  # Branches get their run through the pull request; main (and the Gitea mirror's pushes) directly.
+  push:
+    branches: [main]
+    paths-ignore: ['**.md', 'docs/**', 'screenshots/**', 'fastlane/**', 'metadata.json']
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    timeout-minutes: 20
+    steps:
+      - name: Install Qt, Kirigami (+ addons for the app's pickers), libplasma, Plasma5Support (qmllint)
+        run: |
+          pacman -Syu --noconfirm --needed qt6-declarative kirigami kirigami-addons libplasma plasma5support tzdata python python-pytest git nodejs
+      - uses: actions/checkout@v4
+
+      # Stamps are local days: run where Berlin assumptions break (UTC runner, UTC-8, UTC+14).
+      - name: QML unit tests
+        run: |
+          for tz in UTC America/Los_Angeles Pacific/Kiritimati; do
+            echo "::group::TZ=$tz"
+            TZ=$tz QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input tests/unit
+            echo "::endgroup::"
+          done
+
+      # Shared components and the Plasmoid. Off: "unqualified" (the plasmoid object, i18n and
+      # the parent scope are context properties by design) and "missing-property" (properties
+      # typed var / Item hide the real type). The app's pages resolve only through its qrc.
+      - name: qmllint
+        run: |
+          /usr/lib/qt6/bin/qmllint --unqualified disable --missing-property disable --max-warnings 0 \
+            -I contents/ui $(find contents/ui -name '*.qml' | sort)
+
+      - name: App resources
+        run: python3 tests/test_app_resources.py
+
+      # The same selection as `tests/run.sh unit` (the viewer tests need a Plasma session).
+      - name: pytest (log classifier)
+        run: python3 -m pytest tests/test_app_resources.py tests/test_shared_defaults.py tests/viewer/test_error_classifier.py tests/viewer/test_deny_list.py -q
+
+  app-linux:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    timeout-minutes: 30
+    steps:
+      - name: Install Qt, KF6, QtKeychain
+        run: |
+          pacman -Syu --noconfirm --needed base-devel cmake ninja git extra-cmake-modules \
+            qt6-declarative qt6-svg qt6-shadertools kirigami qtkeychain-qt6 gnome-keyring dbus nodejs
+      - uses: actions/checkout@v4
+      - name: Build the app and its C++ tests
+        run: |
+          cmake -S app -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DPLASMAI_BUILD_TESTS=ON
+          cmake --build build
+          ctest --test-dir build --output-on-failure
+
+      # Token storage with a real Secret Service: round trip and migration of old token files.
+      # Not as root: gnome-keyring-daemon then drops capabilities, which a container refuses.
+      - name: Token storage with a keychain
+        run: |
+          useradd -m ci && chown -R ci build
+          su ci -c "dbus-run-session -- sh -c 'printf ci | gnome-keyring-daemon --unlock --components=secrets >/dev/null && sleep 1 && ctest --test-dir build --output-on-failure -R tokenstore -V'" | tee tokenstore.log
+          grep -q "PASS   : TstTokenStore::withKeychain()" tokenstore.log

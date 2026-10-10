@@ -22,9 +22,9 @@ concurrency:
 
 jobs:
   unit:
-    # GitHub only: Gitea Actions also reads .github/workflows, the mirror builds there.
+    # GitHub only (Gitea runs .gitea/workflows/checks.yml).
     if: github.server_url == 'https://github.com'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     container: archlinux:latest
     timeout-minutes: 20
     steps:
@@ -59,7 +59,7 @@ jobs:
 
   app-linux:
     if: github.server_url == 'https://github.com'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     container: archlinux:latest
     timeout-minutes: 30
     steps:
