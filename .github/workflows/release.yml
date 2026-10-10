@@ -224,6 +224,8 @@ jobs:
           sudo apt-get install -y -q gettext zip > /dev/null
           ./scripts/package.sh
           mkdir -p assets && mv dist/plasmoid/*.plasmoid assets/
+          # The one-line install on the landing page and in the README loads it from the latest release.
+          cp scripts/install-linux.sh assets/
 
       - uses: ./.github/actions/release-asset
         with:
