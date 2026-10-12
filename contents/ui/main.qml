@@ -75,6 +75,16 @@ PlasmoidItem {
     readonly property string localStoreScript: Secret.fileUrlToPath(Qt.resolvedUrl("../code/localStore.sh"))
     property string kimaiUrl: TimeTracker.resolveUrl(activeProfile || { url: plasmoid.configuration.kimaiUrl, provider: providerId })
     property string apiToken: ""
+    /** The tag pickers' source until the widget runs on the session layer (Session.entries). */
+    readonly property var tagSource: ({
+        loadTags: function(query, callback) {
+            if (!root.kimaiUrl || !root.apiToken) {
+                callback({ ok: false, data: [] })
+                return
+            }
+            KimaiApi.loadTags(root.kimaiUrl, root.apiToken, query, callback)
+        }
+    })
     property bool tokenLoaded: false
     property bool isConfigured: apiToken.length > 0 && (!providerMeta.needsUrl || kimaiUrl.length > 0)
     property string mainViewMode: "main"  // main | manual | stats | filmday | trip | unsynced
@@ -3688,8 +3698,7 @@ PlasmoidItem {
                     connectionOk: root.connectionState !== "error"
                     supportsBillableEdit: root.providerCapabilities.billableEdit
                     supportsTags: root.providerCapabilities.tags
-                    tagLookupUrl: root.kimaiUrl
-                    tagLookupToken: root.apiToken
+                    tagSource: root.tagSource
                     showCreateActions: root.canCreateEntities
                     editingExisting: root.editingStoppedTimesheet !== null && root.editingStoppedTimesheet !== undefined
                     onAboutToOpenPicker: function(projectField, activityField) {

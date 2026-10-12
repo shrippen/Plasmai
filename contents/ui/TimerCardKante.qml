@@ -210,8 +210,7 @@ Item {
             connectionOk: widget.connectionState !== "error"
             supportsBillableEdit: widget.providerCapabilities.billableEdit
             supportsTags: widget.providerCapabilities.tags
-            tagLookupUrl: widget.kimaiUrl
-            tagLookupToken: widget.apiToken
+            tagSource: widget.tagSource
             showCreateActions: widget.canCreateEntities
             onAboutToOpenPicker: function(projectField, activityField) {
                 widget.updatePickerOpenDirection(projectField, activityField)

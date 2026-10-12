@@ -3,11 +3,9 @@ import QtQuick.Layouts
 import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
 import "../code/setupWizard.js" as Wizard
-import "../code/platform.js" as Platform
-import "../code/timeTracker.js" as TimeTracker
 import "../code/profiles.js" as Profiles
-import "../code/geocode.js" as Geocode
 import "."
+import "session"
 import "Kante"
 import "Controls" as Controls
 
@@ -18,6 +16,8 @@ import "Controls" as Controls
  *
  *   [System] → Look → Service → Access → Day        (setupWizard.js)
  *
+ * Platform, tracker and place search go through `setup` (the session's
+ * setup part; the Plasmoid's own instance until it runs on the session).
  * The host passes the current settings and applies what comes back:
  *   styleChosen(style) visualStyle (0 System, 1 Kante, 2 Kante Light): apply and
  *                     save it at once, so the wizard itself shows the look
@@ -34,6 +34,9 @@ ColumnLayout {
 
     /** Plasmoid: its P5Support DataSource for the scripts; app: null. */
     property var dataSource: null
+    /** The session's setup part (SessionSetup); without one the wizard keeps its own. */
+    property QtObject setup: ownSetup
+    readonly property SessionSetup ownSetup: SessionSetup { dataSource: root.dataSource }
     property var profiles: Profiles.defaultProfiles()
     property string activeProfileId: "default"
     /** The platform can show a reminder (app: a Notifier exists; Plasmoid: always). */
@@ -58,7 +61,7 @@ ColumnLayout {
     readonly property string step: stepList[Math.min(stepIndex, stepList.length - 1)]
 
     property string providerId: "kimai"
-    readonly property var providerMeta: TimeTracker.providerMeta(providerId)
+    readonly property var providerMeta: setup.providerMeta(providerId)
     /** Clockify, Toggl: the cloud address unless the user asks for another one. */
     property bool customUrl: false
     readonly property bool showUrlField: providerMeta.needsUrl || customUrl
@@ -79,7 +82,7 @@ ColumnLayout {
     /** Start over: the system check first, the fields from the active profile. */
     function start() {
         var active = Profiles.profileById(root.profiles, root.activeProfileId)
-        root.providerId = TimeTracker.normalizeProviderId(active ? active.provider : "kimai")
+        root.providerId = root.setup.normalizeProvider(active ? active.provider : "kimai")
         root.customUrl = false
         urlField.text = active && active.url ? active.url : ""
         tokenField.text = ""
@@ -105,7 +108,7 @@ ColumnLayout {
 
     function checkSystem() {
         root.checking = true
-        Platform.checkSystem(root.dataSource).then(function(result) {
+        root.setup.checkSystem().then(function(result) {
             root.issues = Wizard.assess(result)
             // Once shown, System stays in the list: fixing it must not shift the steps.
             if (Wizard.hasBlocking(root.issues)) {
@@ -156,7 +159,7 @@ ColumnLayout {
         case Wizard.Step.SERVICE:
             return i18n("Choose your time tracker")
         case Wizard.Step.ACCESS:
-            return i18n("Connect to %1", TimeTracker.providerDisplayName(root.providerId))
+            return i18n("Connect to %1", root.setup.providerName(root.providerId))
         default:
             return i18n("Your work day")
         }
@@ -198,12 +201,12 @@ ColumnLayout {
 
     // —— Access: test first, store the token only when it works ——
     function connect() {
-        var check = root.urlCheck
+        const check = root.urlCheck
         if (check.problem !== Wizard.UrlProblem.NONE) {
             root.errorText = urlProblemText(check.problem)
             return
         }
-        var token = Wizard.cleanToken(tokenField.text)
+        const token = Wizard.cleanToken(tokenField.text)
         if (!token) {
             root.errorText = i18n("Paste your API token.")
             return
@@ -212,33 +215,33 @@ ColumnLayout {
             urlField.text = check.url
         }
 
-        var applied = Wizard.applyService(root.profiles, root.activeProfileId, root.providerId,
-                                          TimeTracker.providerDisplayName(root.providerId), check.url)
-        var index = 0
-        for (var i = 0; i < applied.profiles.length; i++) {
+        const applied = Wizard.applyService(root.profiles, root.activeProfileId, root.providerId,
+                                            root.setup.providerName(root.providerId), check.url)
+        let index = 0
+        for (let i = 0; i < applied.profiles.length; i++) {
             if (applied.profiles[i].id === applied.profileId) {
                 index = i
             }
         }
-        var tracker = TimeTracker.applySession(root.providerId, applied.profiles[index])
+        const providerId = root.providerId
 
         root.busy = true
         root.errorText = ""
         root.errorHint = ""
-        tracker.testConnection(check.url, token, function(result) {
+        root.setup.testConnection(providerId, applied.profiles[index], check.url, token, function(result) {
             if (!result.ok) {
                 root.busy = false
                 root.errorText = ApiErrors.text(result.error, true)
                 return
             }
             applied.profiles[index] = Wizard.withConnectionMeta(applied.profiles[index], result.data)
-            storeToken(tracker, applied, index, check.url, token)
+            storeToken(providerId, applied, check.url, token)
         })
     }
 
-    function storeToken(tracker, applied, index, url, token) {
-        Platform.saveToken(root.dataSource, applied.profileId, token).then(function() {
-            tracker.fetchCurrentUser(url, token, function(user) {
+    function storeToken(providerId, applied, url, token) {
+        root.setup.saveToken(applied.profileId, token).then(function() {
+            root.setup.fetchUser(providerId, url, token, function(user) {
                 root.busy = false
                 root.accountLabel = user && user.ok ? Wizard.userLabel(user.data) : ""
                 root.connected({
@@ -262,7 +265,7 @@ ColumnLayout {
         root.places = []
         root.placeIndex = -1
         root.placeStatus = i18n("Searching…")
-        Geocode.search(placeField.text, function(result) {
+        root.setup.searchPlace(placeField.text, function(result) {
             if (!result.ok) {
                 root.placeStatus = result.error === "empty" ? "" : i18n("Search failed. Check your connection.")
                 return
@@ -577,7 +580,7 @@ ColumnLayout {
         }
 
         Repeater {
-            model: TimeTracker.listProviders()
+            model: root.setup.listProviders()
             delegate: ColumnLayout {
                 required property var modelData
                 Layout.fillWidth: true
@@ -709,7 +712,7 @@ ColumnLayout {
             type: Kirigami.MessageType.Positive
             text: root.accountLabel.length > 0
                 ? i18n("Connected as %1.", root.accountLabel)
-                : i18n("Connected to %1.", TimeTracker.providerDisplayName(root.providerId))
+                : i18n("Connected to %1.", root.setup.providerName(root.providerId))
         }
 
         Controls.Label {

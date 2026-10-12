@@ -13,6 +13,7 @@ import "Kante"
 
 Kirigami.Page {
     id: page
+    readonly property QtObject session: root.session
     KantePageTitle { page: page }
     title: i18n("Plasmai")
 
@@ -28,7 +29,7 @@ Kirigami.Page {
 
     /** Kante time line: Recent grouped by day (variant B). */
     readonly property var recentDays: KanteStyle.active
-        ? DTF.groupByDay(root.recentTimesheets || [], new Date(),
+        ? DTF.groupByDay(session.recent.list || [], new Date(),
                          function(ts) { return ts.begin })
         : []
 
@@ -40,53 +41,53 @@ Kirigami.Page {
 
     actions: [
         Kirigami.Action {
-            visible: root.isConfigured
+            visible: session.connection.configured
             icon.name: "list-add"
             text: i18n("Add entry")
             onTriggered: pageStack.push(manualPageComponent)
         },
         Kirigami.Action {
-            visible: root.isConfigured
+            visible: session.connection.configured
             icon.name: "view-statistics"
             text: i18n("Statistics")
             onTriggered: pageStack.push(statsPageComponent)
         },
         Kirigami.Action {
-            visible: root.filmDayAvailable
+            visible: session.filmDay.available
             icon.name: "view-calendar-day"
             text: i18n("Film day")
             onTriggered: pageStack.push(filmDayPageComponent)
         }
     ]
 
-    function connIcon() { return !root.isConfigured ? "network-disconnect" : root.connectionState === "error" ? "network-disconnect" : root.connectionState === "connecting" ? "view-refresh" : "network-connect" }
-    function connColor() { return !root.isConfigured ? KanteStyle.disabledTextColor : root.connectionState === "error" ? KanteStyle.negativeTextColor : KanteStyle.positiveTextColor }
+    function connIcon() { return !session.connection.configured ? "network-disconnect" : session.connection.state === "error" ? "network-disconnect" : session.connection.state === "connecting" ? "view-refresh" : "network-connect" }
+    function connColor() { return !session.connection.configured ? KanteStyle.disabledTextColor : session.connection.state === "error" ? KanteStyle.negativeTextColor : KanteStyle.positiveTextColor }
     function workSummaryText() {
         var bits = []
-        bits.push(i18n("Today %1", KimaiApi.formatDurationShort(root.todayLiveSeconds)))
-        bits.push(i18n("Week %1", KimaiApi.formatDurationShort(root.weekLiveSeconds)))
+        bits.push(i18n("Today %1", KimaiApi.formatDurationShort(session.totals.todayLiveSeconds)))
+        bits.push(i18n("Week %1", KimaiApi.formatDurationShort(session.totals.weekLiveSeconds)))
         return bits.join(" · ")
     }
     function remainingText() {
-        if (!root.hasWorkContract) return ""
+        if (!session.totals.hasWorkContract) return ""
         var bits = []
-        if (root.todayTargetSeconds > 0) bits.push(root.remainingTodayText())
-        if (root.weekTargetSeconds > 0) bits.push(root.remainingWeekText())
+        if (session.totals.todayTargetSeconds > 0) bits.push(root.remainingTodayText())
+        if (session.totals.weekEffectiveTargetSeconds > 0) bits.push(root.remainingWeekText())
         return bits.join(" · ")
     }
-    function isOverTime() { return root.hasWorkContract && (root.remainingTodaySeconds < 0 || root.remainingWeekSeconds < 0) }
+    function isOverTime() { return session.totals.hasWorkContract && (session.totals.remainingTodaySeconds < 0 || session.totals.remainingWeekSeconds < 0) }
 
     function openEdit() {
-        if (!root.isTracking || !root.activeTimesheet) return
+        if (!session.timer.tracking || !session.timer.active) return
         editingActive = true
-        var pid = KimaiApi.projectId(root.activeTimesheet)
-        root.loadActivitiesForProject(pid, function(model) { page.editActivityPickerModel = model })
-        activeEditView.timesheet = root.activeTimesheet
+        var pid = KimaiApi.projectId(session.timer.active)
+        session.catalog.loadActivities(pid, function(model) { page.editActivityPickerModel = model })
+        activeEditView.timesheet = session.timer.active
     }
 
     function openNewActivityForm() {
         showNewActivityForm = true
-        newActivityPickerModel = root.projectPickerModel
+        newActivityPickerModel = session.catalog.projectPickerModel
         newActivityDescription = ""
     }
 
@@ -147,32 +148,32 @@ Kirigami.Page {
         spacing: Kirigami.Units.smallSpacing
 
         RowLayout { Layout.fillWidth: true; spacing: Kirigami.Units.smallSpacing
-            visible: !root.showSetupWizard && Profiles.showsConnection(root.profiles, root.isConfigured, root.connectionState)
+            visible: !session.setup.showWizard && Profiles.showsConnection(session.connection.profiles, session.connection.configured, session.connection.state)
             Kirigami.Icon { source: page.connIcon(); color: page.connColor(); Layout.preferredWidth: Kirigami.Units.iconSizes.small; Layout.preferredHeight: Kirigami.Units.iconSizes.small }
             QQC2.Label {
                 text: {
-                    if (!root.isConfigured) return i18n("Not configured")
-                    if (root.connectionState === "connecting") return i18n("Connecting…")
-                    if (root.connectionState === "error") return i18n("Connection problem")
-                    var profileName = root.activeProfile ? root.activeProfile.name || "" : ""
-                    var url = root.activeProfile ? root.activeProfile.url || "" : ""
+                    if (!session.connection.configured) return i18n("Not configured")
+                    if (session.connection.state === "connecting") return i18n("Connecting…")
+                    if (session.connection.state === "error") return i18n("Connection problem")
+                    var profileName = session.connection.profile ? session.connection.profile.name || "" : ""
+                    var url = session.connection.profile ? session.connection.profile.url || "" : ""
                     return profileName.length > 0 ? i18n("Connected to %1 (%2)", url, profileName) : i18n("Connected to %1", url)
                 }
                 color: Qt.alpha(KanteStyle.textColor, 0.7); font.pointSize: KanteStyle.smallFont.pointSize; elide: Text.ElideRight
                 Layout.fillWidth: true; maximumLineCount: 1
             }
-            KanteLoader { visible: KanteStyle.active && (root.isBusy || root.connectionState === "connecting"); Layout.alignment: Qt.AlignVCenter }
-            QQC2.BusyIndicator { running: root.isBusy || root.connectionState === "connecting"; visible: running && !KanteStyle.active; Layout.preferredWidth: Kirigami.Units.iconSizes.small; Layout.preferredHeight: Kirigami.Units.iconSizes.small }
+            KanteLoader { visible: KanteStyle.active && (session.busy || session.connection.state === "connecting"); Layout.alignment: Qt.AlignVCenter }
+            QQC2.BusyIndicator { running: session.busy || session.connection.state === "connecting"; visible: running && !KanteStyle.active; Layout.preferredWidth: Kirigami.Units.iconSizes.small; Layout.preferredHeight: Kirigami.Units.iconSizes.small }
         }
 
         Kirigami.InlineMessage {
             KanteMessageSkin { message: parent }
             Layout.fillWidth: true
-            visible: root.isConfigured && root.connectionState === "error"
+            visible: session.connection.configured && session.connection.state === "error"
             type: Kirigami.MessageType.Error
-            text: root.errorMessage.length > 0 ? root.errorMessage : i18n("Connection problem")
+            text: session.connection.errorText.length > 0 ? session.connection.errorText : i18n("Connection problem")
             actions: [
-                Kirigami.Action { text: i18n("Retry"); icon.name: "view-refresh"; onTriggered: root.refreshAll() },
+                Kirigami.Action { text: i18n("Retry"); icon.name: "view-refresh"; onTriggered: session.refresh() },
                 Kirigami.Action { text: i18n("Configure"); icon.name: "configure"; onTriggered: pageStack.push(connectionComponent) }
             ]
         }
@@ -189,7 +190,7 @@ Kirigami.Page {
         anchors.top: topBar.bottom; anchors.left: parent.left; anchors.right: parent.right; anchors.bottom: parent.bottom
         // The scroll bar sits at the screen edge; the content keeps the page margin.
         anchors.rightMargin: -page.rightPadding
-        visible: root.showSetupWizard
+        visible: session.setup.showWizard
         Material.theme: Material.Dark
         contentWidth: availableWidth
         QQC2.ScrollBar.horizontal.policy: QQC2.ScrollBar.AlwaysOff
@@ -203,24 +204,25 @@ Kirigami.Page {
 
             Loader {
                 Layout.fillWidth: true
-                active: root.showSetupWizard
+                active: session.setup.showWizard
                 sourceComponent: SetupWizard {
-                    profiles: root.profiles
-                    activeProfileId: root.activeProfile ? root.activeProfile.id : "default"
+                    setup: session.setup
+                    profiles: session.connection.profiles
+                    activeProfileId: session.connection.profile ? session.connection.profile.id : "default"
                     supportsReminders: root.supportsNotifications
-                    workDayBegin: root.workDayBegin
-                    workDayEnd: root.workDayEnd
-                    locationName: root.locationName
-                    notifyForgotToStart: root.notifyForgotToStart
+                    workDayBegin: session.settings.workDayBegin
+                    workDayEnd: session.settings.workDayEnd
+                    locationName: session.settings.locationName
+                    notifyForgotToStart: session.settings.notifyForgotToStart
                     visualStyle: root.visualStyle
-                    onStyleChosen: function(style) { root.applySetupStyle(style) }
-                    onConnected: function(patch) { root.applySetupConnection(patch) }
-                    onFinished: function(patch) { root.finishSetup(patch) }
+                    onStyleChosen: function(style) { session.setup.applyStyle(style) }
+                    onConnected: function(patch) { session.setup.applyConnection(patch) }
+                    onFinished: function(patch) { session.setup.finish(patch) }
                 }
             }
             KanteButton {
                 Layout.alignment: Qt.AlignHCenter
-                visible: !root.isConfigured
+                visible: !session.connection.configured
                 flat: true
                 text: i18n("More options in the settings")
                 onClicked: pageStack.push(connectionComponent)
@@ -231,7 +233,7 @@ Kirigami.Page {
     Item {
         id: contentArea
         anchors.top: topBar.bottom; anchors.left: parent.left; anchors.right: parent.right; anchors.bottom: parent.bottom
-        visible: !root.showSetupWizard
+        visible: !session.setup.showWizard
 
         QQC2.ScrollView {
             id: narrowScroll
@@ -295,20 +297,20 @@ Kirigami.Page {
     // ══════ TIMER CARD — stacked first in narrowCol, or pinned in wideLeftCol ══════
     Rectangle {
         id: heroCard
-        Layout.fillWidth: true; Layout.topMargin: root.isConfigured ? Kirigami.Units.smallSpacing : 0
-        visible: root.isConfigured
+        Layout.fillWidth: true; Layout.topMargin: session.connection.configured ? Kirigami.Units.smallSpacing : 0
+        visible: session.connection.configured
                 Material.theme: Material.Dark
                 radius: KanteStyle.active ? 0 : Kirigami.Units.smallSpacing
                 implicitHeight: heroCol.implicitHeight + Kirigami.Units.largeSpacing * 2
                 color: KanteStyle.active ? "transparent"
-                       : (root.isTracking ? Qt.alpha(KanteStyle.positiveTextColor, 0.08) : Qt.alpha(KanteStyle.textColor, 0.05))
-                border.width: KanteStyle.active ? 0 : (root.isTracking ? 2 : 1)
-                border.color: root.isTracking ? Qt.alpha(KanteStyle.positiveTextColor, 0.35) : Qt.alpha(KanteStyle.textColor, 0.14)
+                       : (session.timer.tracking ? Qt.alpha(KanteStyle.positiveTextColor, 0.08) : Qt.alpha(KanteStyle.textColor, 0.05))
+                border.width: KanteStyle.active ? 0 : (session.timer.tracking ? 2 : 1)
+                border.color: session.timer.tracking ? Qt.alpha(KanteStyle.positiveTextColor, 0.35) : Qt.alpha(KanteStyle.textColor, 0.14)
 
                 KanteCard {
                     anchors.fill: parent
                     visible: KanteStyle.active
-                    barColor: root.isTracking ? KanteStyle.accentColor : KanteStyle.frameColor
+                    barColor: session.timer.tracking ? KanteStyle.accentColor : KanteStyle.frameColor
                 }
 
                 ColumnLayout { id: heroCol; anchors.fill: parent; anchors.margins: Kirigami.Units.largeSpacing; spacing: Kirigami.Units.smallSpacing
@@ -322,11 +324,11 @@ Kirigami.Page {
                         QQC2.Label {
                             Layout.fillWidth: true
                             readonly property string beginClock: {
-                                var ts = root.activeTimesheet
+                                var ts = session.timer.active
                                 var d = ts && ts.begin ? DTF.parseStamp(ts.begin) : null
                                 return d && !isNaN(d.getTime()) ? DTF.formatLocaleTime(d.getHours(), d.getMinutes()) : ""
                             }
-                            text: root.isTracking
+                            text: session.timer.tracking
                                   ? (beginClock.length > 0 ? i18n("Running since %1", beginClock) : i18n("Running"))
                                   : i18n("Not tracking")
                             font: KanteStyle.labelFont()
@@ -334,14 +336,14 @@ Kirigami.Page {
                             elide: Text.ElideRight
                         }
                         KanteToolButton {
-                            visible: root.isTracking && root.canEditTrips && !!root.activeTimesheet
+                            visible: session.timer.tracking && session.trips.canEdit && !!session.timer.active
                             icon.name: "mark-location"
                             display: QQC2.AbstractButton.IconOnly
                             text: i18n("Log trip")
-                            onClicked: root.openTripForTimesheet(root.activeTimesheet)
+                            onClicked: root.openTripForTimesheet(session.timer.active)
                         }
                         KanteToolButton {
-                            visible: root.isTracking
+                            visible: session.timer.tracking
                             icon.name: "document-edit"
                             display: QQC2.AbstractButton.IconOnly
                             text: i18n("Edit")
@@ -351,11 +353,11 @@ Kirigami.Page {
 
                     RowLayout { Layout.fillWidth: true; spacing: Kirigami.Units.largeSpacing
                         QQC2.Label {
-                            text: KimaiApi.formatDuration(root.elapsedSeconds)
+                            text: KimaiApi.formatDuration(session.timer.elapsedSeconds)
                             font: KanteStyle.active ? KanteStyle.monoFont(KanteStyle.defaultFont.pointSize * 2.4, true)
                                               : Qt.font({ family: KanteStyle.monoFamily, pointSize: KanteStyle.defaultFont.pointSize + 12, bold: true })
                             color: !KanteStyle.active ? KanteStyle.positiveTextColor
-                                   : (root.isTracking ? KanteStyle.accentTextColor : KanteStyle.tint(KanteStyle.textColor, 0.3))
+                                   : (session.timer.tracking ? KanteStyle.accentTextColor : KanteStyle.tint(KanteStyle.textColor, 0.3))
                             // The big mono clock shrinks to the width left next to the buttons (phones).
                             Layout.minimumWidth: 0
                             Layout.fillWidth: true
@@ -363,15 +365,15 @@ Kirigami.Page {
                             minimumPointSize: KanteStyle.defaultFont.pointSize
                         }
                         KanteToolButton {
-                            visible: !KanteStyle.active && root.isTracking && root.canEditTrips && !!root.activeTimesheet
+                            visible: !KanteStyle.active && session.timer.tracking && session.trips.canEdit && !!session.timer.active
                             icon.name: "mark-location"
                             display: QQC2.AbstractButton.IconOnly
                             text: i18n("Log trip")
-                            onClicked: root.openTripForTimesheet(root.activeTimesheet)
+                            onClicked: root.openTripForTimesheet(session.timer.active)
                             QQC2.ToolTip.text: i18n("Log a trip for this entry"); QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile; QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
                         }
                         KanteToolButton {
-                            visible: !KanteStyle.active && root.isTracking
+                            visible: !KanteStyle.active && session.timer.tracking
                             icon.name: "document-edit"
                             display: QQC2.AbstractButton.IconOnly
                             text: i18n("Edit")
@@ -379,11 +381,11 @@ Kirigami.Page {
                             QQC2.ToolTip.text: text; QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile; QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
                         }
                         KanteButton {
-                            visible: root.isTracking && root.showNewActivity && !page.showNewActivityForm
+                            visible: session.timer.tracking && session.settings.popupShowNewActivity && !page.showNewActivityForm
                             display: QQC2.AbstractButton.IconOnly
                             icon.name: "media-playback-start"
                             text: i18n("Switch to another activity…")
-                            enabled: !root.isBusy && root.connectionState !== "error"
+                            enabled: !session.busy && session.connection.state !== "error"
                             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                             onClicked: page.openNewActivityForm()
                             QQC2.ToolTip.text: text; QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile; QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
@@ -393,45 +395,45 @@ Kirigami.Page {
                             Material.background: Qt.lighter(KanteStyle.backgroundColor, 1.7)
                             Material.foreground: KanteStyle.textColor
                             emphasis: KanteButton.Emphasis.Destructive
-                            visible: root.isTracking
+                            visible: session.timer.tracking
                             text: i18n("Stop")
                             // Phones: the System card also holds trip, edit and switch here; the red stop icon says enough.
                             display: !KanteStyle.active && parent.width < Kirigami.Units.gridUnit * 22
                                      ? QQC2.AbstractButton.IconOnly : QQC2.AbstractButton.TextBesideIcon
                             icon.name: "media-playback-stop"
                             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-                            onClicked: root.confirmBeforeStop ? confirmDialog.open() : root.stopTracking()
+                            onClicked: session.settings.confirmBeforeStop ? confirmDialog.open() : session.timer.stop()
                         }
                     }
 
                     // One of the two, built only while shown (both rebuild on every tick otherwise).
                     Loader {
                         Layout.fillWidth: true; Layout.topMargin: Kirigami.Units.smallSpacing
-                        active: root.isConfigured && !page.editingActive && root.showSparkline
+                        active: session.connection.configured && !page.editingActive && session.settings.popupShowSparkline
                         visible: active
                         sourceComponent: KanteStyle.active ? dayStrip : daySparkline
                     }
                     Component {
                         id: dayStrip
                         EntryDayStrip {
-                            entries: root.todayTimesheets
-                            customersById: root.customersById
-                            workDayBegin: root.workDayBegin; workDayEnd: root.workDayEnd
+                            entries: session.totals.todayEntries
+                            customersById: session.catalog.customersById
+                            workDayBegin: session.settings.workDayBegin; workDayEnd: session.settings.workDayEnd
                             // 0, 0 is "not set" (Settings): no daylight then.
-                            latitude: root.latitude === 0 && root.longitude === 0 ? NaN : root.latitude
-                            longitude: root.longitude
+                            latitude: session.settings.latitude === 0 && session.settings.longitude === 0 ? NaN : session.settings.latitude
+                            longitude: session.settings.longitude
                             nowTick: root.sparklineNowTick
                         }
                     }
                     Component {
                         id: daySparkline
                         DaySparkline {
-                            entries: root.todayTimesheets
-                            targetSeconds: root.todayTargetSeconds
-                            workDayBegin: root.workDayBegin; workDayEnd: root.workDayEnd
-                            latitude: root.latitude; longitude: root.longitude
+                            entries: session.totals.todayEntries
+                            targetSeconds: session.totals.todayTargetSeconds
+                            workDayBegin: session.settings.workDayBegin; workDayEnd: session.settings.workDayEnd
+                            latitude: session.settings.latitude; longitude: session.settings.longitude
                             nowTick: root.sparklineNowTick
-                            showArcs: root.showSparklineArcs
+                            showArcs: session.settings.showSparklineArcs
                             flyoutOpen: page.visible
                         }
                     }
@@ -439,61 +441,60 @@ Kirigami.Page {
                     // Kante: activity as the heading, project and customer below.
                     QQC2.Label {
                         Layout.fillWidth: true
-                        visible: KanteStyle.active && root.isTracking && !page.editingActive
-                        text: root.currentActivity || ""
+                        visible: KanteStyle.active && session.timer.tracking && !page.editingActive
+                        text: session.timer.activity || ""
                         font: KanteStyle.headingFont(KanteStyle.defaultFont.pointSize * 1.3)
                         color: KanteStyle.strongTextColor
                         elide: Text.ElideRight
                     }
                     QQC2.Label {
                         Layout.fillWidth: true
-                        visible: KanteStyle.active && root.isTracking && !page.editingActive
-                        text: root.currentCustomer.length > 0 ? (root.currentProject || "") + " · " + root.currentCustomer : (root.currentProject || "")
+                        visible: KanteStyle.active && session.timer.tracking && !page.editingActive
+                        text: session.timer.customer.length > 0 ? (session.timer.project || "") + " · " + session.timer.customer : (session.timer.project || "")
                         color: KanteStyle.mutedTextColor
                         elide: Text.ElideRight
                     }
 
                     QQC2.Label {
                         Layout.fillWidth: true; Layout.topMargin: Kirigami.Units.smallSpacing
-                        visible: !KanteStyle.active && root.isTracking && !page.editingActive && root.currentCustomer.length > 0
-                        text: root.currentCustomer || ""; color: Qt.alpha(KanteStyle.textColor, 0.7)
+                        visible: !KanteStyle.active && session.timer.tracking && !page.editingActive && session.timer.customer.length > 0
+                        text: session.timer.customer || ""; color: Qt.alpha(KanteStyle.textColor, 0.7)
                         elide: Text.ElideRight; maximumLineCount: 1
                     }
 
-                    RowLayout { visible: !KanteStyle.active && root.isTracking && !page.editingActive; Layout.fillWidth: true; spacing: Kirigami.Units.smallSpacing
-                        CustomerColorDot { customerColor: root.currentCustomerColor; sizeFactor: 0.9 }
-                        QQC2.Label { text: root.currentProject || ""; color: KanteStyle.textColor; font.bold: true; elide: Text.ElideRight; maximumLineCount: 1; Layout.fillWidth: true; Layout.preferredWidth: 0; Layout.minimumWidth: 0 }
+                    RowLayout { visible: !KanteStyle.active && session.timer.tracking && !page.editingActive; Layout.fillWidth: true; spacing: Kirigami.Units.smallSpacing
+                        CustomerColorDot { customerColor: (session.timer.colorInfo.color || PlasmaiColors.entityFallback); sizeFactor: 0.9 }
+                        QQC2.Label { text: session.timer.project || ""; color: KanteStyle.textColor; font.bold: true; elide: Text.ElideRight; maximumLineCount: 1; Layout.fillWidth: true; Layout.preferredWidth: 0; Layout.minimumWidth: 0 }
                         QQC2.Label { text: "·"; color: KanteStyle.disabledTextColor; Layout.preferredWidth: 12 }
-                        QQC2.Label { text: root.currentActivity || ""; color: Qt.alpha(KanteStyle.textColor, 0.7); elide: Text.ElideRight; maximumLineCount: 1; Layout.fillWidth: true; Layout.preferredWidth: 0; Layout.minimumWidth: 0 }
+                        QQC2.Label { text: session.timer.activity || ""; color: Qt.alpha(KanteStyle.textColor, 0.7); elide: Text.ElideRight; maximumLineCount: 1; Layout.fillWidth: true; Layout.preferredWidth: 0; Layout.minimumWidth: 0 }
                     }
 
                     ActiveEditView {
                         id: activeEditView
                         visible: page.editingActive
                         Layout.fillWidth: true
-                        elapsedSeconds: root.elapsedSeconds
-                        projectPickerModel: root.projectPickerModel
+                        elapsedSeconds: session.timer.elapsedSeconds
+                        projectPickerModel: session.catalog.projectPickerModel
                         activityPickerModel: page.editActivityPickerModel
-                        busy: root.isBusy
-                        configured: root.isConfigured
-                        connectionOk: root.connectionState !== "error"
-                        supportsBillableEdit: root.providerCapabilities.billableEdit
-                        supportsTags: root.providerCapabilities.tags
-                        showCreateActions: root.canCreateEntities
-                        tagLookupUrl: root.tagLookupUrl
-                        tagLookupToken: root.apiToken
+                        busy: session.busy
+                        configured: session.connection.configured
+                        connectionOk: session.connection.state !== "error"
+                        supportsBillableEdit: session.connection.capabilities.billableEdit
+                        supportsTags: session.connection.capabilities.tags
+                        showCreateActions: session.entries.canCreate
+                        tagSource: session.entries
                         // Recent is deduped per project/activity, so it can hide the latest stopped entry; the Plasmoid scans today too.
-                        previousTimesheet: TimesheetFields.previousStoppedTimesheet(root.recentTimesheets, root.todayTimesheets, root.activeTimesheet)
-                        overlapGuardEnabled: root.confirmStartBeforePreviousEnd
+                        previousTimesheet: TimesheetFields.previousStoppedTimesheet(session.recent.list, session.totals.todayEntries, session.timer.active)
+                        overlapGuardEnabled: session.settings.confirmStartBeforePreviousEnd
                         onProjectChosen: function(projectId) {
-                            root.loadActivitiesForProject(projectId, function(model) { page.editActivityPickerModel = model })
+                            session.catalog.loadActivities(projectId, function(model) { page.editActivityPickerModel = model })
                         }
                         onSaveRequested: function(projectId, activityId, beginText, billable, tags) {
-                            root.patchActiveEntry({ project: projectId, activity: activityId, begin: beginText, billable: billable, tags: tags })
+                            session.timer.patchActive({ project: projectId, activity: activityId, begin: beginText, billable: billable, tags: tags })
                             page.editingActive = false
                         }
                         onCancelled: page.editingActive = false
-                        onCreateProjectRequested: { createEntityDialog.customers = root.customers; createEntityDialog.resetForMode("project"); createEntityDialog.open() }
+                        onCreateProjectRequested: { createEntityDialog.customers = session.catalog.customers; createEntityDialog.resetForMode("project"); createEntityDialog.open() }
                         onCreateActivityRequested: {
                             createEntityDialog.selectedProjectId = activeEditView.projectCombo.currentItem ? activeEditView.projectCombo.currentItem.value.id : null
                             createEntityDialog.selectedProjectName = activeEditView.projectCombo.currentItem ? activeEditView.projectCombo.currentItem.value.name : ""
@@ -506,23 +507,23 @@ Kirigami.Page {
                         Layout.fillWidth: true
                         visible: KanteStyle.active && !page.editingActive
                         spacing: Kirigami.Units.largeSpacing
-                        QQC2.Label { text: i18n("Today %1", DTF.hoursMinutes(root.todayLiveSeconds)); font: KanteStyle.monoFont(KanteStyle.smallFont.pointSize, false); color: KanteStyle.mutedTextColor }
-                        QQC2.Label { text: i18n("Week %1", DTF.hoursMinutes(root.weekLiveSeconds)); font: KanteStyle.monoFont(KanteStyle.smallFont.pointSize, false); color: KanteStyle.mutedTextColor }
+                        QQC2.Label { text: i18n("Today %1", DTF.hoursMinutes(session.totals.todayLiveSeconds)); font: KanteStyle.monoFont(KanteStyle.smallFont.pointSize, false); color: KanteStyle.mutedTextColor }
+                        QQC2.Label { text: i18n("Week %1", DTF.hoursMinutes(session.totals.weekLiveSeconds)); font: KanteStyle.monoFont(KanteStyle.smallFont.pointSize, false); color: KanteStyle.mutedTextColor }
                         Item { Layout.fillWidth: true }
                         QQC2.Label {
-                            visible: root.hasWorkContract && root.weekTargetSeconds > 0
-                            text: root.remainingWeekSeconds >= 0
-                                  ? i18n("%1 left", DTF.hoursMinutes(root.remainingWeekSeconds))
-                                  : i18n("%1 over", DTF.hoursMinutes(-root.remainingWeekSeconds))
+                            visible: session.totals.hasWorkContract && session.totals.weekEffectiveTargetSeconds > 0
+                            text: session.totals.remainingWeekSeconds >= 0
+                                  ? i18n("%1 left", DTF.hoursMinutes(session.totals.remainingWeekSeconds))
+                                  : i18n("%1 over", DTF.hoursMinutes(-session.totals.remainingWeekSeconds))
                             font: KanteStyle.monoFont(KanteStyle.smallFont.pointSize, true)
-                            color: root.remainingWeekSeconds >= 0 ? KanteStyle.positiveTextColor : KanteStyle.neutralTextColor
+                            color: session.totals.remainingWeekSeconds >= 0 ? KanteStyle.positiveTextColor : KanteStyle.neutralTextColor
                         }
                     }
 
                     ColumnLayout { Layout.fillWidth: true; spacing: 0; visible: !KanteStyle.active && !page.editingActive
                         QQC2.Label { text: page.workSummaryText(); color: Qt.alpha(KanteStyle.textColor, 0.7); Layout.fillWidth: true; elide: Text.ElideRight }
                         QQC2.Label {
-                            visible: root.hasWorkContract
+                            visible: session.totals.hasWorkContract
                             Layout.fillWidth: true
                             text: page.remainingText()
                             color: page.isOverTime() ? KanteStyle.neutralTextColor : Qt.alpha(KanteStyle.textColor, 0.7)
@@ -537,11 +538,11 @@ Kirigami.Page {
                         color: KanteStyle.active ? "transparent" : KanteStyle.backgroundColor
                         border.width: KanteStyle.active ? 0 : 1
                         border.color: descField.activeFocus ? KanteStyle.positiveTextColor : Qt.alpha(KanteStyle.textColor, 0.14)
-                        visible: root.isTracking && !page.editingActive
+                        visible: session.timer.tracking && !page.editingActive
                         KanteTextField {
                             id: descField; anchors.fill: parent; anchors.margins: Kirigami.Units.smallSpacing
                             rightPadding: descSaveButton.visible ? descSaveButton.width + Kirigami.Units.smallSpacing * 2 : leftPadding
-                            text: root.isTracking ? root.descriptionDraft : ""
+                            text: session.timer.tracking ? session.timer.draft : ""
                             // Not placeholderText: Material's TextField floats that text above
                             // the value once it has ever had content or focus, and — because
                             // that float is driven by internal C++ state rather than a live
@@ -550,8 +551,8 @@ Kirigami.Page {
                             // that entirely.
                             placeholderText: ""
                             background: Item {}
-                            onTextEdited: root.saveDescription(text)
-                            onEditingFinished: root.saveDescription(text)
+                            onTextEdited: session.timer.saveDescription(text)
+                            onEditingFinished: session.timer.saveDescription(text)
                         }
                         QQC2.Label {
                             text: i18n("Description…")
@@ -566,14 +567,14 @@ Kirigami.Page {
                             anchors.verticalCenter: descField.verticalCenter
                             display: QQC2.AbstractButton.IconOnly
                             icon.name: root.descriptionSavedFlash ? "dialog-ok-apply"
-                                       : (root.savingDescription ? "view-refresh" : "document-save")
+                                       : (session.timer.savingDescription ? "view-refresh" : "document-save")
                             icon.color: root.descriptionSavedFlash ? KanteStyle.positiveTextColor : KanteStyle.textColor
                             text: i18n("Save description")
-                            visible: root.descriptionSavedFlash || root.savingDescription
-                                     || root.descriptionDraft !== root.currentDescription
-                            enabled: root.descriptionDraft !== root.currentDescription
-                                     && !root.savingDescription && !root.descriptionSavedFlash
-                            onClicked: root.saveCurrentDescription()
+                            visible: root.descriptionSavedFlash || session.timer.savingDescription
+                                     || session.timer.draft !== session.timer.description
+                            enabled: session.timer.draft !== session.timer.description
+                                     && !session.timer.savingDescription && !root.descriptionSavedFlash
+                            onClicked: session.timer.flushDescription()
                             QQC2.ToolTip.text: text; QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile; QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
                         }
                     }
@@ -581,8 +582,8 @@ Kirigami.Page {
                     // ══════ NOT TRACKING PLACEHOLDER ══════
                     QQC2.Label {
                         Layout.fillWidth: true; Layout.topMargin: Kirigami.Units.largeSpacing
-                        visible: root.isConfigured && !root.isTracking
-                        text: root.pinnedEntries.length > 0 ? i18n("No activity. Tap a favorite to start.") : i18n("No activity.")
+                        visible: session.connection.configured && !session.timer.tracking
+                        text: session.favorites.pinned.length > 0 ? i18n("No activity. Tap a favorite to start.") : i18n("No activity.")
                         color: KanteStyle.disabledTextColor; wrapMode: Text.WordWrap
                     }
 
@@ -592,9 +593,9 @@ Kirigami.Page {
                         spacing: Kirigami.Units.smallSpacing
                         id: continueRow
                         // Conditions, not the children's visible: those read false while the row is hidden.
-                        readonly property bool continueShown: root.showContinue && (!!root.lastRecent || root.hasLastUsed)
-                        visible: !root.isTracking && root.isConfigured && !page.showNewActivityForm
-                                 && (continueShown || root.showNewActivity)
+                        readonly property bool continueShown: session.settings.popupShowContinue && (!!session.recent.last || session.timer.hasLastUsed)
+                        visible: !session.timer.tracking && session.connection.configured && !page.showNewActivityForm
+                                 && (continueShown || session.settings.popupShowNewActivity)
                         KanteButton {
                             id: continueButton
                             emphasis: KanteButton.Emphasis.Primary
@@ -602,23 +603,23 @@ Kirigami.Page {
                         Material.background: Qt.lighter(KanteStyle.backgroundColor, 1.7)
                         Material.foreground: KanteStyle.textColor
                             Layout.fillWidth: true
-                            visible: !root.isTracking && root.isConfigured && root.showContinue && (root.lastRecent || root.hasLastUsed)
-                            enabled: !root.isBusy && root.connectionState !== "error"
+                            visible: !session.timer.tracking && session.connection.configured && session.settings.popupShowContinue && (session.recent.last || session.timer.hasLastUsed)
+                            enabled: !session.busy && session.connection.state !== "error"
                             icon.name: "media-playback-start"
-                            text: root.lastRecent
-                                  ? i18n("Continue · %1 · %2", KimaiApi.displayProjectName(root.lastRecent, root.projects), KimaiApi.displayActivityName(root.lastRecent, root.allActivities, root.activitiesByProject))
-                                  : i18n("Start · %1 · %2", root.lastUsedProjectName, root.lastUsedActivityName)
-                            onClicked: root.lastRecent ? root.continueRecent(root.lastRecent) : root.startLastUsed()
+                            text: session.recent.last
+                                  ? i18n("Continue · %1 · %2", KimaiApi.displayProjectName(session.recent.last, session.catalog.projects), KimaiApi.displayActivityName(session.recent.last, session.catalog.activities, session.catalog.activitiesByProject))
+                                  : i18n("Start · %1 · %2", session.settings.lastUsedProjectName, session.settings.lastUsedActivityName)
+                            onClicked: session.recent.last ? session.timer.continueEntry(session.recent.last) : session.timer.startLastUsed()
                         }
                         KanteButton {
                             id: startOtherButton
-                            visible: root.showNewActivity
+                            visible: session.settings.popupShowNewActivity
                             // Icon only beside Continue, so Continue keeps room for what it continues.
                             display: continueRow.continueShown ? QQC2.AbstractButton.IconOnly : QQC2.AbstractButton.TextBesideIcon
                             Layout.fillWidth: !continueRow.continueShown
                             Layout.preferredHeight: continueRow.continueShown ? continueButton.height : implicitHeight
                             Layout.preferredWidth: continueRow.continueShown ? continueButton.height : implicitWidth
-                            enabled: !root.isBusy && root.connectionState !== "error"
+                            enabled: !session.busy && session.connection.state !== "error"
                             icon.name: "media-playback-start"
                             text: i18n("Start something else…")
                             onClicked: page.openNewActivityForm()
@@ -629,19 +630,19 @@ Kirigami.Page {
                     // ══════ START SOMETHING ELSE: the form opens in the card ══════
                     ColumnLayout {
                         Layout.fillWidth: true; spacing: Kirigami.Units.smallSpacing
-                        visible: root.showNewActivity && page.showNewActivityForm
+                        visible: session.settings.popupShowNewActivity && page.showNewActivityForm
 
                         ProjectActivityPickers {
                             id: newActivityPickers
                             Layout.fillWidth: true
-                            projectPickerModel: root.projectPickerModel
+                            projectPickerModel: session.catalog.projectPickerModel
                             activityPickerModel: page.newActivityPickerModel
-                            showCreateActions: root.canCreateEntities
+                            showCreateActions: session.entries.canCreate
                             onProjectActivated: function(index) {
-                                var projectId = index >= 0 ? root.projectPickerModel[index].value.id : null
-                                root.loadActivitiesForProject(projectId, function(model) { page.newActivityPickerModel = model })
+                                var projectId = index >= 0 ? session.catalog.projectPickerModel[index].value.id : null
+                                session.catalog.loadActivities(projectId, function(model) { page.newActivityPickerModel = model })
                             }
-                            onCreateProjectRequested: { createEntityDialog.customers = root.customers; createEntityDialog.resetForMode("project"); createEntityDialog.open() }
+                            onCreateProjectRequested: { createEntityDialog.customers = session.catalog.customers; createEntityDialog.resetForMode("project"); createEntityDialog.open() }
                             onCreateActivityRequested: {
                                 createEntityDialog.selectedProjectId = newActivityPickers.projectCombo.currentItem ? newActivityPickers.projectCombo.currentItem.value.id : null
                                 createEntityDialog.selectedProjectName = newActivityPickers.projectCombo.currentItem ? newActivityPickers.projectCombo.currentItem.value.name : ""
@@ -657,13 +658,13 @@ Kirigami.Page {
                         RowLayout { Layout.fillWidth: true; spacing: Kirigami.Units.smallSpacing
                             KanteButton {
                                 Layout.fillWidth: true
-                                text: root.isTracking ? i18n("Switch") : i18n("Start")
-                                icon.name: root.isTracking ? "media-skip-forward" : "media-playback-start"
-                                enabled: !root.isBusy && newActivityPickers.projectCombo.currentIndex >= 0 && newActivityPickers.activityCombo.currentIndex >= 0
+                                text: session.timer.tracking ? i18n("Switch") : i18n("Start")
+                                icon.name: session.timer.tracking ? "media-skip-forward" : "media-playback-start"
+                                enabled: !session.busy && newActivityPickers.projectCombo.currentIndex >= 0 && newActivityPickers.activityCombo.currentIndex >= 0
                                 onClicked: {
                                     var proj = newActivityPickers.projectCombo.currentItem.value
                                     var act = newActivityPickers.activityCombo.currentItem.value
-                                    root.switchToActivity(proj.id, act.id, proj.name, act.name || "", page.newActivityDescription)
+                                    session.timer.switchTo(proj.id, act.id, proj.name, act.name || "", page.newActivityDescription)
                                     page.showNewActivityForm = false
                                 }
                             }
@@ -685,7 +686,7 @@ Kirigami.Page {
         KanteHeading {
             Layout.fillWidth: true; Layout.topMargin: Kirigami.Units.smallSpacing
             level: 4; text: i18n("Favorites")
-            visible: root.showFavorites && root.pinnedEntries.length > 0
+            visible: session.settings.popupShowFavorites && session.favorites.pinned.length > 0
         }
         GridLayout {
             Layout.fillWidth: true
@@ -693,12 +694,12 @@ Kirigami.Page {
             rowSpacing: KanteStyle.active ? Kirigami.Units.smallSpacing : Kirigami.Units.largeSpacing
             columnSpacing: Kirigami.Units.smallSpacing
             Repeater {
-                model: root.showFavorites ? root.pinnedEntries : []
+                model: session.settings.popupShowFavorites ? session.favorites.pinned : []
                 delegate: ActivityListRow {
                     required property var modelData
                     Layout.fillWidth: true
                     presentation: ActivityListRow.Presentation.Tile
-                    property string pinKey: root.switchHintKey({ project: modelData.projectId, activity: modelData.activityId })
+                    property string pinKey: session.timer.hintKey({ project: modelData.projectId, activity: modelData.activityId })
                     titleText: modelData.activityName || ""
                     subtitleText: modelData.projectName || ""
                     customerColor: modelData.customerColor || PlasmaiColors.entityFallback
@@ -706,14 +707,14 @@ Kirigami.Page {
                     canPin: true; isPinned: true
                     runningHintVisible: root.alreadyRunningHintKey === pinKey
                     runningHintText: i18n("Already running.")
-                    runningHintCounterText: KimaiApi.formatDurationShort(root.elapsedSeconds)
+                    runningHintCounterText: KimaiApi.formatDurationShort(session.timer.elapsedSeconds)
                     onRowActivated: root.startPinned(modelData)
-                    onPinRequested: root.togglePin(modelData.projectId || "", modelData.activityId || "")
+                    onPinRequested: session.favorites.toggle(modelData.projectId || "", modelData.activityId || "")
                 }
             }
         }
         QQC2.Label {
-            Layout.fillWidth: true; visible: root.isConfigured && root.showFavorites && root.pinnedEntries.length === 0
+            Layout.fillWidth: true; visible: session.connection.configured && session.settings.popupShowFavorites && session.favorites.pinned.length === 0
             text: i18n("Pin an entry from Recent to add it to your favorites.")
             color: KanteStyle.disabledTextColor; wrapMode: Text.WordWrap
         }
@@ -722,18 +723,18 @@ Kirigami.Page {
         KanteHeading {
             Layout.fillWidth: true; Layout.topMargin: Kirigami.Units.smallSpacing
             level: 4; text: i18n("Recent")
-            visible: root.showRecent && root.recentTimesheets.length > 0
+            visible: session.settings.popupShowRecent && session.recent.list.length > 0
         }
         // System: one flat list. Kante: the time line, grouped by day (variant B).
         ColumnLayout {
             Layout.fillWidth: true
             spacing: KanteStyle.active ? 0 : Kirigami.Units.largeSpacing
             Repeater {
-                model: root.showRecent && !KanteStyle.active ? root.recentTimesheets : []
+                model: session.settings.popupShowRecent && !KanteStyle.active ? session.recent.list : []
                 delegate: recentRow
             }
             Repeater {
-                model: root.showRecent && KanteStyle.active ? page.recentDays : []
+                model: session.settings.popupShowRecent && KanteStyle.active ? page.recentDays : []
                 delegate: ColumnLayout {
                     id: dayGroup
                     required property var modelData
@@ -760,15 +761,15 @@ Kirigami.Page {
                 id: recentRow
                 ActivityListRow {
                         required property var modelData
-                        property string tsKey: root.switchHintKey(modelData)
-                        readonly property var barColorInfo: KimaiApi.barColorInfoFromTimesheet(modelData, root.customersById)
-                        titleText: KimaiApi.displayActivityName(modelData, root.allActivities, root.activitiesByProject)
+                        property string tsKey: session.timer.hintKey(modelData)
+                        readonly property var barColorInfo: KimaiApi.barColorInfoFromTimesheet(modelData, session.catalog.customersById)
+                        titleText: KimaiApi.displayActivityName(modelData, session.catalog.activities, session.catalog.activitiesByProject)
                         timeText: page.beginClock(modelData)
                         durationText: (modelData.duration || 0) > 0 ? DTF.hoursMinutes(modelData.duration) : ""
                         subtitleText: {
                             // Kante: time and duration have their own columns in the time line.
-                            if (KanteStyle.active) return KimaiApi.displayProjectName(modelData, root.projects)
-                            var bits = [KimaiApi.displayProjectName(modelData, root.projects)]
+                            if (KanteStyle.active) return KimaiApi.displayProjectName(modelData, session.catalog.projects)
+                            var bits = [KimaiApi.displayProjectName(modelData, session.catalog.projects)]
                             var secs = modelData.duration || 0
                             if (secs > 0) bits.push(KimaiApi.formatDurationShort(secs))
                             bits.push(root.formatRelativeTime(modelData.end || modelData.begin))
@@ -776,19 +777,19 @@ Kirigami.Page {
                         }
                         customerColor: barColorInfo.color || PlasmaiColors.entityFallback
                         showHistoryActions: true
-                        canPin: true; isPinned: root.isPinned(KimaiApi.projectId(modelData), KimaiApi.activityId(modelData))
-                        canEditStopped: root.providerCapabilities.editStopped
+                        canPin: true; isPinned: session.favorites.isPinned(KimaiApi.projectId(modelData), KimaiApi.activityId(modelData))
+                        canEditStopped: session.connection.capabilities.editStopped
                         // Split makes a second entry from one: online only, and not for an unsynced one.
-                        canSplitEntry: root.providerCapabilities.editStopped && !root.offline && !root.isUnsynced(modelData.id)
-                        unsynced: root.isUnsynced(modelData.id)
-                        canDeleteEntry: root.providerCapabilities.deleteEntry
-                        canLogTrip: root.canEditTrips
+                        canSplitEntry: session.connection.capabilities.editStopped && !session.sync.offline && !session.sync.isUnsynced(modelData.id)
+                        unsynced: session.sync.isUnsynced(modelData.id)
+                        canDeleteEntry: session.connection.capabilities.deleteEntry
+                        canLogTrip: session.trips.canEdit
                         onTripRequested: root.openTripForTimesheet(modelData)
                         runningHintVisible: root.alreadyRunningHintKey === tsKey
                         runningHintText: i18n("Already running.")
-                        runningHintCounterText: KimaiApi.formatDurationShort(root.elapsedSeconds)
+                        runningHintCounterText: KimaiApi.formatDurationShort(session.timer.elapsedSeconds)
                         onRowActivated: root.requestRestartFromRecent(modelData)
-                        onPinRequested: root.togglePin(KimaiApi.projectId(modelData), KimaiApi.activityId(modelData))
+                        onPinRequested: session.favorites.toggle(KimaiApi.projectId(modelData), KimaiApi.activityId(modelData))
                         onEditRequested: pageStack.push(manualPageComponent, { editTs: modelData })
                         onDeleteRequested: { deleteDialog.target = modelData; deleteDialog.open() }
                         onSplitRequested: { splitDialog.target = modelData; splitDialog.open() }
@@ -807,14 +808,14 @@ Kirigami.Page {
         // A property, not a child: an Item child would count as dialog content (its ScrollView then sizes to 0).
         readonly property QtObject kanteSkin: KanteDialogSkin { dialog: confirmDialog }
         title: i18n("Stop tracking?")
-        subtitle: i18n("Stop %1 · %2?", root.currentProject, root.currentActivity)
+        subtitle: i18n("Stop %1 · %2?", session.timer.project, session.timer.activity)
         // Own footer actions: Qt's standard button texts stay English on Android.
         standardButtons: Kirigami.Dialog.NoButton
         customFooterActions: [
             Kirigami.Action { text: i18n("Stop"); icon.name: "dialog-ok"; onTriggered: confirmDialog.accept() },
             Kirigami.Action { text: i18n("Cancel"); icon.name: "dialog-cancel"; onTriggered: confirmDialog.reject() }
         ]
-        onAccepted: root.stopTracking()
+        onAccepted: session.timer.stop()
     }
     Kirigami.PromptDialog {
         id: deleteDialog
@@ -829,14 +830,14 @@ Kirigami.Page {
             Kirigami.Action { text: i18n("Delete"); icon.name: "dialog-ok"; onTriggered: deleteDialog.accept() },
             Kirigami.Action { text: i18n("Cancel"); icon.name: "dialog-cancel"; onTriggered: deleteDialog.reject() }
         ]
-        onAccepted: { if (target) root.deleteEntry(target); target = null }
+        onAccepted: { if (target) session.entries.remove(target); target = null }
     }
     Kirigami.PromptDialog {
         id: switchDialog
         // A property, not a child: an Item child would count as dialog content (its ScrollView then sizes to 0).
         readonly property QtObject kanteSkin: KanteDialogSkin { dialog: switchDialog }
         title: i18n("Switch activity")
-        subtitle: root.pendingSwitchTimesheet ? i18n("Switch to %1 · %2?", KimaiApi.displayProjectName(root.pendingSwitchTimesheet, root.projects), KimaiApi.displayActivityName(root.pendingSwitchTimesheet, root.allActivities, root.activitiesByProject)) : ""
+        subtitle: root.pendingSwitchTimesheet ? i18n("Switch to %1 · %2?", KimaiApi.displayProjectName(root.pendingSwitchTimesheet, session.catalog.projects), KimaiApi.displayActivityName(root.pendingSwitchTimesheet, session.catalog.activities, session.catalog.activitiesByProject)) : ""
         // Own footer actions: Qt's standard button texts stay English on Android.
         standardButtons: Kirigami.Dialog.NoButton
         customFooterActions: [
@@ -845,7 +846,7 @@ Kirigami.Page {
         ]
         onAccepted: {
             var ts = root.pendingSwitchTimesheet; root.pendingSwitchTimesheet = null
-            if (ts) root.switchToActivity(KimaiApi.projectId(ts), KimaiApi.activityId(ts), KimaiApi.displayProjectName(ts, root.projects), KimaiApi.displayActivityName(ts, root.allActivities, root.activitiesByProject), ts.description || "")
+            if (ts) session.timer.switchTo(KimaiApi.projectId(ts), KimaiApi.activityId(ts), KimaiApi.displayProjectName(ts, session.catalog.projects), KimaiApi.displayActivityName(ts, session.catalog.activities, session.catalog.activitiesByProject), ts.description || "")
         }
         onRejected: root.pendingSwitchTimesheet = null
     }
@@ -879,16 +880,14 @@ Kirigami.Page {
             if (!target) return
             var d = new Date(splitDate.selectedDate)
             d.setHours(splitTime.hours, splitTime.minutes, 0, 0)
-            root.splitEntry(target, d)
+            session.entries.split(target, d)
             target = null
         }
     }
     CreateEntityDialog {
         id: createEntityDialog
         onSubmitted: function(mode, payload) {
-            if (mode === "customer") root.createCustomer(payload)
-            else if (mode === "project") root.createProject(payload)
-            else if (mode === "activity") root.createActivity(payload)
+            session.entries.createEntity(mode, payload)
         }
     }
 
@@ -900,22 +899,22 @@ Kirigami.Page {
         standardButtons: Kirigami.Dialog.NoButton
         padding: Kirigami.Units.largeSpacing
         closePolicy: Kirigami.Dialog.NoAutoClose
-        visible: root.idleDialogPending
+        visible: session.reminders.idlePending
 
         ColumnLayout { spacing: Kirigami.Units.smallSpacing
             QQC2.Label {
                 Layout.fillWidth: true; wrapMode: Text.WordWrap
-                text: i18n("You were idle for %1. Keep this time, discard it, or discard and continue?", KimaiApi.formatDurationShort(Math.round(root.pendingIdleMs / 1000)))
+                text: i18n("You were idle for %1. Keep this time, discard it, or discard and continue?", KimaiApi.formatDurationShort(Math.round(session.reminders.pendingMs / 1000)))
             }
-            KanteButton { Layout.fillWidth: true; text: i18n("Keep time"); onClicked: root.keepIdleTime() }
+            KanteButton { Layout.fillWidth: true; text: i18n("Keep time"); onClicked: session.reminders.keep() }
             // Discarding rewrites the running entry's end: online only (offline.js).
             QQC2.Label {
-                visible: root.offline
+                visible: session.sync.offline
                 Layout.fillWidth: true; wrapMode: Text.WordWrap
                 text: i18n("Discarding idle time needs a connection to the server.")
             }
-            KanteButton { Layout.fillWidth: true; enabled: !root.offline; text: i18n("Discard idle"); onClicked: root.discardIdleTime(false) }
-            KanteButton { Layout.fillWidth: true; enabled: !root.offline; text: i18n("Discard and continue"); onClicked: root.discardIdleTime(true) }
+            KanteButton { Layout.fillWidth: true; enabled: !session.sync.offline; text: i18n("Discard idle"); onClicked: session.reminders.discard(Session.AfterIdle.Stop) }
+            KanteButton { Layout.fillWidth: true; enabled: !session.sync.offline; text: i18n("Discard and continue"); onClicked: session.reminders.discard(Session.AfterIdle.Continue) }
         }
     }
 
@@ -925,8 +924,8 @@ Kirigami.Page {
         anchors.fill: parent
         z: 10
         flickable: narrowScroll.contentItem
-        busy: root.isBusy
-        onRefreshRequested: root.refreshAll()
+        busy: session.busy
+        onRefreshRequested: session.refresh()
     }
 
     // Pull to refresh (see shared/KantePullToRefresh.qml).
@@ -935,8 +934,8 @@ Kirigami.Page {
         anchors.fill: parent
         z: 10
         flickable: wideLeftScroll.contentItem
-        busy: root.isBusy
-        onRefreshRequested: root.refreshAll()
+        busy: session.busy
+        onRefreshRequested: session.refresh()
     }
 
     // Pull to refresh (see shared/KantePullToRefresh.qml).
@@ -945,7 +944,7 @@ Kirigami.Page {
         anchors.fill: parent
         z: 10
         flickable: wideRightScroll.contentItem
-        busy: root.isBusy
-        onRefreshRequested: root.refreshAll()
+        busy: session.busy
+        onRefreshRequested: session.refresh()
     }
 }
