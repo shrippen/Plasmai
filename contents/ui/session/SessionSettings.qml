@@ -75,15 +75,19 @@ QtObject {
         changed(taken)
     }
 
-    /** Changes values here and in shared.json; resolves with what was written. */
-    function set(patch) {
+    /**
+     * Changes values here and in shared.json; resolves with what was written. base: the
+     * connection keys used when shared.json lacks them (settings dialog: its configuration).
+     */
+    function set(patch, base) {
         for (const key in patch) {
-            if (keys.indexOf(key) >= 0) {
+            // Typed like the defaults; anything else is only written.
+            if (keys.indexOf(key) >= 0 && typeof patch[key] === typeof settings[key]) {
                 settings[key] = patch[key]
             }
         }
         changed(Object.keys(patch))
-        return Platform.patchShared(session.dataSource, session.connection.config(), patch)
+        return Platform.patchShared(session.dataSource, base || session.connection.config(), patch)
     }
 
     /**

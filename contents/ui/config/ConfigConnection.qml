@@ -3,11 +3,7 @@ import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
-import org.kde.plasma.plasma5support as P5Support
-import "../../code/secret.js" as Secret
-import "../../code/platform.js" as Platform
 import "../../code/kimaiApi.js" as KimaiApi
-import "../../code/timeTracker.js" as TimeTracker
 import "../../code/profiles.js" as Profiles
 import "../../code/sharedConfig.js" as SharedConfig
 import ".."
@@ -42,9 +38,8 @@ ConfigPage {
             hasStoredToken = false
             return
         }
-        var profileId = profiles[selectedIndex].id
-        Platform.loadToken(execSource, profileId).then(function(token) {
-            hasStoredToken = !!(token && token.length > 0)
+        session.connection.hasToken(profiles[selectedIndex].id).then(function(has) {
+            hasStoredToken = has
         })
     }
 
@@ -52,8 +47,9 @@ ConfigPage {
         ? profiles[selectedIndex] : null
     readonly property string selectedProviderId: selectedProfile && selectedProfile.provider
         ? selectedProfile.provider : "kimai"
-    readonly property var selectedProviderMeta: TimeTracker.providerMeta(selectedProviderId)
-    readonly property var tracker: TimeTracker.api(selectedProviderId)
+    readonly property var selectedProviderMeta: session.setup.providerMeta(selectedProviderId)
+    /** Every service in display order (id, name, needsUrl, defaultUrl, …). */
+    readonly property var providers: session.setup.listProviders()
 
     /** i18n UI strings that follow the selected service. */
     readonly property string providerHintText: {
@@ -110,7 +106,7 @@ ConfigPage {
     }
 
     function persistShared() {
-        Platform.patchShared(execSource, plasmoid.configuration, page.connectionPatch())
+        session.settings.set(page.connectionPatch(), plasmoid.configuration)
     }
 
     function connectionPatch() {
@@ -176,8 +172,7 @@ ConfigPage {
         profileNameField.text = profiles[selectedIndex].name
         kimaiUrlField.text = profiles[selectedIndex].url || ""
         var pid = profiles[selectedIndex].provider || "kimai"
-        var ids = TimeTracker.providerIds()
-        var pIdx = ids.indexOf(pid)
+        var pIdx = page.providers.map(function(p) { return p.id }).indexOf(pid)
         providerCombo.currentIndex = pIdx >= 0 ? pIdx : 0
         updatingFields = false
     }
@@ -202,7 +197,7 @@ ConfigPage {
         if (updatingFields || syncing || profiles.length === 0 || selectedIndex < 0) {
             return
         }
-        var meta = TimeTracker.providerMeta(providerId)
+        var meta = session.setup.providerMeta(providerId)
         var url = meta.defaultUrl || ""
         var copy = profiles.slice()
         var row = Object.assign({}, copy[selectedIndex])
@@ -272,7 +267,7 @@ ConfigPage {
     }
 
     function reloadConnectionState() {
-        Platform.loadShared(execSource).then(function(shared) {
+        session.connection.loadStored().then(function(shared) {
             page.syncing = true
             if (shared) {
                 SharedConfig.applyToConfiguration(plasmoid.configuration, shared)
@@ -333,19 +328,8 @@ ConfigPage {
         })
     }
 
-    Component.onDestruction: Secret.cancelAll(execSource)
-
     onVisibleChanged: if (visible) scheduleConnectionReload()
     onPageEntered: scheduleConnectionReload()
-
-    P5Support.DataSource {
-        id: execSource
-        engine: "executable"
-        connectedSources: []
-        onNewData: function(sourceName, data) {
-            Secret.handleData(execSource, sourceName, data)
-        }
-    }
 
     QQC2.ScrollView {
         id: scroll
@@ -422,12 +406,12 @@ ConfigPage {
                     Kirigami.FormData.label: i18n("Service:")
                     Layout.fillWidth: true
                     Layout.maximumWidth: page.buddyMaxWidth(connectionForm)
-                    model: TimeTracker.providerNames()
+                    model: page.providers.map(function(p) { return p.name })
                     onActivated: function(index) {
                         if (page.updatingFields) {
                             return
                         }
-                        page.applyProviderChange(TimeTracker.providerIds()[index])
+                        page.applyProviderChange(page.providers[index].id)
                         page.notifyEdited()
                     }
                 }
@@ -566,7 +550,7 @@ ConfigPage {
                             page.commitUrlField()
                             page.setActiveProfile()
                             var profileId = page.profiles[page.selectedIndex].id
-                            Platform.saveToken(execSource, profileId, tokenField.text).then(function() {
+                            session.connection.saveToken(profileId, tokenField.text).then(function() {
                                 page.busy = false
                                 tokenField.text = ""
                                 page.hasStoredToken = true
@@ -585,7 +569,7 @@ ConfigPage {
                             page.busy = true
                             page.showStatus("", false)
                             var profileId = page.profiles[page.selectedIndex].id
-                            Platform.clearToken(execSource, profileId).then(function() {
+                            session.connection.clearToken(profileId).then(function() {
                                 page.busy = false
                                 page.hasStoredToken = false
                                 page.showStatus(i18n("Token removed from KWallet."), false)
@@ -603,27 +587,28 @@ ConfigPage {
                             page.testingConnection = true
                             page.showStatus(i18n("Testing connection…"), false)
                             page.commitUrlField()
-                            var profile = page.profiles[page.selectedIndex]
-                            var profileId = profile.id
-                            var url = TimeTracker.resolveUrl(profile)
-                            TimeTracker.applySession(profile.provider || "kimai", profile)
-                            Platform.loadToken(execSource, profileId).then(function(token) {
-                                if (!token) {
+                            const profile = page.profiles[page.selectedIndex]
+                            session.connection.test(profile, {
+                                noToken: function() {
                                     page.testingConnection = false
                                     page.showStatus(i18n("No API token stored. Save a token first."), true)
-                                    return
-                                }
-                                page.tracker.testConnection(url, token, function(result) {
+                                },
+                                testing: function() {},
+                                done: function(result) {
                                     page.testingConnection = false
-                                    if (result.ok) {
-                                        page.applyTestConnectionMeta(result.data)
-                                        var label = TimeTracker.providerDisplayName(profile.provider)
-                                        var ver = (result.data && (result.data.version || result.data.name)) || i18n("ok")
-                                        page.showStatus(i18n("Connected to %1 (%2).", label, ver), false)
-                                    } else {
+                                    if (!result.ok) {
                                         page.showStatus(ApiErrors.text(result.error, true), true)
+                                        return
                                     }
-                                })
+                                    page.applyTestConnectionMeta(result.data)
+                                    const label = session.setup.providerName(profile.provider)
+                                    const ver = (result.data && (result.data.version || result.data.name)) || i18n("ok")
+                                    page.showStatus(i18n("Connected to %1 (%2).", label, ver), false)
+                                },
+                                failed: function(err) {
+                                    page.testingConnection = false
+                                    page.showStatus(String(err), true)
+                                }
                             })
                         }
                     }

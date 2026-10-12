@@ -2,9 +2,6 @@ import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
-import org.kde.plasma.plasma5support as P5Support
-import "../../code/secret.js" as Secret
-import "../../code/platform.js" as Platform
 import "../../code/sharedConfig.js" as SharedConfig
 
 ConfigPage {
@@ -159,33 +156,22 @@ ConfigPage {
         persistShared()
     }
 
-    P5Support.DataSource {
-        id: execSource
-        engine: "executable"
-        connectedSources: []
-        onNewData: function(sourceName, data) {
-            Secret.handleData(execSource, sourceName, data)
-        }
-    }
-
     function persistShared() {
         if (syncing || !ready) {
             return
         }
-        Platform.patchShared(execSource, plasmoid.configuration, page.behaviorPatch())
+        session.settings.set(page.behaviorPatch(), plasmoid.configuration)
     }
 
     function persistBehaviorConfig() {
         syncBehaviorToCfg()
         var patch = page.behaviorPatch()
-        Platform.patchShared(execSource, plasmoid.configuration, patch)
+        session.settings.set(patch, plasmoid.configuration)
         loadedBehaviorState = JSON.stringify(patch)
         unsavedChanges = false
     }
 
     property var saveConfig: persistBehaviorConfig
-
-    Component.onDestruction: Secret.cancelAll(execSource)
 
     property bool reloadScheduled: false
 
@@ -200,7 +186,7 @@ ConfigPage {
                 return
             }
             ready = false
-            Platform.loadShared(execSource).then(function(shared) {
+            session.connection.loadStored().then(function(shared) {
                 syncing = true
                 suppressNotify = true
                 applyCfgToControls()

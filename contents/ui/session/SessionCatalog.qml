@@ -2,6 +2,7 @@ import QtQml
 import "../../code/kimaiApi.js" as KimaiApi
 import "../../code/catalogCache.js" as CatalogCache
 import "../../code/platform.js" as Platform
+import "../../code/timeTracker.js" as TimeTracker
 
 /**
  * Customers, projects and activities of the active profile, and the
@@ -12,6 +13,9 @@ import "../../code/platform.js" as Platform
  *              └─ loadAllActivities ─▶ activities┘
  *   loadActivities(project) ─▶ activitiesByProject[project] ─▶ picker model
  *   all three answered ─▶ names filled in again (recent, timer, totals) ─▶ updated()
+ *
+ * The settings dialog's Favorites page reads a profile it has not opened:
+ *   cached(id) │ loadFile[Text]() ─▶ keep(payload) │ fetchFor(p) ─▶ stored for the widget
  */
 QtObject {
     id: catalog
@@ -153,6 +157,80 @@ QtObject {
     /** The catalogs timerSession.js reads. */
     function catalogs() {
         return { projects: projects, activities: activities, activitiesByProject: activitiesByProject, customersById: customersById }
+    }
+
+    // ── Settings dialog (Favorites): a profile this session has not opened ──
+
+    /** The catalog of profileId kept in memory (a payload with its profileId), or null. */
+    function cached(profileId) {
+        return CatalogCache.hasCatalog(profileId) ? CatalogCache.exportPayload() : null
+    }
+
+    /** catalog-cache.json as text ("" when missing), for parsing off the UI thread. */
+    function loadFileText() {
+        return Platform.loadCatalogText(session.dataSource)
+    }
+
+    /** catalog-cache.json, parsed (null when missing). */
+    function loadFile() {
+        return Platform.loadCatalog(session.dataSource)
+    }
+
+    /** A stored payload ({ customers, projects, activities, … }) kept in memory. */
+    function keep(payload) {
+        CatalogCache.hydrate(payload)
+    }
+
+    /**
+     * Customers, projects and activities of `p` with its stored token, then stored for
+     * the widget. steps: noToken(), failed(), projects(customers, projects),
+     * activitiesLoading(), activities(list) (stored; null: the provider has no full list).
+     */
+    function fetchFor(p, steps) {
+        Platform.loadToken(session.dataSource, p.id).then(function(token) {
+            if (!token) {
+                steps.noToken()
+                return
+            }
+            const api = TimeTracker.applySession(p.provider || TimeTracker.PROVIDER_KIMAI, p)
+            const url = TimeTracker.resolveUrl(p)
+            api.loadCustomers(url, token, function(customersResult) {
+                const found = customersResult.ok ? (customersResult.data || []) : []
+                api.loadProjects(url, token, function(result) {
+                    if (!result.ok) {
+                        steps.failed()
+                        return
+                    }
+                    const list = result.data || []
+                    steps.projects(found, list)
+                    function store(acts) {
+                        CatalogCache.storeEntities(p.id, found, list, acts || [])
+                        Platform.saveCatalog(session.dataSource, CatalogCache.exportPayload())
+                        steps.activities(acts)
+                    }
+                    if (typeof api.loadAllActivities !== "function") {
+                        store(null)
+                        return
+                    }
+                    steps.activitiesLoading()
+                    api.loadAllActivities(url, token, function(actResult) {
+                        store(actResult.ok ? (actResult.data || []) : [])
+                    })
+                })
+            })
+        })
+    }
+
+    /** Activities of one project of `p`; callback(result), null without a token. */
+    function activitiesFor(p, projectId, callback) {
+        Platform.loadToken(session.dataSource, p.id).then(function(token) {
+            if (!token) {
+                callback(null)
+                return
+            }
+            const api = TimeTracker.applySession(p.provider || TimeTracker.PROVIDER_KIMAI, p)
+            api.loadActivities(TimeTracker.resolveUrl(p), token, projectId, callback)
+        })
     }
 
     function indexById(list) {
