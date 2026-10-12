@@ -304,22 +304,22 @@ Not a layout but a switch, `gapPrompt`: Plasmai asks about untracked time instea
 Steps, each a PR that is useful alone:
 
 1. **Data layer** — `layouts.js` (key values, wizard answers), `dayModel.js` (day blocks, gaps, week grid; no Qt types). Branch `feature/layout-foundation`.
-2. **Controller seam (5–7 days, main risk)** — what both `main.qml` still do themselves (refresh, start/switch/stop, day and week entries) moves to `contents/code/`; the popup body becomes a `Loader` over `layout`; `classic` is today's body moved unchanged. Before/after screenshots of both clients in all styles, viewer sweeps.
+2. **Controller seam (5–7 days, main risk)** — `Session.qml` (built): profile, token, outbox, running entry, recents, today and week, start/stop/switch/continue; QtQml only, used by the terminal client. Open: the widget's and the app window's `main.qml` move onto it, the popup body becomes a `Loader` over `layout` with `classic` unchanged. Before/after screenshots of both clients in all styles, viewer sweeps.
 3. **Key and wizard (1–2 days)** — `layout`, `gapPrompt` in `main.xml`, shared.json, DESIGN.md; wizard step with previews.
 4. `tiles` → 5. `timesheet` → 6. `dayband` → 7. `gapPrompt` basic → 8. `ring`.
 9. **Release chores** across the steps: demo screenshots of every layout in every language, landing page, release log (2–3 days).
 
 Total ≈ 35–50 days; steps 1–4 (≈ 10–14 days) are a release worth having.
 
-### 9. Terminal client — planned
+### 9. Terminal client — built (desktop app)
 
-Plasmai in a terminal: over SSH, in tiling setups, on Windows Terminal. Same provider layer, no second implementation.
+Plasmai in a terminal: over SSH, in tiling setups. `plasmai-app --tui` in the desktop app (Linux, macOS); the widget has none, Android and the Windows tray build neither.
 
-- **Reuse:** `tui/` is a Node app that loads `contents/code/*.js` unchanged. A loader strips `.pragma library` and resolves `.import` (spike 2026-10-12: `statsData.js`, `timeTracker.js`, `dayModel.js` load and run with ~25 lines). Needed around it: `XMLHttpRequest` on Node's `fetch`, the token from `secret-tool` (as `secret.js`), shared.json for profile, layout and work hours.
-- **Views follow the layouts:** classic list, `timesheet` as a table, `dayband` as vertical text, `tiles` as number keys 1–9. Main input is one command line with the Quick-Add-style syntax (`ton @nachtwache gestern 22:00–03:13`), the gap prompt asks at start.
-- **Rules:** no features of its own; capability flags as everywhere. Shipped separately (npm or a single bundled file), never in the Store package. "Won't do: standalone window" does not apply, it is no window.
-- **Open:** TUI library (plain ANSI vs. a small framework), offline outbox (`offline.js` storage behind `platform.js` needs a file backend, +2 days).
-- **Estimate:** 6–9 days for timer, recents, start/stop/switch, command line, week table.
+- **Same code, no second implementation:** a `QCoreApplication` with the app's TokenStore and FileStore, a QML engine without a window, `Session.qml` (pillar 8, step 2) and `app/qml/tui/Tui.qml`. Screens are pure functions in `tuiView.js`; `app/tui/terminal_posix.cpp` does raw keys and the alternate screen.
+- **Views follow the layouts:** timer and recents (1–9 start or switch, `s` stop), today as hour rows with gaps (`dayModel.js`), the week as a table. Own offline outbox (`tui-` files).
+- **Rules:** no features of its own; capability flags as everywhere.
+- **Open:** Quick-Add-style command line (`ton @nachtwache gestern 22:00–03:13`), manual entries, translations of the new strings, the gap prompt at start.
+- The Node variant planned on 2026-10-12 is dropped: the app binary already has the engine, the token store and the files.
 
 ### Release chores for 2.0.0 (see RELEASE-TODO.md)
 
