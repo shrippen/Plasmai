@@ -12,6 +12,8 @@ DEMO_QRC = ROOT / "app" / "demo.qrc"  # internal builds only (-DPLASMAI_DEMO)
 CODE = ROOT / "contents" / "code"
 
 QML_IMPORT = re.compile(r'^import\s+"(?:\.\./)+contents/code/([\w.]+\.js)"', re.M)
+# Shared views and the session layer (contents/ui, listed in the qrc) import "../code/…".
+UI_IMPORT = re.compile(r'^import\s+"(?:\.\./)+code/([\w.]+\.js)"', re.M)
 JS_IMPORT = re.compile(r'^\.import\s+"\./([\w.]+\.js)"', re.M)
 
 
@@ -23,6 +25,9 @@ def scripts_the_app_loads():
     todo = set()
     for qml in (ROOT / "app" / "qml").rglob("*.qml"):
         todo.update(QML_IMPORT.findall(qml.read_text(encoding="utf-8")))
+    for alias in qrc_aliases():
+        if alias.startswith("contents/ui/") and alias.endswith(".qml"):
+            todo.update(UI_IMPORT.findall((ROOT / alias).read_text(encoding="utf-8")))
     seen = set()
     while todo:
         name = todo.pop()

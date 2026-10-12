@@ -12,7 +12,7 @@ QtObject {
     function start(session) {
         KimaiApi.setUrlRoute(DemoKimai.ROUTE)
         const demo = Profiles.withDemoProfile([], DemoKimai.DEMO_URL, "Demo")[0]
-        session.profiles = [demo]
-        session.useProfile(demo)
+        session.connection.profiles = [demo]
+        session.connection.useProfile(demo)
     }
 }

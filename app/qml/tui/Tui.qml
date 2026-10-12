@@ -32,7 +32,6 @@ QtObject {
 
     property Ui.Session session: Ui.Session {
         offlinePrefix: "tui-"
-        onRecentChanged: tui.selected = Math.min(tui.selected, Math.max(0, recent.length - 1))
         onFailed: function(action, result) { tui.message = tui.failureText(action, result) }
         onStarted: tui.message = ""
         onStopped: tui.message = ""
@@ -52,10 +51,21 @@ QtObject {
     }
 
     property Connections changes: Connections {
-        target: tui.session
-        function onConnectionChanged() { tui.draw() }
+        target: tui.session.connection
+        function onStateChanged() { tui.draw() }
+    }
+
+    property Connections timerChanges: Connections {
+        target: tui.session.timer
         function onActiveChanged() { tui.draw() }
-        function onRecentChanged() { tui.draw() }
+    }
+
+    property Connections recentChanges: Connections {
+        target: tui.session.recent
+        function onListChanged() {
+            tui.selected = Math.min(tui.selected, Math.max(0, tui.session.recent.list.length - 1))
+            tui.draw()
+        }
     }
 
     function handle(key) {
@@ -72,7 +82,7 @@ QtObject {
         } else if (key === "r") {
             session.refresh()
         } else if (key === "s") {
-            session.stop()
+            session.timer.stop()
         } else if (view === viewMain) {
             handleMain(key)
         }
@@ -80,7 +90,7 @@ QtObject {
     }
 
     function handleMain(key) {
-        const count = session.recent.length
+        const count = session.recent.list.length
         if (key === "up") {
             selected = Math.max(0, selected - 1)
             return
@@ -92,12 +102,21 @@ QtObject {
         const number = parseInt(key, 10)
         if (!isNaN(number) && number >= 1 && number <= Math.min(maxNumberKey, count)) {
             selected = number - 1
-            session.continueEntry(session.recent[selected])
+            restart(session.recent.list[selected])
             return
         }
         if (key === "enter" && count > 0) {
-            session.continueEntry(session.recent[selected])
+            restart(session.recent.list[selected])
         }
+    }
+
+    /** Continues a recent entry; while another runs, switches to it (no confirmation here). */
+    function restart(ts) {
+        if (session.timer.requestRestart(ts) !== Ui.Session.Restart.Confirm) {
+            return
+        }
+        session.timer.switchTo(KimaiApi.projectId(ts), KimaiApi.activityId(ts), KimaiApi.projectName(ts),
+                               KimaiApi.activityName(ts), ts.description || "")
     }
 
     // ── Drawing ──
@@ -119,16 +138,17 @@ QtObject {
     }
 
     function statusOf() {
-        if (session.connection === session.needsSetup || session.connection === session.unconfigured) {
+        const c = session.connection
+        if (c.state === c.needsSetup || c.state === c.unconfigured) {
             return { text: i18n("Set up a connection in the Plasmai app first"), style: View.Style.DANGER }
         }
-        if (session.connection === session.error) {
+        if (c.state === c.error) {
             return { text: i18n("Server not reachable"), style: View.Style.DANGER }
         }
-        if (session.offline) {
-            return { text: i18n("Offline · %1 not synced", session.unsynced), style: View.Style.PRIMARY }
+        if (session.sync.offline) {
+            return { text: i18n("Offline · %1 not synced", session.sync.unsynced), style: View.Style.PRIMARY }
         }
-        if (session.connection === session.connecting) {
+        if (c.state === c.connecting) {
             return { text: i18n("Connecting…"), style: View.Style.DIM }
         }
         return { text: i18n("Online"), style: View.Style.OK }
@@ -137,7 +157,7 @@ QtObject {
     function baseModel() {
         const status = statusOf()
         return {
-            profileName: session.profile ? (session.profile.name || "") : "",
+            profileName: session.connection.profile ? (session.connection.profile.name || "") : "",
             statusText: status.text,
             statusStyle: status.style
         }
@@ -157,15 +177,15 @@ QtObject {
             return
         }
 
-        const a = session.active
+        const a = session.timer.active
         terminal.render(View.main(Object.assign(model, {
-            tracking: session.tracking,
+            tracking: session.timer.tracking,
             activity: a ? KimaiApi.activityName(a) : "",
             project: a ? KimaiApi.projectName(a) : "",
-            elapsed: session.elapsedSeconds,
-            todaySeconds: session.todaySeconds,
-            weekSeconds: session.weekSeconds,
-            recent: session.recent.map(function(r) {
+            elapsed: session.timer.elapsedSeconds,
+            todaySeconds: session.totals.todaySeconds,
+            weekSeconds: session.totals.weekSeconds,
+            recent: session.recent.list.map(function(r) {
                 return { title: KimaiApi.activityName(r), sub: KimaiApi.projectName(r) + (r.description ? " · " + r.description : "") }
             }),
             selected: selected,
@@ -175,14 +195,14 @@ QtObject {
 
     function dayModel() {
         const now = new Date()
-        const blocks = DayModel.blocks(session.todayEntries, now, now.getTime()).map(function(b) {
+        const blocks = DayModel.blocks(session.totals.todayEntries, now, now.getTime()).map(function(b) {
             return Object.assign(b, { label: KimaiApi.activityName(b.entry) + " · " + KimaiApi.projectName(b.entry) })
         })
         return {
             title: Qt.locale().toString(now, "dddd, d. MMMM"),
             blocks: blocks,
-            workFrom: hours(session.workDayBegin, 8),
-            workTo: hours(session.workDayEnd, 17),
+            workFrom: hours(session.settings.workDayBegin, 8),
+            workTo: hours(session.settings.workDayEnd, 17),
             untilHour: now.getHours() + now.getMinutes() / 60
         }
     }
@@ -204,7 +224,7 @@ QtObject {
         }
         return {
             title: StatsData.formatWeekLabel(monday),
-            grid: DayModel.weekGrid(session.weekEntries, now, now.getTime()),
+            grid: DayModel.weekGrid(session.totals.weekEntries, now, now.getTime()),
             dayNames: names,
             todayIndex: (now.getDay() + 6) % 7
         }
@@ -212,8 +232,8 @@ QtObject {
 
     function failureText(action, result) {
         const detail = result && result.error ? (result.error.detail || result.error.statusText || "") : ""
-        const what = action === session.actionStop ? i18n("Could not stop tracking")
-                   : action === session.actionRefresh ? i18n("Could not refresh")
+        const what = action === Ui.Session.Action.Stop ? i18n("Could not stop tracking")
+                   : action === Ui.Session.Action.Refresh ? i18n("Could not refresh")
                    : i18n("Could not start tracking")
         return detail ? what + ": " + detail : what
     }
