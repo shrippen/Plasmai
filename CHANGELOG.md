@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Changed
+- Statistics: the day of the activity distribution has its own day switcher, like the other charts. Day and week take half the width each; an empty day keeps the chart's height instead of a thin line
+- Statistics (Kante styles): hovering a block in "Projects by hour" shows its project, time span and duration; on touch a tap does
+
+### Fixed
+- Statistics (Kante styles): the hover read-outs of the charts wrote project names in the project colour, which some colours made unreadable. They now use the text colour with a coloured square in front
+
 ## 2.5.3
 
 Released 2026-10-07.

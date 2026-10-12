@@ -50,11 +50,15 @@ ColumnLayout {
         })
     }
 
+    // Empty: the chart's height, so an empty pie keeps its place next to a full one.
     Controls.Label {
         Layout.fillWidth: true
+        Layout.preferredHeight: root.chartSize
         visible: KanteStyle.active && root.totalSeconds <= 0
         opacity: 0.6
         wrapMode: Text.WordWrap
+        horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
         text: root.emptyText
     }
 

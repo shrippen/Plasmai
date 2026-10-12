@@ -124,7 +124,7 @@ ColumnLayout {
         }
     }
 
-    // Kante: a KanteWeekTimeline; a tapped block names its entry.
+    // Kante: a KanteWeekTimeline; hovering (on touch tapping) a block shows its project, span and duration.
     KanteWeekTimeline {
         id: kanteTimeline
         Layout.fillWidth: true
@@ -136,20 +136,6 @@ ColumnLayout {
         entries: root.timelineEntries
         today: root.todayRow
         now: root.todayRow >= 0 ? root.nowHours : -1
-
-        property string tip: ""
-        onEntryClicked: function(index) {
-            var entry = root.timelineEntries[index]
-            tip = entry.title + " · " + KimaiApi.formatDurationShort(entry.seconds)
-        }
-        Controls.ToolTip.visible: tip.length > 0
-        Controls.ToolTip.text: tip
-        Controls.ToolTip.timeout: Kirigami.Units.humanMoment
-        Controls.ToolTip.onVisibleChanged: {
-            if (!Controls.ToolTip.visible) {
-                tip = ""
-            }
-        }
     }
 
     Repeater {
