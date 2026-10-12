@@ -92,14 +92,14 @@ Item {
                 KimaiApi.setUrlRoute({ original: route, handles: route.handles, token: route.token,
                                        request: function() { return runner.deadRequest() } })
                 r.returnToMainView()
-                r.refreshAll(true)
+                r.session.refresh()
                 Qt.callLater(function() {
-                    r.stopTracking(false)
-                    Qt.callLater(function() { r.startTracking(10, 21, "Harbour Lights", "Vorproduktion", "offline") })
+                    r.session.timer.stop()
+                    Qt.callLater(function() { r.session.timer.start(10, 21, "Harbour Lights", "Vorproduktion", "offline") })
                 })
             } else if (item.value === "stop") {
                 r.returnToMainView()
-                r.stopTracking(false)
+                r.session.timer.stop()
             } else if (item.value === "unsynced") {
                 r.openUnsyncedView()
             } else if (item.value === "online") {
@@ -107,7 +107,7 @@ Item {
                     KimaiApi.setUrlRoute(KimaiApi.urlRoute.original)
                 }
                 r.returnToMainView()
-                r.refreshAll(true)
+                r.session.refresh()
             } else {
                 r.returnToMainView()
             }
@@ -200,7 +200,7 @@ Item {
     Timer {
         interval: 6000
         running: runner.active && runner.plasmoidRoot
-                 && (runner.plasmoidRoot.isConfigured || runner.plasmoidRoot.showSetupState)
+                 && (runner.plasmoidRoot.session.connection.configured || runner.plasmoidRoot.showSetupState)
         repeat: false
         onTriggered: runner.start()
     }

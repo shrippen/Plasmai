@@ -336,6 +336,13 @@ TestCase {
         compare(s.timer.description, "Typed, not saved")
     }
 
+    function test_lookupPlaceEmpty() {
+        const s = openDemo()
+        let answered = false
+        s.setup.lookupPlace("", function(place) { answered = place === null })
+        tryVerify(function() { return answered })
+    }
+
     function test_createEntityAndTags() {
         const s = openDemo()
         const before = s.catalog.customers.length

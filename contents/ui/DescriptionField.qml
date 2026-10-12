@@ -8,14 +8,16 @@ import "KantePlasma"
 
 /**
  * Description of the running entry with its save button (saving, saved
- * check, dirty state). Shared by both timer cards; state and actions live
- * in the widget root (main.qml).
+ * check, dirty state). Shared by both timer cards; the text is the
+ * session timer's draft, saved on Enter or the button.
  */
 Item {
     id: descriptionFieldWrap
 
-    // Widget root (main.qml): state and actions.
-    required property var widget
+    // The session layer (Session.qml): data and actions.
+    required property QtObject session
+    // Widget root (main.qml): view state only (the saved flash).
+    required property var view
 
     // Avoid anchors.fill ↔ implicitHeight feedback (zero-height field).
     height: descriptionEdit.implicitHeight
@@ -24,57 +26,57 @@ Item {
     KanteTextField {
         id: descriptionEdit
         width: parent.width
-        enabled: !widget.savingDescription
+        enabled: !session.timer.savingDescription
         placeholderText: i18n("Description")
         rightPadding: descriptionSaveButton.visible
             ? descriptionSaveButton.width + Kirigami.Units.smallSpacing * 2
             : leftPadding
 
-        function applyDraftFromRoot() {
-            if (text === widget.descriptionDraft) {
+        /** Typed, not saved yet. */
+        readonly property bool dirty: session.timer.draft !== session.timer.description
+        /** Set while the draft is written into the field (no echo back). */
+        property bool applying: false
+
+        function applyDraft() {
+            if (text === session.timer.draft) {
                 return
             }
-            widget.suppressDescHandler = true
-            text = widget.descriptionDraft
-            widget.suppressDescHandler = false
+            applying = true
+            text = session.timer.draft
+            applying = false
         }
 
         Connections {
-            target: widget
-            function onDescriptionDraftChanged() {
-                descriptionEdit.applyDraftFromRoot()
+            target: descriptionFieldWrap.session.timer
+            function onDraftChanged() {
+                descriptionEdit.applyDraft()
             }
         }
 
-        Component.onCompleted: applyDraftFromRoot()
+        Component.onCompleted: applyDraft()
         onVisibleChanged: {
             if (visible) {
-                applyDraftFromRoot()
+                applyDraft()
             }
-        }
-
-        onActiveFocusChanged: {
-            widget.descriptionFieldFocused = activeFocus
         }
 
         onTextChanged: {
-            if (widget.suppressDescHandler) {
+            if (applying) {
                 return
             }
-            widget.descriptionDraft = text
-            widget.descriptionDirty = (text !== widget.currentDescription)
-            if (widget.descriptionDirty && widget.descriptionSavedFlash) {
-                widget.cancelDescriptionSavedFlash()
+            session.timer.setDraft(text)
+            if (descriptionEdit.dirty && view.descriptionSavedFlash) {
+                view.cancelDescriptionSavedFlash()
             }
         }
 
-        onAccepted: widget.saveCurrentDescription()
+        onAccepted: view.saveCurrentDescription()
         Keys.onPressed: function(event) {
             if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                widget.saveCurrentDescription()
+                view.saveCurrentDescription()
                 event.accepted = true
             } else if (event.key === Qt.Key_Escape) {
-                widget.syncDescriptionField(widget.currentDescription)
+                session.timer.setDraft(session.timer.description)
                 event.accepted = true
             }
         }
@@ -92,47 +94,47 @@ Item {
         display: QQC2.AbstractButton.IconOnly
         icon.width: Kirigami.Units.iconSizes.small
         icon.height: Kirigami.Units.iconSizes.small
-        icon.name: widget.descriptionSavedFlash
+        icon.name: view.descriptionSavedFlash
                    ? ""
-                   : (widget.savingDescription ? "view-refresh"
+                   : (session.timer.savingDescription ? "view-refresh"
                       : "document-save")
         text: i18n("Save description")
-        opacity: widget.descriptionSavedFlash
-                 ? widget.descriptionSaveFlashOpacity
+        opacity: view.descriptionSavedFlash
+                 ? view.descriptionSaveFlashOpacity
                  : 1
-        visible: widget.descriptionSavedFlash
-                 || widget.savingDescription
-                 || widget.descriptionDirty
-        enabled: widget.descriptionDirty
-                 && !widget.savingDescription
-                 && !widget.descriptionSavedFlash
-        onClicked: widget.saveCurrentDescription()
+        visible: view.descriptionSavedFlash
+                 || session.timer.savingDescription
+                 || descriptionEdit.dirty
+        enabled: descriptionEdit.dirty
+                 && !session.timer.savingDescription
+                 && !view.descriptionSavedFlash
+        onClicked: view.saveCurrentDescription()
         PlasmaComponents3.ToolTip.text: text
         PlasmaComponents3.ToolTip.visible: hovered
         PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
 
         Rectangle {
-            visible: widget.descriptionSavedFlash
+            visible: view.descriptionSavedFlash
             anchors.centerIn: parent
             width: Kirigami.Units.iconSizes.small
             height: width
             radius: width / 2
-            color: KanteStyle.tint(widget.descriptionSaveMutedColor, 0.18)
+            color: KanteStyle.tint(view.descriptionSaveMutedColor, 0.18)
             border.width: 1
-            border.color: widget.descriptionSaveMutedColor
+            border.color: view.descriptionSaveMutedColor
         }
 
         // Theme icons ignore Kirigami.Icon.color; paint the check ourselves.
         Shape {
             id: descriptionSaveCheck
-            visible: widget.descriptionSavedFlash
+            visible: view.descriptionSavedFlash
             anchors.centerIn: parent
             width: Kirigami.Units.iconSizes.small
             height: width
             preferredRendererType: Shape.CurveRenderer
 
             ShapePath {
-                fillColor: widget.descriptionSaveSuccessColor
+                fillColor: view.descriptionSaveSuccessColor
                 strokeWidth: 0
                 scale: Qt.size(descriptionSaveCheck.width / 16,
                                descriptionSaveCheck.height / 16)

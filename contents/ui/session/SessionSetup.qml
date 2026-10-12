@@ -68,6 +68,11 @@ QtObject {
         Geocode.search(query, callback)
     }
 
+    /** The best place for a trip's start or destination (trip map); callback(place or null). */
+    function lookupPlace(query, callback) {
+        Geocode.lookup(query, callback)
+    }
+
     // ── Applying the results (needs the session) ──
 
     /** The Look step changed the visual style: shown at once, then saved. */

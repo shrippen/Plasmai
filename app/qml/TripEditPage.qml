@@ -82,6 +82,7 @@ Kirigami.Page {
                 id: sheet
                 Layout.fillWidth: true
                 busy: page.busy
+                places: session.setup
                 configured: session.connection.configured
                 connectionOk: session.connection.state !== "error"
                 ping: session.trips.ping
