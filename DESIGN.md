@@ -61,8 +61,8 @@ typography stack, badge format, and social-preview spec.
 ### Session layer
 
 Views never call providers or Platform. Every GUI (app pages, shared
-components, setup wizard, terminal client; the Plasmoid and its config pages
-next) reads state from `Session.qml` and calls its actions. Only the layer
+components, setup wizard, terminal client, the Plasmoid and its settings
+pages) reads state from `Session.qml` and calls its actions. Only the layer
 calls the tracker, `KimaiApi` network calls, `offline.js`, `filmDaySync.js`,
 `workTotals.js`, `Platform` (shared.json, tokens, files, idle, notify),
 `catalogCache.js` and `geocode.js`. Pure helpers (`KimaiApi.format*`,
@@ -102,6 +102,30 @@ view ──binds / calls──▶ Session (contents/ui/Session.qml, QtQml only)
   (`Run`: reset old settings and show the wizard; `Report`: the TUI only
   reports `needsSetup`). The Plasmoid passes its `dataSource` and sets
   `catalog.useCache`.
+- Plasmoid (`main.qml`): one `Session` (`offlinePrefix`
+  `plasmoid-<id>-`, the outbox files of earlier versions). The timer cards,
+  `EntryLists` and `DescriptionField` take `session` for data and actions
+  and `view` (the root) for view state only. `main.qml` keeps views,
+  editors, dialogs and flashes, words the layer's signals (notifications,
+  the error line: an action's error shows until the next poll) and bridges
+  `plasmoid.configuration` and shared.json:
+
+  ```
+  reload(): shared.json ─▶ plasmoid.configuration ─▶ session.settings ─▶ session.open()
+  settings dialog closed: plasmoid.configuration ─▶ shared.json ─▶ reload()
+  session.settings.changed (pins, last used, probes, wizard) ─▶ plasmoid.configuration
+  a plasmoid.configuration key (settings dialog) ─▶ session.settings at once
+  ```
+
+  Keys shared.json lacks keep the Plasmoid's main.xml defaults (applied to
+  the settings before `open()`).
+- Settings pages (`config/`): `ConfigPageBase` holds a `Session` that is
+  never opened (no refresh, no polling) and its DataSource. Pages read and
+  write shared.json through `connection.loadStored()` and
+  `settings.set(patch, plasmoid.configuration)`, tokens and the connection
+  test through `connection`, the Favorites catalog through
+  `catalog.cached/loadFile/fetchFor/activitiesFor`, the place search
+  through `setup.searchPlace`. Plasma still saves their `cfg_*` keys.
 
 ### Data model
 
