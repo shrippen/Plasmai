@@ -62,4 +62,10 @@ QtObject {
             elapsedAnchor = session.timer.elapsedSeconds
         })
     }
+
+    /** Names from a catalog that came after the entries. */
+    function rehydrate() {
+        weekEntries = session.catalog.hydrate(weekEntries)
+        todayEntries = session.catalog.hydrate(todayEntries)
+    }
 }

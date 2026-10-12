@@ -29,6 +29,8 @@ QtObject {
     property string state: unconfigured
     /** The server's status text of the last failed refresh ("" when fine). */
     property string errorText: ""
+    /** The error of the last failed refresh (null when fine), for ApiErrors.text. */
+    property var lastError: null
     property var profiles: []
     property var profile: null
     property bool tokenLoaded: false
@@ -85,6 +87,12 @@ QtObject {
 
     /** Switches to `p`: its offline outbox, its token, a refresh. */
     function useProfile(p) {
+        // Another profile: its first answers are pending again (views show loading rows).
+        if (!profile || !p || profile.id !== p.id) {
+            session.timer.loaded = false
+            session.recent.loaded = false
+            session.catalog.loaded = false
+        }
         profile = p
         if (!p) {
             token = ""
@@ -127,10 +135,12 @@ QtObject {
         if (result.ok) {
             state = online
             errorText = ""
+            lastError = null
             return
         }
         state = error
         errorText = result.error ? (result.error.statusText || "") : ""
+        lastError = result.error || null
     }
 
     /** Connection keys for Platform.patchShared. */

@@ -31,10 +31,14 @@ QtObject {
     /** The description as typed; saved after a pause (saveDescription). */
     property string draft: ""
     property bool savingDescription: false
+    /** The first answer of this profile is in (views show loading rows before). */
+    property bool loaded: false
     readonly property bool hasLastUsed: session.settings.lastUsedProjectId.length > 0
                                         && session.settings.lastUsedActivityId.length > 0
 
     signal descriptionSaved()
+    /** The typed description was not saved (the draft stays). */
+    signal descriptionFailed(var result)
 
     property Timer tickTimer: Timer {
         interval: 1000
@@ -56,12 +60,14 @@ QtObject {
         session.busy = true
         c.tracker.fetchActiveTimesheet(c.url, c.token, function(result) {
             session.busy = false
+            loaded = true
             c.observe(result)
             if (!result.ok) {
                 session.failed(Ui.Session.Action.Refresh, result)
                 return
             }
-            apply(result.data && result.data.length > 0 ? result.data[0] : null)
+            // Offline answers come from the snapshot without customer and names: fill them in.
+            apply(result.data && result.data.length > 0 ? session.catalog.hydrate([result.data[0]])[0] : null)
         })
     }
 
@@ -272,8 +278,8 @@ QtObject {
         return TimerSession.switchHintKey(ts)
     }
 
-    /** Changes the running entry (project, activity, begin, billable, tags). */
-    function patchActive(fields) {
+    /** Changes the running entry (project, activity, begin, billable, tags); done() once saved. */
+    function patchActive(fields, done) {
         if (!timesheetId) {
             return
         }
@@ -287,7 +293,15 @@ QtObject {
             }
             session.noteDropped(result)
             session.refresh()
+            if (done) {
+                done()
+            }
         })
+    }
+
+    /** Typed description, saved by flushDescription() only (the widget saves on Enter). */
+    function setDraft(text) {
+        draft = text
     }
 
     /** Typed description: saved after a pause. */
@@ -310,6 +324,8 @@ QtObject {
             if (result.ok) {
                 description = text
                 descriptionSaved()
+            } else {
+                descriptionFailed(result)
             }
             if (draft !== text) {
                 descriptionTimer.restart()

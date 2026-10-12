@@ -50,7 +50,8 @@ QtObject {
         })
     }
 
-    function remove(ts) {
+    /** done() once deleted. */
+    function remove(ts, done) {
         if (!ts || !ts.id) {
             return
         }
@@ -63,11 +64,14 @@ QtObject {
                 return
             }
             session.refresh()
+            if (done) {
+                done()
+            }
         })
     }
 
-    /** Splits a stopped entry at `at`: patches its end, creates a twin from there to the original end. */
-    function split(ts, at) {
+    /** Splits a stopped entry at `at`: patches its end, creates a twin from there to the original end; done() once both exist. */
+    function split(ts, at, done) {
         if (!ts || !ts.id || !at) {
             return
         }
@@ -99,6 +103,9 @@ QtObject {
                     session.failed(Ui.Session.Action.SplitSecond, second)
                 }
                 session.refresh()
+                if (second.ok && done) {
+                    done()
+                }
             })
         })
     }
@@ -114,6 +121,8 @@ QtObject {
         c.tracker[calls[kind]](c.url, c.token, fields, function(result) {
             session.busy = false
             if (result.ok) {
+                // The widget's catalog cache would hide the new entity until it is stale.
+                session.catalog.invalidate()
                 session.refresh()
             }
             if (callback) {

@@ -72,9 +72,10 @@ QtObject {
         c.tracker.fetchTrips(c.url, c.token, query, callback)
     }
 
-    function fetchSuggestions(callback) {
+    /** range: { from, to } (the dateRange feature) or none: every open suggestion. */
+    function fetchSuggestions(callback, range) {
         const c = session.connection
-        c.tracker.fetchTripSuggestions(c.url, c.token, null, callback)
+        c.tracker.fetchTripSuggestions(c.url, c.token, range || null, callback)
     }
 
     function create(body, callback) {

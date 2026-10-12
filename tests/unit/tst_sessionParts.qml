@@ -274,6 +274,68 @@ TestCase {
         compare(range.data.filter(function(ts) { return ts.description === "Two hours" }).length, 1)
     }
 
+    function test_doneCallbacks() {
+        const s = openDemo()
+        tryVerify(function() { return s.timer.tracking })
+        const first = s.recent.list[0]
+        const day = new Date()
+        day.setDate(day.getDate() - 3)
+        day.setHours(9, 0, 0, 0)
+        const end = new Date(day.getTime() + 2 * 3600 * 1000)
+        let created = null
+        s.entries.write(null, { project: KimaiApi.projectId(first), activity: KimaiApi.activityId(first),
+                                begin: KimaiApi.localDateTimeString(day), end: KimaiApi.localDateTimeString(end),
+                                description: "Done test" }, function(r) { created = r.data })
+        tryVerify(function() { return created !== null })
+
+        const done = []
+        s.entries.split(created, new Date(day.getTime() + 3600 * 1000), function() { done.push("split") })
+        tryVerify(function() { return done.length === 1 })
+        tryCompare(s, "busy", false)
+        s.entries.remove(created, function() { done.push("remove") })
+        tryVerify(function() { return done.length === 2 })
+        tryCompare(s, "busy", false)
+        s.timer.patchActive({ description: "patched" }, function() { done.push("patch") })
+        tryVerify(function() { return done.length === 3 })
+        compare(done, ["split", "remove", "patch"])
+    }
+
+    // ── loading, catalog refill, draft (the widget's needs) ──
+
+    function test_loadedFlags() {
+        const s = openDemo()
+        tryVerify(function() { return s.timer.loaded && s.recent.loaded && s.catalog.loaded })
+        compare(s.connection.lastError, null)
+    }
+
+    function test_catalogRefillsNames() {
+        const s = openDemo()
+        tryVerify(function() { return s.catalog.loaded })
+        // Entries that came before the catalog: ids only.
+        s.recent.list = s.recent.list.map(function(ts) {
+            return Object.assign({}, ts, { project: KimaiApi.projectId(ts), activity: KimaiApi.activityId(ts) })
+        })
+        verify(typeof s.recent.list[0].project !== "object")
+        const updated = spy(s.catalog, "updated")
+        s.catalog.invalidate()
+        s.catalog.refresh()
+        tryCompare(updated, "count", 1)
+        verify(typeof s.recent.list[0].project === "object")
+    }
+
+    function test_draftWaitsForFlush() {
+        const s = openDemo()
+        tryVerify(function() { return s.timer.tracking })
+        const saved = spy(s.timer, "descriptionSaved")
+        s.timer.setDraft("Typed, not saved")
+        wait(1200)
+        compare(saved.count, 0)
+        verify(s.timer.description !== "Typed, not saved")
+        s.timer.flushDescription()
+        tryCompare(saved, "count", 1)
+        compare(s.timer.description, "Typed, not saved")
+    }
+
     function test_createEntityAndTags() {
         const s = openDemo()
         const before = s.catalog.customers.length

@@ -11,6 +11,7 @@ import "../../code/platform.js" as Platform
  *              ├─ loadCustomers ─────▶ customers ├─▶ [useCache: catalog-cache.json]
  *              └─ loadAllActivities ─▶ activities┘
  *   loadActivities(project) ─▶ activitiesByProject[project] ─▶ picker model
+ *   all three answered ─▶ names filled in again (recent, timer, totals) ─▶ updated()
  */
 QtObject {
     id: catalog
@@ -29,6 +30,8 @@ QtObject {
     /** The whole activity catalog (loadActivities needs a project). */
     property var activities: []
     property var activitiesByProject: ({})
+    /** The first answer of this profile's catalog is in (views show loading rows before). */
+    property bool loaded: false
 
     /** SearchableCombo-shaped project items for every picker. */
     readonly property var projectPickerModel: KimaiApi.projectPickerItems(projects, customers)
@@ -37,10 +40,14 @@ QtObject {
     onActivitiesChanged: session.favorites.resolve()
     onActivitiesByProjectChanged: session.favorites.resolve()
 
+    /** A full catalog answer is in; the other parts show its names already. */
+    signal updated()
+
     function refresh() {
         const c = session.connection
         const profileId = c.profile ? c.profile.id : ""
         if (useCache && CatalogCache.isFresh(profileId) && projects.length > 0) {
+            loaded = true
             return
         }
 
@@ -50,7 +57,13 @@ QtObject {
         function done(result) {
             fromServer = fromServer && result.ok && !result.offline
             waiting--
-            if (waiting > 0 || !useCache || !fromServer) {
+            if (waiting > 0) {
+                return
+            }
+            loaded = true
+            refill()
+            updated()
+            if (!useCache || !fromServer) {
                 return
             }
             CatalogCache.storeEntities(profileId, customers, projects, activities)
@@ -80,6 +93,20 @@ QtObject {
             }
             done(result)
         })
+    }
+
+    /** The next refresh asks the server, not the cache (a reload, a new project). */
+    function invalidate() {
+        CatalogCache.clear()
+    }
+
+    /** Entries loaded before the catalog get their names now, not on the next refresh. */
+    function refill() {
+        session.recent.rehydrate()
+        session.totals.rehydrate()
+        if (session.timer.active) {
+            session.timer.apply(hydrate([session.timer.active])[0])
+        }
     }
 
     function projectById(projectId) {
