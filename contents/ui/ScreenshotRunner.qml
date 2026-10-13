@@ -6,7 +6,7 @@ import "../code/kimaiApi.js" as KimaiApi
 /**
  * Landing-page screenshots, only when a plan file exists:
  *   $XDG_CONFIG_HOME/com.github.shrippen.plasmai/screenshots.json
- *   { "dir": "/out", "shots": [ { "name": "timer", "view": "main|manual|stats|filmday|edit|datepicker|timepicker|create|offline|unsynced|online" } ] }
+ *   { "dir": "/out", "shots": [ { "name": "timer", "view": "main|manual|stats|stats-activity|filmday|edit|datepicker|timepicker|create|offline|unsynced|online" } ] }
  * demo/shots.sh writes it into a scratch config home together with a demo profile, then
  * runs plasmoidviewer offscreen. Each view is grabbed with grabToImage into dir/name.png
  * (popup views: the whole X screen with ImageMagick's import, use a planar viewer),
@@ -66,6 +66,9 @@ Item {
                 r.openManualEntry()
             } else if (item.value === "stats") {
                 r.openStatsView()
+            } else if (item.value === "stats-activity") {
+                r.openStatsView()
+                runner.scrollToLater("activityHeading")
             } else if (item.value === "filmday") {
                 r.openFilmDayView()
             } else if (item.value === "edit") {
@@ -159,6 +162,55 @@ Item {
             }
         }
         return x
+    }
+
+    // Scrolls the view so the item named `objectName` is at the top, once the view is built.
+    function scrollToLater(objectName) {
+        scrollTimer.target = objectName
+        scrollTimer.restart()
+    }
+
+    Timer {
+        id: scrollTimer
+        property string target
+        interval: 1500
+        onTriggered: {
+            var r = plasmoidRoot.fullRepresentationItem
+            var heading = runner.findNamed(r, target)
+            var flick = heading ? runner.flickableAbove(heading) : null
+            if (!flick) {
+                runner.trace("PLASMAI_SCREENSHOT_NOSCROLL " + target)
+                return
+            }
+            var y = heading.mapToItem(flick.contentItem, 0, 0).y - 8
+            flick.contentY = Math.max(0, Math.min(y, flick.contentHeight - flick.height))
+        }
+    }
+
+    function findNamed(item, name) {
+        if (!item) {
+            return null
+        }
+        if (item.objectName === name) {
+            return item
+        }
+        var kids = (item.children || []).concat(item.data || [])
+        for (var i = 0; i < kids.length; ++i) {
+            var found = kids[i] !== item ? findNamed(kids[i], name) : null
+            if (found) {
+                return found
+            }
+        }
+        return null
+    }
+
+    function flickableAbove(item) {
+        for (var p = item.parent; p; p = p.parent) {
+            if (p.contentItem !== undefined && p.contentY !== undefined && p.contentHeight > p.height) {
+                return p
+            }
+        }
+        return null
     }
 
     // First item under `item` (children, then popups' content) with a function `name`;
