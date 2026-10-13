@@ -96,6 +96,23 @@ TestCase {
     }
 
     // One parser for every backend's stamps (Kimai, ISO, provider variants).
+    // Short formats have a two-digit year ("dd.MM.yy"): "26" is 2026, not
+    // 1926 as Qt reads it. Before, an edited entry got a start 100 years back.
+    function test_parseLocaleDateTwoDigitYear() {
+        compare(DateTimeFormat.parseLocaleDate("13.10.26", "dd.MM.yy").getFullYear(), 2026)
+        compare(DateTimeFormat.parseLocaleDate("10/13/26", "M/d/yy").getFullYear(), 2026)
+        compare(DateTimeFormat.parseLocaleDate("13.10.2026", "dd.MM.yyyy").getFullYear(), 2026)
+        compare(DateTimeFormat.parseLocaleDate("13.10.99", "dd.MM.yy").getFullYear(), 1999)
+        compare(DateTimeFormat.parseLocaleDate("13.10.26", "dd.MM.yy").getMonth(), 9)
+        compare(DateTimeFormat.parseLocaleDate("13.10.26", "dd.MM.yy").getDate(), 13)
+    }
+
+    // What the field shows reads back as the same day, in any locale.
+    function test_localeDateRoundTrip() {
+        const day = new Date(2026, 9, 13, 12)
+        compare(DateTimeFormat.parseLocaleDate(DateTimeFormat.formatLocaleDate(day)).toDateString(), day.toDateString())
+    }
+
     function test_parseStamp() {
         var utc = Date.UTC(2026, 8, 25, 11, 15, 0)
         compare(DateTimeFormat.stampMs("2026-09-25T13:15:00+0200"), utc)

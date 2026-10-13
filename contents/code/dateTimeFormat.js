@@ -78,20 +78,45 @@ function formatLocaleTime(hours, minutes) {
     return Qt.locale().toString(d, localeTimeFormat())
 }
 
-function parseLocaleDate(text) {
+/** Years a two-digit year may lie ahead of today: "26" is 2026, "99" is 1999. */
+var TWO_DIGIT_YEARS_AHEAD = 20
+
+/** True for formats with a two-digit year ("dd.MM.yy", "M/d/yy"). */
+function hasTwoDigitYear(format) {
+    return /(^|[^y])yy([^y]|$)/.test(String(format || ""))
+}
+
+/**
+ * The full year of a two-digit year, in the century around today. Qt reads
+ * "26" as 1926; an entry edited in a "yy" field then started 100 years back.
+ */
+function fullYear(twoDigits, now) {
+    var year = (now || new Date()).getFullYear()
+    var full = Math.floor(year / 100) * 100 + (twoDigits % 100)
+    if (full > year + TWO_DIGIT_YEARS_AHEAD) {
+        full -= 100
+    }
+    return full
+}
+
+/** Local date at noon from the locale's short format (or `format`), or null. */
+function parseLocaleDate(text, format) {
     var t = String(text || "").trim()
     if (!t) {
         return null
     }
-    var d = Date.fromLocaleString(Qt.locale(), t, localeDateFormat())
+    var fmt = format || localeDateFormat()
+    var d = Date.fromLocaleString(Qt.locale(), t, fmt)
     if (d && typeof d.getTime === "function" && !isNaN(d.getTime())) {
-        return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12, 0, 0, 0)
+        var y0 = hasTwoDigitYear(fmt) ? fullYear(d.getFullYear()) : d.getFullYear()
+        return new Date(y0, d.getMonth(), d.getDate(), 12, 0, 0, 0)
     }
     // Digit-segment fallback when fromLocaleString disagrees with toString formatting
-    var roles = dateSegmentRoles(localeDateFormat())
+    var roles = dateSegmentRoles(fmt)
     var segs = digitSegments(t)
     if (roles.length >= 3 && segs.length >= 3) {
-        var y = 1970
+        // No year in the text: this year, never 1970.
+        var y = new Date().getFullYear()
         var m = 1
         var day = 1
         for (var i = 0; i < 3; i++) {
@@ -101,7 +126,7 @@ function parseLocaleDate(text) {
             }
             if (roles[i] === "y") {
                 if (segs[i].text.length <= 2) {
-                    y = n >= 70 ? 1900 + n : 2000 + n
+                    y = fullYear(n)
                 } else {
                     y = n
                 }

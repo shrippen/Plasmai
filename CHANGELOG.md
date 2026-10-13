@@ -7,6 +7,7 @@
 - Statistics (Kante styles): hovering a block in "Projects by hour" shows its project, time span and duration; on touch a tap does
 
 ### Fixed
+- Editing an entry could move its start 100 years back: date fields in a short format with a two-digit year ("13.10.26", German and US English) read their own text back as 1926 when the field was entered and left. A running entry then started in 1926 (Kimai accepts it), a stopped one was refused by Kimai as too long. Two-digit years now mean this century, and a date without a year is this year instead of 1970
 - Statistics (Kante styles): the hover read-outs of the charts wrote project names in the project colour, which some colours made unreadable. They now use the text colour with a coloured square in front
 
 ## 2.5.3
