@@ -38,7 +38,7 @@ jobs:
         run: |
           for tz in UTC America/Los_Angeles Pacific/Kiritimati; do
             echo "::group::TZ=$tz"
-            TZ=$tz QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -import app/qml/kirigami-addons -input tests/unit
+            TZ=$tz QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input tests/unit
             echo "::endgroup::"
           done
 

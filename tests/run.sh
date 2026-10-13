@@ -22,8 +22,7 @@ fi
 echo "==> QML unit tests ($QMLTEST)"
 # Offscreen is enough for .js TestCase files; do not leak this into pytest/viewer.
 QML_PLATFORM="${QT_QPA_PLATFORM:-offscreen}"
-# The app's vendored kirigami-addons (app/addons/README.md), as the app loads them.
-QT_QPA_PLATFORM="$QML_PLATFORM" "$QMLTEST" -import "$ROOT/app/qml/kirigami-addons" -input "$ROOT/tests/unit"
+QT_QPA_PLATFORM="$QML_PLATFORM" "$QMLTEST" -input "$ROOT/tests/unit"
 
 echo "==> QML locale tests"
 QT_QPA_PLATFORM="$QML_PLATFORM" QMLTESTRUNNER="$QMLTEST" "$ROOT/tests/locales.sh"

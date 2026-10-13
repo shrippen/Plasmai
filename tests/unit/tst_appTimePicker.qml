@@ -4,15 +4,46 @@ import QtTest
 
 // The app's time picker (kirigami-addons' TimePopup) must show the time it was
 // opened for, every time: TimePicker only moves its minute tumbler on creation.
+//
+// The vendored TimePopup (app/addons/README.md) is loaded by file: in the app it wins
+// from qrc, here an installed kirigami-addons compiled into its plugin would win over
+// any import path. pickerComponent does what app/qml/controls/TimePicker.qml does.
 TestCase {
     name: "AppTimePicker"
     when: windowShown
     width: 400
     height: 400
 
+    readonly property url vendoredPopup: Qt.resolvedUrl("../../app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/TimePopup.qml")
+
     Component {
         id: pickerComponent
-        Loader { source: Qt.resolvedUrl("../../app/qml/controls/TimePicker.qml") }
+        Loader { sourceComponent: harness }
+    }
+
+    // openFor(hours, minutes) and picked(hours, minutes) as in controls/TimePicker.qml.
+    Component {
+        id: harness
+        Item {
+            id: picker
+            signal picked(int hours, int minutes)
+
+            function openFor(hours, minutes) {
+                var value = new Date()
+                value.setHours(hours, minutes, 0, 0)
+                popupLoader.setSource(vendoredPopup, { value: value, parent: QQC2.Overlay.overlay })
+                popupLoader.item.open()
+            }
+
+            Loader { id: popupLoader }
+
+            Connections {
+                target: popupLoader.item
+                function onAccepted() {
+                    picker.picked(popupLoader.item.value.getHours(), popupLoader.item.value.getMinutes())
+                }
+            }
+        }
     }
 
     // The Tumbler with `count` entries below `item` (24 = hours, 60 = minutes).

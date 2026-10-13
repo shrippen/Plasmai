@@ -22,7 +22,7 @@ failed=()
 for loc in "${LOCALES[@]}"; do
     for file in "${FILES[@]}"; do
         if ! LANG="$loc.UTF-8" LC_ALL="$loc.UTF-8" QT_QPA_PLATFORM="${QT_QPA_PLATFORM:-offscreen}" \
-            "$QMLTEST" -import app/qml/kirigami-addons -input "$file" -silent >"${TMPDIR:-/tmp}/plasmai-locale.log" 2>&1; then
+            "$QMLTEST" -input "$file" -silent >"${TMPDIR:-/tmp}/plasmai-locale.log" 2>&1; then
             grep -E "^(FAIL|   Actual|   Expected)" "${TMPDIR:-/tmp}/plasmai-locale.log" | sed "s/^/$loc: /"
             failed+=("$loc $(basename "$file")")
         fi
