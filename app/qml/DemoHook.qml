@@ -17,8 +17,9 @@ Item {
 
     // The token may have been looked up before the route existed.
     onAppRootChanged: {
-        if (appRoot && appRoot.activeProfile && KimaiApi.routeToken(appRoot.activeProfile.url)) {
-            appRoot.loadApiToken()
+        const c = appRoot ? appRoot.session.connection : null
+        if (c && c.profile && KimaiApi.routeToken(c.profile.url)) {
+            c.reloadToken()
         }
     }
 
@@ -28,9 +29,9 @@ Item {
         Platform.loadShared(null).then(function(shared) {
             var list = Profiles.withDemoProfile(Profiles.parseProfiles(shared ? shared.profilesJson : "", shared ? shared.kimaiUrl : ""),
                                                 DemoKimai.DEMO_URL, "Demo")
-            return Platform.patchShared(null, app.currentConfig(), { profilesJson: Profiles.serializeProfiles(list), activeProfileId: "demo" })
+            return Platform.patchShared(null, app.session.connection.config(), { profilesJson: Profiles.serializeProfiles(list), activeProfileId: "demo" })
         }).then(function() {
-            app.loadSharedAndConnect()
+            app.session.open()
         })
     }
 }

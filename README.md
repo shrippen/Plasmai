@@ -30,6 +30,7 @@ A KDE Plasma 6 panel widget for time tracking — Kimai, Clockify, Toggl Track, 
 - Shared settings across all widget instances
 - Desktop notifications; optional idle auto-stop
 - Translations: EN, DE, FR, ES, IT, NL, PT (BR), PL, UK, RU, JA, ZH (CN)
+- Terminal client in the desktop app (Linux, macOS): `plasmai-app --tui` shows the timer, recents, today as hour rows with gaps and the week as a table; keys 1–9 start or switch, `s` stops. Same profile, token and settings as the app; not in the widget
 
 ## Requirements
 
