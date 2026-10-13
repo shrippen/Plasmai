@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 2.6.0
+
+Released 2026-10-13.
+
+A terminal client for the desktop app, statistics with their own day for activities, and editing that keeps dates and times as entered: no more starts 100 years back, and the time picker speaks 12 hours where the language does.
+
 ### Added
 - Desktop app (Linux, macOS): terminal client, `plasmai-app --tui`. Timer, recents, today as hour rows with gaps, the week as a table; 1–9 start or switch, `s` stops, `t` day, `w` week, `q` quits. It uses the app's profile, token and settings and keeps its own offline outbox. The widget has none
 

@@ -86,7 +86,7 @@ static void applyDesktopScheme()
 
 // -- main ----------------------------------------------------------------
 
-static const QString kAppVersion = QStringLiteral("2.5.3");
+static const QString kAppVersion = QStringLiteral("2.6.0");
 
 int main(int argc, char *argv[])
 {
