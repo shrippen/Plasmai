@@ -274,6 +274,53 @@ A native Windows client: **tray icon + popup only**, conceptually the Plasmoid (
 - Tray popup placement varies (taskbar top/left, overflow area “^”, several monitors).
 - Unsigned builds trigger SmartScreen; signing is needed for real users.
 
+### 8. Layouts — planned
+
+Today the popup has one layout. Plan: five, picked in the setup wizard, changeable in Display. Concepts from the UI review of 2026-10-12 (personas of the demo world: Jonas forgets the timer on set, Theo works nights, Lena bills by week, Hinnerk needs big targets).
+
+| `layout` | Concept | For | Builds on | Days |
+|---|---|---|---|---|
+| `classic` | today's popup, default | everyone | — | — |
+| `tiles` | large tiles for the most used activities; tap starts or switches, the running tile shows time and Stop | set, touch, app | favorites, recents | 2–3 |
+| `timesheet` | week grid activity × day like Kimai; a cell lists its entries; target row | weekly billing | `fetchTimesheetsRange`, editor | 3–5 |
+| `dayband` | the day as a vertical time axis; gaps hatched and filled with one click; drag edges to correct; nights run past midnight | correcting, nights | `KanteDayStrip` | 5–7 |
+| `ring` | 24 h ring (the logo); drag on the ring marks a span. Experimental, settings only | — | new drawing | 6–9 |
+
+Not a layout but a switch, `gapPrompt`: Plasmai asks about untracked time instead of only recording it. A thin day line on the panel edge; on a gap a notification with actions ("Schnitt · Showreel 13:15–now", "Pause", "Later"). Suggestions from recents and the calendar. **Owner decision:** the active window as a source is the auto-tracker in "Won't do"; Kurrent tasks via D-Bus touch "no D-Bus IPC" (pillar 4). Basic version 4–5 days, sources +4–6.
+
+**Wizard:** a step "How do you work?" after Look: switch often → `tiles`, see my day → `dayband`, bill by week → `timesheet`, as before → `classic` (`layouts.js` `forAnswer`). Then yes/no for `gapPrompt`. The ring is not offered there.
+
+**Fewer options, not more:** a layout decides what Display switches decide today (flyout vs. desktop toggles, sparkline, recent count). Each layout step removes the switches it makes moot.
+
+**Test matrix:** layouts take the style from `KanteStyle` roles only. No per-style component (today `TimerCard` / `TimerCardKante`), otherwise 5 layouts × 3 styles × Plasmoid/desktop/app × 4 backends.
+
+```
+ contents/code/                         contents/ui/ (Plasmoid, app)          tui/
+ providers, offline.js ─┐
+ dayModel.js ───────────┼── controller ──► Loader(layout) ─► Classic|Tiles|…   node loader ─► ANSI views
+ layouts.js ────────────┘   (state, actions)
+```
+
+Steps, each a PR that is useful alone:
+
+1. **Data layer** — `layouts.js` (key values, wizard answers), `dayModel.js` (day blocks, gaps, week grid; no Qt types). Branch `feature/layout-foundation`.
+2. **Controller seam (5–7 days, main risk)** — `Session.qml` (built): profile, token, outbox, running entry, recents, today and week, start/stop/switch/continue; QtQml only, used by the terminal client. Open: the widget's and the app window's `main.qml` move onto it, the popup body becomes a `Loader` over `layout` with `classic` unchanged. Before/after screenshots of both clients in all styles, viewer sweeps.
+3. **Key and wizard (1–2 days)** — `layout`, `gapPrompt` in `main.xml`, shared.json, DESIGN.md; wizard step with previews.
+4. `tiles` → 5. `timesheet` → 6. `dayband` → 7. `gapPrompt` basic → 8. `ring`.
+9. **Release chores** across the steps: demo screenshots of every layout in every language, landing page, release log (2–3 days).
+
+Total ≈ 35–50 days; steps 1–4 (≈ 10–14 days) are a release worth having.
+
+### 9. Terminal client — built (desktop app)
+
+Plasmai in a terminal: over SSH, in tiling setups. `plasmai-app --tui` in the desktop app (Linux, macOS); the widget has none, Android and the Windows tray build neither.
+
+- **Same code, no second implementation:** a `QCoreApplication` with the app's TokenStore and FileStore, a QML engine without a window, `Session.qml` (pillar 8, step 2) and `app/qml/tui/Tui.qml`. Screens are pure functions in `tuiView.js`; `app/tui/terminal_posix.cpp` does raw keys and the alternate screen.
+- **Views follow the layouts:** timer and recents (1–9 start or switch, `s` stop), today as hour rows with gaps (`dayModel.js`), the week as a table. Own offline outbox (`tui-` files).
+- **Rules:** no features of its own; capability flags as everywhere.
+- **Open:** Quick-Add-style command line (`ton @nachtwache gestern 22:00–03:13`), manual entries, translations of the new strings, the gap prompt at start.
+- The Node variant planned on 2026-10-12 is dropped: the app binary already has the engine, the token store and the files.
+
 ### Release chores for 2.0.0 (see RELEASE-TODO.md)
 
 Keystore, CI run on GitHub, signed APK, Flatpak build, aarch64 tarball, app ID and versionCode decisions, store listing.
@@ -327,7 +374,7 @@ Kimai web invoices/expenses/custom fields; KTimeTracker local database; Hamster 
 
 Not required for 2.0.
 
-- Compact **week timesheet grid** as another `mainViewMode` (SolidTime / Clockify), same density as stats.
+- ~~Compact **week timesheet grid** as another `mainViewMode`~~ — now the `timesheet` layout (pillar 8).
 - Map **KDE Activities** to a default project (easy to get wrong).
 - **Pomodoro** as a Behavior option — not a second product.
 - Offline queue — planned, see pillar 6.
