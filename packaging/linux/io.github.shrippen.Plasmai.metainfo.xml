@@ -89,6 +89,12 @@
     <binary>plasmai-app</binary>
   </provides>
   <releases>
+    <release version="2.6.1" date="2026-10-13">
+      <description>
+        <p>Brings the Plasma widget package that was missing from 2.6.0. No changes in the
+        app.</p>
+      </description>
+    </release>
     <release version="2.6.0" date="2026-10-13">
       <description>
         <p>Terminal client: plasmai-app --tui shows the timer, recents, today and the week

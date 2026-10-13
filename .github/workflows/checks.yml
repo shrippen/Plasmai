@@ -30,7 +30,7 @@ jobs:
     steps:
       - name: Install Qt, Kirigami (+ addons for the app's pickers), libplasma, Plasma5Support (qmllint)
         run: |
-          pacman -Syu --noconfirm --needed qt6-declarative kirigami kirigami-addons libplasma plasma5support tzdata python python-pytest git
+          pacman -Syu --noconfirm --needed qt6-declarative kirigami kirigami-addons libplasma plasma5support tzdata python python-pytest git gettext zip
       - uses: actions/checkout@v7
 
       # Stamps are local days: run where Berlin assumptions break (UTC runner, UTC-8, UTC+14).
@@ -52,6 +52,11 @@ jobs:
       - name: qmllint (reports, does not block)
         continue-on-error: true
         run: scripts/qmllint.sh || { echo "::warning::qmllint has findings (see this step)"; exit 1; }
+
+      # The widget as released: package.sh also fails when the package still names the
+      # internal demo (2.6.0 shipped without its .plasmoid over a comment).
+      - name: Widget package
+        run: ./scripts/package.sh
 
       - name: App resources
         run: python3 tests/test_app_resources.py

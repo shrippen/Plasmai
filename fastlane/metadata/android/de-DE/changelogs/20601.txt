@@ -1,0 +1,1 @@
+Plasmai 2.6.1: Bringt das Paket des Plasma-Widgets, das in 2.6.0 fehlte. In der App ändert sich nichts; die Neuerungen von 2.6.0 gelten weiter.
