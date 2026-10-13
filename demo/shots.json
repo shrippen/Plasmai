@@ -17,6 +17,10 @@
       "view": "stats"
     },
     {
+      "name": "statistics-activity",
+      "view": "stats-activity"
+    },
+    {
       "name": "filmday",
       "view": "filmday"
     },
