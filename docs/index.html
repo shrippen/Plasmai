@@ -169,6 +169,33 @@ kpackagetool6 -i . -t Plasma/Applet</div>
 <section class="section" id="changes">
   <h2 lang="en">Changes</h2><h2 lang="de">Änderungen</h2>
   <ol class="changelog">
+    <li class="release" id="v2.6.1">
+      <div class="release-head"><b class="release-version">2.6.1</b><time datetime="2026-10-13">13 Oct 2026</time></div>
+      <div class="release-body">
+        <p class="release-lead" lang="en">The Plasma widget for 2.6.0: its package was missing from the 2.6.0 release.</p>
+        <p class="release-lead" lang="de">Das Plasma-Widget zu 2.6.0: Sein Paket fehlte im Release 2.6.0.</p>
+        <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3>
+          <ul lang="en">
+            <li>2.6.0 came without the widget package (<code>.plasmoid</code>) and the install script, so the one-line install command failed with "not found" while 2.6.0 was the latest release. The package build stopped at a comment that named the internal screenshot code it removes. The checks now build the widget package on every pull request, so this shows before a release.</li>
+          </ul>
+          <ul lang="de">
+            <li>2.6.0 kam ohne das Widget-Paket (<code>.plasmoid</code>) und das Installationsskript, deshalb schlug der Einzeiler zur Installation mit „nicht gefunden“ fehl, solange 2.6.0 das neueste Release war. Der Paketbau brach an einem Kommentar ab, der den internen Screenshot-Code nannte, den er entfernt. Die Prüfungen bauen das Widget-Paket jetzt bei jedem Pull Request, so fällt das vor einem Release auf.</li>
+          </ul>
+        </div>
+        <div class="release-group" data-kind="note"><h3><span lang="en">Note</span><span lang="de">Hinweis</span></h3>
+          <ul lang="en">
+            <li>No changes in the app or the widget beyond 2.6.0: everything new in 2.6.0 below applies.</li>
+          </ul>
+          <ul lang="de">
+            <li>App und Widget sind gegenüber 2.6.0 unverändert: Alles Neue aus 2.6.0 unten gilt.</li>
+          </ul>
+        </div>
+        <div class="release-shots">
+          <figure><img lang="en" src="shots/release-2.6.1-pipeline-en.webp" alt="Release files of 2.6.0 and 2.6.1: 2.6.0 lacks the plasmoid and the install script, 2.6.1 has all six" loading="lazy"><img lang="de" src="shots/release-2.6.1-pipeline-de.webp" alt="Release-Dateien von 2.6.0 und 2.6.1: 2.6.0 fehlen Plasmoid und Installationsskript, 2.6.1 hat alle sechs" loading="lazy"><figcaption><span lang="en">Release files per version</span><span lang="de">Release-Dateien je Version</span></figcaption></figure>
+        </div>
+        <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v2.6.0...v2.6.1"><span lang="en">All changes since 2.6.0 →</span><span lang="de">Alle Änderungen seit 2.6.0 →</span></a>
+      </div>
+    </li>
     <li class="release" id="v2.6.0">
       <div class="release-head"><b class="release-version">2.6.0</b><time datetime="2026-10-13">13 Oct 2026</time></div>
       <div class="release-body">
@@ -234,7 +261,7 @@ kpackagetool6 -i . -t Plasma/Applet</div>
       <div><h4><span lang="en">Source</span><span lang="de">Quelltext</span></h4><a href="https://github.com/shrippen/Plasmai">GitHub</a><a href="https://github.com/shrippen/Plasmai/issues">Issues</a><a href="https://github.com/shrippen/Plasmai/blob/main/CHANGELOG.md">Changelog</a><a href="https://store.kde.org/p/2368175/">KDE Store</a></div>
     </nav>
   </div>
-  <div class="foot-meta"><p>GPL-3.0-or-later · shrippen · v2.6.0</p></div>
+  <div class="foot-meta"><p>GPL-3.0-or-later · shrippen · v2.6.1</p></div>
 </footer>
 
 </body>

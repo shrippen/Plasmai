@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 2.6.1
+
+Released 2026-10-13.
+
+The Plasma widget for 2.6.0: its package was missing from the 2.6.0 release.
+
+### Fixed
+- Release: 2.6.0 came without the widget package (`.plasmoid`) and the install script. The one-line install command loads both from the latest release and failed with "not found" while 2.6.0 was the latest. The package build refused a comment that named the internal screenshot code it removes. The comment is reworded, and the checks now build the widget package on every pull request, so this shows before a release
+
 ## 2.6.0
 
 Released 2026-10-13.
