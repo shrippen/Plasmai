@@ -113,6 +113,31 @@ TestCase {
         compare(DateTimeFormat.parseLocaleDate(DateTimeFormat.formatLocaleDate(day)).toDateString(), day.toDateString())
     }
 
+    // A typed hour in a 12-hour field stays in its half of the day (3 on 2:30 PM is 3:30 PM).
+    function test_applyTimeSegmentTwelveHour() {
+        var roles = ["H", "m"]
+        compare(DateTimeFormat.applyTimeSegment(14, 30, roles, 0, "3", DateTimeFormat.Clock.TwelveHour), { hours: 15, minutes: 30 })
+        compare(DateTimeFormat.applyTimeSegment(14, 30, roles, 0, "12", DateTimeFormat.Clock.TwelveHour), { hours: 12, minutes: 30 })
+        compare(DateTimeFormat.applyTimeSegment(2, 30, roles, 0, "12", DateTimeFormat.Clock.TwelveHour), { hours: 0, minutes: 30 })
+        compare(DateTimeFormat.applyTimeSegment(9, 30, roles, 0, "11", DateTimeFormat.Clock.TwelveHour), { hours: 11, minutes: 30 })
+        compare(DateTimeFormat.applyTimeSegment(14, 30, roles, 0, "3", DateTimeFormat.Clock.TwentyFourHour), { hours: 3, minutes: 30 })
+        compare(DateTimeFormat.applyTimeSegment(14, 30, roles, 0, "23", DateTimeFormat.Clock.TwentyFourHour), { hours: 23, minutes: 30 })
+        compare(DateTimeFormat.clockOf("h:mm AP"), DateTimeFormat.Clock.TwelveHour)
+        compare(DateTimeFormat.clockOf("h:mm a"), DateTimeFormat.Clock.TwelveHour)
+        compare(DateTimeFormat.clockOf("HH:mm"), DateTimeFormat.Clock.TwentyFourHour)
+    }
+
+    // The digit fallback reads the am/pm marker of a 12-hour format.
+    function test_parseLocaleTimeTwelveHourFallback() {
+        var pm = Qt.locale().pmText || "PM"
+        var am = Qt.locale().amText || "AM"
+        compare(DateTimeFormat.parseLocaleTime("2.30 " + pm, "h:mm AP"), { hours: 14, minutes: 30 })
+        compare(DateTimeFormat.parseLocaleTime("12.05 " + am, "h:mm AP"), { hours: 0, minutes: 5 })
+        compare(DateTimeFormat.parseLocaleTime("12.05 " + pm, "h:mm AP"), { hours: 12, minutes: 5 })
+        compare(DateTimeFormat.parseLocaleTime("2.30", "h:mm AP"), { hours: 2, minutes: 30 })
+        compare(DateTimeFormat.parseLocaleTime("14.30", "HH:mm"), { hours: 14, minutes: 30 })
+    }
+
     function test_parseStamp() {
         var utc = Date.UTC(2026, 8, 25, 11, 15, 0)
         compare(DateTimeFormat.stampMs("2026-09-25T13:15:00+0200"), utc)

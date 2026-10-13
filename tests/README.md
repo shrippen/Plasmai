@@ -33,9 +33,13 @@ QT_QPA_PLATFORM=xcb ./tests/run.sh   # if offscreen qmltestrunner misbehaves
 Or separately:
 
 ```bash
-qmltestrunner -input tests/unit
+qmltestrunner -import app/qml/kirigami-addons -input tests/unit
+tests/locales.sh                 # date/time tests under 28 locales (or: tests/locales.sh en_US ar_EG)
 python -m pytest tests -m "not shell"
 ```
+
+`-import app/qml/kirigami-addons` loads the app's vendored kirigami-addons
+instead of the system ones, as the app does.
 
 ## Click safety
 

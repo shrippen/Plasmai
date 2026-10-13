@@ -154,23 +154,49 @@ function parseLocaleDate(text, format) {
     return null
 }
 
-function parseLocaleTime(text) {
-    var t = String(text || "").trim()
+/** Hours a time format shows: 0-23, or 1-12 with an am/pm marker ("h:mm AP", "h:mm a"). */
+var Clock = { TwentyFourHour: 0, TwelveHour: 1 }
+
+function clockOf(format) {
+    return /a/i.test(String(format || localeTimeFormat())) ? Clock.TwelveHour : Clock.TwentyFourHour
+}
+
+/** hours (0-23) moved into the half of the day the text names with the locale's am/pm text. */
+function applyAmPmText(hours, text) {
+    if (hours < 1 || hours > 12) {
+        return hours
+    }
+
+    const t = String(text).toLowerCase()
+    const am = String(Qt.locale().amText || "AM").toLowerCase()
+    const pm = String(Qt.locale().pmText || "PM").toLowerCase()
+    if (t.indexOf(pm) >= 0) {
+        return hours % 12 + 12
+    }
+    if (t.indexOf(am) >= 0) {
+        return hours % 12
+    }
+    return hours
+}
+
+function parseLocaleTime(text, format) {
+    const t = String(text || "").trim()
     if (!t) {
         return null
     }
-    var d = Date.fromLocaleString(Qt.locale(), t, localeTimeFormat())
+    const fmt = format || localeTimeFormat()
+    const d = Date.fromLocaleString(Qt.locale(), t, fmt)
     if (d && typeof d.getTime === "function" && !isNaN(d.getTime())) {
         return { hours: d.getHours(), minutes: d.getMinutes() }
     }
-    // Digit segments: hour then minute (ignore am/pm text)
-    var roles = timeSegmentRoles(localeTimeFormat())
-    var segs = digitSegments(t)
-    var hours = null
-    var minutes = null
-    var si = 0
-    for (var r = 0; r < roles.length && si < segs.length; r++) {
-        var n = parseInt(segs[si].text, 10)
+    // Digit segments: hour then minute, plus the am/pm text of a 12-hour format
+    const roles = timeSegmentRoles(fmt)
+    const segs = digitSegments(t)
+    let hours = null
+    let minutes = null
+    let si = 0
+    for (let r = 0; r < roles.length && si < segs.length; r++) {
+        const n = parseInt(segs[si].text, 10)
         si++
         if (isNaN(n)) {
             continue
@@ -181,13 +207,16 @@ function parseLocaleTime(text) {
             minutes = n
         }
     }
+    if (hours !== null && clockOf(fmt) === Clock.TwelveHour) {
+        hours = applyAmPmText(hours, t)
+    }
     if (hours !== null && minutes !== null && hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
         return { hours: hours, minutes: minutes }
     }
-    var m = /^(\d{1,2}):(\d{2})$/.exec(t)
+    const m = /^(\d{1,2}):(\d{2})$/.exec(t)
     if (m) {
-        var h = parseInt(m[1], 10)
-        var min = parseInt(m[2], 10)
+        const h = parseInt(m[1], 10)
+        const min = parseInt(m[2], 10)
         if (!isNaN(h) && !isNaN(min) && h <= 23 && min <= 59) {
             return { hours: h, minutes: min }
         }
@@ -360,18 +389,21 @@ function applyDateSegment(date, roles, segmentIndex, digitBuffer) {
     return new Date(y, m - 1, d, 12, 0, 0, 0)
 }
 
-function applyTimeSegment(hours, minutes, roles, segmentIndex, digitBuffer) {
-    var h = hours
-    var min = minutes
+/** A typed hour with Clock.TwelveHour keeps the half of the day hours is in. */
+function applyTimeSegment(hours, minutes, roles, segmentIndex, digitBuffer, clock) {
+    let h = hours
+    let min = minutes
     if (segmentIndex < 0 || segmentIndex >= roles.length) {
         return { hours: h, minutes: min }
     }
-    var role = roles[segmentIndex]
-    var raw = String(digitBuffer || "")
+    const role = roles[segmentIndex]
+    const raw = String(digitBuffer || "")
     if (raw.length === 0) {
         return { hours: h, minutes: min }
     }
-    if (role === "H") {
+    if (role === "H" && clock === Clock.TwelveHour) {
+        h = clampInt(raw, 0, 12) % 12 + (hours >= 12 ? 12 : 0)
+    } else if (role === "H") {
         h = clampInt(raw, 0, 23)
     } else if (role === "m") {
         min = clampInt(raw, 0, 59)

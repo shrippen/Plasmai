@@ -30,17 +30,19 @@ RowLayout {
 
     property bool _init: false
 
-    readonly property bool _isAmPm: Qt.locale().timeFormat().includes("AP")
+    // Plasmai: any am/pm marker (a, ap, AP), not only "AP" (en_US writes "h:mm a").
+    readonly property bool _isAmPm: /a/i.test(Qt.locale().timeFormat(Locale.ShortFormat))
 
     implicitHeight: Kirigami.Units.gridUnit * 5
     implicitWidth: Kirigami.Units.gridUnit * 10
 
     Component.onCompleted: {
-        hoursTumbler.currentIndex = (_isAmPm && hours > 12 ? hours - 12 : hours);
+        // Plasmai: 12:xx is PM and index 0 shows "12" (was hours > 12).
+        hoursTumbler.currentIndex = _isAmPm ? hours % 12 : hours;
         minutesTumbler.currentIndex = minutes;
         if (_isAmPm) {
-            root._pm = hours > 12 ? 1 : 0;
-            amPmTumbler.currentIndex = _pm;
+            root._pm = hours >= 12;
+            amPmTumbler.currentIndex = _pm ? 1 : 0;
         }
 
         // Avoid initialisation bug where thumbler are by default initialised
@@ -104,10 +106,8 @@ RowLayout {
         property int stepSize: 1
         property int value: root.hours
         onValueChanged: {
-            if (root._isAmPm && value === 12)
-                hoursTumbler.currentIndex = 0;
-            else
-                hoursTumbler.currentIndex = value;
+            // Plasmai: hours is 0-23, the 12-hour tumbler has 12 entries.
+            hoursTumbler.currentIndex = root._isAmPm ? value % 12 : value;
             hoursTumbler.value = Qt.binding(function() { return root.hours; });
         }
 
@@ -155,8 +155,9 @@ RowLayout {
         delegate: delegateComponent
         visibleItemCount: 5
         onCurrentIndexChanged: if (_isAmPm && _init) {
-            _pm = currentIndex;
-            hours = (hours + 12) % 24;
+            // Plasmai: set the half from the tumbler instead of flipping it.
+            _pm = currentIndex === 1;
+            hours = hours % 12 + (_pm ? 12 : 0);
         }
     }
 

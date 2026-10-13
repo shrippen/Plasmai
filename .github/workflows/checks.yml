@@ -38,9 +38,13 @@ jobs:
         run: |
           for tz in UTC America/Los_Angeles Pacific/Kiritimati; do
             echo "::group::TZ=$tz"
-            TZ=$tz QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input tests/unit
+            TZ=$tz QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -import app/qml/kirigami-addons -input tests/unit
             echo "::endgroup::"
           done
+
+      # Date and time fields and pickers in 24- and 12-hour, native-digit and RTL locales.
+      - name: Locale tests
+        run: tests/locales.sh
 
       # Shared components and the Plasmoid; what is off and why: scripts/qmllint.sh. Reports
       # without blocking: the container is the latest Arch, a Qt update can bring new warning
