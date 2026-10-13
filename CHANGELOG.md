@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Added
+- Desktop app (Linux, macOS): terminal client, `plasmai-app --tui`. Timer, recents, today as hour rows with gaps, the week as a table; 1–9 start or switch, `s` stops, `t` day, `w` week, `q` quits. It uses the app's profile, token and settings and keeps its own offline outbox. The widget has none
+
 ### Changed
 - Statistics: the day of the activity distribution has its own day switcher, like the other charts. Day and week take half the width each; an empty day keeps the chart's height instead of a thin line
 - Statistics (Kante styles): hovering a block in "Projects by hour" shows its project, time span and duration; on touch a tap does
