@@ -426,7 +426,7 @@ ColumnLayout {
 
             // —— Activity pies ——
             Controls.Heading {
-                objectName: "activityHeading"  // ScreenshotRunner scrolls here (stats-activity)
+                objectName: "activityHeading"  // scroll target of the stats-activity screenshot
                 Layout.fillWidth: true
                 level: 4
                 text: i18n("Activity distribution")
