@@ -3,15 +3,10 @@ import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
-import org.kde.plasma.plasma5support as P5Support
-import "../../code/secret.js" as Secret
-import "../../code/platform.js" as Platform
 import "../../code/kimaiApi.js" as KimaiApi
-import "../../code/timeTracker.js" as TimeTracker
 import "../../code/profiles.js" as Profiles
 import "../../code/favorites.js" as Favorites
 import "../../code/sharedConfig.js" as SharedConfig
-import "../../code/catalogCache.js" as CatalogCache
 import ".."
 
 ConfigPage {
@@ -23,10 +18,6 @@ ConfigPage {
         Profiles.parseProfiles(plasmoid.configuration.profilesJson, plasmoid.configuration.kimaiUrl),
         plasmoid.configuration.activeProfileId || "default"
     )
-    readonly property var tracker: TimeTracker.api(activeProfile && activeProfile.provider
-        ? activeProfile.provider : "kimai")
-    readonly property var providerCapabilities: TimeTracker.providerCapabilities(
-        activeProfile && activeProfile.provider ? activeProfile.provider : "kimai")
 
     property var customers: []
     property var availableProjects: []
@@ -41,17 +32,6 @@ ConfigPage {
     // in translated status strings (e.g. "…"/"..."/"… ").
     property bool loadingProjects: false
     property bool loadingActivities: false
-
-    P5Support.DataSource {
-        id: execSource
-        engine: "executable"
-        connectedSources: []
-        onNewData: function(sourceName, data) {
-            Secret.handleData(execSource, sourceName, data)
-        }
-    }
-
-    Component.onDestruction: Secret.cancelAll(execSource)
 
     property bool loadScheduled: false
     property var pendingCatalogPayload: null
@@ -120,7 +100,7 @@ ConfigPage {
         page.pendingCatalogPayload = null
         page.beginLoadingUi()
 
-        Platform.loadShared(execSource).then(function(shared) {
+        session.connection.loadStored().then(function(shared) {
             if (shared) {
                 SharedConfig.applyToConfiguration(plasmoid.configuration, shared)
                 if (typeof shared.pinnedActivities === "string") {
@@ -132,13 +112,13 @@ ConfigPage {
             page.tryFinishCatalogLoad()
         })
 
-        var profileId = page.activeProfile ? page.activeProfile.id : "default"
-        if (CatalogCache.hasCatalog(profileId)) {
-            page.pendingCatalogPayload = CatalogCache.load()
+        var cached = session.catalog.cached(page.activeProfile ? page.activeProfile.id : "default")
+        if (cached) {
+            page.pendingCatalogPayload = cached
             page.catalogLoadDone = true
             page.tryFinishCatalogLoad()
         } else {
-            Platform.loadCatalogText(execSource).then(function(text) {
+            session.catalog.loadFileText().then(function(text) {
                 if (!text) {
                     page.pendingCatalogPayload = null
                     page.catalogLoadDone = true
@@ -154,7 +134,7 @@ ConfigPage {
     onPageEntered: scheduleContentLoad()
 
     function loadSharedPinned() {
-        Platform.loadShared(execSource).then(function(shared) {
+        session.connection.loadStored().then(function(shared) {
             if (shared) {
                 SharedConfig.applyToConfiguration(plasmoid.configuration, shared)
                 if (typeof shared.pinnedActivities === "string") {
@@ -166,9 +146,7 @@ ConfigPage {
     }
 
     function persistShared() {
-        Platform.patchShared(execSource, plasmoid.configuration, {
-            pinnedActivities: pinnedField.text
-        })
+        session.settings.set({ pinnedActivities: pinnedField.text }, plasmoid.configuration)
     }
 
     function persistFavoritesConfig() {
@@ -213,7 +191,7 @@ ConfigPage {
         if (!payload || !(payload.projects || []).length) {
             return false
         }
-        CatalogCache.hydrate(payload)
+        session.catalog.keep(payload)
         page.applyCatalogEntities(payload.customers, payload.projects, payload.activities)
         return true
     }
@@ -237,12 +215,9 @@ ConfigPage {
             page.fetchProjectsFromApi(fromCache)
         }
 
-        if (!forceRefresh && CatalogCache.hasCatalog(profileId)) {
-            var cached = CatalogCache.load()
-            if (page.applyPayloadIfUsable(cached)) {
-                afterCache(true)
-                return
-            }
+        if (!forceRefresh && page.applyPayloadIfUsable(session.catalog.cached(profileId))) {
+            afterCache(true)
+            return
         }
 
         if (!forceRefresh) {
@@ -251,7 +226,7 @@ ConfigPage {
         }
 
         // Disk cache via shell (Qt blocks XMLHttpRequest on file://).
-        Platform.loadCatalog(execSource).then(function(payload) {
+        session.catalog.loadFile().then(function(payload) {
             afterCache(page.applyPayloadIfUsable(payload))
         })
     }
@@ -261,48 +236,37 @@ ConfigPage {
             projectsStatus = i18n("Loading projects…")
             page.loadingProjects = true
         }
-        Platform.loadToken(execSource, page.activeProfile.id).then(function(token) {
-            if (!token) {
+        const customers = []
+        const projects = []
+        session.catalog.fetchFor(page.activeProfile, {
+            noToken: function() {
                 if (!hadCache) {
                     projectsStatus = i18n("Save an API token on the Connection tab first.")
                 }
                 page.loadingProjects = false
-                return
+            },
+            failed: function() {
+                if (!hadCache) {
+                    projectsStatus = i18n("Failed to load projects.")
+                }
+                page.loadingProjects = false
+            },
+            // Show the project list as soon as it arrives (flyout already has this).
+            projects: function(foundCustomers, foundProjects) {
+                customers.push.apply(customers, foundCustomers)
+                projects.push.apply(projects, foundProjects)
+                page.applyCatalogEntities(customers, projects, page.allActivities)
+            },
+            // Prominent indicator in the empty activities pane:
+            // loadAllActivities fills page.allActivities for later "pinning",
+            // but we still need an explicit loading flag + status.
+            activitiesLoading: function() {
+                page.loadingActivities = true
+                page.activitiesStatus = i18n("Loading activities…")
+            },
+            activities: function(list) {
+                page.applyCatalogEntities(customers, projects, list === null ? (page.allActivities || []) : list)
             }
-            TimeTracker.applySession(page.activeProfile.provider || "kimai", page.activeProfile)
-            var url = TimeTracker.resolveUrl(page.activeProfile)
-            page.tracker.loadCustomers(url, token, function(customersResult) {
-                var customers = customersResult.ok ? (customersResult.data || []) : []
-                page.tracker.loadProjects(url, token, function(result) {
-                    if (!result.ok) {
-                        if (!hadCache) {
-                            projectsStatus = i18n("Failed to load projects.")
-                        }
-                        page.loadingProjects = false
-                        return
-                    }
-                    var projects = result.data || []
-                    // Show the project list as soon as it arrives (flyout already has this).
-                    page.applyCatalogEntities(customers, projects, page.allActivities)
-                    function persist(activities) {
-                        page.applyCatalogEntities(customers, projects, activities)
-                        CatalogCache.storeEntities(page.activeProfile.id, customers, projects, activities)
-                        Platform.saveCatalog(execSource, CatalogCache.exportPayload())
-                    }
-                    if (typeof page.tracker.loadAllActivities === "function") {
-                        // Prominent indicator in the empty activities pane:
-                        // loadAllActivities fills page.allActivities for later "pinning",
-                        // but we still need an explicit loading flag + status.
-                        page.loadingActivities = true
-                        page.activitiesStatus = i18n("Loading activities…")
-                        page.tracker.loadAllActivities(url, token, function(actResult) {
-                            persist(actResult.ok ? (actResult.data || []) : [])
-                        })
-                    } else {
-                        persist(page.allActivities || [])
-                    }
-                })
-            })
         })
     }
 
@@ -332,34 +296,25 @@ ConfigPage {
     function fetchActivitiesForProject(project) {
         page.loadingActivities = true
         activitiesStatus = i18n("Loading activities…")
-        Platform.loadToken(execSource, page.activeProfile.id).then(function(token) {
-            if (!token) {
+        session.catalog.activitiesFor(page.activeProfile, project.id, function(result) {
+            if (!result) {
                 activitiesStatus = i18n("No API token available.")
                 page.loadingActivities = false
                 return
             }
-            TimeTracker.applySession(page.activeProfile.provider || "kimai", page.activeProfile)
-            page.tracker.loadActivities(TimeTracker.resolveUrl(page.activeProfile), token, project.id, function(result) {
-                if (result.ok) {
-                    var copy = {}
-                    var key
-                    for (key in page.projectActivities) {
-                        if (page.projectActivities.hasOwnProperty(key)) {
-                            copy[key] = page.projectActivities[key]
-                        }
-                    }
-                    copy[project.id] = result.data || []
-                    page.projectActivities = copy
-                    page.activityRowModel = KimaiApi.activitiesListModel(result.data || [], project.id)
-                    var split = KimaiApi.splitActivitiesForProject(result.data || [], project.id)
-                    activitiesStatus = i18n("%1 project-specific, %2 global",
-                                           split.projectSpecific.length, split.global.length)
-                    page.loadingActivities = false
-                } else {
-                    activitiesStatus = i18n("Failed to load activities.")
-                    page.loadingActivities = false
-                }
-            })
+            if (!result.ok) {
+                activitiesStatus = i18n("Failed to load activities.")
+                page.loadingActivities = false
+                return
+            }
+            const copy = Object.assign({}, page.projectActivities)
+            copy[project.id] = result.data || []
+            page.projectActivities = copy
+            page.activityRowModel = KimaiApi.activitiesListModel(result.data || [], project.id)
+            const split = KimaiApi.splitActivitiesForProject(result.data || [], project.id)
+            activitiesStatus = i18n("%1 project-specific, %2 global",
+                                   split.projectSpecific.length, split.global.length)
+            page.loadingActivities = false
         })
     }
 

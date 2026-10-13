@@ -3,14 +3,13 @@ import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import "shared"
-import "../contents/code/platform.js" as Platform
-import "../contents/code/timeTracker.js" as TimeTracker
 import "../contents/code/profiles.js" as Profiles
 import "../contents/code/kimaiApi.js" as KimaiApi
 import "Kante"
 
 Kirigami.Page {
     id: page
+    readonly property QtObject session: root.session
     KantePageTitle { page: page }
     title: i18n("Connection")
 
@@ -27,8 +26,7 @@ Kirigami.Page {
         ? profiles[selectedIndex] : null
     readonly property string selectedProviderId: selectedProfile && selectedProfile.provider
         ? selectedProfile.provider : "kimai"
-    readonly property var selectedProviderMeta: TimeTracker.providerMeta(selectedProviderId)
-    readonly property var tracker: TimeTracker.api(selectedProviderId)
+    readonly property var selectedProviderMeta: session.connection.metaOf(selectedProviderId)
 
     function showStatus(msg, isError) {
         statusMessage = msg
@@ -102,7 +100,7 @@ Kirigami.Page {
         // Live-apply the newly active profile so the timer view doesn't need
         // an app restart to notice (root only reads shared.json at startup
         // otherwise).
-        root.loadSharedAndConnect()
+        session.open()
     }
 
     function commitUrlField() {
@@ -123,18 +121,18 @@ Kirigami.Page {
             hasStoredToken = false
             return
         }
-        Platform.loadToken(null, profiles[selectedIndex].id).then(function(token) {
-            hasStoredToken = !!(token && token.length > 0)
+        session.connection.hasToken(profiles[selectedIndex].id).then(function(has) {
+            hasStoredToken = has
         })
     }
 
     function persistShared() {
         var base = { kimaiUrl: urlField.text.trim(), profilesJson: profilesField.text, activeProfileId: activeProfileField.text || "default" }
-        Platform.patchShared(null, base, base)
+        session.connection.saveProfiles(base)
     }
 
     function loadSharedState() {
-        Platform.loadShared(null).then(function(shared) {
+        session.connection.loadStored().then(function(shared) {
             if (!shared) return
             syncing = true
             urlField.text = shared.kimaiUrl || ""
@@ -296,13 +294,13 @@ Kirigami.Page {
                         text: i18n("Use this")
                         icon.name: "emblem-default"
                         // Switching profiles is online only (offline.js): the outbox belongs to the profile.
-                        enabled: page.profiles.length > 0 && !root.offline
+                        enabled: page.profiles.length > 0 && !session.sync.offline
                         onClicked: { page.setActiveProfile(); page.checkStoredToken() }
                     }
                 }
 
                 QQC2.Label {
-                    visible: root.offline
+                    visible: session.sync.offline
                     Kirigami.FormData.label: " "
                     Layout.fillWidth: true
                     Layout.preferredWidth: formCol.width
@@ -400,14 +398,14 @@ Kirigami.Page {
                             page.showStatus("", false)
                             page.persistShared()
                             var pid = page.profiles[page.selectedIndex].id
-                            Platform.saveToken(null, pid, tokenField.text).then(function() {
+                            session.connection.saveToken(pid, tokenField.text).then(function() {
                                 page.busy = false
                                 tokenField.text = ""
                                 page.hasStoredToken = true
                                 page.showStatus(i18n("Token saved."), false)
                                 // Live-apply: root only reads the token from the keychain
                                 // once at startup otherwise.
-                                root.loadSharedAndConnect()
+                                session.open()
                             }).catch(function(err) {
                                 page.busy = false
                                 page.showStatus(err || i18n("Failed to save"), true)
@@ -421,11 +419,11 @@ Kirigami.Page {
                         enabled: !page.busy && page.hasStoredToken
                         onClicked: {
                             page.busy = true
-                            Platform.clearToken(null, page.profiles[page.selectedIndex].id).then(function() {
+                            session.connection.clearToken(page.profiles[page.selectedIndex].id).then(function() {
                                 page.busy = false
                                 page.hasStoredToken = false
                                 page.showStatus(i18n("Token removed."), false)
-                                root.loadSharedAndConnect()
+                                session.open()
                             }).catch(function(err) {
                                 page.busy = false
                                 page.showStatus(i18n("Failed"), true)
@@ -441,31 +439,32 @@ Kirigami.Page {
                             page.busy = true
                             page.showStatus(i18n("Testing…"), false)
                             page.persistShared()
-                            var profile = page.profiles[page.selectedIndex]
-                            var url = TimeTracker.resolveUrl(profile)
-                            TimeTracker.applySession(profile.provider || "kimai", profile)
-                            Platform.loadToken(null, profile.id).then(function(token) {
-                                page.busy = false
-                                if (!token) {
+                            session.connection.test(page.profiles[page.selectedIndex], {
+                                noToken: function() {
+                                    page.busy = false
                                     page.showStatus(i18n("No token stored."), true)
-                                    return
-                                }
-                                page.showStatus(i18n("Testing… (%1)", url), false)
-                                page.tracker.testConnection(url, token, function(result) {
+                                },
+                                testing: function(url) {
+                                    page.busy = false
+                                    page.showStatus(i18n("Testing… (%1)", url), false)
+                                },
+                                done: function(result) {
                                     page.busy = false
                                     if (result.ok) {
                                         page.showStatus(i18n("Connection OK!"), false)
-                                    } else {
-                                        var err = result.error || {}
-                                        var detail = err.detail || err.statusText || i18n("Failed")
-                                        var type = err.type || ""
-                                        if (type === "config") detail = i18n("Missing URL or token (type: %1)", type)
-                                        page.showStatus(detail || i18n("Failed"), true)
+                                        return
                                     }
-                                })
-                            }).catch(function(err) {
-                                page.busy = false
-                                page.showStatus(err, true)
+                                    const err = result.error || {}
+                                    let detail = err.detail || err.statusText || i18n("Failed")
+                                    if (err.type === "config") {
+                                        detail = i18n("Missing URL or token (type: %1)", err.type)
+                                    }
+                                    page.showStatus(detail || i18n("Failed"), true)
+                                },
+                                failed: function(err) {
+                                    page.busy = false
+                                    page.showStatus(err, true)
+                                }
                             })
                         }
                     }

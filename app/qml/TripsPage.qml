@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
-import "../contents/code/timeTracker.js" as TimeTracker
 import "../contents/code/kimaiApi.js" as KimaiApi
 import "../contents/code/mileage.js" as Mileage
 import "shared"
@@ -14,6 +13,7 @@ import "Kante"
  */
 Kirigami.Page {
     id: page
+    readonly property QtObject session: root.session
     KantePageTitle { page: page }
     title: i18n("Trips")
 
@@ -24,29 +24,27 @@ Kirigami.Page {
     property bool busy: false
     readonly property var range: Mileage.monthRange(page.month)
     readonly property var summary: Mileage.summarize(page.trips, range.from, range.to)
-    readonly property bool monthLocked: Mileage.isMonthLocked(root.mileagePing, range.from)
-    readonly property bool hasDawarich: !!Mileage.profileOf(root.mileagePing).dawarichConfigured
+    readonly property bool monthLocked: Mileage.isMonthLocked(session.trips.ping, range.from)
+    readonly property bool hasDawarich: !!Mileage.profileOf(session.trips.ping).dawarichConfigured
     readonly property var purposeFallback: ({
         "business": i18n("Business trip"),
         "commute": i18n("Commute"),
         "private": i18n("Private")
     })
 
-    function currentUrl() { return TimeTracker.resolveUrl(root.activeProfile) }
-
     function reload() {
-        if (!root.mileageAvailable) return
+        if (!session.trips.available) return
         page.loading = true
         var r = page.range
-        var query = Mileage.hasFeature(root.mileagePing, "dateRange") ? r
+        var query = Mileage.hasFeature(session.trips.ping, "dateRange") ? r
             : { year: page.month.getFullYear(), month: page.month.getMonth() + 1 }
-        root.tracker.fetchTrips(currentUrl(), root.apiToken, query, function(res) {
+        session.trips.fetch(query, function(res) {
             page.loading = false
             if (res.ok) page.trips = Mileage.sortTrips(res.data)
             else root.showPassiveNotification(i18n("Trips could not be loaded: %1", ApiErrors.text(res.error)))
         })
-        if (page.hasDawarich && root.canEditTrips) {
-            root.tracker.fetchTripSuggestions(currentUrl(), root.apiToken, null, function(res) {
+        if (page.hasDawarich && session.trips.canEdit) {
+            session.trips.fetchSuggestions(function(res) {
                 if (res.ok) page.suggestions = res.data
             })
         } else {
@@ -63,13 +61,13 @@ Kirigami.Page {
     // Trip row texts: "Home → Studio", "12.03.26 · Customer visit · round trip", "42 km".
     function tripTitle(trip) {
         return Mileage.routeText(trip.start, trip.destination)
-               || Mileage.labelOf(root.mileageMeta ? root.mileageMeta.purposes : null, trip.purpose, page.purposeFallback)
+               || Mileage.labelOf(session.trips.meta ? session.trips.meta.purposes : null, trip.purpose, page.purposeFallback)
     }
 
     function tripDetails(trip) {
         var d = Mileage.parseDateString(trip.date)
         var bits = [d ? d.toLocaleDateString(Qt.locale(), Locale.ShortFormat) : trip.date,
-                    Mileage.labelOf(root.mileageMeta ? root.mileageMeta.purposes : null, trip.purpose, page.purposeFallback)]
+                    Mileage.labelOf(session.trips.meta ? session.trips.meta.purposes : null, trip.purpose, page.purposeFallback)]
         if (trip.roundTrip) {
             bits.push(i18n("round trip"))
         }
@@ -87,17 +85,17 @@ Kirigami.Page {
 
     function commuteToday() {
         if (page.busy) return
-        if (Mileage.commuteKm(root.mileagePing) === null) {
+        if (Mileage.commuteKm(session.trips.ping) === null) {
             // No commute distance in the Kimai profile: let the user enter it.
-            var f = Mileage.emptyForm(root.mileagePing, Mileage.dateString(new Date()))
+            var f = Mileage.emptyForm(session.trips.ping, Mileage.dateString(new Date()))
             f.purpose = Mileage.Purpose.COMMUTE
             pushEdit({ form: f })
             return
         }
         page.busy = true
         // Offline (or behind waiting changes) the local trip shows the profile's distance.
-        var km = root.offline || root.unsyncedCount > 0 ? Mileage.commuteKm(root.mileagePing) : null
-        root.tracker.createTrip(currentUrl(), root.apiToken, Mileage.commuteBody(Mileage.dateString(new Date()), km), function(r) {
+        var km = session.sync.offline || session.sync.unsynced > 0 ? Mileage.commuteKm(session.trips.ping) : null
+        session.trips.create(Mileage.commuteBody(Mileage.dateString(new Date()), km), function(r) {
             page.busy = false
             if (r.ok) {
                 root.showPassiveNotification(i18n("Commute logged: %1 km", Mileage.displayKm(Mileage.tripKm(r.data))))
@@ -111,7 +109,7 @@ Kirigami.Page {
     function accept(sg) {
         if (page.busy || !sg) return
         page.busy = true
-        root.tracker.acceptTripSuggestion(currentUrl(), root.apiToken, sg.id, {}, function(r) {
+        session.trips.accept(sg.id, {}, function(r) {
             page.busy = false
             if (!r.ok && !(r.error && r.error.status === 409)) {
                 root.showPassiveNotification(i18n("The trip could not be accepted: %1", (r.error && r.error.detail) || ApiErrors.text(r.error)))
@@ -124,7 +122,7 @@ Kirigami.Page {
     function dismiss(sg) {
         if (page.busy || !sg) return
         page.busy = true
-        root.tracker.dismissTripSuggestion(currentUrl(), root.apiToken, sg.id, function(r) {
+        session.trips.dismiss(sg.id, function(r) {
             page.busy = false
             if (!r.ok) {
                 root.showPassiveNotification(i18n("The trip could not be dismissed: %1", (r.error && r.error.detail) || ApiErrors.text(r.error)))
@@ -136,13 +134,13 @@ Kirigami.Page {
 
     actions: [
         Kirigami.Action {
-            visible: root.canEditTrips
+            visible: session.trips.canEdit
             icon.name: "list-add"
             text: i18n("Log trip")
-            onTriggered: page.pushEdit({ form: Mileage.emptyForm(root.mileagePing, Mileage.dateString(new Date())) })
+            onTriggered: page.pushEdit({ form: Mileage.emptyForm(session.trips.ping, Mileage.dateString(new Date())) })
         },
         Kirigami.Action {
-            visible: root.canEditTrips
+            visible: session.trips.canEdit
             icon.name: "mark-location"
             text: i18n("Commute today")
             enabled: !page.busy
@@ -179,14 +177,14 @@ Kirigami.Page {
             TripSuggestionList {
                 Layout.fillWidth: true
                 // Suggestions are the server's (accept creates the trip there): hidden offline.
-                visible: page.suggestions.length > 0 && !root.offline
+                visible: page.suggestions.length > 0 && !session.sync.offline
                 suggestions: page.suggestions
                 busy: page.busy
-                canEdit: root.canEditTrips
-                meta: root.mileageMeta
+                canEdit: session.trips.canEdit
+                meta: session.trips.meta
                 onAcceptRequested: function(sg) { page.accept(sg) }
                 onDismissRequested: function(sg) { page.dismiss(sg) }
-                onEditRequested: function(sg) { page.pushEdit({ form: Mileage.formFromSuggestion(root.mileagePing, sg), suggestion: sg }) }
+                onEditRequested: function(sg) { page.pushEdit({ form: Mileage.formFromSuggestion(session.trips.ping, sg), suggestion: sg }) }
             }
 
             RowLayout {
@@ -240,7 +238,7 @@ Kirigami.Page {
                     required property var modelData
                     Layout.fillWidth: true
                     implicitHeight: KanteStyle.active ? tripKanteRow.implicitHeight : tripSystemRow.implicitHeight
-                    enabled: root.canEditTrips
+                    enabled: session.trips.canEdit
 
                     function edit() {
                         page.pushEdit({ form: Mileage.formFromTrip(modelData), original: modelData,
@@ -301,6 +299,6 @@ Kirigami.Page {
         z: 10
         flickable: pageScroll.contentItem
         busy: page.loading
-        onRefreshRequested: { root.resolveMileage(true); page.reload() }
+        onRefreshRequested: { session.trips.resolve(Session.Probe.Fresh); page.reload() }
     }
 }

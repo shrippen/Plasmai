@@ -30,6 +30,8 @@ ColumnLayout {
     property var meta: null
     /** GET /api/mileage/vehicles ([{id, name, type, active}]). */
     property var vehicles: []
+    /** The session's setup part: the map looks places up through it. */
+    property QtObject places: null
     /** Plugin field errors of the last save: { field: message }. */
     property var serverErrors: ({})
     property string errorText: ""
@@ -330,6 +332,7 @@ ColumnLayout {
         // Check that start and destination are the intended places.
         TripMap {
             Layout.fillWidth: true
+            places: root.places
             from: startField.text
             to: destinationField.text
             enteredKm: Mileage.parseDistance(distanceField.text) === null ? NaN : Mileage.parseDistance(distanceField.text)

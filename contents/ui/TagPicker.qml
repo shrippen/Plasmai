@@ -16,8 +16,8 @@ ColumnLayout {
     id: root
 
     property var selectedTagEntries: []
-    property string kimaiUrl: ""
-    property string apiToken: ""
+    /** Where the tags come from: loadTags(query, callback) (the session's entries part). */
+    property var tagSource: null
     property Item pickerViewport: null
 
     /** Name list for timesheet writes (unchanged API for callers). */
@@ -115,12 +115,12 @@ ColumnLayout {
     }
 
     function refreshSuggestions() {
-        if (!root.kimaiUrl || !root.apiToken) {
+        if (!root.tagSource) {
             suggestionModel = []
             return
         }
         loadingSuggestions = true
-        KimaiApi.loadTags(root.kimaiUrl, root.apiToken, searchField.text, function(result) {
+        root.tagSource.loadTags(searchField.text, function(result) {
             loadingSuggestions = false
             if (!result || !result.ok) {
                 suggestionModel = []
