@@ -20,21 +20,27 @@ QQC2.Dialog {
      */
     signal cancelled()
 
+    // Plasmai: a new Date, setHours on the property may change only a copy.
+    function _keep(hours, minutes) {
+        var next = new Date(_value);
+        next.setHours(hours, minutes, 0, 0);
+        _value = next;
+    }
+
     property date _value: new Date()
 
     modal: true
+
+    // Plasmai: start from the given time; without a tumbler change Select gave the current time.
+    onAboutToShow: _value = new Date(value)
 
     contentItem: TimePicker {
         id: popupContent
         implicitWidth: applicationWindow().width
         minutes: root.value.getMinutes()
         hours: root.value.getHours()
-        onMinutesChanged: {
-            root._value.setHours(hours, minutes);
-        }
-        onHoursChanged: {
-            root._value.setHours(hours, minutes);
-        }
+        onMinutesChanged: root._keep(hours, minutes)
+        onHoursChanged: root._keep(hours, minutes)
     }
 
     background: Components.DialogRoundedBackground {}
@@ -56,11 +62,9 @@ QQC2.Dialog {
         QQC2.Button {
             text: i18ndc("kirigami-addons6", "@action:button", "Select")
             icon.name: "dialog-ok-apply"
-            onClicked: {
-                root.value = root._value;
-                root.accepted()
-                root.close()
-            }
+            // Plasmai: the AcceptRole already accepts and closes the dialog;
+            // accepting here as well sent accepted twice.
+            onClicked: root.value = root._value
 
             QQC2.DialogButtonBox.buttonRole: QQC2.DialogButtonBox.AcceptRole
         }

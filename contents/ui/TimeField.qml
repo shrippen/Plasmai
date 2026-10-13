@@ -91,7 +91,7 @@ RowLayout {
         }
 
         if (digitBuffer.length >= 1) {
-            var next = DTF.applyTimeSegment(hours, minutes, roles, activeSegment, digitBuffer)
+            var next = DTF.applyTimeSegment(hours, minutes, roles, activeSegment, digitBuffer, DTF.clockOf())
             hours = next.hours
             minutes = next.minutes
             refreshText()

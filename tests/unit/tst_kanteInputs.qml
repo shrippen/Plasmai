@@ -73,6 +73,30 @@ TestCase {
         compare(kante.date.toDateString(), new Date(2026, 4, 1).toDateString())
     }
 
+    // A two-digit year ("dd.MM.yy", the German short format) is this century:
+    // focusing and leaving the field must not turn 2026 into 1926.
+    function test_kanteDateTwoDigitYear() {
+        var field = createTemporaryObject(Qt.createComponent(Qt.resolvedUrl("../../contents/ui/Kante/KanteDateField.qml")),
+                                          this, { width: 300, format: "dd.MM.yy" })
+        verify(field !== null)
+        compare(field.parse("13.10.26").getFullYear(), 2026)
+        compare(field.parse("13.10.2026").getFullYear(), 2026)
+
+        editSpy.signalName = "dateEdited"
+        editSpy.target = field
+        field.date = new Date(2026, 9, 13)
+        field.commit()
+        compare(field.date.getFullYear(), 2026)
+        compare(editSpy.count, 0)
+    }
+
+    // The System field reads its own text back as the same day.
+    function test_dateFieldRoundTrip() {
+        var field = create("DateField")
+        field.setDate(new Date(2026, 9, 13))
+        compare(field.parseDate(field.text).toDateString(), new Date(2026, 9, 13, 12).toDateString())
+    }
+
     function test_timeField_data() {
         return test_dateField_data()
     }
