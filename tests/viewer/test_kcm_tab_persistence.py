@@ -17,7 +17,7 @@ from pathlib import Path
 import pytest
 
 from lib import atspi_clicks, config_ui
-from lib.viewer import ViewerSession
+from lib.viewer import ViewerSession, settings_version
 
 pytestmark = pytest.mark.viewer
 
@@ -93,6 +93,7 @@ def _isolated_env(tmp_path: Path) -> dict[str, str]:
         json.dumps(
             {
                 **_FALSE_DISPLAY,
+                "settingsVersion": settings_version(),
                 # Leave profilesJson empty so Connection initially shows only
                 # the built-in "Default" profile. The test will create
                 # "Profile 2" via the Connection UI ("Add profile").

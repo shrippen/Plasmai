@@ -15,7 +15,7 @@ from pathlib import Path
 import pytest
 
 from lib import atspi_clicks, config_ui
-from lib.viewer import ViewerSession
+from lib.viewer import ViewerSession, settings_version
 
 pytestmark = pytest.mark.viewer
 
@@ -60,7 +60,7 @@ def _isolated_env(tmp_path: Path) -> dict[str, str]:
     shared_dir = cfg / "com.github.shrippen.plasmai"
     shared_dir.mkdir(parents=True)
     (shared_dir / "shared.json").write_text(
-        json.dumps(_FALSE_DISPLAY), encoding="utf-8"
+        json.dumps({**_FALSE_DISPLAY, "settingsVersion": settings_version()}), encoding="utf-8"
     )
     return {
         "XDG_CONFIG_HOME": str(cfg),
