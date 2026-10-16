@@ -8,26 +8,45 @@ name: Checks
 # Arch Linux container: the only runner image with KF6 (Kirigami, libplasma) as packages,
 # the same stack as a developer machine.
 
+# Public mirror: Gitea pushes every branch and tag here on each commit.
+# This runs the checks and reports them back to the commit on Gitea as
+# the status "github / test", where the pull requests live. There are no
+# pull requests on GitHub, so everything runs on push.
+#
+# Needs the secret GITEA_TOKEN: a Gitea token with write access to the
+# repository (commit statuses).
 on:
-  # Branches get their run through the pull request; main (and the Gitea mirror's pushes) directly.
   push:
-    branches: [main]
-    paths-ignore: ['**.md', 'docs/**', 'screenshots/**', 'fastlane/**', 'metadata.json']
-  pull_request:
+    branches: ["**"]
   workflow_dispatch:
 
-concurrency:
-  group: checks-${{ github.ref }}
-  cancel-in-progress: true
+# No concurrency group: every commit runs to the end and keeps its own
+# status, a newer push does not cancel an older run.
+
+env:
+  GITEA_STATUS: https://git.arianw.de/api/v1/repos/shrippen/plasmai/statuses/${{ github.sha }}
+  RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
 jobs:
   unit:
-    # GitHub only (Gitea runs .gitea/workflows/checks.yml).
     if: github.server_url == 'https://github.com'
     runs-on: ubuntu-latest
     container: archlinux:latest
     timeout-minutes: 20
+    outputs:
+      started: ${{ steps.start.outputs.t }}
     steps:
+      # A missing status is no reason to fail the checks.
+      - id: start
+        name: Report pending to Gitea
+        run: |
+          echo "t=$(date +%s)" >> "$GITHUB_OUTPUT"
+          curl -fsS -X POST "$GITEA_STATUS" \
+            -H "Authorization: token $GITEA_TOKEN" -H "Content-Type: application/json" \
+            -d "{\"state\":\"pending\",\"context\":\"github / test\",\"description\":\"running\",\"target_url\":\"$RUN_URL\"}" \
+            || echo "::warning::Gitea status not reported"
+        env:
+          GITEA_TOKEN: ${{ secrets.GITEA_TOKEN }}
       - name: Install Qt, Kirigami (+ addons for the app's pickers), libplasma, Plasma5Support (qmllint)
         run: |
           pacman -Syu --noconfirm --needed qt6-declarative kirigami kirigami-addons libplasma plasma5support tzdata python python-pytest git gettext zip
@@ -190,3 +209,31 @@ jobs:
           name: windows-screens
           path: screens
           if-no-files-found: ignore
+
+  # Also runs when a check failed or was cancelled, so Gitea never keeps a
+  # stale "pending". Success only when all checks passed.
+  report:
+    needs: [unit, app-linux, app]
+    if: always()
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report result to Gitea
+        run: |
+          state=success
+          for r in $RESULTS; do
+            case "$r" in
+              success) ;;
+              failure) state=failure ;;
+              *) [ "$state" = failure ] || state=error ;;
+            esac
+          done
+          desc=$state
+          if [ -n "$STARTED" ]; then desc="$state in $(( ($(date +%s) - STARTED) / 60 )) min"; fi
+          curl -fsS -X POST "$GITEA_STATUS" \
+            -H "Authorization: token $GITEA_TOKEN" -H "Content-Type: application/json" \
+            -d "{\"state\":\"$state\",\"context\":\"github / test\",\"description\":\"$desc\",\"target_url\":\"$RUN_URL\"}"
+        env:
+          RESULTS: ${{ needs.unit.result }} ${{ needs.app-linux.result }} ${{ needs.app.result }}
+          STARTED: ${{ needs.unit.outputs.started }}
+          GITEA_TOKEN: ${{ secrets.GITEA_TOKEN }}
