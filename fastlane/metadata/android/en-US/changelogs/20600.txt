@@ -1,0 +1,1 @@
+Plasmai 2.6.0: Statistics give the activity distribution its own day switcher, and chart read-outs are readable in every project colour. Fixed: a date with a two-digit year no longer moves an entry's start 100 years back, and the time picker shows 1 to 12 with AM/PM in 12-hour languages and keeps the time it opened with.

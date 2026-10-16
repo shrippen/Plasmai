@@ -1,0 +1,13 @@
+SessionConnection 1.0 SessionConnection.qml
+SessionSettings 1.0 SessionSettings.qml
+SessionCatalog 1.0 SessionCatalog.qml
+SessionTimer 1.0 SessionTimer.qml
+SessionRecent 1.0 SessionRecent.qml
+SessionFavorites 1.0 SessionFavorites.qml
+SessionEntries 1.0 SessionEntries.qml
+SessionTotals 1.0 SessionTotals.qml
+SessionSync 1.0 SessionSync.qml
+SessionFilmDay 1.0 SessionFilmDay.qml
+SessionTrips 1.0 SessionTrips.qml
+SessionReminders 1.0 SessionReminders.qml
+SessionSetup 1.0 SessionSetup.qml

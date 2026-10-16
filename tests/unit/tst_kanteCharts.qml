@@ -87,6 +87,16 @@ TestCase {
         compare(bars.partNames, ["Web", "App"])
     }
 
+    // An empty day next to a full week: the empty state keeps the chart's height, not a thin line.
+    function test_pieChartEmpty() {
+        KanteStyle.kind = KanteStyle.Kind.Kante
+        var pie = create("PieChart", { width: 300, rows: [], totalSeconds: 0, emptyText: "none" })
+        var empty = findItem(pie, function(i) { return i.text === "none" && i.visible })
+        verify(empty !== null)
+        verify(pie.implicitHeight >= pie.chartSize, pie.implicitHeight + " < " + pie.chartSize)
+        compare(empty.horizontalAlignment, Text.AlignHCenter)
+    }
+
     function test_weeklyHourChart() {
         var days = [
             { label: "Mo", date: new Date(2000, 0, 3), totalSeconds: 3600, segments: [{ startHour: 9, endHour: 10, color: "#d65d0e", name: "Web", seconds: 3600 }] },
@@ -107,7 +117,9 @@ TestCase {
         compare(timeline.today, 1)
         verify(timeline.now >= 0)
 
-        timeline.entryClicked(0)
-        verify(timeline.tip.indexOf("Web") === 0)
+        // The block names its project in Kante's read-out (hover, on touch a tap).
+        verify(timeline.readout)
+        timeline.hoverIndex = 0
+        verify(findItem(timeline, function(i) { return i.text === "Web" && i.visible }) !== null)
     }
 }

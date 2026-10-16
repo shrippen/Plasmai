@@ -89,6 +89,23 @@
     <binary>plasmai-app</binary>
   </provides>
   <releases>
+    <release version="2.6.1" date="2026-10-13">
+      <description>
+        <p>Brings the Plasma widget package that was missing from 2.6.0. No changes in the
+        app.</p>
+      </description>
+    </release>
+    <release version="2.6.0" date="2026-10-13">
+      <description>
+        <p>Terminal client: plasmai-app --tui shows the timer, recents, today and the week
+        in a terminal.</p>
+        <p>Statistics: the activity distribution has its own day switcher; chart read-outs
+        are readable in every project colour.</p>
+        <p>Fixed: dates with a two-digit year no longer move an entry's start 100 years
+        back, and the time picker shows 1 to 12 with AM/PM in 12-hour languages and keeps
+        the time it opened with.</p>
+      </description>
+    </release>
     <release version="2.5.3" date="2026-10-07">
       <description>
         <p>Windows: the tray popup fades and slides in from the taskbar, and back out as it

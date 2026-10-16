@@ -18,8 +18,8 @@ Item {
     // The Loader hands the root over after creation; the token may have been looked up
     // before the route existed.
     onPlasmoidRootChanged: {
-        if (plasmoidRoot && KimaiApi.routeToken(plasmoidRoot.kimaiUrl)) {
-            plasmoidRoot.reloadCredentials()
+        if (plasmoidRoot && KimaiApi.routeToken(plasmoidRoot.session.connection.url)) {
+            plasmoidRoot.session.connection.reloadToken()
         }
     }
 

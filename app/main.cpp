@@ -33,6 +33,9 @@
 #ifdef PLASMAI_TEST_DRIVER
 #include "testdriver.h"
 #endif
+#ifdef PLASMAI_TUI
+#include "tui/tuimain.h"
+#endif
 
 // Platform code lives in platform/ (one file per service, per platform where it
 // differs; CMakeLists.txt picks them). This file wires them into QML.
@@ -83,8 +86,17 @@ static void applyDesktopScheme()
 
 // -- main ----------------------------------------------------------------
 
+static const QString kAppVersion = QStringLiteral("2.6.1");
+
 int main(int argc, char *argv[])
 {
+#ifdef PLASMAI_TUI
+    // `plasmai-app --tui`: the terminal client, no window (tui/tuimain.cpp).
+    if (wantsTui(argc, argv)) {
+        return runTui(argc, argv, kAppVersion);
+    }
+#endif
+
     // Force Material Dark style for Android to match Plasmoid appearance
 #ifdef Q_OS_ANDROID
     qputenv("QT_QUICK_CONTROLS_MATERIAL_THEME", "Dark");
@@ -134,7 +146,7 @@ int main(int argc, char *argv[])
     // Desktop identity (Flathub ID); APP_ID stays the keychain service and the config folder shared with the widget.
     QGuiApplication::setDesktopFileName(QStringLiteral("io.github.shrippen.Plasmai"));
 #endif
-    app.setApplicationVersion(QStringLiteral("2.5.3"));
+    app.setApplicationVersion(kAppVersion);
 
 #ifdef PLASMAI_TRAY
     // One tray client per user: a second start opens the running one's popup.

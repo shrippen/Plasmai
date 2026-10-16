@@ -25,7 +25,7 @@
 <nav class="nav"><div class="nav-inner">
   <a class="nav-brand" href="#"><img src="icon.svg" alt="">Plasmai</a>
   <div class="nav-links">
-    <a href="#features"><span lang="en">Features</span><span lang="de">Funktionen</span></a><a href="#backends"><span lang="en">Backends</span><span lang="de">Backends</span></a><a href="#setup"><span lang="en">Setup</span><span lang="de">Einrichtung</span></a><a href="#faq"><span lang="en">FAQ</span><span lang="de">FAQ</span></a><a class="nav-hl" href="https://github.com/shrippen/Plasmai">GitHub</a>
+    <a href="#features"><span lang="en">Features</span><span lang="de">Funktionen</span></a><a href="#backends"><span lang="en">Backends</span><span lang="de">Backends</span></a><a href="#setup"><span lang="en">Setup</span><span lang="de">Einrichtung</span></a><a href="#faq"><span lang="en">FAQ</span><span lang="de">FAQ</span></a><a href="#changes"><span lang="en">Changes</span><span lang="de">Änderungen</span></a><a class="nav-hl" href="https://github.com/shrippen/Plasmai">GitHub</a>
     <div class="lang" role="group" aria-label="Language">
       <button type="button" data-lang="en" aria-pressed="true">EN</button>
       <button type="button" data-lang="de" aria-pressed="false">DE</button>
@@ -166,6 +166,84 @@ kpackagetool6 -i . -t Plasma/Applet</div>
   <h2 lang="en">Questions</h2><h2 lang="de">Fragen</h2>
   <div class="faq"><details><summary><span lang="en">Can I start or stop by clicking the panel icon?</span><span lang="de">Kann ich per Klick auf das Panel-Symbol starten oder stoppen?</span></summary><div><p lang="en">No. A click on the panel chip only opens the popup, so nothing starts or stops by accident. Starting and stopping happen inside the popup or the desktop widget.</p><p lang="de">Nein. Ein Klick auf den Panel-Chip öffnet nur das Popup, damit nichts versehentlich startet oder stoppt. Starten und Stoppen passieren im Popup oder im Desktop-Widget.</p></div></details><details><summary><span lang="en">Which backends are production-tested?</span><span lang="de">Welche Backends sind produktiv getestet?</span></summary><div><p lang="en">Only Kimai. Clockify, Toggl Track and SolidTime are implemented against their public APIs, but stay experimental until they are verified with live accounts.</p><p lang="de">Nur Kimai. Clockify, Toggl Track und SolidTime sind gegen ihre öffentlichen APIs umgesetzt, bleiben aber experimentell, bis sie mit echten Konten geprüft sind.</p></div></details><details><summary><span lang="en">Does it track apps or windows automatically?</span><span lang="de">Erfasst es Apps oder Fenster automatisch?</span></summary><div><p lang="en">No. Automatic app tracking, screenshots, invoicing, expenses and team dashboards are on the “won’t do” list. Plasmai stays a small API client in the panel.</p><p lang="de">Nein. Automatische App-Erfassung, Screenshots, Rechnungen, Spesen und Team-Dashboards stehen auf der „Wird nicht gemacht“-Liste. Plasmai bleibt ein kleiner API-Client im Panel.</p></div></details><details><summary><span lang="en">Where are my tokens stored?</span><span lang="de">Wo liegen meine Tokens?</span></summary><div><p lang="en">In KWallet, via <code>secret-tool</code>. The shared settings file holds your profiles, favorites and options.</p><p lang="de">In KWallet, über <code>secret-tool</code>. Die geteilte Einstellungsdatei enthält deine Profile, Favoriten und Optionen.</p></div></details><details><summary><span lang="en">Do I need the holiday plugin for Kimai?</span><span lang="de">Brauche ich das Feiertags-Plugin für Kimai?</span></summary><div><p lang="en">No. It only improves the remaining hours of the week. Plasmai works without it and detects it automatically when it is there.</p><p lang="de">Nein. Es verbessert nur die Restzeit der Woche. Plasmai funktioniert auch ohne und erkennt es automatisch, wenn es vorhanden ist.</p></div></details></div>
 </section>
+<section class="section" id="changes">
+  <h2 lang="en">Changes</h2><h2 lang="de">Änderungen</h2>
+  <ol class="changelog">
+    <li class="release" id="v2.6.1">
+      <div class="release-head"><b class="release-version">2.6.1</b><time datetime="2026-10-13">13 Oct 2026</time></div>
+      <div class="release-body">
+        <p class="release-lead" lang="en">The Plasma widget for 2.6.0: its package was missing from the 2.6.0 release.</p>
+        <p class="release-lead" lang="de">Das Plasma-Widget zu 2.6.0: Sein Paket fehlte im Release 2.6.0.</p>
+        <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3>
+          <ul lang="en">
+            <li>2.6.0 came without the widget package (<code>.plasmoid</code>) and the install script, so the one-line install command failed with "not found" while 2.6.0 was the latest release. The package build stopped at a comment that named the internal screenshot code it removes. The checks now build the widget package on every pull request, so this shows before a release.</li>
+          </ul>
+          <ul lang="de">
+            <li>2.6.0 kam ohne das Widget-Paket (<code>.plasmoid</code>) und das Installationsskript, deshalb schlug der Einzeiler zur Installation mit „nicht gefunden“ fehl, solange 2.6.0 das neueste Release war. Der Paketbau brach an einem Kommentar ab, der den internen Screenshot-Code nannte, den er entfernt. Die Prüfungen bauen das Widget-Paket jetzt bei jedem Pull Request, so fällt das vor einem Release auf.</li>
+          </ul>
+        </div>
+        <div class="release-group" data-kind="note"><h3><span lang="en">Note</span><span lang="de">Hinweis</span></h3>
+          <ul lang="en">
+            <li>No changes in the app or the widget beyond 2.6.0: everything new in 2.6.0 below applies.</li>
+          </ul>
+          <ul lang="de">
+            <li>App und Widget sind gegenüber 2.6.0 unverändert: Alles Neue aus 2.6.0 unten gilt.</li>
+          </ul>
+        </div>
+        <div class="release-shots">
+          <figure><img lang="en" src="shots/release-2.6.1-pipeline-en.webp" alt="Release files of 2.6.0 and 2.6.1: 2.6.0 lacks the plasmoid and the install script, 2.6.1 has all six" loading="lazy"><img lang="de" src="shots/release-2.6.1-pipeline-de.webp" alt="Release-Dateien von 2.6.0 und 2.6.1: 2.6.0 fehlen Plasmoid und Installationsskript, 2.6.1 hat alle sechs" loading="lazy"><figcaption><span lang="en">Release files per version</span><span lang="de">Release-Dateien je Version</span></figcaption></figure>
+        </div>
+        <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v2.6.0...v2.6.1"><span lang="en">All changes since 2.6.0 →</span><span lang="de">Alle Änderungen seit 2.6.0 →</span></a>
+      </div>
+    </li>
+    <li class="release" id="v2.6.0">
+      <div class="release-head"><b class="release-version">2.6.0</b><time datetime="2026-10-13">13 Oct 2026</time></div>
+      <div class="release-body">
+        <p class="release-lead" lang="en">A terminal client for the desktop app, a day of its own for the activity chart, and editing that keeps the dates and times you enter.</p>
+        <p class="release-lead" lang="de">Ein Terminal-Client für die Desktop-App, ein eigener Tag für das Tätigkeitsdiagramm und Bearbeiten, das Datum und Uhrzeit so behält, wie du sie eingibst.</p>
+        <div class="release-group" data-kind="new"><h3><span lang="en">New</span><span lang="de">Neu</span></h3>
+          <ul lang="en">
+            <li>Terminal client in the desktop app (Linux, macOS): <code>plasmai-app --tui</code> shows the timer, recents, today as hour rows with gaps and the week as a table. 1–9 start or switch, <code>s</code> stops. For tracking from a terminal or over SSH; it uses the app's profile and keeps its own offline outbox. The widget has none.</li>
+          </ul>
+          <ul lang="de">
+            <li>Terminal-Client in der Desktop-App (Linux, macOS): <code>plasmai-app --tui</code> zeigt Timer, Zuletzt, Heute als Stundenzeilen mit Lücken und die Woche als Tabelle. 1–9 startet oder wechselt, <code>s</code> stoppt. Zum Erfassen aus dem Terminal oder per SSH; er nutzt das Profil der App und hat einen eigenen Offline-Ausgang. Das Widget hat keinen.</li>
+          </ul>
+        </div>
+        <div class="release-group" data-kind="improved"><h3><span lang="en">Improved</span><span lang="de">Verbessert</span></h3>
+          <ul lang="en">
+            <li>Statistics: the activity distribution has its own day switcher, so you can look at another day without moving the other charts. Day and week take half the width each; an empty day keeps the chart's height.</li>
+            <li>Statistics (Kante styles): hovering a block in "Projects by hour" shows its project, time span and duration; on touch a tap does.</li>
+          </ul>
+          <ul lang="de">
+            <li>Statistik: Die Tätigkeitsverteilung hat einen eigenen Tagesumschalter, so siehst du einen anderen Tag, ohne die übrigen Diagramme zu verschieben. Tag und Woche teilen sich die Breite; ein leerer Tag behält die Höhe des Diagramms.</li>
+            <li>Statistik (Kante-Stile): Fährst du über einen Block in „Projekte nach Stunde“, zeigt er Projekt, Zeitraum und Dauer; auf Touch reicht ein Tippen.</li>
+          </ul>
+        </div>
+        <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3>
+          <ul lang="en">
+            <li>Editing an entry could move its start 100 years back. In a short date format with a two-digit year ("13.10.26", "10/13/26") the date field read its own text as 1926. A running entry then started in 1926, and Kimai refused a stopped one as too long. Two-digit years now mean this century.</li>
+            <li>App time picker in 12-hour languages (US English and others): it showed a 24-hour dial without AM/PM and put 12:xx in the morning. It now shows 1–12 with AM/PM. In every language, Select without turning a dial gave the current time instead of the time it opened with.</li>
+            <li>12-hour time fields: typing an hour no longer moves a PM time to the morning (3 on 2:30 PM stays 3:30 PM).</li>
+            <li>Statistics (Kante styles): the chart read-outs wrote project names in the project colour, which some colours made unreadable. They now use the text colour with a coloured square in front.</li>
+          </ul>
+          <ul lang="de">
+            <li>Beim Bearbeiten konnte der Start eines Eintrags 100 Jahre zurückspringen. In einem kurzen Datumsformat mit zweistelliger Jahreszahl („13.10.26“, „10/13/26“) las das Datumsfeld seinen eigenen Text als 1926. Ein laufender Eintrag begann dann 1926, einen beendeten lehnte Kimai als zu lang ab. Zweistellige Jahre bedeuten jetzt dieses Jahrhundert.</li>
+            <li>Zeitwähler der App in 12-Stunden-Sprachen (US-Englisch und andere): Er zeigte ein 24-Stunden-Rad ohne AM/PM und legte 12:xx auf den Vormittag. Jetzt zeigt er 1–12 mit AM/PM. In jeder Sprache gab „Auswählen“ ohne Drehen die aktuelle Uhrzeit zurück statt der, mit der er geöffnet wurde.</li>
+            <li>12-Stunden-Zeitfelder: Eine getippte Stunde verschiebt eine PM-Zeit nicht mehr auf den Vormittag (3 auf 2:30 PM bleibt 3:30 PM).</li>
+            <li>Statistik (Kante-Stile): Die Read-outs der Diagramme schrieben Projektnamen in der Projektfarbe, die manche Farben unlesbar machten. Jetzt stehen sie in der Textfarbe mit einem farbigen Quadrat davor.</li>
+          </ul>
+        </div>
+        <div class="release-shots">
+          <figure><img lang="en" src="shots/release-2.6.0-terminal-en.webp" alt="The terminal client with the running timer, today and the week, and recents" loading="lazy"><img lang="de" src="shots/release-2.6.0-terminal-de.webp" alt="Der Terminal-Client mit laufendem Timer, Heute und Woche sowie Zuletzt" loading="lazy"><figcaption><span lang="en">Terminal client, plasmai-app --tui (demo data)</span><span lang="de">Terminal-Client, plasmai-app --tui (Demodaten)</span></figcaption></figure>
+          <figure><img lang="en" src="shots/release-2.6.0-activity-en.webp" alt="Activity distribution with a day switcher for today and one for the week" loading="lazy"><img lang="de" src="shots/release-2.6.0-activity-de.webp" alt="Tätigkeitsverteilung mit Tagesumschalter für Heute und einem für die Woche" loading="lazy"><figcaption><span lang="en">Activity distribution with its own day (demo data)</span><span lang="de">Tätigkeitsverteilung mit eigenem Tag (Demodaten)</span></figcaption></figure>
+          <figure><img lang="en" src="shots/release-2.6.0-years-en.webp" alt="A date field showing 13.10.26 and 10/13/26; 2.5.3 read them as 1926, 2.6.0 as 2026" loading="lazy"><img lang="de" src="shots/release-2.6.0-years-de.webp" alt="Ein Datumsfeld mit 13.10.26 und 10/13/26; 2.5.3 las sie als 1926, 2.6.0 als 2026" loading="lazy"><figcaption><span lang="en">What the date field reads back from its own text</span><span lang="de">Was das Datumsfeld aus seinem eigenen Text zurückliest</span></figcaption></figure>
+          <figure><img lang="en" src="shots/release-2.6.0-timepicker-en.webp" alt="The app's time picker in US English: 02:30 PM with an AM/PM wheel" loading="lazy"><img lang="de" src="shots/release-2.6.0-timepicker-de.webp" alt="Der Zeitwähler der App auf Deutsch: 14:30" loading="lazy"><figcaption><span lang="en">Time picker at 2:30 PM in US English (demo data)</span><span lang="de">Zeitwähler um 14:30 auf Deutsch (Demodaten)</span></figcaption></figure>
+        </div>
+        <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v2.5.3...v2.6.0"><span lang="en">All changes since 2.5.3 →</span><span lang="de">Alle Änderungen seit 2.5.3 →</span></a>
+      </div>
+    </li>
+  </ol>
+</section>
 <section class="section" id="roadmap">
   <h2 lang="en">Roadmap</h2><h2 lang="de">Roadmap</h2>
   <p lang="en">Version 2.0 brought the Android and Plasma Mobile app, the film day view with the Drehzettel plugin and trips with the Anfahrten plugin. Next is 3.0: at least one non-Kimai backend tested with a live account and no longer experimental. Also open: provider gaps such as Clockify tags, and idle detection in the Android app. KRunner may come as a separate package, since the Store applet cannot ship binaries. Global shortcuts, D-Bus control and a shutdown hold were tried and removed.</p><p lang="de">Version 2.0 brachte die App für Android und Plasma Mobile, die Drehtag-Ansicht mit dem Drehzettel-Plugin und Fahrten mit dem Anfahrten-Plugin. Als Nächstes kommt 3.0: mindestens ein Nicht-Kimai-Backend, das mit einem echten Konto geprüft und nicht mehr experimentell ist. Ebenfalls offen: Lücken bei Anbietern wie Clockify-Tags und die Leerlauferkennung in der Android-App. KRunner käme gegebenenfalls als eigenes Paket, weil das Store-Applet keine Binärdateien ausliefern kann. Globale Tastenkürzel, D-Bus-Steuerung und eine Herunterfahr-Sperre wurden ausprobiert und wieder entfernt.</p><p lang="en">Details in <a href="https://github.com/shrippen/Plasmai/blob/main/ROADMAP.md">ROADMAP.md</a> and the <a href="https://github.com/shrippen/Plasmai/blob/main/CHANGELOG.md">changelog</a>.</p><p lang="de">Details in der <a href="https://github.com/shrippen/Plasmai/blob/main/ROADMAP.md">ROADMAP.md</a> und im <a href="https://github.com/shrippen/Plasmai/blob/main/CHANGELOG.md">Changelog</a>.</p>
@@ -179,11 +257,11 @@ kpackagetool6 -i . -t Plasma/Applet</div>
       <div><span class="foot-name">Plasmai</span><span class="foot-tag"><span lang="en">Time tracking for KDE Plasma</span><span lang="de">Zeiterfassung für KDE Plasma</span></span></div>
     </div>
     <nav class="foot-cols" aria-label="Footer">
-      <div><h4><span lang="en">Project</span><span lang="de">Projekt</span></h4><a href="#features"><span lang="en">Features</span><span lang="de">Funktionen</span></a><a href="#backends"><span lang="en">Backends</span><span lang="de">Backends</span></a><a href="#setup"><span lang="en">Setup</span><span lang="de">Einrichtung</span></a><a href="#faq"><span lang="en">FAQ</span><span lang="de">FAQ</span></a></div>
+      <div><h4><span lang="en">Project</span><span lang="de">Projekt</span></h4><a href="#features"><span lang="en">Features</span><span lang="de">Funktionen</span></a><a href="#backends"><span lang="en">Backends</span><span lang="de">Backends</span></a><a href="#setup"><span lang="en">Setup</span><span lang="de">Einrichtung</span></a><a href="#faq"><span lang="en">FAQ</span><span lang="de">FAQ</span></a><a href="#changes"><span lang="en">Changes</span><span lang="de">Änderungen</span></a></div>
       <div><h4><span lang="en">Source</span><span lang="de">Quelltext</span></h4><a href="https://github.com/shrippen/Plasmai">GitHub</a><a href="https://github.com/shrippen/Plasmai/issues">Issues</a><a href="https://github.com/shrippen/Plasmai/blob/main/CHANGELOG.md">Changelog</a><a href="https://store.kde.org/p/2368175/">KDE Store</a></div>
     </nav>
   </div>
-  <div class="foot-meta"><p>GPL-3.0-or-later · shrippen · v2.5.3</p></div>
+  <div class="foot-meta"><p>GPL-3.0-or-later · shrippen · v2.6.1</p></div>
 </footer>
 
 </body>

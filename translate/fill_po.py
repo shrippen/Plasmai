@@ -233,6 +233,10 @@ def main():
         import setup
         for msgid, val in setup.T_BY_LANG.get(lang, {}).items():
             trans.setdefault(msgid, {"s": val})
+        # Terminal client and statistics day switcher (2.6.0)
+        import tui
+        for msgid, val in tui.T_BY_LANG.get(lang, {}).items():
+            trans.setdefault(msgid, {"s": val})
         write_po(lang, items, trans)
         print(f"Wrote {lang}.po ({len(items)} strings)")
 

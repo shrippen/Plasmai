@@ -3,10 +3,6 @@ import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
-import org.kde.plasma.plasma5support as P5Support
-import "../../code/secret.js" as Secret
-import "../../code/platform.js" as Platform
-import "../../code/geocode.js" as Geocode
 import "../../code/sharedConfig.js" as SharedConfig
 
 ConfigPageBase {
@@ -130,15 +126,6 @@ ConfigPageBase {
     property int geoSearchSeq: 0
     property bool suppressLocationSearch: false
 
-    P5Support.DataSource {
-        id: execSource
-        engine: "executable"
-        connectedSources: []
-        onNewData: function(sourceName, data) {
-            Secret.handleData(execSource, sourceName, data)
-        }
-    }
-
     Timer {
         id: locationSearchTimer
         interval: 400
@@ -188,7 +175,7 @@ ConfigPageBase {
         geoSearching = true
         geoStatus = i18n("Searching…")
         var seq = ++geoSearchSeq
-        Geocode.search(q, function(result) {
+        session.setup.searchPlace(q, function(result) {
             if (seq !== page.geoSearchSeq) {
                 return
             }
@@ -324,9 +311,7 @@ ConfigPageBase {
 
     function persistDisplayConfig() {
         syncControlsToCfg()
-        Platform.patchShared(
-            execSource, plasmoid.configuration, page.displayPatch()
-        )
+        session.settings.set(page.displayPatch(), plasmoid.configuration)
         unsavedChanges = false
     }
     // property var so plasmoidviewer’s hasOwnProperty("saveConfig") finds it;
@@ -447,13 +432,11 @@ ConfigPageBase {
         suppressNotify = false
     }
 
-    Component.onDestruction: Secret.cancelAll(execSource)
-
     onPageEntered: {
         suppressNotify = true
         page.applyCfgToControls()
         suppressNotify = false
-        Platform.loadShared(execSource).then(function(shared) {
+        session.connection.loadStored().then(function(shared) {
             if (page.unsavedChanges) {
                 ready = true
                 return

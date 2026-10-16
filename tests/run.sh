@@ -24,6 +24,9 @@ echo "==> QML unit tests ($QMLTEST)"
 QML_PLATFORM="${QT_QPA_PLATFORM:-offscreen}"
 QT_QPA_PLATFORM="$QML_PLATFORM" "$QMLTEST" -input "$ROOT/tests/unit"
 
+echo "==> QML locale tests"
+QT_QPA_PLATFORM="$QML_PLATFORM" QMLTESTRUNNER="$QMLTEST" "$ROOT/tests/locales.sh"
+
 echo "==> pytest (log classifier + plasmoidviewer clicks)"
 # Viewer tests need a real display.
 unset QT_QPA_PLATFORM || true

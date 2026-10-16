@@ -7,6 +7,7 @@ import "Kante"
 
 Kirigami.Page {
     id: page
+    readonly property QtObject session: root.session
     KantePageTitle { page: page }
     title: i18n("Favorites")
 
@@ -21,7 +22,7 @@ Kirigami.Page {
         }
         page.expandedProjectId = projectId
         page.expandedActivities = []
-        root.loadActivitiesForProject(projectId, function(model) {
+        session.catalog.loadActivities(projectId, function(model) {
             if (page.expandedProjectId === projectId) page.expandedActivities = model
         })
     }
@@ -48,13 +49,13 @@ Kirigami.Page {
 
             Kirigami.PlaceholderMessage {
                 Layout.fillWidth: true; Layout.topMargin: Kirigami.Units.largeSpacing
-                visible: !root.isConfigured
+                visible: !session.connection.configured
                 icon.name: "configure"
                 text: i18n("Connect a time tracker first")
             }
 
             Repeater {
-                model: root.isConfigured ? root.projectPickerModel : []
+                model: session.connection.configured ? session.catalog.projectPickerModel : []
                 delegate: ColumnLayout {
                     id: projectDelegate
                     required property var modelData
@@ -103,9 +104,9 @@ Kirigami.Page {
                             delegate: QQC2.CheckDelegate {
                                 required property var modelData
                                 Layout.fillWidth: true
-                                checked: root.isPinned(projectDelegate.modelData.value.id, modelData.value.id)
+                                checked: session.favorites.isPinned(projectDelegate.modelData.value.id, modelData.value.id)
                                 text: modelData.label
-                                onToggled: root.togglePin(projectDelegate.modelData.value.id, modelData.value.id)
+                                onToggled: session.favorites.toggle(projectDelegate.modelData.value.id, modelData.value.id)
                             }
                         }
                     }
@@ -122,7 +123,7 @@ Kirigami.Page {
         anchors.fill: parent
         z: 10
         flickable: pageScroll.contentItem
-        busy: root.isBusy
-        onRefreshRequested: root.refreshAll()
+        busy: session.busy
+        onRefreshRequested: session.refresh()
     }
 }

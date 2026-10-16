@@ -1,0 +1,1 @@
+Plasmai 2.6.0: Die Statistik hat für die Tätigkeitsverteilung einen eigenen Tagesumschalter, und die Read-outs der Diagramme sind in jeder Projektfarbe lesbar. Behoben: Ein Datum mit zweistelliger Jahreszahl setzt den Start eines Eintrags nicht mehr 100 Jahre zurück, und der Zeitwähler zeigt in 12-Stunden-Sprachen 1 bis 12 mit AM/PM und behält die Zeit, mit der er geöffnet wurde.

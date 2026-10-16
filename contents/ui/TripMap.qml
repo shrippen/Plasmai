@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
-import "../code/geocode.js" as Geocode
 import "../code/tripMap.js" as MapMath
 import "Kante"
 import "Controls" as Controls
@@ -15,6 +14,8 @@ import "."
 ColumnLayout {
     id: root
 
+    /** Looks the places up (the session's setup part, SessionSetup.lookupPlace). */
+    property QtObject places: null
     property string from: ""
     property string to: ""
     /** One way, as entered (NaN when empty). */
@@ -44,7 +45,11 @@ ColumnLayout {
             callback(p)
             return
         }
-        Geocode.lookup(query, callback)
+        if (!places) {
+            callback(null)
+            return
+        }
+        places.lookupPlace(query, callback)
     }
 
     function lookup() {

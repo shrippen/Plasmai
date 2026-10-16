@@ -34,6 +34,7 @@ Or separately:
 
 ```bash
 qmltestrunner -input tests/unit
+tests/locales.sh                 # date/time tests under 28 locales (or: tests/locales.sh en_US ar_EG)
 python -m pytest tests -m "not shell"
 ```
 

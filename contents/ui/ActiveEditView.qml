@@ -37,8 +37,8 @@ ColumnLayout {
     property bool supportsBillableEdit: true
     property bool supportsTags: true
     property bool showCreateActions: false
-    property string tagLookupUrl: ""
-    property string tagLookupToken: ""
+    /** The tag picker's source: loadTags(query, callback). */
+    property var tagSource: null
     /** Last stopped timesheet (not the running one). */
     property var previousTimesheet: null
     property bool overlapGuardEnabled: true
@@ -324,8 +324,7 @@ ColumnLayout {
         Layout.fillWidth: true
         showBillable: root.supportsBillableEdit
         showTags: root.supportsTags
-        tagLookupUrl: root.tagLookupUrl
-        tagLookupToken: root.tagLookupToken
+        tagSource: root.tagSource
         pickerViewport: root.pickerViewport
         enabled: root.configured && !root.busy
     }

@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as QQC2
+import QtQml.Models
 import org.kde.plasma.plasmoid
 import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.components as PlasmaComponents3
@@ -8,30 +9,31 @@ import org.kde.plasma.extras as PlasmaExtras
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasma5support as P5Support
 import "../code/kimaiApi.js" as KimaiApi
-import "../code/timeTracker.js" as TimeTracker
 import "../code/secret.js" as Secret
 import "../code/platform.js" as Platform
 import "../code/desktopBackend.js" as DesktopBackend
 import "../code/profiles.js" as Profiles
 import "../code/favorites.js" as Favorites
 import "../code/sharedConfig.js" as SharedConfig
-import "../code/catalogCache.js" as CatalogCache
 import "../code/buildInfo.js" as BuildInfo
 import "../code/timesheetFields.js" as TimesheetFields
 import "../code/filmDays.js" as FilmDays
-import "../code/filmDaySync.js" as FilmDaySync
 import "../code/dateTimeFormat.js" as DTF
 import "../code/mileage.js" as Mileage
 import "../code/statsData.js" as StatsData
-import "../code/providerUtil.js" as ProviderUtil
-import "../code/workTotals.js" as WorkTotals
-import "../code/timerSession.js" as TimerSession
-import "../code/offline.js" as Offline
 import "../code/rowHit.js" as RowHit
 import "."
 import "Kante"
 import "KantePlasma"
 
+/**
+ * The Plasmoid: panel chip and popup. Data and actions come from the session
+ * layer (Session.qml); this file keeps view state (views, editors, dialogs,
+ * flashes) and the platform glue (DataSource, notifications, plasmoid
+ * actions, plasmoid.configuration ↔ shared.json).
+ *
+ *   plasmoid.configuration ◀─bridge─▶ shared.json ──▶ session ──▶ timer card, lists, views
+ */
 PlasmoidItem {
     id: root
 
@@ -47,67 +49,50 @@ PlasmoidItem {
         value: plasmoid.configuration.visualStyle
     }
 
-    readonly property var invalidTimesheetId: null
     readonly property string kwalletScript: Secret.fileUrlToPath(Qt.resolvedUrl("../code/kwallet.sh"))
     readonly property string idleScript: Secret.fileUrlToPath(Qt.resolvedUrl("../code/idle.sh"))
     readonly property string notifyScript: Secret.fileUrlToPath(Qt.resolvedUrl("../code/notify.sh"))
     readonly property string sharedConfigScript: Secret.fileUrlToPath(Qt.resolvedUrl("../code/sharedConfig.sh"))
     readonly property string catalogCacheScript: Secret.fileUrlToPath(Qt.resolvedUrl("../code/catalogCache.sh"))
     readonly property string systemCheckScript: Secret.fileUrlToPath(Qt.resolvedUrl("../code/systemCheck.sh"))
-
-    property var profiles: Profiles.parseProfiles(plasmoid.configuration.profilesJson, plasmoid.configuration.kimaiUrl)
-    property var activeProfile: Profiles.profileById(profiles, plasmoid.configuration.activeProfileId || "default")
-    readonly property string providerId: (activeProfile && activeProfile.provider)
-        ? activeProfile.provider : "kimai"
-    readonly property var providerMeta: TimeTracker.providerMeta(providerId)
-    readonly property var providerCapabilities: TimeTracker.providerCapabilities(providerId)
-    // Offline layer (offline.js, Kimai only): reads answer from the snapshot, writes wait in the outbox.
-    property var offlineSession: null
-    property int offlineRevision: 0
-    readonly property var tracker: offlineSession ? offlineSession.tracker : TimeTracker.api(providerId)
-    readonly property bool offline: offlineRevision >= 0 && !!offlineSession && Offline.isOffline(offlineSession)
-    readonly property int unsyncedCount: offlineRevision >= 0 && offlineSession ? Offline.pendingCount(offlineSession) : 0
-    readonly property double offlineStateAt: offlineRevision >= 0 && offlineSession ? Offline.stateAt(offlineSession) : 0
-    readonly property int unsyncedStuck: offlineRevision >= 0 && offlineSession
-        ? Offline.ops(offlineSession).filter(function(op) { return op.state !== Offline.State.PENDING }).length : 0
-    /** Master data and multi-entry changes need the server (offline.js: online only). */
-    readonly property bool canCreateEntities: providerCapabilities.createEntities && !offline
     readonly property string localStoreScript: Secret.fileUrlToPath(Qt.resolvedUrl("../code/localStore.sh"))
-    property string kimaiUrl: TimeTracker.resolveUrl(activeProfile || { url: plasmoid.configuration.kimaiUrl, provider: providerId })
-    property string apiToken: ""
-    property bool tokenLoaded: false
-    property bool isConfigured: apiToken.length > 0 && (!providerMeta.needsUrl || kimaiUrl.length > 0)
+
+    // ── The session layer: data and actions (Session.qml) ──
+    readonly property Session session: Session {
+        dataSource: execSource
+        // Files of this widget: two widgets in one plasmashell must not share an outbox.
+        offlinePrefix: "plasmoid-" + Plasmoid.id + "-"
+        setupMode: Session.Setup.Run
+        catalog.useCache: true
+        // No idle prompt while the settings dialog is open.
+        reminders.idleAvailable: !plasmoid.userConfiguring
+        reminders.notificationsAvailable: true
+    }
+
+    // ── View state ──
     property string mainViewMode: "main"  // main | manual | stats | filmday | trip | unsynced
     /** Inline editor for the running timesheet (start / project / activity). */
     property bool editingActiveEntry: false
     /** Stopped Recent timesheet currently in the Add-entry form (null = new entry). */
     property var editingStoppedTimesheet: null
-    property bool credentialsLoading: false
-    property var pendingCredentialCallbacks: []
-
-    property bool isTracking: false
-    property bool isBusy: false
-    property var lastError: null
-    property string connectionState: "offline"
-    property bool loadingActive: false
-    property bool loadingRecent: false
-    property bool loadingProjects: false
-    property bool loadingPinned: false
+    /** shared.json is read into plasmoid.configuration (reload); a reload asked meanwhile runs after. */
+    property bool reloading: false
+    property int queuedReload: -1
+    /** The error of the last failed action, shown until the next poll (refresh errors: the layer's). */
+    property var actionError: null
     property string userMessage: ""
     /** Transient hint key for "already tracking" feedback on Recent and Favorite rows. */
     property string alreadyRunningHintKey: ""
-
-    property var currentTimesheetId: invalidTimesheetId
-    property string currentProject: ""
-    property string currentActivity: ""
-    property string currentCustomer: ""
-    property string currentDescription: ""
-    /** Last active timesheet object (for re-resolving names after catalog load). */
-    property var activeTimesheet: null
     /** Recent entry waiting for switch confirmation while a timer is running. */
     property var pendingSwitchTimesheet: null
     property var pendingDeleteTimesheet: null
     property var pendingSplitTimesheet: null
+    /** A restart of this entry runs; if it fails, the entry starts anew. */
+    property var continuing: null
+    /** A start of this widget runs: trackingBegan is no news then. */
+    property bool localStart: false
+    /** The next stop is the idle prompt's (its own notification). */
+    property bool stopFromIdle: false
     /** Dialogs live inside fullRepresentation; keep refs so root JS can open them. */
     property var stopConfirmDialogRef: null
     property var switchRecentDialogRef: null
@@ -121,40 +106,17 @@ PlasmoidItem {
     property var activeEditViewRef: null
     property var filmDayViewRef: null
     property var descriptionFieldRef: null
-    property int pendingIdleMs: 0
-    // Wall-clock ms when the idle period began (detection time − idle ms).
-    property double pendingIdleSince: 0
-    property bool idleIgnoreUntilActive: false
-    property var pendingIdleSnapshot: null
-    property string forgotReminderDay: ""
-    property int elapsedSeconds: 0
     /** Bumps DaySparkline live edge; kept coarse to avoid per-second canvas work. */
     property int sparklineNowTick: 0
-    property var recentTimesheets: []
-    property var projects: []
-    property var customers: []
-    property var customersById: ({})
-    property var projectPickerModel: []
+    /** The switch form's pickers: the chosen project and its activities. */
     property var activityPickerModel: []
-    property var activities: []
-    property var allActivities: []
-    property var pinnedEntries: []
-    property var activitiesByProject: ({})
     property var selectedProjectId: null
     /** Shared open direction for project + activity pickers (true = below). */
     property bool pickerOpenBelow: true
     property bool showNewActivityForm: false
-    property bool savingDescription: false
-    property bool suppressDescHandler: false
     property bool descriptionSavedFlash: false
     /** 1 while the success check is held, then animated to 0. */
     property real descriptionSaveFlashOpacity: 1
-    /** True when the description field differs from the last saved/server value. */
-    property bool descriptionDirty: false
-    /** Draft text from the description field (avoids fragile id lookups from root). */
-    property string descriptionDraft: ""
-    /** Focus tracked from the field itself (root cannot read descriptionEdit.id). */
-    property bool descriptionFieldFocused: false
     /** High-chroma positive for the description-save check (theme hue, boosted sat). */
     readonly property color descriptionSaveSuccessColor: {
         var base = KanteStyle.positiveTextColor
@@ -169,28 +131,18 @@ PlasmoidItem {
         var lightBg = KanteStyle.backgroundColor.hslLightness > 0.5
         return Qt.hsla(hue, 0.38, lightBg ? 0.36 : 0.46, 1)
     }
+    /** A manual entry is being saved. */
+    property bool savingEntry: false
 
-    property int todaySeconds: 0
-    property int weekSeconds: 0
-    property int todayTargetSeconds: 0
-    property int weekTargetSeconds: 0
-    /** Contract week target minus approved vacation/public holidays. */
-    property int weekEffectiveTargetSeconds: 0
-    property var weekAbsences: []
-    property var weekPublicHolidays: []
-    property var weekTimesheetsForCredit: []
-    property int weekAbsenceCreditSeconds: 0
-    property int todayAbsenceCreditSeconds: 0
-    property bool hasWorkContract: false
-    property int totalsElapsedAnchor: 0
-    property string currentCustomerColor: KimaiApi.DEFAULT_CUSTOMER_COLOR
-    property var workPrefs: ({})
-    property var todayTimesheets: []
-    /** Extended timesheet cache for the statistics view (multiple weeks). */
+    // Statistics: entries of several weeks (the week's from the totals until more is asked).
     property var statsTimesheets: []
     property var statsRangeBeginMs: 0
     property var statsRangeEndMs: 0
     property bool loadingStats: false
+    /** Trips of this week and month for the statistics (null = not loaded / no plugin). */
+    property var statsTrips: null
+
+    // Film day: the shown day; mode, probe and calls are session.filmDay's.
     property var filmDaySelectedDate: new Date()
     /** The Kimai entry for filmDaySelectedDate + the picked project, if any. */
     property var filmDayTimesheet: null
@@ -199,49 +151,23 @@ PlasmoidItem {
     /** The note as last loaded or saved (its entry's description). */
     property string filmDaySavedNote: ""
     property bool loadingFilmDay: false
+    property bool savingFilmDay: false
     property int filmDayLoadSerial: 0
-    /** Where film-day extras live for the active profile (FilmDaySync.Mode), see filmDaySync.js. */
-    property string filmDayMode: FilmDaySync.Mode.NO_PLUGIN
-    /** Last Drehzettel ping body (features, permissions), or null. */
-    property var filmDayPing: null
     /** Film-day JSON the next save diffs against (server mode). */
     property var filmDayServer: null
     property string filmDayLoadMode: ""
-    /** Plain cache handed to filmDaySync (engagement lists); not reactive. */
-    property var filmDayMemo: ({})
-    /** Plain cache handed to workTotals.js (user, absences); not reactive. */
-    property var workTotalsMemo: ({})
-    readonly property var pluginProbeCache: KimaiApi.parsePluginCache(plasmoid.configuration.pluginProbesJson)
-    // ── Trips (kimai-anfahrten / MileageBundle), see mileage.js ──
-    /** KimaiApi.PluginState of /api/mileage/ping for the active profile. */
-    property string mileageState: KimaiApi.PluginState.UNKNOWN
-    property var mileagePing: null
-    property var mileageMeta: null
-    property var mileageVehicles: []
+
+    // Trips: probe, meta and calls are session.trips'.
     /** Open trip suggestions (Dawarich), shown above Recent. */
     property var tripSuggestions: []
     property double tripSuggestionsLoadedAt: 0
     property bool tripBusy: false
     /** Suggestion being edited in the trip sheet before accepting it, or null. */
     property var tripSheetSuggestion: null
-    /** Trips of this week and month for the statistics (null = not loaded / no plugin). */
-    property var statsTrips: null
-    readonly property bool mileageAvailable: isConfigured && providerCapabilities.mileage
-        && plasmoid.configuration.showTrips !== false
-        && mileageState === KimaiApi.PluginState.PRESENT && KimaiApi.mileageCanView(mileagePing)
-    readonly property bool canEditTrips: mileageAvailable && Mileage.can(mileagePing, "editOwn")
-    readonly property string filmDayProfileKey: FilmDaySync.profileKey(activeProfile ? activeProfile.id : "", kimaiUrl)
-    /** The film day is offered only with the Drehzettel plugin and its view permission, like trips. */
-    readonly property bool filmDayAvailable: isConfigured && providerCapabilities.filmDays
-        && filmDayMode !== FilmDaySync.Mode.NO_PLUGIN && filmDayMode !== FilmDaySync.Mode.NO_PERMISSION
-    readonly property string workDayBegin: {
-        var v = plasmoid.configuration.workDayBegin
-        return (v && String(v).length > 0) ? String(v) : KimaiApi.DEFAULT_WORK_DAY_BEGIN
-    }
-    readonly property string workDayEnd: {
-        var v = plasmoid.configuration.workDayEnd
-        return (v && String(v).length > 0) ? String(v) : KimaiApi.DEFAULT_WORK_DAY_END
-    }
+
+    readonly property string profileId: session.connection.profile ? session.connection.profile.id : ""
+    readonly property string workDayBegin: session.settings.workDayBegin || KimaiApi.DEFAULT_WORK_DAY_BEGIN
+    readonly property string workDayEnd: session.settings.workDayEnd || KimaiApi.DEFAULT_WORK_DAY_END
 
     readonly property bool compactPopupLayout:
         plasmoid.formFactor === PlasmaCore.Types.Horizontal
@@ -267,61 +193,48 @@ PlasmoidItem {
         : plasmoid.configuration.desktopShowNewActivity
 
     readonly property string panelProjectLabel: {
-        if (!isTracking) {
+        const t = session.timer
+        if (!t.tracking) {
             return ""
         }
-        var showProject = plasmoid.configuration.showProjectInPanel
-        var showActivity = plasmoid.configuration.showActivityInPanel
-        if (showProject && showActivity && currentProject && currentActivity) {
-            return currentProject + " · " + currentActivity
+        const showProject = plasmoid.configuration.showProjectInPanel
+        const showActivity = plasmoid.configuration.showActivityInPanel
+        if (showProject && showActivity && t.project && t.activity) {
+            return t.project + " · " + t.activity
         }
-        if (showActivity && currentActivity) {
-            return currentActivity
+        if (showActivity && t.activity) {
+            return t.activity
         }
-        if (showProject && currentProject) {
-            return currentProject
+        if (showProject && t.project) {
+            return t.project
         }
         return ""
     }
 
     readonly property var panelPills: KimaiApi.panelPillInfo(
-        activeTimesheet, projects, customersById)
+        session.timer.active, session.catalog.projects, session.catalog.customersById)
+    readonly property color currentCustomerColor: session.timer.colorInfo.color
 
-    readonly property int todayLiveSeconds:
-        todaySeconds + (isTracking ? Math.max(0, elapsedSeconds - totalsElapsedAnchor) : 0)
-    readonly property int weekLiveSeconds:
-        weekSeconds + (isTracking ? Math.max(0, elapsedSeconds - totalsElapsedAnchor) : 0)
-    readonly property int remainingWeekSeconds: hasWorkContract
-        ? (weekEffectiveTargetSeconds - weekLiveSeconds + weekAbsenceCreditSeconds)
-        : 0
-    readonly property int remainingTodaySeconds: hasWorkContract
-        ? (todayTargetSeconds - todayLiveSeconds + todayAbsenceCreditSeconds)
-        : 0
-
-    readonly property var lastRecent: recentTimesheets.length > 0 ? recentTimesheets[0] : null
-    readonly property bool hasLastUsed: {
-        var pid = String(plasmoid.configuration.lastUsedProjectId || "")
-        var aid = String(plasmoid.configuration.lastUsedActivityId || "")
-        return pid.length > 0 && aid.length > 0
-    }
     readonly property int recentVisibleCount: Math.min(
-        Math.max(1, plasmoid.configuration.recentCount),
-        recentTimesheets.length)
+        Math.max(1, session.settings.recentCount),
+        session.recent.list.length)
     readonly property int favoritesVisibleCount: compactPopupLayout
-        ? Math.min(pinnedEntries.length, 6)
-        : pinnedEntries.length
+        ? Math.min(session.favorites.pinned.length, 6)
+        : session.favorites.pinned.length
 
     readonly property var activitySectionTitles: ({
         "project": i18n("Project-specific"),
         "global": i18n("Global activities")
     })
 
-    readonly property string errorMessage: userMessage.length > 0 ? userMessage : ApiErrors.text(lastError)
-    readonly property bool showSetupState: tokenLoaded && !isConfigured
-    /** The wizard connected a profile; its Day step stays until it is finished or skipped. */
-    property bool setupAwaitingDay: false
-    readonly property bool showSetupWizard: showSetupState || setupAwaitingDay
+    /** "error" also while an action's error shows; otherwise the layer's state. */
+    readonly property string connectionState: actionError ? session.connection.error : session.connection.state
+    readonly property string errorMessage: userMessage.length > 0
+        ? userMessage : ApiErrors.text(actionError || session.connection.lastError)
+    readonly property bool showSetupState: session.connection.tokenLoaded && !session.connection.configured
     readonly property bool showErrorState: errorMessage.length > 0 && connectionState === "error"
+    /** Shown while shared.json is read or the session connects. */
+    readonly property bool loading: session.busy || connectionState === "connecting" || reloading
 
     function dismissPickerPopups() {
         if (root.switchPickersRef) {
@@ -376,28 +289,28 @@ PlasmoidItem {
 
 
     Plasmoid.icon: connectionState === "error" ? "network-disconnect"
-                     : isTracking ? "media-record" : "chronometer"
+                     : session.timer.tracking ? "media-record" : "chronometer"
     // Keep stable: Plasma's config dialog title is "Settings for %1" / Plasmoid.title.
     Plasmoid.title: i18n("Plasmai")
 
-    toolTipMainText: isTracking ? currentProject + " · " + currentActivity : i18n("Plasmai")
+    toolTipMainText: session.timer.tracking ? session.timer.project + " · " + session.timer.activity : i18n("Plasmai")
     toolTipTextFormat: Text.PlainText
     toolTipSubText: {
-        if (!tokenLoaded) {
+        if (!session.connection.tokenLoaded) {
             return i18n("Loading…")
         }
-        if (!isConfigured) {
+        if (!session.connection.configured) {
             return i18n("Not configured — click to set up")
         }
         if (connectionState === "error" && errorMessage) {
             return errorMessage
         }
         var sync = []
-        if (offline) {
+        if (session.sync.offline) {
             sync.push(i18n("Offline"))
         }
-        if (unsyncedCount > 0) {
-            sync.push(i18np("%1 change not synced yet", "%1 changes not synced yet", unsyncedCount))
+        if (session.sync.unsynced > 0) {
+            sync.push(i18np("%1 change not synced yet", "%1 changes not synced yet", session.sync.unsynced))
         }
         return sync.length ? sync.join(" · ") + "\n" + panelTooltipBody() : panelTooltipBody()
     }
@@ -422,44 +335,24 @@ PlasmoidItem {
     }
 
     Timer {
-        id: elapsedTimer
-        interval: 1000
-        running: root.isTracking
-        repeat: true
-        onTriggered: root.elapsedSeconds++
-    }
-
-    // QML XMLHttpRequest has no timeout: abort requests that hang so
-    // isBusy / loading flags cannot stay stuck.
-    Timer {
-        id: requestWatchdogTimer
-        interval: 5000
-        running: true
-        repeat: true
-        onTriggered: ProviderUtil.abortStaleRequests(Date.now())
-    }
-
-    Timer {
         id: sparklineRefreshTimer
         interval: 30000
-        running: root.expanded && root.isConfigured && root.showSparklineHere
+        running: root.expanded && root.session.connection.configured && root.showSparklineHere
         repeat: true
         onTriggered: root.sparklineNowTick++
     }
 
+    // An action's error shows until the next poll that finds the server (as before the layer).
     Timer {
-        id: pollTimer
-        interval: Math.max(10, plasmoid.configuration.refreshInterval) * 1000
-        running: root.isConfigured && root.connectionState !== "connecting"
-        repeat: true
+        id: actionErrorTimer
+        interval: Math.max(10, root.session.settings.refreshInterval) * 1000
+        repeat: false
         onTriggered: {
-            root.refreshActiveTimesheet(true)
-            root.refreshWorkTotals()
-            // Keep the project / activity / customer catalog current so new
-            // entities created in the Kimai web UI appear without requiring
-            // a plasmoid restart.  refreshProjects checks CatalogCache.isFresh()
-            // internally, so the API is hit at most every FRESH_MS (10 min).
-            root.refreshProjects(true, false)
+            if (root.session.connection.state === root.session.connection.online) {
+                root.clearError()
+                return
+            }
+            restart()
         }
     }
 
@@ -468,44 +361,9 @@ PlasmoidItem {
     Timer {
         id: sharedConfigPollTimer
         interval: root.expanded ? 5000 : 60000
-        running: !root.credentialsLoading && root.tokenLoaded
+        running: !root.reloading && root.session.connection.tokenLoaded
         repeat: true
         onTriggered: root.pollSharedConfig()
-    }
-
-    function pollSharedConfig() {
-        Platform.loadShared(execSource).then(function(shared) {
-            if (!shared) return
-            var newProfileId = shared.activeProfileId || "default"
-            var newProfilesJson = shared.profilesJson || ""
-            var changed = false
-            if (newProfileId !== (plasmoid.configuration.activeProfileId || "default")) {
-                changed = true
-            }
-            if (newProfilesJson !== (plasmoid.configuration.profilesJson || "")) {
-                changed = true
-            }
-            if (changed) {
-                SharedConfig.applyToConfiguration(plasmoid.configuration, shared)
-                root.softReload()
-            }
-        })
-    }
-
-    Timer {
-        id: idleTimer
-        interval: 60000
-        running: root.isTracking && plasmoid.configuration.idleStopEnabled && root.isConfigured
-        repeat: true
-        onTriggered: root.checkIdle()
-    }
-
-    Timer {
-        id: forgotReminderTimer
-        interval: 5 * 60 * 1000
-        running: root.isConfigured && !root.isTracking && plasmoid.configuration.notifyForgotToStart
-        repeat: true
-        onTriggered: root.checkForgotToStart()
     }
 
     Timer {
@@ -536,6 +394,134 @@ PlasmoidItem {
         repeat: false
         onTriggered: root.alreadyRunningHintKey = ""
     }
+
+    // ── plasmoid.configuration ↔ shared.json ──
+    //
+    //   reload(): shared.json ──▶ plasmoid.configuration ──▶ session.settings ──▶ session.open()
+    //   settings dialog closed: plasmoid.configuration ──▶ shared.json ──▶ reload()
+    //   session.settings.changed (pins, last used, probes, setup) ──▶ plasmoid.configuration
+    //   a plasmoid.configuration key (settings dialog) ──▶ session.settings at once
+
+    /** probe: Session.Probe.Fresh also drops the catalog cache (a reload after a change). */
+    function reload(probe) {
+        if (reloading) {
+            queuedReload = Math.max(queuedReload, probe)
+            return
+        }
+        reloading = true
+        if (probe === Session.Probe.Fresh) {
+            session.catalog.invalidate()
+        }
+        const done = function() {
+            reloading = false
+            const next = queuedReload
+            queuedReload = -1
+            if (next >= 0) {
+                reload(next)
+            }
+        }
+        Platform.loadShared(execSource).then(function(shared) {
+            return root.resetOwnOld(shared)
+        }).then(function(shared) {
+            if (shared) {
+                SharedConfig.applyToConfiguration(plasmoid.configuration, shared)
+            } else if (root.ownConnection()) {
+                // Migrate this instance's connection settings into the shared store.
+                root.persistShared()
+            }
+            // Keys shared.json lacks keep this instance's values (main.xml's defaults).
+            root.session.settings.apply(SharedConfig.fromConfiguration(plasmoid.configuration, { withoutDataMaps: true }))
+            return root.session.open()
+        }).then(done, done)
+    }
+
+    function ownConnection() {
+        return (plasmoid.configuration.kimaiUrl || "").length > 0
+               || (plasmoid.configuration.profilesJson || "").length > 0
+    }
+
+    /**
+     * Settings of a version before the setup wizard (sharedConfig.js needsReset): once,
+     * tokens cleared and every setting at its default, so the wizard runs. Resolves with
+     * the settings to load. An instance without shared.json but with a connection of its
+     * own (older still) counts as old too; a fresh one does not.
+     */
+    function resetOwnOld(shared) {
+        const own = SharedConfig.fromConfiguration(plasmoid.configuration)
+        const old = shared || (ownConnection() ? own : null)
+        if (!SharedConfig.needsReset(old)) {
+            return shared
+        }
+        const fresh = SharedConfig.resetShared()
+        const ids = SharedConfig.profileIds(old).concat(SharedConfig.profileIds(own))
+        const clears = ids.map(function(id) {
+            return root.session.connection.clearToken(id).catch(function() {})
+        })
+        resetProfileView()
+        session.catalog.invalidate()
+        return Promise.all(clears).then(function() {
+            return Platform.saveShared(execSource, fresh)
+        }).then(function() { return fresh }, function() { return fresh })
+    }
+
+    /** This instance's configuration wins (after the settings dialog). */
+    function persistShared() {
+        // Film-day data maps are written on their own (merged, B9); a
+        // stale copy here would drop what the app saved meanwhile.
+        return Platform.patchShared(execSource, plasmoid.configuration,
+            SharedConfig.fromConfiguration(plasmoid.configuration, { withoutDataMaps: true }))
+    }
+
+    function pollSharedConfig() {
+        Platform.loadShared(execSource).then(function(shared) {
+            if (!shared) {
+                return
+            }
+            const changed = (shared.activeProfileId || "default") !== (plasmoid.configuration.activeProfileId || "default")
+                            || (shared.profilesJson || "") !== (plasmoid.configuration.profilesJson || "")
+            if (!changed) {
+                return
+            }
+            SharedConfig.applyToConfiguration(plasmoid.configuration, shared)
+            root.reload(Session.Probe.Fresh)
+        })
+    }
+
+    // The layer changed a setting (pins, last used, probes, setup wizard): the settings dialog shows it.
+    Connections {
+        target: root.session.settings
+        function onChanged(keys) {
+            const s = root.session.settings
+            for (let i = 0; i < keys.length; i++) {
+                const key = keys[i]
+                if (s.keys.indexOf(key) < 0 || plasmoid.configuration[key] === s[key]) {
+                    continue
+                }
+                plasmoid.configuration[key] = s[key]
+            }
+        }
+    }
+
+    // The settings dialog changed a key: the layer takes it at once.
+    Instantiator {
+        model: root.session.settings.keys
+        delegate: QtObject {
+            required property string modelData
+            readonly property var value: plasmoid.configuration[modelData]
+            onValueChanged: root.takeConfig(modelData, value)
+        }
+    }
+
+    function takeConfig(key, value) {
+        if (SharedConfig.isDataMapKey(key) || value === undefined || session.settings[key] === value) {
+            return
+        }
+        const patch = {}
+        patch[key] = value
+        session.settings.apply(patch)
+    }
+
+    // ── Words for the session's answers ──
 
     function formatRelativeTime(isoDate) {
         if (!isoDate) {
@@ -568,7 +554,7 @@ PlasmoidItem {
     }
 
     function connectionIcon() {
-        if (!isConfigured) {
+        if (!session.connection.configured) {
             return "network-disconnect"
         }
         if (connectionState === "connecting") {
@@ -581,69 +567,199 @@ PlasmoidItem {
     }
 
     function connectionLabel() {
-        if (!isConfigured) {
+        const c = session.connection
+        if (!c.configured) {
             return i18n("Not configured")
         }
         if (connectionState === "connecting") {
-            return i18n("Connecting to %1…", kimaiUrl)
+            return i18n("Connecting to %1…", c.url)
         }
         if (connectionState === "error") {
             return i18n("Connection problem")
         }
-        var profileName = activeProfile ? activeProfile.name : ""
+        const profileName = c.profile ? c.profile.name : ""
         return profileName.length > 0
-               ? i18n("Connected to %1 (%2)", kimaiUrl, profileName)
-               : i18n("Connected to %1", kimaiUrl)
+               ? i18n("Connected to %1 (%2)", c.url, profileName)
+               : i18n("Connected to %1", c.url)
     }
 
-    function setError(error) {
-        lastError = error || null
-        if (error) {
-            connectionState = "error"
-        }
+    /** An action failed: its error shows (error state) until the next poll. */
+    function showError(error) {
+        actionError = error || { type: "network", status: 0, detail: "empty result" }
+        actionErrorTimer.restart()
     }
 
     function clearError() {
-        lastError = null
+        actionError = null
         userMessage = ""
-        if (isConfigured) {
-            connectionState = "online"
+        actionErrorTimer.stop()
+    }
+
+    function notify(summary, body) {
+        session.reminders.notify(summary, body)
+    }
+
+    Connections {
+        target: root.session
+        function onFailed(action, result) {
+            root.reportFailure(action, result)
         }
-    }
-
-    /** Kimai saved the entry but ignored billable (no edit_billable permission). */
-    function noteDroppedFields(result) {
-        if (result && result.droppedFields && result.droppedFields.indexOf("billable") >= 0) {
-            userMessage = i18n("Saved without the billable change: your Kimai account is not allowed to edit billable.")
+        function onStarted(ts, origin, names) {
+            root.clearError()
+            root.continuing = null
+            // trackingBegan follows at once: no "in progress" news for a start here.
+            root.localStart = true
+            Qt.callLater(function() { root.localStart = false })
+            if (!root.session.settings.notifyOnStart) {
+                return
+            }
+            root.notify(origin === Session.Origin.Switch ? i18n("Switched activity") : i18n("Tracking started"),
+                        names.project + " · " + names.activity)
         }
-    }
-
-    /** Setup wizard: the profile works (token tested and stored). The wizard stays for its Day step. */
-    function applySetupConnection(patch) {
-        setupAwaitingDay = true
-        applySetupKeys(patch).then(function() {
-            softReload()
-        })
-    }
-
-    /** Setup wizard: Day step done ({} when skipped). */
-    function finishSetup(patch) {
-        setupAwaitingDay = false
-        applySetupKeys(patch)
-    }
-
-    /**
-     * shared.json first, then this instance: the config change starts a reload
-     * that reads shared.json, which must already hold the new values.
-     */
-    function applySetupKeys(patch) {
-        function apply() {
-            for (var key in patch) {
-                plasmoid.configuration[key] = patch[key]
+        function onStopped(ts, names) {
+            root.clearError()
+            const idle = root.stopFromIdle
+            root.stopFromIdle = false
+            if (idle && root.session.settings.notifyOnIdleStop) {
+                root.notify(i18n("Tracking stopped (idle)"), names.project + " · " + names.activity)
+            } else if (!idle && root.session.settings.notifyOnStop) {
+                root.notify(i18n("Tracking stopped"), names.project + " · " + names.activity)
             }
         }
-        return Platform.patchShared(execSource, plasmoid.configuration, patch).then(apply, apply)
+        // A timer found by a refresh (started elsewhere, or before this widget ran).
+        function onTrackingBegan(ts) {
+            if (root.localStart) {
+                return
+            }
+            const t = root.session.timer
+            root.notify(i18n("Tracking in progress"),
+                        t.project + " · " + t.activity + " · " + KimaiApi.formatDurationShort(t.elapsedSeconds))
+        }
+        /** Kimai saved the entry but ignored billable (no edit_billable permission). */
+        function onDroppedFields(fields) {
+            root.userMessage = i18n("Saved without the billable change: your Kimai account is not allowed to edit billable.")
+        }
     }
+
+    /** A failed action of the session, as the error line (refresh errors are the layer's). */
+    function reportFailure(action, result) {
+        if (action === Session.Action.Refresh) {
+            return
+        }
+        if (action === Session.Action.SplitRange) {
+            userMessage = i18n("Split time must be between begin and end.")
+            return
+        }
+        if (action === Session.Action.Continue && startAnew(continuing)) {
+            return
+        }
+        showError(result ? result.error : null)
+        if (action === Session.Action.SplitSecond) {
+            userMessage = i18n("The first half was saved, but the second half could not be created.")
+        }
+    }
+
+    /** A restart failed: the same project and activity start as a new entry. */
+    function startAnew(ts) {
+        continuing = null
+        const pid = ts ? KimaiApi.projectId(ts) : null
+        const aid = ts ? KimaiApi.activityId(ts) : null
+        if (!pid || !aid) {
+            return false
+        }
+        session.timer.start(pid, aid, KimaiApi.displayProjectName(ts, session.catalog.projects),
+                            KimaiApi.displayActivityName(ts, session.catalog.activities, session.catalog.activitiesByProject),
+                            ts.description || "")
+        return true
+    }
+
+    Connections {
+        target: root.session.timer
+        function onDescriptionSaved() {
+            root.clearError()
+            root.startDescriptionSavedFlash()
+        }
+        function onDescriptionFailed(result) {
+            root.showError(result ? result.error : null)
+        }
+        function onTrackingChanged() {
+            if (!root.session.timer.tracking) {
+                root.resetTrackingView()
+            }
+            // The film day follows the timer (Start, Stop, a switch from the main view).
+            if (root.mainViewMode === "filmday") {
+                root.loadFilmDayForDate(root.filmDaySelectedDate)
+            }
+        }
+        function onActiveChanged() {
+            if (root.session.timer.tracking && !root.compactPopupLayout) {
+                root.showNewActivityForm = plasmoid.configuration.desktopShowNewActivity
+            }
+        }
+    }
+
+    Connections {
+        target: root.session.reminders
+        function onIdlePendingChanged() {
+            if (!root.session.reminders.idlePending) {
+                return
+            }
+            root.expanded = true
+            if (root.idleDialogRef) {
+                root.idleDialogRef.open()
+                return
+            }
+            root.session.reminders.clearPending()
+            root.stopFromIdle = true
+            root.session.timer.stop()
+        }
+        function onIdleDiscarded(snap) {
+            root.clearError()
+            if (root.session.settings.notifyOnIdleStop) {
+                root.notify(i18n("Idle time discarded"), snap.projectName + " · " + snap.activityName)
+            }
+        }
+        function onForgotToStart() {
+            if (plasmoid.userConfiguring) {
+                return
+            }
+            root.notify(i18n("Nothing is tracking"), i18n("Work hours have started. Start a timer when you begin."))
+        }
+    }
+
+    // A full catalog answer: pickers, statistics and the open editor take its names.
+    Connections {
+        target: root.session.catalog
+        function onUpdated() {
+            root.rebuildCatalogViews()
+        }
+    }
+
+    // Outside the statistics the week's entries stand in for its first range.
+    Connections {
+        target: root.session.totals
+        function onWeekEntriesChanged() {
+            if (root.statsTimesheets.length && root.mainViewMode === "stats") {
+                return
+            }
+            const now = new Date()
+            root.statsTimesheets = root.session.totals.weekEntries
+            root.statsRangeBeginMs = KimaiApi.startOfWeekMonday(now).getTime()
+            root.statsRangeEndMs = KimaiApi.endOfWeekSunday(now).getTime()
+        }
+    }
+
+    // The plugin probe answered: Detected trips load while the popup shows.
+    Connections {
+        target: root.session.trips
+        function onCanEditChanged() {
+            if (root.expanded) {
+                root.loadTripSuggestions(false)
+            }
+        }
+    }
+
+    onProfileIdChanged: resetProfileView()
 
     function openConfigure() {
         var action = plasmoid.internalAction("configure")
@@ -665,138 +781,8 @@ PlasmoidItem {
         plasmoidContextMenu.open(x, y)
     }
 
-    function sendNotification(summary, body) {
-        Platform.sendNotification(execSource, summary, body || "")
-    }
-
-    function checkIdle() {
-        if (!isTracking || !plasmoid.configuration.idleStopEnabled || plasmoid.userConfiguring) {
-            return
-        }
-        if (idleDialogRef && idleDialogRef.visible) {
-            return
-        }
-        Platform.checkIdle(execSource).then(function(idleMs) {
-            var v = TimerSession.verdict(idleMs, root.idleIgnoreUntilActive, plasmoid.configuration.idleStopMinutes)
-            root.idleIgnoreUntilActive = v.ignoring
-            if (v.prompt) {
-                root.promptIdle(idleMs)
-            }
-        })
-    }
-
-    function promptIdle(idleMs) {
-        pendingIdleMs = idleMs
-        pendingIdleSince = TimerSession.idleSince(Date.now(), idleMs)
-        pendingIdleSnapshot = TimerSession.snapshot(activeTimesheet, currentTimesheetId,
-            { project: currentProject, activity: currentActivity, description: currentDescription })
-        expanded = true
-        if (idleDialogRef) {
-            idleDialogRef.open()
-        } else {
-            stopTracking(true)
-        }
-    }
-
-    function clearPendingIdle() {
-        pendingIdleSnapshot = null
-        pendingIdleMs = 0
-        pendingIdleSince = 0
-    }
-
-    function keepIdleTime() {
-        idleIgnoreUntilActive = true
-        clearPendingIdle()
-    }
-
-    function discardIdleTime(andContinue) {
-        var snap = pendingIdleSnapshot
-        var idleSince = pendingIdleSince > 0 ? pendingIdleSince : TimerSession.idleSince(Date.now(), pendingIdleMs)
-        clearPendingIdle()
-        if (!snap || !snap.timesheetId) {
-            stopTracking(true)
-            return
-        }
-        // Stop where idle began (not "now − idle" at click time, which would
-        // keep the time the dialog sat open), never before the entry's begin.
-        var endDate = TimerSession.discardEnd(snap, idleSince)
-        if (!tracker || typeof tracker.patchTimesheet !== "function") {
-            stopTracking(true)
-            return
-        }
-        isBusy = true
-        lastError = null
-        tracker.patchTimesheet(kimaiUrl, apiToken, snap.timesheetId, {
-            end: KimaiApi.localDateTimeString(endDate)
-        }, function(result) {
-            isBusy = false
-            if (!result || !result.ok) {
-                setError(result ? result.error : { type: "network", status: 0, detail: "empty result" })
-                return
-            }
-            clearError()
-            resetTrackingState()
-            refreshRecentTimesheets()
-            refreshWorkTotals()
-            if (plasmoid.configuration.notifyOnIdleStop) {
-                sendNotification(
-                    i18n("Idle time discarded"),
-                    snap.projectName + " · " + snap.activityName)
-            }
-            if (andContinue && TimerSession.canContinue(snap)) {
-                startTracking(snap.projectId, snap.activityId, snap.projectName, snap.activityName, snap.description || "")
-            }
-        })
-    }
-
-    function checkForgotToStart() {
-        if (plasmoid.userConfiguring) {
-            return
-        }
-        var day = TimerSession.forgotToStartDay({
-            enabled: plasmoid.configuration.notifyForgotToStart, configured: isConfigured, tracking: isTracking,
-            workDayBegin: plasmoid.configuration.workDayBegin, workDayEnd: plasmoid.configuration.workDayEnd,
-            lastDay: forgotReminderDay
-        }, new Date())
-        if (!day) {
-            return
-        }
-        forgotReminderDay = day
-        sendNotification(
-            i18n("Nothing is tracking"),
-            i18n("Work hours have started. Start a timer when you begin."))
-    }
-
-    function rememberLastUsed(projectId, activityId, projectName, activityName) {
-        if (plasmoid.userConfiguring || !projectId || !activityId) {
-            return
-        }
-        plasmoid.configuration.lastUsedProjectId = String(projectId)
-        plasmoid.configuration.lastUsedActivityId = String(activityId)
-        plasmoid.configuration.lastUsedProjectName = String(projectName || "")
-        plasmoid.configuration.lastUsedActivityName = String(activityName || "")
-        Platform.patchShared(execSource, plasmoid.configuration, {
-            lastUsedProjectId: plasmoid.configuration.lastUsedProjectId,
-            lastUsedActivityId: plasmoid.configuration.lastUsedActivityId,
-            lastUsedProjectName: plasmoid.configuration.lastUsedProjectName,
-            lastUsedActivityName: plasmoid.configuration.lastUsedActivityName
-        })
-    }
-
-    function startLastUsed() {
-        if (!hasLastUsed || isTracking || isBusy) {
-            return
-        }
-        startTracking(
-            plasmoid.configuration.lastUsedProjectId,
-            plasmoid.configuration.lastUsedActivityId,
-            plasmoid.configuration.lastUsedProjectName || "",
-            plasmoid.configuration.lastUsedActivityName || "",
-            "")
-    }
-
     function openCreateEntity(mode) {
-        if (!providerCapabilities.createEntities || !createEntityDialogRef) {
+        if (!session.connection.capabilities.createEntities || !createEntityDialogRef) {
             return
         }
         var projectName = ""
@@ -805,116 +791,42 @@ PlasmoidItem {
         }
         createEntityDialogRef.selectedProjectId = selectedProjectId
         createEntityDialogRef.selectedProjectName = projectName
-        createEntityDialogRef.customers = customers
+        createEntityDialogRef.customers = session.catalog.customers
         createEntityDialogRef.resetForMode(mode)
         expanded = true
         createEntityDialogRef.open()
     }
 
     function submitCreateEntity(mode, payload) {
-        if (!tracker || !payload) {
+        if (!payload) {
             return
         }
-        isBusy = true
-        lastError = null
         userMessage = ""
-        var fields = payload
-        if (mode === "customer" && typeof tracker.createCustomer === "function") {
-            fields.customers = customers
-            tracker.createCustomer(kimaiUrl, apiToken, fields, function(result) {
-                isBusy = false
-                if (result && result.ok) {
-                    clearError()
-                    refreshProjects(false, true)
-                    sendNotification(i18n("Customer created"), payload.name)
-                } else {
-                    setError(result ? result.error : { type: "network", status: 0, detail: "empty result" })
-                }
-            })
-            return
+        if (mode === "customer") {
+            payload.customers = session.catalog.customers
         }
-        if (mode === "project" && typeof tracker.createProject === "function") {
-            tracker.createProject(kimaiUrl, apiToken, fields, function(result) {
-                isBusy = false
-                if (result && result.ok && result.data) {
-                    clearError()
-                    var newId = result.data.id
-                    refreshProjects(false, true)
-                    Qt.callLater(function() {
-                        selectProjectById(newId, null)
-                    })
-                    sendNotification(i18n("Project created"), payload.name)
-                } else {
-                    setError(result ? result.error : { type: "network", status: 0, detail: "empty result" })
-                }
-            })
-            return
-        }
-        if (mode === "activity" && typeof tracker.createActivity === "function") {
-            tracker.createActivity(kimaiUrl, apiToken, fields, function(result) {
-                isBusy = false
-                if (result && result.ok && result.data) {
-                    clearError()
-                    var aid = result.data.id
-                    var pid = fields.project
-                    refreshProjects(false, true)
-                    Qt.callLater(function() {
-                        selectProjectById(pid, aid)
-                    })
-                    sendNotification(i18n("Activity created"), payload.name)
-                } else {
-                    setError(result ? result.error : { type: "network", status: 0, detail: "empty result" })
-                }
-            })
-            return
-        }
-        isBusy = false
-    }
-
-    function syncTrackerSession() {
-        TimeTracker.applySession(providerId, activeProfile)
-    }
-
-    function isUnsynced(entryId) {
-        return offlineRevision >= 0 && !!offlineSession && Offline.isUnsynced(offlineSession, entryId)
-    }
-
-    /** Files of this widget and profile: two widgets in one plasmashell must not share an outbox. */
-    function offlineKey() {
-        if (providerId !== TimeTracker.PROVIDER_KIMAI || !activeProfile) {
-            return ""
-        }
-        return ("plasmoid-" + Plasmoid.id + "-" + activeProfile.id).replace(/[^A-Za-z0-9_-]/g, "_")
-    }
-
-    /** Offline session of the active profile; resolves once snapshot and outbox are loaded. */
-    function openOfflineSession() {
-        var key = offlineKey()
-        if (offlineSession && offlineSession.host.key === key) {
-            return Promise.resolve()
-        }
-        var session = Offline.createSession(TimeTracker.api(providerId), {
-            key: key,
-            url: function() { return root.kimaiUrl },
-            token: function() { return root.apiToken },
-            load: function(name) { return Platform.loadLocal(execSource, name) },
-            save: function(name, obj) {
-                return Platform.saveLocal(execSource, name, obj).catch(function(err) {
-                    console.warn("Plasmai: could not save", name, err)
-                })
-            },
-            changed: function() { root.offlineRevision++ },
-            // A timer started offline got its server id: keep following it.
-            idChanged: function(localId, serverId) {
-                if (String(root.currentTimesheetId) === String(localId)) {
-                    root.currentTimesheetId = serverId
-                }
+        const created = { customer: i18n("Customer created"), project: i18n("Project created"), activity: i18n("Activity created") }
+        session.entries.createEntity(mode, payload, function(result) {
+            if (!result || !result.ok || (mode !== "customer" && !result.data)) {
+                root.showError(result ? result.error : null)
+                return
             }
+            root.clearError()
+            // The new project or activity is picked once the catalog has it.
+            if (mode === "project") {
+                Qt.callLater(function() { root.selectProjectById(result.data.id, null) })
+            } else if (mode === "activity") {
+                Qt.callLater(function() { root.selectProjectById(payload.project, result.data.id) })
+            }
+            root.notify(created[mode], payload.name)
         })
-        offlineSession = session
-        return Offline.load(session).then(function() {
-            FilmDaySync.restoreMemo(root.filmDayContext(), Offline.filmDays(session))
-        })
+    }
+
+    /** An editor opens before the catalog came: ask for it now. */
+    function ensureCatalog() {
+        if (session.catalog.projects.length === 0) {
+            session.catalog.refresh()
+        }
     }
 
     function openUnsyncedView() {
@@ -924,38 +836,33 @@ PlasmoidItem {
     }
 
     function openManualEntry() {
-        if (!isConfigured) {
+        if (!session.connection.configured) {
             return
         }
         editingActiveEntry = false
         editingStoppedTimesheet = null
         mainViewMode = "manual"
-        if (projectPickerModel.length === 0) {
-            refreshProjects(false)
-        }
+        ensureCatalog()
         if (root.manualEntryViewRef) {
             root.manualEntryViewRef.resetDefaults()
         }
     }
 
     function openStoppedEdit(timesheet) {
-        if (!isConfigured || !timesheet) {
+        if (!session.connection.configured || !timesheet) {
             return
         }
-        if (isTracking && timesheet.id !== undefined && timesheet.id !== null
-                && String(timesheet.id) === String(currentTimesheetId)) {
+        if (timesheetIsRunning(timesheet)) {
             openActiveEdit()
             return
         }
-        if (!providerCapabilities.editStopped) {
+        if (!session.connection.capabilities.editStopped) {
             return
         }
         editingActiveEntry = false
         editingStoppedTimesheet = timesheet
         mainViewMode = "manual"
-        if (projectPickerModel.length === 0) {
-            refreshProjects(false)
-        }
+        ensureCatalog()
         Qt.callLater(function() {
             if (root.manualEntryViewRef
                     && root.editingStoppedTimesheet) {
@@ -965,17 +872,15 @@ PlasmoidItem {
     }
 
     function openActiveEdit() {
-        if (!isConfigured || !isTracking || !activeTimesheet) {
+        if (!session.connection.configured || !session.timer.tracking || !session.timer.active) {
             return
         }
         editingActiveEntry = true
-        if (projectPickerModel.length === 0) {
-            refreshProjects(false)
-        }
+        ensureCatalog()
         // Prefill once the editor is visible (also handled by ActiveEditView.onVisibleChanged).
         Qt.callLater(function() {
             if (editingActiveEntry && root.activeEditViewRef) {
-                root.activeEditViewRef.loadFromTimesheet(root.activeTimesheet)
+                root.activeEditViewRef.loadFromTimesheet(root.session.timer.active)
             }
         })
     }
@@ -985,21 +890,10 @@ PlasmoidItem {
     }
 
     function saveActiveEdit(projectId, activityId, beginText, billable, tags) {
-        if (!isTracking || isBusy) {
+        if (!session.timer.tracking || session.busy || !session.timer.timesheetId) {
             return
         }
-        if (currentTimesheetId === invalidTimesheetId || currentTimesheetId === undefined
-            || currentTimesheetId === null || currentTimesheetId === "") {
-            return
-        }
-        if (!tracker || typeof tracker.patchTimesheet !== "function") {
-            setError({ type: "config", status: 0, detail: i18n("This provider cannot update the running entry.") })
-            return
-        }
-        function parseLocalStamp(text) {
-            return DTF.parseStamp(text)
-        }
-        var beginDate = parseLocalStamp(beginText)
+        const beginDate = DTF.parseStamp(beginText)
         if (isNaN(beginDate.getTime())) {
             userMessage = i18n("Enter a valid start date/time.")
             return
@@ -1008,46 +902,29 @@ PlasmoidItem {
             userMessage = i18n("Start must not be in the future.")
             return
         }
-        isBusy = true
-        lastError = null
         userMessage = ""
-        tracker.patchTimesheet(kimaiUrl, apiToken, currentTimesheetId, {
+        session.timer.patchActive({
             begin: KimaiApi.localDateTimeString(beginDate),
             project: projectId,
             activity: activityId,
             billable: typeof billable === "boolean" ? billable : undefined,
             tags: tags || []
-        }, function(result) {
-            isBusy = false
-            if (result && result.ok) {
-                clearError()
-                noteDroppedFields(result)
-                editingActiveEntry = false
-                if (result.data) {
-                    var hydrated = KimaiApi.hydrateTimesheets(
-                        [result.data], root.projects, root.activityCatalog(), root.activitiesByProject)
-                    applyActiveTimesheet(hydrated[0] || result.data)
-                } else {
-                    refreshActiveTimesheet(true)
-                }
-                refreshRecentTimesheets(true)
-                refreshWorkTotals()
-            } else {
-                setError(result ? result.error : { type: "network", status: 0, detail: "empty result" })
-            }
+        }, function() {
+            root.clearError()
+            root.editingActiveEntry = false
         })
     }
 
     function openStatsView() {
-        if (!isConfigured || !providerCapabilities.statistics) {
+        if (!session.connection.configured || !session.connection.capabilities.statistics) {
             return
         }
         mainViewMode = "stats"
-        refreshWorkTotals()
+        session.totals.refresh()
         loadStatsTrips()
         // Prefetch a few weeks so day/week switchers work immediately.
-        var now = new Date()
-        var begin = KimaiApi.startOfWeekMonday(now)
+        const now = new Date()
+        const begin = KimaiApi.startOfWeekMonday(now)
         begin.setDate(begin.getDate() - 7 * 4)
         loadStatsRange(begin, KimaiApi.endOfWeekSunday(now))
     }
@@ -1056,34 +933,30 @@ PlasmoidItem {
      * Ensure statsTimesheets covers [beginDate, endDate]. Fetches when needed.
      */
     function loadStatsRange(beginDate, endDate) {
-        if (!isConfigured || !beginDate || !endDate) {
+        if (!session.connection.configured || !beginDate || !endDate) {
             return
         }
-        var bMs = beginDate.getTime()
-        var eMs = endDate.getTime()
+        const bMs = beginDate.getTime()
+        const eMs = endDate.getTime()
         if (statsRangeBeginMs && statsRangeEndMs
             && bMs >= statsRangeBeginMs && eMs <= statsRangeEndMs
             && statsTimesheets.length > 0) {
             rehydrateStatsTimesheets()
             return
         }
-        var fetchBegin = new Date(statsRangeBeginMs && statsRangeBeginMs < bMs ? statsRangeBeginMs : bMs)
-        var fetchEnd = new Date(statsRangeEndMs && statsRangeEndMs > eMs ? statsRangeEndMs : eMs)
-        // Pad to full weeks
-        fetchBegin = KimaiApi.startOfWeekMonday(fetchBegin)
-        fetchEnd = KimaiApi.endOfWeekSunday(fetchEnd)
+        // Padded to full weeks.
+        const fetchBegin = KimaiApi.startOfWeekMonday(new Date(statsRangeBeginMs && statsRangeBeginMs < bMs ? statsRangeBeginMs : bMs))
+        const fetchEnd = KimaiApi.endOfWeekSunday(new Date(statsRangeEndMs && statsRangeEndMs > eMs ? statsRangeEndMs : eMs))
         loadingStats = true
-        tracker.fetchTimesheetsRange(kimaiUrl, apiToken, fetchBegin, fetchEnd, function(result) {
-            loadingStats = false
-            if (result.ok) {
-                statsTimesheets = KimaiApi.hydrateTimesheets(
-                    result.data || [], root.projects,
-                    root.activityCatalog(),
-                    root.activitiesByProject)
-                // An offline answer (the snapshot) does not count as loaded: fetch again once online.
-                statsRangeBeginMs = result.offline ? 0 : fetchBegin.getTime()
-                statsRangeEndMs = result.offline ? 0 : fetchEnd.getTime()
+        session.entries.fetchRange(fetchBegin, fetchEnd, function(result) {
+            root.loadingStats = false
+            if (!result.ok) {
+                return
             }
+            root.statsTimesheets = result.data || []
+            // An offline answer (the snapshot) does not count as loaded: fetch again once online.
+            root.statsRangeBeginMs = result.offline ? 0 : fetchBegin.getTime()
+            root.statsRangeEndMs = result.offline ? 0 : fetchEnd.getTime()
         })
     }
 
@@ -1091,10 +964,7 @@ PlasmoidItem {
         if (!statsTimesheets || statsTimesheets.length === 0) {
             return
         }
-        statsTimesheets = KimaiApi.hydrateTimesheets(
-            statsTimesheets, root.projects,
-            root.activityCatalog(),
-            root.activitiesByProject)
+        statsTimesheets = session.catalog.hydrate(statsTimesheets)
     }
 
     function returnToMainView() {
@@ -1106,100 +976,30 @@ PlasmoidItem {
     }
 
     function openFilmDayView() {
-        if (!isConfigured || !providerCapabilities.filmDays) {
+        if (!session.connection.configured || !session.connection.capabilities.filmDays) {
             return
         }
         editingActiveEntry = false
         editingStoppedTimesheet = null
         mainViewMode = "filmday"
-        if (projectPickerModel.length === 0) {
-            refreshProjects(false)
-        }
+        ensureCatalog()
         // Load only once the mode is known (plugin present or not).
         loadingFilmDay = true
-        resolveFilmDayMode(false, function() {
-            loadFilmDayForDate(filmDaySelectedDate)
+        session.filmDay.resolveMode(Session.Probe.Cached, function() {
+            root.loadFilmDayForDate(root.filmDaySelectedDate)
         })
     }
 
     function stepFilmDay(deltaDays) {
-        var next = new Date(filmDaySelectedDate)
+        const next = new Date(filmDaySelectedDate)
         next.setDate(next.getDate() + deltaDays)
         loadFilmDayForDate(next)
-    }
-
-    /**
-     * Write data maps (pluginProbesJson). They are merged onto shared.json
-     * key by key, so entries the app wrote meanwhile are kept (B9); the merged
-     * result becomes the in-memory value unless it changed again in between.
-     */
-    function persistDataMaps(patch) {
-        var bases = {}
-        var key
-        for (key in patch) {
-            bases[key] = plasmoid.configuration[key]
-            plasmoid.configuration[key] = patch[key]
-        }
-        Platform.patchShared(execSource, plasmoid.configuration, patch, bases).then(function(written) {
-            for (var k in written) {
-                if (plasmoid.configuration[k] === patch[k] && written[k] !== patch[k]) {
-                    plasmoid.configuration[k] = written[k]
-                }
-            }
-        }, function(err) {
-            console.warn("Plasmai: could not save plugin probes:", err)
-        })
-    }
-
-    /** Context for filmDaySync.js calls. */
-    function filmDayContext() {
-        return {
-            url: kimaiUrl,
-            token: apiToken,
-            profileKey: filmDayProfileKey,
-            persist: function(part) {
-                if (root.offlineSession) {
-                    Offline.rememberFilmDays(root.offlineSession, part)
-                }
-            },
-            mode: filmDayMode,
-            ping: filmDayPing,
-            memo: filmDayMemo,
-            tracker: tracker
-        }
-    }
-
-    /** Probe the Drehzettel plugin (cached 24 h per profile in shared.json). */
-    function resolveFilmDayMode(force, callback) {
-        if (!isConfigured || !providerCapabilities.drehzettelApi) {
-            filmDayMode = FilmDaySync.Mode.NO_PLUGIN
-            if (callback) callback()
-            return
-        }
-        FilmDaySync.resolveMode(kimaiUrl, apiToken, activeProfile ? activeProfile.id : "", pluginProbeCache,
-                                { force: !!force }, function(r) {
-            filmDayMode = r.mode
-            filmDayPing = r.ping
-            if (r.probeCache) {
-                persistDataMaps({ pluginProbesJson: JSON.stringify(r.probeCache) })
-            }
-            if (callback) callback()
-        })
-    }
-
-    function projectOfId(projectId) {
-        for (var i = 0; i < (projects || []).length; i++) {
-            if (String(projects[i].id) === String(projectId)) {
-                return projects[i]
-            }
-        }
-        return null
     }
 
     /** Time label of an entry ("12:15–12:45") for the film day's other activities. */
     function filmDaySpanText(ts) {
         function clock(v) {
-            var d = v ? DTF.parseStamp(v) : null
+            const d = v ? DTF.parseStamp(v) : null
             return d && !isNaN(d.getTime()) ? DTF.formatLocaleTime(d.getHours(), d.getMinutes()) : "…"
         }
         return clock(ts.begin) + "–" + clock(ts.end)
@@ -1211,60 +1011,53 @@ PlasmoidItem {
      */
     function loadFilmDayForDate(date, preferSelected) {
         filmDaySelectedDate = date
-        if (!isConfigured) {
+        if (!session.connection.configured) {
             return
         }
-        var selectedProjectIdForDay = (root.filmDayViewRef
-            && root.filmDayViewRef.projectCombo.currentIndex >= 0)
-            ? root.filmDayViewRef.projectCombo.currentItem.value.id : null
+        const view = root.filmDayViewRef
+        const selectedProjectIdForDay = view && view.projectCombo.currentIndex >= 0
+            ? view.projectCombo.currentItem.value.id : null
         loadingFilmDay = true
         // Only the latest load may fill the view (fast day steps / project picks).
-        var serial = ++filmDayLoadSerial
-        var dateStr = KimaiApi.localDateString(date)
-        function hydrate(raw) {
-            return KimaiApi.hydrateTimesheets(raw, root.projects, root.activityCatalog(), root.activitiesByProject)
-        }
+        const serial = ++filmDayLoadSerial
+        const dateStr = KimaiApi.localDateString(date)
         // One engagement per day: it decides the project; the plugin's day
         // summary decides which of the project's entries is the film day.
         // Cached days show at once; the live answer follows when it differs.
-        FilmDaySync.openDay(root.filmDayContext(), date, selectedProjectIdForDay,
-                            { projectOf: KimaiApi.projectId, activityOf: KimaiApi.activityId }, hydrate,
-                            function(r, entries) {
-                    if (serial !== filmDayLoadSerial) {
-                        return
-                    }
-                    var day = r.day
-                    loadingFilmDay = false
-                    filmDayTimesheet = r.match
-                    filmDayServer = day.server
-                    filmDayLoadMode = day.mode
-                    if (day.mode === FilmDaySync.Mode.SERVER && filmDayMode === FilmDaySync.Mode.OFFLINE) {
-                        filmDayMode = FilmDaySync.Mode.SERVER
-                    }
-                    if (!root.filmDayViewRef) {
-                        return
-                    }
-                    var info = FilmDaySync.viewInfo(r, {
-                        entries: entries, active: root.isTracking ? root.activeTimesheet : null,
-                        recent: root.recentTimesheets, daysFromToday: -DTF.daysBefore(date, new Date()),
-                        ids: { projectOf: KimaiApi.projectId, activityOf: KimaiApi.activityId },
-                        labelOf: function(ts) {
-                            return KimaiApi.displayActivityName(ts, root.allActivities, root.activitiesByProject)
-                                + " · " + KimaiApi.displayProjectName(ts, root.projects)
-                        },
-                        timeOf: root.filmDaySpanText
-                    })
-                    filmDayNoteEntry = info.timesheet
-                    filmDaySavedNote = FilmDays.noteOf(info.timesheet)
-                    root.filmDayViewRef.applyLoadedDay(date, info.timesheet, day,
-                        KimaiApi.customerCurrencyOfProject(root.projectOfId(r.projectId), root.customers),
-                        r.others, r.projectId, {
-                            phase: info.phase, isToday: info.isToday, activityId: info.activityId,
-                            engagement: r.engagement, engagements: r.engagements,
-                            otherActivities: info.otherActivities
-                        })
-                    loadFilmDayProductionDay(serial, r, info, dateStr)
-                }, !!preferSelected)
+        session.filmDay.openDay(date, selectedProjectIdForDay, function(r, entries) {
+            if (serial !== root.filmDayLoadSerial) {
+                return
+            }
+            const day = r.day
+            const cat = root.session.catalog
+            root.loadingFilmDay = false
+            root.filmDayTimesheet = r.match
+            root.filmDayServer = day.server
+            root.filmDayLoadMode = day.mode
+            if (!root.filmDayViewRef) {
+                return
+            }
+            const info = root.session.filmDay.viewInfo(r, {
+                entries: entries, active: root.session.timer.tracking ? root.session.timer.active : null,
+                recent: root.session.recent.list, daysFromToday: -DTF.daysBefore(date, new Date()),
+                ids: root.session.filmDay.ids,
+                labelOf: function(ts) {
+                    return KimaiApi.displayActivityName(ts, cat.activities, cat.activitiesByProject)
+                        + " · " + KimaiApi.displayProjectName(ts, cat.projects)
+                },
+                timeOf: root.filmDaySpanText
+            })
+            root.filmDayNoteEntry = info.timesheet
+            root.filmDaySavedNote = FilmDays.noteOf(info.timesheet)
+            root.filmDayViewRef.applyLoadedDay(date, info.timesheet, day,
+                KimaiApi.customerCurrencyOfProject(cat.projectById(r.projectId), cat.customers),
+                r.others, r.projectId, {
+                    phase: info.phase, isToday: info.isToday, activityId: info.activityId,
+                    engagement: r.engagement, engagements: r.engagements,
+                    otherActivities: info.otherActivities
+                })
+            root.loadFilmDayProductionDay(serial, r, info, dateStr)
+        }, !!preferSelected)
     }
 
     /** Production shooting day of the engagement, filled in once counted. */
@@ -1272,11 +1065,10 @@ PlasmoidItem {
         if (!r.engagement || !r.engagement.validFrom) {
             return
         }
-        FilmDaySync.productionDay(filmDayContext(), r.projectId, info.activityId, r.activityIds,
-                                  String(r.engagement.validFrom), dateStr,
-                                  { projectOf: KimaiApi.projectId, activityOf: KimaiApi.activityId }, function(count) {
-            var view = root.filmDayViewRef
-            if (serial !== filmDayLoadSerial || !count || !view) {
+        session.filmDay.productionDay(r.projectId, info.activityId, r.activityIds,
+                                      String(r.engagement.validFrom), dateStr, function(count) {
+            const view = root.filmDayViewRef
+            if (serial !== root.filmDayLoadSerial || !count || !view) {
                 return
             }
             // A day without its entry yet (before the start) is the next shooting day.
@@ -1292,69 +1084,52 @@ PlasmoidItem {
 
     /** Direct save of the film day's extras (no busy state: the fields stay usable). */
     function saveFilmDayExtras(fields) {
-        var view = root.filmDayViewRef
+        const view = root.filmDayViewRef
         if (!view) {
             return
         }
-        var projectId = view.projectCombo.currentIndex >= 0 ? view.projectCombo.currentItem.value.id : null
-        var dateStr = KimaiApi.localDateString(root.filmDaySelectedDate)
-        FilmDaySync.saveExtras(filmDayContext(), {
-            projectId: projectId, dateStr: dateStr, fields: fields,
+        const projectId = view.projectCombo.currentIndex >= 0 ? view.projectCombo.currentItem.value.id : null
+        session.filmDay.saveExtras({
+            projectId: projectId, dateStr: KimaiApi.localDateString(root.filmDaySelectedDate), fields: fields,
             server: filmDayServer, dayMode: filmDayLoadMode
         }, function(result) {
             if (result.extras === "failed") {
-                userMessage = i18n("The film day was not saved: %1",
-                                   (result.error && result.error.detail) || ApiErrors.text(result.error))
+                root.userMessage = i18n("The film day was not saved: %1",
+                                        (result.error && result.error.detail) || ApiErrors.text(result.error))
                 return
             }
             if (result.server) {
-                filmDayServer = result.server
+                root.filmDayServer = result.server
             }
-            if (result.extras === "saved" && KimaiApi.drehzettelHasFeature(filmDayContext().ping, "daySummary")) {
-                KimaiApi.fetchDaySummary(kimaiUrl, apiToken, projectId, dateStr, function(sres) {
-                    if (sres.ok && sres.data && typeof sres.data.payCents === "number" && root.filmDayViewRef) {
-                        root.filmDayViewRef.earningsCents = sres.data.payCents
-                    }
-                })
+        }, function(payCents) {
+            if (root.filmDayViewRef) {
+                root.filmDayViewRef.earningsCents = payCents
             }
         })
     }
 
     /** The note is the entry's description; before the entry exists it goes with Start / Save. */
     function saveFilmDayNote(text) {
-        FilmDaySync.saveNote(filmDayContext(), {
+        session.filmDay.saveNote({
             timesheetId: filmDayNoteEntry ? filmDayNoteEntry.id : null, note: text, previous: filmDaySavedNote
         }, function(result) {
             if (result.saved === "failed") {
-                setError(result.error)
+                root.showError(result.error)
                 return
             }
             if (result.saved === "saved") {
-                filmDaySavedNote = result.note
+                root.filmDaySavedNote = result.note
             }
         })
     }
 
-    // The film day follows the timer (Start, Stop, a switch from the main view).
-    Connections {
-        target: root
-        function onIsTrackingChanged() {
-            if (root.mainViewMode === "filmday") {
-                root.loadFilmDayForDate(root.filmDaySelectedDate)
-            }
-        }
-    }
-
     /** Saves entry and extras. direct: begin / end of the shown entry changed (no message, fields stay usable). */
     function saveFilmDay(projectId, activityId, beginText, endText, filmDayFields, direct) {
-        if (!isConfigured || isBusy) {
+        if (!session.connection.configured || session.busy || savingFilmDay) {
             return
         }
-        function parseLocalStamp(text) {
-            return DTF.parseStamp(text)
-        }
-        var beginDate = parseLocalStamp(beginText)
-        var endDate = parseLocalStamp(endText)
+        const beginDate = DTF.parseStamp(beginText)
+        const endDate = DTF.parseStamp(endText)
         if (isNaN(beginDate.getTime()) || isNaN(endDate.getTime())) {
             userMessage = i18n("Enter valid begin and end date/time.")
             return
@@ -1363,16 +1138,14 @@ PlasmoidItem {
             userMessage = i18n("End must be after begin.")
             return
         }
-        isBusy = !direct
-        lastError = null
+        savingFilmDay = !direct
         userMessage = ""
-        var dateStr = KimaiApi.localDateString(root.filmDaySelectedDate)
-        var view = (root.filmDayViewRef) ? root.filmDayViewRef : null
-        var breakMinutes = (view && view.extrasVisible) ? view.effectiveBreakMinutes : 0
+        const view = root.filmDayViewRef
+        const breakMinutes = (view && view.extrasVisible) ? view.effectiveBreakMinutes : 0
         // B3: the other entries of the project on this day, deleted after a successful save.
-        var mergeIds = (view && view.mergeOthers) ? view.otherEntryIds() : []
-        var existingId = FilmDays.saveTargetId(filmDayTimesheet, projectId, KimaiApi.projectId)
-        var timesheetFields = {
+        const mergeIds = (view && view.mergeOthers) ? view.otherEntryIds() : []
+        const existingId = FilmDays.saveTargetId(filmDayTimesheet, projectId, KimaiApi.projectId)
+        const timesheetFields = {
             begin: KimaiApi.localDateTimeString(beginDate),
             end: KimaiApi.localDateTimeString(endDate),
             project: projectId,
@@ -1382,23 +1155,23 @@ PlasmoidItem {
         if (!existingId && view) {
             timesheetFields.description = view.noteText()
         }
-        FilmDaySync.saveDay(filmDayContext(), {
+        session.filmDay.saveDay({
             projectId: projectId,
-            dateStr: dateStr,
+            dateStr: KimaiApi.localDateString(root.filmDaySelectedDate),
             existingId: existingId,
             timesheetFields: timesheetFields,
             fields: filmDayFields,
             server: filmDayServer,
             dayMode: filmDayLoadMode
         }, function(result) {
-            isBusy = false
+            root.savingFilmDay = false
             if (!result.ok) {
-                setError(result.error)
+                root.showError(result.error)
                 return
             }
-            clearError()
+            root.clearError()
             function finish(deleteReport) {
-                var messages = []
+                const messages = []
                 if (result.extras === "failed") {
                     messages.push(i18n("Begin and end were saved, but the film day extras were not: %1",
                                        (result.error && result.error.detail) || ApiErrors.text(result.error)))
@@ -1409,20 +1182,19 @@ PlasmoidItem {
                                         deleteReport.failed.length, ApiErrors.text(deleteReport.failed[0].error)))
                 }
                 if (messages.length > 0) {
-                    userMessage = messages.join(" ")
+                    root.userMessage = messages.join(" ")
                 }
-                refreshRecentTimesheets()
-                refreshWorkTotals()
+                root.session.refresh()
                 if (!direct) {
-                    sendNotification(
+                    root.notify(
                         i18n("Shooting day saved"),
                         KimaiApi.formatDurationShort(FilmDays.workSecondsFromSpan(
                             beginDate.getTime(), endDate.getTime(), breakMinutes)))
                 }
-                loadFilmDayForDate(root.filmDaySelectedDate)
+                root.loadFilmDayForDate(root.filmDaySelectedDate)
             }
             if (mergeIds.length > 0) {
-                FilmDaySync.deleteEntries(filmDayContext(), mergeIds, finish)
+                root.session.filmDay.deleteEntries(mergeIds, finish)
             } else {
                 finish(null)
             }
@@ -1431,47 +1203,18 @@ PlasmoidItem {
 
     // ── Trips (kimai-anfahrten) ──────────────────────────────────────────
 
-    /** Probe the plugin (cached 24 h per profile in pluginProbesJson), then load /meta and vehicles once. */
-    function resolveMileage(force, callback) {
-        if (!isConfigured || !providerCapabilities.mileage || plasmoid.configuration.showTrips === false) {
-            mileageState = KimaiApi.PluginState.UNKNOWN
-            mileagePing = null
-            if (callback) callback()
-            return
-        }
-        var profileId = activeProfile ? activeProfile.id : ""
-        var key = KimaiApi.pluginCacheKey(profileId, kimaiUrl, KimaiApi.MILEAGE_PLUGIN)
-        KimaiApi.detectMileage(kimaiUrl, apiToken, { cache: pluginProbeCache, key: key, force: !!force }, function(det) {
-            mileageState = det.state
-            mileagePing = det.data || null
-            if (det.cacheEntry) {
-                persistDataMaps({ pluginProbesJson: JSON.stringify(KimaiApi.storePluginCache(pluginProbeCache, key, det.cacheEntry)) })
-            }
-            if (mileageAvailable && !mileageMeta) {
-                tracker.fetchMileageMeta(kimaiUrl, apiToken, function(r) {
-                    if (r.ok) mileageMeta = r.data
-                })
-                tracker.fetchVehicles(kimaiUrl, apiToken, function(r) {
-                    if (r.ok) mileageVehicles = r.data
-                })
-            }
-            if (callback) callback()
-        })
-    }
-
-    function resetMileageState() {
-        mileageState = KimaiApi.PluginState.UNKNOWN
-        mileagePing = null
-        mileageMeta = null
-        mileageVehicles = []
+    /** Another profile: its trips, suggestions and editors start empty. */
+    function resetProfileView() {
         tripSuggestions = []
         tripSuggestionsLoadedAt = 0
         statsTrips = null
+        resetTrackingView()
     }
 
     /** Open suggestions of the last 14 days, at most every 10 minutes unless forced (A5, lazy). */
     function loadTripSuggestions(force) {
-        if (!canEditTrips || !Mileage.profileOf(mileagePing).dawarichConfigured) {
+        const ping = session.trips.ping
+        if (!session.trips.canEdit || !Mileage.profileOf(ping).dawarichConfigured) {
             tripSuggestions = []
             return
         }
@@ -1479,34 +1222,27 @@ PlasmoidItem {
             return
         }
         tripSuggestionsLoadedAt = Date.now()
-        var range = null
-        if (Mileage.hasFeature(mileagePing, "dateRange")) {
-            var from = new Date()
+        let range = null
+        if (Mileage.hasFeature(ping, "dateRange")) {
+            const from = new Date()
             from.setDate(from.getDate() - 14)
             range = { from: Mileage.dateString(from), to: Mileage.dateString(new Date()) }
         }
-        tracker.fetchTripSuggestions(kimaiUrl, apiToken, range, function(r) {
+        session.trips.fetchSuggestions(function(r) {
             if (r.ok) {
-                tripSuggestions = r.data
+                root.tripSuggestions = r.data
             }
-        })
-    }
-
-    function refreshMileage() {
-        resolveMileage(false, function() {
-            if (root.expanded) {
-                loadTripSuggestions(false)
-            }
-        })
+        }, range)
     }
 
     function timesheetSummaryText(ts) {
         if (!ts) {
             return ""
         }
-        var bits = [KimaiApi.displayProjectName(ts, root.projects),
-                    KimaiApi.displayActivityName(ts, root.allActivities, root.activitiesByProject)]
-        var begin = DTF.parseStamp(ts.begin)
+        const cat = session.catalog
+        const bits = [KimaiApi.displayProjectName(ts, cat.projects),
+                      KimaiApi.displayActivityName(ts, cat.activities, cat.activitiesByProject)]
+        const begin = DTF.parseStamp(ts.begin)
         if (!isNaN(begin.getTime())) {
             bits.push(begin.toLocaleDateString(Qt.locale(), Locale.ShortFormat) + " "
                       + begin.toLocaleTimeString(Qt.locale(), Locale.ShortFormat))
@@ -1516,7 +1252,7 @@ PlasmoidItem {
 
     /** Show the trip sheet (mainViewMode "trip"). */
     function openTripSheet(form, original, linkedText, suggestion) {
-        if (!mileageAvailable) {
+        if (!session.trips.available) {
             return
         }
         editingActiveEntry = false
@@ -1529,7 +1265,7 @@ PlasmoidItem {
     }
 
     function openNewTrip() {
-        openTripSheet(Mileage.emptyForm(mileagePing, Mileage.dateString(new Date())), null, "")
+        openTripSheet(Mileage.emptyForm(session.trips.ping, Mileage.dateString(new Date())), null, "")
     }
 
     /** A3: trip linked to a Kimai entry (Recent row or the running entry). */
@@ -1537,7 +1273,7 @@ PlasmoidItem {
         if (!ts) {
             return
         }
-        openTripSheet(Mileage.formForTimesheet(mileagePing, ts, KimaiApi.projectId), null, timesheetSummaryText(ts))
+        openTripSheet(Mileage.formForTimesheet(session.trips.ping, ts, KimaiApi.projectId), null, timesheetSummaryText(ts))
     }
 
     function tripSaved(message) {
@@ -1545,7 +1281,7 @@ PlasmoidItem {
         tripSheetSuggestion = null
         returnToMainView()
         if (message) {
-            sendNotification(i18n("Trip saved"), message)
+            notify(i18n("Trip saved"), message)
         }
         statsTrips = null
         loadTripSuggestions(true)
@@ -1561,19 +1297,20 @@ PlasmoidItem {
     }
 
     function saveTrip(body, tripId, form) {
-        if (!canEditTrips || tripBusy) {
+        if (!session.trips.canEdit || tripBusy) {
             return
         }
         tripBusy = true
+        const answered = function(r) {
+            if (r.ok) {
+                root.tripSaved(i18n("%1 km", Mileage.displayKm(Mileage.tripKm(r.data))))
+            } else {
+                root.tripFailed(r.error)
+            }
+        }
         if (tripSheetSuggestion) {
-            var sg = tripSheetSuggestion
-            tracker.acceptTripSuggestion(kimaiUrl, apiToken, sg.id, Mileage.acceptBodyFromForm(mileagePing, form, sg), function(r) {
-                if (r.ok) {
-                    tripSaved(i18n("%1 km", Mileage.displayKm(Mileage.tripKm(r.data))))
-                } else {
-                    tripFailed(r.error)
-                }
-            })
+            const sg = tripSheetSuggestion
+            session.trips.accept(sg.id, Mileage.acceptBodyFromForm(session.trips.ping, form, sg), answered)
             return
         }
         if (tripId !== null && tripId !== undefined) {
@@ -1581,28 +1318,22 @@ PlasmoidItem {
                 tripSaved("")
                 return
             }
-            tracker.patchTrip(kimaiUrl, apiToken, tripId, body, function(r) {
-                if (r.ok) tripSaved(i18n("%1 km", Mileage.displayKm(Mileage.tripKm(r.data))))
-                else tripFailed(r.error)
-            })
+            session.trips.patch(tripId, body, answered)
             return
         }
-        tracker.createTrip(kimaiUrl, apiToken, body, function(r) {
-            if (r.ok) tripSaved(i18n("%1 km", Mileage.displayKm(Mileage.tripKm(r.data))))
-            else tripFailed(r.error)
-        })
+        session.trips.create(body, answered)
     }
 
     function deleteTrip(tripId) {
-        if (!mileageAvailable || tripBusy) {
+        if (!session.trips.available || tripBusy) {
             return
         }
         tripBusy = true
-        tracker.deleteTrip(kimaiUrl, apiToken, tripId, function(r) {
+        session.trips.remove(tripId, function(r) {
             if (r.ok) {
-                tripSaved("")
+                root.tripSaved("")
             } else {
-                tripFailed(r.error)
+                root.tripFailed(r.error)
             }
         })
     }
@@ -1613,59 +1344,56 @@ PlasmoidItem {
 
     /** A5: accept a detected trip as suggested. */
     function acceptTripSuggestion(sg) {
-        if (!canEditTrips || tripBusy || !sg) {
+        if (!session.trips.canEdit || tripBusy || !sg) {
             return
         }
         tripBusy = true
-        tracker.acceptTripSuggestion(kimaiUrl, apiToken, sg.id, {}, function(r) {
-            tripBusy = false
+        session.trips.accept(sg.id, {}, function(r) {
+            root.tripBusy = false
             if (r.ok || (r.error && r.error.status === 409)) {
                 // 409: accepted or dismissed elsewhere meanwhile.
-                removeSuggestion(sg)
-                statsTrips = null
+                root.removeSuggestion(sg)
+                root.statsTrips = null
             } else {
-                userMessage = i18n("The trip could not be accepted: %1", (r.error && r.error.detail) || ApiErrors.text(r.error))
+                root.userMessage = i18n("The trip could not be accepted: %1", (r.error && r.error.detail) || ApiErrors.text(r.error))
             }
         })
     }
 
     function dismissTripSuggestion(sg) {
-        if (!canEditTrips || tripBusy || !sg) {
+        if (!session.trips.canEdit || tripBusy || !sg) {
             return
         }
         tripBusy = true
-        tracker.dismissTripSuggestion(kimaiUrl, apiToken, sg.id, function(r) {
-            tripBusy = false
+        session.trips.dismiss(sg.id, function(r) {
+            root.tripBusy = false
             if (r.ok) {
-                removeSuggestion(sg)
+                root.removeSuggestion(sg)
             } else {
-                userMessage = i18n("The trip could not be dismissed: %1", (r.error && r.error.detail) || ApiErrors.text(r.error))
+                root.userMessage = i18n("The trip could not be dismissed: %1", (r.error && r.error.detail) || ApiErrors.text(r.error))
             }
         })
     }
 
     /** A6: trips of this week and month for the statistics summary. */
     function loadStatsTrips() {
-        if (!mileageAvailable) {
+        if (!session.trips.available) {
             statsTrips = null
             return
         }
-        var now = new Date()
-        var range = Mileage.hasFeature(mileagePing, "dateRange") ? StatsData.tripRangeFor(now) : { year: now.getFullYear() }
-        tracker.fetchTrips(kimaiUrl, apiToken, range, function(r) {
-            statsTrips = r.ok ? r.data : null
+        const now = new Date()
+        const range = Mileage.hasFeature(session.trips.ping, "dateRange") ? StatsData.tripRangeFor(now) : { year: now.getFullYear() }
+        session.trips.fetch(range, function(r) {
+            root.statsTrips = r.ok ? r.data : null
         })
     }
 
     function createManualEntry(projectId, activityId, beginText, endText, description, billable, tags) {
-        if (!isConfigured || isBusy) {
+        if (!session.connection.configured || session.busy || savingEntry) {
             return
         }
-        function parseLocalStamp(text) {
-            return DTF.parseStamp(text)
-        }
-        var beginDate = parseLocalStamp(beginText)
-        var endDate = parseLocalStamp(endText)
+        const beginDate = DTF.parseStamp(beginText)
+        const endDate = DTF.parseStamp(endText)
         if (isNaN(beginDate.getTime()) || isNaN(endDate.getTime())) {
             userMessage = i18n("Enter valid begin and end date/time.")
             return
@@ -1674,10 +1402,9 @@ PlasmoidItem {
             userMessage = i18n("End must be after begin.")
             return
         }
-        isBusy = true
-        lastError = null
+        savingEntry = true
         userMessage = ""
-        var fields = {
+        const fields = {
             begin: KimaiApi.localDateTimeString(beginDate),
             end: KimaiApi.localDateTimeString(endDate),
             project: projectId,
@@ -1686,126 +1413,20 @@ PlasmoidItem {
             billable: typeof billable === "boolean" ? billable : undefined,
             tags: tags || []
         }
-        var editing = editingStoppedTimesheet
-        var editingId = editing && editing.id
-        function finishSave(result, added) {
-            isBusy = false
-            if (result.ok) {
-                clearError()
-                returnToMainView()
-                noteDroppedFields(result)
-                refreshRecentTimesheets()
-                refreshWorkTotals()
-                sendNotification(
-                    added ? i18n("Entry added") : i18n("Entry updated"),
-                    description || (added ? i18n("Manual time entry") : i18n("Timesheet updated")))
-            } else {
-                setError(result.error)
-            }
-        }
-        if (editingId !== undefined && editingId !== null && editingId !== "") {
-            if (!tracker || typeof tracker.patchTimesheet !== "function") {
-                isBusy = false
-                setError({ type: "config", status: 0, detail: i18n("This provider cannot update stopped entries.") })
+        const editing = editingStoppedTimesheet
+        const editingId = editing && editing.id !== undefined && editing.id !== "" ? editing.id : null
+        const added = editingId === null
+        session.entries.write(editingId, fields, function(result) {
+            root.savingEntry = false
+            if (!result.ok) {
+                root.showError(result.error)
                 return
             }
-            tracker.patchTimesheet(kimaiUrl, apiToken, editingId, fields, function(result) {
-                finishSave(result, false)
-            })
-            return
-        }
-        tracker.createTimesheet(kimaiUrl, apiToken, fields, function(result) {
-            finishSave(result, true)
-        })
-    }
-
-    function reloadProfiles() {
-        profiles = Profiles.parseProfiles(plasmoid.configuration.profilesJson, plasmoid.configuration.kimaiUrl)
-        activeProfile = Profiles.profileById(profiles, plasmoid.configuration.activeProfileId || "default")
-    }
-
-    function reloadCredentials(callback) {
-        if (callback) {
-            pendingCredentialCallbacks.push(callback)
-        }
-        if (credentialsLoading) {
-            return
-        }
-        credentialsLoading = true
-        Platform.loadShared(execSource).then(function(shared) {
-            return root.resetOldSettings(shared)
-        }).then(function(shared) {
-            if (shared) {
-                SharedConfig.applyToConfiguration(plasmoid.configuration, shared)
-            } else if ((plasmoid.configuration.kimaiUrl || "").length > 0
-                       || (plasmoid.configuration.profilesJson || "").length > 0) {
-                // Migrate this instance's connection settings into the shared store.
-                persistSharedConfig()
-            }
-            reloadProfiles()
-            loadApiToken(function() {
-                credentialsLoading = false
-                var cbs = pendingCredentialCallbacks
-                pendingCredentialCallbacks = []
-                for (var i = 0; i < cbs.length; i++) {
-                    cbs[i]()
-                }
-                // Another caller may have queued work while we were flushing.
-                if (pendingCredentialCallbacks.length > 0) {
-                    reloadCredentials()
-                }
-            })
-        })
-    }
-
-    /**
-     * Settings of a version before the setup wizard (sharedConfig.js needsReset): once,
-     * tokens cleared and every setting at its default, so the wizard runs. Resolves with
-     * the settings to load. An instance without shared.json but with a connection of its
-     * own (older still) counts as old too; a fresh one does not.
-     */
-    function resetOldSettings(shared) {
-        var ownConnection = (plasmoid.configuration.kimaiUrl || "").length > 0
-                            || (plasmoid.configuration.profilesJson || "").length > 0
-        var old = shared || (ownConnection ? SharedConfig.fromConfiguration(plasmoid.configuration) : null)
-        if (!SharedConfig.needsReset(old)) {
-            return shared
-        }
-        var fresh = SharedConfig.resetShared()
-        var ids = SharedConfig.profileIds(old).concat(SharedConfig.profileIds(SharedConfig.fromConfiguration(plasmoid.configuration)))
-        var clears = ids.map(function(id) {
-            return Platform.clearToken(execSource, id).catch(function() {})
-        })
-        resetProfileState()
-        CatalogCache.clear()
-        return Promise.all(clears).then(function() {
-            return Platform.saveShared(execSource, fresh)
-        }).then(function() { return fresh }, function() { return fresh })
-    }
-
-    function persistSharedConfig(callback) {
-        // This instance's configuration wins (used after a configure session).
-        Platform.patchShared(
-            execSource, plasmoid.configuration,
-            // Film-day data maps are written on their own (merged, B9); a
-            // stale copy here would drop what the app saved meanwhile.
-            SharedConfig.fromConfiguration(plasmoid.configuration, { withoutDataMaps: true })
-        ).then(function() {
-            if (callback) { callback() }
-        })
-    }
-
-    function softReload() {
-        reloadCredentials(function() {
-            syncDisplayStateFromConfig()
-            refreshAll(true, true)
-        })
-    }
-
-    function hardReload() {
-        reloadCredentials(function() {
-            syncDisplayStateFromConfig()
-            refreshAll(false, true)
+            root.clearError()
+            root.returnToMainView()
+            root.notify(
+                added ? i18n("Entry added") : i18n("Entry updated"),
+                description || (added ? i18n("Manual time entry") : i18n("Timesheet updated")))
         })
     }
 
@@ -1817,133 +1438,29 @@ PlasmoidItem {
         }
     }
 
-    function switchProfile(profileId) {
-        var currentId = plasmoid.configuration.activeProfileId || "default"
-        resetProfileState()
-        CatalogCache.clear()
-        if (currentId !== profileId) {
-            // Connections.onActiveProfileIdChanged performs the soft reload.
-            plasmoid.configuration.activeProfileId = profileId
+    /** The profile switcher: shared.json names the new profile, then the widget reloads. */
+    function switchProfile(id) {
+        const c = session.connection
+        resetProfileView()
+        session.catalog.invalidate()
+        if (c.profile && c.profile.id === id) {
+            reload(Session.Probe.Fresh)
             return
         }
-        softReload()
+        const target = Profiles.profileById(c.profiles, id)
+        const keys = { kimaiUrl: target ? (target.url || "") : "", profilesJson: plasmoid.configuration.profilesJson, activeProfileId: id }
+        // The configuration change reloads (Connections below); shared.json must hold it first.
+        const apply = function() { plasmoid.configuration.activeProfileId = id }
+        c.saveProfiles(keys).then(apply, apply)
     }
 
-    function loadApiToken(callback) {
-        reloadProfiles()
-        if (!activeProfile) {
-            apiToken = ""
-            tokenLoaded = true
-            setError({ type: "config", status: 0, detail: "" })
-            if (callback) {
-                callback()
-            }
-            return
-        }
-        syncTrackerSession()
-        // A routed address (internal builds) brings its own token; no keychain.
-        var routedToken = KimaiApi.routeToken(activeProfile.url)
-        var tokenPromise = routedToken
-            ? Promise.resolve(routedToken)
-            : Platform.loadToken(execSource, activeProfile.id)
-        tokenPromise.then(function(token) {
-            apiToken = token || ""
-            syncTrackerSession()
-            var needsUrl = providerMeta.needsUrl
-            if (!token || (needsUrl && kimaiUrl.length === 0)) {
-                setError({ type: "config", status: 0, detail: "" })
-            } else {
-                clearError()
-            }
-            tokenLoaded = true
-            if (callback) {
-                callback()
-            }
-        }).catch(function(err) {
-            setError({ type: KimaiApi.ErrorType.Network, status: 0, detail: err })
-            apiToken = ""
-            tokenLoaded = true
-            if (callback) {
-                callback()
-            }
-        })
-    }
-
-    /** Another profile: its plugins are probed again (resetTrackingState keeps them, a stop is no reason). */
-    function resetProfileState() {
-        resetMileageState()
-        filmDayMode = FilmDaySync.Mode.NO_PLUGIN
-        filmDayPing = null
-        resetTrackingState()
-    }
-
-    function resetTrackingState() {
-        isTracking = false
+    /** The timer stopped (here, elsewhere, another profile): its editors and flashes go. */
+    function resetTrackingView() {
         editingActiveEntry = false
         editingStoppedTimesheet = null
-        currentTimesheetId = invalidTimesheetId
-        currentProject = ""
-        currentActivity = ""
-        currentCustomer = ""
-        currentDescription = ""
-        activeTimesheet = null
-        currentCustomerColor = KimaiApi.DEFAULT_CUSTOMER_COLOR
-        elapsedSeconds = 0
         cancelDescriptionSavedFlash()
-        descriptionDirty = false
-        descriptionDraft = ""
-        descriptionFieldFocused = false
         if (!compactPopupLayout) {
             showNewActivityForm = plasmoid.configuration.desktopShowNewActivity
-        }
-    }
-
-    function syncDescriptionField(text) {
-        suppressDescHandler = true
-        currentDescription = text || ""
-        descriptionDraft = currentDescription
-        descriptionDirty = false
-        // TextField is under fullRepresentation — push via onDescriptionDraftChanged there.
-        Qt.callLater(function() {
-            suppressDescHandler = false
-        })
-    }
-
-    function applyActiveTimesheet(timesheet, fromLocalStart) {
-        if (!timesheet) {
-            if (isTracking) {
-                resetTrackingState()
-            }
-            return
-        }
-
-        var wasTracking = isTracking
-        var sameEntry = wasTracking && currentTimesheetId === timesheet.id
-        var state = TimerSession.activeState(timesheet, sessionCatalogs(), Date.now())
-        isTracking = true
-        activeTimesheet = timesheet
-        currentTimesheetId = state.timesheetId
-        currentProject = state.project
-        currentActivity = state.activity
-        currentCustomer = state.customer
-        currentCustomerColor = state.customerColor
-        if (!compactPopupLayout) {
-            showNewActivityForm = plasmoid.configuration.desktopShowNewActivity
-        }
-        if (state.elapsedSeconds >= 0) {
-            elapsedSeconds = state.elapsedSeconds
-        }
-        if (!TimerSession.editingDescription({ focused: descriptionFieldFocused, dirty: descriptionDirty,
-                                               draft: descriptionDraft, current: currentDescription,
-                                               sameEntry: sameEntry })) {
-            syncDescriptionField(state.description)
-        }
-
-        if (!wasTracking && !fromLocalStart) {
-            var label = currentProject + " · " + currentActivity
-            sendNotification(
-                i18n("Tracking in progress"),
-                label + " · " + KimaiApi.formatDurationShort(elapsedSeconds))
         }
     }
 
@@ -1961,95 +1478,55 @@ PlasmoidItem {
         descriptionSavedFlashTimer.restart()
     }
 
+    /** Enter or the save button: the typed description now. */
     function saveCurrentDescription() {
-        if (!isTracking) {
+        const t = session.timer
+        if (!t.tracking || !t.timesheetId || t.savingDescription || t.draft === t.description) {
             return
         }
-        if (currentTimesheetId === invalidTimesheetId || currentTimesheetId === undefined || currentTimesheetId === null || currentTimesheetId === "") {
-            return
-        }
-        if (savingDescription) {
-            return
-        }
-        var text = descriptionDraft
-        if (text === currentDescription) {
-            descriptionDirty = false
-            return
-        }
-        if (!isConfigured || !apiToken) {
-            return
-        }
-        if (!tracker || typeof tracker.patchTimesheet !== "function") {
-            setError({ type: "config", status: 0, detail: i18n("This provider cannot update descriptions.") })
-            return
-        }
-
-        savingDescription = true
         cancelDescriptionSavedFlash()
-        lastError = null
         userMessage = ""
-        tracker.patchTimesheet(kimaiUrl, apiToken, currentTimesheetId, { description: text }, function(result) {
-            savingDescription = false
-            if (result && result.ok) {
-                syncDescriptionField(text)
-                clearError()
-                root.startDescriptionSavedFlash()
-            } else {
-                setError(result ? result.error : { type: "network", status: 0, detail: "empty result" })
-            }
-        })
+        t.flushDescription()
     }
 
     function remainingTodayText() {
-        if (remainingTodaySeconds >= 0) {
-            return i18n("%1 left today", KimaiApi.formatDurationShort(remainingTodaySeconds))
+        const r = session.totals.remainingTodaySeconds
+        if (r >= 0) {
+            return i18n("%1 left today", KimaiApi.formatDurationShort(r))
         }
-        return i18n("%1 over today", KimaiApi.formatDurationShort(-remainingTodaySeconds))
+        return i18n("%1 over today", KimaiApi.formatDurationShort(-r))
     }
 
     function remainingWeekText() {
-        if (remainingWeekSeconds >= 0) {
-            return i18n("%1 left this week", KimaiApi.formatDurationShort(remainingWeekSeconds))
+        const r = session.totals.remainingWeekSeconds
+        if (r >= 0) {
+            return i18n("%1 left this week", KimaiApi.formatDurationShort(r))
         }
-        return i18n("%1 over this week", KimaiApi.formatDurationShort(-remainingWeekSeconds))
-    }
-
-    function workSummaryText(includeRemaining) {
-        var bits = [
-            i18n("Today %1", KimaiApi.formatDurationShort(todayLiveSeconds)),
-            i18n("Week %1", KimaiApi.formatDurationShort(weekLiveSeconds))
-        ]
-        if (includeRemaining && hasWorkContract) {
-            if (todayTargetSeconds > 0) {
-                bits.push(remainingTodayText())
-            }
-            if (weekTargetSeconds > 0) {
-                bits.push(remainingWeekText())
-            }
-        }
-        return bits.join(" · ")
+        return i18n("%1 over this week", KimaiApi.formatDurationShort(-r))
     }
 
     /** Panel hover tooltip body; respects Panel-Flyout work-summary setting. */
     function panelTooltipBody() {
-        var showSummary = plasmoid.configuration.popupShowWorkSummary
-        var lines = []
-        var line1 = []
-        if (isTracking) {
-            line1.push(KimaiApi.formatDuration(elapsedSeconds))
+        const showSummary = plasmoid.configuration.popupShowWorkSummary
+        const t = session.timer
+        const sum = session.totals
+        const lines = []
+        const line1 = []
+        if (t.tracking) {
+            line1.push(KimaiApi.formatDuration(t.elapsedSeconds))
         }
         if (showSummary) {
-            line1.push(i18n("Today %1", KimaiApi.formatDurationShort(todayLiveSeconds)))
+            line1.push(i18n("Today %1", KimaiApi.formatDurationShort(sum.todayLiveSeconds)))
         }
         if (line1.length > 0) {
             lines.push(line1.join(" · "))
         }
-        if (showSummary && hasWorkContract) {
-            var line2 = []
-            if (todayTargetSeconds > 0) {
+        if (showSummary && sum.hasWorkContract) {
+            const line2 = []
+            if (sum.todayTargetSeconds > 0) {
                 line2.push(remainingTodayText())
             }
-            if (weekTargetSeconds > 0) {
+            if (sum.weekTargetSeconds > 0) {
                 line2.push(remainingWeekText())
             }
             if (line2.length > 0) {
@@ -2059,47 +1536,6 @@ PlasmoidItem {
         return lines.join("\n")
     }
 
-    function applyActivitiesResult(projectId, result, activityIdToSelect) {
-        if (result.ok) {
-            activities = result.data || []
-            if (projectId) {
-                var copy = {}
-                var key
-                for (key in activitiesByProject) {
-                    if (activitiesByProject.hasOwnProperty(key)) {
-                        copy[key] = activitiesByProject[key]
-                    }
-                }
-                copy[String(projectId)] = activities
-                activitiesByProject = copy
-            }
-            var project = null
-            for (var p = 0; p < projects.length; p++) {
-                if (String(projects[p].id) === String(projectId)) {
-                    project = projects[p]
-                    break
-                }
-            }
-            activityPickerModel = KimaiApi.activityPickerItems(
-                activities, projectId, project, customersById)
-            if (activityIdToSelect) {
-                for (var a = 0; a < activityPickerModel.length; a++) {
-                    if (activityPickerModel[a].value
-                        && String(activityPickerModel[a].value.id) === String(activityIdToSelect)) {
-                        setSwitchPickerIndex("activityCombo", a)
-                        return
-                    }
-                }
-            }
-            setSwitchPickerIndex("activityCombo", -1)
-            return
-        }
-        setError(result.error)
-        activities = []
-        activityPickerModel = []
-        setSwitchPickerIndex("activityCombo", -1)
-    }
-
     /** The pickers live in fullRepresentation, which may not exist yet. */
     function setSwitchPickerIndex(combo, index) {
         if (root.switchPickersRef) {
@@ -2107,14 +1543,28 @@ PlasmoidItem {
         }
     }
 
+    /** The switch form's activity picker for `projectId`, with `activityId` chosen when given. */
+    function showActivities(projectId, activityId) {
+        session.catalog.loadActivities(projectId, function(model) {
+            root.activityPickerModel = model
+            for (let a = 0; activityId && a < model.length; a++) {
+                if (model[a].value && String(model[a].value.id) === String(activityId)) {
+                    root.setSwitchPickerIndex("activityCombo", a)
+                    return
+                }
+            }
+            root.setSwitchPickerIndex("activityCombo", -1)
+        })
+    }
+
     function selectProjectById(projectId, activityIdToSelect) {
         if (!projectId) {
             return
         }
-        var idx = -1
-        for (var i = 0; i < projectPickerModel.length; i++) {
-            if (projectPickerModel[i].value
-                && String(projectPickerModel[i].value.id) === String(projectId)) {
+        const model = session.catalog.projectPickerModel
+        let idx = -1
+        for (let i = 0; i < model.length; i++) {
+            if (model[i].value && String(model[i].value.id) === String(projectId)) {
                 idx = i
                 break
             }
@@ -2124,536 +1574,76 @@ PlasmoidItem {
         }
         setSwitchPickerIndex("projectCombo", idx)
         selectedProjectId = projectId
-        tracker.loadActivities(kimaiUrl, apiToken, projectId, function(result) {
-            applyActivitiesResult(projectId, result, activityIdToSelect)
-        })
-    }
-
-    function preloadLastActivity() {
-        if (isTracking || !isConfigured) {
-            return
-        }
-        var pid = lastRecent ? KimaiApi.projectId(lastRecent) : plasmoid.configuration.lastUsedProjectId
-        var aid = lastRecent ? KimaiApi.activityId(lastRecent) : plasmoid.configuration.lastUsedActivityId
-        if (!pid || !aid) {
-            return
-        }
-        if (projectPickerModel.length === 0) {
-            return
-        }
-        selectProjectById(pid, aid)
-        if (root.descriptionFieldRef && lastRecent) {
-            root.descriptionFieldRef.text = lastRecent.description || ""
-        }
-    }
-
-    function continueLastActivity() {
-        if (lastRecent) {
-            restartFromRecent(lastRecent)
-            return
-        }
-        startLastUsed()
-    }
-
-    function refreshActiveTimesheet(quiet) {
-        if (!isConfigured) {
-            return
-        }
-        if (!quiet) {
-            loadingActive = true
-        }
-
-        tracker.fetchActiveTimesheet(kimaiUrl, apiToken, function(result) {
-            loadingActive = false
-            if (result.ok) {
-                clearError()
-                if (result.data.length > 0) {
-                    var hydratedActive = KimaiApi.hydrateTimesheets(
-                        [result.data[0]], root.projects, root.activityCatalog(), root.activitiesByProject)
-                    applyActiveTimesheet(hydratedActive[0] || result.data[0])
-                } else if (isTracking) {
-                    resetTrackingState()
-                }
-            } else {
-                setError(result.error)
-            }
-        })
-    }
-
-    function refreshRecentTimesheets(quiet) {
-        if (!isConfigured) {
-            recentTimesheets = []
-            return
-        }
-
-        if (!quiet) {
-            loadingRecent = true
-        }
-        tracker.fetchRecentTimesheets(kimaiUrl, apiToken, plasmoid.configuration.recentCount, function(result) {
-            loadingRecent = false
-            if (result.ok) {
-                clearError()
-                recentTimesheets = KimaiApi.hydrateTimesheets(
-                    KimaiApi.deduplicateRecent(result.data || []),
-                    root.projects,
-                    root.activityCatalog(),
-                    root.activitiesByProject)
-            } else {
-                setError(result.error)
-                recentTimesheets = []
-            }
-        })
-    }
-
-    function refreshWorkTotals() {
-        if (!isConfigured) {
-            todaySeconds = 0
-            weekSeconds = 0
-            todayTargetSeconds = 0
-            weekTargetSeconds = 0
-            weekEffectiveTargetSeconds = 0
-            weekAbsences = []
-            weekPublicHolidays = []
-            weekTimesheetsForCredit = []
-            weekAbsenceCreditSeconds = 0
-            todayAbsenceCreditSeconds = 0
-            hasWorkContract = false
-            todayTimesheets = []
-            statsTimesheets = []
-            statsRangeBeginMs = 0
-            statsRangeEndMs = 0
-            return
-        }
-
-        // Totals, targets and absence credit: workTotals.js, shared with the app.
-        var now = new Date()
-        WorkTotals.load({ tracker: tracker, url: kimaiUrl, token: apiToken, memo: workTotalsMemo,
-                          holidayBundle: providerCapabilities.holidayBundle }, now, function(t) {
-            workPrefs = t.prefs
-            hasWorkContract = t.hasWorkContract
-            todayTargetSeconds = t.todayTargetSeconds
-            weekTargetSeconds = t.weekTargetSeconds
-            weekEffectiveTargetSeconds = t.weekEffectiveTargetSeconds
-            weekAbsences = t.absences
-            weekPublicHolidays = t.publicHolidays
-            if (!t.entriesLoaded) {
-                return
-            }
-
-            weekAbsenceCreditSeconds = t.weekAbsenceCreditSeconds
-            todayAbsenceCreditSeconds = t.todayAbsenceCreditSeconds
-            weekTimesheetsForCredit = t.weekEntries
-            todayTimesheets = t.todayEntries
-            weekSeconds = t.weekSeconds
-            todaySeconds = t.todaySeconds
-            totalsElapsedAnchor = elapsedSeconds
-            // Keep current week available for stats until a wider fetch completes.
-            if (!statsTimesheets.length || mainViewMode !== "stats") {
-                statsTimesheets = KimaiApi.hydrateTimesheets(
-                    t.weekEntries, root.projects,
-                    root.activityCatalog(),
-                    root.activitiesByProject)
-                statsRangeBeginMs = KimaiApi.startOfWeekMonday(now).getTime()
-                statsRangeEndMs = KimaiApi.endOfWeekSunday(now).getTime()
-            }
-        })
-    }
-
-    function rebuildCatalogViews() {
-        if (projects && projects.length) {
-            projectPickerModel = KimaiApi.projectPickerItems(projects, customers)
-        }
-        if (selectedProjectId) {
-            var project = null
-            for (var p = 0; p < projects.length; p++) {
-                if (String(projects[p].id) === String(selectedProjectId)) {
-                    project = projects[p]
-                    break
-                }
-            }
-            activityPickerModel = KimaiApi.activityPickerItems(
-                activities, selectedProjectId, project, customersById)
-        }
-        if (Favorites.parsePinned(plasmoid.configuration.pinnedActivities).length > 0) {
-            pinnedEntries = Favorites.resolvePinnedEntries(
-                plasmoid.configuration.pinnedActivities, projects, activitiesByProject,
-                customersById, allActivities)
-        }
-        rehydrateStatsTimesheets()
-        if (recentTimesheets && recentTimesheets.length) {
-            recentTimesheets = KimaiApi.hydrateTimesheets(
-                recentTimesheets, projects, activityCatalog(), activitiesByProject)
-        }
-        if (activeTimesheet) {
-            currentProject = KimaiApi.displayProjectName(activeTimesheet, projects)
-            currentActivity = KimaiApi.displayActivityName(activeTimesheet, allActivities, activitiesByProject)
-            currentCustomer = KimaiApi.customerNameFromTimesheet(activeTimesheet, customersById)
-            currentCustomerColor = KimaiApi.customerColorFromTimesheet(activeTimesheet, customersById)
-            if (editingActiveEntry) {
-                Qt.callLater(function() {
-                    if (editingActiveEntry && root.activeEditViewRef) {
-                        root.activeEditViewRef.loadFromTimesheet(root.activeTimesheet)
-                    }
-                })
-            }
-        }
-    }
-
-    function activityCatalog() {
-        return allActivities.length ? allActivities : activities
-    }
-
-    function refreshProjects(quiet, forceCatalog) {
-        if (!isConfigured) {
-            projects = []
-            customers = []
-            customersById = ({})
-            projectPickerModel = []
-            return
-        }
-
-        var profileId = activeProfile ? activeProfile.id : ""
-        // Reuse in-process catalog when fresh (expand/poll paths); force after config/profile changes.
-        if (!forceCatalog && CatalogCache.isFresh(profileId) && root.projects.length > 0) {
-            rebuildCatalogViews()
-            refreshPinnedEntries(true)
-            return
-        }
-        if (!forceCatalog && CatalogCache.isFetching()) {
-            return
-        }
-
-        if (!quiet) {
-            loadingProjects = true
-        }
-        CatalogCache.setFetching(true)
-        tracker.loadCustomers(kimaiUrl, apiToken, function(customersResult) {
-            customers = customersResult.ok ? (customersResult.data || []) : []
-            customersById = KimaiApi.buildCustomersById(customers)
-            tracker.loadProjects(kimaiUrl, apiToken, function(result) {
-                loadingProjects = false
-                if (result.ok) {
-                    clearError()
-                    projects = result.data || []
-                    function afterActivities(acts) {
-                        allActivities = acts || []
-                        if (result.offline) {
-                            // The snapshot: shown, but not a fresh catalog (fetched again once online).
-                            CatalogCache.setFetching(false)
-                        } else {
-                            CatalogCache.storeEntities(profileId, customers, projects, allActivities)
-                            Platform.saveCatalog(execSource, CatalogCache.exportPayload())
-                        }
-                        rebuildCatalogViews()
-                        refreshPinnedEntries(true)
-                        if (!isTracking) {
-                            Qt.callLater(root.preloadLastActivity)
-                        }
-                    }
-                    if (typeof tracker.loadAllActivities === "function") {
-                        tracker.loadAllActivities(kimaiUrl, apiToken, function(actResult) {
-                            afterActivities(actResult.ok ? (actResult.data || []) : [])
-                        })
-                    } else {
-                        afterActivities([])
-                    }
-                } else {
-                    CatalogCache.setFetching(false)
-                    setError(result.error)
-                    projects = []
-                    projectPickerModel = []
-                }
-            })
-        })
-    }
-
-    function refreshPinnedEntries(quiet) {
-        var pinned = Favorites.parsePinned(plasmoid.configuration.pinnedActivities)
-        if (pinned.length === 0 || !isConfigured) {
-            pinnedEntries = []
-            return
-        }
-
-        if (!quiet) {
-            loadingPinned = true
-        }
-        pinnedEntries = Favorites.resolvePinnedEntries(
-            plasmoid.configuration.pinnedActivities, projects, activitiesByProject,
-            customersById, allActivities)
-        loadingPinned = false
-
-        for (var i = 0; i < pinned.length; i++) {
-            (function(projectId) {
-                if (activitiesByProject[projectId] || activitiesByProject[String(projectId)]) {
-                    return
-                }
-                // Names already resolved from allActivities; still cache per-project lists for colors.
-                if (allActivities && allActivities.length > 0) {
-                    return
-                }
-                tracker.loadActivities(kimaiUrl, apiToken, projectId, function(result) {
-                    if (result.ok) {
-                        var copy = {}
-                        var key
-                        for (key in activitiesByProject) {
-                            if (activitiesByProject.hasOwnProperty(key)) {
-                                copy[key] = activitiesByProject[key]
-                            }
-                        }
-                        copy[projectId] = result.data || []
-                        activitiesByProject = copy
-                        pinnedEntries = Favorites.resolvePinnedEntries(
-                            plasmoid.configuration.pinnedActivities, projects, activitiesByProject,
-                            customersById, allActivities)
-                    }
-                })
-            })(pinned[i].projectId)
-        }
-    }
-
-    function refreshAll(quiet, forceCatalog) {
-        reloadProfiles()
-        syncTrackerSession()
-        // First the profile's offline session (snapshot and outbox from disk), then the refresh.
-        if (!offlineSession || offlineSession.host.key !== offlineKey()) {
-            openOfflineSession().then(function() { root.refreshAll(quiet, forceCatalog) })
-            return
-        }
-        if (!isConfigured) {
-            connectionState = "offline"
-            if (tokenLoaded) {
-                setError({ type: "config", status: 0, detail: "" })
-            }
-            return
-        }
-        if (!quiet) {
-            connectionState = "connecting"
-        }
-        if (!compactPopupLayout) {
-            showNewActivityForm = plasmoid.configuration.desktopShowNewActivity
-        }
-        refreshActiveTimesheet(!!quiet)
-        refreshRecentTimesheets(!!quiet)
-        refreshProjects(!!quiet, !!forceCatalog)
-        refreshWorkTotals()
-        refreshMileage()
-        resolveFilmDayMode(false)
+        showActivities(projectId, activityIdToSelect)
     }
 
     function loadActivitiesForProject(projectId) {
         selectedProjectId = projectId || null
-        if (!isConfigured || !projectId) {
-            activities = []
+        if (!session.connection.configured || !projectId) {
             activityPickerModel = []
             setSwitchPickerIndex("activityCombo", -1)
             return
         }
-
-        tracker.loadActivities(kimaiUrl, apiToken, projectId, function(result) {
-            applyActivitiesResult(projectId, result)
-        })
+        showActivities(projectId, null)
     }
 
-    function startTracking(projectId, activityId, projectLabel, activityLabel, description) {
-        if (!isConfigured || isBusy || isTracking) {
-            return
+    /** After a catalog answer: the pickers, statistics and the open editor take its names. */
+    function rebuildCatalogViews() {
+        if (selectedProjectId) {
+            session.catalog.loadActivities(selectedProjectId, function(model) { root.activityPickerModel = model })
         }
-
-        isBusy = true
-        lastError = null
-        userMessage = ""
-        tracker.startTracking(kimaiUrl, apiToken, projectId, activityId, description, function(result) {
-            isBusy = false
-            if (result.ok && result.data) {
-                clearError()
-                applyActiveTimesheet(result.data, true)
-                rememberLastUsed(projectId, activityId, projectLabel, activityLabel)
-                refreshRecentTimesheets()
-                refreshWorkTotals()
-                if (plasmoid.configuration.notifyOnStart) {
-                    sendNotification(
-                        i18n("Tracking started"),
-                        projectLabel + " · " + activityLabel)
+        rehydrateStatsTimesheets()
+        if (session.timer.active && editingActiveEntry) {
+            Qt.callLater(function() {
+                if (root.editingActiveEntry && root.activeEditViewRef) {
+                    root.activeEditViewRef.loadFromTimesheet(root.session.timer.active)
                 }
-            } else {
-                setError(result.error)
-            }
-        })
-    }
-
-    function switchToActivity(projectId, activityId, projectLabel, activityLabel, description) {
-        if (!isConfigured || isBusy) {
-            return
+            })
         }
-        if (!isTracking) {
-            startTracking(projectId, activityId, projectLabel, activityLabel, description)
-            return
-        }
-        if (currentTimesheetId === invalidTimesheetId) {
-            return
-        }
-
-        isBusy = true
-        lastError = null
-        userMessage = ""
-        TimerSession.switchTimer(tracker, kimaiUrl, apiToken, currentTimesheetId,
-                                 { projectId: projectId, activityId: activityId, description: description }, {
-            stopped: function() {
-                resetTrackingState()
-            },
-            started: function(timesheet) {
-                isBusy = false
-                clearError()
-                applyActiveTimesheet(timesheet, true)
-                rememberLastUsed(projectId, activityId, projectLabel, activityLabel)
-                refreshRecentTimesheets()
-                refreshWorkTotals()
-                if (plasmoid.configuration.notifyOnStart) {
-                    sendNotification(
-                        i18n("Switched activity"),
-                        projectLabel + " · " + activityLabel)
-                }
-            },
-            failed: function(phase, result) {
-                isBusy = false
-                setError(result.error)
-                if (phase === "start") {
-                    refreshRecentTimesheets()
-                }
-            }
-        })
-    }
-
-    function startPinned(entry) {
-        if (!entry) {
-            return
-        }
-        if (isTracking) {
-            requestRestartFromRecent(Favorites.asTimesheet(entry))
-            return
-        }
-        startTracking(entry.projectId, entry.activityId, entry.projectName, entry.activityName, "")
-    }
-
-    function requestStop() {
-        if (!isConfigured || isBusy || !isTracking || currentTimesheetId === invalidTimesheetId) {
-            return
-        }
-        if (plasmoid.configuration.confirmBeforeStop) {
-            if (stopConfirmDialogRef) {
-                stopConfirmDialogRef.open()
-            } else {
-                stopTracking(false)
-            }
-        } else {
-            stopTracking(false)
+        if (!session.timer.tracking) {
+            Qt.callLater(root.preloadLastActivity)
         }
     }
 
-    function stopTracking(fromIdle) {
-        if (!isConfigured || isBusy || !isTracking || currentTimesheetId === invalidTimesheetId) {
+    /** Not tracking: the switch form starts with the last activity (Recent, or the last used). */
+    function preloadLastActivity() {
+        const last = session.recent.last
+        const s = session.settings
+        if (session.timer.tracking || !session.connection.configured) {
             return
         }
-
-        var stoppedProject = currentProject
-        var stoppedActivity = currentActivity
-        isBusy = true
-        lastError = null
-        tracker.stopTracking(kimaiUrl, apiToken, currentTimesheetId, function(result) {
-            isBusy = false
-            if (result.ok) {
-                clearError()
-                resetTrackingState()
-                refreshRecentTimesheets()
-                refreshWorkTotals()
-                if (fromIdle && plasmoid.configuration.notifyOnIdleStop) {
-                    sendNotification(
-                        i18n("Tracking stopped (idle)"),
-                        stoppedProject + " · " + stoppedActivity)
-                } else if (!fromIdle && plasmoid.configuration.notifyOnStop) {
-                    sendNotification(
-                        i18n("Tracking stopped"),
-                        stoppedProject + " · " + stoppedActivity)
-                }
-            } else {
-                setError(result.error)
-            }
-        })
+        const pid = last ? KimaiApi.projectId(last) : s.lastUsedProjectId
+        const aid = last ? KimaiApi.activityId(last) : s.lastUsedActivityId
+        if (!pid || !aid || session.catalog.projectPickerModel.length === 0) {
+            return
+        }
+        selectProjectById(pid, aid)
+        if (root.descriptionFieldRef && last) {
+            root.descriptionFieldRef.text = last.description || ""
+        }
     }
 
-    function restartFromRecent(timesheet) {
-        if (!isConfigured || isBusy || !timesheet) {
+    function continueLastActivity() {
+        const last = session.recent.last
+        if (last) {
+            requestRestartFromRecent(last)
             return
         }
-
-        if (isTracking) {
-            requestRestartFromRecent(timesheet)
-            return
-        }
-
-        isBusy = true
-        userMessage = ""
-        lastError = null
-        tracker.restartTimesheet(kimaiUrl, apiToken, timesheet.id, function(result) {
-            if (result.ok) {
-                clearError()
-                applyActiveTimesheet(
-                    (KimaiApi.hydrateTimesheets(
-                        [result.data || timesheet], root.projects, root.activityCatalog(), root.activitiesByProject)[0])
-                    || result.data || timesheet, true)
-                refreshRecentTimesheets()
-                refreshWorkTotals()
-                isBusy = false
-                if (plasmoid.configuration.notifyOnStart) {
-                    sendNotification(
-                        i18n("Tracking started"),
-                        KimaiApi.displayProjectName(timesheet, root.projects)
-                            + " · "
-                            + KimaiApi.displayActivityName(timesheet, root.allActivities, root.activitiesByProject))
-                }
-                return
-            }
-
-            var pid = KimaiApi.projectId(timesheet)
-            var aid = KimaiApi.activityId(timesheet)
-            if (pid && aid) {
-                isBusy = false
-                startTracking(pid, aid,
-                    KimaiApi.displayProjectName(timesheet, root.projects),
-                    KimaiApi.displayActivityName(timesheet, root.allActivities, root.activitiesByProject),
-                    timesheet.description || "")
-            } else {
-                isBusy = false
-                setError(result.error)
-            }
-        })
+        session.timer.startLastUsed()
     }
 
-    function sessionCatalogs() {
-        return { projects: projects, activities: allActivities, activitiesByProject: activitiesByProject, customersById: customersById }
-    }
-
-    function switchHintKey(timesheet) {
-        return TimerSession.switchHintKey(timesheet)
-    }
-
-    function requestRestartFromRecent(timesheet) {
-        if (!isConfigured || isBusy || !timesheet) {
-            return
-        }
-        if (!isTracking) {
-            restartFromRecent(timesheet)
-            return
-        }
-
-        if (TimerSession.sameActivity(activeTimesheet, timesheet)) {
-            alreadyRunningHintKey = switchHintKey(timesheet)
+    /** The session's answer to a start or restart request: a hint on the row, or the switch question. */
+    function presentRestart(decision, ts) {
+        if (decision === Session.Restart.Hint) {
+            alreadyRunningHintKey = session.timer.hintKey(ts)
             alreadyRunningHintTimer.restart()
             userMessage = ""
             return
         }
-
-        pendingSwitchTimesheet = timesheet
+        if (decision !== Session.Restart.Confirm) {
+            return
+        }
+        pendingSwitchTimesheet = ts
         if (switchRecentDialogRef) {
             switchRecentDialogRef.open()
         } else {
@@ -2661,33 +1651,65 @@ PlasmoidItem {
         }
     }
 
+    function startPinned(entry) {
+        if (!entry) {
+            return
+        }
+        presentRestart(session.timer.startPinned(entry), Favorites.asTimesheet(entry))
+    }
+
+    function requestStop() {
+        const t = session.timer
+        if (!session.connection.configured || session.busy || !t.tracking || !t.timesheetId) {
+            return
+        }
+        if (session.settings.confirmBeforeStop && stopConfirmDialogRef) {
+            stopConfirmDialogRef.open()
+            return
+        }
+        t.stop()
+    }
+
+    function requestRestartFromRecent(timesheet) {
+        if (!session.connection.configured || session.busy || !timesheet) {
+            return
+        }
+        if (!session.timer.tracking) {
+            userMessage = ""
+            continuing = timesheet
+        }
+        presentRestart(session.timer.requestRestart(timesheet), timesheet)
+    }
+
     function confirmSwitchFromRecent() {
-        var timesheet = pendingSwitchTimesheet
+        const timesheet = pendingSwitchTimesheet
         pendingSwitchTimesheet = null
         if (!timesheet) {
             return
         }
-        var pid = KimaiApi.projectId(timesheet)
-        var aid = KimaiApi.activityId(timesheet)
+        const pid = KimaiApi.projectId(timesheet)
+        const aid = KimaiApi.activityId(timesheet)
         if (!pid || !aid) {
             userMessage = i18n("Could not resolve project or activity for that entry")
             return
         }
-        switchToActivity(
+        userMessage = ""
+        const cat = session.catalog
+        session.timer.switchTo(
             pid,
             aid,
-            KimaiApi.displayProjectName(timesheet, root.projects),
-            KimaiApi.displayActivityName(timesheet, root.allActivities, root.activitiesByProject),
+            KimaiApi.displayProjectName(timesheet, cat.projects),
+            KimaiApi.displayActivityName(timesheet, cat.activities, cat.activitiesByProject),
             timesheet.description || "")
     }
 
     function timesheetIsRunning(timesheet) {
-        return !!(isTracking && timesheet && timesheet.id !== undefined && timesheet.id !== null
-                  && String(timesheet.id) === String(currentTimesheetId))
+        return !!(session.timer.tracking && timesheet && timesheet.id !== undefined && timesheet.id !== null
+                  && String(timesheet.id) === String(session.timer.timesheetId))
     }
 
     function requestDeleteStopped(timesheet) {
-        if (!isConfigured || isBusy || !timesheet || !providerCapabilities.deleteEntry) {
+        if (!session.connection.configured || session.busy || !timesheet || !session.connection.capabilities.deleteEntry) {
             return
         }
         if (timesheetIsRunning(timesheet) || !timesheet.end) {
@@ -2703,35 +1725,22 @@ PlasmoidItem {
     }
 
     function confirmDeleteStopped() {
-        var timesheet = pendingDeleteTimesheet
+        const timesheet = pendingDeleteTimesheet
         pendingDeleteTimesheet = null
         if (!timesheet || timesheet.id === undefined || timesheet.id === null || timesheet.id === "") {
             return
         }
-        if (!tracker || typeof tracker.deleteTimesheet !== "function") {
-            setError({ type: "config", status: 0, detail: i18n("This provider cannot delete entries.") })
-            return
-        }
-        isBusy = true
-        lastError = null
         userMessage = ""
-        tracker.deleteTimesheet(kimaiUrl, apiToken, timesheet.id, function(result) {
-            isBusy = false
-            if (result && result.ok) {
-                clearError()
-                refreshRecentTimesheets()
-                refreshWorkTotals()
-                sendNotification(
-                    i18n("Entry deleted"),
-                    KimaiApi.displayActivityName(timesheet, root.allActivities, root.activitiesByProject))
-            } else {
-                setError(result ? result.error : { type: "network", status: 0, detail: "empty result" })
-            }
+        const cat = session.catalog
+        session.entries.remove(timesheet, function() {
+            root.clearError()
+            root.notify(i18n("Entry deleted"),
+                        KimaiApi.displayActivityName(timesheet, cat.activities, cat.activitiesByProject))
         })
     }
 
     function requestSplitStopped(timesheet) {
-        if (!isConfigured || isBusy || !timesheet || !providerCapabilities.editStopped) {
+        if (!session.connection.configured || session.busy || !timesheet || !session.connection.capabilities.editStopped) {
             return
         }
         if (timesheetIsRunning(timesheet) || !timesheet.end) {
@@ -2744,57 +1753,24 @@ PlasmoidItem {
     }
 
     function confirmSplitStopped() {
-        var timesheet = pendingSplitTimesheet
+        const timesheet = pendingSplitTimesheet
         pendingSplitTimesheet = null
         if (!timesheet) {
             return
         }
-        var at = splitEntryDialogRef && typeof splitEntryDialogRef.splitInstant === "function"
-                 ? splitEntryDialogRef.splitInstant()
-                 : null
-        var split = TimesheetFields.splitStoppedEntry(timesheet, at)
-        if (!split.ok) {
+        const at = splitEntryDialogRef && typeof splitEntryDialogRef.splitInstant === "function"
+                   ? splitEntryDialogRef.splitInstant()
+                   : null
+        if (!TimesheetFields.splitStoppedEntry(timesheet, at).ok) {
             userMessage = i18n("Split time must be between begin and end.")
             return
         }
-        if (!tracker || typeof tracker.patchTimesheet !== "function"
-                || typeof tracker.createTimesheet !== "function") {
-            setError({ type: "config", status: 0, detail: i18n("This provider cannot split entries.") })
-            return
-        }
-        isBusy = true
-        lastError = null
         userMessage = ""
-        tracker.patchTimesheet(kimaiUrl, apiToken, timesheet.id, {
-            end: KimaiApi.localDateTimeString(split.firstEnd)
-        }, function(patchResult) {
-            if (!patchResult || !patchResult.ok) {
-                isBusy = false
-                setError(patchResult ? patchResult.error : { type: "network", status: 0, detail: "empty result" })
-                return
-            }
-            tracker.createTimesheet(kimaiUrl, apiToken, {
-                begin: KimaiApi.localDateTimeString(split.secondBegin),
-                end: KimaiApi.localDateTimeString(split.secondEnd),
-                project: KimaiApi.projectId(timesheet),
-                activity: KimaiApi.activityId(timesheet),
-                description: timesheet.description || "",
-                billable: TimesheetFields.billableFromTimesheet(timesheet, true),
-                tags: TimesheetFields.tagsFromTimesheet(timesheet)
-            }, function(createResult) {
-                isBusy = false
-                if (createResult && createResult.ok) {
-                    clearError()
-                    refreshRecentTimesheets()
-                    refreshWorkTotals()
-                    sendNotification(
-                        i18n("Entry split"),
-                        KimaiApi.displayActivityName(timesheet, root.allActivities, root.activitiesByProject))
-                } else {
-                    setError(createResult ? createResult.error : { type: "network", status: 0, detail: "empty result" })
-                    userMessage = i18n("The first half was saved, but the second half could not be created.")
-                }
-            })
+        const cat = session.catalog
+        session.entries.split(timesheet, at, function() {
+            root.clearError()
+            root.notify(i18n("Entry split"),
+                        KimaiApi.displayActivityName(timesheet, cat.activities, cat.activitiesByProject))
         })
     }
 
@@ -2821,7 +1797,7 @@ PlasmoidItem {
         Rectangle {
             anchors.fill: parent
             radius: 3
-            visible: root.isTracking && !KanteStyle.active
+            visible: root.session.timer.tracking && !KanteStyle.active
             color: KanteStyle.tint(compactRoot.trackingColor, 0.12)
             border.width: 1
             border.color: KanteStyle.tint(compactRoot.trackingColor, 0.35)
@@ -2829,7 +1805,7 @@ PlasmoidItem {
 
         RecEdge {
             mode: compactRoot.recMode
-            active: root.isTracking && KanteStyle.active
+            active: root.session.timer.tracking && KanteStyle.active
         }
 
         RowLayout {
@@ -2842,16 +1818,16 @@ PlasmoidItem {
                 Layout.preferredHeight: TouchUi.compactIconSize
                 // The Kante styles keep the Plasmai mark while tracking.
                 source: root.connectionState === "error" ? "network-disconnect"
-                        : (root.isTracking && !KanteStyle.active) ? "media-record" : Qt.resolvedUrl("../images/icon.svg")
-                isMask: root.connectionState !== "error" && (!root.isTracking || KanteStyle.active)
+                        : (root.session.timer.tracking && !KanteStyle.active) ? "media-record" : Qt.resolvedUrl("../images/icon.svg")
+                isMask: root.connectionState !== "error" && (!root.session.timer.tracking || KanteStyle.active)
                 active: compactRoot.containsMouse
-                color: root.isTracking ? compactRoot.trackingColor : KanteStyle.textColor
+                color: root.session.timer.tracking ? compactRoot.trackingColor : KanteStyle.textColor
             }
 
             RowLayout {
                 id: panelColorPills
                 spacing: 1
-                visible: root.isTracking
+                visible: root.session.timer.tracking
                          && (plasmoid.configuration.showCustomerColorInPanel
                              || plasmoid.configuration.showProjectColorInPanel)
                 Layout.preferredHeight: TouchUi.compactIconSize
@@ -2886,13 +1862,13 @@ PlasmoidItem {
             }
 
             RecDot {
-                visible: root.isTracking && KanteStyle.active && compactRoot.recMode === 0
+                visible: root.session.timer.tracking && KanteStyle.active && compactRoot.recMode === 0
                 Layout.alignment: Qt.AlignVCenter
             }
 
             PlasmaComponents3.Label {
-                visible: root.isTracking && plasmoid.configuration.showElapsedInPanel
-                text: KimaiApi.formatDurationPanel(root.elapsedSeconds)
+                visible: root.session.timer.tracking && plasmoid.configuration.showElapsedInPanel
+                text: KimaiApi.formatDurationPanel(root.session.timer.elapsedSeconds)
                 font.family: KanteStyle.monoFamily
                 font.pointSize: KanteStyle.smallFont.pointSize
                 font.bold: true
@@ -2922,7 +1898,7 @@ PlasmoidItem {
             in landscape. Below the threshold everything stacks in the single popupScroll,
             unchanged from before. */
         readonly property bool isWideLayout: width >= Kirigami.Units.gridUnit * 44
-        readonly property bool splitActive: root.mainViewMode === "main" && !root.showSetupWizard
+        readonly property bool splitActive: root.mainViewMode === "main" && !root.session.setup.showWizard
                                              && isWideLayout
 
         /** Move heroCard/listSection between the single-column host (mainPaneHost) and the
@@ -2973,11 +1949,11 @@ PlasmoidItem {
             }
 
             contentItem: PlasmaComponents3.Label {
-                text: i18n("Stop tracking %1 · %2?", root.currentProject, root.currentActivity)
+                text: i18n("Stop tracking %1 · %2?", root.session.timer.project, root.session.timer.activity)
                 wrapMode: Text.WordWrap
             }
 
-            onAccepted: root.stopTracking(false)
+            onAccepted: root.session.timer.stop()
         }
 
         KanteDialog {
@@ -2998,17 +1974,17 @@ PlasmoidItem {
             }
 
             readonly property string pendingCustomer: root.pendingSwitchTimesheet
-                ? KimaiApi.customerNameFromTimesheet(root.pendingSwitchTimesheet, root.customersById)
+                ? KimaiApi.customerNameFromTimesheet(root.pendingSwitchTimesheet, root.session.catalog.customersById)
                 : ""
             readonly property string pendingProject: root.pendingSwitchTimesheet
-                ? KimaiApi.displayProjectName(root.pendingSwitchTimesheet, root.projects)
+                ? KimaiApi.displayProjectName(root.pendingSwitchTimesheet, root.session.catalog.projects)
                 : ""
             readonly property string pendingActivity: root.pendingSwitchTimesheet
                 ? KimaiApi.displayActivityName(
-                    root.pendingSwitchTimesheet, root.allActivities, root.activitiesByProject)
+                    root.pendingSwitchTimesheet, root.session.catalog.activities, root.session.catalog.activitiesByProject)
                 : ""
             readonly property var pendingBarInfo: root.pendingSwitchTimesheet
-                ? KimaiApi.barColorInfoFromTimesheet(root.pendingSwitchTimesheet, root.customersById)
+                ? KimaiApi.barColorInfoFromTimesheet(root.pendingSwitchTimesheet, root.session.catalog.customersById)
                 : ({ color: PlasmaiColors.entityFallback, category: "", id: null })
 
             component ActivityCard: Rectangle {
@@ -3079,9 +2055,9 @@ PlasmoidItem {
                 ActivityCard {
                     Layout.fillWidth: true
                     caption: i18n("Current")
-                    customerName: root.currentCustomer
-                    projectName: root.currentProject
-                    activityName: root.currentActivity
+                    customerName: root.session.timer.customer
+                    projectName: root.session.timer.project
+                    activityName: root.session.timer.activity
                     accentColor: root.currentCustomerColor
                     emphasize: false
                 }
@@ -3149,8 +2125,8 @@ PlasmoidItem {
                         return i18n("Delete this finished entry? This cannot be undone.")
                     }
                     return i18n("Delete \"%1 · %2\"? This cannot be undone.",
-                                KimaiApi.displayProjectName(ts, root.projects),
-                                KimaiApi.displayActivityName(ts, root.allActivities, root.activitiesByProject))
+                                KimaiApi.displayProjectName(ts, root.session.catalog.projects),
+                                KimaiApi.displayActivityName(ts, root.session.catalog.activities, root.session.catalog.activitiesByProject))
                 }
             }
 
@@ -3275,6 +2251,12 @@ PlasmoidItem {
             padding: Kirigami.Units.largeSpacing
 
             Component.onCompleted: root.idleDialogRef = idleDialog
+            // Closed without an answer: asked again at the next check.
+            onClosed: {
+                if (root.session.reminders.idlePending) {
+                    root.session.reminders.clearPending()
+                }
+            }
             Component.onDestruction: {
                 if (root.idleDialogRef === idleDialog) {
                     root.idleDialogRef = null
@@ -3290,7 +2272,7 @@ PlasmoidItem {
                 }
                 // Discarding rewrites the running entry's end: online only (offline.js).
                 PlasmaComponents3.Label {
-                    visible: root.offline
+                    visible: root.session.sync.offline
                     Layout.fillWidth: true
                     wrapMode: Text.WordWrap
                     text: i18n("Discarding idle time needs a connection to the server.")
@@ -3305,27 +2287,27 @@ PlasmoidItem {
                     text: i18n("Keep time")
                     Accessible.name: text
                     onClicked: {
-                        root.keepIdleTime()
+                        root.session.reminders.keep()
                         idleDialog.close()
                     }
                 }
                 KantePlasmaButton {
                     Layout.fillWidth: true
-                    enabled: !root.offline
+                    enabled: !root.session.sync.offline
                     text: i18n("Discard idle")
                     Accessible.name: text
                     onClicked: {
-                        root.discardIdleTime(false)
+                        root.session.reminders.discard(Session.AfterIdle.Stop)
                         idleDialog.close()
                     }
                 }
                 KantePlasmaButton {
                     Layout.fillWidth: true
-                    enabled: !root.offline
+                    enabled: !root.session.sync.offline
                     text: i18n("Discard and continue")
                     Accessible.name: text
                     onClicked: {
-                        root.discardIdleTime(true)
+                        root.session.reminders.discard(Session.AfterIdle.Continue)
                         idleDialog.close()
                     }
                 }
@@ -3337,7 +2319,7 @@ PlasmoidItem {
             parent: popupRoot
             anchors.centerIn: parent
             width: Math.min(Kirigami.Units.gridUnit * 22, popupRoot.width * 0.95)
-            customers: root.customers
+            customers: root.session.catalog.customers
             selectedProjectId: root.selectedProjectId
             Component.onCompleted: root.createEntityDialogRef = createEntityDialog
             Component.onDestruction: {
@@ -3438,7 +2420,7 @@ PlasmoidItem {
                         RowLayout {
                             Layout.fillWidth: true
                             spacing: Kirigami.Units.smallSpacing / 2
-                            visible: !root.showSetupWizard && Profiles.showsConnection(root.profiles, root.isConfigured, root.connectionState)
+                            visible: !root.session.setup.showWizard && Profiles.showsConnection(root.session.connection.profiles, root.session.connection.configured, root.connectionState)
 
                             Kirigami.Icon {
                                 Layout.preferredWidth: Kirigami.Units.iconSizes.small
@@ -3454,12 +2436,12 @@ PlasmoidItem {
                             }
 
                             KanteLoader {
-                                visible: KanteStyle.active && (root.isBusy || root.connectionState === "connecting" || root.credentialsLoading)
+                                visible: KanteStyle.active && root.loading
                                 Layout.alignment: Qt.AlignVCenter
                             }
 
                             QQC2.BusyIndicator {
-                                running: root.isBusy || root.connectionState === "connecting" || root.credentialsLoading
+                                running: root.loading
                                 visible: running && !KanteStyle.active
                                 Layout.preferredWidth: Kirigami.Units.iconSizes.small
                                 Layout.preferredHeight: Kirigami.Units.iconSizes.small
@@ -3472,13 +2454,13 @@ PlasmoidItem {
                         spacing: 0
 
                         KantePlasmaToolButton {
-                            visible: root.isConfigured && root.mainViewMode === "main"
+                            visible: root.session.connection.configured && root.mainViewMode === "main"
                             icon.name: "list-add"
                             text: i18n("Add entry")
                             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                             display: TouchUi.active ? QQC2.AbstractButton.TextBesideIcon
                                                     : QQC2.AbstractButton.IconOnly
-                            enabled: !root.isBusy && root.connectionState !== "error"
+                            enabled: !root.session.busy && root.connectionState !== "error"
                             onClicked: root.openManualEntry()
                             PlasmaComponents3.ToolTip.text: i18n("Add a manual time entry")
                             PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
@@ -3486,14 +2468,14 @@ PlasmoidItem {
                         }
 
                         KantePlasmaToolButton {
-                            visible: root.isConfigured && root.mainViewMode === "main"
-                                     && root.providerCapabilities.statistics
+                            visible: root.session.connection.configured && root.mainViewMode === "main"
+                                     && root.session.connection.capabilities.statistics
                             icon.name: "view-statistics"
                             text: i18n("Statistics")
                             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                             display: TouchUi.active ? QQC2.AbstractButton.TextBesideIcon
                                                     : QQC2.AbstractButton.IconOnly
-                            enabled: !root.isBusy
+                            enabled: !root.session.busy
                             onClicked: root.openStatsView()
                             PlasmaComponents3.ToolTip.text: i18n("Show statistics")
                             PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
@@ -3501,13 +2483,13 @@ PlasmoidItem {
                         }
 
                         KantePlasmaToolButton {
-                            visible: root.filmDayAvailable && root.mainViewMode === "main"
+                            visible: root.session.filmDay.available && root.mainViewMode === "main"
                             icon.name: "view-calendar-day"
                             text: i18n("Film day")
                             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                             display: TouchUi.active ? QQC2.AbstractButton.TextBesideIcon
                                                     : QQC2.AbstractButton.IconOnly
-                            enabled: !root.isBusy && root.connectionState !== "error"
+                            enabled: !root.session.busy && root.connectionState !== "error"
                             onClicked: root.openFilmDayView()
                             PlasmaComponents3.ToolTip.text: i18n("Log a shooting day")
                             PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
@@ -3515,13 +2497,13 @@ PlasmoidItem {
                         }
 
                         KantePlasmaToolButton {
-                            visible: root.isConfigured && root.mainViewMode === "main" && root.canEditTrips
+                            visible: root.session.connection.configured && root.mainViewMode === "main" && root.session.trips.canEdit
                             icon.name: "mark-location"
                             text: i18n("Log trip")
                             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                             display: TouchUi.active ? QQC2.AbstractButton.TextBesideIcon
                                                     : QQC2.AbstractButton.IconOnly
-                            enabled: !root.isBusy && !root.tripBusy && root.connectionState !== "error"
+                            enabled: !root.session.busy && !root.tripBusy && root.connectionState !== "error"
                             onClicked: root.openNewTrip()
                             PlasmaComponents3.ToolTip.text: i18n("Log a trip (Anfahrten plugin)")
                             PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
@@ -3550,25 +2532,25 @@ PlasmoidItem {
                     id: profileSwitcher
                     Layout.fillWidth: true
                     // Switching profiles is online only (offline.js): the outbox belongs to the profile.
-                    enabled: !root.offline
-                    visible: root.profiles.length > 1
+                    enabled: !root.session.sync.offline
+                    visible: root.session.connection.profiles.length > 1
                              && (root.mainViewMode === "main"
                                  || root.mainViewMode === "stats")
                              && !root.editingActiveEntry
                              && !root.editingStoppedTimesheet
                              && !(root.showNewActivityForm && root.compactPopupLayout)
-                    model: root.profiles.map(function(p) { return p.name })
+                    model: root.session.connection.profiles.map(function(p) { return p.name })
                     currentIndex: {
-                        for (var i = 0; i < root.profiles.length; i++) {
-                            if (root.profiles[i].id === (plasmoid.configuration.activeProfileId || "default")) {
+                        for (var i = 0; i < root.session.connection.profiles.length; i++) {
+                            if (root.session.connection.profiles[i].id === root.profileId) {
                                 return i
                             }
                         }
                         return 0
                     }
                     onActivated: function(index) {
-                        if (index >= 0 && index < root.profiles.length) {
-                            root.switchProfile(root.profiles[index].id)
+                        if (index >= 0 && index < root.session.connection.profiles.length) {
+                            root.switchProfile(root.session.connection.profiles[index].id)
                         }
                     }
                 }
@@ -3576,11 +2558,11 @@ PlasmoidItem {
                 // Offline and sync state; "Show" opens the list of what is not synced yet.
                 OfflineStatus {
                     Layout.fillWidth: true
-                    visible: (root.offline || root.unsyncedCount > 0) && root.mainViewMode !== "unsynced"
-                    offline: root.offline
-                    stateAt: root.offlineStateAt
-                    unsynced: root.unsyncedCount
-                    stuck: root.unsyncedStuck
+                    visible: (root.session.sync.offline || root.session.sync.unsynced > 0) && root.mainViewMode !== "unsynced"
+                    offline: root.session.sync.offline
+                    stateAt: root.session.sync.stateAt
+                    unsynced: root.session.sync.unsynced
+                    stuck: root.session.sync.stuck
                     onDetailsRequested: root.openUnsyncedView()
                 }
 
@@ -3591,28 +2573,27 @@ PlasmoidItem {
 
                     OfflineStatus {
                         Layout.fillWidth: true
-                        offline: root.offline
-                        stateAt: root.offlineStateAt
-                        unsynced: root.unsyncedCount
-                        stuck: root.unsyncedStuck
+                        offline: root.session.sync.offline
+                        stateAt: root.session.sync.stateAt
+                        unsynced: root.session.sync.unsynced
+                        stuck: root.session.sync.stuck
                         showDetails: false
                     }
 
                     UnsyncedList {
                         Layout.fillWidth: true
-                        ops: root.offlineRevision >= 0 && root.offlineSession ? Offline.ops(root.offlineSession) : []
-                        projects: root.projects
-                        activities: root.allActivities
-                        activitiesByProject: root.activitiesByProject
+                        ops: root.session.sync.ops
+                        projects: root.session.catalog.projects
+                        activities: root.session.catalog.activities
+                        activitiesByProject: root.session.catalog.activitiesByProject
                         onRetryRequested: function(opId) {
-                            Offline.retry(root.offlineSession, opId, function() { root.refreshAll(true) })
+                            root.session.sync.retry(opId)
                         }
                         onOverwriteRequested: function(opId) {
-                            Offline.overwrite(root.offlineSession, opId, function() { root.refreshAll(true) })
+                            root.session.sync.overwrite(opId)
                         }
                         onDiscardRequested: function(opId) {
-                            Offline.discard(root.offlineSession, opId)
-                            root.refreshAll(true)
+                            root.session.sync.discard(opId)
                         }
                     }
                 }
@@ -3622,21 +2603,21 @@ PlasmoidItem {
                     id: setupWizardLoader
                     // Flush with the header like the other views (add entry, film day, trip).
                     Layout.fillWidth: true
-                    active: root.showSetupWizard && root.mainViewMode === "main"
+                    active: root.session.setup.showWizard && root.mainViewMode === "main"
                     visible: active
                     sourceComponent: SetupWizard {
-                        dataSource: execSource
-                        profiles: root.profiles
-                        activeProfileId: plasmoid.configuration.activeProfileId || "default"
+                        setup: root.session.setup
+                        profiles: root.session.connection.profiles
+                        activeProfileId: root.profileId || "default"
                         supportsReminders: true
-                        workDayBegin: plasmoid.configuration.workDayBegin
-                        workDayEnd: plasmoid.configuration.workDayEnd
-                        locationName: plasmoid.configuration.locationName
-                        notifyForgotToStart: plasmoid.configuration.notifyForgotToStart
-                        visualStyle: plasmoid.configuration.visualStyle
-                        onStyleChosen: function(style) { root.applySetupKeys({ visualStyle: style }) }
-                        onConnected: function(patch) { root.applySetupConnection(patch) }
-                        onFinished: function(patch) { root.finishSetup(patch) }
+                        workDayBegin: root.session.settings.workDayBegin
+                        workDayEnd: root.session.settings.workDayEnd
+                        locationName: root.session.settings.locationName
+                        notifyForgotToStart: root.session.settings.notifyForgotToStart
+                        visualStyle: root.session.settings.visualStyle
+                        onStyleChosen: function(style) { root.session.setup.applyStyle(style) }
+                        onConnected: function(patch) { root.session.setup.applyConnection(patch) }
+                        onFinished: function(patch) { root.session.setup.finish(patch) }
                     }
                 }
 
@@ -3651,14 +2632,14 @@ PlasmoidItem {
                 Kirigami.InlineMessage {
                     KanteMessageSkin { message: parent }
                     Layout.fillWidth: true
-                    visible: root.showErrorState && !root.showSetupWizard
+                    visible: root.showErrorState && !root.session.setup.showWizard
                     type: Kirigami.MessageType.Error
                     text: root.errorMessage
                     actions: [
                         Kirigami.Action {
                             text: i18n("Retry")
                             icon.name: "view-refresh"
-                            onTriggered: root.hardReload()
+                            onTriggered: root.reload(Session.Probe.Fresh)
                         },
                         Kirigami.Action {
                             text: i18n("Configure")
@@ -3677,20 +2658,19 @@ PlasmoidItem {
                         }
                     }
                     Layout.fillWidth: true
-                    visible: root.mainViewMode === "manual" && root.isConfigured
-                    projectPickerModel: root.projectPickerModel
+                    visible: root.mainViewMode === "manual" && root.session.connection.configured
+                    projectPickerModel: root.session.catalog.projectPickerModel
                     activityPickerModel: root.activityPickerModel
                     activitySectionTitles: root.activitySectionTitles
                     pickerOpenBelow: root.pickerOpenBelow
                     pickerViewport: popupScroll
-                    busy: root.isBusy
-                    configured: root.isConfigured
+                    busy: root.session.busy || root.savingEntry
+                    configured: root.session.connection.configured
                     connectionOk: root.connectionState !== "error"
-                    supportsBillableEdit: root.providerCapabilities.billableEdit
-                    supportsTags: root.providerCapabilities.tags
-                    tagLookupUrl: root.kimaiUrl
-                    tagLookupToken: root.apiToken
-                    showCreateActions: root.canCreateEntities
+                    supportsBillableEdit: root.session.connection.capabilities.billableEdit
+                    supportsTags: root.session.connection.capabilities.tags
+                    tagSource: root.session.entries
+                    showCreateActions: root.session.entries.canCreate
                     editingExisting: root.editingStoppedTimesheet !== null && root.editingStoppedTimesheet !== undefined
                     onAboutToOpenPicker: function(projectField, activityField) {
                         root.updatePickerOpenDirection(projectField, activityField)
@@ -3709,20 +2689,20 @@ PlasmoidItem {
                 // Built while shown only: its charts recompute on every poll's new entries.
                 Loader {
                     Layout.fillWidth: true
-                    active: root.mainViewMode === "stats" && root.isConfigured
-                            && root.providerCapabilities.statistics
+                    active: root.mainViewMode === "stats" && root.session.connection.configured
+                            && root.session.connection.capabilities.statistics
                     visible: active
                     sourceComponent: Component {
                         StatsView {
                             timesheets: root.statsTimesheets
-                            customersById: root.customersById
-                            todayTargetSeconds: root.todayTargetSeconds
-                            weekTargetSeconds: root.weekTargetSeconds
-                            hasWorkContract: root.hasWorkContract
-                                             && root.providerCapabilities.workContract
+                            customersById: root.session.catalog.customersById
+                            todayTargetSeconds: root.session.totals.todayTargetSeconds
+                            weekTargetSeconds: root.session.totals.weekTargetSeconds
+                            hasWorkContract: root.session.totals.hasWorkContract
+                                             && root.session.connection.capabilities.workContract
                             workDayBegin: root.workDayBegin
                             workDayEnd: root.workDayEnd
-                            supportsBillableFilter: root.providerCapabilities.billableFilter
+                            supportsBillableFilter: root.session.connection.capabilities.billableFilter
                             tripSummary: root.statsTrips ? StatsData.tripKmSummary(root.statsTrips, new Date()) : null
                             onBackRequested: root.returnToMainView()
                             onNeedMoreHistory: function(rangeBegin, rangeEnd) {
@@ -3734,7 +2714,7 @@ PlasmoidItem {
 
                 FilmDayView {
                     id: filmDayView
-                    onlineActions: !root.offline
+                    onlineActions: !root.session.sync.offline
                     Component.onCompleted: root.filmDayViewRef = filmDayView
                     Component.onDestruction: {
                         if (root.filmDayViewRef === filmDayView) {
@@ -3742,17 +2722,17 @@ PlasmoidItem {
                         }
                     }
                     Layout.fillWidth: true
-                    visible: root.mainViewMode === "filmday" && root.isConfigured
-                             && root.providerCapabilities.filmDays
-                    projectPickerModel: root.projectPickerModel
+                    visible: root.mainViewMode === "filmday" && root.session.connection.configured
+                             && root.session.connection.capabilities.filmDays
+                    projectPickerModel: root.session.catalog.projectPickerModel
                     activityPickerModel: root.activityPickerModel
                     activitySectionTitles: root.activitySectionTitles
                     pickerOpenBelow: root.pickerOpenBelow
                     pickerViewport: popupScroll
-                    busy: root.isBusy || root.loadingFilmDay
-                    configured: root.isConfigured
+                    busy: root.session.busy || root.savingFilmDay || root.loadingFilmDay
+                    configured: root.session.connection.configured
                     connectionOk: root.connectionState !== "error"
-                    showCreateActions: root.canCreateEntities
+                    showCreateActions: root.session.entries.canCreate
                     onAboutToOpenPicker: function(projectField, activityField) {
                         root.updatePickerOpenDirection(projectField, activityField)
                     }
@@ -3769,7 +2749,7 @@ PlasmoidItem {
                         root.loadFilmDayForDate(date)
                     }
                     // Ticks only while shown (it stays built, holding the chosen day).
-                    elapsedSeconds: root.mainViewMode === "filmday" ? root.elapsedSeconds : 0
+                    elapsedSeconds: root.mainViewMode === "filmday" ? root.session.timer.elapsedSeconds : 0
                     onSaveRequested: function(projectId, activityId, beginText, endText, filmDayFields) {
                         root.saveFilmDay(projectId, activityId, beginText, endText, filmDayFields, false)
                     }
@@ -3790,11 +2770,11 @@ PlasmoidItem {
                         }
                     }
                     onStartRequested: function(projectId, activityId, projectLabel, activityLabel) {
-                        root.switchToActivity(projectId, activityId, projectLabel, activityLabel, filmDayView.noteText())
+                        root.session.timer.switchTo(projectId, activityId, projectLabel, activityLabel, filmDayView.noteText())
                     }
-                    onStopRequested: root.stopTracking(false)
+                    onStopRequested: root.session.timer.stop()
                     onRunningBeginEdited: function(beginText) {
-                        var ts = root.activeTimesheet
+                        var ts = root.session.timer.active
                         if (ts) {
                             root.saveActiveEdit(KimaiApi.projectId(ts), KimaiApi.activityId(ts), beginText, ts.billable, ts.tags || [])
                         }
@@ -3803,7 +2783,7 @@ PlasmoidItem {
                         filmDayView.selectProjectId(projectId)
                         root.loadFilmDayForDate(root.filmDaySelectedDate, true)
                     }
-                    tripsAvailable: root.canEditTrips
+                    tripsAvailable: root.session.trips.canEdit
                     onTripRequested: root.openTripForTimesheet(root.filmDayTimesheet)
                     onCancelled: root.returnToMainView()
                     onCreateProjectRequested: root.openCreateEntity("project")
@@ -3819,13 +2799,14 @@ PlasmoidItem {
                         }
                     }
                     Layout.fillWidth: true
-                    visible: root.mainViewMode === "trip" && root.mileageAvailable
-                    busy: root.isBusy || root.tripBusy
-                    configured: root.isConfigured
+                    visible: root.mainViewMode === "trip" && root.session.trips.available
+                    busy: root.session.busy || root.tripBusy
+                    configured: root.session.connection.configured
                     connectionOk: root.connectionState !== "error"
-                    ping: root.mileagePing
-                    meta: root.mileageMeta
-                    vehicles: root.mileageVehicles
+                    ping: root.session.trips.ping
+                    meta: root.session.trips.meta
+                    vehicles: root.session.trips.vehicles
+                    places: root.session.setup
                     onSaveRequested: function(body, tripId, form) {
                         root.saveTrip(body, tripId, form)
                     }
@@ -3841,7 +2822,7 @@ PlasmoidItem {
                     spacing: Kirigami.Units.smallSpacing
                     // Also hidden (not just emptied by relayoutMainPane()) once the wide split
                     // view takes over, so it never reserves layout space in popupColumn.
-                    visible: root.mainViewMode === "main" && !root.showSetupWizard && !popupRoot.splitActive
+                    visible: root.mainViewMode === "main" && !root.session.setup.showWizard && !popupRoot.splitActive
 
                 // —— Hero —— (heroCard/listSection below are moved into the wide split-view
                 // panes via popupRoot.relayoutMainPane() when there's room for both side by
@@ -3857,7 +2838,8 @@ PlasmoidItem {
                 Component {
                     id: systemTimerCard
                     TimerCard {
-                        widget: root
+                        session: root.session
+                        view: root
                         popupItem: popupRoot
                         pickerScroll: popupScroll
                     }
@@ -3866,7 +2848,8 @@ PlasmoidItem {
                 Component {
                     id: kanteTimerCard
                     TimerCardKante {
-                        widget: root
+                        session: root.session
+                        view: root
                         popupItem: popupRoot
                         pickerScroll: popupScroll
                     }
@@ -3874,7 +2857,8 @@ PlasmoidItem {
 
                 EntryLists {
                     id: listSection
-                    widget: root
+                    session: root.session
+                    view: root
                     pickerScroll: popupScroll
                 }
                 } // main pane
@@ -4000,7 +2984,7 @@ PlasmoidItem {
         Platform.setBackend(DesktopBackend.create(kwalletScript, idleScript, notifyScript,
             sharedConfigScript, catalogCacheScript, localStoreScript, systemCheckScript))
         showNewActivityForm = !compactPopupLayout && plasmoid.configuration.desktopShowNewActivity
-        hardReload()
+        reload(Session.Probe.Fresh)
     }
 
     Connections {
@@ -4008,49 +2992,49 @@ PlasmoidItem {
         function onUserConfiguringChanged() {
             if (plasmoid.userConfiguring) {
                 // Pull shared settings before editing so we don't save stale values.
-                root.reloadCredentials()
-            } else {
-                // Persist first, then reload — otherwise a racing softReload can
-                // re-apply the old shared.json and undo display changes until restart.
-                root.persistSharedConfig(function() {
-                    root.softReload()
-                })
+                root.reload(Session.Probe.Cached)
+                return
             }
+            // Persist first, then reload — otherwise a racing reload can
+            // re-apply the old shared.json and undo display changes until restart.
+            const after = function() { root.reload(Session.Probe.Fresh) }
+            root.persistShared().then(after, after)
         }
     }
 
+    // Connection keys changed (settings dialog closed, profile switcher, the app): connect again.
     Connections {
         target: plasmoid.configuration
         function onProfilesJsonChanged() {
-            if (!plasmoid.userConfiguring) {
-                root.softReload()
-            } else {
-                root.reloadProfiles()
-            }
+            root.reloadUnlessConfiguring()
         }
         function onActiveProfileIdChanged() {
-            root.resetProfileState()
-            if (!plasmoid.userConfiguring) {
-                root.softReload()
-            } else {
-                root.reloadProfiles()
-            }
+            root.resetProfileView()
+            root.reloadUnlessConfiguring()
         }
         function onKimaiUrlChanged() {
-            if (!plasmoid.userConfiguring) {
-                root.softReload()
-            } else {
-                root.reloadProfiles()
-            }
+            root.reloadUnlessConfiguring()
         }
-        function onRefreshIntervalChanged() {
-            pollTimer.interval = Math.max(10, plasmoid.configuration.refreshInterval) * 1000
+        // The layer takes the new value first (takeConfig).
+        function onRecentCountChanged() {
+            Qt.callLater(function() {
+                if (root.session.connection.configured) {
+                    root.session.recent.refresh()
+                }
+            })
         }
-        function onRecentCountChanged() { root.refreshRecentTimesheets(true) }
-        function onPinnedActivitiesChanged() { root.refreshPinnedEntries(true) }
+        function onPinnedActivitiesChanged() {
+            Qt.callLater(root.session.favorites.resolve)
+        }
 
         function onDesktopShowNewActivityChanged() { root.syncDisplayStateFromConfig() }
         function onPopupShowNewActivityChanged() { root.syncDisplayStateFromConfig() }
+    }
+
+    function reloadUnlessConfiguring() {
+        if (!plasmoid.userConfiguring) {
+            reload(Session.Probe.Fresh)
+        }
     }
 
     Connections {
@@ -4064,13 +3048,18 @@ PlasmoidItem {
                 return
             }
             root.sparklineNowTick++
-            if (root.isConfigured && root.connectionState === "online") {
-                root.refreshAll(true)
-            } else {
-                root.reloadCredentials(function() {
-                    root.refreshAll(root.isConfigured)
-                })
+            if (!root.session.connection.configured || root.connectionState !== "online") {
+                root.reload(Session.Probe.Cached)
+                return
             }
+            root.session.refresh()
+            root.syncDisplayStateFromConfig()
+            root.session.filmDay.resolveMode(Session.Probe.Cached)
+            root.session.trips.resolve(Session.Probe.Cached, function() {
+                if (root.expanded) {
+                    root.loadTripSuggestions(false)
+                }
+            })
         }
     }
 }

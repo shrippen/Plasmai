@@ -2,6 +2,34 @@
 
 ## Unreleased
 
+## 2.6.1
+
+Released 2026-10-13.
+
+The Plasma widget for 2.6.0: its package was missing from the 2.6.0 release.
+
+### Fixed
+- Release: 2.6.0 came without the widget package (`.plasmoid`) and the install script. The one-line install command loads both from the latest release and failed with "not found" while 2.6.0 was the latest. The package build refused a comment that named the internal screenshot code it removes. The comment is reworded, and the checks now build the widget package on every pull request, so this shows before a release
+
+## 2.6.0
+
+Released 2026-10-13.
+
+A terminal client for the desktop app, statistics with their own day for activities, and editing that keeps dates and times as entered: no more starts 100 years back, and the time picker speaks 12 hours where the language does.
+
+### Added
+- Desktop app (Linux, macOS): terminal client, `plasmai-app --tui`. Timer, recents, today as hour rows with gaps, the week as a table; 1–9 start or switch, `s` stops, `t` day, `w` week, `q` quits. It uses the app's profile, token and settings and keeps its own offline outbox. The widget has none
+
+### Changed
+- Statistics: the day of the activity distribution has its own day switcher, like the other charts. Day and week take half the width each; an empty day keeps the chart's height instead of a thin line
+- Statistics (Kante styles): hovering a block in "Projects by hour" shows its project, time span and duration; on touch a tap does
+
+### Fixed
+- Editing an entry could move its start 100 years back: date fields in a short format with a two-digit year ("13.10.26", German and US English) read their own text back as 1926 when the field was entered and left. A running entry then started in 1926 (Kimai accepts it), a stopped one was refused by Kimai as too long. Two-digit years now mean this century, and a date without a year is this year instead of 1970
+- App: the time picker in 12-hour locales (US English and others) showed a 24-hour dial with no AM/PM, put 12:xx in the morning and, when switching AM/PM, could flip the wrong way. It now shows 1–12 with AM/PM. In every locale, Select without turning a dial gave the current time instead of the time the picker opened with (00:00 for example), and reported the choice twice
+- 12-hour time fields: typing an hour moved a PM time to the morning (3 on 2:30 PM gave 3:30 AM), and a time typed with AM/PM but another separator lost its half of the day
+- Statistics (Kante styles): the hover read-outs of the charts wrote project names in the project colour, which some colours made unreadable. They now use the text colour with a coloured square in front
+
 ## 2.5.3
 
 Released 2026-10-07.

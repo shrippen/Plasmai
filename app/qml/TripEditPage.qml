@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
-import "../contents/code/timeTracker.js" as TimeTracker
 import "../contents/code/kimaiApi.js" as KimaiApi
 import "../contents/code/mileage.js" as Mileage
 import "shared"
@@ -15,6 +14,7 @@ import "Kante"
  */
 Kirigami.Page {
     id: page
+    readonly property QtObject session: root.session
     KantePageTitle { page: page }
     title: page.suggestion ? i18n("Detected trip") : (page.original ? i18n("Edit trip") : i18n("Log trip"))
 
@@ -25,8 +25,6 @@ Kirigami.Page {
     property bool busy: false
 
     signal saved()
-
-    function currentUrl() { return TimeTracker.resolveUrl(root.activeProfile) }
 
     function done(tripJson) {
         page.busy = false
@@ -48,25 +46,25 @@ Kirigami.Page {
         page.busy = true
         var handle = function(r) { if (r.ok) page.done(r.data); else page.failed(r.error) }
         if (page.suggestion) {
-            root.tracker.acceptTripSuggestion(currentUrl(), root.apiToken, page.suggestion.id,
-                                          Mileage.acceptBodyFromForm(root.mileagePing, form, page.suggestion), handle)
+            session.trips.accept(page.suggestion.id,
+                                Mileage.acceptBodyFromForm(session.trips.ping, form, page.suggestion), handle)
         } else if (tripId !== null && tripId !== undefined) {
             if (Mileage.isEmptyBody(body)) { page.done(null); return }
-            root.tracker.patchTrip(currentUrl(), root.apiToken, tripId, body, handle)
+            session.trips.patch(tripId, body, handle)
         } else {
-            root.tracker.createTrip(currentUrl(), root.apiToken, body, handle)
+            session.trips.create(body, handle)
         }
     }
 
     function remove(tripId) {
         if (page.busy) return
         page.busy = true
-        root.tracker.deleteTrip(currentUrl(), root.apiToken, tripId, function(r) {
+        session.trips.remove(tripId, function(r) {
             if (r.ok) page.done(null); else page.failed(r.error)
         })
     }
 
-    Component.onCompleted: sheet.load(page.form || Mileage.emptyForm(root.mileagePing, ""), page.original, page.linkedText, !!page.suggestion)
+    Component.onCompleted: sheet.load(page.form || Mileage.emptyForm(session.trips.ping, ""), page.original, page.linkedText, !!page.suggestion)
 
     QQC2.ScrollView {
         id: pageScroll
@@ -84,11 +82,12 @@ Kirigami.Page {
                 id: sheet
                 Layout.fillWidth: true
                 busy: page.busy
-                configured: root.isConfigured
-                connectionOk: root.connectionState !== "error"
-                ping: root.mileagePing
-                meta: root.mileageMeta
-                vehicles: root.mileageVehicles
+                places: session.setup
+                configured: session.connection.configured
+                connectionOk: session.connection.state !== "error"
+                ping: session.trips.ping
+                meta: session.trips.meta
+                vehicles: session.trips.vehicles
                 onSaveRequested: function(body, tripId, form) { page.save(body, tripId, form) }
                 onDeleteRequested: function(tripId) { page.remove(tripId) }
                 onCancelled: pageStack.pop()

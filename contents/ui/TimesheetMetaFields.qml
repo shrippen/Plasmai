@@ -15,8 +15,8 @@ ColumnLayout {
 
     property bool showBillable: true
     property bool showTags: true
-    property string tagLookupUrl: ""
-    property string tagLookupToken: ""
+    /** The tag picker's source: loadTags(query, callback). */
+    property var tagSource: null
     property Item pickerViewport: null
 
     property bool billableTouched: false
@@ -63,8 +63,7 @@ ColumnLayout {
         visible: root.showTags
         Layout.fillWidth: true
         enabled: root.enabled
-        kimaiUrl: root.tagLookupUrl
-        apiToken: root.tagLookupToken
+        tagSource: root.tagSource
         pickerViewport: root.pickerViewport
     }
 }
