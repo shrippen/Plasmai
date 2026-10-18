@@ -20,7 +20,8 @@ SolidTime). A bug that matters costs the user hours or trust:
   line; a plain-text fallback when no keychain is there.
 - **Breaks a client:** the widget does not load, Linux-only code in the
   app, film day or trips shown without their Kimai plugin, settings that
-  stop syncing through `shared.json`.
+  stop syncing through `shared.json`, an Android app that does not build
+  or start.
 - **Lies:** CHANGELOG, DESIGN, README or comments that the code contradicts.
 
 ## What to check in particular
@@ -29,7 +30,13 @@ SolidTime). A bug that matters costs the user hours or trust:
   remove the cause, not one case of it?
 - Tests: new behaviour in `tests/unit` (runs in three time zones),
   `tests/locales.sh` (12/24 h, RTL, native digits), `app/tests`. Say what
-  is only verified in a Plasma session or on a device.
+  is only verified in a Plasma session or on a device. CI builds Android
+  only on `main` (`android.yml`): changes to `app/android/` or
+  `scripts/build-android*.sh` count as unverified.
+- New or changed texts: an entry in `translate/langs/*` and the rebuilt
+  `.po`, `contents/locale/`, `app/i18n/` (check only that they came along).
+- `var` to `let`/`const` (`agent.md`, QML lint): each one checked for a
+  read after its block or in a closure.
 - GUI rule: no own colours, sizes or component copies; `contents/ui/Kante*`
   is a copy from Kante (`scripts/sync-kante.sh`) and is not edited here.
 - Layers: pages call the session/tracker, never a provider or shell helper
