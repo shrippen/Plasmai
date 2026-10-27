@@ -64,8 +64,11 @@ var DUPLICATE_WINDOW_MS = 3 * 60 * 1000
 /** Fields compared for conflicts (what Plasmai edits). */
 var CHECKED_FIELDS = ["begin", "end", "description", "project", "activity"]
 var SNAPSHOT_VERSION = 1
-/** Unchanged answers (the poll) write the snapshot again only this often, to keep its time. */
-var SAVE_AGE_MS = 5 * 60 * 1000
+/**
+ * Unchanged answers (the poll) write the snapshot again only this often, to keep
+ * its time on disk (in memory it follows every answer). The file is some 400 KB.
+ */
+var SAVE_AGE_MS = 60 * 60 * 1000
 
 /** Reads answered from the snapshot by their call (catalogs, user). */
 var CACHED_READS = ["loadProjects", "loadCustomers", "loadAllActivities", "loadActivities",
@@ -145,11 +148,41 @@ function pruneEntries(s) {
     }
 }
 
+/** Reads of a date range ({from, to}) that ended before the kept days: the poll moves on daily. */
+function pruneReads(s) {
+    var limit = new Date(nowOf(s) - KEEP_DAYS * DAY_MS)
+    var day = limit.getFullYear() + "-" + ("0" + (limit.getMonth() + 1)).slice(-2) + "-" + ("0" + limit.getDate()).slice(-2)
+    for (var key in s.snapshot.reads) {
+        var parts = key.split("|").slice(1)
+        for (var i = 0; i < parts.length; i++) {
+            var arg = null
+            try {
+                arg = JSON.parse(parts[i])
+            } catch (e) {
+            }
+            if (arg && typeof arg.to === "string" && arg.to < day) {
+                delete s.snapshot.reads[key]
+                break
+            }
+        }
+    }
+}
+
+/** Without what changes on its own: the duration of a running entry grows with every poll. */
+function snapshotText(snapshot) {
+    return JSON.stringify(snapshot, function(key, value) {
+        if (key === "savedAt" || (key === "duration" && this && this.begin && !this.end)) {
+            return undefined
+        }
+        return value
+    })
+}
+
 /** Written when its content changed (compared without the time) or the file's time is old. */
 function saveSnapshot(s) {
     pruneEntries(s)
-    s.snapshot.savedAt = 0
-    var text = JSON.stringify(s.snapshot)
+    pruneReads(s)
+    var text = snapshotText(s.snapshot)
     s.snapshot.savedAt = nowOf(s)
     if (text === s.savedSnapshotText && s.snapshot.savedAt - s.savedSnapshotAt < SAVE_AGE_MS) {
         return
@@ -1087,9 +1120,7 @@ function load(s) {
         if (state && state.v === SNAPSHOT_VERSION) {
             s.snapshot = state
             s.savedSnapshotAt = state.savedAt || 0
-            state.savedAt = 0
-            s.savedSnapshotText = JSON.stringify(state)
-            state.savedAt = s.savedSnapshotAt
+            s.savedSnapshotText = snapshotText(state)
         }
         var outbox = parts[1]
         if (outbox && outbox.v === SNAPSHOT_VERSION) {

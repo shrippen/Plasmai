@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Window
 import org.kde.kirigami as Kirigami
-import org.kde.plasma.plasma5support as P5Support
 import "../../code/secret.js" as Secret
 import "../../code/platform.js" as Platform
 import "../../code/desktopBackend.js" as DesktopBackend
@@ -38,16 +37,9 @@ Kirigami.Page {
         offlinePrefix: "config-"
     }
 
-    P5Support.DataSource {
+    ExecSource {
         id: execSource
-        engine: "executable"
-        connectedSources: []
-        onNewData: function(sourceName, data) {
-            Secret.handleData(execSource, sourceName, data)
-        }
     }
-
-    Component.onDestruction: Secret.cancelAll(execSource)
 
     onInWindowChanged: {
         if (inWindow && !pageReady) {

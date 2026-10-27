@@ -206,6 +206,41 @@ TestCase {
         compare(saves, 3)
     }
 
+    // A running entry's duration grows with every poll; that alone writes nothing.
+    function test_runningDurationIsNoChange() {
+        var k = fakeKimai()
+        k.server[2] = { id: 2, begin: stamp(11, 0), duration: 3600, project: 10, activity: 21 }
+        var h = fakeHost()
+        var saves = 0
+        var save = h.save
+        h.save = function(name, obj) { if (name.indexOf("offline-state-") === 0) saves++; return save(name, obj) }
+        var t = session(k, h).tracker
+        call(function(cb) { t.fetchActiveTimesheet("u", "t", cb) })
+        h.clock = t0 + 30000
+        k.server[2].duration = 3630
+        call(function(cb) { t.fetchActiveTimesheet("u", "t", cb) })
+        compare(saves, 1)
+        k.server[2].end = stamp(12, 1)
+        k.server[2].duration = 3660
+        call(function(cb) { t.fetchActiveTimesheet("u", "t", cb) })
+        compare(saves, 2, "stopped: written")
+    }
+
+    // Date-range reads move on daily; those that ended before the kept days go.
+    function test_oldRangeReadsArePruned() {
+        var k = fakeKimai()
+        var h = fakeHost()
+        var t = session(k, h).tracker
+        call(function(cb) { t.fetchTrips("u", "t", { from: "2026-07-01", to: "2026-07-31" }, cb) })
+        call(function(cb) { t.fetchTrips("u", "t", { from: "2026-09-01", to: "2026-09-30" }, cb) })
+        call(function(cb) { t.fetchTrips("u", "t", null, cb) })
+        var reads = JSON.parse(h.files["offline-state-p1"]).reads
+        var keys = Object.keys(reads)
+        compare(keys.length, 2)
+        verify(keys.indexOf('fetchTrips|{"from":"2026-09-01","to":"2026-09-30"}') >= 0)
+        verify(keys.indexOf("fetchTrips|null") >= 0)
+    }
+
     function test_startAndStopOffline() {
         var k = fakeKimai()
         var h = fakeHost()
