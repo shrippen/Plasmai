@@ -150,12 +150,12 @@ function pruneEntries(s) {
 
 /** Reads of a date range ({from, to}) that ended before the kept days: the poll moves on daily. */
 function pruneReads(s) {
-    var limit = new Date(nowOf(s) - KEEP_DAYS * DAY_MS)
-    var day = limit.getFullYear() + "-" + ("0" + (limit.getMonth() + 1)).slice(-2) + "-" + ("0" + limit.getDate()).slice(-2)
-    for (var key in s.snapshot.reads) {
-        var parts = key.split("|").slice(1)
-        for (var i = 0; i < parts.length; i++) {
-            var arg = null
+    const limit = new Date(nowOf(s) - KEEP_DAYS * DAY_MS)
+    const day = limit.getFullYear() + "-" + ("0" + (limit.getMonth() + 1)).slice(-2) + "-" + ("0" + limit.getDate()).slice(-2)
+    for (const key in s.snapshot.reads) {
+        const parts = key.split("|").slice(1)
+        for (let i = 0; i < parts.length; i++) {
+            let arg = null
             try {
                 arg = JSON.parse(parts[i])
             } catch (e) {
