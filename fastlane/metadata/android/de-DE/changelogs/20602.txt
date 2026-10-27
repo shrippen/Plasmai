@@ -1,0 +1,1 @@
+Plasmai 2.6.2: Behebt ein Speicherleck im Plasma-Widget. Die App schreibt ihre Offline-Daten seltener und lässt sie nicht mehr täglich wachsen.

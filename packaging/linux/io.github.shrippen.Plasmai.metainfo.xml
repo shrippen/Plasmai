@@ -89,6 +89,12 @@
     <binary>plasmai-app</binary>
   </provides>
   <releases>
+    <release version="2.6.2" date="2026-10-27">
+      <description>
+        <p>Offline data is written less often and no longer grows by a few entries every day.
+        Fixes a memory leak in the Plasma widget.</p>
+      </description>
+    </release>
     <release version="2.6.1" date="2026-10-13">
       <description>
         <p>Brings the Plasma widget package that was missing from 2.6.0. No changes in the

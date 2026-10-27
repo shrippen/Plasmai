@@ -1,0 +1,1 @@
+Plasmai 2.6.2: Fixes a memory leak in the Plasma widget. The app now writes its offline data less often and keeps it from growing day by day.
