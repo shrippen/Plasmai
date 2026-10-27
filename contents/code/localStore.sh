@@ -62,6 +62,9 @@ case "$CMD" in
                 exit 2
             fi
             mv "$PART" "$FILE"
+            # Parts of interrupted writes (plasmashell quit, a failed append); a
+            # running write of the other client is younger than an hour.
+            find "$DIR" -maxdepth 1 -name ".$NAME.*.part" -mmin +60 -delete 2>/dev/null || true
         fi
         ;;
     *)

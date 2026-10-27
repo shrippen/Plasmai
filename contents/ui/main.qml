@@ -7,7 +7,6 @@ import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.components as PlasmaComponents3
 import org.kde.plasma.extras as PlasmaExtras
 import org.kde.kirigami as Kirigami
-import org.kde.plasma.plasma5support as P5Support
 import "../code/kimaiApi.js" as KimaiApi
 import "../code/secret.js" as Secret
 import "../code/platform.js" as Platform
@@ -325,13 +324,8 @@ PlasmoidItem {
     }
     // END internal demo
 
-    P5Support.DataSource {
+    ExecSource {
         id: execSource
-        engine: "executable"
-        connectedSources: []
-        onNewData: function(sourceName, data) {
-            Secret.handleData(execSource, sourceName, data)
-        }
     }
 
     Timer {
