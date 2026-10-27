@@ -213,7 +213,12 @@ TestCase {
         var h = fakeHost()
         var saves = 0
         var save = h.save
-        h.save = function(name, obj) { if (name.indexOf("offline-state-") === 0) saves++; return save(name, obj) }
+        h.save = function(name, obj) {
+            if (name.indexOf("offline-state-") === 0) {
+                saves++
+            }
+            return save(name, obj)
+        }
         var t = session(k, h).tracker
         call(function(cb) { t.fetchActiveTimesheet("u", "t", cb) })
         h.clock = t0 + 30000

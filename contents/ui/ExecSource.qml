@@ -20,6 +20,10 @@ QtObject {
     }
 
     function connectSource(source) {
+        // Already running: a second DataSource would replace it in jobs and leak.
+        if (jobs[source]) {
+            return
+        }
         const ds = job.createObject(exec)
         jobs[source] = ds
         ds.newData.connect(function(sourceName, data) {

@@ -21,6 +21,16 @@ TestCase {
         compare(Object.keys(exec.jobs).length, 0)
     }
 
+    // secret.js makes every source unique; a repeated one still runs once and leaves nothing.
+    function test_sameSourceRunsOnce() {
+        exec.connectSource("echo same")
+        var first = exec.jobs["echo same"]
+        exec.connectSource("echo same")
+        verify(exec.jobs["echo same"] === first, "the running DataSource is kept, not replaced")
+        exec.disconnectSource("echo same")
+        compare(Object.keys(exec.jobs).length, 0)
+    }
+
     function test_cancelDropsPendingJobs() {
         var called = false
         Secret._run(exec, "sleep 2", function() { called = true })
