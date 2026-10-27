@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 
 from lib import atspi_clicks, config_ui
-from lib.viewer import ViewerSession
+from lib.viewer import ViewerSession, settings_version
 
 pytestmark = pytest.mark.viewer
 
@@ -85,6 +85,7 @@ def _isolated_env(tmp_path: Path) -> dict[str, str]:
                 ),
                 "activeProfileId": "default",
                 "pinnedActivities": "",
+                "settingsVersion": settings_version(),
             }
         ),
         encoding="utf-8",

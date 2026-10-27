@@ -11,6 +11,8 @@ cat > "${CONFIG}/com.github.shrippen.plasmai/shared.json" <<'JSON'
 {"profilesJson": "[{\"id\":\"demo\",\"name\":\"Demo\",\"url\":\"https://demo.invalid\",\"provider\":\"kimai\"}]",
  "activeProfileId": "demo", "settingsVersion": 2}
 JSON
+# The keychain is not isolated by XDG_CONFIG_HOME: an own namespace keeps the real tokens out of reach.
+export PLASMAI_SECRET_SERVICE="com.github.shrippen.plasmai.demo"
 LANG_="${1:-${DEMO_LANG:-de}}"
 case "${LANG_}" in de) LOCALE=de_DE.UTF-8 ;; *) LOCALE=en_GB.UTF-8 ;; esac
 # The package's translations only load for an installed widget; offer them from a data dir.

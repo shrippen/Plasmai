@@ -3,11 +3,37 @@
 from __future__ import annotations
 
 import os
+import re
 import signal
 import subprocess
 import threading
 import time
 from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[2]
+
+
+def settings_version() -> int:
+    """sharedConfig.js SETTINGS_VERSION. Seeds without it are reset on start (needsReset)."""
+    src = (ROOT / "contents" / "code" / "sharedConfig.js").read_text(encoding="utf-8")
+    return int(re.search(r"^var SETTINGS_VERSION = (\d+)", src, re.M).group(1))
+
+
+TEST_SECRET_SERVICE = "com.github.shrippen.plasmai.test"
+
+
+def clear_test_secrets() -> None:
+    """Remove every token a test run stored under TEST_SECRET_SERVICE."""
+    try:
+        subprocess.run(
+            ["secret-tool", "clear", "service", TEST_SECRET_SERVICE],
+            check=False,
+            capture_output=True,
+            timeout=10,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        pass
 
 
 class ViewerSession:
@@ -41,6 +67,8 @@ class ViewerSession:
         # Prefer XWayland so xdotool can find the window on a Wayland session.
         env["QT_QPA_PLATFORM"] = env.get("PLASMAI_TEST_QPA", "xcb")
         env.update(self.extra_env)
+        # Own keychain namespace: never read or clear the user's real tokens (kwallet.sh).
+        env["PLASMAI_SECRET_SERVICE"] = TEST_SECRET_SERVICE
         cmd = [
             "plasmoidviewer",
             "-a",

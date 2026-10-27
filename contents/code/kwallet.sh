@@ -9,10 +9,14 @@
 # Profile IDs map to secret-tool account names:
 #   default / omitted -> api-token
 #   other             -> api-token:<profileId>
+#
+# PLASMAI_SECRET_SERVICE replaces the service name. Test and demo runs set it: an
+# isolated XDG_CONFIG_HOME does not isolate the keychain, and a reset there
+# (sharedConfig.js needsReset) would clear the real tokens.
 
 set -eu
 
-SERVICE="com.github.shrippen.plasmai"
+SERVICE="${PLASMAI_SECRET_SERVICE:-com.github.shrippen.plasmai}"
 PROFILE_ID=${2:-default}
 
 if [ "$PROFILE_ID" = "default" ]; then
