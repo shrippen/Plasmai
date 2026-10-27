@@ -9,7 +9,7 @@ Released 2026-10-27.
 The Plasma widget no longer fills the memory of the desktop shell.
 
 ### Fixed
-- Widget: plasmashell grew by gigabytes a day (14 GB after two days). Every save of the offline data stayed in memory; now nothing is kept. The offline data is also written less often (unchanged: once an hour instead of every five minutes, a running timer alone is no change) and no longer grows by a few entries every day
+- Widget: plasmashell grew by gigabytes a day (14 GB after two days). Every save of the offline data stayed in memory; now nothing is kept. The offline data is also written less often (if nothing changed, once an hour instead of every five minutes; a running timer alone is no change) and no longer grows by a few entries every day
 
 ## 2.6.1
 
