@@ -10,3 +10,4 @@ ActivityListRow 1.0 ActivityListRow.qml
 RecDot 1.0 RecDot.qml
 RecEdge 1.0 RecEdge.qml
 Session 1.0 Session.qml
+ExecSource 1.0 ExecSource.qml
