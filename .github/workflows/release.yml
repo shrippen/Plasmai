@@ -59,8 +59,8 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           gh release view "$TAG" > /dev/null 2>&1 && exit 0
+          # Fails without a section "## [X.Y.Z] — YYYY-MM-DD" or with an empty one.
           ./scripts/release-notes.sh "$VERSION" > "$RUNNER_TEMP/notes.md"
-          grep -q '[^[:space:]]' "$RUNNER_TEMP/notes.md" || { echo "::error::CHANGELOG.md has no notes for $VERSION (## [$VERSION] — YYYY-MM-DD)"; exit 1; }
           gh release create "$TAG" --title "Plasmai $VERSION" --notes-file "$RUNNER_TEMP/notes.md" --verify-tag
 
   apk:

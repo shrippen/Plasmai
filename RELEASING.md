@@ -246,12 +246,15 @@ Git work goes to Gitea (git.arianw.de); its push mirror carries commits and tags
 but not releases. So a release is made in two places, the second one automatically:
 
 1. `CHANGELOG.md` has a section `## [X.Y.Z] — YYYY-MM-DD` in the format of the release rule in
-   `agent.md` (the release notes: `scripts/release-notes.sh X.Y.Z`), and the landing page has the
-   same text as the newest entry in `#changes`, with the footer version bumped.
+   `agent.md` (the release notes: `scripts/release-notes.sh X.Y.Z`, run from the repository root;
+   it exits 1 without the section), and the landing page has the same text as the newest entry
+   in `#changes`, with the footer version bumped. CI checks the headings on every push
+   (`scripts/release-notes.sh --check`). The script is a copy of Kante's `tools/release-notes.sh`:
+   change it only there, sync with `../Kante/tools/sync-release-notes.sh`.
 2. Tag and push to Gitea: `git tag -a vX.Y.Z -m "X.Y.Z" && git push origin vX.Y.Z`.
 3. Gitea release with `tea`, notes only, no files (GitHub is the public channel and the only one
    with release files and the checks):
-   `tea releases create --login git.arianw.de --repo shrippen/plasmai --tag vX.Y.Z --title "Plasmai X.Y.Z" --note "$(scripts/release-notes.sh X.Y.Z)"`
+   `scripts/release-notes.sh X.Y.Z > notes.md && tea releases create --login git.arianw.de --repo shrippen/plasmai --tag vX.Y.Z --title "Plasmai X.Y.Z" --note-file notes.md`
 4. The mirror pushes the tag to GitHub; `.github/workflows/release.yml` builds the release APK,
    signs it with the secrets from 4.3, checks the signature and creates the GitHub release
    with the same notes and the APK (`Plasmai-X.Y.Z.apk`), attached for direct install.
