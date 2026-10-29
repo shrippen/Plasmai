@@ -23,6 +23,8 @@ Item {
     property int shotCount: 0
     // Grabbed instead of the representation (a dialog's popup item), until the next view.
     property var shotTarget: null
+    // The style before the switch view set Kante; given back with the next view.
+    property var styleBefore: undefined
     readonly property bool active: plan !== null
 
     function trace(msg) {
@@ -65,7 +67,14 @@ Item {
             wait = 3000
             break
         case "view":
-            shotTarget = null
+            if (shotTarget) {
+                r.switchRecentDialogRef.close()
+                shotTarget = null
+            }
+            if (styleBefore !== undefined) {
+                r.session.settings.set({ visualStyle: styleBefore })
+                styleBefore = undefined
+            }
             if (item.value === "manual") {
                 r.openManualEntry()
             } else if (item.value === "stats") {
@@ -95,6 +104,7 @@ Item {
                 })
             } else if (item.value === "switch") {
                 // The switch question in Kante, for a recent activity other than the running one.
+                runner.styleBefore = r.session.settings.visualStyle
                 r.session.settings.set({ visualStyle: 1 })
                 r.returnToMainView()
                 var recent = r.session.recent.list
@@ -116,6 +126,9 @@ Item {
                         runner.shotTarget = dialog.contentItem.parent
                         break
                     }
+                }
+                if (!runner.shotTarget) {
+                    trace("PLASMAI_SCREENSHOT_NOTFOUND recent activity to switch to")
                 }
             } else if (item.value === "offline") {
                 // The network goes away (every request fails), then: stop, start another activity.
