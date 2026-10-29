@@ -168,44 +168,28 @@ kpackagetool6 -i . -t Plasma/Applet</div>
 </section>
 <section class="section" id="changes">
   <h2 lang="en">Changes</h2><h2 lang="de">Änderungen</h2>
+  <p lang="en">What each release brought, newest first. Every release adds an entry here and the same notes on the release page.</p><p lang="de">Was jede Version gebracht hat, die neueste zuerst. Jede Version bekommt hier einen Eintrag und dieselben Notizen auf der Release-Seite.</p>
   <ol class="changelog">
     <li class="release" id="v2.6.2">
-      <div class="release-head"><b class="release-version">2.6.2</b><time datetime="2026-10-27">27 Oct 2026</time></div>
+      <div class="release-head"><b class="release-version">2.6.2</b><time datetime="2026-10-27"><span lang="en">27 Oct 2026</span><span lang="de">27. Okt. 2026</span></time></div>
       <div class="release-body">
-        <p class="release-lead" lang="en">The Plasma widget no longer fills the memory of the desktop shell.</p>
-        <p class="release-lead" lang="de">Das Plasma-Widget füllt nicht mehr den Speicher der Desktop-Shell.</p>
-        <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3>
-          <ul lang="en">
-            <li>Widget: plasmashell grew by gigabytes a day (14 GB after two days). Every save of the offline data stayed in memory; now nothing is kept. The offline data is also written less often (if nothing changed, once an hour instead of every five minutes; a running timer alone is no change) and no longer grows by a few entries every day.</li>
-          </ul>
-          <ul lang="de">
-            <li>Widget: plasmashell wuchs um Gigabytes am Tag (14 GB nach zwei Tagen). Jedes Speichern der Offline-Daten blieb im Arbeitsspeicher liegen; jetzt bleibt nichts zurück. Die Offline-Daten werden außerdem seltener geschrieben (ohne Änderung nur noch einmal pro Stunde statt alle fünf Minuten; ein laufender Timer allein zählt nicht als Änderung) und wachsen nicht mehr jeden Tag um ein paar Einträge.</li>
-          </ul>
-        </div>
+        <p class="release-lead"><span lang="en">The Plasma widget no longer fills the memory of the desktop shell.</span><span lang="de">Das Plasma-Widget füllt nicht mehr den Speicher der Desktop-Shell.</span></p>
+        <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3><ul>
+          <li><span lang="en">Widget: plasmashell grew by gigabytes a day (14 GB after two days). Every save of the offline data stayed in memory; now nothing is kept. The offline data is also written less often (if nothing changed, once an hour instead of every five minutes; a running timer alone is no change) and no longer grows by a few entries every day.</span><span lang="de">Widget: plasmashell wuchs um Gigabytes am Tag (14 GB nach zwei Tagen). Jedes Speichern der Offline-Daten blieb im Arbeitsspeicher liegen; jetzt bleibt nichts zurück. Die Offline-Daten werden außerdem seltener geschrieben (ohne Änderung nur noch einmal pro Stunde statt alle fünf Minuten; ein laufender Timer allein zählt nicht als Änderung) und wachsen nicht mehr jeden Tag um ein paar Einträge.</span></li>
+        </ul></div>
         <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v2.6.1...v2.6.2"><span lang="en">All changes since 2.6.1 →</span><span lang="de">Alle Änderungen seit 2.6.1 →</span></a>
       </div>
     </li>
     <li class="release" id="v2.6.1">
-      <div class="release-head"><b class="release-version">2.6.1</b><time datetime="2026-10-13">13 Oct 2026</time></div>
+      <div class="release-head"><b class="release-version">2.6.1</b><time datetime="2026-10-13"><span lang="en">13 Oct 2026</span><span lang="de">13. Okt. 2026</span></time></div>
       <div class="release-body">
-        <p class="release-lead" lang="en">The Plasma widget for 2.6.0: its package was missing from the 2.6.0 release.</p>
-        <p class="release-lead" lang="de">Das Plasma-Widget zu 2.6.0: Sein Paket fehlte im Release 2.6.0.</p>
-        <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3>
-          <ul lang="en">
-            <li>2.6.0 came without the widget package (<code>.plasmoid</code>) and the install script, so the one-line install command failed with "not found" while 2.6.0 was the latest release. The package build stopped at a comment that named the internal screenshot code it removes. The checks now build the widget package on every pull request, so this shows before a release.</li>
-          </ul>
-          <ul lang="de">
-            <li>2.6.0 kam ohne das Widget-Paket (<code>.plasmoid</code>) und das Installationsskript, deshalb schlug der Einzeiler zur Installation mit „nicht gefunden“ fehl, solange 2.6.0 das neueste Release war. Der Paketbau brach an einem Kommentar ab, der den internen Screenshot-Code nannte, den er entfernt. Die Prüfungen bauen das Widget-Paket jetzt bei jedem Pull Request, so fällt das vor einem Release auf.</li>
-          </ul>
-        </div>
-        <div class="release-group" data-kind="note"><h3><span lang="en">Note</span><span lang="de">Hinweis</span></h3>
-          <ul lang="en">
-            <li>No changes in the app or the widget beyond 2.6.0: everything new in 2.6.0 below applies.</li>
-          </ul>
-          <ul lang="de">
-            <li>App und Widget sind gegenüber 2.6.0 unverändert: Alles Neue aus 2.6.0 unten gilt.</li>
-          </ul>
-        </div>
+        <p class="release-lead"><span lang="en">The Plasma widget for 2.6.0: its package was missing from the 2.6.0 release.</span><span lang="de">Das Plasma-Widget zu 2.6.0: Sein Paket fehlte im Release 2.6.0.</span></p>
+        <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3><ul>
+          <li><span lang="en">2.6.0 came without the widget package (<code>.plasmoid</code>) and the install script, so the one-line install command failed with "not found" while 2.6.0 was the latest release. The package build stopped at a comment that named the internal screenshot code it removes. The checks now build the widget package on every pull request, so this shows before a release.</span><span lang="de">2.6.0 kam ohne das Widget-Paket (<code>.plasmoid</code>) und das Installationsskript, deshalb schlug der Einzeiler zur Installation mit „nicht gefunden“ fehl, solange 2.6.0 das neueste Release war. Der Paketbau brach an einem Kommentar ab, der den internen Screenshot-Code nannte, den er entfernt. Die Prüfungen bauen das Widget-Paket jetzt bei jedem Pull Request, so fällt das vor einem Release auf.</span></li>
+        </ul></div>
+        <div class="release-group" data-kind="note"><h3><span lang="en">Note</span><span lang="de">Hinweis</span></h3><ul>
+          <li><span lang="en">No changes in the app or the widget beyond 2.6.0: everything new in 2.6.0 below applies.</span><span lang="de">App und Widget sind gegenüber 2.6.0 unverändert: Alles Neue aus 2.6.0 unten gilt.</span></li>
+        </ul></div>
         <div class="release-shots">
           <figure><img lang="en" src="shots/release-2.6.1-pipeline-en.webp" alt="Release files of 2.6.0 and 2.6.1: 2.6.0 lacks the plasmoid and the install script, 2.6.1 has all six" loading="lazy"><img lang="de" src="shots/release-2.6.1-pipeline-de.webp" alt="Release-Dateien von 2.6.0 und 2.6.1: 2.6.0 fehlen Plasmoid und Installationsskript, 2.6.1 hat alle sechs" loading="lazy"><figcaption><span lang="en">Release files per version</span><span lang="de">Release-Dateien je Version</span></figcaption></figure>
         </div>
@@ -213,42 +197,22 @@ kpackagetool6 -i . -t Plasma/Applet</div>
       </div>
     </li>
     <li class="release" id="v2.6.0">
-      <div class="release-head"><b class="release-version">2.6.0</b><time datetime="2026-10-13">13 Oct 2026</time></div>
+      <div class="release-head"><b class="release-version">2.6.0</b><time datetime="2026-10-13"><span lang="en">13 Oct 2026</span><span lang="de">13. Okt. 2026</span></time></div>
       <div class="release-body">
-        <p class="release-lead" lang="en">A terminal client for the desktop app, a day of its own for the activity chart, and editing that keeps the dates and times you enter.</p>
-        <p class="release-lead" lang="de">Ein Terminal-Client für die Desktop-App, ein eigener Tag für das Tätigkeitsdiagramm und Bearbeiten, das Datum und Uhrzeit so behält, wie du sie eingibst.</p>
-        <div class="release-group" data-kind="new"><h3><span lang="en">New</span><span lang="de">Neu</span></h3>
-          <ul lang="en">
-            <li>Terminal client in the desktop app (Linux, macOS): <code>plasmai-app --tui</code> shows the timer, recents, today as hour rows with gaps and the week as a table. 1–9 start or switch, <code>s</code> stops. For tracking from a terminal or over SSH; it uses the app's profile and keeps its own offline outbox. The widget has none.</li>
-          </ul>
-          <ul lang="de">
-            <li>Terminal-Client in der Desktop-App (Linux, macOS): <code>plasmai-app --tui</code> zeigt Timer, Zuletzt, Heute als Stundenzeilen mit Lücken und die Woche als Tabelle. 1–9 startet oder wechselt, <code>s</code> stoppt. Zum Erfassen aus dem Terminal oder per SSH; er nutzt das Profil der App und hat einen eigenen Offline-Ausgang. Das Widget hat keinen.</li>
-          </ul>
-        </div>
-        <div class="release-group" data-kind="improved"><h3><span lang="en">Improved</span><span lang="de">Verbessert</span></h3>
-          <ul lang="en">
-            <li>Statistics: the activity distribution has its own day switcher, so you can look at another day without moving the other charts. Day and week take half the width each; an empty day keeps the chart's height.</li>
-            <li>Statistics (Kante styles): hovering a block in "Projects by hour" shows its project, time span and duration; on touch a tap does.</li>
-          </ul>
-          <ul lang="de">
-            <li>Statistik: Die Tätigkeitsverteilung hat einen eigenen Tagesumschalter, so siehst du einen anderen Tag, ohne die übrigen Diagramme zu verschieben. Tag und Woche teilen sich die Breite; ein leerer Tag behält die Höhe des Diagramms.</li>
-            <li>Statistik (Kante-Stile): Fährst du über einen Block in „Projekte nach Stunde“, zeigt er Projekt, Zeitraum und Dauer; auf Touch reicht ein Tippen.</li>
-          </ul>
-        </div>
-        <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3>
-          <ul lang="en">
-            <li>Editing an entry could move its start 100 years back. In a short date format with a two-digit year ("13.10.26", "10/13/26") the date field read its own text as 1926. A running entry then started in 1926, and Kimai refused a stopped one as too long. Two-digit years now mean this century.</li>
-            <li>App time picker in 12-hour languages (US English and others): it showed a 24-hour dial without AM/PM and put 12:xx in the morning. It now shows 1–12 with AM/PM. In every language, Select without turning a dial gave the current time instead of the time it opened with.</li>
-            <li>12-hour time fields: typing an hour no longer moves a PM time to the morning (3 on 2:30 PM stays 3:30 PM).</li>
-            <li>Statistics (Kante styles): the chart read-outs wrote project names in the project colour, which some colours made unreadable. They now use the text colour with a coloured square in front.</li>
-          </ul>
-          <ul lang="de">
-            <li>Beim Bearbeiten konnte der Start eines Eintrags 100 Jahre zurückspringen. In einem kurzen Datumsformat mit zweistelliger Jahreszahl („13.10.26“, „10/13/26“) las das Datumsfeld seinen eigenen Text als 1926. Ein laufender Eintrag begann dann 1926, einen beendeten lehnte Kimai als zu lang ab. Zweistellige Jahre bedeuten jetzt dieses Jahrhundert.</li>
-            <li>Zeitwähler der App in 12-Stunden-Sprachen (US-Englisch und andere): Er zeigte ein 24-Stunden-Rad ohne AM/PM und legte 12:xx auf den Vormittag. Jetzt zeigt er 1–12 mit AM/PM. In jeder Sprache gab „Auswählen“ ohne Drehen die aktuelle Uhrzeit zurück statt der, mit der er geöffnet wurde.</li>
-            <li>12-Stunden-Zeitfelder: Eine getippte Stunde verschiebt eine PM-Zeit nicht mehr auf den Vormittag (3 auf 2:30 PM bleibt 3:30 PM).</li>
-            <li>Statistik (Kante-Stile): Die Read-outs der Diagramme schrieben Projektnamen in der Projektfarbe, die manche Farben unlesbar machten. Jetzt stehen sie in der Textfarbe mit einem farbigen Quadrat davor.</li>
-          </ul>
-        </div>
+        <p class="release-lead"><span lang="en">A terminal client for the desktop app, a day of its own for the activity chart, and editing that keeps the dates and times you enter.</span><span lang="de">Ein Terminal-Client für die Desktop-App, ein eigener Tag für das Tätigkeitsdiagramm und Bearbeiten, das Datum und Uhrzeit so behält, wie du sie eingibst.</span></p>
+        <div class="release-group" data-kind="new"><h3><span lang="en">New</span><span lang="de">Neu</span></h3><ul>
+          <li><span lang="en">Terminal client in the desktop app (Linux, macOS): <code>plasmai-app --tui</code> shows the timer, recents, today as hour rows with gaps and the week as a table. 1–9 start or switch, <code>s</code> stops. For tracking from a terminal or over SSH; it uses the app's profile and keeps its own offline outbox. The widget has none.</span><span lang="de">Terminal-Client in der Desktop-App (Linux, macOS): <code>plasmai-app --tui</code> zeigt Timer, Zuletzt, Heute als Stundenzeilen mit Lücken und die Woche als Tabelle. 1–9 startet oder wechselt, <code>s</code> stoppt. Zum Erfassen aus dem Terminal oder per SSH; er nutzt das Profil der App und hat einen eigenen Offline-Ausgang. Das Widget hat keinen.</span></li>
+        </ul></div>
+        <div class="release-group" data-kind="improved"><h3><span lang="en">Improved</span><span lang="de">Verbessert</span></h3><ul>
+          <li><span lang="en">Statistics: the activity distribution has its own day switcher, so you can look at another day without moving the other charts. Day and week take half the width each; an empty day keeps the chart's height.</span><span lang="de">Statistik: Die Tätigkeitsverteilung hat einen eigenen Tagesumschalter, so siehst du einen anderen Tag, ohne die übrigen Diagramme zu verschieben. Tag und Woche teilen sich die Breite; ein leerer Tag behält die Höhe des Diagramms.</span></li>
+          <li><span lang="en">Statistics (Kante styles): hovering a block in "Projects by hour" shows its project, time span and duration; on touch a tap does.</span><span lang="de">Statistik (Kante-Stile): Fährst du über einen Block in „Projekte nach Stunde“, zeigt er Projekt, Zeitraum und Dauer; auf Touch reicht ein Tippen.</span></li>
+        </ul></div>
+        <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3><ul>
+          <li><span lang="en">Editing an entry could move its start 100 years back. In a short date format with a two-digit year ("13.10.26", "10/13/26") the date field read its own text as 1926. A running entry then started in 1926, and Kimai refused a stopped one as too long. Two-digit years now mean this century.</span><span lang="de">Beim Bearbeiten konnte der Start eines Eintrags 100 Jahre zurückspringen. In einem kurzen Datumsformat mit zweistelliger Jahreszahl („13.10.26“, „10/13/26“) las das Datumsfeld seinen eigenen Text als 1926. Ein laufender Eintrag begann dann 1926, einen beendeten lehnte Kimai als zu lang ab. Zweistellige Jahre bedeuten jetzt dieses Jahrhundert.</span></li>
+          <li><span lang="en">App time picker in 12-hour languages (US English and others): it showed a 24-hour dial without AM/PM and put 12:xx in the morning. It now shows 1–12 with AM/PM. In every language, Select without turning a dial gave the current time instead of the time it opened with.</span><span lang="de">Zeitwähler der App in 12-Stunden-Sprachen (US-Englisch und andere): Er zeigte ein 24-Stunden-Rad ohne AM/PM und legte 12:xx auf den Vormittag. Jetzt zeigt er 1–12 mit AM/PM. In jeder Sprache gab „Auswählen“ ohne Drehen die aktuelle Uhrzeit zurück statt der, mit der er geöffnet wurde.</span></li>
+          <li><span lang="en">12-hour time fields: typing an hour no longer moves a PM time to the morning (3 on 2:30 PM stays 3:30 PM).</span><span lang="de">12-Stunden-Zeitfelder: Eine getippte Stunde verschiebt eine PM-Zeit nicht mehr auf den Vormittag (3 auf 2:30 PM bleibt 3:30 PM).</span></li>
+          <li><span lang="en">Statistics (Kante styles): the chart read-outs wrote project names in the project colour, which some colours made unreadable. They now use the text colour with a coloured square in front.</span><span lang="de">Statistik (Kante-Stile): Die Read-outs der Diagramme schrieben Projektnamen in der Projektfarbe, die manche Farben unlesbar machten. Jetzt stehen sie in der Textfarbe mit einem farbigen Quadrat davor.</span></li>
+        </ul></div>
         <div class="release-shots">
           <figure><img lang="en" src="shots/release-2.6.0-terminal-en.webp" alt="The terminal client with the running timer, today and the week, and recents" loading="lazy"><img lang="de" src="shots/release-2.6.0-terminal-de.webp" alt="Der Terminal-Client mit laufendem Timer, Heute und Woche sowie Zuletzt" loading="lazy"><figcaption><span lang="en">Terminal client, plasmai-app --tui (demo data)</span><span lang="de">Terminal-Client, plasmai-app --tui (Demodaten)</span></figcaption></figure>
           <figure><img lang="en" src="shots/release-2.6.0-activity-en.webp" alt="Activity distribution with a day switcher for today and one for the week" loading="lazy"><img lang="de" src="shots/release-2.6.0-activity-de.webp" alt="Tätigkeitsverteilung mit Tagesumschalter für Heute und einem für die Woche" loading="lazy"><figcaption><span lang="en">Activity distribution with its own day (demo data)</span><span lang="de">Tätigkeitsverteilung mit eigenem Tag (Demodaten)</span></figcaption></figure>
@@ -259,6 +223,405 @@ kpackagetool6 -i . -t Plasma/Applet</div>
       </div>
     </li>
   </ol>
+  <details class="changelog-more"><summary><span lang="en">Older releases</span><span lang="de">Ältere Versionen</span></summary>
+    <ol class="changelog">
+      <li class="release" id="v2.5.3">
+        <div class="release-head"><b class="release-version">2.5.3</b><time datetime="2026-10-07"><span lang="en">7 Oct 2026</span><span lang="de">7. Okt. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">A smoother tray popup on Windows.</span><span lang="de">Ein weicheres Tray-Fenster unter Windows.</span></p>
+          <div class="release-group" data-kind="improved"><h3><span lang="en">Improved</span><span lang="de">Verbessert</span></h3><ul>
+            <li><span lang="en">Windows: the tray popup fades in while sliding out of the taskbar, and back out as it closes. It follows the Windows setting for animation effects.</span><span lang="de">Windows: Das Tray-Fenster blendet sich ein, während es aus der Taskleiste gleitet, und beim Schließen wieder aus. Es folgt der Windows-Einstellung für Animationseffekte.</span></li>
+          </ul></div>
+          <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v2.5.2...v2.5.3"><span lang="en">All changes since 2.5.2 →</span><span lang="de">Alle Änderungen seit 2.5.2 →</span></a>
+        </div>
+      </li>
+      <li class="release" id="v2.5.2">
+        <div class="release-head"><b class="release-version">2.5.2</b><time datetime="2026-10-06"><span lang="en">6 Oct 2026</span><span lang="de">6. Okt. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">The Windows app keeps its settings again.</span><span lang="de">Die Windows-App behält ihre Einstellungen wieder.</span></p>
+          <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3><ul>
+            <li><span lang="en">Windows: the app did not save its settings. Windows refused to replace the settings file, so the setup wizard stored the token but not the server address, and the app showed a connection problem. Settings are now written directly when the file cannot be replaced.</span><span lang="de">Windows: Die App speicherte ihre Einstellungen nicht. Windows verweigerte das Ersetzen der Einstellungsdatei, deshalb speicherte der Einrichtungsassistent das Token, aber nicht die Serveradresse, und die App meldete ein Verbindungsproblem. Lässt sich die Datei nicht ersetzen, werden die Einstellungen jetzt direkt geschrieben.</span></li>
+          </ul></div>
+          <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v2.5.1...v2.5.2"><span lang="en">All changes since 2.5.1 →</span><span lang="de">Alle Änderungen seit 2.5.1 →</span></a>
+        </div>
+      </li>
+      <li class="release" id="v2.5.1">
+        <div class="release-head"><b class="release-version">2.5.1</b><time datetime="2026-10-06"><span lang="en">6 Oct 2026</span><span lang="de">6. Okt. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">The app starts again.</span><span lang="de">Die App startet wieder.</span></p>
+          <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3><ul>
+            <li><span lang="en">App (Android, Windows, Linux): 2.5.0 did not start; a file of the new Look step was missing from the app. The Plasma widget was not affected.</span><span lang="de">App (Android, Windows, Linux): 2.5.0 startete nicht; eine Datei des neuen Schritts „Aussehen“ fehlte in der App. Das Plasma-Widget war nicht betroffen.</span></li>
+          </ul></div>
+          <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v2.5.0...v2.5.1"><span lang="en">All changes since 2.5.0 →</span><span lang="de">Alle Änderungen seit 2.5.0 →</span></a>
+        </div>
+      </li>
+      <li class="release" id="v2.5.0">
+        <div class="release-head"><b class="release-version">2.5.0</b><time datetime="2026-10-06"><span lang="en">6 Oct 2026</span><span lang="de">6. Okt. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">Choose the look of Plasmai while setting it up.</span><span lang="de">Das Aussehen von Plasmai schon bei der Einrichtung wählen.</span></p>
+          <div class="release-group" data-kind="new"><h3><span lang="en">New</span><span lang="de">Neu</span></h3><ul>
+            <li><span lang="en">Setup wizard: a new "Look" step after the system check lets you choose System, Kante or Kante Light. The wizard changes with your choice, with a preview and the colours of the look; the choice is saved and can be changed later in the settings.</span><span lang="de">Einrichtungsassistent: Ein neuer Schritt „Aussehen“ nach der Systemprüfung lässt zwischen System, Kante und Kante Light wählen. Der Assistent wechselt mit der Wahl, mit Vorschau und den Farben des Aussehens; die Wahl wird gespeichert und lässt sich später in den Einstellungen ändern.</span></li>
+          </ul></div>
+          <div class="release-group" data-kind="note"><h3><span lang="en">Note</span><span lang="de">Hinweis</span></h3><ul>
+            <li><span lang="en">Do not use: the app (Android, Windows, Linux) does not start in this version. Use 2.5.1. The Plasma widget works.</span><span lang="de">Nicht verwenden: Die App (Android, Windows, Linux) startet in dieser Version nicht. Nimm 2.5.1. Das Plasma-Widget funktioniert.</span></li>
+          </ul></div>
+          <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v2.4.0...v2.5.0"><span lang="en">All changes since 2.4.0 →</span><span lang="de">Alle Änderungen seit 2.4.0 →</span></a>
+        </div>
+      </li>
+      <li class="release" id="v2.4.0">
+        <div class="release-head"><b class="release-version">2.4.0</b><time datetime="2026-10-06"><span lang="en">6 Oct 2026</span><span lang="de">6. Okt. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">A setup wizard for the first start, and a Windows popup that fits scaled screens. Updating resets the old configuration once.</span><span lang="de">Ein Einrichtungsassistent für den ersten Start und ein Windows-Fenster, das auf skalierte Bildschirme passt. Das Update setzt die alte Konfiguration einmal zurück.</span></p>
+          <div class="release-group" data-kind="new"><h3><span lang="en">New</span><span lang="de">Neu</span></h3><ul>
+            <li><span lang="en">First start: a setup wizard in the widget and the app instead of the "Configure" hint. It checks the system (widget: secret-tool and KWallet, with the install command for your distribution), lets you pick the service (Clockify, Toggl Track and SolidTime marked experimental), tests address and token before storing the token, and asks for work hours, the place for the sun arcs and the start reminder (all optional).</span><span lang="de">Erster Start: ein Einrichtungsassistent in Widget und App statt des Hinweises „Einrichten“. Er prüft das System (Widget: secret-tool und KWallet, mit dem Installationsbefehl für deine Distribution), lässt den Dienst wählen (Clockify, Toggl Track und SolidTime als experimentell markiert), testet Adresse und Token, bevor er das Token speichert, und fragt Arbeitszeiten, den Ort für die Sonnenbögen und die Start-Erinnerung ab (alles optional).</span></li>
+            <li><span lang="en">Windows: the popup can be resized by dragging its border; the size is kept for the next start.</span><span lang="de">Windows: Das Fenster lässt sich am Rand größer und kleiner ziehen; die Größe bleibt für den nächsten Start.</span></li>
+          </ul></div>
+          <div class="release-group" data-kind="improved"><h3><span lang="en">Improved</span><span lang="de">Verbessert</span></h3><ul>
+            <li><span lang="en">Server addresses are cleaned when set up: https is added, a Kimai page or API address is cut back to the instance, plain http outside the machine is warned about; a pasted token loses blanks and "Bearer ".</span><span lang="de">Serveradressen werden beim Einrichten bereinigt: https wird ergänzt, eine Kimai-Seiten- oder API-Adresse auf die Instanz gekürzt, vor unverschlüsseltem http außerhalb des Rechners wird gewarnt; ein eingefügtes Token verliert Leerzeichen und „Bearer “.</span></li>
+          </ul></div>
+          <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3><ul>
+            <li><span lang="en">Windows: with display scaling (e.g. 250 % on a full HD screen) the popup was taller than the screen and its lower part, with the buttons, was cut off. It now fits the screen.</span><span lang="de">Windows: Mit Anzeigeskalierung (z. B. 250 % auf einem Full-HD-Bildschirm) war das Fenster höher als der Bildschirm und sein unterer Teil mit den Knöpfen abgeschnitten. Jetzt passt es auf den Bildschirm.</span></li>
+            <li><span lang="en">App (Android, Windows, macOS): small text (hints, durations, secondary lines) was larger than the normal text; it is now smaller, as in the widget.</span><span lang="de">App (Android, Windows, macOS): Kleine Schrift (Hinweise, Dauern, Nebenzeilen) war größer als die normale; jetzt ist sie kleiner, wie im Widget.</span></li>
+          </ul></div>
+          <div class="release-group" data-kind="note"><h3><span lang="en">Note</span><span lang="de">Hinweis</span></h3><ul>
+            <li><span lang="en">The old configuration is deleted. On the first start after updating from 2.3.x or older, Plasmai (widget and app) resets every setting to its default and removes the stored API tokens of all profiles, then the setup wizard starts. Profiles, favourites, display and behaviour settings, work hours and place have to be set up again. Sync offline changes before updating: unsynced entries of an old profile are only sent again if the new profile has the same id.</span><span lang="de">Die alte Konfiguration wird gelöscht. Beim ersten Start nach einem Update von 2.3.x oder älter setzt Plasmai (Widget und App) jede Einstellung auf ihren Standard zurück und entfernt die gespeicherten API-Tokens aller Profile, danach startet der Einrichtungsassistent. Profile, Favoriten, Anzeige- und Verhaltenseinstellungen, Arbeitszeiten und Ort müssen neu eingerichtet werden. Offline-Änderungen vor dem Update synchronisieren: Nicht gesendete Einträge eines alten Profils gehen nur dann erneut raus, wenn das neue Profil dieselbe ID hat.</span></li>
+          </ul></div>
+          <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v2.3.1...v2.4.0"><span lang="en">All changes since 2.3.1 →</span><span lang="de">Alle Änderungen seit 2.3.1 →</span></a>
+        </div>
+      </li>
+      <li class="release" id="v2.3.1">
+        <div class="release-head"><b class="release-version">2.3.1</b><time datetime="2026-10-05"><span lang="en">5 Oct 2026</span><span lang="de">5. Okt. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">The running time and its notification stay right after the app was away.</span><span lang="de">Laufzeit und Benachrichtigung stimmen, sobald die App zurück ist.</span></p>
+          <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3><ul>
+            <li><span lang="en">App: the running time is right as soon as the app is opened again, no longer stuck at the value from when it was closed until the server answers.</span><span lang="de">App: Die Laufzeit stimmt, sobald die App wieder geöffnet wird, statt bis zur Antwort des Servers auf dem Wert vom Schließen stehen zu bleiben.</span></li>
+            <li><span lang="en">App (Android, Plasma Mobile): the notification follows an edit of the running entry, e.g. an earlier start time.</span><span lang="de">App (Android, Plasma Mobile): Die Benachrichtigung folgt einer Änderung am laufenden Eintrag, etwa einer früheren Startzeit.</span></li>
+          </ul></div>
+          <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v2.3.0...v2.3.1"><span lang="en">All changes since 2.3.0 →</span><span lang="de">Alle Änderungen seit 2.3.0 →</span></a>
+        </div>
+      </li>
+      <li class="release" id="v2.3.0">
+        <div class="release-head"><b class="release-version">2.3.0</b><time datetime="2026-10-02"><span lang="en">2 Oct 2026</span><span lang="de">2. Okt. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">Catering on a film day follows the engagement.</span><span lang="de">Das Catering am Drehtag folgt dem Engagement.</span></p>
+          <div class="release-group" data-kind="improved"><h3><span lang="en">Improved</span><span lang="de">Verbessert</span></h3><ul>
+            <li><span lang="en">Film day: a day without saved details starts with catering on when the engagement's catering default in the Drehzettel plugin says so.</span><span lang="de">Drehtag: Ein Tag ohne gespeicherte Angaben beginnt mit Catering, wenn die Catering-Vorgabe des Engagements im Drehzettel-Plugin das sagt.</span></li>
+          </ul></div>
+          <div class="release-group" data-kind="note"><h3><span lang="en">Note</span><span lang="de">Hinweis</span></h3><ul>
+            <li><span lang="en">Needs the updated Drehzettel plugin.</span><span lang="de">Braucht das aktualisierte Drehzettel-Plugin.</span></li>
+          </ul></div>
+          <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v2.2.0...v2.3.0"><span lang="en">All changes since 2.2.0 →</span><span lang="de">Alle Änderungen seit 2.2.0 →</span></a>
+        </div>
+      </li>
+      <li class="release" id="v2.2.0">
+        <div class="release-head"><b class="release-version">2.2.0</b><time datetime="2026-10-02"><span lang="en">2 Oct 2026</span><span lang="de">2. Okt. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">A notification while the timer runs, the film day note on the Kimai entry, and the Kante styles built from Kante's own components.</span><span lang="de">Eine Benachrichtigung, solange der Timer läuft, die Drehtag-Notiz am Kimai-Eintrag und Kante-Stile aus Kantes eigenen Bausteinen.</span></p>
+          <div class="release-group" data-kind="new"><h3><span lang="en">New</span><span lang="de">Neu</span></h3><ul>
+            <li><span lang="en">App (Android, Plasma Mobile): a permanent notification while a timer runs, with the project, activity and start time (on Android with the running time). A tap opens the app.</span><span lang="de">App (Android, Plasma Mobile): eine dauerhafte Benachrichtigung, solange ein Timer läuft, mit Projekt, Tätigkeit und Startzeit (unter Android mit der Laufzeit). Ein Tippen öffnet die App.</span></li>
+          </ul></div>
+          <div class="release-group" data-kind="improved"><h3><span lang="en">Improved</span><span lang="de">Verbessert</span></h3><ul>
+            <li><span lang="en">Film day: the note is the Kimai entry's description, no longer a second field in the Drehzettel plugin. Typed before the entry exists, it goes with Start or Save.</span><span lang="de">Drehtag: Die Notiz ist die Beschreibung des Kimai-Eintrags, kein zweites Feld im Drehzettel-Plugin mehr. Vor dem Eintrag getippt, geht sie mit Start oder Speichern mit.</span></li>
+            <li><span lang="en">Kante styles: charts, the day strip, time lines, pick lists, chips, colour swatches, date and time fields and the offline notice now come from Kante's own components, so widget and app look and behave alike.</span><span lang="de">Kante-Stile: Diagramme, Tagesleiste, Zeitzeilen, Auswahllisten, Chips, Farbfelder, Datums- und Zeitfelder und der Offline-Hinweis kommen jetzt aus Kantes eigenen Bausteinen, so sehen Widget und App gleich aus und verhalten sich gleich.</span></li>
+          </ul></div>
+          <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3><ul>
+            <li><span lang="en">Widget: a right click on a Recent entry opened the widget's menu instead of the entry menu.</span><span lang="de">Widget: Ein Rechtsklick auf einen Eintrag unter Zuletzt öffnete das Widget-Menü statt des Eintragsmenüs.</span></li>
+            <li><span lang="en">Statistics (Kante styles): the chosen filter segment was beige text on yellow and hard to read; it is now marked by a yellow bar under the label.</span><span lang="de">Statistik (Kante-Stile): Das gewählte Filtersegment war beiger Text auf Gelb und schwer lesbar; jetzt markiert es ein gelber Balken unter der Beschriftung.</span></li>
+            <li><span lang="en">Styles System and Kante Light: text in the system accent colour (headings, the film day date, chips) is lightened until it reads, also with a dark Plasma accent.</span><span lang="de">Stile System und Kante Light: Text in der Akzentfarbe des Systems (Überschriften, das Drehtag-Datum, Chips) wird aufgehellt, bis er lesbar ist, auch mit einem dunklen Plasma-Akzent.</span></li>
+            <li><span lang="en">Film day: the note was lost when leaving the page (or closing the popup) right after typing, and on Android the last word held back by the keyboard's predictive text was not saved.</span><span lang="de">Drehtag: Die Notiz ging verloren, wenn man die Seite direkt nach dem Tippen verließ (oder das Fenster schloss), und unter Android wurde das letzte Wort, das die Wortvorschläge der Tastatur zurückhielten, nicht gespeichert.</span></li>
+          </ul></div>
+          <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v2.1.0...v2.2.0"><span lang="en">All changes since 2.1.0 →</span><span lang="de">Alle Änderungen seit 2.1.0 →</span></a>
+        </div>
+      </li>
+      <li class="release" id="v2.1.0">
+        <div class="release-head"><b class="release-version">2.1.0</b><time datetime="2026-09-30"><span lang="en">30 Sep 2026</span><span lang="de">30. Sep. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">Plasmai keeps working without a connection, and comes to Windows as a tray app.</span><span lang="de">Plasmai arbeitet ohne Verbindung weiter und kommt als Tray-App auf Windows.</span></p>
+          <div class="release-group" data-kind="new"><h3><span lang="en">New</span><span lang="de">Neu</span></h3><ul>
+            <li><span lang="en">Offline mode (Kimai): with bad reception the widget and the app keep working from the last known state ("Offline · as of 12:04"). Starting and stopping the timer, adding, editing and deleting entries, film day details and trips are kept on the device and sent in order once the server answers again. A change the server does not accept, or an entry changed elsewhere meanwhile, waits in "Not synced" to retry, overwrite or discard; nothing is dropped silently. Creating customers, projects and activities, splitting and merging entries, discarding idle time and switching profiles need a connection.</span><span lang="de">Offline-Modus (Kimai): Bei schlechtem Empfang arbeiten Widget und App mit dem letzten bekannten Stand weiter („Offline · Stand 12:04“). Timer starten und stoppen, Einträge anlegen, bearbeiten und löschen, Drehtag-Angaben und Fahrten bleiben auf dem Gerät und gehen der Reihe nach raus, sobald der Server wieder antwortet. Eine Änderung, die der Server ablehnt, oder ein inzwischen anderswo geänderter Eintrag wartet unter „Nicht synchronisiert“ auf Wiederholen, Überschreiben oder Verwerfen; nichts geht still verloren. Kunden, Projekte und Tätigkeiten anlegen, Einträge teilen und zusammenführen, Leerlauf verwerfen und Profile wechseln braucht eine Verbindung.</span></li>
+            <li><span lang="en">Windows (preview): Plasmai as a tray icon whose popup is the app, like the widget in the Plasma panel. The icon shows a running timer with a red dot, its menu stops the running entry or starts the last used one, and it can start at login. Installer (per user, no administrator rights) and zip. It follows the system's light or dark setting.</span><span lang="de">Windows (Vorschau): Plasmai als Tray-Symbol, dessen Fenster die App ist, wie das Widget im Plasma-Panel. Das Symbol zeigt einen laufenden Timer mit rotem Punkt, sein Menü stoppt den laufenden Eintrag oder startet den zuletzt genutzten, und es kann bei der Anmeldung starten. Installer (je Benutzer, ohne Administratorrechte) und Zip. Es folgt der hellen oder dunklen Einstellung des Systems.</span></li>
+          </ul></div>
+          <div class="release-group" data-kind="improved"><h3><span lang="en">Improved</span><span lang="de">Verbessert</span></h3><ul>
+            <li><span lang="en">Widget (Kante styles): a running timer no longer tints the whole panel entry in the accent colour. A small red indicator marks it instead; Display settings offer a red dot, a red bottom edge or a red side stripe, with a preview.</span><span lang="de">Widget (Kante-Stile): Ein laufender Timer färbt nicht mehr den ganzen Panel-Eintrag in der Akzentfarbe. Eine kleine rote Markierung zeigt ihn stattdessen; die Anzeige-Einstellungen bieten einen roten Punkt, eine rote Unterkante oder einen roten Seitenstreifen, mit Vorschau.</span></li>
+            <li><span lang="en">Film day: switching days is instant. The last month is loaded in the background; a day opens from it and is then checked against the server, so what is shown can still change a moment later.</span><span lang="de">Drehtag: Der Tageswechsel geht sofort. Der letzte Monat lädt im Hintergrund; ein Tag öffnet daraus und wird dann mit dem Server abgeglichen, das Gezeigte kann sich also einen Moment später noch ändern.</span></li>
+            <li><span lang="en">App: after a lost connection the app refreshes as soon as the network is back, instead of at the next poll.</span><span lang="de">App: Nach einem Verbindungsabbruch lädt die App neu, sobald das Netz zurück ist, statt erst bei der nächsten Abfrage.</span></li>
+            <li><span lang="en">App (desktop style): the statistics filter looks like the widget's (three segments side by side); in touch mode the segments get the larger touch height.</span><span lang="de">App (Desktop-Stil): Der Statistikfilter sieht aus wie im Widget (drei Segmente nebeneinander); im Touch-Modus bekommen die Segmente die größere Touch-Höhe.</span></li>
+            <li><span lang="en">Less work in the background: the widget no longer rewrites its files when nothing changed, reads the shared settings once a minute while collapsed, reloads work hours and absences every 10 minutes instead of every 30 seconds, and hidden views no longer update every second.</span><span lang="de">Weniger Arbeit im Hintergrund: Das Widget schreibt seine Dateien nicht mehr ohne Änderung neu, liest die gemeinsamen Einstellungen eingeklappt einmal pro Minute, lädt Arbeitszeiten und Abwesenheiten alle 10 Minuten statt alle 30 Sekunden, und verborgene Ansichten aktualisieren sich nicht mehr jede Sekunde.</span></li>
+          </ul></div>
+          <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3><ul>
+            <li><span lang="en">Times written by the widget and the app carry the device's offset, and Kimai converts them into the profile's time zone. With a Kimai profile in another zone than the device they used to land hours off.</span><span lang="de">Zeiten, die Widget und App schreiben, tragen den Versatz des Geräts, und Kimai rechnet sie in die Zeitzone des Profils um. Bei einem Kimai-Profil in einer anderen Zone als das Gerät landeten sie Stunden daneben.</span></li>
+            <li><span lang="en">App (Android): plurals in Russian, Ukrainian and Polish use the right form, Japanese and Chinese no longer show English, French counts 0 as singular.</span><span lang="de">App (Android): Mehrzahlformen auf Russisch, Ukrainisch und Polnisch stimmen, Japanisch und Chinesisch zeigen kein Englisch mehr, Französisch zählt 0 als Einzahl.</span></li>
+            <li><span lang="en">App: the dialogs to create a customer, project or activity, to split an entry and after idle time showed only their title and buttons; their fields are back.</span><span lang="de">App: Die Dialoge zum Anlegen von Kunde, Projekt oder Tätigkeit, zum Teilen eines Eintrags und nach Leerlauf zeigten nur Titel und Knöpfe; ihre Felder sind zurück.</span></li>
+            <li><span lang="en">App: text typed into the description is no longer replaced by the server's text when the entry refreshes while typing; the time picker opens at the field's time.</span><span lang="de">App: Text in der Beschreibung wird nicht mehr vom Text des Servers ersetzt, wenn der Eintrag beim Tippen neu lädt; der Zeitwähler öffnet bei der Zeit des Felds.</span></li>
+            <li><span lang="en">Favourites pinned in the app show in the widget and the other way round.</span><span lang="de">In der App angeheftete Favoriten erscheinen im Widget und umgekehrt.</span></li>
+            <li><span lang="en">Widget: "continue last" offers the activity you switched to; the film day and trips buttons no longer disappear after stopping the timer; without GPU acceleration the day bar is shown instead of missing.</span><span lang="de">Widget: „Letzte fortsetzen“ bietet die Tätigkeit an, zu der gewechselt wurde; die Knöpfe für Drehtag und Fahrten verschwinden nach dem Stoppen nicht mehr; ohne GPU-Beschleunigung erscheint die Tagesleiste, statt zu fehlen.</span></li>
+            <li><span lang="en">App: the activity catalogue is loaded (favourites showed ids until a project was opened).</span><span lang="de">App: Der Tätigkeitskatalog wird geladen (Favoriten zeigten IDs, bis ein Projekt geöffnet wurde).</span></li>
+            <li><span lang="en">Film day: only the activities the Drehzettel engagement counts make up the film day, its begin and end and the shooting day count, as in the plugin. A private commute on the same project no longer becomes the film day.</span><span lang="de">Drehtag: Nur die Tätigkeiten, die das Drehzettel-Engagement zählt, bilden den Drehtag, seinen Beginn und sein Ende und die Zählung der Drehtage, wie im Plugin. Eine private Fahrt auf demselben Projekt wird nicht mehr zum Drehtag.</span></li>
+          </ul></div>
+          <div class="release-group" data-kind="note"><h3><span lang="en">Note</span><span lang="de">Hinweis</span></h3><ul>
+            <li><span lang="en">App: API tokens are now always kept in the platform's secure storage (Secret Service / KWallet, Android Keystore, Windows Credential Manager, macOS Keychain). Up to 2.0.1 the app stored them in plain files on Linux (AppImage, Flatpak) and on Android. Such a file moves into the secure storage on the next start and is deleted; without secure storage the token is not saved.</span><span lang="de">App: API-Tokens liegen jetzt immer im sicheren Speicher der Plattform (Secret Service / KWallet, Android Keystore, Windows-Anmeldeinformationsverwaltung, macOS-Schlüsselbund). Bis 2.0.1 legte die App sie unter Linux (AppImage, Flatpak) und Android in einfachen Dateien ab. Eine solche Datei wandert beim nächsten Start in den sicheren Speicher und wird gelöscht; ohne sicheren Speicher wird das Token nicht gespeichert.</span></li>
+            <li><span lang="en">Windows: the installer is not signed yet, so Windows warns on the first start.</span><span lang="de">Windows: Der Installer ist noch nicht signiert, Windows warnt deshalb beim ersten Start.</span></li>
+          </ul></div>
+          <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v2.0.1...v2.1.0"><span lang="en">All changes since 2.0.1 →</span><span lang="de">Alle Änderungen seit 2.0.1 →</span></a>
+        </div>
+      </li>
+      <li class="release" id="v2.0.1">
+        <div class="release-head"><b class="release-version">2.0.1</b><time datetime="2026-09-28"><span lang="en">28 Sep 2026</span><span lang="de">28. Sep. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">An About page, a reproducible Android build and fixes for the Android app.</span><span lang="de">Eine Über-Seite, ein reproduzierbarer Android-Build und Korrekturen für die Android-App.</span></p>
+          <div class="release-group" data-kind="new"><h3><span lang="en">New</span><span lang="de">Neu</span></h3><ul>
+            <li><span lang="en">App: an About page in the menu, with the version and links to the source code and to shrippen.github.io.</span><span lang="de">App: eine Über-Seite im Menü, mit der Version und Links zum Quellcode und zu shrippen.github.io.</span></li>
+          </ul></div>
+          <div class="release-group" data-kind="improved"><h3><span lang="en">Improved</span><span lang="de">Verbessert</span></h3><ul>
+            <li><span lang="en">App (Android, AppImage): Qt 6.11 and KF6 6.30; Android bundles OpenSSL 3.5 (LTS), built from source.</span><span lang="de">App (Android, AppImage): Qt 6.11 und KF6 6.30; Android bringt OpenSSL 3.5 (LTS) mit, aus dem Quellcode gebaut.</span></li>
+            <li><span lang="en">The film day is hidden when the Kimai instance has no Drehzettel plugin (or you lack its view permission), like trips without the Anfahrten plugin.</span><span lang="de">Der Drehtag ist ausgeblendet, wenn die Kimai-Instanz kein Drehzettel-Plugin hat (oder dir die Ansichtsberechtigung fehlt), wie Fahrten ohne das Anfahrten-Plugin.</span></li>
+            <li><span lang="en">App (Android): the release APK is built reproducibly, so F-Droid can publish it with the original signature.</span><span lang="de">App (Android): Das Release-APK wird reproduzierbar gebaut, so kann F-Droid es mit der ursprünglichen Signatur veröffentlichen.</span></li>
+            <li><span lang="en">Every release carries the AppImage, the Flatpak bundle and the widget next to the APK.</span><span lang="de">Jedes Release enthält neben dem APK das AppImage, das Flatpak-Paket und das Widget.</span></li>
+          </ul></div>
+          <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3><ul>
+            <li><span lang="en">App (Android): Back on the first page sends the app to the background again, and closes an open menu first.</span><span lang="de">App (Android): Zurück auf der ersten Seite schickt die App wieder in den Hintergrund und schließt vorher ein offenes Menü.</span></li>
+            <li><span lang="en">App (Android): opening a drop-down no longer triggers "Plasmai pasted from your clipboard".</span><span lang="de">App (Android): Das Öffnen einer Auswahlliste löst nicht mehr „Plasmai hat aus der Zwischenablage eingefügt“ aus.</span></li>
+            <li><span lang="en">App: the menu button has a name for screen readers (12 languages).</span><span lang="de">App: Der Menüknopf hat einen Namen für Screenreader (12 Sprachen).</span></li>
+          </ul></div>
+          <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v2.0.0...v2.0.1"><span lang="en">All changes since 2.0.0 →</span><span lang="de">Alle Änderungen seit 2.0.0 →</span></a>
+        </div>
+      </li>
+      <li class="release" id="v2.0.0">
+        <div class="release-head"><b class="release-version">2.0.0</b><time datetime="2026-09-27"><span lang="en">27 Sep 2026</span><span lang="de">27. Sep. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">Plasmai becomes an app for Android and Plasma Mobile too, and learns film days and trips from the Kimai plugins Drehzettel and Anfahrten. Kimai is the reference backend; Clockify, Toggl Track and SolidTime stay experimental.</span><span lang="de">Plasmai wird auch eine App für Android und Plasma Mobile und lernt Drehtage und Fahrten von den Kimai-Plugins Drehzettel und Anfahrten. Kimai ist das Referenz-Backend; Clockify, Toggl Track und SolidTime bleiben experimentell.</span></p>
+          <div class="release-group" data-kind="new"><h3><span lang="en">New</span><span lang="de">Neu</span></h3><ul>
+            <li><span lang="en">App for Android and Plasma Mobile (Kirigami): timer, continue, switch, editing the running entry, adding entries, favourites, recent entries (edit, split, delete), statistics and settings, in 11 languages.</span><span lang="de">App für Android und Plasma Mobile (Kirigami): Timer, Fortsetzen, Wechseln, den laufenden Eintrag bearbeiten, Einträge anlegen, Favoriten, letzte Einträge (bearbeiten, teilen, löschen), Statistik und Einstellungen, in 11 Sprachen.</span></li>
+            <li><span lang="en">Film day (Kimai with the Drehzettel plugin): start the shooting day with one button, see break, work time and pay so far, record catering, day category, surcharge day, extra pay and note; engagement and shooting day number come from Kimai.</span><span lang="de">Drehtag (Kimai mit dem Drehzettel-Plugin): den Drehtag mit einem Knopf beginnen, Pause, Arbeitszeit und bisherige Gage sehen, Catering, Tageskategorie, Zuschlagstag, Zusatzgage und Notiz erfassen; Engagement und Drehtagnummer kommen aus Kimai.</span></li>
+            <li><span lang="en">Trips (Kimai with the Anfahrten plugin): log, edit and delete trips linked to an entry, check start and destination on a map, accept Dawarich suggestions; trip km in the statistics.</span><span lang="de">Fahrten (Kimai mit dem Anfahrten-Plugin): Fahrten zu einem Eintrag erfassen, bearbeiten und löschen, Start und Ziel auf einer Karte prüfen, Vorschläge aus Dawarich übernehmen; Fahrt-km in der Statistik.</span></li>
+            <li><span lang="en">Kante style (optional, widget and app): Plasmai's own look; Kante Light keeps your theme's colours.</span><span lang="de">Kante-Stil (optional, Widget und App): das eigene Aussehen von Plasmai; Kante Light behält die Farben deines Designs.</span></li>
+            <li><span lang="en">The generic start sits right next to Continue (▶) and is never scrolled away; recent entries are grouped by day; an entry's menu opens with a long press.</span><span lang="de">Der allgemeine Start sitzt direkt neben Fortsetzen (▶) und scrollt nie weg; letzte Einträge sind nach Tagen gruppiert; das Menü eines Eintrags öffnet mit langem Druck.</span></li>
+          </ul></div>
+          <div class="release-group" data-kind="improved"><h3><span lang="en">Improved</span><span lang="de">Verbessert</span></h3><ul>
+            <li><span lang="en">The "Connected to …" line only shows with several profiles or when something is wrong.</span><span lang="de">Die Zeile „Verbunden mit …“ erscheint nur bei mehreren Profilen oder wenn etwas nicht stimmt.</span></li>
+            <li><span lang="en">Lists sort Aa→Zz; chart axes end on round values; full hours read "14h".</span><span lang="de">Listen sortieren Aa→Zz; Diagrammachsen enden auf runden Werten; volle Stunden lauten „14h“.</span></li>
+            <li><span lang="en">A new icon.</span><span lang="de">Ein neues Symbol.</span></li>
+          </ul></div>
+          <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3><ul>
+            <li><span lang="en">Kimai: works for regular users again (<code>exported</code> is no longer sent, <code>billable</code> only when changed; without the edit_billable permission the entry is saved without it and a hint is shown).</span><span lang="de">Kimai: funktioniert wieder für normale Benutzer (<code>exported</code> wird nicht mehr gesendet, <code>billable</code> nur bei Änderung; ohne die Berechtigung edit_billable wird der Eintrag ohne gespeichert und ein Hinweis erscheint).</span></li>
+            <li><span lang="en">Kimai: Start uses Kimai's time, Continue keeps description and tags, totals no longer fail at exactly 100, 200 … entries, hidden customers, projects and activities are no longer offered, and the lists load in one request.</span><span lang="de">Kimai: Start nutzt die Zeit von Kimai, Fortsetzen behält Beschreibung und Tags, Summen scheitern nicht mehr bei genau 100, 200 … Einträgen, verborgene Kunden, Projekte und Tätigkeiten werden nicht mehr angeboten, und die Listen laden in einer Anfrage.</span></li>
+            <li><span lang="en">Requests give up after 30 s instead of keeping the widget busy.</span><span lang="de">Anfragen geben nach 30 s auf, statt das Widget zu blockieren.</span></li>
+            <li><span lang="en">Discarding idle time stops the entry where idle began; idle detection also asks the screen saver.</span><span lang="de">Leerlauf verwerfen stoppt den Eintrag dort, wo der Leerlauf begann; die Leerlauferkennung fragt auch den Bildschirmschoner.</span></li>
+            <li><span lang="en">Absences given in seconds are no longer read as hours; the day sparkline is right on DST days.</span><span lang="de">In Sekunden angegebene Abwesenheiten werden nicht mehr als Stunden gelesen; die Tageskurve stimmt an Tagen mit Zeitumstellung.</span></li>
+            <li><span lang="en">The API token no longer appears on a command line while it is stored; large caches are saved in chunks and config files are written safely.</span><span lang="de">Das API-Token erscheint beim Speichern nicht mehr auf einer Kommandozeile; große Zwischenspeicher werden in Teilen gesichert und Konfigurationsdateien sicher geschrieben.</span></li>
+          </ul></div>
+          <div class="release-group" data-kind="note"><h3><span lang="en">Note</span><span lang="de">Hinweis</span></h3><ul>
+            <li><span lang="en">Colour distinction and its Maintenance tab are gone: Plasmai shows the Kimai colours as they are (a separate Kimai plugin handles similar colours).</span><span lang="de">Die Farbunterscheidung und ihr Reiter Wartung sind entfallen: Plasmai zeigt die Kimai-Farben, wie sie sind (ähnliche Farben behandelt ein eigenes Kimai-Plugin).</span></li>
+          </ul></div>
+          <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/1.6.3...v2.0.0"><span lang="en">All changes since 1.6.3 →</span><span lang="de">Alle Änderungen seit 1.6.3 →</span></a>
+        </div>
+      </li>
+      <li class="release" id="v1.6.3">
+        <div class="release-head"><b class="release-version">1.6.3</b><time datetime="2026-08-19"><span lang="en">19 Aug 2026</span><span lang="de">19. Aug. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">A new icon, billable left to Kimai, and a check before a start lands in the previous entry.</span><span lang="de">Ein neues Symbol, abrechenbar entscheidet Kimai, und eine Rückfrage, bevor ein Start im vorigen Eintrag landet.</span></p>
+          <div class="release-group" data-kind="new"><h3><span lang="en">New</span><span lang="de">Neu</span></h3><ul>
+            <li><span lang="en">Behaviour option (on by default): asks before saving a running entry's start that falls inside the previous entry; the editor shows that previous end time.</span><span lang="de">Verhaltensoption (standardmäßig an): fragt nach, bevor ein Start des laufenden Eintrags gespeichert wird, der in den vorigen Eintrag fällt; der Editor zeigt dessen Ende.</span></li>
+          </ul></div>
+          <div class="release-group" data-kind="improved"><h3><span lang="en">Improved</span><span lang="de">Verbessert</span></h3><ul>
+            <li><span lang="en">A new shatter-clock icon that follows Breeze and other icon themes.</span><span lang="de">Ein neues Symbol (zersprungene Uhr), das Breeze und anderen Symbolthemen folgt.</span></li>
+            <li><span lang="en">Billable defaults to automatic: Kimai decides it from the activity, project and customer instead of Plasmai forcing it on.</span><span lang="de">Abrechenbar steht standardmäßig auf automatisch: Kimai entscheidet nach Tätigkeit, Projekt und Kunde, statt dass Plasmai es einschaltet.</span></li>
+            <li><span lang="en">The location search in the display settings waits briefly after typing instead of asking Nominatim on every key.</span><span lang="de">Die Ortssuche in den Anzeige-Einstellungen wartet nach dem Tippen kurz, statt Nominatim bei jeder Taste zu fragen.</span></li>
+          </ul></div>
+          <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v1.6.2...1.6.3"><span lang="en">All changes since 1.6.2 →</span><span lang="de">Alle Änderungen seit 1.6.2 →</span></a>
+        </div>
+      </li>
+      <li class="release" id="v1.6.2">
+        <div class="release-head"><b class="release-version">1.6.2</b><time datetime="2026-08-18"><span lang="en">18 Aug 2026</span><span lang="de">18. Aug. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">Favourites switch like recent entries.</span><span lang="de">Favoriten wechseln wie letzte Einträge.</span></p>
+          <div class="release-group" data-kind="improved"><h3><span lang="en">Improved</span><span lang="de">Verbessert</span></h3><ul>
+            <li><span lang="en">A click on a favourite while tracking uses the same switch dialog and "already running" hint as recent entries; the same activity is not stopped.</span><span lang="de">Ein Klick auf einen Favoriten während der Erfassung nutzt denselben Wechseldialog und Hinweis „läuft bereits“ wie die letzten Einträge; dieselbe Tätigkeit wird nicht gestoppt.</span></li>
+          </ul></div>
+          <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v1.6.1...v1.6.2"><span lang="en">All changes since 1.6.1 →</span><span lang="de">Alle Änderungen seit 1.6.1 →</span></a>
+        </div>
+      </li>
+      <li class="release" id="v1.6.1">
+        <div class="release-head"><b class="release-version">1.6.1</b><time datetime="2026-08-18"><span lang="en">18 Aug 2026</span><span lang="de">18. Aug. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">Shutdown is no longer held while tracking.</span><span lang="de">Das Herunterfahren wird während der Erfassung nicht mehr aufgehalten.</span></p>
+          <div class="release-group" data-kind="note"><h3><span lang="en">Note</span><span lang="de">Hinweis</span></h3><ul>
+            <li><span lang="en">The shutdown and reboot hold from 1.6.0 is removed again: a restart from the launcher ends plasmashell first, so the hold never delayed it.</span><span lang="de">Die Sperre für Herunterfahren und Neustart aus 1.6.0 ist wieder entfernt: Ein Neustart aus dem Starter beendet zuerst plasmashell, die Sperre hielt ihn also nie auf.</span></li>
+          </ul></div>
+          <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v1.6.0...v1.6.1"><span lang="en">All changes since 1.6.0 →</span><span lang="de">Alle Änderungen seit 1.6.0 →</span></a>
+        </div>
+      </li>
+      <li class="release" id="v1.6.0">
+        <div class="release-head"><b class="release-version">1.6.0</b><time datetime="2026-08-18"><span lang="en">18 Aug 2026</span><span lang="de">18. Aug. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">The remaining week time knows a second absence plugin, and every language is complete.</span><span lang="de">Die Restzeit der Woche kennt ein zweites Abwesenheits-Plugin, und jede Sprache ist vollständig.</span></p>
+          <div class="release-group" data-kind="new"><h3><span lang="en">New</span><span lang="de">Neu</span></h3><ul>
+            <li><span lang="en">Week remaining detects kimai-holiday-bundle or the official WorkContractBundle (checked again hourly) and subtracts approved absences and public holidays for either; WorkContract's automatic bookings are not counted twice.</span><span lang="de">Die Wochen-Restzeit erkennt kimai-holiday-bundle oder das offizielle WorkContractBundle (stündlich neu geprüft) und zieht genehmigte Abwesenheiten und Feiertage beider ab; automatische Buchungen von WorkContract zählen nicht doppelt.</span></li>
+            <li><span lang="en">Opening the widget while a timer runs sends one "Tracking in progress" notification.</span><span lang="de">Das Öffnen des Widgets bei laufendem Timer sendet eine Benachrichtigung „Erfassung läuft“.</span></li>
+            <li><span lang="en">While tracking, shutdown and reboot wait like for an unsaved file (closing the lid and sleep are not blocked).</span><span lang="de">Während der Erfassung warten Herunterfahren und Neustart wie bei einer ungespeicherten Datei (Deckel schließen und Ruhezustand werden nicht blockiert).</span></li>
+          </ul></div>
+          <div class="release-group" data-kind="improved"><h3><span lang="en">Improved</span><span lang="de">Verbessert</span></h3><ul>
+            <li><span lang="en">All 12 bundled languages cover the current interface; the KDE Store description is translated into each of them.</span><span lang="de">Alle 12 mitgelieferten Sprachen decken die aktuelle Oberfläche ab; die Beschreibung im KDE Store ist in jede davon übersetzt.</span></li>
+          </ul></div>
+          <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v1.5.0...v1.6.0"><span lang="en">All changes since 1.5.0 →</span><span lang="de">Alle Änderungen seit 1.5.0 →</span></a>
+        </div>
+      </li>
+      <li class="release" id="v1.5.0">
+        <div class="release-head"><b class="release-version">1.5.0</b><time datetime="2026-08-18"><span lang="en">18 Aug 2026</span><span lang="de">18. Aug. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">Tags, billable, editing past entries and creating customers, projects and activities from the widget.</span><span lang="de">Tags, abrechenbar, vergangene Einträge bearbeiten und Kunden, Projekte und Tätigkeiten aus dem Widget anlegen.</span></p>
+          <div class="release-group" data-kind="new"><h3><span lang="en">New</span><span lang="de">Neu</span></h3><ul>
+            <li><span lang="en">Tags on Add entry and Edit running (Kimai: searchable picker with colour pills and create-new; Toggl when the API allows names).</span><span lang="de">Tags bei Eintrag hinzufügen und Laufenden bearbeiten (Kimai: durchsuchbare Auswahl mit farbigen Pillen und Neu anlegen; Toggl, wenn die API Namen erlaubt).</span></li>
+            <li><span lang="en">Billable on Add entry and Edit running.</span><span lang="de">Abrechenbar bei Eintrag hinzufügen und Laufenden bearbeiten.</span></li>
+            <li><span lang="en">Edit, delete and split stopped recent entries from their menu; editing one fills in project and activity.</span><span lang="de">Beendete letzte Einträge aus ihrem Menü bearbeiten, löschen und teilen; beim Bearbeiten sind Projekt und Tätigkeit vorausgefüllt.</span></li>
+            <li><span lang="en">Create a customer, project or activity from the picker's menu.</span><span lang="de">Kunde, Projekt oder Tätigkeit aus dem Menü der Auswahl anlegen.</span></li>
+            <li><span lang="en">Week remaining subtracts approved absences and public holidays (kimai-holiday-bundle).</span><span lang="de">Die Wochen-Restzeit zieht genehmigte Abwesenheiten und Feiertage ab (kimai-holiday-bundle).</span></li>
+            <li><span lang="en">Idle dialog: keep the time, discard the idle time, or discard and continue; on Wayland idle detection asks the session first.</span><span lang="de">Leerlaufdialog: Zeit behalten, Leerlauf verwerfen oder verwerfen und weitermachen; unter Wayland fragt die Erkennung zuerst die Sitzung.</span></li>
+            <li><span lang="en">Optional reminder when you forgot to start during work hours (once a day).</span><span lang="de">Optionale Erinnerung, wenn während der Arbeitszeit kein Timer gestartet wurde (einmal am Tag).</span></li>
+          </ul></div>
+          <div class="release-group" data-kind="improved"><h3><span lang="en">Improved</span><span lang="de">Verbessert</span></h3><ul>
+            <li><span lang="en">Profiles: Apply saves an added or edited profile; duplicate names are refused; Clear token is off when none is stored.</span><span lang="de">Profile: Anwenden speichert ein neues oder geändertes Profil; doppelte Namen werden abgelehnt; Token löschen ist aus, wenn keins gespeichert ist.</span></li>
+            <li><span lang="en">Favourites show a loading indicator and stay responsive.</span><span lang="de">Favoriten zeigen eine Ladeanzeige und bleiben bedienbar.</span></li>
+            <li><span lang="en">The profile switcher stays on the main and statistics views, not on the add and edit screens.</span><span lang="de">Der Profilwechsler bleibt auf Haupt- und Statistikansicht, nicht auf den Seiten zum Anlegen und Bearbeiten.</span></li>
+            <li><span lang="en">The desktop widget uses the theme's standard background, so the blur matches other widgets.</span><span lang="de">Das Desktop-Widget nutzt den Standardhintergrund des Designs, so passt die Unschärfe zu anderen Widgets.</span></li>
+          </ul></div>
+          <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3><ul>
+            <li><span lang="en">Switching settings tabs reset Connection to the default profile.</span><span lang="de">Ein Wechsel der Einstellungsreiter setzte Verbindung auf das Standardprofil zurück.</span></li>
+          </ul></div>
+          <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v1.4.2...v1.5.0"><span lang="en">All changes since 1.4.2 →</span><span lang="de">Alle Änderungen seit 1.4.2 →</span></a>
+        </div>
+      </li>
+      <li class="release" id="v1.4.2">
+        <div class="release-head"><b class="release-version">1.4.2</b><time datetime="2026-08-17"><span lang="en">17 Aug 2026</span><span lang="de">17. Aug. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">Display settings apply again, and customer and project colours can show on the panel.</span><span lang="de">Anzeige-Einstellungen lassen sich wieder anwenden, und Kunden- und Projektfarben können im Panel erscheinen.</span></p>
+          <div class="release-group" data-kind="new"><h3><span lang="en">New</span><span lang="de">Neu</span></h3><ul>
+            <li><span lang="en">Optional customer and project colour pills on the panel chip (off by default).</span><span lang="de">Optionale farbige Pillen für Kunde und Projekt im Panel (standardmäßig aus).</span></li>
+          </ul></div>
+          <div class="release-group" data-kind="improved"><h3><span lang="en">Improved</span><span lang="de">Verbessert</span></h3><ul>
+            <li><span lang="en">A stronger, longer checkmark after saving the description; the panel chip has a name for screen readers.</span><span lang="de">Ein deutlicheres, längeres Häkchen nach dem Speichern der Beschreibung; der Panel-Eintrag hat einen Namen für Screenreader.</span></li>
+          </ul></div>
+          <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3><ul>
+            <li><span lang="en">Ticking Display options (panel labels, flyout, desktop widget) enables Apply and OK again.</span><span lang="de">Das Ankreuzen von Anzeigeoptionen (Panel-Beschriftung, Ausklappfenster, Desktop-Widget) schaltet Anwenden und OK wieder frei.</span></li>
+          </ul></div>
+          <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v1.4.1...v1.4.2"><span lang="en">All changes since 1.4.1 →</span><span lang="de">Alle Änderungen seit 1.4.1 →</span></a>
+        </div>
+      </li>
+      <li class="release" id="v1.4.1">
+        <div class="release-head"><b class="release-version">1.4.1</b><time datetime="2026-08-13"><span lang="en">13 Aug 2026</span><span lang="de">13. Aug. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">Less redrawing and settings pages that fit.</span><span lang="de">Weniger Neuzeichnen und Einstellungsseiten, die passen.</span></p>
+          <div class="release-group" data-kind="improved"><h3><span lang="en">Improved</span><span lang="de">Verbessert</span></h3><ul>
+            <li><span lang="en">The day sparkline no longer redraws for the sun's rotation; the now marker moves every 30 s instead of every second, and the loading pulse runs only while visible.</span><span lang="de">Die Tageskurve zeichnet sich für die Drehung der Sonne nicht mehr neu; die Jetzt-Markierung rückt alle 30 s statt jede Sekunde vor, und das Pulsieren beim Laden läuft nur, solange es sichtbar ist.</span></li>
+            <li><span lang="en">Display, Connection, Behaviour and Maintenance settings wrap instead of clipping; Maintenance and Favourites show their lists at once from the shared cache.</span><span lang="de">Die Einstellungen Anzeige, Verbindung, Verhalten und Wartung brechen um, statt abzuschneiden; Wartung und Favoriten zeigen ihre Listen sofort aus dem gemeinsamen Zwischenspeicher.</span></li>
+            <li><span lang="en">Reloading the catalogue no longer reshuffles the distinction colours; Favourites' Reload sits beside the project header.</span><span lang="de">Neu laden des Katalogs mischt die Unterscheidungsfarben nicht mehr neu; Neu laden bei den Favoriten sitzt neben der Projektüberschrift.</span></li>
+          </ul></div>
+          <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3><ul>
+            <li><span lang="en">Plasma no longer floods the journal with warnings from Plasmai's settings pages.</span><span lang="de">Plasma füllt das Journal nicht mehr mit Warnungen aus den Einstellungsseiten von Plasmai.</span></li>
+          </ul></div>
+          <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v1.4.0...v1.4.1"><span lang="en">All changes since 1.4.0 →</span><span lang="de">Alle Änderungen seit 1.4.0 →</span></a>
+        </div>
+      </li>
+      <li class="release" id="v1.4.0">
+        <div class="release-head"><b class="release-version">1.4.0</b><time datetime="2026-08-12"><span lang="en">12 Aug 2026</span><span lang="de">12. Aug. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">Plasmai for touch screens.</span><span lang="de">Plasmai für Touchscreens.</span></p>
+          <div class="release-group" data-kind="new"><h3><span lang="en">New</span><span lang="de">Neu</span></h3><ul>
+            <li><span lang="en">Display setting for touch mode: automatic (Plasma tablet mode), on or off. Touch mode gives larger tap targets for buttons, rows, favourites, pickers and date and time controls, a bigger panel icon and flyout, and chart tooltips on tap.</span><span lang="de">Anzeige-Einstellung für den Touch-Modus: automatisch (Plasma-Tablet-Modus), an oder aus. Der Touch-Modus bringt größere Tippflächen für Knöpfe, Zeilen, Favoriten, Auswahllisten und Datums- und Zeitfelder, ein größeres Panel-Symbol und Ausklappfenster und Diagramm-Tooltips per Tippen.</span></li>
+          </ul></div>
+          <div class="release-group" data-kind="improved"><h3><span lang="en">Improved</span><span lang="de">Verbessert</span></h3><ul>
+            <li><span lang="en">A compact header: title and connection status in one block, action icons centred.</span><span lang="de">Ein kompakter Kopf: Titel und Verbindungsstatus in einem Block, Aktionssymbole zentriert.</span></li>
+            <li><span lang="en">The flyout uses the full width when no scroll bar is needed; the project and activity list scrolls when it is taller than the space; the statistics billable filter fills the width.</span><span lang="de">Das Ausklappfenster nutzt die volle Breite, wenn keine Bildlaufleiste nötig ist; die Liste der Projekte und Tätigkeiten scrollt, wenn sie höher als der Platz ist; der Abrechenbar-Filter der Statistik füllt die Breite.</span></li>
+          </ul></div>
+          <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v1.3.1...v1.4.0"><span lang="en">All changes since 1.3.1 →</span><span lang="de">Alle Änderungen seit 1.3.1 →</span></a>
+        </div>
+      </li>
+      <li class="release" id="v1.3.1">
+        <div class="release-head"><b class="release-version">1.3.1</b><time datetime="2026-08-12"><span lang="en">12 Aug 2026</span><span lang="de">12. Aug. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">Week navigation in the statistics and one picker everywhere.</span><span lang="de">Wochennavigation in der Statistik und überall dieselbe Auswahl.</span></p>
+          <div class="release-group" data-kind="new"><h3><span lang="en">New</span><span lang="de">Neu</span></h3><ul>
+            <li><span lang="en">Week navigation for the statistics charts.</span><span lang="de">Wochennavigation für die Statistikdiagramme.</span></li>
+            <li><span lang="en">Tapping a recent entry that is already running shows a short "already running" hint with the elapsed time.</span><span lang="de">Ein Tippen auf einen letzten Eintrag, der schon läuft, zeigt kurz „läuft bereits“ mit der verstrichenen Zeit.</span></li>
+          </ul></div>
+          <div class="release-group" data-kind="improved"><h3><span lang="en">Improved</span><span lang="de">Verbessert</span></h3><ul>
+            <li><span lang="en">The main view, manual entry and the running entry's editor share one project and activity picker; it opens upwards only when the space below is tight and closes when the view scrolls.</span><span lang="de">Hauptansicht, manueller Eintrag und der Editor des laufenden Eintrags teilen sich eine Auswahl für Projekt und Tätigkeit; sie öffnet nur nach oben, wenn unten zu wenig Platz ist, und schließt, wenn die Ansicht scrollt.</span></li>
+          </ul></div>
+          <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v1.3.0...v1.3.1"><span lang="en">All changes since 1.3.0 →</span><span lang="de">Alle Änderungen seit 1.3.0 →</span></a>
+        </div>
+      </li>
+      <li class="release" id="v1.3.0">
+        <div class="release-head"><b class="release-version">1.3.0</b><time datetime="2026-08-11"><span lang="en">11 Aug 2026</span><span lang="de">11. Aug. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">Switch to a recent entry while a timer runs.</span><span lang="de">Zu einem letzten Eintrag wechseln, während ein Timer läuft.</span></p>
+          <div class="release-group" data-kind="new"><h3><span lang="en">New</span><span lang="de">Neu</span></h3><ul>
+            <li><span lang="en">Clicking a recent entry while a timer runs asks first, then stops the current activity and starts the chosen one in one step. The dialog shows current → target with the customer, project and activity colours.</span><span lang="de">Ein Klick auf einen letzten Eintrag bei laufendem Timer fragt erst nach, stoppt dann die aktuelle Tätigkeit und startet die gewählte in einem Schritt. Der Dialog zeigt aktuell → Ziel mit den Farben von Kunde, Projekt und Tätigkeit.</span></li>
+          </ul></div>
+          <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v1.2.2...v1.3.0"><span lang="en">All changes since 1.2.2 →</span><span lang="de">Alle Änderungen seit 1.2.2 →</span></a>
+        </div>
+      </li>
+      <li class="release" id="v1.2.2">
+        <div class="release-head"><b class="release-version">1.2.2</b><time datetime="2026-08-11"><span lang="en">11 Aug 2026</span><span lang="de">11. Aug. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">A calmer day sparkline.</span><span lang="de">Eine ruhigere Tageskurve.</span></p>
+          <div class="release-group" data-kind="improved"><h3><span lang="en">Improved</span><span lang="de">Verbessert</span></h3><ul>
+            <li><span lang="en">The sun sits exactly on its arc and turns smoothly (once every three minutes, at 25 frames a second); the moon icon is gone to avoid clutter.</span><span lang="de">Die Sonne sitzt genau auf ihrem Bogen und dreht sich gleichmäßig (einmal in drei Minuten, mit 25 Bildern pro Sekunde); das Mondsymbol ist weg, damit es nicht überladen wirkt.</span></li>
+          </ul></div>
+          <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v1.2.1...v1.2.2"><span lang="en">All changes since 1.2.1 →</span><span lang="de">Alle Änderungen seit 1.2.1 →</span></a>
+        </div>
+      </li>
+      <li class="release" id="v1.2.1">
+        <div class="release-head"><b class="release-version">1.2.1</b><time datetime="2026-08-10"><span lang="en">10 Aug 2026</span><span lang="de">10. Aug. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">Display settings that fit narrow windows.</span><span lang="de">Anzeige-Einstellungen, die in schmale Fenster passen.</span></p>
+          <div class="release-group" data-kind="improved"><h3><span lang="en">Improved</span><span lang="de">Verbessert</span></h3><ul>
+            <li><span lang="en">The usual work hours fields are compact, and the display settings (labels, checkboxes, location search) wrap in narrow settings windows instead of being cut off.</span><span lang="de">Die Felder für die üblichen Arbeitszeiten sind kompakt, und die Anzeige-Einstellungen (Beschriftungen, Kontrollkästchen, Ortssuche) brechen in schmalen Einstellungsfenstern um, statt abgeschnitten zu werden.</span></li>
+          </ul></div>
+          <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v1.2.0...v1.2.1"><span lang="en">All changes since 1.2.0 →</span><span lang="de">Alle Änderungen seit 1.2.0 →</span></a>
+        </div>
+      </li>
+      <li class="release" id="v1.2.0">
+        <div class="release-head"><b class="release-version">1.2.0</b><time datetime="2026-08-10"><span lang="en">10 Aug 2026</span><span lang="de">10. Aug. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">Edit the running entry.</span><span lang="de">Den laufenden Eintrag bearbeiten.</span></p>
+          <div class="release-group" data-kind="new"><h3><span lang="en">New</span><span lang="de">Neu</span></h3><ul>
+            <li><span lang="en">An edit button beside Stop opens an editor for the running entry: change its start time, project and activity with the same pickers as for a new activity. On narrow layouts Edit and Stop move below the work summary.</span><span lang="de">Ein Bearbeiten-Knopf neben Stopp öffnet einen Editor für den laufenden Eintrag: Startzeit, Projekt und Tätigkeit ändern, mit derselben Auswahl wie für eine neue Tätigkeit. In schmalen Layouts rücken Bearbeiten und Stopp unter die Arbeitsübersicht.</span></li>
+          </ul></div>
+          <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v1.1.0...v1.2.0"><span lang="en">All changes since 1.1.0 →</span><span lang="de">Alle Änderungen seit 1.1.0 →</span></a>
+        </div>
+      </li>
+      <li class="release" id="v1.1.0">
+        <div class="release-head"><b class="release-version">1.1.0</b><time datetime="2026-08-09"><span lang="en">9 Aug 2026</span><span lang="de">9. Aug. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">More services than Kimai, manual entries, statistics and ten more languages.</span><span lang="de">Mehr Dienste als Kimai, manuelle Einträge, Statistik und zehn weitere Sprachen.</span></p>
+          <div class="release-group" data-kind="new"><h3><span lang="en">New</span><span lang="de">Neu</span></h3><ul>
+            <li><span lang="en">Clockify, Toggl Track and SolidTime next to Kimai, chosen per profile.</span><span lang="de">Clockify, Toggl Track und SolidTime neben Kimai, je Profil wählbar.</span></li>
+            <li><span lang="en">Manual entries: + in the main view opens a compact editor with project and activity pickers and begin and end.</span><span lang="de">Manuelle Einträge: + in der Hauptansicht öffnet einen kompakten Editor mit Auswahl für Projekt und Tätigkeit und Beginn und Ende.</span></li>
+            <li><span lang="en">A statistics screen (today and week totals, projects, charts) next to the timer.</span><span lang="de">Eine Statistikseite (Summen für heute und die Woche, Projekte, Diagramme) neben dem Timer.</span></li>
+            <li><span lang="en">The day sparkline zooms to your working hours and shows sun, moon and work arcs (can be turned off).</span><span lang="de">Die Tageskurve zoomt auf deine Arbeitszeit und zeigt Sonnen-, Mond- und Arbeitsbögen (abschaltbar).</span></li>
+            <li><span lang="en">Optional colour distinction for similar customer, project or activity colours, with a Maintenance page listing them.</span><span lang="de">Optionale Farbunterscheidung für ähnliche Kunden-, Projekt- oder Tätigkeitsfarben, mit einer Seite Wartung, die sie auflistet.</span></li>
+            <li><span lang="en">French, Spanish, Italian, Dutch, Portuguese (Brazil), Polish, Ukrainian, Russian, Japanese and Chinese (Simplified) next to English and German.</span><span lang="de">Französisch, Spanisch, Italienisch, Niederländisch, Portugiesisch (Brasilien), Polnisch, Ukrainisch, Russisch, Japanisch und Chinesisch (vereinfacht) neben Englisch und Deutsch.</span></li>
+          </ul></div>
+          <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v1.0.0...v1.1.0"><span lang="en">All changes since 1.0.0 →</span><span lang="de">Alle Änderungen seit 1.0.0 →</span></a>
+        </div>
+      </li>
+      <li class="release" id="v1.0.0">
+        <div class="release-head"><b class="release-version">1.0.0</b><time datetime="2026-08-09"><span lang="en">9 Aug 2026</span><span lang="de">9. Aug. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">The first stable release of Plasmai, a Kimai time tracker in the Plasma panel.</span><span lang="de">Die erste stabile Version von Plasmai, einer Kimai-Zeiterfassung im Plasma-Panel.</span></p>
+          <div class="release-group" data-kind="new"><h3><span lang="en">New</span><span lang="de">Neu</span></h3><ul>
+            <li><span lang="en">Start, stop and switch activities from the panel popup or the desktop widget, with a live timer, the running entry's description, Continue last, recent entries and pinned favourites.</span><span lang="de">Tätigkeiten aus dem Panel oder dem Desktop-Widget starten, stoppen und wechseln, mit laufendem Timer, der Beschreibung des laufenden Eintrags, Letzte fortsetzen, letzten Einträgen und angehefteten Favoriten.</span></li>
+            <li><span lang="en">Today and week totals and the time remaining against the Kimai work contract.</span><span lang="de">Summen für heute und die Woche und die Restzeit gegenüber dem Kimai-Arbeitsvertrag.</span></li>
+            <li><span lang="en">A 24-hour day sparkline with usual work hours, overtime and sunrise and sunset, for a searched place or your own coordinates.</span><span lang="de">Eine 24-Stunden-Tageskurve mit üblicher Arbeitszeit, Überstunden und Sonnenauf- und -untergang, für einen gesuchten Ort oder eigene Koordinaten.</span></li>
+            <li><span lang="en">Several Kimai profiles, API tokens in KWallet, settings shared by all widgets.</span><span lang="de">Mehrere Kimai-Profile, API-Tokens in KWallet, Einstellungen für alle Widgets gemeinsam.</span></li>
+            <li><span lang="en">Searchable project and activity pickers grouped by customer, with keyboard navigation.</span><span lang="de">Durchsuchbare Auswahl für Projekte und Tätigkeiten, nach Kunden gruppiert, mit Tastatursteuerung.</span></li>
+            <li><span lang="en">Notifications on start, stop and idle stop; automatic stop when idle (X11/XWayland).</span><span lang="de">Benachrichtigungen bei Start, Stopp und Stopp nach Leerlauf; automatischer Stopp bei Leerlauf (X11/XWayland).</span></li>
+            <li><span lang="en">English and German.</span><span lang="de">Englisch und Deutsch.</span></li>
+          </ul></div>
+        </div>
+      </li>
+    </ol>
+  </details>
 </section>
 <section class="section" id="roadmap">
   <h2 lang="en">Roadmap</h2><h2 lang="de">Roadmap</h2>
@@ -277,7 +640,7 @@ kpackagetool6 -i . -t Plasma/Applet</div>
       <div><h4><span lang="en">Source</span><span lang="de">Quelltext</span></h4><a href="https://github.com/shrippen/Plasmai">GitHub</a><a href="https://github.com/shrippen/Plasmai/issues">Issues</a><a href="https://github.com/shrippen/Plasmai/blob/main/CHANGELOG.md">Changelog</a><a href="https://store.kde.org/p/2368175/">KDE Store</a></div>
     </nav>
   </div>
-  <div class="foot-meta"><p>GPL-3.0-or-later · shrippen · v2.6.2</p></div>
+  <div class="foot-meta"><p>GPL-3.0-or-later · shrippen · <a href="#changes">v2.6.2</a></p></div>
 </footer>
 
 </body>

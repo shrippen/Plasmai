@@ -245,7 +245,9 @@ hand with `tag` set: `gh workflow run release.yml -R shrippen/Plasmai -f tag=vX.
 Git work goes to Gitea (git.arianw.de); its push mirror carries commits and tags to GitHub,
 but not releases. So a release is made in two places, the second one automatically:
 
-1. `CHANGELOG.md` has a section `## X.Y.Z` (the release notes: `scripts/release-notes.sh X.Y.Z`).
+1. `CHANGELOG.md` has a section `## [X.Y.Z] — YYYY-MM-DD` in the format of the release rule in
+   `agent.md` (the release notes: `scripts/release-notes.sh X.Y.Z`), and the landing page has the
+   same text as the newest entry in `#changes`, with the footer version bumped.
 2. Tag and push to Gitea: `git tag -a vX.Y.Z -m "X.Y.Z" && git push origin vX.Y.Z`.
 3. Gitea release with `tea`, notes only, no files (GitHub is the public channel and the only one
    with release files and the checks):

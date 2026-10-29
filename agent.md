@@ -38,6 +38,12 @@ Rule 7: Use the body to explain what and why vs. how. Assume the code explains t
 
 - If the prompt indicates that a bug is being fixed, don't write the fix right away. First write the test. Observe it failing. Then write the fix. And observe the test passing.
 
+## Release rule
+
+- Every release gets a detailed release log, written before the tag, as a section `## [X.Y.Z] — YYYY-MM-DD` in `CHANGELOG.md` (newest first, `## [Unreleased]` stays on top): `### English` and `### Deutsch`, each with a lead (what the release is about, one or two sentences), then the changes grouped as New, Improved, Fixed and Note (Neu, Verbessert, Behoben, Hinweis; breaking changes, steps the user must take). Empty groups are left out. Each point says what changed for the user and why, not which code moved. The English part ends with `All changes: https://github.com/shrippen/Plasmai/compare/vA...vB`.
+- The same text goes into the release notes on Gitea (`scripts/release-notes.sh X.Y.Z`, `RELEASING.md`) and as a new entry at the top of `#changes` on the landing page (`docs/index.html`, Kante `.changelog`, same wording in both languages, compare link, screenshots of visible changes from the demo world); from the fourth entry on, the oldest move into `details.changelog-more`. Bump the version in the footer.
+- The release workflow takes the GitHub release notes from that section and fails without it. A release is done when the landing page shows it.
+
 ## QML lint
 
 - `scripts/qmllint.sh`, also in CI (reports, does not block). A finding in `contents/ui/Kante*` is fixed in Kante, then `scripts/sync-kante.sh`.
