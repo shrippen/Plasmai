@@ -60,7 +60,7 @@ jobs:
         run: |
           gh release view "$TAG" > /dev/null 2>&1 && exit 0
           ./scripts/release-notes.sh "$VERSION" > "$RUNNER_TEMP/notes.md"
-          [ -s "$RUNNER_TEMP/notes.md" ] || { echo "::error::CHANGELOG.md has no section '## $VERSION'"; exit 1; }
+          grep -q '[^[:space:]]' "$RUNNER_TEMP/notes.md" || { echo "::error::CHANGELOG.md has no notes for $VERSION (## [$VERSION] — YYYY-MM-DD)"; exit 1; }
           gh release create "$TAG" --title "Plasmai $VERSION" --notes-file "$RUNNER_TEMP/notes.md" --verify-tag
 
   apk:
