@@ -1,0 +1,1 @@
+Plasmai 2.6.3: Fixes missing buttons in two dialogs of the Plasma widget. No changes in the app.

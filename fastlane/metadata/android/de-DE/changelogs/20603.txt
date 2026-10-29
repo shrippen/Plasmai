@@ -1,0 +1,1 @@
+Plasmai 2.6.3: Behebt fehlende Knöpfe in zwei Dialogen des Plasma-Widgets. Die App ist unverändert.
