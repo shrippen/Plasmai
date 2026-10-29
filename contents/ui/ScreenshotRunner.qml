@@ -6,10 +6,11 @@ import "../code/kimaiApi.js" as KimaiApi
 /**
  * Landing-page screenshots, only when a plan file exists:
  *   $XDG_CONFIG_HOME/com.github.shrippen.plasmai/screenshots.json
- *   { "dir": "/out", "shots": [ { "name": "timer", "view": "main|manual|stats|stats-activity|filmday|edit|datepicker|timepicker|create|offline|unsynced|online" } ] }
+ *   { "dir": "/out", "shots": [ { "name": "timer", "view": "main|manual|stats|stats-activity|filmday|edit|datepicker|timepicker|create|switch|offline|unsynced|online" } ] }
  * demo/shots.sh writes it into a scratch config home together with a demo profile, then
  * runs plasmoidviewer offscreen. Each view is grabbed with grabToImage into dir/name.png
- * (popup views: the whole X screen with ImageMagick's import, use a planar viewer),
+ * (popup views: the whole X screen with ImageMagick's import, use a planar viewer; the
+ * switch view: the dialog alone),
  * then the viewer quits ("PLASMAI_SCREENSHOT_DONE" in the log). Without the file: nothing.
  */
 Item {
@@ -20,6 +21,8 @@ Item {
     property var plan: null
     property var queue: []
     property int shotCount: 0
+    // Grabbed instead of the representation (a dialog's popup item), until the next view.
+    property var shotTarget: null
     readonly property bool active: plan !== null
 
     function trace(msg) {
@@ -62,6 +65,7 @@ Item {
             wait = 3000
             break
         case "view":
+            shotTarget = null
             if (item.value === "manual") {
                 r.openManualEntry()
             } else if (item.value === "stats") {
@@ -89,6 +93,30 @@ Item {
                         d.open()
                     }
                 })
+            } else if (item.value === "switch") {
+                // The switch question in Kante, for a recent activity other than the running one.
+                r.session.settings.set({ visualStyle: 1 })
+                r.returnToMainView()
+                var recent = r.session.recent.list
+                for (var k = 0; k < recent.length; ++k) {
+                    if (KimaiApi.displayActivityName(recent[k], r.session.catalog.activities,
+                            r.session.catalog.activitiesByProject) !== r.session.timer.activity) {
+                        r.pendingSwitchTimesheet = recent[k]
+                        // The viewer's popup is smaller than the dialog: placed at the top without
+                        // margins and given its full height, Qt does not squeeze it in.
+                        var dialog = r.switchRecentDialogRef
+                        dialog.anchors.centerIn = undefined
+                        dialog.margins = -1
+                        dialog.topMargin = -1
+                        dialog.bottomMargin = -1
+                        dialog.x = 0
+                        dialog.y = 0
+                        dialog.open()
+                        dialog.height = Qt.binding(function() { return dialog.implicitHeight })
+                        runner.shotTarget = dialog.contentItem.parent
+                        break
+                    }
+                }
             } else if (item.value === "offline") {
                 // The network goes away (every request fails), then: stop, start another activity.
                 var route = KimaiApi.urlRoute
@@ -126,7 +154,7 @@ Item {
                 })
                 return
             }
-            var target = r.fullRepresentationItem
+            var target = runner.shotTarget || r.fullRepresentationItem
             trace("PLASMAI_SCREENSHOT " + item.name + " " + Math.round(target.width) + "x" + Math.round(target.height))
             var ok = target.grabToImage(function(result) {
                 result.saveToFile(runner.plan.dir + "/" + item.name + ".png")
