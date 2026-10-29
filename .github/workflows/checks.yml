@@ -52,6 +52,10 @@ jobs:
           pacman -Syu --noconfirm --needed qt6-declarative kirigami kirigami-addons libplasma plasma5support tzdata python python-pytest git gettext zip
       - uses: actions/checkout@v7
 
+      # Release headings "## [X.Y.Z] — YYYY-MM-DD": a wrong one shows up here, not at the tag.
+      - name: CHANGELOG.md headings
+        run: scripts/release-notes.sh --check
+
       # Stamps are local days: run where Berlin assumptions break (UTC runner, UTC-8, UTC+14).
       - name: QML unit tests
         run: |
