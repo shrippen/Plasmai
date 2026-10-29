@@ -2074,19 +2074,26 @@ PlasmoidItem {
                     accentColor: switchRecentDialog.pendingBarInfo.color
                     emphasize: true
                 }
-            }
 
-            footer: QQC2.DialogButtonBox {
-                KantePlasmaButton {
-                    text: i18n("Switch")
-                    icon.name: "media-playback-start"
-                    Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-                    QQC2.DialogButtonBox.buttonRole: QQC2.DialogButtonBox.AcceptRole
-                }
-                KantePlasmaButton {
-                    text: i18n("Cancel")
-                    Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-                    QQC2.DialogButtonBox.buttonRole: QQC2.DialogButtonBox.RejectRole
+                // Buttons in contentItem, not `footer`: under Kante, KanteDialog swaps the footer
+                // for its own button box, which shows only standardButtons (none here).
+                RowLayout {
+                    Layout.fillWidth: true
+                    Layout.topMargin: Kirigami.Units.smallSpacing
+                    spacing: Kirigami.Units.smallSpacing
+
+                    Item { Layout.fillWidth: true }
+                    KantePlasmaButton {
+                        text: i18n("Switch")
+                        icon.name: "media-playback-start"
+                        Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+                        onClicked: switchRecentDialog.accept()
+                    }
+                    KantePlasmaButton {
+                        text: i18n("Cancel")
+                        Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+                        onClicked: switchRecentDialog.reject()
+                    }
                 }
             }
 
@@ -2271,38 +2278,41 @@ PlasmoidItem {
                     wrapMode: Text.WordWrap
                     text: i18n("Discarding idle time needs a connection to the server.")
                 }
-            }
 
-            footer: RowLayout {
-                Layout.fillWidth: true
-                spacing: Kirigami.Units.smallSpacing
-                KantePlasmaButton {
+                // Buttons in contentItem, not `footer`: under Kante, KanteDialog swaps the footer
+                // for its own button box, which shows only standardButtons (none here).
+                RowLayout {
                     Layout.fillWidth: true
-                    text: i18n("Keep time")
-                    Accessible.name: text
-                    onClicked: {
-                        root.session.reminders.keep()
-                        idleDialog.close()
+                    Layout.topMargin: Kirigami.Units.smallSpacing
+                    spacing: Kirigami.Units.smallSpacing
+                    KantePlasmaButton {
+                        Layout.fillWidth: true
+                        text: i18n("Keep time")
+                        Accessible.name: text
+                        onClicked: {
+                            root.session.reminders.keep()
+                            idleDialog.close()
+                        }
                     }
-                }
-                KantePlasmaButton {
-                    Layout.fillWidth: true
-                    enabled: !root.session.sync.offline
-                    text: i18n("Discard idle")
-                    Accessible.name: text
-                    onClicked: {
-                        root.session.reminders.discard(Session.AfterIdle.Stop)
-                        idleDialog.close()
+                    KantePlasmaButton {
+                        Layout.fillWidth: true
+                        enabled: !root.session.sync.offline
+                        text: i18n("Discard idle")
+                        Accessible.name: text
+                        onClicked: {
+                            root.session.reminders.discard(Session.AfterIdle.Stop)
+                            idleDialog.close()
+                        }
                     }
-                }
-                KantePlasmaButton {
-                    Layout.fillWidth: true
-                    enabled: !root.session.sync.offline
-                    text: i18n("Discard and continue")
-                    Accessible.name: text
-                    onClicked: {
-                        root.session.reminders.discard(Session.AfterIdle.Continue)
-                        idleDialog.close()
+                    KantePlasmaButton {
+                        Layout.fillWidth: true
+                        enabled: !root.session.sync.offline
+                        text: i18n("Discard and continue")
+                        Accessible.name: text
+                        onClicked: {
+                            root.session.reminders.discard(Session.AfterIdle.Continue)
+                            idleDialog.close()
+                        }
                     }
                 }
             }
