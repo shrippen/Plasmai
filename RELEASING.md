@@ -1,33 +1,29 @@
-# Releasing Plasmai 2.0.0 (Plasmoid + Android + Plasma Mobile / desktop Linux)
+# Releasing Plasmai (Plasmoid, Android, Windows, desktop Linux)
 
-Reference doc for cutting a release across all three targets. `RELEASE-TODO.md` is the
-short checklist for a human to work through; this file has the actual commands and the
-reasoning behind them.
+Commands and reasoning per target. The order of a release, from the version bump to done, is
+the list "Release steps" in `agent.md`; this file has the details behind its steps.
 
-Everything in this document was prepared but **not executed** past building local, unsigned
-artifacts: no git tag, no push, no GitHub release, no store/Flathub/F-Droid submission. That is
-intentional — see `RELEASE-TODO.md`.
+## 1. Version numbers
 
-## 1. Version numbers (done)
-
-2.0.0 is set in: `metadata.json` (Plasmoid), `app/CMakeLists.txt` (project version + the
-`QT_ANDROID_VERSION_NAME`/`_CODE` and `app.setApplicationVersion` in
-`app/main.cpp`), `app/android/AndroidManifest.xml` (`versionCode="20000"`,
-`versionName="2.0.0"`), `STORE.md`, `docs/index.html`. `contents/code/buildInfo.js` was
-regenerated via `./scripts/bump-build.sh` (reads the version from `metadata.json`, bumps
-`build.number`). Translation catalogs (`translate/*.po`, `contents/locale/*/*.mo`,
-`app/i18n/*.json`) were regenerated (`translate/extract.sh`, `python3 translate/fill_po.py`,
-`translate/build.sh`) so `Project-Id-Version` matches.
+`X.Y.Z` is set in: `metadata.json` (Plasmoid), `app/CMakeLists.txt` (project version,
+`QT_ANDROID_VERSION_NAME`, `QT_ANDROID_VERSION_CODE`), `app/main.cpp` (`kAppVersion`),
+`app/android/AndroidManifest.xml` (`versionCode`, `versionName`), `STORE.md`,
+`translate/extract.sh` and `translate/template.pot` (package version), a `<release>` in
+`packaging/linux/io.github.shrippen.Plasmai.metainfo.xml`,
+`fastlane/metadata/android/{en-US,de-DE}/changelogs/<versionCode>.txt` and `docs/index.html`
+(footer, `#changes`). `./scripts/bump-build.sh` regenerates `contents/code/buildInfo.js` (reads
+the version from `metadata.json`, bumps `build.number`). Release 2.6.2 (PR #42) is an example
+of the whole bump.
 
 versionCode is `major*10000 + minor*100 + patch` (2.0.0 → 20000), set in
 `app/CMakeLists.txt` (`QT_ANDROID_VERSION_CODE`) and `app/android/AndroidManifest.xml`. It
 replaced the 1.x scheme `major*100 + minor*10 + patch` before any APK was published; it can
 only increase from here (F-Droid, Play Store).
 
-## 2. Changelog (done)
+## 2. Changelog
 
-`CHANGELOG.md` has a `## 2.0.0` section (Android/Plasma Mobile app as the headline addition)
-above `## 1.6.3`, with a fresh empty `## Unreleased` above that.
+`CHANGELOG.md` gets a section `## [X.Y.Z] — YYYY-MM-DD` below `## [Unreleased]`, in the format
+of step 2 of the release steps in `agent.md`; the landing page gets the same text (step 3).
 
 ## 3. Plasmoid (store.kde.org)
 
@@ -243,20 +239,17 @@ from `packaging/flatpak/`; widget via `scripts/package.sh`). For an existing rel
 hand with `tag` set: `gh workflow run release.yml -R shrippen/Plasmai -f tag=vX.Y.Z`.
 
 Git work goes to Gitea (git.arianw.de); its push mirror carries commits and tags to GitHub,
-but not releases. So a release is made in two places, the second one automatically:
+but not releases. So a release is made in two places, the second one automatically (steps 5–7
+of the release steps in `agent.md`):
 
-1. `CHANGELOG.md` has a section `## [X.Y.Z] — YYYY-MM-DD` in the format of the release rule in
-   `agent.md` (the release notes: `scripts/release-notes.sh X.Y.Z`, run from the repository root;
-   it exits 1 without the section), and the landing page has the same text as the newest entry
-   in `#changes`, with the footer version bumped. CI checks the headings on every push
-   (`scripts/release-notes.sh --check`). The script is a copy of Kante's `tools/release-notes.sh`:
-   change it only there, sync with `../Kante/tools/sync-release-notes.sh`.
-2. Tag and push to Gitea: `git tag -a vX.Y.Z -m "X.Y.Z" && git push origin vX.Y.Z`.
-3. Gitea release with `tea`, notes only, no files (GitHub is the public channel and the only one
+1. Tag the merge commit of the release PR and push it to Gitea:
+   `git tag -a vX.Y.Z -m "X.Y.Z" <merge commit> && git push origin vX.Y.Z`.
+2. Gitea release with `tea`, notes only, no files (GitHub is the public channel and the only one
    with release files and the checks):
    `scripts/release-notes.sh X.Y.Z > notes.md && tea releases create --login git.arianw.de --repo shrippen/plasmai --tag vX.Y.Z --title "Plasmai X.Y.Z" --note-file notes.md`
-4. The mirror pushes the tag to GitHub; `.github/workflows/release.yml` builds the release APK,
-   signs it with the secrets from 4.3, checks the signature and creates the GitHub release
-   with the same notes and the APK (`Plasmai-X.Y.Z.apk`), attached for direct install.
-   Run by hand (`gh workflow run release.yml -R shrippen/Plasmai`) it only builds an unsigned
-   test APK.
+   (`scripts/release-notes.sh X.Y.Z` prints the section of `CHANGELOG.md`, run from the
+   repository root; it exits 1 without the section).
+3. The mirror pushes the tag to GitHub; `.github/workflows/release.yml` creates the GitHub
+   release with the same notes, builds every asset above (the APK signed with the secrets from
+   4.3, its signature checked) and attaches them. Run by hand without `tag`
+   (`gh workflow run release.yml -R shrippen/Plasmai`) it only builds a test.
