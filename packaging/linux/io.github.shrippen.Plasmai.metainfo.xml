@@ -89,6 +89,11 @@
     <binary>plasmai-app</binary>
   </provides>
   <releases>
+    <release version="2.6.3" date="2026-10-29">
+      <description>
+        <p>Fixes missing buttons in two dialogs of the Plasma widget. No changes in the app.</p>
+      </description>
+    </release>
     <release version="2.6.2" date="2026-10-27">
       <description>
         <p>Offline data is written less often and no longer grows by a few entries every day.

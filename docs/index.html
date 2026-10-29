@@ -170,6 +170,22 @@ kpackagetool6 -i . -t Plasma/Applet</div>
   <h2 lang="en">Changes</h2><h2 lang="de">Änderungen</h2>
   <p lang="en">What each release brought, newest first. Every release adds an entry here and the same notes on the release page.</p><p lang="de">Was jede Version gebracht hat, die neueste zuerst. Jede Version bekommt hier einen Eintrag und dieselben Notizen auf der Release-Seite.</p>
   <ol class="changelog">
+    <li class="release" id="v2.6.3">
+      <div class="release-head"><b class="release-version">2.6.3</b><time datetime="2026-10-29"><span lang="en">29 Oct 2026</span><span lang="de">29. Okt. 2026</span></time></div>
+      <div class="release-body">
+        <p class="release-lead"><span lang="en">The widget's "Switch activity" and "You were idle" dialogs have their buttons back.</span><span lang="de">Die Dialoge „Tätigkeit wechseln“ und „Du warst im Leerlauf“ des Widgets haben ihre Knöpfe wieder.</span></p>
+        <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3><ul>
+          <li><span lang="en">Widget (Kante styles): the "Switch activity" and "You were idle" dialogs showed no buttons. A switch to a recent activity could not be confirmed, and the idle question could not be answered with "Keep time" or "Discard idle". Both dialogs show their buttons again, and a test now checks every dialog of the widget for this.</span><span lang="de">Widget (Kante-Stile): Die Dialoge „Tätigkeit wechseln“ und „Du warst im Leerlauf“ zeigten keine Knöpfe. Ein Wechsel zu einer zuletzt genutzten Tätigkeit ließ sich nicht bestätigen, die Leerlauf-Frage nicht mit „Zeit behalten“ oder „Leerlauf verwerfen“ beantworten. Beide Dialoge zeigen ihre Knöpfe wieder, und ein Test prüft das jetzt für jeden Dialog des Widgets.</span></li>
+        </ul></div>
+        <div class="release-group" data-kind="note"><h3><span lang="en">Note</span><span lang="de">Hinweis</span></h3><ul>
+          <li><span lang="en">The app is unchanged from 2.6.2.</span><span lang="de">Die App ist gegenüber 2.6.2 unverändert.</span></li>
+        </ul></div>
+        <div class="release-shots">
+          <figure><img lang="en" src="shots/release-2.6.3-switch-en.webp" alt="The Switch activity dialog in the Kante style: current and new activity, with the Switch and Cancel buttons" loading="lazy"><img lang="de" src="shots/release-2.6.3-switch-de.webp" alt="Der Dialog Tätigkeit wechseln im Kante-Stil: aktuelle und neue Tätigkeit, mit den Knöpfen Wechseln und Abbrechen" loading="lazy"><figcaption><span lang="en">Switch activity, with its buttons again</span><span lang="de">Tätigkeit wechseln, wieder mit Knöpfen</span></figcaption></figure>
+        </div>
+        <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v2.6.2...v2.6.3"><span lang="en">All changes since 2.6.2 →</span><span lang="de">Alle Änderungen seit 2.6.2 →</span></a>
+      </div>
+    </li>
     <li class="release" id="v2.6.2">
       <div class="release-head"><b class="release-version">2.6.2</b><time datetime="2026-10-27"><span lang="en">27 Oct 2026</span><span lang="de">27. Okt. 2026</span></time></div>
       <div class="release-body">
@@ -196,35 +212,35 @@ kpackagetool6 -i . -t Plasma/Applet</div>
         <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v2.6.0...v2.6.1"><span lang="en">All changes since 2.6.0 →</span><span lang="de">Alle Änderungen seit 2.6.0 →</span></a>
       </div>
     </li>
-    <li class="release" id="v2.6.0">
-      <div class="release-head"><b class="release-version">2.6.0</b><time datetime="2026-10-13"><span lang="en">13 Oct 2026</span><span lang="de">13. Okt. 2026</span></time></div>
-      <div class="release-body">
-        <p class="release-lead"><span lang="en">A terminal client for the desktop app, a day of its own for the activity chart, and editing that keeps the dates and times you enter.</span><span lang="de">Ein Terminal-Client für die Desktop-App, ein eigener Tag für das Tätigkeitsdiagramm und Bearbeiten, das Datum und Uhrzeit so behält, wie du sie eingibst.</span></p>
-        <div class="release-group" data-kind="new"><h3><span lang="en">New</span><span lang="de">Neu</span></h3><ul>
-          <li><span lang="en">Terminal client in the desktop app (Linux, macOS): <code>plasmai-app --tui</code> shows the timer, recents, today as hour rows with gaps and the week as a table. 1–9 start or switch, <code>s</code> stops. For tracking from a terminal or over SSH; it uses the app's profile and keeps its own offline outbox. The widget has none.</span><span lang="de">Terminal-Client in der Desktop-App (Linux, macOS): <code>plasmai-app --tui</code> zeigt Timer, Zuletzt, Heute als Stundenzeilen mit Lücken und die Woche als Tabelle. 1–9 startet oder wechselt, <code>s</code> stoppt. Zum Erfassen aus dem Terminal oder per SSH; er nutzt das Profil der App und hat einen eigenen Offline-Ausgang. Das Widget hat keinen.</span></li>
-        </ul></div>
-        <div class="release-group" data-kind="improved"><h3><span lang="en">Improved</span><span lang="de">Verbessert</span></h3><ul>
-          <li><span lang="en">Statistics: the activity distribution has its own day switcher, so you can look at another day without moving the other charts. Day and week take half the width each; an empty day keeps the chart's height.</span><span lang="de">Statistik: Die Tätigkeitsverteilung hat einen eigenen Tagesumschalter, so siehst du einen anderen Tag, ohne die übrigen Diagramme zu verschieben. Tag und Woche teilen sich die Breite; ein leerer Tag behält die Höhe des Diagramms.</span></li>
-          <li><span lang="en">Statistics (Kante styles): hovering a block in "Projects by hour" shows its project, time span and duration; on touch a tap does.</span><span lang="de">Statistik (Kante-Stile): Fährst du über einen Block in „Projekte nach Stunde“, zeigt er Projekt, Zeitraum und Dauer; auf Touch reicht ein Tippen.</span></li>
-        </ul></div>
-        <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3><ul>
-          <li><span lang="en">Editing an entry could move its start 100 years back. In a short date format with a two-digit year ("13.10.26", "10/13/26") the date field read its own text as 1926. A running entry then started in 1926, and Kimai refused a stopped one as too long. Two-digit years now mean this century.</span><span lang="de">Beim Bearbeiten konnte der Start eines Eintrags 100 Jahre zurückspringen. In einem kurzen Datumsformat mit zweistelliger Jahreszahl („13.10.26“, „10/13/26“) las das Datumsfeld seinen eigenen Text als 1926. Ein laufender Eintrag begann dann 1926, einen beendeten lehnte Kimai als zu lang ab. Zweistellige Jahre bedeuten jetzt dieses Jahrhundert.</span></li>
-          <li><span lang="en">App time picker in 12-hour languages (US English and others): it showed a 24-hour dial without AM/PM and put 12:xx in the morning. It now shows 1–12 with AM/PM. In every language, Select without turning a dial gave the current time instead of the time it opened with.</span><span lang="de">Zeitwähler der App in 12-Stunden-Sprachen (US-Englisch und andere): Er zeigte ein 24-Stunden-Rad ohne AM/PM und legte 12:xx auf den Vormittag. Jetzt zeigt er 1–12 mit AM/PM. In jeder Sprache gab „Auswählen“ ohne Drehen die aktuelle Uhrzeit zurück statt der, mit der er geöffnet wurde.</span></li>
-          <li><span lang="en">12-hour time fields: typing an hour no longer moves a PM time to the morning (3 on 2:30 PM stays 3:30 PM).</span><span lang="de">12-Stunden-Zeitfelder: Eine getippte Stunde verschiebt eine PM-Zeit nicht mehr auf den Vormittag (3 auf 2:30 PM bleibt 3:30 PM).</span></li>
-          <li><span lang="en">Statistics (Kante styles): the chart read-outs wrote project names in the project colour, which some colours made unreadable. They now use the text colour with a coloured square in front.</span><span lang="de">Statistik (Kante-Stile): Die Read-outs der Diagramme schrieben Projektnamen in der Projektfarbe, die manche Farben unlesbar machten. Jetzt stehen sie in der Textfarbe mit einem farbigen Quadrat davor.</span></li>
-        </ul></div>
-        <div class="release-shots">
-          <figure><img lang="en" src="shots/release-2.6.0-terminal-en.webp" alt="The terminal client with the running timer, today and the week, and recents" loading="lazy"><img lang="de" src="shots/release-2.6.0-terminal-de.webp" alt="Der Terminal-Client mit laufendem Timer, Heute und Woche sowie Zuletzt" loading="lazy"><figcaption><span lang="en">Terminal client, plasmai-app --tui (demo data)</span><span lang="de">Terminal-Client, plasmai-app --tui (Demodaten)</span></figcaption></figure>
-          <figure><img lang="en" src="shots/release-2.6.0-activity-en.webp" alt="Activity distribution with a day switcher for today and one for the week" loading="lazy"><img lang="de" src="shots/release-2.6.0-activity-de.webp" alt="Tätigkeitsverteilung mit Tagesumschalter für Heute und einem für die Woche" loading="lazy"><figcaption><span lang="en">Activity distribution with its own day (demo data)</span><span lang="de">Tätigkeitsverteilung mit eigenem Tag (Demodaten)</span></figcaption></figure>
-          <figure><img lang="en" src="shots/release-2.6.0-years-en.webp" alt="A date field showing 13.10.26 and 10/13/26; 2.5.3 read them as 1926, 2.6.0 as 2026" loading="lazy"><img lang="de" src="shots/release-2.6.0-years-de.webp" alt="Ein Datumsfeld mit 13.10.26 und 10/13/26; 2.5.3 las sie als 1926, 2.6.0 als 2026" loading="lazy"><figcaption><span lang="en">What the date field reads back from its own text</span><span lang="de">Was das Datumsfeld aus seinem eigenen Text zurückliest</span></figcaption></figure>
-          <figure><img lang="en" src="shots/release-2.6.0-timepicker-en.webp" alt="The app's time picker in US English: 02:30 PM with an AM/PM wheel" loading="lazy"><img lang="de" src="shots/release-2.6.0-timepicker-de.webp" alt="Der Zeitwähler der App auf Deutsch: 14:30" loading="lazy"><figcaption><span lang="en">Time picker at 2:30 PM in US English (demo data)</span><span lang="de">Zeitwähler um 14:30 auf Deutsch (Demodaten)</span></figcaption></figure>
-        </div>
-        <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v2.5.3...v2.6.0"><span lang="en">All changes since 2.5.3 →</span><span lang="de">Alle Änderungen seit 2.5.3 →</span></a>
-      </div>
-    </li>
   </ol>
   <details class="changelog-more"><summary><span lang="en">Older releases</span><span lang="de">Ältere Versionen</span></summary>
     <ol class="changelog">
+      <li class="release" id="v2.6.0">
+        <div class="release-head"><b class="release-version">2.6.0</b><time datetime="2026-10-13"><span lang="en">13 Oct 2026</span><span lang="de">13. Okt. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">A terminal client for the desktop app, a day of its own for the activity chart, and editing that keeps the dates and times you enter.</span><span lang="de">Ein Terminal-Client für die Desktop-App, ein eigener Tag für das Tätigkeitsdiagramm und Bearbeiten, das Datum und Uhrzeit so behält, wie du sie eingibst.</span></p>
+          <div class="release-group" data-kind="new"><h3><span lang="en">New</span><span lang="de">Neu</span></h3><ul>
+            <li><span lang="en">Terminal client in the desktop app (Linux, macOS): <code>plasmai-app --tui</code> shows the timer, recents, today as hour rows with gaps and the week as a table. 1–9 start or switch, <code>s</code> stops. For tracking from a terminal or over SSH; it uses the app's profile and keeps its own offline outbox. The widget has none.</span><span lang="de">Terminal-Client in der Desktop-App (Linux, macOS): <code>plasmai-app --tui</code> zeigt Timer, Zuletzt, Heute als Stundenzeilen mit Lücken und die Woche als Tabelle. 1–9 startet oder wechselt, <code>s</code> stoppt. Zum Erfassen aus dem Terminal oder per SSH; er nutzt das Profil der App und hat einen eigenen Offline-Ausgang. Das Widget hat keinen.</span></li>
+          </ul></div>
+          <div class="release-group" data-kind="improved"><h3><span lang="en">Improved</span><span lang="de">Verbessert</span></h3><ul>
+            <li><span lang="en">Statistics: the activity distribution has its own day switcher, so you can look at another day without moving the other charts. Day and week take half the width each; an empty day keeps the chart's height.</span><span lang="de">Statistik: Die Tätigkeitsverteilung hat einen eigenen Tagesumschalter, so siehst du einen anderen Tag, ohne die übrigen Diagramme zu verschieben. Tag und Woche teilen sich die Breite; ein leerer Tag behält die Höhe des Diagramms.</span></li>
+            <li><span lang="en">Statistics (Kante styles): hovering a block in "Projects by hour" shows its project, time span and duration; on touch a tap does.</span><span lang="de">Statistik (Kante-Stile): Fährst du über einen Block in „Projekte nach Stunde“, zeigt er Projekt, Zeitraum und Dauer; auf Touch reicht ein Tippen.</span></li>
+          </ul></div>
+          <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3><ul>
+            <li><span lang="en">Editing an entry could move its start 100 years back. In a short date format with a two-digit year ("13.10.26", "10/13/26") the date field read its own text as 1926. A running entry then started in 1926, and Kimai refused a stopped one as too long. Two-digit years now mean this century.</span><span lang="de">Beim Bearbeiten konnte der Start eines Eintrags 100 Jahre zurückspringen. In einem kurzen Datumsformat mit zweistelliger Jahreszahl („13.10.26“, „10/13/26“) las das Datumsfeld seinen eigenen Text als 1926. Ein laufender Eintrag begann dann 1926, einen beendeten lehnte Kimai als zu lang ab. Zweistellige Jahre bedeuten jetzt dieses Jahrhundert.</span></li>
+            <li><span lang="en">App time picker in 12-hour languages (US English and others): it showed a 24-hour dial without AM/PM and put 12:xx in the morning. It now shows 1–12 with AM/PM. In every language, Select without turning a dial gave the current time instead of the time it opened with.</span><span lang="de">Zeitwähler der App in 12-Stunden-Sprachen (US-Englisch und andere): Er zeigte ein 24-Stunden-Rad ohne AM/PM und legte 12:xx auf den Vormittag. Jetzt zeigt er 1–12 mit AM/PM. In jeder Sprache gab „Auswählen“ ohne Drehen die aktuelle Uhrzeit zurück statt der, mit der er geöffnet wurde.</span></li>
+            <li><span lang="en">12-hour time fields: typing an hour no longer moves a PM time to the morning (3 on 2:30 PM stays 3:30 PM).</span><span lang="de">12-Stunden-Zeitfelder: Eine getippte Stunde verschiebt eine PM-Zeit nicht mehr auf den Vormittag (3 auf 2:30 PM bleibt 3:30 PM).</span></li>
+            <li><span lang="en">Statistics (Kante styles): the chart read-outs wrote project names in the project colour, which some colours made unreadable. They now use the text colour with a coloured square in front.</span><span lang="de">Statistik (Kante-Stile): Die Read-outs der Diagramme schrieben Projektnamen in der Projektfarbe, die manche Farben unlesbar machten. Jetzt stehen sie in der Textfarbe mit einem farbigen Quadrat davor.</span></li>
+          </ul></div>
+          <div class="release-shots">
+            <figure><img lang="en" src="shots/release-2.6.0-terminal-en.webp" alt="The terminal client with the running timer, today and the week, and recents" loading="lazy"><img lang="de" src="shots/release-2.6.0-terminal-de.webp" alt="Der Terminal-Client mit laufendem Timer, Heute und Woche sowie Zuletzt" loading="lazy"><figcaption><span lang="en">Terminal client, plasmai-app --tui (demo data)</span><span lang="de">Terminal-Client, plasmai-app --tui (Demodaten)</span></figcaption></figure>
+            <figure><img lang="en" src="shots/release-2.6.0-activity-en.webp" alt="Activity distribution with a day switcher for today and one for the week" loading="lazy"><img lang="de" src="shots/release-2.6.0-activity-de.webp" alt="Tätigkeitsverteilung mit Tagesumschalter für Heute und einem für die Woche" loading="lazy"><figcaption><span lang="en">Activity distribution with its own day (demo data)</span><span lang="de">Tätigkeitsverteilung mit eigenem Tag (Demodaten)</span></figcaption></figure>
+            <figure><img lang="en" src="shots/release-2.6.0-years-en.webp" alt="A date field showing 13.10.26 and 10/13/26; 2.5.3 read them as 1926, 2.6.0 as 2026" loading="lazy"><img lang="de" src="shots/release-2.6.0-years-de.webp" alt="Ein Datumsfeld mit 13.10.26 und 10/13/26; 2.5.3 las sie als 1926, 2.6.0 als 2026" loading="lazy"><figcaption><span lang="en">What the date field reads back from its own text</span><span lang="de">Was das Datumsfeld aus seinem eigenen Text zurückliest</span></figcaption></figure>
+            <figure><img lang="en" src="shots/release-2.6.0-timepicker-en.webp" alt="The app's time picker in US English: 02:30 PM with an AM/PM wheel" loading="lazy"><img lang="de" src="shots/release-2.6.0-timepicker-de.webp" alt="Der Zeitwähler der App auf Deutsch: 14:30" loading="lazy"><figcaption><span lang="en">Time picker at 2:30 PM in US English (demo data)</span><span lang="de">Zeitwähler um 14:30 auf Deutsch (Demodaten)</span></figcaption></figure>
+          </div>
+          <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v2.5.3...v2.6.0"><span lang="en">All changes since 2.5.3 →</span><span lang="de">Alle Änderungen seit 2.5.3 →</span></a>
+        </div>
+      </li>
       <li class="release" id="v2.5.3">
         <div class="release-head"><b class="release-version">2.5.3</b><time datetime="2026-10-07"><span lang="en">7 Oct 2026</span><span lang="de">7. Okt. 2026</span></time></div>
         <div class="release-body">
@@ -640,7 +656,7 @@ kpackagetool6 -i . -t Plasma/Applet</div>
       <div><h4><span lang="en">Source</span><span lang="de">Quelltext</span></h4><a href="https://github.com/shrippen/Plasmai">GitHub</a><a href="https://github.com/shrippen/Plasmai/issues">Issues</a><a href="https://github.com/shrippen/Plasmai/blob/main/CHANGELOG.md">Changelog</a><a href="https://store.kde.org/p/2368175/">KDE Store</a></div>
     </nav>
   </div>
-  <div class="foot-meta"><p>GPL-3.0-or-later · shrippen · <a href="#changes">v2.6.2</a></p></div>
+  <div class="foot-meta"><p>GPL-3.0-or-later · shrippen · <a href="#changes">v2.6.3</a></p></div>
 </footer>
 
 </body>

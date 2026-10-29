@@ -2,6 +2,30 @@
 
 ## [Unreleased]
 
+## [2.6.3] — 2026-10-29
+
+### English
+
+The widget's "Switch activity" and "You were idle" dialogs have their buttons back.
+
+#### Fixed
+- Widget (Kante styles): the "Switch activity" and "You were idle" dialogs showed no buttons. A switch to a recent activity could not be confirmed, and the idle question could not be answered with "Keep time" or "Discard idle". Both dialogs show their buttons again, and a test now checks every dialog of the widget for this.
+
+#### Note
+- The app is unchanged from 2.6.2.
+
+All changes: https://github.com/shrippen/Plasmai/compare/v2.6.2...v2.6.3
+
+### Deutsch
+
+Die Dialoge „Tätigkeit wechseln“ und „Du warst im Leerlauf“ des Widgets haben ihre Knöpfe wieder.
+
+#### Behoben
+- Widget (Kante-Stile): Die Dialoge „Tätigkeit wechseln“ und „Du warst im Leerlauf“ zeigten keine Knöpfe. Ein Wechsel zu einer zuletzt genutzten Tätigkeit ließ sich nicht bestätigen, die Leerlauf-Frage nicht mit „Zeit behalten“ oder „Leerlauf verwerfen“ beantworten. Beide Dialoge zeigen ihre Knöpfe wieder, und ein Test prüft das jetzt für jeden Dialog des Widgets.
+
+#### Hinweis
+- Die App ist gegenüber 2.6.2 unverändert.
+
 ## [2.6.2] — 2026-10-27
 
 ### English
