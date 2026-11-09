@@ -34,11 +34,25 @@ while [[ $# -gt 0 ]]; do
 done
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/plasmai-bench-app-XXXXXX")"
-trap 'rm -rf "${WORK}"' EXIT
+cleanup() {
+    # flatpak-builder stopped by the time limit leaves its rofiles mounts behind.
+    local m
+    for m in $(awk -v w="${WORK}" 'index($2, w) == 1 {print $2}' /proc/mounts); do
+        fusermount3 -u "${m}" 2>/dev/null || fusermount -u "${m}" 2>/dev/null || true
+    done
+    # Deleting through a mount that is still there deletes the build folder behind it.
+    if awk -v w="${WORK}" 'index($2, w) == 1 {found = 1} END {exit !found}' /proc/mounts; then
+        echo "still mounted under ${WORK}: left in place" >&2
+        return
+    fi
+    rm -rf "${WORK}"
+}
+trap cleanup EXIT
 LINES="${WORK}/bench.jsonl"
 : > "${LINES}"
-# Generous: a run takes about three minutes on the desktop, more on a phone.
-LIMIT_S=600
+# Generous: a run takes about three minutes on the desktop, more on a phone or in the Flatpak
+# build sandbox (BENCH_LIMIT_S overrides it).
+LIMIT_S=${BENCH_LIMIT_S:-600}
 ANDROID_ACTIVITY="org.qtproject.qt.android.bindings.QtActivity"
 
 run_desktop() {
@@ -56,7 +70,7 @@ run_flatpak() {
     local log=$1 run=$2
     # Fresh folders per run inside the sandbox, not the app's ~/.var/app/<id> (your settings).
     local home="/tmp/plasmai-bench-$$-${run}"
-    timeout "${LIMIT_S}" flatpak-builder --state-dir="${WORK}/flatpak-state" --run "${FLATPAK_DIR}" "${MANIFEST}" \
+    timeout "${LIMIT_S}" flatpak-builder --state-dir="${WORK}/flatpak-state-${run}" --run "${FLATPAK_DIR}" "${MANIFEST}" \
         env WAYLAND_DISPLAY="${WAYLAND_DISPLAY:-wayland-0}" QT_QPA_PLATFORM="${BENCH_QPA:-wayland}" \
         XDG_CONFIG_HOME="${home}/config" XDG_DATA_HOME="${home}/data" XDG_CACHE_HOME="${home}/cache" \
         LANGUAGE=en plasmai-app --bench >"${log}" 2>&1 || true
