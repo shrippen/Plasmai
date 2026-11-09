@@ -103,6 +103,7 @@ function dayLunarFractions(date, latitude, longitude) {
 
     var day = date || new Date()
     var dayStart = new Date(day.getFullYear(), day.getMonth(), day.getDate(), 0, 0, 0, 0)
+    lunarDaysSampled++
     var samples = []
     var stepMs = 10 * 60 * 1000
     var i
@@ -165,11 +166,41 @@ function dayLunarFractions(date, latitude, longitude) {
     }
 }
 
+/** Days whose moon was sampled (145 altitudes each): tests see the cache below work. */
+var lunarDaysSampled = 0
+
+/**
+ * Rise and set of sun and moon for the day and the place of the last call. They change with
+ * the day and the place only; callers ask again on every change of their entries.
+ */
+var skyDayKey = ""
+var skyDaySun = null
+var skyDayMoon = null
+
+/** `body` worked out for an earlier time of the same day, with "up" for `nowFrac`. */
+function atTimeOfDay(body, rise, set, nowFrac, wraps) {
+    var out = {}
+    for (var k in body) {
+        out[k] = body[k]
+    }
+    if (body.valid && !body.polarNight && !body.polarDay && !body.alwaysUp && !body.alwaysDown) {
+        out.up = isUpInSpan(body[rise], body[set], nowFrac, wraps)
+    }
+    return out
+}
+
 function daySkyModel(date, latitude, longitude, businessStart, businessEnd) {
     var day = date || new Date()
-    var sun = daySolarFractions(day, latitude, longitude)
-    var moon = dayLunarFractions(day, latitude, longitude)
     var nowFrac = fractionOfLocalDay(day)
+    var key = day.getFullYear() + "-" + day.getMonth() + "-" + day.getDate() + "|" + latitude + "|" + longitude
+              + "|" + day.getTimezoneOffset()
+    if (key !== skyDayKey) {
+        skyDaySun = daySolarFractions(day, latitude, longitude)
+        skyDayMoon = dayLunarFractions(day, latitude, longitude)
+        skyDayKey = key
+    }
+    var sun = atTimeOfDay(skyDaySun, "sunrise", "sunset", nowFrac, false)
+    var moon = atTimeOfDay(skyDayMoon, "moonrise", "moonset", nowFrac, !!skyDayMoon.wraps)
     var b0 = typeof businessStart === "number" ? businessStart : 8 / 24
     var b1 = typeof businessEnd === "number" ? businessEnd : 18 / 24
     return {
