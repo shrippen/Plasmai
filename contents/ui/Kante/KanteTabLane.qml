@@ -9,16 +9,30 @@ import "."
  *
  *   strings, stringNames      lanes; string 0 is the lowest. `lowStringOnTop` false
  *                             (default) puts the highest string on top, as in a tab
- *   stringColors              optional colour per string (0 = lowest); the string
- *                             palette below where missing
+ *   stringColors              optional colour per string (0 = lowest); where missing
+ *                             KanteStyle.stringColor (the app's `stringPalette`, 1.28)
  *   notes                     [{time, duration, string, fret, state, label, cents}],
  *                             sorted by time; seconds. state: "pending", "hit", "wrong",
  *                             "missed", "early", "late", "offpitch" (1.27). cents: how
  *                             far an offpitch note was off ("+32 ct" beside its sign).
  *                             setNoteState(index, state[, cents]) changes one note
  *                             without reassigning the list; resetStates() undoes it
+ *                             technique (1.31): "slide", "hammer", "pull", "slap", "pop" or
+ *                             "ghost" or "dead" (1.32), its tab sign above the head
+ *                             (KanteTechniqueMark); a ghost note shows its fret in
+ *                             parentheses and no other sign (1.37), a dead note x. techniqueResult
+ *                             (1.31): "", "played", "other", "unheard";
+ *                             setTechniqueResult(index, result) changes one, resetStates()
+ *                             undoes them too
  *   showCents                 the cents beside offpitch signs (Full marks only; default true)
- *   bars                      bar start times in seconds (numbers or {time})
+ *   bars                      bar start times in seconds (numbers or {time, number}); number
+ *                             (1.28): the bar's label, e.g. the written bar number, so
+ *                             unrolled repeats read "5, 6, 5, 6"; left out: index + 1;
+ *                             section (1.50): the part that starts with the bar ("Refrain",
+ *                             "B", or a list ["Refrain", "B"] → "Refrain · B"), a rehearsal
+ *                             mark (KanteRehearsalMark) above the bar number. With sections
+ *                             the lanes move down by its row, without them the layout is the
+ *                             old one
  *   position                  the current time in seconds (sits on the play line)
  *   pixelsPerSecond           speed of the highway
  *   playLine                  where the play line is, 0..1 of the width from the left
@@ -82,6 +96,39 @@ Item {
     property var changedCents: ({})
     // Notes per state, kept up to date by setNoteState (the summary stays O(1)).
     property var stateCounts: ({})
+    // Technique results set with setTechniqueResult, by note index (1.31).
+    property var changedTechniques: ({})
+    // Notes per technique result, kept up to date by setTechniqueResult.
+    property var techniqueCounts: ({})
+
+    /**
+     * Sets how the technique of one note was played (Kante 1.31): "", "played", "other" or
+     * "unheard". Like setNoteState, only that note's sign changes.
+     */
+    function setTechniqueResult(index, result) {
+        if (!notes || index < 0 || index >= notes.length) {
+            return
+        }
+        var old = techniqueResultOf(index)
+        if (old !== "") {
+            techniqueCounts[old] = (techniqueCounts[old] || 1) - 1
+        }
+        var r = String(result || "")
+        if (r !== "") {
+            techniqueCounts[r] = (techniqueCounts[r] || 0) + 1
+        }
+        changedTechniques[index] = r
+        var it = noteRepeater.itemAt(index)
+        if (it) {
+            it.techniqueOverride = r
+        }
+        revision++
+    }
+    /** The technique result of note i: as set with setTechniqueResult, else from `notes`. */
+    function techniqueResultOf(i) {
+        var r = changedTechniques[i]
+        return r !== undefined ? r : (notes && notes[i] && notes[i].techniqueResult ? String(notes[i].techniqueResult) : "")
+    }
 
     /**
      * Sets the state of one note without reassigning `notes`: only that note's visuals
@@ -113,17 +160,24 @@ Item {
     function resetStates() {
         changedStates = {}
         changedCents = {}
-        var c = {}
+        changedTechniques = {}
+        var c = {}, tc = {}
         for (var k = 0; notes && k < notes.length; k++) {
             var st = notes[k].state ? String(notes[k].state) : "pending"
             c[st] = (c[st] || 0) + 1
+            var tr = notes[k].techniqueResult ? String(notes[k].techniqueResult) : ""
+            if (tr !== "") {
+                tc[tr] = (tc[tr] || 0) + 1
+            }
         }
         stateCounts = c
+        techniqueCounts = tc
         for (var i = 0; i < noteRepeater.count; i++) {
             var it = noteRepeater.itemAt(i)
             if (it) {
                 it.override = ""
                 it.overrideCents = NaN
+                it.techniqueOverride = "-"
             }
         }
         revision++
@@ -147,8 +201,17 @@ Item {
     /** Index of the next note to play (first with time ≥ position), -1 after the last. */
     readonly property int nextIndex: firstAtOrAfter(position)
 
+    /** Per bar: {text, next} of its rehearsal mark (1.50); next = start of the next mark. */
+    readonly property var sectionList: sectionsOf(bars)
+    readonly property bool hasSections: sectionList.some(function (o) { return o.text !== "" })
+    /** The part being played (1.50): changes only when the bar does, not every frame. */
+    readonly property int currentBarIndex: hasSections ? barIndexAt(position) : -1
+    readonly property string currentPart: currentBarIndex >= 0 && sectionList[currentBarIndex] ? sectionList[currentBarIndex].part : ""
+
     // ── Geometry ─────────────────────────────────────────────────────
-    readonly property real topPad: barNumbers ? Math.round(labelMetrics.height + KanteStyle.unit(4)) : KanteStyle.unit(2)
+    /** Row of the rehearsal marks above the bar numbers (1.50); 0 without sections. */
+    readonly property real sectionRow: hasSections ? markProbe.implicitHeight + KanteStyle.unit(4) : 0
+    readonly property real topPad: sectionRow + (barNumbers ? Math.round(labelMetrics.height + KanteStyle.unit(4)) : KanteStyle.unit(2))
     readonly property real gutter: Math.round(nameMetrics.width + KanteStyle.unit(24))
     readonly property real plotWidth: Math.max(1, width - gutter)
     readonly property real laneHeight: (height - topPad) / Math.max(1, strings)
@@ -198,22 +261,68 @@ Item {
                 parts.push(KanteStyle.noteStateName(st) + " " + counts[st])
             }
         })
+        var t = KanteStyle.techniqueCountsText(techniqueCounts)
+        if (t !== "") {
+            parts.push(t)
+        }
+        // The part being played comes first (1.50).
+        if (currentPart !== "") {
+            parts.unshift(KanteStyle.partText.arg(currentPart))
+        }
         return parts.join(", ")
+    }
+    /**
+     * Rehearsal marks by bar (1.50): [{text, next, part}]; next the time of the next bar with
+     * a mark, part the mark in effect (this bar's or the last one before it).
+     */
+    function sectionsOf(list) {
+        const out = []
+        let next = Infinity
+        for (let i = (list ? list.length : 0) - 1; i >= 0; i--) {
+            const o = list[i]
+            const text = typeof o === "object" && o !== null ? KanteStyle.rehearsalText(o.section) : ""
+            out[i] = { text: text, next: next, part: text }
+            if (text !== "") {
+                next = barTime(o)
+            }
+        }
+        for (let k = 1; k < out.length; k++) {
+            if (out[k].part === "") {
+                out[k].part = out[k - 1].part
+            }
+        }
+        return out
+    }
+    /** Index of the last bar that starts at or before t, -1 before the first. */
+    function barIndexAt(t) {
+        let a = 0, b = bars ? bars.length : 0
+        while (a < b) {
+            const m = (a + b) >> 1
+            if (barTime(bars[m]) <= t + 1e-6) {
+                a = m + 1
+            } else {
+                b = m
+            }
+        }
+        return a - 1
     }
     /** The string palette: kept apart from the state colours (hit, wrong, early/late). */
     function stringColor(s) {
         if (stringColors && s < stringColors.length && stringColors[s] !== undefined) {
             return stringColors[s]
         }
-        var p = [KanteStyle.tagColor, KanteStyle.focusColor, KanteStyle.accentTextColor,
-                 KanteStyle.strongTextColor, KanteStyle.mutedTextColor, KanteStyle.infoColor]
-        return p[s % p.length]
+        return KanteStyle.stringColor(s)
     }
     function rowOf(s) {
         return lowStringOnTop ? s : strings - 1 - s
     }
     function rowCenter(s) {
         return topPad + (rowOf(s) + 0.5) * laneHeight
+    }
+    /** Label of a bar (1.28): its `number` as sent (written bar number), else index + 1. */
+    function barLabel(o, i) {
+        var n = typeof o === "object" && o !== null ? o.number : undefined
+        return n === undefined || n === null || String(n) === "" ? String(i + 1) : String(n)
     }
     function barTime(b) {
         return typeof b === "object" && b !== null ? Number(b.time) : Number(b)
@@ -232,6 +341,8 @@ Item {
             return w
         }
     }
+    // Measures a mark's height for the section row.
+    KanteRehearsalMark { id: markProbe; visible: false; text: "A"; Accessible.ignored: true }
     TextMetrics {
         id: labelMetrics
         font: KanteStyle.monoFont(KanteStyle.labelFont().pointSize * 0.85, false)
@@ -326,9 +437,23 @@ Item {
                     Text {
                         visible: lane.barNumbers
                         x: KanteStyle.unit(3)
-                        text: parent.index + 1
+                        y: lane.sectionRow
+                        text: lane.barLabel(lane.bars[parent.index], parent.index)
                         color: KanteStyle.mutedTextColor
                         font: labelMetrics.font
+                    }
+                    // Rehearsal mark (1.50): shown only while whole in the plot (the
+                    // software renderer does not clip a Shape); cut short before the next.
+                    KanteRehearsalMark {
+                        readonly property var sec: lane.sectionList[parent.index]
+                        // Read only for a bar with a mark: the others cost nothing per frame.
+                        readonly property real plotX: text !== "" ? parent.x + x + strip.x : 0
+                        visible: text !== "" && plotX >= 0 && plotX + width <= plot.width
+                        x: KanteStyle.unit(3)
+                        y: Math.round((lane.sectionRow - height) / 2)
+                        text: sec ? sec.text : ""
+                        maximumWidth: sec ? Math.min(plot.width, (sec.next - parent.t) * lane.pps) - KanteStyle.unit(10) : 0
+                        Accessible.ignored: true
                     }
                 }
             }
@@ -347,6 +472,11 @@ Item {
                     property string override: ""
                     /** Set by setNoteState with cents; NaN = the cents in `notes`. */
                     property real overrideCents: NaN
+                    /** Set by setTechniqueResult; "-" = the result in `notes` (1.31). */
+                    property string techniqueOverride: "-"
+                    readonly property string technique: n.technique ? String(n.technique) : ""
+                    readonly property string techniqueResult: lane.marks === KanteTabLane.Marks.Off ? ""
+                        : (techniqueOverride !== "-" ? techniqueOverride : (n.techniqueResult ? String(n.techniqueResult) : ""))
                     readonly property real cents: !isNaN(overrideCents) ? overrideCents
                         : (n.cents !== undefined && n.cents !== null ? Number(n.cents) : NaN)
                     readonly property string st: lane.marks === KanteTabLane.Marks.Off ? "pending"
@@ -386,6 +516,18 @@ Item {
                                     height: lane.head
                                     color: note.hollow ? KanteStyle.backgroundColor : note.fill
                                 }
+                                // A wrong note's head is framed in the strong text colour (1.49): with deuteranopia its
+                                // red read like a string's ochre, and the cross badge alone was too small.
+                                Rectangle {
+                                    objectName: "kanteWrongFrame"
+                                    readonly property real w: Math.max(2, Math.round(lane.head * 0.12))
+                                    visible: note.full && note.st === "wrong"
+                                    anchors.fill: headBox
+                                    anchors.margins: -w
+                                    color: "transparent"
+                                    border.width: w
+                                    border.color: KanteStyle.strongTextColor
+                                }
                                 Loader {
                                     active: note.hollow
                                     anchors.fill: headBox
@@ -408,7 +550,11 @@ Item {
                                 }
                                 Text {
                                     anchors.centerIn: headBox
-                                    text: note.n.fret !== undefined ? note.n.fret : ""
+                                    readonly property string fretText: note.n.fret !== undefined ? String(note.n.fret) : ""
+                                    // A ghost note's fret in parentheses, as written in tab (1.31); a
+                                    // dead note's as x (1.32).
+                                    text: note.technique === "dead" ? "x"
+                                        : note.technique === "ghost" && fretText !== "" ? "(" + fretText + ")" : fretText
                                     color: note.hollow ? KanteStyle.textColor : KanteStyle.inkOn(note.fill)
                                     font.family: nameMetrics.font.family
                                     font.weight: Font.Medium
@@ -429,10 +575,28 @@ Item {
                                         color: note.full ? KanteStyle.noteStateColor(note.st) : KanteStyle.mutedTextColor
                                     }
                                 }
+                                // Technique sign above the head, left of the state badge (1.31).
+                                // A ghost note's parentheses are its sign: its result frames the
+                                // head (1.37).
+                                KanteTechniqueMark {
+                                    id: techniqueMark
+                                    readonly property bool ghost: note.technique === "ghost"
+                                    visible: sign !== ""
+                                    signVisible: !ghost
+                                    technique: note.technique
+                                    result: note.techniqueResult
+                                    // Quiet: muted, the result still told by the frame.
+                                    color: note.full ? resultColor : KanteStyle.mutedTextColor
+                                    height: ghost ? headBox.height : Math.round(lane.head * 0.5)
+                                    width: ghost ? headBox.width : implicitWidth
+                                    // Its right edge stops short of the badge (which starts at 0.67 head).
+                                    x: ghost ? headBox.x : headBox.x + lane.head * 0.62 - width
+                                    y: ghost ? headBox.y : headBox.y - height - KanteStyle.unit(1)
+                                }
                                 Text {
                                     visible: !!note.n.label
                                     x: headBox.x
-                                    y: headBox.y - height
+                                    y: (techniqueMark.drawn ? techniqueMark.y : headBox.y) - height
                                     text: note.n.label || ""
                                     color: KanteStyle.mutedTextColor
                                     font: labelMetrics.font
