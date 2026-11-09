@@ -36,6 +36,9 @@ def medians(path):
         if samples[name]:
             out.setdefault("process", {})["rssMb-" + name] = statistics.median(s["rssKb"] for s in samples[name]) / 1024
             out["process"]["spawns-" + name] = statistics.median(s["spawnsTotal"] for s in samples[name])
+    # CPU seconds of the viewer until the steps begin: start, connect, first data.
+    if samples["startup"]:
+        out["process"]["cpuS-startup"] = statistics.median(s["cpuTicks"] for s in samples["startup"]) / TICKS_PER_S
     return out
 
 
