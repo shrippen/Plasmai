@@ -39,6 +39,9 @@ def medians(path):
     # CPU seconds of the viewer until the steps begin: start, connect, first data.
     if samples["startup"]:
         out["process"]["cpuS-startup"] = statistics.median(s["cpuTicks"] for s in samples["startup"]) / TICKS_PER_S
+    # The app: ms from main() until the demo's data is shown.
+    if any("uptimeMs" in s for s in samples["startup"]):
+        out["process"]["ms-startup"] = statistics.median(s["uptimeMs"] for s in samples["startup"] if "uptimeMs" in s)
     return out
 
 

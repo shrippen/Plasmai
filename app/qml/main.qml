@@ -525,6 +525,17 @@ Kirigami.ApplicationWindow {
         source: "DemoHook.qml"
         onLoaded: item.appRoot = root
     }
+    // Internal builds only: the benchmark (demo/bench-app.sh), with the pages it opens.
+    Loader {
+        active: demoHook.status === Loader.Ready && typeof benchProbe !== "undefined" && benchProbe.requested
+        source: "BenchRunner.qml"
+        onLoaded: {
+            item.components = { manual: manualPageComponent, stats: statsPageComponent, filmday: filmDayPageComponent,
+                                trips: tripsPageComponent, favorites: favoritesComponent }
+            item.appRoot = root
+            item.demoHook = demoHook.item
+        }
+    }
 
     Component { id: manualPageComponent; ManualEntryPage { } }
     Component { id: statsPageComponent; StatsPage { } }

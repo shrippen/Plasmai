@@ -33,6 +33,10 @@
 #ifdef PLASMAI_TEST_DRIVER
 #include "testdriver.h"
 #endif
+#ifdef PLASMAI_DEMO
+#include "benchprobe.h"
+#include <cstring>
+#endif
 #ifdef PLASMAI_TUI
 #include "tui/tuimain.h"
 #endif
@@ -90,6 +94,14 @@ static const QString kAppVersion = QStringLiteral("2.6.3");
 
 int main(int argc, char *argv[])
 {
+#ifdef PLASMAI_DEMO
+    // Internal benchmark (demo/bench-app.sh): its clock starts here.
+    bool benchArg = false;
+    for (int i = 1; i < argc; ++i) {
+        benchArg = benchArg || std::strcmp(argv[i], "--bench") == 0;
+    }
+    auto *benchProbe = new BenchProbe(benchArg || qEnvironmentVariableIsSet("PLASMAI_BENCH"));
+#endif
 #ifdef PLASMAI_TUI
     // `plasmai-app --tui`: the terminal client, no window (tui/tuimain.cpp).
     if (wantsTui(argc, argv)) {
@@ -184,6 +196,8 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty(QStringLiteral("TokenStore"), tokenStore);
 #ifdef PLASMAI_DEMO
     engine.rootContext()->setContextProperty(QStringLiteral("plasmaiDemoBuild"), true);
+    benchProbe->setParent(&app);
+    engine.rootContext()->setContextProperty(QStringLiteral("benchProbe"), benchProbe);
 #else
     engine.rootContext()->setContextProperty(QStringLiteral("plasmaiDemoBuild"), false);
 #endif
