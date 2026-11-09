@@ -33,4 +33,15 @@ Item {
             }
         }
     }
+
+    // demo/bench.sh: the benchmark, with its own plan file.
+    Loader {
+        active: hook.plasmoidRoot !== null && hook.execSource !== null
+        sourceComponent: Component {
+            BenchRunner {
+                plasmoidRoot: hook.plasmoidRoot
+                execSource: hook.execSource
+            }
+        }
+    }
 }
