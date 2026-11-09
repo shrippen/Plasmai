@@ -1,6 +1,5 @@
 import QtQuick
 import QtTest
-import "../../contents/ui"
 
 // An endless animation keeps the window drawing every frame (120 fps on a
 // 120 Hz screen), even when what it moves is hidden. While nothing changes,

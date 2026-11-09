@@ -1,6 +1,5 @@
 import QtQuick
 import QtTest
-import "../../contents/ui"
 
 // The poll sets session.busy twice every refresh. A view that is not shown
 // must not follow it: every enabled change re-evaluates the style bindings of
