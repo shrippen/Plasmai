@@ -42,6 +42,12 @@ def medians(path):
     # The app: ms from main() until the demo's data is shown.
     if any("uptimeMs" in s for s in samples["startup"]):
         out["process"]["ms-startup"] = statistics.median(s["uptimeMs"] for s in samples["startup"] if "uptimeMs" in s)
+    # The start in phases, ms since the process started (BenchRunner.qml).
+    phased = [s["phases"] for s in samples["startup"] if "phases" in s]
+    for phase in ("main", "app", "loaded", "firstFrame", "data"):
+        values = [p[phase] for p in phased if phase in p]
+        if values:
+            out.setdefault("startup", {})["ms-" + phase] = statistics.median(values)
     return out
 
 

@@ -14,6 +14,9 @@ import QtQuick
  *   frame   ms until the window showed the result (next frame swapped)
  *   blocked ms the event loop was late in the settle time after it
  *   popupFps frames per second of the window while nothing happens
+ * The start (step "startup"): phases in ms since the process started, from benchProbe.marks():
+ *   main ─▶ app (window set up, QML not loaded) ─▶ loaded (main.qml built) ─▶ firstFrame ─▶ data
+ * benchProbe.startupOnly (PLASMAI_BENCH=startup, --bench-startup): the start only, then quit.
  */
 Item {
     id: runner
@@ -72,26 +75,36 @@ Item {
     /** The demo profile was asked for (after main.qml's start: the platform backend is set then). */
     property bool demoStarted: false
 
+    // Polled often: the moment the data shows is the end of the start.
     Timer {
         id: ready
-        interval: 200
+        interval: 20
         repeat: true
         running: runner.active && !runner.started && runner.appRoot !== null && runner.demoHook !== null
         onTriggered: {
-            // The demo profile first; the steps once its data is shown.
-            if (!runner.demoStarted) {
+            const s = runner.appRoot.session
+            const demoActive = s.connection.url.indexOf("demo.invalid") >= 0
+            // The demo profile first, unless the app opened it itself (a warm start: an earlier
+            // run left it as the active profile, DemoHook hands it its token); the steps once its
+            // data is shown.
+            if (!demoActive && !runner.demoStarted) {
                 runner.demoStarted = true
                 runner.demoHook.start()
                 return
             }
-            const s = runner.appRoot.session
-            if (!s.connection.configured || s.connection.url.indexOf("demo.invalid") < 0
-                    || !s.timer.loaded || !s.recent.loaded || s.totals.todayEntries.length === 0) {
+            if (!demoActive || !s.connection.configured || !s.timer.loaded || !s.recent.loaded || s.totals.todayEntries.length === 0) {
                 return
             }
             runner.started = true
             runner.afterFrame(function() {
-                runner.processStats("startup", { uptimeMs: benchProbe.uptimeMs() })
+                benchProbe.mark("data")
+                runner.processStats("startup", { uptimeMs: benchProbe.uptimeMs(), phases: benchProbe.marks(),
+                                                 demoStarted: runner.demoStarted })
+                if (benchProbe.startupOnly) {
+                    console.warn("PLASMAI_BENCH_DONE")
+                    Qt.quit()
+                    return
+                }
                 runner.start()
             })
         }

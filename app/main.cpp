@@ -35,6 +35,7 @@
 #endif
 #ifdef PLASMAI_DEMO
 #include "benchprobe.h"
+#include <QQuickWindow>
 #include <cstring>
 #include <QtQml/qqmldebug.h>
 // Demo builds only: the QML profiler may attach when started with -qmljsdebugger=port:N
@@ -101,10 +102,13 @@ int main(int argc, char *argv[])
 #ifdef PLASMAI_DEMO
     // Internal benchmark (demo/bench-app.sh): its clock starts here.
     bool benchArg = false;
+    bool benchStartupArg = false;
     for (int i = 1; i < argc; ++i) {
         benchArg = benchArg || std::strcmp(argv[i], "--bench") == 0;
+        benchStartupArg = benchStartupArg || std::strcmp(argv[i], "--bench-startup") == 0;
     }
-    auto *benchProbe = new BenchProbe(benchArg || qEnvironmentVariableIsSet("PLASMAI_BENCH"));
+    auto *benchProbe = new BenchProbe(benchArg || qEnvironmentVariableIsSet("PLASMAI_BENCH"),
+                                      benchStartupArg || qgetenv("PLASMAI_BENCH") == "startup");
 #endif
 #ifdef PLASMAI_TUI
     // `plasmai-app --tui`: the terminal client, no window (tui/tuimain.cpp).
@@ -233,11 +237,22 @@ int main(int argc, char *argv[])
     engine.addImportPath(QStringLiteral("qrc:/qt/qml"));
 #endif
 
+#ifdef PLASMAI_DEMO
+    benchProbe->mark(QStringLiteral("app"));
+#endif
     engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
     if (engine.rootObjects().isEmpty()) {
         fprintf(stderr, "plasmai-app: failed to load QML\n");
         return -1;
     }
+#ifdef PLASMAI_DEMO
+    benchProbe->mark(QStringLiteral("loaded"));
+    if (auto *benchWin = qobject_cast<QQuickWindow *>(engine.rootObjects().first())) {
+        // frameSwapped comes from the render thread; mark() is cheap and only notes the first.
+        QObject::connect(benchWin, &QQuickWindow::frameSwapped, benchProbe,
+                         [benchProbe]() { benchProbe->mark(QStringLiteral("firstFrame")); }, Qt::QueuedConnection);
+    }
+#endif
 #ifdef Q_OS_ANDROID
     app.installEventFilter(new AndroidBackFilter(&engine));
 #endif
