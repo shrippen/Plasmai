@@ -22,6 +22,8 @@ ColumnLayout {
     width: parent ? parent.width : implicitWidth
 
     property bool busy: false
+    /** busy while shown: hidden, the view does not follow the poll (every enabled change restyles all controls). */
+    readonly property bool locked: busy && visible
     property bool configured: true
     property bool connectionOk: true
     /** GET /api/mileage/ping body: profile (commute distance), permissions, locked months, features. */
@@ -199,7 +201,7 @@ ColumnLayout {
         return i18n("Invalid value.")
     }
 
-    readonly property bool fieldsEnabled: configured && !busy
+    readonly property bool fieldsEnabled: configured && !locked
 
     /** Heading for the host (Plasmoid header, app page). */
     readonly property string title: root.suggestionMode ? i18n("Accept detected trip")

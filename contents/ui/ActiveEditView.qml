@@ -27,6 +27,8 @@ ColumnLayout {
     property bool pickerOpenBelow: true
     property Item pickerViewport: null
     property bool busy: false
+    /** busy while shown: hidden, the view does not follow the poll (every enabled change restyles all controls). */
+    readonly property bool locked: busy && visible
     property bool configured: true
     property bool connectionOk: true
     /** Pending ids to select once picker models refresh. */
@@ -256,8 +258,8 @@ ColumnLayout {
         activitySectionTitles: root.activitySectionTitles
         pickerOpenBelow: root.pickerOpenBelow
         pickerViewport: root.pickerViewport
-        projectEnabled: root.configured && !root.busy && root.connectionOk
-        activityEnabled: root.configured && !root.busy && root.connectionOk
+        projectEnabled: root.configured && !root.locked && root.connectionOk
+        activityEnabled: root.configured && !root.locked && root.connectionOk
         showCreateActions: root.showCreateActions
         onAboutToOpenPicker: function(projectField, activityField) {
             root.aboutToOpenPicker(projectField, activityField)
@@ -289,13 +291,13 @@ ColumnLayout {
             id: beginDate
             Layout.fillWidth: true
             Layout.preferredWidth: 1
-            enabled: root.configured && !root.busy
+            enabled: root.configured && !root.locked
         }
         TimeField {
             id: beginTime
             Layout.fillWidth: true
             Layout.preferredWidth: 1
-            enabled: root.configured && !root.busy
+            enabled: root.configured && !root.locked
         }
     }
 
@@ -326,7 +328,7 @@ ColumnLayout {
         showTags: root.supportsTags
         tagSource: root.tagSource
         pickerViewport: root.pickerViewport
-        enabled: root.configured && !root.busy
+        enabled: root.configured && !root.locked
     }
 
     RowLayout {
@@ -340,7 +342,7 @@ ColumnLayout {
             Material.foreground: KanteStyle.textColor
             Layout.fillWidth: true
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-            enabled: root.configured && !root.busy && root.connectionOk
+            enabled: root.configured && !root.locked && root.connectionOk
                      && projectCombo.currentIndex >= 0 && activityCombo.currentIndex >= 0
                      && root.beginValid
             text: i18n("Save")
