@@ -33,6 +33,8 @@ Item {
         edit: function(r) { r.openActiveEdit() },
         main: function(r) { r.returnToMainView() }
     })
+    /** What Session.refresh() does, one by one: which part blocks how long. */
+    readonly property var refreshParts: ["timer", "recent", "catalog", "totals", "favorites"]
     readonly property int settleMs: 1500
     readonly property int idleMs: 10000
 
@@ -86,6 +88,8 @@ Item {
     }
 
     function start() {
+        // The poll would refresh at random points in the steps: the steps refresh themselves.
+        plasmoidRoot.session.pollTimer.running = false
         const q = [{ act: "process", name: "startup" }, { act: "open" },
                    { act: "process", name: "idle-open-begin" }, { act: "idle", name: "idle-open" },
                    { act: "process", name: "idle-open-end" }]
@@ -96,6 +100,9 @@ Item {
                 q.push({ act: "view", value: order[i], round: k })
             }
             q.push({ act: "refresh", round: k })
+            for (let i = 0; i < refreshParts.length; ++i) {
+                q.push({ act: "refresh", part: refreshParts[i], round: k })
+            }
         }
         q.push({ act: "collapse" })
         q.push({ act: "process", name: "idle-collapsed-begin" })
@@ -124,9 +131,12 @@ Item {
             timed("view-" + item.value, { round: item.round }, function() { runner.views[item.value](plasmoidRoot) },
                   popupWindow)
             return
-        case "refresh":
-            timed("refresh", { round: item.round }, function() { plasmoidRoot.session.refresh() }, popupWindow)
+        case "refresh": {
+            const s = plasmoidRoot.session
+            const call = item.part ? function() { runner.refreshPart(s, item.part) } : function() { s.refresh() }
+            timed(item.part ? "refresh-" + item.part : "refresh", { round: item.round }, call, popupWindow)
             return
+        }
         case "idle":
             idle(item.name)
             return
@@ -138,6 +148,14 @@ Item {
             Qt.quit()
             return
         }
+    }
+
+    function refreshPart(s, part) {
+        if (part === "favorites") {
+            s.favorites.resolve()
+            return
+        }
+        s[part].refresh()
     }
 
     /** Runs `call`, then reports its blocking time, the next frame and the lag while it settles. */
