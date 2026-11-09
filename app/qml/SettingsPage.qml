@@ -202,7 +202,7 @@ Kirigami.Page {
                     spacing: 0
                     visible: page.locationSearching || page.locationResults.length > 0
 
-                    QQC2.BusyIndicator { visible: page.locationSearching; Layout.alignment: Qt.AlignLeft; Layout.preferredWidth: Kirigami.Units.iconSizes.small; Layout.preferredHeight: Kirigami.Units.iconSizes.small }
+                    KanteBusyIndicator { running: page.locationSearching; Layout.alignment: Qt.AlignLeft; Layout.preferredWidth: Kirigami.Units.iconSizes.small; Layout.preferredHeight: Kirigami.Units.iconSizes.small }
 
                     Repeater {
                         model: page.locationResults

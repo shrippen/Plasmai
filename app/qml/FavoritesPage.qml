@@ -93,10 +93,9 @@ Kirigami.Page {
                         visible: page.expandedProjectId === projectDelegate.modelData.value.id
                         spacing: 0
 
-                        QQC2.BusyIndicator {
+                        KanteBusyIndicator {
                             Layout.alignment: Qt.AlignHCenter
-                            running: visible
-                            visible: page.expandedProjectId === projectDelegate.modelData.value.id && page.expandedActivities.length === 0
+                            running: page.expandedProjectId === projectDelegate.modelData.value.id && page.expandedActivities.length === 0
                         }
 
                         Repeater {

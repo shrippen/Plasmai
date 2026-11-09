@@ -163,7 +163,7 @@ Kirigami.Page {
                 Layout.fillWidth: true; maximumLineCount: 1
             }
             KanteLoader { visible: KanteStyle.active && (session.busy || session.refreshing || session.connection.state === "connecting"); Layout.alignment: Qt.AlignVCenter }
-            QQC2.BusyIndicator { running: session.busy || session.refreshing || session.connection.state === "connecting"; visible: running && !KanteStyle.active; Layout.preferredWidth: Kirigami.Units.iconSizes.small; Layout.preferredHeight: Kirigami.Units.iconSizes.small }
+            KanteBusyIndicator { running: (session.busy || session.refreshing || session.connection.state === "connecting") && !KanteStyle.active; Layout.preferredWidth: Kirigami.Units.iconSizes.small; Layout.preferredHeight: Kirigami.Units.iconSizes.small }
         }
 
         Kirigami.InlineMessage {

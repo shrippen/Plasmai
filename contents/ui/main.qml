@@ -2457,9 +2457,8 @@ PlasmoidItem {
                                 Layout.alignment: Qt.AlignVCenter
                             }
 
-                            QQC2.BusyIndicator {
-                                running: root.loading
-                                visible: running && !KanteStyle.active
+                            KanteBusyIndicator {
+                                running: root.loading && !KanteStyle.active
                                 Layout.preferredWidth: Kirigami.Units.iconSizes.small
                                 Layout.preferredHeight: Kirigami.Units.iconSizes.small
                             }

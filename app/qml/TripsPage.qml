@@ -218,10 +218,9 @@ Kirigami.Page {
                       + (page.monthLocked ? " · " + i18n("month closed") : "")
             }
 
-            QQC2.BusyIndicator {
+            KanteBusyIndicator {
                 Layout.alignment: Qt.AlignHCenter
-                visible: page.loading && page.trips.length === 0
-                running: visible
+                running: page.loading && page.trips.length === 0
             }
 
             Kirigami.PlaceholderMessage {
