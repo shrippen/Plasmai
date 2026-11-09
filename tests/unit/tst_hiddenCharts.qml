@@ -19,9 +19,9 @@ TestCase {
         KanteStyle.kind = KanteStyle.Kind.System
     }
 
-    /** A shown building block (KanteBarChart, colour dot): its own hidden parts are its business. */
+    /** A shown building block (KanteBarChart, KanteWeekTimeline, colour dot): its own hidden parts are its business. */
     function isBlock(it) {
-        return it.stackColors !== undefined || it.customerColor !== undefined
+        return it.stackColors !== undefined || it.customerColor !== undefined || it.dayNames !== undefined
     }
 
     /** Items below `item` that are not shown because an ancestor (or they) are hidden. */
@@ -70,6 +70,18 @@ TestCase {
         return out
     }
 
+    function hourWeek() {
+        const out = []
+        for (let d = 0; d < 7; d++) {
+            const segs = []
+            for (let h = 8; h < 17; h += 2) {
+                segs.push({ startHour: h, endHour: h + 1.5, color: "#d65d0e", name: "Web", seconds: 5400 })
+            }
+            out.push({ label: "D" + d, date: new Date(2000, 0, 3 + d), totalSeconds: 27000, segments: segs })
+        }
+        return out
+    }
+
     function create(name, props) {
         const c = Qt.createComponent(Qt.resolvedUrl("../../contents/ui/" + name + ".qml"))
         verify(c.status === Component.Ready, c.errorString())
@@ -82,6 +94,8 @@ TestCase {
         for (let k = 0; k < kinds.length; k++) {
             out.push({ tag: "BarChart-" + kinds[k].name, kind: kinds[k].kind, chart: "BarChart", props: { model: hours() } })
             out.push({ tag: "StackedBarChart-" + kinds[k].name, kind: kinds[k].kind, chart: "StackedBarChart", props: { days: week() } })
+            out.push({ tag: "WeeklyHourChart-" + kinds[k].name, kind: kinds[k].kind, chart: "WeeklyHourChart",
+                       props: { days: hourWeek(), hourMin: 8, hourMax: 18 } })
             out.push({ tag: "PieChart-" + kinds[k].name, kind: kinds[k].kind, chart: "PieChart", props: { rows: rows(), totalSeconds: 10800 } })
         }
         return out

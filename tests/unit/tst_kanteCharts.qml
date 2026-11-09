@@ -103,9 +103,9 @@ TestCase {
             { label: "Tu", date: new Date(), totalSeconds: 0, segments: [] }
         ]
         var chart = create("WeeklyHourChart", { width: 300, days: days, hourMin: 8, hourMax: 18 })
-        var timeline = findItem(chart, function(i) { return i.dayNames !== undefined })
-        verify(!timeline.visible)
+        compare(findItem(chart, function(i) { return i.dayNames !== undefined }), null, "System builds no Kante timeline")
         KanteStyle.kind = KanteStyle.Kind.Kante
+        var timeline = findItem(chart, function(i) { return i.dayNames !== undefined })
         verify(timeline.visible)
         compare(timeline.dayNames, ["Mo", "Tu"])
         compare(timeline.entries.length, 1)
