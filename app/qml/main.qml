@@ -401,6 +401,57 @@ Kirigami.ApplicationWindow {
         pageStack.push(component)
     }
 
+    // ── The drawer's entries, built a moment after the start or when the drawer opens first:
+    // with them the Android start built eight entries of a closed drawer. ──
+    property bool drawerReady: false
+    readonly property list<Kirigami.Action> drawerEntries: [
+        Kirigami.Action {
+            text: i18n("Timer")
+            onTriggered: { pageStack.pop(pageStack.get(0)); globalDrawer.drawerOpen = false }
+        },
+        Kirigami.Action {
+            text: i18n("Add Entry")
+            onTriggered: { root.navigateTo(manualPageComponent); globalDrawer.drawerOpen = false }
+        },
+        Kirigami.Action {
+            text: i18n("Statistics")
+            onTriggered: { root.navigateTo(statsPageComponent); globalDrawer.drawerOpen = false }
+        },
+        Kirigami.Action {
+            text: i18n("Trips")
+            visible: root.session.trips.available
+            onTriggered: { root.navigateTo(tripsPageComponent); globalDrawer.drawerOpen = false }
+        },
+        Kirigami.Action {
+            text: i18n("Favorites")
+            onTriggered: { root.navigateTo(favoritesComponent); globalDrawer.drawerOpen = false }
+        },
+        Kirigami.Action {
+            text: i18n("Connection")
+            onTriggered: { root.navigateTo(connectionComponent); globalDrawer.drawerOpen = false }
+        },
+        Kirigami.Action {
+            text: i18n("Settings")
+            onTriggered: { root.navigateTo(settingsComponent); globalDrawer.drawerOpen = false }
+        },
+        Kirigami.Action {
+            text: i18n("About")
+            onTriggered: { root.navigateTo(aboutComponent); globalDrawer.drawerOpen = false }
+        }
+    ]
+    Timer {
+        // After the first frame and the data: nobody reaches for the drawer that fast.
+        interval: 1500
+        running: !root.drawerReady && root.firstFrameShown
+        onTriggered: root.drawerReady = true
+    }
+    property bool firstFrameShown: false
+    Connections {
+        target: root
+        enabled: !root.firstFrameShown
+        function onFrameSwapped() { root.firstFrameShown = true }
+    }
+
     globalDrawer: Kirigami.GlobalDrawer {
         id: globalDrawer
         title: i18n("Plasmai")
@@ -411,7 +462,10 @@ Kirigami.ApplicationWindow {
         // Sometimes the slide-in does not run (Kirigami disables the enter transition while the
         // drawer peeks under a touch): the drawer counts as open at position 0, invisible, and the
         // next tap closes it. Slide it in when it is still at 0 shortly after opening.
-        onAboutToShow: slideInGuard.restart()
+        onAboutToShow: {
+            root.drawerReady = true
+            slideInGuard.restart()
+        }
         Timer {
             id: slideInGuard
             interval: 350
@@ -430,41 +484,8 @@ Kirigami.ApplicationWindow {
             easing.type: Easing.OutCubic
         }
 
-        actions: [
-            Kirigami.Action {
-                text: i18n("Timer")
-                onTriggered: { pageStack.pop(pageStack.get(0)); globalDrawer.drawerOpen = false }
-            },
-            Kirigami.Action {
-                text: i18n("Add Entry")
-                onTriggered: { root.navigateTo(manualPageComponent); globalDrawer.drawerOpen = false }
-            },
-            Kirigami.Action {
-                text: i18n("Statistics")
-                onTriggered: { root.navigateTo(statsPageComponent); globalDrawer.drawerOpen = false }
-            },
-            Kirigami.Action {
-                text: i18n("Trips")
-                visible: root.session.trips.available
-                onTriggered: { root.navigateTo(tripsPageComponent); globalDrawer.drawerOpen = false }
-            },
-            Kirigami.Action {
-                text: i18n("Favorites")
-                onTriggered: { root.navigateTo(favoritesComponent); globalDrawer.drawerOpen = false }
-            },
-            Kirigami.Action {
-                text: i18n("Connection")
-                onTriggered: { root.navigateTo(connectionComponent); globalDrawer.drawerOpen = false }
-            },
-            Kirigami.Action {
-                text: i18n("Settings")
-                onTriggered: { root.navigateTo(settingsComponent); globalDrawer.drawerOpen = false }
-            },
-            Kirigami.Action {
-                text: i18n("About")
-                onTriggered: { root.navigateTo(aboutComponent); globalDrawer.drawerOpen = false }
-            }
-        ]
+        // The entries come shortly after the start (drawerEntries below): the drawer is closed then.
+        actions: root.drawerReady ? root.drawerEntries : []
     }
 
     contextDrawer: Kirigami.ContextDrawer {
