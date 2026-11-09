@@ -124,6 +124,30 @@ TestCase {
         compare(shown, [false], "only the stop shows")
     }
 
+    // The poll reloads today and the week; the same entries keep the same arrays, so the
+    // day sparkline and the charts do not recompute (sun and moon paths, every bar).
+    function test_sameTotalsKeepArrays() {
+        const s = openDemo()
+        tryVerify(function() { return s.totals.todayEntries.length > 0 })
+        const today = s.totals.todayEntries
+        const week = s.totals.weekEntries
+        let changes = 0
+        function onChange() { changes++ }
+        s.totals.todayEntriesChanged.connect(onChange)
+        s.totals.weekEntriesChanged.connect(onChange)
+        s.totals.refresh()
+        wait(50)
+        // Kimai: the running entry's duration has grown since the last poll.
+        const grown = JSON.parse(JSON.stringify(today))
+        grown.forEach(function(ts) { if (!ts.end) { ts.duration = (ts.duration || 0) + 30 } })
+        s.totals.show(week, grown)
+        s.totals.todayEntriesChanged.disconnect(onChange)
+        s.totals.weekEntriesChanged.disconnect(onChange)
+        compare(changes, 0, "nothing new: no change signals")
+        verify(s.totals.todayEntries === today)
+        verify(s.totals.weekEntries === week)
+    }
+
     function test_noSharedMeansSetup() {
         Platform.setBackend(backend(null))
         const s = createTemporaryObject(sessionComponent, this)

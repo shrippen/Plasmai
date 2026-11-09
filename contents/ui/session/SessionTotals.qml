@@ -55,8 +55,7 @@ QtObject {
             }
             weekCreditSeconds = t.weekAbsenceCreditSeconds
             todayCreditSeconds = t.todayAbsenceCreditSeconds
-            weekEntries = session.catalog.hydrate(t.weekEntries)
-            todayEntries = session.catalog.hydrate(t.todayEntries)
+            show(session.catalog.hydrate(t.weekEntries), session.catalog.hydrate(t.todayEntries))
             todaySeconds = t.todaySeconds
             weekSeconds = t.weekSeconds
             elapsedAnchor = session.timer.elapsedSeconds
@@ -65,7 +64,24 @@ QtObject {
 
     /** Names from a catalog that came after the entries. */
     function rehydrate() {
-        weekEntries = session.catalog.hydrate(weekEntries)
-        todayEntries = session.catalog.hydrate(todayEntries)
+        show(session.catalog.hydrate(weekEntries), session.catalog.hydrate(todayEntries))
+    }
+
+    // Only replace a list when it changed: a new array recomputes the day sparkline
+    // (sun and moon paths) and the charts. The running entry's duration grows with
+    // every poll; the views take begin and now, so it is no change.
+    function show(week, today) {
+        if (entriesText(week) !== entriesText(weekEntries)) {
+            weekEntries = week
+        }
+        if (entriesText(today) !== entriesText(todayEntries)) {
+            todayEntries = today
+        }
+    }
+
+    function entriesText(list) {
+        return JSON.stringify(list, function(key, value) {
+            return key === "duration" && this && this.begin && !this.end ? undefined : value
+        })
     }
 }
