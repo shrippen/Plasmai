@@ -15,3 +15,7 @@ the landing-page screenshots offscreen (plan in `demo/shots.json`, run by
 that profile (`contents/ui/BenchRunner.qml`): opening the popup, each view, a refresh, frames and
 CPU while idle, memory and shell processes started. Run it on a display (xcb); compare before and
 after a change with `--save` and `--compare`.
+
+`demo/bench-app.sh desktop|flatpak|android …` does the same for the app (`app/qml/BenchRunner.qml`) in
+a demo build (`-DPLASMAI_DEMO=ON`): on the desktop, in the Flatpak build sandbox, or on a phone
+(the debug APK is its own app, `.dev`; its data is cleared before each run). Usage in the script.
