@@ -93,6 +93,37 @@ TestCase {
         compare(startSpy.signalArguments[0][1], Ui.Session.Origin.Switch)
     }
 
+    // The poll refreshes every 30 s: it shows the loading indicator, but does not lock
+    // the inputs (session.busy), which restyled every control twice per poll.
+    function test_refreshDoesNotLock() {
+        const s = openDemo()
+        tryCompare(s, "busy", false)
+        tryCompare(s, "refreshing", false)
+        s.refresh()
+        verify(s.refreshing, "the indicator shows the refresh")
+        verify(!s.busy, "inputs stay usable")
+        tryCompare(s, "refreshing", false)
+    }
+
+    // A refresh asked before a write answers the state before it: dropped, the
+    // write refreshes itself once it is through.
+    function test_staleRefreshDropped() {
+        const s = openDemo()
+        tryVerify(function() { return s.timer.tracking })
+        tryCompare(s, "refreshing", false)
+        const shown = []
+        function onActive() { shown.push(!!s.timer.active) }
+        s.timer.refresh()
+        s.timer.activeChanged.connect(onActive)
+        s.timer.stop()
+        tryCompare(s.timer, "tracking", false)
+        tryCompare(s, "refreshing", false)
+        s.timer.activeChanged.disconnect(onActive)
+        // The demo world is shared by the tests: its timer runs again.
+        DemoKimai.reset()
+        compare(shown, [false], "only the stop shows")
+    }
+
     function test_noSharedMeansSetup() {
         Platform.setBackend(backend(null))
         const s = createTemporaryObject(sessionComponent, this)

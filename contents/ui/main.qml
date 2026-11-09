@@ -233,7 +233,7 @@ PlasmoidItem {
     readonly property bool showSetupState: session.connection.tokenLoaded && !session.connection.configured
     readonly property bool showErrorState: errorMessage.length > 0 && connectionState === "error"
     /** Shown while shared.json is read or the session connects. */
-    readonly property bool loading: session.busy || connectionState === "connecting" || reloading
+    readonly property bool loading: session.busy || session.refreshing || connectionState === "connecting" || reloading
 
     function dismissPickerPopups() {
         if (root.switchPickersRef) {

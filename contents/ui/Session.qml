@@ -72,8 +72,18 @@ QtObject {
     readonly property SessionReminders reminders: SessionReminders { session: session }
     readonly property SessionSetup setup: SessionSetup { session: session }
 
-    /** A refresh or a write runs (one flag for the busy indicator). */
+    /** A write runs: inputs are locked until it answered. */
     property bool busy: false
+    /** A refresh of the running entry runs (the loading indicator; inputs stay usable). */
+    readonly property bool refreshing: timer.refreshes > 0
+    /** Writes started so far: a refresh asked before one answers the old state. */
+    property int writes: 0
+
+    onBusyChanged: {
+        if (busy) {
+            writes++
+        }
+    }
 
     signal failed(int action, var result)
     /** A start of this client went through; names: { project, activity } as the view showed them. */

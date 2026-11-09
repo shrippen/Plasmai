@@ -55,15 +55,24 @@ QtObject {
         onTriggered: timer.flushDescription()
     }
 
+    /** Refreshes waiting for their answer (session.refreshing). */
+    property int refreshes: 0
+
+    // Not session.busy: the poll must not lock the inputs (and restyle every control) twice a refresh.
     function refresh() {
         const c = session.connection
-        session.busy = true
+        const writes = session.writes
+        refreshes++
         c.tracker.fetchActiveTimesheet(c.url, c.token, function(result) {
-            session.busy = false
+            refreshes--
             loaded = true
             c.observe(result)
             if (!result.ok) {
                 session.failed(Ui.Session.Action.Refresh, result)
+                return
+            }
+            // A write started meanwhile: this is the state before it; the write refreshes after.
+            if (writes !== session.writes || session.busy) {
                 return
             }
             // Offline answers come from the snapshot without customer and names: fill them in.

@@ -162,8 +162,8 @@ Kirigami.Page {
                 color: Qt.alpha(KanteStyle.textColor, 0.7); font.pointSize: KanteStyle.smallFont.pointSize; elide: Text.ElideRight
                 Layout.fillWidth: true; maximumLineCount: 1
             }
-            KanteLoader { visible: KanteStyle.active && (session.busy || session.connection.state === "connecting"); Layout.alignment: Qt.AlignVCenter }
-            QQC2.BusyIndicator { running: session.busy || session.connection.state === "connecting"; visible: running && !KanteStyle.active; Layout.preferredWidth: Kirigami.Units.iconSizes.small; Layout.preferredHeight: Kirigami.Units.iconSizes.small }
+            KanteLoader { visible: KanteStyle.active && (session.busy || session.refreshing || session.connection.state === "connecting"); Layout.alignment: Qt.AlignVCenter }
+            QQC2.BusyIndicator { running: session.busy || session.refreshing || session.connection.state === "connecting"; visible: running && !KanteStyle.active; Layout.preferredWidth: Kirigami.Units.iconSizes.small; Layout.preferredHeight: Kirigami.Units.iconSizes.small }
         }
 
         Kirigami.InlineMessage {
@@ -924,7 +924,7 @@ Kirigami.Page {
         anchors.fill: parent
         z: 10
         flickable: narrowScroll.contentItem
-        busy: session.busy
+        busy: session.busy || session.refreshing
         onRefreshRequested: session.refresh()
     }
 
@@ -934,7 +934,7 @@ Kirigami.Page {
         anchors.fill: parent
         z: 10
         flickable: wideLeftScroll.contentItem
-        busy: session.busy
+        busy: session.busy || session.refreshing
         onRefreshRequested: session.refresh()
     }
 
@@ -944,7 +944,7 @@ Kirigami.Page {
         anchors.fill: parent
         z: 10
         flickable: wideRightScroll.contentItem
-        busy: session.busy
+        busy: session.busy || session.refreshing
         onRefreshRequested: session.refresh()
     }
 }

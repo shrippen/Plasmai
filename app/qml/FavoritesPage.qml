@@ -123,7 +123,7 @@ Kirigami.Page {
         anchors.fill: parent
         z: 10
         flickable: pageScroll.contentItem
-        busy: session.busy
+        busy: session.busy || session.refreshing
         onRefreshRequested: session.refresh()
     }
 }
