@@ -56,8 +56,8 @@ RowLayout {
 
     /** Opens the calendar popup programmatically (e.g. from a custom big-text header). */
     function openPicker() {
-        if (KanteStyle.active) {
-            kanteDate.open()
+        if (kanteDate.item) {
+            kanteDate.item.open()
             return
         }
         datePicker.openFor(DTF.coerceDate(root.selectedDate) || new Date())
@@ -141,25 +141,35 @@ RowLayout {
     })
 
     // Kante: KanteDateField; it keeps `selectedDate`, which code sets with setDate().
-    KanteDateField {
+    // Built in Kante only: with its calendar it is the larger half of the field.
+    Loader {
         id: kanteDate
         Layout.fillWidth: true
         Layout.preferredHeight: Math.max(implicitHeight, TouchUi.controlMinHeight)
-        visible: KanteStyle.active
-        format: DTF.localeDateFormat()
-        placeholderText: DTF.datePlaceholder()
-        dayNames: root.kanteDayNames
-        todayText: i18n("Today")
-        onDateEdited: function(date) {
-            if (date) {
-                root.setDate(date)
-            } else {
-                // Emptied: an entry always has a date, so the field shows it again.
-                kanteDate.date = DTF.coerceDate(root.selectedDate)
+        active: KanteStyle.active
+        visible: active
+        sourceComponent: KanteDateField {
+            id: kanteDateField
+            format: DTF.localeDateFormat()
+            placeholderText: DTF.datePlaceholder()
+            dayNames: root.kanteDayNames
+            todayText: i18n("Today")
+            onDateEdited: function(date) {
+                if (date) {
+                    root.setDate(date)
+                } else {
+                    // Emptied: an entry always has a date, so the field shows it again.
+                    kanteDateField.date = DTF.coerceDate(root.selectedDate)
+                }
             }
+            Component.onCompleted: date = DTF.coerceDate(root.selectedDate)
         }
     }
-    onSelectedDateChanged: kanteDate.date = DTF.coerceDate(selectedDate)
+    onSelectedDateChanged: {
+        if (kanteDate.item) {
+            kanteDate.item.date = DTF.coerceDate(selectedDate)
+        }
+    }
 
     KanteTextField {
         id: dateField
@@ -252,8 +262,5 @@ RowLayout {
         onPicked: function(date) { root.setDate(date) }
     }
 
-    Component.onCompleted: {
-        refreshText()
-        kanteDate.date = DTF.coerceDate(selectedDate)
-    }
+    Component.onCompleted: refreshText()
 }
