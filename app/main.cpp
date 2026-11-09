@@ -36,6 +36,10 @@
 #ifdef PLASMAI_DEMO
 #include "benchprobe.h"
 #include <cstring>
+#include <QtQml/qqmldebug.h>
+// Demo builds only: the QML profiler may attach when started with -qmljsdebugger=port:N
+// (on a phone: the intent extra applicationArguments, then adb forward). Off without it.
+static QQmlDebuggingEnabler qmlDebugging(false);
 #endif
 #ifdef PLASMAI_TUI
 #include "tui/tuimain.h"

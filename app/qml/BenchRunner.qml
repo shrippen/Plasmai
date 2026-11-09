@@ -99,8 +99,14 @@ Item {
 
     function afterFrame(f) {
         const win = appRoot
+        let done = false
+        // frameSwapped comes from the render thread: several may be queued before the disconnect.
         function swapped() {
             win.frameSwapped.disconnect(swapped)
+            if (done) {
+                return
+            }
+            done = true
             f()
         }
         win.frameSwapped.connect(swapped)

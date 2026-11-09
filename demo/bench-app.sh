@@ -6,7 +6,8 @@
 # The build must have the demo (-DPLASMAI_DEMO=ON). Each run starts the app fresh with empty
 # settings; the table is the median of all runs (demo/bench-report.py, as for the widget).
 #   desktop  own XDG folders, so your settings stay untouched (QPA: BENCH_QPA, default xcb)
-#   flatpak  flatpak-builder --run in the build folder: nothing is installed
+#   flatpak  flatpak-builder --run in the build folder: nothing is installed, own folders per run;
+#            Wayland (the build sandbox has no X11)
 #   android  installs the APK (a debug build is its own app, ".dev") and clears its data
 #            before each run; back up that app's data first if it holds any
 set -euo pipefail
@@ -52,15 +53,20 @@ run_desktop() {
 }
 
 run_flatpak() {
-    local log=$1
-    # The sandbox keeps the app's settings in ~/.var/app/<id>: start each run without them.
-    rm -rf "${HOME}/.var/app/io.github.shrippen.Plasmai"
-    timeout "${LIMIT_S}" flatpak-builder --run "${FLATPAK_DIR}" "${MANIFEST}" plasmai-app --bench >"${log}" 2>&1 || true
+    local log=$1 run=$2
+    # Fresh folders per run inside the sandbox, not the app's ~/.var/app/<id> (your settings).
+    local home="/tmp/plasmai-bench-$$-${run}"
+    timeout "${LIMIT_S}" flatpak-builder --state-dir="${WORK}/flatpak-state" --run "${FLATPAK_DIR}" "${MANIFEST}" \
+        env WAYLAND_DISPLAY="${WAYLAND_DISPLAY:-wayland-0}" QT_QPA_PLATFORM="${BENCH_QPA:-wayland}" \
+        XDG_CONFIG_HOME="${home}/config" XDG_DATA_HOME="${home}/data" XDG_CACHE_HOME="${home}/cache" \
+        LANGUAGE=en plasmai-app --bench >"${log}" 2>&1 || true
 }
 
 run_android() {
     local log=$1 pkg=$2
     adb shell pm clear "${pkg}" >/dev/null
+    # Cleared data asks for notifications again: the system dialog would hold the start up.
+    adb shell pm grant "${pkg}" android.permission.POST_NOTIFICATIONS 2>/dev/null || true
     adb logcat -c
     adb shell am start -W -n "${pkg}/${ANDROID_ACTIVITY}" -e applicationArguments --bench >/dev/null
     local waited=0
@@ -79,7 +85,9 @@ case "${TARGET}" in
     flatpak) [[ -d "${FLATPAK_DIR}" && -f "${MANIFEST}" ]] || { echo "--flatpak and --manifest needed" >&2; exit 64; } ;;
     android)
         [[ -f "${APK}" ]] || { echo "--apk: no file ${APK}" >&2; exit 64; }
-        PKG=$("${ANDROID_SDK_ROOT:-${HOME}/android-sdk}"/build-tools/*/aapt2 dump packagename "${APK}" 2>/dev/null | head -1)
+        # The newest build-tools (several may be installed).
+        AAPT2=$(ls -d "${ANDROID_SDK_ROOT:-${HOME}/android-sdk}"/build-tools/*/ | sort -V | tail -1)aapt2
+        PKG=$("${AAPT2}" dump packagename "${APK}" 2>/dev/null | head -1 || true)
         [[ -n "${PKG}" ]] || { echo "cannot read the package name of ${APK}" >&2; exit 1; }
         adb install -r "${APK}" >/dev/null
         echo "installed ${PKG} on $(adb shell getprop ro.product.model)" >&2
@@ -91,7 +99,7 @@ for ((run = 1; run <= RUNS; run++)); do
     LOG="${WORK}/run-${run}.log"
     case "${TARGET}" in
         desktop) run_desktop "${LOG}" ;;
-        flatpak) run_flatpak "${LOG}" ;;
+        flatpak) run_flatpak "${LOG}" "${run}" ;;
         android) run_android "${LOG}" "${PKG}" ;;
     esac
     if ! grep -q "PLASMAI_BENCH_DONE" "${LOG}"; then
