@@ -178,8 +178,27 @@ function snapshotText(snapshot) {
     })
 }
 
-/** Written when its content changed (compared without the time) or the file's time is old. */
+/**
+ * Saves the snapshot. With host.defer(fn) once for a burst of answers (a refresh
+ * reads a dozen): comparing the text costs a stringify of the whole snapshot.
+ */
 function saveSnapshot(s) {
+    if (!s.host.defer) {
+        writeSnapshot(s)
+        return
+    }
+    if (s.saveQueued) {
+        return
+    }
+    s.saveQueued = true
+    s.host.defer(function() {
+        s.saveQueued = false
+        writeSnapshot(s)
+    })
+}
+
+/** Written when its content changed (compared without the time) or the file's time is old. */
+function writeSnapshot(s) {
     pruneEntries(s)
     pruneReads(s)
     var text = snapshotText(s.snapshot)
@@ -1103,6 +1122,7 @@ function createSession(inner, host) {
         snapshot: emptySnapshot(),
         savedSnapshotText: "",
         savedSnapshotAt: 0,
+        saveQueued: false,
         replaying: false,
         replayWaiters: []
     }
