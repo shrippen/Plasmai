@@ -48,9 +48,9 @@ TestCase {
 
     function test_barChart() {
         var chart = create("BarChart", { width: 300, height: 120, model: [{ label: "9", seconds: 1800 }, { label: "", seconds: 3600 }] })
-        var bars = kanteBars(chart)
-        verify(!bars.visible)
+        compare(kanteBars(chart), null, "System builds no Kante chart")
         KanteStyle.kind = KanteStyle.Kind.Kante
+        var bars = kanteBars(chart)
         verify(bars.visible)
         verify(bars.axis)
         compare(bars.valueFormat, KanteBarChart.ValueFormat.Hours)
@@ -61,9 +61,9 @@ TestCase {
     // Parts keep one index across days, so a project has one colour.
     function test_stackedBarChart() {
         var chart = create("StackedBarChart", { width: 300, height: 120, days: week })
-        var bars = kanteBars(chart)
-        verify(!bars.visible)
+        compare(kanteBars(chart), null, "System builds no Kante chart")
         KanteStyle.kind = KanteStyle.Kind.KanteLight
+        var bars = kanteBars(chart)
         verify(bars.visible)
         compare(bars.values, [[5, 2.5], [0, 2]])
         compare(bars.stackColors.length, 2)
@@ -77,9 +77,9 @@ TestCase {
     function test_pieChart() {
         var rows = [{ name: "Web", seconds: 7200, color: "#d65d0e", ratio: 0.8 }, { name: "App", seconds: 1800, color: "#458588", ratio: 0.2 }]
         var pie = create("PieChart", { width: 300, rows: rows, totalSeconds: 9000 })
-        var bars = kanteBars(pie)
-        verify(!bars.visible)
+        compare(kanteBars(pie), null, "System builds no Kante chart")
         KanteStyle.kind = KanteStyle.Kind.Kante
+        var bars = kanteBars(pie)
         verify(bars.visible)
         compare(bars.values, [[2, 0], [0, 0.5]])
         compare(Qt.color(bars.stackColors[0]), Qt.color("#d65d0e"))

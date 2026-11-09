@@ -34,20 +34,24 @@ ColumnLayout {
     }
 
     // Kante: one bar per row; a row's hours sit at its own index, so it takes its colour.
-    KanteBarChart {
+    // Built only in Kante.
+    Loader {
         Layout.fillWidth: true
         Layout.preferredHeight: root.chartSize
-        visible: KanteStyle.active && root.totalSeconds > 0
-        axis: true
-        valueFormat: KanteBarChart.ValueFormat.Hours
-        values: (root.rows || []).map(function(row, i) {
-            return root.rows.map(function(other, k) { return k === i ? (Number(row.seconds) || 0) / root.secondsPerHour : 0 })
-        })
-        stackColors: (root.rows || []).map(function(row) { return row.color || PlasmaiColors.chart })
-        partNames: (root.rows || []).map(function(row) {
-            // statsData.js has no i18n; its catch-all row is keyed "_other".
-            return row.key === "_other" ? i18n("Other") : (row.name || "")
-        })
+        active: KanteStyle.active
+        visible: active && root.totalSeconds > 0
+        sourceComponent: KanteBarChart {
+            axis: true
+            valueFormat: KanteBarChart.ValueFormat.Hours
+            values: (root.rows || []).map(function(row, i) {
+                return root.rows.map(function(other, k) { return k === i ? (Number(row.seconds) || 0) / root.secondsPerHour : 0 })
+            })
+            stackColors: (root.rows || []).map(function(row) { return row.color || PlasmaiColors.chart })
+            partNames: (root.rows || []).map(function(row) {
+                // statsData.js has no i18n; its catch-all row is keyed "_other".
+                return row.key === "_other" ? i18n("Other") : (row.name || "")
+            })
+        }
     }
 
     // Empty: the chart's height, so an empty pie keeps its place next to a full one.
