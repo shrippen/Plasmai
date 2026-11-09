@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as QQC2
 import QtQml.Models
+import QtCore as QtCore
 import org.kde.plasma.plasmoid
 import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.components as PlasmaComponents3
@@ -350,11 +351,23 @@ PlasmoidItem {
         }
     }
 
-    // Profile changes made in the app (shared.json): read by a shell process, so often only
-    // while the popup is open; collapsed a minute is soon enough (the panel shows no profile).
+    // Profile changes made elsewhere (shared.json): read when the folder says the file is new.
+    // Reading takes a shell process, so no polling every few seconds; the timer only catches
+    // what a watcher can miss (the folder did not exist yet).
+    SharedConfigWatch {
+        folder: QtCore.StandardPaths.writableLocation(QtCore.StandardPaths.GenericConfigLocation)
+                + "/com.github.shrippen.plasmai"
+        fileName: "shared.json"
+        onChanged: {
+            if (!root.reloading && root.session.connection.tokenLoaded) {
+                root.pollSharedConfig()
+            }
+        }
+    }
+
     Timer {
         id: sharedConfigPollTimer
-        interval: root.expanded ? 5000 : 60000
+        interval: 300000
         running: !root.reloading && root.session.connection.tokenLoaded
         repeat: true
         onTriggered: root.pollSharedConfig()
