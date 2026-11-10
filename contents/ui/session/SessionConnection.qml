@@ -89,6 +89,8 @@ QtObject {
     function useProfile(p) {
         // Another profile: its first answers are pending again (views show loading rows).
         if (!profile || !p || profile.id !== p.id) {
+            session.timer.generation++
+            session.timer.apply(null)
             session.timer.loaded = false
             session.recent.loaded = false
             session.catalog.loaded = false

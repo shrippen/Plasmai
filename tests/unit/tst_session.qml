@@ -153,6 +153,29 @@ TestCase {
         compare(shown, [false], "only the stop shows")
     }
 
+    // The answer to profile A's poll arrives after the switch to B: it must not set `loaded`
+    // or show A's running entry in B.
+    function test_oldProfileAnswerDropped() {
+        const s = openDemo()
+        tryVerify(function() { return s.timer.tracking })
+        tryCompare(s, "refreshing", false)
+        const entry = s.timer.active
+        let answer = null
+        s.connection.tracker.fetchActiveTimesheet = function(_url, _token, cb) { answer = cb }
+        s.timer.refresh()
+        verify(answer, "the poll of A is out")
+
+        const other = { id: "other", name: "B", url: "http://other.invalid" }
+        s.connection.useProfile(other)
+        verify(!s.timer.loaded, "B starts unloaded")
+        verify(!s.timer.tracking, "nothing of A stays in B")
+
+        answer({ ok: true, data: [entry] })
+        verify(!s.timer.loaded, "the old answer does not mark B loaded")
+        verify(!s.timer.tracking, "the old answer does not show A's entry in B")
+        compare(s.timer.refreshes, 0)
+    }
+
     // The poll reloads today and the week; the same entries keep the same arrays, so the
     // day sparkline and the charts do not recompute (sun and moon paths, every bar).
     function test_sameTotalsKeepArrays() {
