@@ -16,10 +16,10 @@ umask 077
 DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 DIR="$DATA_HOME/io.github.shrippen.Plasmai/plasmoid"
 # Up to 2.6.3 the folder had the old id's name: it moves once, unless the new one is there
-# (mv -T fails when another process moved it first; that one's result counts).
+# (when another process moved it first, mv fails and that one's result counts).
 OLD_DIR="$DATA_HOME/com.github.shrippen.plasmai"
 if [ ! -e "$DATA_HOME/io.github.shrippen.Plasmai" ] && [ -d "$OLD_DIR" ]; then
-    mv -T "$OLD_DIR" "$DATA_HOME/io.github.shrippen.Plasmai" 2>/dev/null || true
+    mv "$OLD_DIR" "$DATA_HOME/io.github.shrippen.Plasmai" 2>/dev/null || true
 fi
 
 valid() {

@@ -16,10 +16,10 @@ CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
 DIR="$CACHE_HOME/io.github.shrippen.Plasmai"
 FILE="$DIR/catalog-cache.json"
 # Up to 2.6.3 the folder had the old id's name: it moves once, unless the new one is there
-# (mv -T fails when another process moved it first; that one's result counts).
+# (when another process moved it first, mv fails and that one's result counts).
 OLD_DIR="$CACHE_HOME/com.github.shrippen.plasmai"
 if [ ! -e "$DIR" ] && [ -d "$OLD_DIR" ]; then
-    mv -T "$OLD_DIR" "$DIR" 2>/dev/null || true
+    mv "$OLD_DIR" "$DIR" 2>/dev/null || true
 fi
 
 case "${1:-}" in

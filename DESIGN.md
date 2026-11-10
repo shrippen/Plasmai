@@ -724,7 +724,8 @@ read as Kante. It is the design system's `KanteStyle.Kind.KanteLight`:
   `TokenStore`: copied, then the old one deleted, and a clear clears both so a token not yet
   moved cannot come back), and the placed widgets (`install-linux.sh` replaces each with one of
   the new id in the same place, with its settings, and removes the old package once none is
-  left). Plasma itself knows no renaming, so a widget updated through the KDE Store comes as a
+  left; it waits while an outbox holds unsent changes, since the outbox file is named after the
+  applet id and the new widget has another). Plasma itself knows no renaming, so a widget updated through the KDE Store comes as a
   second widget. The Android package is new: Android sees another app, data and login start
   fresh.
 - **App start** (Android first: `demo/bench-app.sh android --startup --warm`

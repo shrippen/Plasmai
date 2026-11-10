@@ -4,13 +4,15 @@
 
 - Note (en): Plasmai has one id everywhere, `io.github.shrippen.Plasmai` (before
   `com.github.shrippen.plasmai`). Settings, caches and stored tokens move on the first start.
-  `install-linux.sh` swaps the placed widgets; from the KDE Store the widget comes as a new one
-  (add it again, remove the old one). On Android the app is a new one: install it, sign in
+  `install-linux.sh` swaps the placed widgets once no offline changes wait to be sent; from the
+  KDE Store the widget comes as a new one (let it send its offline changes while online, then add
+  the new one and remove the old one). On Android the app is a new one: install it, sign in
   again, uninstall the old one.
 - Hinweis (de): Plasmai hat überall dieselbe Id, `io.github.shrippen.Plasmai` (vorher
   `com.github.shrippen.plasmai`). Einstellungen, Caches und gespeicherte Tokens ziehen beim
-  ersten Start um. `install-linux.sh` tauscht die platzierten Widgets aus; aus dem KDE Store
-  kommt das Widget als neues (neu hinzufügen, das alte entfernen). Unter Android ist die App
+  ersten Start um. `install-linux.sh` tauscht die platzierten Widgets aus, sobald keine
+  Offline-Änderungen mehr auf das Senden warten; aus dem KDE Store kommt das Widget als neues
+  (erst online die Offline-Änderungen senden lassen, dann neu hinzufügen und das alte entfernen). Unter Android ist die App
   eine neue: installieren, neu anmelden, die alte deinstallieren.
 
 ## [2.6.3] — 2026-10-29

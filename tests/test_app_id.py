@@ -278,3 +278,46 @@ def test_old_package_goes_only_when_every_widget_moved():
     after = src.split("# END widget-move", 1)[1]
     assert re.search(r'"\$RESULT" == \*" left 0" \]\].*?kpackagetool6 -t Plasma/Applet -r "\$OLD_APPLET"',
                      after, re.S)
+
+
+# -- unsent offline changes (review of PR #52) -------------------------------------
+
+def unsent(tmp_path, files):
+    src = (ROOT / "scripts/install-linux.sh").read_text(encoding="utf-8")
+    fn = re.search(r"# BEGIN unsent-outbox[^\n]*\n(.*?)# END unsent-outbox", src, re.S).group(1)
+    data = tmp_path / "data"
+    for rel, text in files.items():
+        (data / rel).parent.mkdir(parents=True, exist_ok=True)
+        (data / rel).write_text(text)
+    out = subprocess.run(["bash", "-c", fn + "\nunsent_outboxes"], env={**os.environ, "XDG_DATA_HOME": str(data)},
+                         capture_output=True, text=True, check=True).stdout
+    return sorted(Path(p).name for p in out.split())
+
+
+def test_unsent_offline_changes_are_found(tmp_path):
+    found = unsent(tmp_path, {
+        f"{OLD}/plasmoid/offline-outbox-plasmoid-94-default.json": '{"v":2,"counter":3,"ops":[{"kind":"stop"}]}',
+        f"{NEW}/plasmoid/offline-outbox-plasmoid-5-work.json": '{"v": 2, "counter": 1, "ops": [ {"kind": "start"} ]}',
+        f"{OLD}/plasmoid/offline-outbox-plasmoid-2-demo.json": '{"v":2,"counter":0,"ops":[]}',
+        f"{OLD}/plasmoid/offline-state-plasmoid-94-default.json": '{"ops":[1]}',
+    })
+    assert found == ["offline-outbox-plasmoid-5-work.json", "offline-outbox-plasmoid-94-default.json"]
+
+
+def test_no_outbox_nothing_found(tmp_path):
+    assert unsent(tmp_path, {}) == []
+
+
+def test_widget_move_waits_for_unsent_offline_changes():
+    """The new widget has a new applet id, and the outbox file is named after the old one: moved
+    with changes still waiting, they would never be sent."""
+    src = (ROOT / "scripts/install-linux.sh").read_text(encoding="utf-8")
+    after = src.split("# END unsent-outbox", 1)[1]
+    check = after.index("unsent_outboxes")
+    assert check < after.index('plasma_script "$MOVE_SCRIPT"'), "check before the move"
+
+
+def test_folder_move_is_posix():
+    for name in ("sharedConfig.sh", "catalogCache.sh", "localStore.sh"):
+        text = (ROOT / "contents/code" / name).read_text(encoding="utf-8")
+        assert "mv -T" not in text, f"{name}: mv -T is GNU only"

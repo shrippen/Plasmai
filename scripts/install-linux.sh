@@ -45,7 +45,23 @@ plasma_script() {
     done
     return 1
 }
-if kpackagetool6 -t Plasma/Applet -l 2>/dev/null | grep -qx "$OLD_APPLET"; then
+# BEGIN unsent-outbox (tests/test_app_id.py runs this part)
+# Offline changes not sent yet. The outbox file is named after the widget's applet id, and a
+# moved widget gets a new one: moved now, they would never go out.
+unsent_outboxes() {
+    local data="${XDG_DATA_HOME:-$HOME/.local/share}" f
+    for f in "$data"/com.github.shrippen.plasmai/plasmoid/offline-outbox-plasmoid-*.json \
+             "$data"/io.github.shrippen.Plasmai/plasmoid/offline-outbox-plasmoid-*.json; do
+        if [ -f "$f" ] && grep -Eq '"ops"[[:space:]]*:[[:space:]]*\[[[:space:]]*[^][:space:]]' "$f"; then
+            echo "$f"
+        fi
+    done
+}
+# END unsent-outbox
+if kpackagetool6 -t Plasma/Applet -l 2>/dev/null | grep -qx "$OLD_APPLET" && [ -n "$(unsent_outboxes)" ]; then
+    echo "note: the widget has offline changes not sent yet; it keeps the old id until they are." >&2
+    echo "      Open it while online so they go out, then run this script again." >&2
+elif kpackagetool6 -t Plasma/Applet -l 2>/dev/null | grep -qx "$OLD_APPLET"; then
     # BEGIN widget-move (tests/test_app_id.py runs this part)
     MOVE_SCRIPT=$(cat <<'JS'
 const OLD = "com.github.shrippen.plasmai";
