@@ -167,9 +167,14 @@ private slots:
         store.remove(m_profile);
         QVERIFY(removedSpy.wait(10000));
         QVERIFY(writeKeychain(OLD_APP_ID, m_profile, QStringLiteral("old-id-5")));
+        // QtKeychain 0.15 on Windows names a Credential Manager entry by its key only: old and
+        // new id share it there, and there is nothing to move.
+        const bool shared = readKeychain(APP_ID, m_profile) == QStringLiteral("old-id-5");
         QCOMPARE(loadToken(store, m_profile), QStringLiteral("old-id-5"));
-        QVERIFY(readKeychain(OLD_APP_ID, m_profile).isNull());
-        QCOMPARE(readKeychain(APP_ID, m_profile), QStringLiteral("old-id-5"));
+        if (!shared) {
+            QVERIFY(readKeychain(OLD_APP_ID, m_profile).isNull());
+            QCOMPARE(readKeychain(APP_ID, m_profile), QStringLiteral("old-id-5"));
+        }
 
         // A token file of a build before 2.1 under the id up to 2.6.3 moves into the keychain
         // and is deleted there (review of PR #52: copied to the new folder, the original stayed).
