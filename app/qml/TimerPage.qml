@@ -82,7 +82,20 @@ Kirigami.Page {
         editingActive = true
         var pid = KimaiApi.projectId(session.timer.active)
         session.catalog.loadActivities(pid, function(model) { page.editActivityPickerModel = model })
-        activeEditView.timesheet = session.timer.active
+        activeEditLoader.item.timesheet = session.timer.active
+    }
+
+    /** The create-project/activity dialog, for a project ("project") or an activity of `project`. */
+    function createEntity(mode, project) {
+        const d = createEntityDialog.build()
+        if (mode === "project") {
+            d.customers = session.catalog.customers
+        } else {
+            d.selectedProjectId = project ? project.id : null
+            d.selectedProjectName = project ? project.name : ""
+        }
+        d.resetForMode(mode)
+        d.open()
     }
 
     function openNewActivityForm() {
@@ -182,7 +195,7 @@ Kirigami.Page {
     // ══════ MAIN CONTENT — one shared column below the threshold, a fixed timer pane next
     // to an independently scrolling list pane above it. heroCard/listSection below are moved
     // between these hosts via their `parent:` binding rather than duplicated, so ids like
-    // activeEditView and descField keep working from page-level code no matter which layout
+    // activeEditLoader and descField keep working from page-level code no matter which layout
     // is active. ══════
     // ══════ FIRST START — the setup wizard instead of the content until it is finished ══════
     QQC2.ScrollView {
@@ -469,36 +482,39 @@ Kirigami.Page {
                         QQC2.Label { text: session.timer.activity || ""; color: Qt.alpha(KanteStyle.textColor, 0.7); elide: Text.ElideRight; maximumLineCount: 1; Layout.fillWidth: true; Layout.preferredWidth: 0; Layout.minimumWidth: 0 }
                     }
 
-                    ActiveEditView {
-                        id: activeEditView
-                        visible: page.editingActive
+                    // Built while editing (the start does not pay for the form).
+                    Loader {
+                        id: activeEditLoader
+                        active: page.editingActive
+                        visible: active
                         Layout.fillWidth: true
-                        elapsedSeconds: session.timer.elapsedSeconds
-                        projectPickerModel: session.catalog.projectPickerModel
-                        activityPickerModel: page.editActivityPickerModel
-                        busy: session.locked
-                        configured: session.connection.configured
-                        connectionOk: session.connection.state !== "error"
-                        supportsBillableEdit: session.connection.capabilities.billableEdit
-                        supportsTags: session.connection.capabilities.tags
-                        showCreateActions: session.entries.canCreate
-                        tagSource: session.entries
-                        // Recent is deduped per project/activity, so it can hide the latest stopped entry; the Plasmoid scans today too.
-                        previousTimesheet: TimesheetFields.previousStoppedTimesheet(session.recent.list, session.totals.todayEntries, session.timer.active)
-                        overlapGuardEnabled: session.settings.confirmStartBeforePreviousEnd
-                        onProjectChosen: function(projectId) {
-                            session.catalog.loadActivities(projectId, function(model) { page.editActivityPickerModel = model })
-                        }
-                        onSaveRequested: function(projectId, activityId, beginText, billable, tags) {
-                            session.timer.patchActive({ project: projectId, activity: activityId, begin: beginText, billable: billable, tags: tags })
-                            page.editingActive = false
-                        }
-                        onCancelled: page.editingActive = false
-                        onCreateProjectRequested: { createEntityDialog.customers = session.catalog.customers; createEntityDialog.resetForMode("project"); createEntityDialog.open() }
-                        onCreateActivityRequested: {
-                            createEntityDialog.selectedProjectId = activeEditView.projectCombo.currentItem ? activeEditView.projectCombo.currentItem.value.id : null
-                            createEntityDialog.selectedProjectName = activeEditView.projectCombo.currentItem ? activeEditView.projectCombo.currentItem.value.name : ""
-                            createEntityDialog.resetForMode("activity"); createEntityDialog.open()
+                        sourceComponent: Component {
+                            ActiveEditView {
+                                id: activeEditView
+                                elapsedSeconds: session.timer.elapsedSeconds
+                                projectPickerModel: session.catalog.projectPickerModel
+                                activityPickerModel: page.editActivityPickerModel
+                                busy: session.locked
+                                configured: session.connection.configured
+                                connectionOk: session.connection.state !== "error"
+                                supportsBillableEdit: session.connection.capabilities.billableEdit
+                                supportsTags: session.connection.capabilities.tags
+                                showCreateActions: session.entries.canCreate
+                                tagSource: session.entries
+                                // Recent is deduped per project/activity, so it can hide the latest stopped entry; the Plasmoid scans today too.
+                                previousTimesheet: TimesheetFields.previousStoppedTimesheet(session.recent.list, session.totals.todayEntries, session.timer.active)
+                                overlapGuardEnabled: session.settings.confirmStartBeforePreviousEnd
+                                onProjectChosen: function(projectId) {
+                                    session.catalog.loadActivities(projectId, function(model) { page.editActivityPickerModel = model })
+                                }
+                                onSaveRequested: function(projectId, activityId, beginText, billable, tags) {
+                                    session.timer.patchActive({ project: projectId, activity: activityId, begin: beginText, billable: billable, tags: tags })
+                                    page.editingActive = false
+                                }
+                                onCancelled: page.editingActive = false
+                                onCreateProjectRequested: page.createEntity("project", null)
+                                onCreateActivityRequested: page.createEntity("activity", activeEditView.projectCombo.currentItem ? activeEditView.projectCombo.currentItem.value : null)
+                            }
                         }
                     }
 
@@ -628,47 +644,50 @@ Kirigami.Page {
                     }
 
                     // ══════ START SOMETHING ELSE: the form opens in the card ══════
-                    ColumnLayout {
-                        Layout.fillWidth: true; spacing: Kirigami.Units.smallSpacing
-                        visible: session.settings.popupShowNewActivity && page.showNewActivityForm
+                    // Built while the form is open.
+                    Loader {
+                        active: session.settings.popupShowNewActivity && page.showNewActivityForm
+                        visible: active
+                        Layout.fillWidth: true
+                        sourceComponent: Component {
+                            ColumnLayout {
+                                spacing: Kirigami.Units.smallSpacing
 
-                        ProjectActivityPickers {
-                            id: newActivityPickers
-                            Layout.fillWidth: true
-                            projectPickerModel: session.catalog.projectPickerModel
-                            activityPickerModel: page.newActivityPickerModel
-                            showCreateActions: session.entries.canCreate
-                            onProjectActivated: function(index) {
-                                var projectId = index >= 0 ? session.catalog.projectPickerModel[index].value.id : null
-                                session.catalog.loadActivities(projectId, function(model) { page.newActivityPickerModel = model })
-                            }
-                            onCreateProjectRequested: { createEntityDialog.customers = session.catalog.customers; createEntityDialog.resetForMode("project"); createEntityDialog.open() }
-                            onCreateActivityRequested: {
-                                createEntityDialog.selectedProjectId = newActivityPickers.projectCombo.currentItem ? newActivityPickers.projectCombo.currentItem.value.id : null
-                                createEntityDialog.selectedProjectName = newActivityPickers.projectCombo.currentItem ? newActivityPickers.projectCombo.currentItem.value.name : ""
-                                createEntityDialog.resetForMode("activity"); createEntityDialog.open()
-                            }
-                        }
-                        KanteTextField {
-                            Layout.fillWidth: true
-                            placeholderText: i18n("Description (optional)")
-                            text: page.newActivityDescription
-                            onEditingFinished: page.newActivityDescription = text
-                        }
-                        RowLayout { Layout.fillWidth: true; spacing: Kirigami.Units.smallSpacing
-                            KanteButton {
-                                Layout.fillWidth: true
-                                text: session.timer.tracking ? i18n("Switch") : i18n("Start")
-                                icon.name: session.timer.tracking ? "media-skip-forward" : "media-playback-start"
-                                enabled: !session.locked && newActivityPickers.projectCombo.currentIndex >= 0 && newActivityPickers.activityCombo.currentIndex >= 0
-                                onClicked: {
-                                    var proj = newActivityPickers.projectCombo.currentItem.value
-                                    var act = newActivityPickers.activityCombo.currentItem.value
-                                    session.timer.switchTo(proj.id, act.id, proj.name, act.name || "", page.newActivityDescription)
-                                    page.showNewActivityForm = false
+                                ProjectActivityPickers {
+                                    id: newActivityPickers
+                                    Layout.fillWidth: true
+                                    projectPickerModel: session.catalog.projectPickerModel
+                                    activityPickerModel: page.newActivityPickerModel
+                                    showCreateActions: session.entries.canCreate
+                                    onProjectActivated: function(index) {
+                                        var projectId = index >= 0 ? session.catalog.projectPickerModel[index].value.id : null
+                                        session.catalog.loadActivities(projectId, function(model) { page.newActivityPickerModel = model })
+                                    }
+                                    onCreateProjectRequested: page.createEntity("project", null)
+                                    onCreateActivityRequested: page.createEntity("activity", newActivityPickers.projectCombo.currentItem ? newActivityPickers.projectCombo.currentItem.value : null)
+                                }
+                                KanteTextField {
+                                    Layout.fillWidth: true
+                                    placeholderText: i18n("Description (optional)")
+                                    text: page.newActivityDescription
+                                    onEditingFinished: page.newActivityDescription = text
+                                }
+                                RowLayout { Layout.fillWidth: true; spacing: Kirigami.Units.smallSpacing
+                                    KanteButton {
+                                        Layout.fillWidth: true
+                                        text: session.timer.tracking ? i18n("Switch") : i18n("Start")
+                                        icon.name: session.timer.tracking ? "media-skip-forward" : "media-playback-start"
+                                        enabled: !session.locked && newActivityPickers.projectCombo.currentIndex >= 0 && newActivityPickers.activityCombo.currentIndex >= 0
+                                        onClicked: {
+                                            var proj = newActivityPickers.projectCombo.currentItem.value
+                                            var act = newActivityPickers.activityCombo.currentItem.value
+                                            session.timer.switchTo(proj.id, act.id, proj.name, act.name || "", page.newActivityDescription)
+                                            page.showNewActivityForm = false
+                                        }
+                                    }
+                                    KanteButton { text: i18n("Cancel"); onClicked: page.showNewActivityForm = false }
                                 }
                             }
-                            KanteButton { text: i18n("Cancel"); onClicked: page.showNewActivityForm = false }
                         }
                     }
 
@@ -791,8 +810,8 @@ Kirigami.Page {
                         onRowActivated: root.requestRestartFromRecent(modelData)
                         onPinRequested: session.favorites.toggle(KimaiApi.projectId(modelData), KimaiApi.activityId(modelData))
                         onEditRequested: pageStack.push(manualPageComponent, { editTs: modelData })
-                        onDeleteRequested: { deleteDialog.target = modelData; deleteDialog.open() }
-                        onSplitRequested: { splitDialog.target = modelData; splitDialog.open() }
+                        onDeleteRequested: deleteDialog.open({ target: modelData })
+                        onSplitRequested: splitDialog.open({ target: modelData })
                     }
             }
         }
@@ -803,118 +822,150 @@ Kirigami.Page {
     }
 
     // ══════ DIALOGS ══════
-    Kirigami.PromptDialog {
+    LazyDialog {
         id: confirmDialog
-        // A property, not a child: an Item child would count as dialog content (its ScrollView then sizes to 0).
-        readonly property QtObject kanteSkin: KanteDialogSkin { dialog: confirmDialog }
-        title: i18n("Stop tracking?")
-        subtitle: i18n("Stop %1 · %2?", session.timer.project, session.timer.activity)
-        // Own footer actions: Qt's standard button texts stay English on Android.
-        standardButtons: Kirigami.Dialog.NoButton
-        customFooterActions: [
-            Kirigami.Action { text: i18n("Stop"); icon.name: "dialog-ok"; onTriggered: confirmDialog.accept() },
-            Kirigami.Action { text: i18n("Cancel"); icon.name: "dialog-cancel"; onTriggered: confirmDialog.reject() }
-        ]
-        onAccepted: session.timer.stop()
+        sourceComponent: Component {
+            Kirigami.PromptDialog {
+                id: confirmPrompt
+                // A property, not a child: an Item child would count as dialog content (its ScrollView then sizes to 0).
+                readonly property QtObject kanteSkin: KanteDialogSkin { dialog: confirmPrompt }
+                title: i18n("Stop tracking?")
+                subtitle: i18n("Stop %1 · %2?", session.timer.project, session.timer.activity)
+                // Own footer actions: Qt's standard button texts stay English on Android.
+                standardButtons: Kirigami.Dialog.NoButton
+                customFooterActions: [
+                    Kirigami.Action { text: i18n("Stop"); icon.name: "dialog-ok"; onTriggered: confirmPrompt.accept() },
+                    Kirigami.Action { text: i18n("Cancel"); icon.name: "dialog-cancel"; onTriggered: confirmPrompt.reject() }
+                ]
+                onAccepted: session.timer.stop()
+            }
+        }
     }
-    Kirigami.PromptDialog {
+    LazyDialog {
         id: deleteDialog
-        // A property, not a child: an Item child would count as dialog content (its ScrollView then sizes to 0).
-        readonly property QtObject kanteSkin: KanteDialogSkin { dialog: deleteDialog }
-        property var target: null
-        title: i18n("Delete entry?")
-        subtitle: i18n("Really delete this entry?")
-        // Own footer actions: Qt's standard button texts stay English on Android.
-        standardButtons: Kirigami.Dialog.NoButton
-        customFooterActions: [
-            Kirigami.Action { text: i18n("Delete"); icon.name: "dialog-ok"; onTriggered: deleteDialog.accept() },
-            Kirigami.Action { text: i18n("Cancel"); icon.name: "dialog-cancel"; onTriggered: deleteDialog.reject() }
-        ]
-        onAccepted: { if (target) session.entries.remove(target); target = null }
+        sourceComponent: Component {
+            Kirigami.PromptDialog {
+                id: deletePrompt
+                // A property, not a child: an Item child would count as dialog content (its ScrollView then sizes to 0).
+                readonly property QtObject kanteSkin: KanteDialogSkin { dialog: deletePrompt }
+                property var target: null
+                title: i18n("Delete entry?")
+                subtitle: i18n("Really delete this entry?")
+                // Own footer actions: Qt's standard button texts stay English on Android.
+                standardButtons: Kirigami.Dialog.NoButton
+                customFooterActions: [
+                    Kirigami.Action { text: i18n("Delete"); icon.name: "dialog-ok"; onTriggered: deletePrompt.accept() },
+                    Kirigami.Action { text: i18n("Cancel"); icon.name: "dialog-cancel"; onTriggered: deletePrompt.reject() }
+                ]
+                onAccepted: { if (target) session.entries.remove(target); target = null }
+            }
+        }
     }
-    Kirigami.PromptDialog {
+    LazyDialog {
         id: switchDialog
-        // A property, not a child: an Item child would count as dialog content (its ScrollView then sizes to 0).
-        readonly property QtObject kanteSkin: KanteDialogSkin { dialog: switchDialog }
-        title: i18n("Switch activity")
-        subtitle: root.pendingSwitchTimesheet ? i18n("Switch to %1 · %2?", KimaiApi.displayProjectName(root.pendingSwitchTimesheet, session.catalog.projects), KimaiApi.displayActivityName(root.pendingSwitchTimesheet, session.catalog.activities, session.catalog.activitiesByProject)) : ""
-        // Own footer actions: Qt's standard button texts stay English on Android.
-        standardButtons: Kirigami.Dialog.NoButton
-        customFooterActions: [
-            Kirigami.Action { text: i18n("Switch"); icon.name: "dialog-ok"; onTriggered: switchDialog.accept() },
-            Kirigami.Action { text: i18n("Cancel"); icon.name: "dialog-cancel"; onTriggered: switchDialog.reject() }
-        ]
-        onAccepted: {
-            var ts = root.pendingSwitchTimesheet; root.pendingSwitchTimesheet = null
-            if (ts) session.timer.switchTo(KimaiApi.projectId(ts), KimaiApi.activityId(ts), KimaiApi.displayProjectName(ts, session.catalog.projects), KimaiApi.displayActivityName(ts, session.catalog.activities, session.catalog.activitiesByProject), ts.description || "")
+        sourceComponent: Component {
+            Kirigami.PromptDialog {
+                id: switchPrompt
+                // A property, not a child: an Item child would count as dialog content (its ScrollView then sizes to 0).
+                readonly property QtObject kanteSkin: KanteDialogSkin { dialog: switchPrompt }
+                title: i18n("Switch activity")
+                subtitle: root.pendingSwitchTimesheet ? i18n("Switch to %1 · %2?", KimaiApi.displayProjectName(root.pendingSwitchTimesheet, session.catalog.projects), KimaiApi.displayActivityName(root.pendingSwitchTimesheet, session.catalog.activities, session.catalog.activitiesByProject)) : ""
+                // Own footer actions: Qt's standard button texts stay English on Android.
+                standardButtons: Kirigami.Dialog.NoButton
+                customFooterActions: [
+                    Kirigami.Action { text: i18n("Switch"); icon.name: "dialog-ok"; onTriggered: switchPrompt.accept() },
+                    Kirigami.Action { text: i18n("Cancel"); icon.name: "dialog-cancel"; onTriggered: switchPrompt.reject() }
+                ]
+                onAccepted: {
+                    var ts = root.pendingSwitchTimesheet; root.pendingSwitchTimesheet = null
+                    if (ts) session.timer.switchTo(KimaiApi.projectId(ts), KimaiApi.activityId(ts), KimaiApi.displayProjectName(ts, session.catalog.projects), KimaiApi.displayActivityName(ts, session.catalog.activities, session.catalog.activitiesByProject), ts.description || "")
+                }
+                onRejected: root.pendingSwitchTimesheet = null
+            }
         }
-        onRejected: root.pendingSwitchTimesheet = null
     }
-    Kirigami.Dialog {
+    LazyDialog {
         id: splitDialog
-        // A property, not a child: an Item child would count as dialog content (its ScrollView then sizes to 0).
-        readonly property QtObject kanteSkin: KanteDialogSkin { dialog: splitDialog }
-        property var target: null
-        title: i18n("Split entry")
-        // Own footer actions: Qt's standard button texts stay English on Android.
-        standardButtons: Kirigami.Dialog.NoButton
-        customFooterActions: [
-            Kirigami.Action { text: i18n("Split entry"); icon.name: "dialog-ok"; onTriggered: splitDialog.accept() },
-            Kirigami.Action { text: i18n("Cancel"); icon.name: "dialog-cancel"; onTriggered: splitDialog.reject() }
-        ]
-        padding: Kirigami.Units.largeSpacing
-        onAboutToShow: {
-            if (!target) return
-            var begin = new Date(target.begin); var end = target.end ? new Date(target.end) : new Date()
-            var mid = new Date(begin.getTime() + (end.getTime() - begin.getTime()) / 2)
-            splitDate.setDate(mid); splitTime.setTime(mid.getHours(), mid.getMinutes())
-        }
-        ColumnLayout { spacing: Kirigami.Units.smallSpacing
-            QQC2.Label { text: i18n("Split at:"); Layout.fillWidth: true }
-            RowLayout { Layout.fillWidth: true; spacing: Kirigami.Units.smallSpacing
-                DateField { id: splitDate; Layout.fillWidth: true }
-                TimeField { id: splitTime; Layout.fillWidth: true }
+        sourceComponent: Component {
+            Kirigami.Dialog {
+                id: splitPrompt
+                // A property, not a child: an Item child would count as dialog content (its ScrollView then sizes to 0).
+                readonly property QtObject kanteSkin: KanteDialogSkin { dialog: splitPrompt }
+                property var target: null
+                title: i18n("Split entry")
+                // Own footer actions: Qt's standard button texts stay English on Android.
+                standardButtons: Kirigami.Dialog.NoButton
+                customFooterActions: [
+                    Kirigami.Action { text: i18n("Split entry"); icon.name: "dialog-ok"; onTriggered: splitPrompt.accept() },
+                    Kirigami.Action { text: i18n("Cancel"); icon.name: "dialog-cancel"; onTriggered: splitPrompt.reject() }
+                ]
+                padding: Kirigami.Units.largeSpacing
+                onAboutToShow: {
+                    if (!target) return
+                    var begin = new Date(target.begin); var end = target.end ? new Date(target.end) : new Date()
+                    var mid = new Date(begin.getTime() + (end.getTime() - begin.getTime()) / 2)
+                    splitDate.setDate(mid); splitTime.setTime(mid.getHours(), mid.getMinutes())
+                }
+                ColumnLayout { spacing: Kirigami.Units.smallSpacing
+                    QQC2.Label { text: i18n("Split at:"); Layout.fillWidth: true }
+                    RowLayout { Layout.fillWidth: true; spacing: Kirigami.Units.smallSpacing
+                        DateField { id: splitDate; Layout.fillWidth: true }
+                        TimeField { id: splitTime; Layout.fillWidth: true }
+                    }
+                }
+                onAccepted: {
+                    if (!target) return
+                    var d = new Date(splitDate.selectedDate)
+                    d.setHours(splitTime.hours, splitTime.minutes, 0, 0)
+                    session.entries.split(target, d)
+                    target = null
+                }
             }
         }
-        onAccepted: {
-            if (!target) return
-            var d = new Date(splitDate.selectedDate)
-            d.setHours(splitTime.hours, splitTime.minutes, 0, 0)
-            session.entries.split(target, d)
-            target = null
-        }
     }
-    CreateEntityDialog {
+    LazyDialog {
         id: createEntityDialog
-        onSubmitted: function(mode, payload) {
-            session.entries.createEntity(mode, payload)
+        sourceComponent: Component {
+            CreateEntityDialog {
+                id: createEntityPrompt
+                onSubmitted: function(mode, payload) {
+                    session.entries.createEntity(mode, payload)
+                }
+            }
         }
     }
 
-    Kirigami.Dialog {
+    LazyDialog {
         id: idleDialog
-        // A property, not a child: an Item child would count as dialog content (its ScrollView then sizes to 0).
-        readonly property QtObject kanteSkin: KanteDialogSkin { dialog: idleDialog }
-        title: i18n("You were idle")
-        standardButtons: Kirigami.Dialog.NoButton
-        padding: Kirigami.Units.largeSpacing
-        closePolicy: Kirigami.Dialog.NoAutoClose
-        visible: session.reminders.idlePending
+        // Built while the question is open.
+        active: session.reminders.idlePending
+        sourceComponent: Component {
+            Kirigami.Dialog {
+                id: idlePrompt
+                // A property, not a child: an Item child would count as dialog content (its ScrollView then sizes to 0).
+                readonly property QtObject kanteSkin: KanteDialogSkin { dialog: idlePrompt }
+                title: i18n("You were idle")
+                standardButtons: Kirigami.Dialog.NoButton
+                padding: Kirigami.Units.largeSpacing
+                closePolicy: Kirigami.Dialog.NoAutoClose
+                visible: session.reminders.idlePending
 
-        ColumnLayout { spacing: Kirigami.Units.smallSpacing
-            QQC2.Label {
-                Layout.fillWidth: true; wrapMode: Text.WordWrap
-                text: i18n("You were idle for %1. Keep this time, discard it, or discard and continue?", KimaiApi.formatDurationShort(Math.round(session.reminders.pendingMs / 1000)))
+                ColumnLayout { spacing: Kirigami.Units.smallSpacing
+                    QQC2.Label {
+                        Layout.fillWidth: true; wrapMode: Text.WordWrap
+                        text: i18n("You were idle for %1. Keep this time, discard it, or discard and continue?", KimaiApi.formatDurationShort(Math.round(session.reminders.pendingMs / 1000)))
+                    }
+                    KanteButton { Layout.fillWidth: true; text: i18n("Keep time"); onClicked: session.reminders.keep() }
+                    // Discarding rewrites the running entry's end: online only (offline.js).
+                    QQC2.Label {
+                        visible: session.sync.offline
+                        Layout.fillWidth: true; wrapMode: Text.WordWrap
+                        text: i18n("Discarding idle time needs a connection to the server.")
+                    }
+                    KanteButton { Layout.fillWidth: true; enabled: !session.sync.offline; text: i18n("Discard idle"); onClicked: session.reminders.discard(Session.AfterIdle.Stop) }
+                    KanteButton { Layout.fillWidth: true; enabled: !session.sync.offline; text: i18n("Discard and continue"); onClicked: session.reminders.discard(Session.AfterIdle.Continue) }
+                }
             }
-            KanteButton { Layout.fillWidth: true; text: i18n("Keep time"); onClicked: session.reminders.keep() }
-            // Discarding rewrites the running entry's end: online only (offline.js).
-            QQC2.Label {
-                visible: session.sync.offline
-                Layout.fillWidth: true; wrapMode: Text.WordWrap
-                text: i18n("Discarding idle time needs a connection to the server.")
-            }
-            KanteButton { Layout.fillWidth: true; enabled: !session.sync.offline; text: i18n("Discard idle"); onClicked: session.reminders.discard(Session.AfterIdle.Stop) }
-            KanteButton { Layout.fillWidth: true; enabled: !session.sync.offline; text: i18n("Discard and continue"); onClicked: session.reminders.discard(Session.AfterIdle.Continue) }
         }
     }
 

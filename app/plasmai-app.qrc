@@ -5,6 +5,7 @@
         <file alias="qml/platform/appBackend.js">qml/platform/appBackend.js</file>
         <file alias="qml/ConnectionPage.qml">qml/ConnectionPage.qml</file>
         <file alias="qml/TimerPage.qml">qml/TimerPage.qml</file>
+        <file alias="qml/LazyDialog.qml">qml/LazyDialog.qml</file>
         <file alias="qml/ManualEntryPage.qml">qml/ManualEntryPage.qml</file>
         <file alias="qml/StatsPage.qml">qml/StatsPage.qml</file>
         <file alias="qml/FilmDayPage.qml">qml/FilmDayPage.qml</file>

@@ -74,7 +74,6 @@ endif()
 qt_add_executable(plasmai-app
     main.cpp
     i18nfallback.cpp
-    plasmai-app.qrc
     platform/autostart.h
     platform/filestore.h
     platform/idlewatcher.h
@@ -89,6 +88,65 @@ qt_add_executable(plasmai-app
     addons/monthmodel.cpp
     addons/infinitecalendarviewmodel.cpp
 )
+
+# QML and JavaScript compiled at build time (qmlcachegen): the app loads the compiled units
+# from its binary instead of compiling ~200 files on the first start after an install or update
+# (Pixel 6: the data showed after 3.5 s instead of 1.8 s on later starts), and typed bindings and
+# functions run as C++. plasmai-app.qrc stays the one list of the app's files: its .qml and .js
+# under "/" go into the module at the same paths (QT_RESOURCE_ALIAS), the rest into a generated
+# qrc. Never as types of the module (QT_QML_SKIP_QMLDIR_ENTRY): the app finds them as before,
+# by path and through its own qmldir files.
+qt_policy(SET QTP0004 OLD) # no generated qmldir in every folder: the app has its own
+function(plasmai_split_qrc qrc out_qrc out_files)
+    file(READ "${CMAKE_CURRENT_SOURCE_DIR}/${qrc}" text)
+    set(compiled "")
+    set(rest "")
+    set(prefix "")
+    string(REPLACE "\n" ";" lines "${text}")
+    foreach(line IN LISTS lines)
+        if(line MATCHES "<qresource prefix=\"([^\"]*)\"")
+            set(prefix "${CMAKE_MATCH_1}")
+        endif()
+        if(prefix STREQUAL "/" AND line MATCHES "<file alias=\"([^\"]+\\.(qml|js))\">([^<]+)</file>")
+            set(alias "${CMAKE_MATCH_1}")
+            get_filename_component(source "${CMAKE_CURRENT_SOURCE_DIR}/${CMAKE_MATCH_3}" ABSOLUTE)
+            set_source_files_properties("${source}" PROPERTIES
+                QT_RESOURCE_ALIAS "${alias}" QT_QML_SKIP_QMLDIR_ENTRY TRUE)
+            list(APPEND compiled "${source}")
+        else()
+            # Relative sources of the generated qrc point back at the source folder.
+            string(REGEX REPLACE ">([^<]+)</file>" ">${CMAKE_CURRENT_SOURCE_DIR}/\\1</file>" line "${line}")
+            string(APPEND rest "${line}\n")
+        endif()
+    endforeach()
+    file(CONFIGURE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${out_qrc}" CONTENT "${rest}")
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${qrc}")
+    set(${out_files} "${compiled}" PARENT_SCOPE)
+endfunction()
+# qmlcachegen names its output after the source's path. Qt 6.10 takes the path below app/ only:
+# ../contents/... became ".rcc/qmlcache/plasmai-app_../contents", which Windows cannot create
+# (with the build folder beside app/, a copy in it would be "plasmai-app_../build"). Qt 6.11 and
+# later take the shorter path and replace "..". So before 6.11 (the Windows builds) the QML stays
+# in the qrc and compiles at run time, as before; Android, Linux and macOS (6.11 and later)
+# compile it here.
+set(PLASMAI_QML_AT_BUILD_TIME TRUE)
+if(Qt6_VERSION VERSION_LESS 6.11)
+    set(PLASMAI_QML_AT_BUILD_TIME FALSE)
+    target_sources(plasmai-app PRIVATE plasmai-app.qrc)
+else()
+    plasmai_split_qrc(plasmai-app.qrc plasmai-app-assets.qrc PLASMAI_QML_FILES)
+    target_sources(plasmai-app PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/plasmai-app-assets.qrc")
+    qt_add_qml_module(plasmai-app
+        URI PlasmaiApp
+        VERSION 1.0
+        RESOURCE_PREFIX /
+        NO_RESOURCE_TARGET_PATH
+        NO_LINT
+        # The addons' C++ types keep their registration in main.cpp (org.kde.kirigamiaddons...).
+        NO_GENERATE_QMLTYPES
+        QML_FILES ${PLASMAI_QML_FILES}
+    )
+endif()
 
 if(ANDROID)
     set_property(TARGET plasmai-app APPEND PROPERTY
@@ -172,7 +230,14 @@ endif()
 # off by default, on for the test-driver build.
 option(PLASMAI_DEMO "Include the internal demo mode (development only)" ${PLASMAI_TEST_DRIVER})
 if(PLASMAI_DEMO)
-    target_sources(plasmai-app PRIVATE demo.qrc benchprobe.h)
+    target_sources(plasmai-app PRIVATE benchprobe.h)
+    if(PLASMAI_QML_AT_BUILD_TIME)
+        plasmai_split_qrc(demo.qrc demo-assets.qrc PLASMAI_DEMO_QML_FILES)
+        target_sources(plasmai-app PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/demo-assets.qrc")
+        qt_target_qml_sources(plasmai-app QML_FILES ${PLASMAI_DEMO_QML_FILES})
+    else()
+        target_sources(plasmai-app PRIVATE demo.qrc)
+    endif()
     target_compile_definitions(plasmai-app PRIVATE PLASMAI_DEMO)
 endif()
 
