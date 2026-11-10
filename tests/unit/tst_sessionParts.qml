@@ -379,6 +379,27 @@ TestCase {
         verify(!s.sync.isUnsynced(s.recent.list[0].id))
     }
 
+    // A profile switch must not lose the deferred snapshot of the old one.
+    function test_switchKeepsPendingSnapshot() {
+        const s = openDemo()
+        const prefix = s.offlinePrefix
+        const nameA = "offline-state-" + prefix + "a"
+        let opened = false
+
+        s.sync.openFor({ id: "a", provider: "kimai" }).then(function() { opened = true })
+        tryVerify(function() { return opened })
+        s.sync.rememberFilmDays({ "2026-11-10": { marker: "from-a" } })
+        verify(!files[nameA])
+
+        opened = false
+        s.sync.openFor({ id: "b", provider: "kimai" }).then(function() { opened = true })
+        tryVerify(function() { return opened })
+        s.sync.rememberFilmDays({ "2026-11-10": { marker: "from-b" } })
+
+        verify(!!files[nameA])
+        compare(files[nameA].filmDays["2026-11-10"].marker, "from-a")
+    }
+
     function test_pluginsProbed() {
         const s = openDemo()
         tryVerify(function() { return s.filmDay.available })

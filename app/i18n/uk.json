@@ -670,6 +670,8 @@
 "You were idle for %1. Keep this time, discard it, or discard and continue?": "Ви були бездіяльні %1. Залишити цей час, відкинути його чи відкинути й продовжити?",
 "Your Plasma theme, unchanged.": "Ваша тема Plasma без змін.",
 "Your work day": "Ваш робочий день",
+"current": "поточний",
+"done": "виконано",
 "far longer than the straight line: check the places.": "набагато довше, ніж по прямій: перевірте місця.",
 "https://api.solidtime.io or https://time.example.com": "https://api.solidtime.io або https://time.example.com",
 "https://kimai.example.com or https://www.kimai.cloud": "https://kimai.example.com або https://www.kimai.cloud",
@@ -681,6 +683,8 @@
 "round trip": "туди й назад",
 "running": "триває",
 "shorter than the straight line: check the places or the km.": "коротше, ніж по прямій: перевірте місця або км.",
+"skipped": "пропущено",
+"upcoming": "попереду",
 "yesterday": "учора",
 "© OpenStreetMap contributors": "© учасники OpenStreetMap"
 }

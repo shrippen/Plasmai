@@ -109,6 +109,17 @@ TestCase {
         return f
     }
 
+    // Screen readers hear the steps in the app's language, not KanteSteps' German default
+    // (review of PR #50).
+    function test_stepsSpeakTheAppLanguage() {
+        var steps = field(makeWizard(), "wizardSteps")
+        compare(steps.stepText.arg(1).arg(4), "Step 1 of 4")
+        compare(steps.stateNames.done, "done")
+        compare(steps.stateNames.current, "current")
+        compare(steps.stateNames.upcoming, "upcoming")
+        compare(steps.stateNames.skipped, "skipped")
+    }
+
     function test_noSystemStepWithoutFindings() {
         var w = makeWizard()
         compare(w.stepList, ["look", "service", "access", "day"])

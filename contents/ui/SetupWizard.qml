@@ -319,10 +319,19 @@ ColumnLayout {
         // Kante's steps at their own size, scaled down where the popup is narrower.
         KanteSteps {
             id: kanteSteps
+            objectName: "wizardSteps"
             transformOrigin: Item.TopLeft
             scale: Math.min(1, parent.width / Math.max(1, implicitWidth))
             model: root.stepList.map(function(s) { return root.stepLabel(s) })
             current: root.stepIndex
+            // KanteSteps speaks German by default; "%1"/"%2" stay for its own arg().
+            stepText: i18n("Step %1 of %2", "%1", "%2")
+            stateNames: ({
+                done: i18n("done"),
+                current: i18n("current"),
+                upcoming: i18n("upcoming"),
+                skipped: i18n("skipped")
+            })
         }
     }
 

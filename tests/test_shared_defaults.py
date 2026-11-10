@@ -3,7 +3,9 @@ the defaults in contents/config/main.xml, or a reset Plasmoid and the app disagr
 profilesJson is the default profile there instead of main.xml's "" (see sharedConfig.js)."""
 
 import json
+import os
 import re
+import subprocess
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -53,6 +55,18 @@ def test_defaults_match_main_xml():
     assert not missing, f"add to DEFAULTS in sharedConfig.js: {missing}"
     differ = {k: (js[k], kcfg[k]) for k in keys if js[k] != kcfg[k]}
     assert not differ, f"DEFAULTS differ from main.xml (js, xml): {differ}"
+
+
+def test_init_creates_the_shared_folder(tmp_path):
+    """SharedConfigWatch watches the folder; without it only the 5-minute poll sees changes."""
+    base = tmp_path / "config"
+    env = {**os.environ, "XDG_CONFIG_HOME": str(base)}
+    script = ROOT / "contents" / "code" / "sharedConfig.sh"
+
+    result = subprocess.run(["sh", str(script), "init"], env=env, capture_output=True, text=True)
+
+    assert result.returncode == 0, result.stderr
+    assert (base / "io.github.shrippen.Plasmai").is_dir()
 
 
 if __name__ == "__main__":

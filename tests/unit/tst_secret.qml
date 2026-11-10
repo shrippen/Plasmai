@@ -66,6 +66,16 @@ TestCase {
         compare(saved, true)
     }
 
+    // The watcher needs the folder to exist before it starts.
+    function test_ensureSharedDir() {
+        var ds = fakeSource()
+        var done = null
+        Secret.ensureSharedDir(ds, "/p/sharedConfig.sh", function(ok) { done = ok })
+        compare(answerAll(ds), 1)
+        verify(ds.sources[0].indexOf("sh '/p/sharedConfig.sh' init") === 0)
+        compare(done, true)
+    }
+
     function test_sharedConfigLargeIsChunked() {
         // shared.json can grow past one argv (128 KiB).
         var big = ""

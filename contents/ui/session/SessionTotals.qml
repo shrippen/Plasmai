@@ -41,8 +41,9 @@ QtObject {
         if (!c.token) {
             return
         }
+        // c.current: an answer for the previous profile is dropped.
         WorkTotals.load({ tracker: c.tracker, url: c.url, token: c.token, memo: memo,
-                          holidayBundle: c.capabilities.holidayBundle }, new Date(), function(t) {
+                          holidayBundle: c.capabilities.holidayBundle }, new Date(), c.current(function(t) {
             prefs = t.prefs
             hasWorkContract = t.hasWorkContract
             todayTargetSeconds = t.todayTargetSeconds
@@ -59,7 +60,7 @@ QtObject {
             todaySeconds = t.todaySeconds
             weekSeconds = t.weekSeconds
             elapsedAnchor = session.timer.elapsedSeconds
-        })
+        }))
     }
 
     /** Names from a catalog that came after the entries. */

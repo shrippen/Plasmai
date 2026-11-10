@@ -81,6 +81,18 @@ function sendNotification(dataSource, summary, body) {
 
 // -- Shared config (~/.config/…/shared.json)
 
+// Creates the folder of shared.json, so a watcher on it reports (resolves true where nothing
+// is to do: the app's backend keeps shared settings elsewhere).
+function prepareShared(dataSource) {
+    return new Promise(function(resolve) {
+        if (!_backend.prepareSharedConfig) {
+            resolve(true)
+            return
+        }
+        _backend.prepareSharedConfig(dataSource, resolve)
+    })
+}
+
 function loadShared(dataSource) {
     return new Promise(function(resolve) {
         _backend.loadSharedConfig(dataSource,

@@ -153,6 +153,58 @@ TestCase {
         compare(shown, [false], "only the stop shows")
     }
 
+    // The answer to profile A's poll arrives after the switch to B: it must not set `loaded`
+    // or show A's running entry in B.
+    function test_oldProfileAnswerDropped() {
+        const s = openDemo()
+        tryVerify(function() { return s.timer.tracking })
+        tryCompare(s, "refreshing", false)
+        const entry = s.timer.active
+        let answer = null
+        s.connection.tracker.fetchActiveTimesheet = function(_url, _token, cb) { answer = cb }
+        s.timer.refresh()
+        verify(answer, "the poll of A is out")
+
+        const other = { id: "other", name: "B", url: "http://other.invalid" }
+        s.connection.useProfile(other)
+        verify(!s.timer.loaded, "B starts unloaded")
+        verify(!s.timer.tracking, "nothing of A stays in B")
+
+        answer({ ok: true, data: [entry] })
+        verify(!s.timer.loaded, "the old answer does not mark B loaded")
+        verify(!s.timer.tracking, "the old answer does not show A's entry in B")
+        compare(s.timer.refreshes, 0)
+    }
+
+    // Review of PR #56: the recent list and the catalog took A's late answer into B too; a
+    // restart from that list sent A's project and activity ids to B's server.
+    function test_oldProfileListsDropped() {
+        const s = openDemo()
+        tryCompare(s, "refreshing", false)
+        tryVerify(function() { return s.recent.list.length > 0 && s.catalog.projects.length > 0 })
+        const recentA = s.recent.list
+        const projectsA = s.catalog.projects
+        let recentAnswer = null
+        let projectsAnswer = null
+        s.connection.tracker.fetchRecentTimesheets = function(_url, _token, _n, cb) { recentAnswer = cb }
+        s.connection.tracker.loadProjects = function(_url, _token, cb) { projectsAnswer = cb }
+        s.connection.tracker.loadCustomers = function(_url, _token, cb) { cb({ ok: true, data: [] }) }
+        s.connection.tracker.loadAllActivities = function(_url, _token, cb) { cb({ ok: true, data: [] }) }
+        s.recent.refresh()
+        s.catalog.invalidate()
+        s.catalog.refresh()
+        verify(recentAnswer && projectsAnswer, "A's requests are out")
+
+        s.connection.useProfile({ id: "other", name: "B", url: "http://other.invalid" })
+        s.recent.list = []
+        s.catalog.projects = []
+        recentAnswer({ ok: true, data: recentA })
+        projectsAnswer({ ok: true, data: projectsA })
+        verify(!s.recent.loaded, "the old answer does not mark B's list loaded")
+        compare(s.recent.list.length, 0)
+        compare(s.catalog.projects.length, 0)
+    }
+
     // The poll reloads today and the week; the same entries keep the same arrays, so the
     // day sparkline and the charts do not recompute (sun and moon paths, every bar).
     function test_sameTotalsKeepArrays() {

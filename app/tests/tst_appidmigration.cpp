@@ -1,3 +1,4 @@
+#include <QDateTime>
 #include <QDir>
 #include <QFile>
 #include <QStandardPaths>
@@ -115,6 +116,26 @@ private slots:
         QDir(data(m_new) + "/app").removeRecursively();
         QCOMPARE(AppIdMigration::copyFolders(m_old, m_new), 0);
         QVERIFY(!QFileInfo::exists(data(m_new) + "/app"));
+    }
+
+    // A start that crashed mid-copy left "<entry>.copy.<pid>"; a later start removes it (review
+    // of PR #52). A recent one may be another start's copy in progress and stays.
+    void staleCopiesAreRemoved()
+    {
+        write(data(m_old) + "/app/today.json", "[1]");
+        const QString stale = data(m_new) + "/state.json.copy.4711";
+        const QString recent = data(m_new) + "/other.json.copy.4712";
+        write(stale, "half");
+        write(recent, "half");
+        QFile part(stale);
+        QVERIFY(part.open(QIODevice::ReadWrite));
+        QVERIFY(part.setFileTime(QDateTime::currentDateTime().addDays(-1), QFileDevice::FileModificationTime));
+        part.close();
+
+        AppIdMigration::copyFolders(m_old, m_new);
+        QCOMPARE(read(data(m_new) + "/app/today.json"), QByteArray("[1]"));
+        QVERIFY(!QFileInfo::exists(stale));
+        QVERIFY(QFileInfo::exists(recent));
     }
 
     void newFolderIsNotOverwritten()

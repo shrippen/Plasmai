@@ -430,6 +430,18 @@ ROWS = [
      "Формы и шрифты Kante в цветах вашей темы.",
      "Kante の形と書体を、使用中のテーマの色で表示します。",
      "采用 Kante 的造型和字体，配色沿用你的主题。"),
+    # Step states a screen reader hears after "Step 2 of 4: Access" (KanteSteps).
+    ("done",
+     "erledigt", "terminé", "hecho", "completato", "klaar", "concluído", "ukończono", "виконано", "выполнено",
+     "完了", "已完成"),
+    ("current",
+     "aktuell", "en cours", "actual", "attuale", "huidig", "atual", "bieżący", "поточний", "текущий", "現在", "当前"),
+    ("upcoming",
+     "offen", "à venir", "pendiente", "da fare", "nog te doen", "pendente", "do zrobienia", "попереду", "впереди",
+     "未完了", "待完成"),
+    ("skipped",
+     "übersprungen", "ignoré", "omitido", "saltato", "overgeslagen", "ignorado", "pominięto", "пропущено",
+     "пропущено", "スキップ", "已跳过"),
 ]
 
 T_BY_LANG = {lang: {} for lang in LANGS}

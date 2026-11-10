@@ -14,13 +14,14 @@ QtObject {
 
     function refresh() {
         const c = session.connection
-        c.tracker.fetchRecentTimesheets(c.url, c.token, session.settings.recentCount, function(result) {
+        // c.current: an answer for the previous profile is dropped.
+        c.tracker.fetchRecentTimesheets(c.url, c.token, session.settings.recentCount, c.current(function(result) {
             loaded = true
             if (!result.ok) {
                 return
             }
             show(session.catalog.hydrate(KimaiApi.deduplicateRecent(result.data || [])))
-        })
+        }))
     }
 
     /** Names from a catalog that came after the list. */

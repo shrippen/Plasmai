@@ -85,10 +85,25 @@ QtObject {
         }).then(function() { return fresh }, function() { return fresh })
     }
 
+    /** Counts profile switches: an answer asked under an older one belongs to another profile. */
+    property int generation: 0
+
+    /** Wraps a read's callback: dropped when the profile changed before the answer came. */
+    function current(callback) {
+        const asked = generation
+        return function(result) {
+            if (asked === generation) {
+                callback(result)
+            }
+        }
+    }
+
     /** Switches to `p`: its offline outbox, its token, a refresh. */
     function useProfile(p) {
         // Another profile: its first answers are pending again (views show loading rows).
         if (!profile || !p || profile.id !== p.id) {
+            generation++
+            session.timer.apply(null)
             session.timer.loaded = false
             session.recent.loaded = false
             session.catalog.loaded = false

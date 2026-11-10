@@ -62,9 +62,14 @@ QtObject {
     function refresh() {
         const c = session.connection
         const writes = session.writes
+        const asked = c.generation
         refreshes++
         c.tracker.fetchActiveTimesheet(c.url, c.token, function(result) {
             refreshes--
+            // The profile changed meanwhile: this is the old profile's answer.
+            if (asked !== c.generation) {
+                return
+            }
             loaded = true
             c.observe(result)
             if (!result.ok) {
