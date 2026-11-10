@@ -125,17 +125,20 @@ ColumnLayout {
     }
 
     // Kante: a KanteWeekTimeline; hovering (on touch tapping) a block shows its project, span and duration.
-    KanteWeekTimeline {
-        id: kanteTimeline
+    // Built only in Kante.
+    Loader {
         Layout.fillWidth: true
-        visible: KanteStyle.active && root.hasData
-        dayNames: (root.days || []).map(function(day) { return day.label || "" })
-        spanFrom: root.hourMin
-        spanTo: root.hourMax
-        tickStep: root.hourSpan > root.wideSpanHours ? root.wideTickHours : root.narrowTickHours
-        entries: root.timelineEntries
-        today: root.todayRow
-        now: root.todayRow >= 0 ? root.nowHours : -1
+        active: KanteStyle.active
+        visible: root.hasData
+        sourceComponent: KanteWeekTimeline {
+            dayNames: (root.days || []).map(function(day) { return day.label || "" })
+            spanFrom: root.hourMin
+            spanTo: root.hourMax
+            tickStep: root.hourSpan > root.wideSpanHours ? root.wideTickHours : root.narrowTickHours
+            entries: root.timelineEntries
+            today: root.todayRow
+            now: root.todayRow >= 0 ? root.nowHours : -1
+        }
     }
 
     Repeater {

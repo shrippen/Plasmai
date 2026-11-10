@@ -180,10 +180,10 @@ Kirigami.ApplicationWindow {
         const s = session.settings
         var items = [{ id: "open", text: i18n("Open Plasmai") }, { separator: true }]
         if (t.tracking) {
-            items.push({ id: "stop", text: i18n("Stop %1 · %2", t.project, t.activity), enabled: !session.busy })
+            items.push({ id: "stop", text: i18n("Stop %1 · %2", t.project, t.activity), enabled: !session.locked })
         } else if (t.hasLastUsed) {
             items.push({ id: "startLast", text: i18n("Start %1 · %2", s.lastUsedProjectName, s.lastUsedActivityName),
-                         enabled: !session.busy && session.connection.configured })
+                         enabled: !session.locked && session.connection.configured })
         }
         items.push({ separator: true })
         if (autostartService) {
@@ -524,6 +524,17 @@ Kirigami.ApplicationWindow {
         active: typeof plasmaiDemoBuild !== "undefined" && plasmaiDemoBuild
         source: "DemoHook.qml"
         onLoaded: item.appRoot = root
+    }
+    // Internal builds only: the benchmark (demo/bench-app.sh), with the pages it opens.
+    Loader {
+        active: demoHook.status === Loader.Ready && typeof benchProbe !== "undefined" && benchProbe.requested
+        source: "BenchRunner.qml"
+        onLoaded: {
+            item.components = { manual: manualPageComponent, stats: statsPageComponent, filmday: filmDayPageComponent,
+                                trips: tripsPageComponent, favorites: favoritesComponent }
+            item.appRoot = root
+            item.demoHook = demoHook.item
+        }
     }
 
     Component { id: manualPageComponent; ManualEntryPage { } }

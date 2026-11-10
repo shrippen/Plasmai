@@ -141,7 +141,8 @@ Item {
         visible: root.maxSeconds > 0 && !KanteStyle.active
 
         Repeater {
-            model: root.gridLineCount + 1
+            // Only the shown variant builds its parts (System bars or KanteBarChart).
+            model: KanteStyle.active ? 0 : root.gridLineCount + 1
             delegate: Rectangle {
                 width: plot.width
                 height: 1
@@ -157,7 +158,7 @@ Item {
             spacing: Kirigami.Units.smallSpacing
 
             Repeater {
-                model: root.days
+                model: KanteStyle.active ? [] : root.days
 
                 delegate: Item {
                     id: dayCol
@@ -250,15 +251,18 @@ Item {
     }
 
     // Kante: a stacked KanteBarChart, each project in its colour, hours on the axis.
-    KanteBarChart {
-        id: kanteChart
+    // Built only in Kante.
+    Loader {
         anchors.fill: parent
-        visible: KanteStyle.active && root.maxSeconds > 0
-        axis: true
-        valueFormat: KanteBarChart.ValueFormat.Hours
-        values: (root.days || []).map(function(day) { return root.partHours(day) })
-        labels: (root.days || []).map(function(day) { return day.label || "" })
-        stackColors: root.parts.map(function(part) { return part.color })
-        partNames: root.parts.map(function(part) { return part.name })
+        active: KanteStyle.active
+        visible: root.maxSeconds > 0
+        sourceComponent: KanteBarChart {
+            axis: true
+            valueFormat: KanteBarChart.ValueFormat.Hours
+            values: (root.days || []).map(function(day) { return root.partHours(day) })
+            labels: (root.days || []).map(function(day) { return day.label || "" })
+            stackColors: root.parts.map(function(part) { return part.color })
+            partNames: root.parts.map(function(part) { return part.name })
+        }
     }
 }

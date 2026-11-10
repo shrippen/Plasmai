@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Build Plasmai APK — Host build with aqtinstall + Android NDK.
 # Usage: ./scripts/build-android.sh [debug|release]
+# PLASMAI_CMAKE_ARGS adds CMake options, e.g. "-DPLASMAI_DEMO=ON" for the benchmark (demo/bench-app.sh).
 set -euo pipefail
 MODE="${1:-debug}"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -76,6 +77,7 @@ cmake -B build-android \
     -DECM_DIR="$KF6_ANDROID/share/ECM/cmake" \
     -DQT_QML_IMPORT_PATH="$KF6_ANDROID/lib/qml" \
     -DBUILD_TESTING=OFF \
+    ${PLASMAI_CMAKE_ARGS:-} \
     2>&1 | show 5
 
 cmake --build build-android -j$(nproc) 2>&1 | show 10

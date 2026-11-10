@@ -172,7 +172,7 @@ endif()
 # off by default, on for the test-driver build.
 option(PLASMAI_DEMO "Include the internal demo mode (development only)" ${PLASMAI_TEST_DRIVER})
 if(PLASMAI_DEMO)
-    target_sources(plasmai-app PRIVATE demo.qrc)
+    target_sources(plasmai-app PRIVATE demo.qrc benchprobe.h)
     target_compile_definitions(plasmai-app PRIVATE PLASMAI_DEMO)
 endif()
 

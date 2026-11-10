@@ -206,6 +206,32 @@ TestCase {
         compare(saves, 3)
     }
 
+    // A refresh reads five or more answers in a row; with host.defer the snapshot
+    // is compared and written once for all of them, not once per answer.
+    function test_burstSavesOnce() {
+        var k = fakeKimai()
+        k.server[1] = { id: 1, begin: stamp(9, 0), end: stamp(10, 0), project: 10, activity: 20 }
+        k.server[2] = { id: 2, begin: stamp(11, 0), project: 10, activity: 21 }
+        var h = fakeHost()
+        var deferred = []
+        h.defer = function(fn) { deferred.push(fn) }
+        var saves = 0
+        var save = h.save
+        h.save = function(name, obj) { if (name.indexOf("offline-state-") === 0) saves++; return save(name, obj) }
+        var t = session(k, h).tracker
+        call(function(cb) { t.fetchActiveTimesheet("u", "t", cb) })
+        call(function(cb) { t.fetchRecentTimesheets("u", "t", 10, cb) })
+        call(function(cb) { t.loadProjects("u", "t", cb) })
+        call(function(cb) { t.fetchTimesheetsRange("u", "t", new Date(2026, 8, 28, 0, 0), new Date(2026, 8, 28, 23, 59), cb) })
+        compare(saves, 0, "nothing written before the burst ends")
+        compare(deferred.length, 1, "one save waits for the burst")
+        deferred.shift()()
+        compare(saves, 1)
+        var written = JSON.parse(h.files["offline-state-p1"])
+        compare(Object.keys(written.entries).length, 2)
+        verify(Object.keys(written.reads).some(function(key) { return key.indexOf("loadProjects") === 0 }))
+    }
+
     // A running entry's duration grows with every poll; that alone writes nothing.
     function test_runningDurationIsNoChange() {
         var k = fakeKimai()

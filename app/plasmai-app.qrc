@@ -51,6 +51,7 @@
         <file alias="contents/ui/Kante/KanteHeatmap.qml">../contents/ui/Kante/KanteHeatmap.qml</file>
         <file alias="contents/ui/Kante/KanteHud.qml">../contents/ui/Kante/KanteHud.qml</file>
         <file alias="contents/ui/Kante/KanteIcon.qml">../contents/ui/Kante/KanteIcon.qml</file>
+        <file alias="contents/ui/Kante/KanteBusyIndicator.qml">../contents/ui/Kante/KanteBusyIndicator.qml</file>
         <file alias="contents/ui/Kante/KanteKeycap.qml">../contents/ui/Kante/KanteKeycap.qml</file>
         <file alias="contents/ui/Kante/KanteKpi.qml">../contents/ui/Kante/KanteKpi.qml</file>
         <file alias="contents/ui/Kante/KanteLamp.qml">../contents/ui/Kante/KanteLamp.qml</file>

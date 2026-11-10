@@ -19,6 +19,23 @@ QtObject {
     /** Bumped by offline.js on every change, so the bindings below re-read it. */
     property int revision: 0
 
+    // A refresh answers a dozen reads within a second: the snapshot is saved once after them.
+    property var pendingSave: null
+    property Timer saveTimer: Timer {
+        interval: 1000
+        onTriggered: sync.flushSave()
+    }
+
+    function flushSave() {
+        const save = pendingSave
+        pendingSave = null
+        if (save) {
+            save()
+        }
+    }
+
+    Component.onDestruction: flushSave()
+
     readonly property bool offline: revision >= 0 && !!state && Offline.isOffline(state)
     readonly property int unsynced: revision >= 0 && state ? Offline.pendingCount(state) : 0
     /** When the snapshot was last written from a server answer (ms, 0 = never). */
@@ -46,6 +63,10 @@ QtObject {
                 return Platform.saveLocal(session.dataSource, name, obj).catch(function(err) {
                     console.warn("Plasmai: could not save", name, err)
                 })
+            },
+            defer: function(fn) {
+                sync.pendingSave = fn
+                sync.saveTimer.start()
             },
             changed: function() { sync.revision++ },
             idChanged: function(localId, serverId) { session.timer.followId(localId, serverId) }

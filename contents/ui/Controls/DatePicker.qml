@@ -31,81 +31,91 @@ QQC2.Popup {
     padding: Kirigami.Units.smallSpacing
     closePolicy: QQC2.Popup.CloseOnEscape | QQC2.Popup.CloseOnPressOutside
 
-    contentItem: ColumnLayout {
-        spacing: Kirigami.Units.smallSpacing
+    // Built while open only: every date field has a picker, one at a time is open.
+    contentItem: Loader {
+        active: picker.visible
+        sourceComponent: pickerContent
+    }
 
-        RowLayout {
-            Layout.fillWidth: true
-            Controls.ToolButton {
-                Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
-                Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-                icon.name: "go-previous"
-                onClicked: {
-                    if (picker.calendarMonth === 0) {
-                        picker.calendarMonth = 11
-                        picker.calendarYear -= 1
-                    } else {
-                        picker.calendarMonth -= 1
-                    }
-                }
-            }
-            Controls.Label {
+    Component {
+        id: pickerContent
+
+        ColumnLayout {
+            spacing: Kirigami.Units.smallSpacing
+
+            RowLayout {
                 Layout.fillWidth: true
-                horizontalAlignment: Text.AlignHCenter
-                font.bold: true
-                text: Qt.locale().standaloneMonthName(picker.calendarMonth) + " " + picker.calendarYear
-            }
-            Controls.ToolButton {
-                Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
-                Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-                icon.name: "go-next"
-                onClicked: {
-                    if (picker.calendarMonth === 11) {
-                        picker.calendarMonth = 0
-                        picker.calendarYear += 1
-                    } else {
-                        picker.calendarMonth += 1
+                Controls.ToolButton {
+                    Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
+                    Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+                    icon.name: "go-previous"
+                    onClicked: {
+                        if (picker.calendarMonth === 0) {
+                            picker.calendarMonth = 11
+                            picker.calendarYear -= 1
+                        } else {
+                            picker.calendarMonth -= 1
+                        }
+                    }
+                }
+                Controls.Label {
+                    Layout.fillWidth: true
+                    horizontalAlignment: Text.AlignHCenter
+                    font.bold: true
+                    text: Qt.locale().standaloneMonthName(picker.calendarMonth) + " " + picker.calendarYear
+                }
+                Controls.ToolButton {
+                    Layout.preferredWidth: TouchUi.active ? TouchUi.buttonMinHeight : implicitWidth
+                    Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
+                    icon.name: "go-next"
+                    onClicked: {
+                        if (picker.calendarMonth === 11) {
+                            picker.calendarMonth = 0
+                            picker.calendarYear += 1
+                        } else {
+                            picker.calendarMonth += 1
+                        }
                     }
                 }
             }
-        }
 
-        QQC2.DayOfWeekRow {
-            Layout.fillWidth: true
-            locale: Qt.locale()
-        }
+            QQC2.DayOfWeekRow {
+                Layout.fillWidth: true
+                locale: Qt.locale()
+            }
 
-        QQC2.MonthGrid {
-            id: monthGrid
-            Layout.fillWidth: true
-            month: picker.calendarMonth
-            year: picker.calendarYear
-            locale: Qt.locale()
-            spacing: 2
+            QQC2.MonthGrid {
+                id: monthGrid
+                Layout.fillWidth: true
+                month: picker.calendarMonth
+                year: picker.calendarYear
+                locale: Qt.locale()
+                spacing: 2
 
-            delegate: QQC2.ItemDelegate {
-                id: dayCell
-                required property var model
-                implicitWidth: Kirigami.Units.gridUnit * TouchUi.calendarCellGu
-                implicitHeight: Kirigami.Units.gridUnit * TouchUi.calendarCellGu
-                enabled: model.month === monthGrid.month
-                highlighted: {
-                    var sel = DTF.coerceDate(picker.selected)
-                    return !!sel
-                             && model.year === sel.getFullYear()
-                             && model.month === sel.getMonth()
-                             && model.day === sel.getDate()
-                }
-                contentItem: Controls.Label {
-                    text: model.day
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                    opacity: model.month === monthGrid.month ? 1 : 0.35
-                    font.bold: dayCell.highlighted
-                }
-                onClicked: {
-                    picker.picked(new Date(model.year, model.month, model.day, 12, 0, 0, 0))
-                    picker.close()
+                delegate: QQC2.ItemDelegate {
+                    id: dayCell
+                    required property var model
+                    implicitWidth: Kirigami.Units.gridUnit * TouchUi.calendarCellGu
+                    implicitHeight: Kirigami.Units.gridUnit * TouchUi.calendarCellGu
+                    enabled: model.month === monthGrid.month
+                    highlighted: {
+                        var sel = DTF.coerceDate(picker.selected)
+                        return !!sel
+                                 && model.year === sel.getFullYear()
+                                 && model.month === sel.getMonth()
+                                 && model.day === sel.getDate()
+                    }
+                    contentItem: Controls.Label {
+                        text: model.day
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        opacity: model.month === monthGrid.month ? 1 : 0.35
+                        font.bold: dayCell.highlighted
+                    }
+                    onClicked: {
+                        picker.picked(new Date(model.year, model.month, model.day, 12, 0, 0, 0))
+                        picker.close()
+                    }
                 }
             }
         }

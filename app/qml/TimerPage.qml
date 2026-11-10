@@ -162,8 +162,8 @@ Kirigami.Page {
                 color: Qt.alpha(KanteStyle.textColor, 0.7); font.pointSize: KanteStyle.smallFont.pointSize; elide: Text.ElideRight
                 Layout.fillWidth: true; maximumLineCount: 1
             }
-            KanteLoader { visible: KanteStyle.active && (session.busy || session.connection.state === "connecting"); Layout.alignment: Qt.AlignVCenter }
-            QQC2.BusyIndicator { running: session.busy || session.connection.state === "connecting"; visible: running && !KanteStyle.active; Layout.preferredWidth: Kirigami.Units.iconSizes.small; Layout.preferredHeight: Kirigami.Units.iconSizes.small }
+            KanteLoader { visible: KanteStyle.active && (session.busy || session.refreshing || session.connection.state === "connecting"); Layout.alignment: Qt.AlignVCenter }
+            KanteBusyIndicator { running: (session.busy || session.refreshing || session.connection.state === "connecting") && !KanteStyle.active; Layout.preferredWidth: Kirigami.Units.iconSizes.small; Layout.preferredHeight: Kirigami.Units.iconSizes.small }
         }
 
         Kirigami.InlineMessage {
@@ -385,7 +385,7 @@ Kirigami.Page {
                             display: QQC2.AbstractButton.IconOnly
                             icon.name: "media-playback-start"
                             text: i18n("Switch to another activity…")
-                            enabled: !session.busy && session.connection.state !== "error"
+                            enabled: !session.locked && session.connection.state !== "error"
                             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                             onClicked: page.openNewActivityForm()
                             QQC2.ToolTip.text: text; QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile; QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
@@ -476,7 +476,7 @@ Kirigami.Page {
                         elapsedSeconds: session.timer.elapsedSeconds
                         projectPickerModel: session.catalog.projectPickerModel
                         activityPickerModel: page.editActivityPickerModel
-                        busy: session.busy
+                        busy: session.locked
                         configured: session.connection.configured
                         connectionOk: session.connection.state !== "error"
                         supportsBillableEdit: session.connection.capabilities.billableEdit
@@ -604,7 +604,7 @@ Kirigami.Page {
                         Material.foreground: KanteStyle.textColor
                             Layout.fillWidth: true
                             visible: !session.timer.tracking && session.connection.configured && session.settings.popupShowContinue && (session.recent.last || session.timer.hasLastUsed)
-                            enabled: !session.busy && session.connection.state !== "error"
+                            enabled: !session.locked && session.connection.state !== "error"
                             icon.name: "media-playback-start"
                             text: session.recent.last
                                   ? i18n("Continue · %1 · %2", KimaiApi.displayProjectName(session.recent.last, session.catalog.projects), KimaiApi.displayActivityName(session.recent.last, session.catalog.activities, session.catalog.activitiesByProject))
@@ -619,7 +619,7 @@ Kirigami.Page {
                             Layout.fillWidth: !continueRow.continueShown
                             Layout.preferredHeight: continueRow.continueShown ? continueButton.height : implicitHeight
                             Layout.preferredWidth: continueRow.continueShown ? continueButton.height : implicitWidth
-                            enabled: !session.busy && session.connection.state !== "error"
+                            enabled: !session.locked && session.connection.state !== "error"
                             icon.name: "media-playback-start"
                             text: i18n("Start something else…")
                             onClicked: page.openNewActivityForm()
@@ -660,7 +660,7 @@ Kirigami.Page {
                                 Layout.fillWidth: true
                                 text: session.timer.tracking ? i18n("Switch") : i18n("Start")
                                 icon.name: session.timer.tracking ? "media-skip-forward" : "media-playback-start"
-                                enabled: !session.busy && newActivityPickers.projectCombo.currentIndex >= 0 && newActivityPickers.activityCombo.currentIndex >= 0
+                                enabled: !session.locked && newActivityPickers.projectCombo.currentIndex >= 0 && newActivityPickers.activityCombo.currentIndex >= 0
                                 onClicked: {
                                     var proj = newActivityPickers.projectCombo.currentItem.value
                                     var act = newActivityPickers.activityCombo.currentItem.value
@@ -924,7 +924,7 @@ Kirigami.Page {
         anchors.fill: parent
         z: 10
         flickable: narrowScroll.contentItem
-        busy: session.busy
+        busy: session.busy || session.refreshing
         onRefreshRequested: session.refresh()
     }
 
@@ -934,7 +934,7 @@ Kirigami.Page {
         anchors.fill: parent
         z: 10
         flickable: wideLeftScroll.contentItem
-        busy: session.busy
+        busy: session.busy || session.refreshing
         onRefreshRequested: session.refresh()
     }
 
@@ -944,7 +944,7 @@ Kirigami.Page {
         anchors.fill: parent
         z: 10
         flickable: wideRightScroll.contentItem
-        busy: session.busy
+        busy: session.busy || session.refreshing
         onRefreshRequested: session.refresh()
     }
 }

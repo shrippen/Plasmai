@@ -93,6 +93,90 @@ TestCase {
         compare(startSpy.signalArguments[0][1], Ui.Session.Origin.Switch)
     }
 
+    // The poll refreshes every 30 s: it shows the loading indicator, but does not lock
+    // the inputs (session.busy), which restyled every control twice per poll.
+    function test_refreshDoesNotLock() {
+        const s = openDemo()
+        tryCompare(s, "busy", false)
+        tryCompare(s, "refreshing", false)
+        s.refresh()
+        verify(s.refreshing, "the indicator shows the refresh")
+        verify(!s.busy, "inputs stay usable")
+        tryCompare(s, "refreshing", false)
+    }
+
+    // Review of PR #50: without the lock of every refresh, a favorite or a recent row tapped
+    // before the first answer started a timer while one ran on the server (no switch question),
+    // and after a profile switch Stop sent the old profile's entry. Until the running entry is
+    // known, writes wait; the poll keeps the inputs usable.
+    function test_writesWaitForTheRunningEntry() {
+        const s = openDemo()
+        tryVerify(function() { return s.timer.tracking })
+        tryCompare(s, "refreshing", false)
+        verify(!s.locked, "known running entry: usable")
+        s.timer.loaded = false
+        verify(s.locked, "not known yet: locked")
+        compare(s.timer.startPinned({ projectId: "1", activityId: "1" }), Ui.Session.Restart.Ignored)
+        compare(s.timer.requestRestart(s.recent.list[0]), Ui.Session.Restart.Ignored)
+        compare(s.timer.start("1", "1", "", "", ""), Ui.Session.Restart.Ignored)
+        s.timer.stop()
+        s.timer.continueEntry(s.recent.list[0])
+        let patched = false
+        s.timer.patchActive({ billable: true }, function() { patched = true })
+        s.timer.draft = s.timer.description + " x"
+        s.timer.flushDescription()
+        verify(!s.timer.savingDescription, "the description waits too")
+        verify(!s.busy, "no write was sent")
+        verify(!patched)
+        verify(s.timer.tracking)
+        s.refresh()
+        tryCompare(s.timer, "loaded", true)
+        verify(!s.locked)
+    }
+
+    // A refresh asked before a write answers the state before it: dropped, the
+    // write refreshes itself once it is through.
+    function test_staleRefreshDropped() {
+        const s = openDemo()
+        tryVerify(function() { return s.timer.tracking })
+        tryCompare(s, "refreshing", false)
+        const shown = []
+        function onActive() { shown.push(!!s.timer.active) }
+        s.timer.refresh()
+        s.timer.activeChanged.connect(onActive)
+        s.timer.stop()
+        tryCompare(s.timer, "tracking", false)
+        tryCompare(s, "refreshing", false)
+        s.timer.activeChanged.disconnect(onActive)
+        // The demo world is shared by the tests: its timer runs again.
+        DemoKimai.reset()
+        compare(shown, [false], "only the stop shows")
+    }
+
+    // The poll reloads today and the week; the same entries keep the same arrays, so the
+    // day sparkline and the charts do not recompute (sun and moon paths, every bar).
+    function test_sameTotalsKeepArrays() {
+        const s = openDemo()
+        tryVerify(function() { return s.totals.todayEntries.length > 0 })
+        const today = s.totals.todayEntries
+        const week = s.totals.weekEntries
+        let changes = 0
+        function onChange() { changes++ }
+        s.totals.todayEntriesChanged.connect(onChange)
+        s.totals.weekEntriesChanged.connect(onChange)
+        s.totals.refresh()
+        wait(50)
+        // Kimai: the running entry's duration has grown since the last poll.
+        const grown = JSON.parse(JSON.stringify(today))
+        grown.forEach(function(ts) { if (!ts.end) { ts.duration = (ts.duration || 0) + 30 } })
+        s.totals.show(week, grown)
+        s.totals.todayEntriesChanged.disconnect(onChange)
+        s.totals.weekEntriesChanged.disconnect(onChange)
+        compare(changes, 0, "nothing new: no change signals")
+        verify(s.totals.todayEntries === today)
+        verify(s.totals.weekEntries === week)
+    }
+
     function test_noSharedMeansSetup() {
         Platform.setBackend(backend(null))
         const s = createTemporaryObject(sessionComponent, this)

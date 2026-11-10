@@ -47,6 +47,8 @@ ColumnLayout {
     property bool pickerOpenBelow: true
     property Item pickerViewport: null
     property bool busy: false
+    /** busy while shown: hidden, the view does not follow the poll (every enabled change restyles all controls). */
+    readonly property bool locked: busy && visible
     property bool configured: true
     /** The host can log trips (Anfahrten plugin); a finished travel day then offers one. */
     property bool tripsAvailable: false
@@ -100,7 +102,7 @@ ColumnLayout {
 
     readonly property bool serverMode: mode === "server"
     readonly property bool extrasVisible: serverMode
-    readonly property bool extrasEnabled: configured && !busy && serverMode
+    readonly property bool extrasEnabled: configured && !locked && serverMode
     readonly property int fallbackBreakMinutes: defaultBreakMinutes >= 0 ? defaultBreakMinutes : FilmDays.DEFAULT_BREAK_MINUTES
     /** Break that applies: the chosen minutes, or the ruleset default when "Default" is picked. */
     readonly property int effectiveBreakMinutes: !extrasVisible ? 0
@@ -531,7 +533,7 @@ ColumnLayout {
     DateField {
         id: dayField
         visible: false
-        enabled: root.configured && !root.busy
+        enabled: root.configured && !root.locked
         onDateEdited: {
             if (!root.suppressDayChosen) {
                 root.dayChosen(DTF.coerceDate(dayField.selectedDate))
@@ -559,7 +561,7 @@ ColumnLayout {
             display: QQC2.AbstractButton.IconOnly
             text: i18n("Previous day")
             Accessible.name: text
-            enabled: root.configured && !root.busy
+            enabled: root.configured && !root.locked
             onClicked: root.dayStepRequested(-1)
             Controls.ToolTip.text: text
             Controls.ToolTip.visible: hovered && !TouchUi.active
@@ -581,7 +583,7 @@ ColumnLayout {
 
                 MouseArea {
                     anchors.fill: parent
-                    enabled: root.configured && !root.busy
+                    enabled: root.configured && !root.locked
                     cursorShape: Qt.PointingHandCursor
                     onClicked: dayField.openPicker()
                 }
@@ -601,7 +603,7 @@ ColumnLayout {
             display: QQC2.AbstractButton.IconOnly
             text: i18n("Next day")
             Accessible.name: text
-            enabled: root.configured && !root.busy
+            enabled: root.configured && !root.locked
             onClicked: root.dayStepRequested(1)
             Controls.ToolTip.text: text
             Controls.ToolTip.visible: hovered && !TouchUi.active
@@ -677,7 +679,7 @@ ColumnLayout {
                 Accessible.name: text
                 checkable: true
                 checked: root.chooserOpen
-                enabled: root.configured && !root.busy
+                enabled: root.configured && !root.locked
                 onClicked: root.chooserOpen = !root.chooserOpen
                 Controls.ToolTip.text: text
                 Controls.ToolTip.visible: hovered && !TouchUi.active
@@ -725,8 +727,8 @@ ColumnLayout {
             activitySectionTitles: root.activitySectionTitles
             pickerOpenBelow: root.pickerOpenBelow
             pickerViewport: root.pickerViewport
-            projectEnabled: root.configured && !root.busy && root.connectionOk
-            activityEnabled: root.configured && !root.busy && root.connectionOk
+            projectEnabled: root.configured && !root.locked && root.connectionOk
+            activityEnabled: root.configured && !root.locked && root.connectionOk
             showCreateActions: root.showCreateActions
             onAboutToOpenPicker: function(projectField, activityField) {
                 root.aboutToOpenPicker(projectField, activityField)
@@ -760,7 +762,7 @@ ColumnLayout {
             emphasis: Controls.Button.Emphasis.Primary
             icon.name: "media-playback-start"
             text: i18n("Start shooting day")
-            enabled: root.configured && !root.busy && root.connectionOk && root.hasFilmActivity
+            enabled: root.configured && !root.locked && root.connectionOk && root.hasFilmActivity
             onClicked: root.startRequested(root.projectCombo.currentItem.value.id, root.activityCombo.currentItem.value.id,
                                            root.projectCombo.currentLabel, root.activityCombo.currentLabel)
         }
@@ -778,7 +780,7 @@ ColumnLayout {
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             text: i18n("Enter times instead")
             icon.name: "document-edit"
-            enabled: root.configured && !root.busy
+            enabled: root.configured && !root.locked
             onClicked: root.manualRequested = true
         }
     }
@@ -813,7 +815,7 @@ ColumnLayout {
             TimeField {
                 id: beginTime
                 Layout.fillWidth: true
-                enabled: root.configured && !root.busy
+                enabled: root.configured && !root.locked
                 onTimeEdited: {
                     if (root.shownPhase === "running") {
                         root.runningBeginEdited(root.stampText(root.selectedDay, beginTime))
@@ -837,7 +839,7 @@ ColumnLayout {
                 id: endTime
                 Layout.fillWidth: true
                 visible: root.shownPhase !== "running"
-                enabled: root.configured && !root.busy
+                enabled: root.configured && !root.locked
                 onTimeEdited: root.timesTouched()
             }
             Controls.Label {
@@ -882,7 +884,7 @@ ColumnLayout {
         emphasis: Controls.Button.Emphasis.Destructive
         icon.name: "media-playback-stop"
         text: i18n("Stop shooting day")
-        enabled: root.configured && !root.busy
+        enabled: root.configured && !root.locked
         onClicked: root.stopRequested()
     }
 
@@ -893,7 +895,7 @@ ColumnLayout {
                  && root.dayTypeOptions[dayTypeCombo.currentIndex].value === FilmDays.DayType.TRAVEL
         icon.name: "mark-location"
         text: i18n("Log trip")
-        enabled: root.configured && !root.busy
+        enabled: root.configured && !root.locked
         onClicked: root.tripRequested()
     }
 
@@ -918,7 +920,7 @@ ColumnLayout {
             id: mergeCheck
             Layout.fillWidth: true
             visible: root.mergeable
-            enabled: root.configured && !root.busy
+            enabled: root.configured && !root.locked
             text: i18n("Merge into one entry")
             onToggled: {
                 if (checked) {
@@ -943,7 +945,7 @@ ColumnLayout {
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             highlighted: true
             emphasis: Controls.Button.Emphasis.Primary
-            enabled: root.configured && !root.busy && root.connectionOk && root.hasFilmActivity && root.rangeValid
+            enabled: root.configured && !root.locked && root.connectionOk && root.hasFilmActivity && root.rangeValid
             text: i18n("Save shooting day")
             icon.name: "document-save"
             onClicked: root.saveRequested(root.projectCombo.currentItem.value.id, root.activityCombo.currentItem.value.id,

@@ -17,7 +17,7 @@ Item {
      * Masks (rounded track, text cutouts under the sun) are shader effects; Qt's software
      * renderer draws none of them, so there the layers show unmasked instead of vanishing.
      */
-    readonly property bool masksRender: root.GraphicsInfo.api !== GraphicsInfo.Software
+    property bool masksRender: root.GraphicsInfo.api !== GraphicsInfo.Software
 
     property var entries: []
     property int targetSeconds: 0
@@ -673,7 +673,8 @@ Item {
                     to: 360
                     duration: 48000
                     loops: Animation.Infinite
-                    running: sunSlot.visible && root.visible && root.showArcs && root.flyoutOpen
+                    // Hidden (masks drawn by the GPU): a running animator still redraws every frame.
+                    running: sunSpin.visible && sunSlot.visible && root.visible && root.showArcs && root.flyoutOpen
                 }
 
                 Canvas {

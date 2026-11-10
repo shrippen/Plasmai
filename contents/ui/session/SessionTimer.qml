@@ -55,15 +55,24 @@ QtObject {
         onTriggered: timer.flushDescription()
     }
 
+    /** Refreshes waiting for their answer (session.refreshing). */
+    property int refreshes: 0
+
+    // Not session.busy: the poll must not lock the inputs (and restyle every control) twice a refresh.
     function refresh() {
         const c = session.connection
-        session.busy = true
+        const writes = session.writes
+        refreshes++
         c.tracker.fetchActiveTimesheet(c.url, c.token, function(result) {
-            session.busy = false
+            refreshes--
             loaded = true
             c.observe(result)
             if (!result.ok) {
                 session.failed(Ui.Session.Action.Refresh, result)
+                return
+            }
+            // A write started meanwhile: this is the state before it; the write refreshes after.
+            if (writes !== session.writes || session.busy) {
                 return
             }
             // Offline answers come from the snapshot without customer and names: fill them in.
@@ -127,6 +136,9 @@ QtObject {
 
     /** Starts a timer; while one runs this is a restart request (Hint or Confirm). */
     function start(projectId, activityId, projectLabel, activityLabel, description, extras) {
+        if (!loaded) {
+            return Ui.Session.Restart.Ignored
+        }
         if (tracking) {
             return requestRestart({ project: projectId, activity: activityId, description: description || "" })
         }
@@ -150,7 +162,7 @@ QtObject {
 
     /** Stops the running entry and starts another (starts when nothing runs). */
     function switchTo(projectId, activityId, projectLabel, activityLabel, description, extras) {
-        if (!session.connection.configured || session.busy) {
+        if (!session.connection.configured || session.locked) {
             return Ui.Session.Restart.Ignored
         }
         if (!tracking) {
@@ -182,7 +194,7 @@ QtObject {
     }
 
     function stop() {
-        if (!timesheetId) {
+        if (!timesheetId || !loaded) {
             return
         }
         const c = session.connection
@@ -204,7 +216,7 @@ QtObject {
 
     /** Restarts a stopped entry (same project, activity, description). */
     function continueEntry(ts) {
-        if (!ts) {
+        if (!ts || !loaded) {
             return
         }
         const c = session.connection
@@ -230,7 +242,7 @@ QtObject {
      * (the same activity runs already) or Confirm (the view asks before switching).
      */
     function requestRestart(ts) {
-        if (!session.connection.configured || session.busy || !ts) {
+        if (!session.connection.configured || session.locked || !ts) {
             return Ui.Session.Restart.Ignored
         }
         if (!tracking) {
@@ -245,7 +257,7 @@ QtObject {
 
     /** A favorite: { projectId, activityId, projectName, activityName }. */
     function startPinned(entry) {
-        if (!entry || !session.connection.configured || session.busy) {
+        if (!entry || !session.connection.configured || session.locked) {
             return Ui.Session.Restart.Ignored
         }
         if (tracking) {
@@ -257,7 +269,7 @@ QtObject {
     /** Continue-button fallback before any Recent exists. */
     function startLastUsed() {
         const s = session.settings
-        if (!hasLastUsed || tracking || session.busy) {
+        if (!hasLastUsed || tracking || session.locked) {
             return
         }
         start(s.lastUsedProjectId, s.lastUsedActivityId, s.lastUsedProjectName, s.lastUsedActivityName, "")
@@ -280,7 +292,7 @@ QtObject {
 
     /** Changes the running entry (project, activity, begin, billable, tags); done() once saved. */
     function patchActive(fields, done) {
-        if (!timesheetId) {
+        if (!timesheetId || !loaded) {
             return
         }
         const c = session.connection
@@ -312,7 +324,7 @@ QtObject {
 
     /** Saves the typed description now. */
     function flushDescription() {
-        if (!tracking || !timesheetId || savingDescription || draft === description) {
+        if (!tracking || !timesheetId || !loaded || savingDescription || draft === description) {
             return
         }
         const c = session.connection

@@ -55,7 +55,8 @@ QQC2.ItemDelegate {
         if (!hasHistoryActions) {
             return
         }
-        historyMenu.popup(root, Math.min(x, root.width - historyMenu.implicitWidth), y)
+        const menu = buildHistoryMenu()
+        menu.popup(root, Math.min(x, root.width - menu.implicitWidth), y)
     }
 
     onPressAndHold: openHistoryMenu(pressX, pressY)
@@ -144,7 +145,7 @@ QQC2.ItemDelegate {
     onClicked: {
         if (ignoreNextRowClick
                 || (historyButton.visible && (historyButton.hovered || historyButton.pressed))
-                || historyMenu.visible) {
+                || (historyMenu && historyMenu.visible)) {
             return
         }
         root.rowActivated()
@@ -304,7 +305,10 @@ QQC2.ItemDelegate {
                 }
                 // Anchor to the button: popup() without arguments follows the mouse cursor, which is
                 // meaningless for touch input (Plasma Mobile) and lands in the window corner there.
-                onClicked: historyMenu.popup(historyButton, historyButton.width - historyMenu.implicitWidth, historyButton.height)
+                onClicked: {
+                    const menu = root.buildHistoryMenu()
+                    menu.popup(historyButton, historyButton.width - menu.implicitWidth, historyButton.height)
+                }
             }
 
             QQC2.ToolTip.visible: historyButton.hovered && !Kirigami.Settings.isMobile
@@ -326,44 +330,63 @@ QQC2.ItemDelegate {
         return String(text || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
     }
 
-    KantePopupSkin { popup: historyMenu }
+    /** The entry menu, built when it opens first (null before): every row had one ready. */
+    readonly property QQC2.Menu historyMenu: historyMenuHolder ? historyMenuHolder.menu : null
+    property Item historyMenuHolder: null
 
-    QQC2.Menu {
-        id: historyMenu
-        QQC2.MenuItem {
-            visible: root.canPin
-            height: visible ? implicitHeight : 0
-            text: root.isPinned ? i18n("Unpin from favorites") : i18n("Pin as favorite")
-            icon.name: root.isPinned ? "bookmarks" : "bookmark-new"
-            onTriggered: root.pinRequested()
+    function buildHistoryMenu() {
+        if (!historyMenuHolder) {
+            historyMenuHolder = historyMenuComponent.createObject(root)
         }
-        QQC2.MenuItem {
-            visible: root.canEditStopped
-            height: visible ? implicitHeight : 0
-            text: i18n("Edit entry")
-            icon.name: "document-edit"
-            onTriggered: root.editRequested()
-        }
-        QQC2.MenuItem {
-            visible: root.canSplitEntry
-            height: visible ? implicitHeight : 0
-            text: i18n("Split entry")
-            icon.name: "edit-cut"
-            onTriggered: root.splitRequested()
-        }
-        QQC2.MenuItem {
-            visible: root.canLogTrip
-            height: visible ? implicitHeight : 0
-            text: i18n("Log trip")
-            icon.name: "mark-location"
-            onTriggered: root.tripRequested()
-        }
-        QQC2.MenuItem {
-            visible: root.canDeleteEntry
-            height: visible ? implicitHeight : 0
-            text: i18n("Delete entry")
-            icon.name: "edit-delete"
-            onTriggered: root.deleteRequested()
+        return historyMenuHolder.menu
+    }
+
+    Component {
+        id: historyMenuComponent
+
+        Item {
+            property alias menu: historyMenu
+
+            KantePopupSkin { popup: historyMenu }
+
+            QQC2.Menu {
+                id: historyMenu
+                QQC2.MenuItem {
+                    visible: root.canPin
+                    height: visible ? implicitHeight : 0
+                    text: root.isPinned ? i18n("Unpin from favorites") : i18n("Pin as favorite")
+                    icon.name: root.isPinned ? "bookmarks" : "bookmark-new"
+                    onTriggered: root.pinRequested()
+                }
+                QQC2.MenuItem {
+                    visible: root.canEditStopped
+                    height: visible ? implicitHeight : 0
+                    text: i18n("Edit entry")
+                    icon.name: "document-edit"
+                    onTriggered: root.editRequested()
+                }
+                QQC2.MenuItem {
+                    visible: root.canSplitEntry
+                    height: visible ? implicitHeight : 0
+                    text: i18n("Split entry")
+                    icon.name: "edit-cut"
+                    onTriggered: root.splitRequested()
+                }
+                QQC2.MenuItem {
+                    visible: root.canLogTrip
+                    height: visible ? implicitHeight : 0
+                    text: i18n("Log trip")
+                    icon.name: "mark-location"
+                    onTriggered: root.tripRequested()
+                }
+                QQC2.MenuItem {
+                    visible: root.canDeleteEntry
+                    height: visible ? implicitHeight : 0
+                    text: i18n("Delete entry")
+                    icon.name: "edit-delete"
+                    onTriggered: root.deleteRequested()
+                }
+            }
         }
     }
 }

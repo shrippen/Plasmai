@@ -108,7 +108,8 @@ Item {
 
         // Faint horizontal grid lines
         Repeater {
-            model: root.gridLineCount + 1
+            // Only the shown variant builds its parts (System bars or KanteBarChart).
+            model: KanteStyle.active ? 0 : root.gridLineCount + 1
             delegate: Rectangle {
                 width: plot.width
                 height: 1
@@ -124,7 +125,7 @@ Item {
             spacing: 2
 
             Repeater {
-                model: root.model
+                model: KanteStyle.active ? [] : root.model
                 delegate: Item {
                     width: Math.max(2, (barsRow.width - Math.max(0, root.model.length - 1) * barsRow.spacing) / Math.max(1, root.model.length))
                     height: barsRow.height
@@ -160,14 +161,16 @@ Item {
         }
     }
 
-    // Kante: a KanteBarChart, hours on the axis (h:mm).
-    KanteBarChart {
-        id: kanteChart
+    // Kante: a KanteBarChart, hours on the axis (h:mm). Built only in Kante.
+    Loader {
         anchors.fill: parent
-        visible: KanteStyle.active && root.maxSeconds > 0
-        axis: true
-        valueFormat: KanteBarChart.ValueFormat.Hours
-        values: (root.model || []).map(function(bar) { return (Number(bar.seconds) || 0) / root.secondsPerHour })
-        labels: (root.model || []).map(function(bar) { return bar.label || "" })
+        active: KanteStyle.active
+        visible: root.maxSeconds > 0
+        sourceComponent: KanteBarChart {
+            axis: true
+            valueFormat: KanteBarChart.ValueFormat.Hours
+            values: (root.model || []).map(function(bar) { return (Number(bar.seconds) || 0) / root.secondsPerHour })
+            labels: (root.model || []).map(function(bar) { return bar.label || "" })
+        }
     }
 }

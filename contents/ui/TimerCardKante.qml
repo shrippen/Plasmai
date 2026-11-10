@@ -85,7 +85,7 @@ Item {
 
             KantePlasmaToolButton {
                 visible: session.timer.tracking && session.trips.canEdit && !!session.timer.active
-                enabled: !session.busy && !view.tripBusy
+                enabled: !session.locked && !view.tripBusy
                 text: i18n("Log trip")
                 icon.name: "mark-location"
                 display: QQC2.AbstractButton.IconOnly
@@ -97,7 +97,7 @@ Item {
 
             KantePlasmaToolButton {
                 visible: session.timer.tracking
-                enabled: !session.busy
+                enabled: !session.locked
                 text: i18n("Edit")
                 icon.name: "document-edit"
                 display: QQC2.AbstractButton.IconOnly
@@ -132,7 +132,7 @@ Item {
                 visible: session.timer.tracking && view.showNewActivityHere && !view.showNewActivityForm
                 display: QQC2.AbstractButton.IconOnly
                 Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-                enabled: session.connection.configured && !session.busy && view.connectionState !== "error"
+                enabled: session.connection.configured && !session.locked && view.connectionState !== "error"
                 text: i18n("Switch to another activity…")
                 icon.name: "media-playback-start"
                 onClicked: view.showNewActivityForm = true
@@ -144,7 +144,7 @@ Item {
                 visible: session.timer.tracking
                 emphasis: KantePlasmaButton.Emphasis.Destructive
                 Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-                enabled: !session.busy
+                enabled: !session.locked
                 text: i18n("Stop")
                 icon.name: "media-playback-stop"
                 onClicked: view.requestStop()
@@ -251,7 +251,7 @@ Item {
                 Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                 emphasis: KantePlasmaButton.Emphasis.Primary
                 visible: view.showContinueHere && !session.timer.tracking && session.recent.last
-                enabled: session.connection.configured && !session.busy && view.connectionState !== "error"
+                enabled: session.connection.configured && !session.locked && view.connectionState !== "error"
                 text: i18n("Continue · %1 · %2",
                            KimaiApi.displayProjectName(session.recent.last, session.catalog.projects),
                            KimaiApi.displayActivityName(session.recent.last, session.catalog.activities, session.catalog.activitiesByProject))
@@ -265,7 +265,7 @@ Item {
                 Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                 emphasis: KantePlasmaButton.Emphasis.Primary
                 visible: view.showContinueHere && !session.timer.tracking && !session.recent.last && session.timer.hasLastUsed
-                enabled: session.connection.configured && !session.busy && view.connectionState !== "error"
+                enabled: session.connection.configured && !session.locked && view.connectionState !== "error"
                 text: i18n("Start · %1 · %2",
                            session.settings.lastUsedProjectName || "",
                            session.settings.lastUsedActivityName || "")
@@ -282,7 +282,7 @@ Item {
                 Layout.fillHeight: beside
         Layout.preferredWidth: beside ? height : implicitWidth
                 Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-                enabled: session.connection.configured && !session.busy && view.connectionState !== "error"
+                enabled: session.connection.configured && !session.locked && view.connectionState !== "error"
                 text: i18n("Start something else…")
                 icon.name: "media-playback-start"
                 onClicked: view.showNewActivityForm = true

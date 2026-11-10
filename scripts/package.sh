@@ -31,9 +31,10 @@ chmod +x "$TMP/package"/contents/code/*.sh
 
 # The demo (screenshots, testing) is internal: no demo code or data in published packages.
 rm -f "$TMP/package/contents/code/demoKimai.js" "$TMP/package/contents/code/demoWorld.js" \
-      "$TMP/package/contents/ui/DemoHook.qml" "$TMP/package/contents/ui/ScreenshotRunner.qml"
+      "$TMP/package/contents/ui/DemoHook.qml" "$TMP/package/contents/ui/ScreenshotRunner.qml" \
+      "$TMP/package/contents/ui/BenchRunner.qml"
 sed -i '/BEGIN internal demo/,/END internal demo/d' "$TMP/package/contents/ui/main.qml"
-if grep -rlE 'demoKimai|demoWorld|DemoHook|ScreenshotRunner|demo\.invalid' "$TMP/package" >&2; then
+if grep -rlE 'demoKimai|demoWorld|DemoHook|ScreenshotRunner|BenchRunner|demo\.invalid' "$TMP/package" >&2; then
     echo "error: the package still references the internal demo (files above)" >&2
     exit 1
 fi

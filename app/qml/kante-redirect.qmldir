@@ -7,6 +7,7 @@ KanteBanner 1.0 ../../contents/ui/Kante/KanteBanner.qml
 KanteBarChart 1.0 ../../contents/ui/Kante/KanteBarChart.qml
 KanteBrackets 1.0 ../../contents/ui/Kante/KanteBrackets.qml
 KanteBulkBar 1.0 ../../contents/ui/Kante/KanteBulkBar.qml
+KanteBusyIndicator 1.0 ../../contents/ui/Kante/KanteBusyIndicator.qml
 KanteButton 1.0 ../../contents/ui/Kante/KanteButton.qml
 KanteCalendarGrid 1.0 ../../contents/ui/Kante/KanteCalendarGrid.qml
 KanteCallout 1.0 ../../contents/ui/Kante/KanteCallout.qml

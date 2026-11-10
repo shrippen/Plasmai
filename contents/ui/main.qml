@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as QQC2
 import QtQml.Models
+import QtCore as QtCore
 import org.kde.plasma.plasmoid
 import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.components as PlasmaComponents3
@@ -233,7 +234,7 @@ PlasmoidItem {
     readonly property bool showSetupState: session.connection.tokenLoaded && !session.connection.configured
     readonly property bool showErrorState: errorMessage.length > 0 && connectionState === "error"
     /** Shown while shared.json is read or the session connects. */
-    readonly property bool loading: session.busy || connectionState === "connecting" || reloading
+    readonly property bool loading: session.busy || session.refreshing || connectionState === "connecting" || reloading
 
     function dismissPickerPopups() {
         if (root.switchPickersRef) {
@@ -350,11 +351,23 @@ PlasmoidItem {
         }
     }
 
-    // Profile changes made in the app (shared.json): read by a shell process, so often only
-    // while the popup is open; collapsed a minute is soon enough (the panel shows no profile).
+    // Profile changes made elsewhere (shared.json): read when the folder says the file is new.
+    // Reading takes a shell process, so no polling every few seconds; the timer only catches
+    // what a watcher can miss (the folder did not exist yet).
+    SharedConfigWatch {
+        folder: QtCore.StandardPaths.writableLocation(QtCore.StandardPaths.GenericConfigLocation)
+                + "/com.github.shrippen.plasmai"
+        fileName: "shared.json"
+        onChanged: {
+            if (!root.reloading && root.session.connection.tokenLoaded) {
+                root.pollSharedConfig()
+            }
+        }
+    }
+
     Timer {
         id: sharedConfigPollTimer
-        interval: root.expanded ? 5000 : 60000
+        interval: 300000
         running: !root.reloading && root.session.connection.tokenLoaded
         repeat: true
         onTriggered: root.pollSharedConfig()
@@ -884,7 +897,7 @@ PlasmoidItem {
     }
 
     function saveActiveEdit(projectId, activityId, beginText, billable, tags) {
-        if (!session.timer.tracking || session.busy || !session.timer.timesheetId) {
+        if (!session.timer.tracking || session.locked || !session.timer.timesheetId) {
             return
         }
         const beginDate = DTF.parseStamp(beginText)
@@ -1654,7 +1667,7 @@ PlasmoidItem {
 
     function requestStop() {
         const t = session.timer
-        if (!session.connection.configured || session.busy || !t.tracking || !t.timesheetId) {
+        if (!session.connection.configured || session.locked || !t.tracking || !t.timesheetId) {
             return
         }
         if (session.settings.confirmBeforeStop && stopConfirmDialogRef) {
@@ -2444,9 +2457,8 @@ PlasmoidItem {
                                 Layout.alignment: Qt.AlignVCenter
                             }
 
-                            QQC2.BusyIndicator {
-                                running: root.loading
-                                visible: running && !KanteStyle.active
+                            KanteBusyIndicator {
+                                running: root.loading && !KanteStyle.active
                                 Layout.preferredWidth: Kirigami.Units.iconSizes.small
                                 Layout.preferredHeight: Kirigami.Units.iconSizes.small
                             }
@@ -2464,7 +2476,7 @@ PlasmoidItem {
                             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                             display: TouchUi.active ? QQC2.AbstractButton.TextBesideIcon
                                                     : QQC2.AbstractButton.IconOnly
-                            enabled: !root.session.busy && root.connectionState !== "error"
+                            enabled: !root.session.locked && root.connectionState !== "error"
                             onClicked: root.openManualEntry()
                             PlasmaComponents3.ToolTip.text: i18n("Add a manual time entry")
                             PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
@@ -2479,7 +2491,7 @@ PlasmoidItem {
                             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                             display: TouchUi.active ? QQC2.AbstractButton.TextBesideIcon
                                                     : QQC2.AbstractButton.IconOnly
-                            enabled: !root.session.busy
+                            enabled: !root.session.locked
                             onClicked: root.openStatsView()
                             PlasmaComponents3.ToolTip.text: i18n("Show statistics")
                             PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
@@ -2493,7 +2505,7 @@ PlasmoidItem {
                             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                             display: TouchUi.active ? QQC2.AbstractButton.TextBesideIcon
                                                     : QQC2.AbstractButton.IconOnly
-                            enabled: !root.session.busy && root.connectionState !== "error"
+                            enabled: !root.session.locked && root.connectionState !== "error"
                             onClicked: root.openFilmDayView()
                             PlasmaComponents3.ToolTip.text: i18n("Log a shooting day")
                             PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
@@ -2507,7 +2519,7 @@ PlasmoidItem {
                             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                             display: TouchUi.active ? QQC2.AbstractButton.TextBesideIcon
                                                     : QQC2.AbstractButton.IconOnly
-                            enabled: !root.session.busy && !root.tripBusy && root.connectionState !== "error"
+                            enabled: !root.session.locked && !root.tripBusy && root.connectionState !== "error"
                             onClicked: root.openNewTrip()
                             PlasmaComponents3.ToolTip.text: i18n("Log a trip (Anfahrten plugin)")
                             PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active

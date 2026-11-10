@@ -203,29 +203,42 @@ RowLayout {
     }
 
     // Kante: KanteTimeField; it keeps `hours` and `minutes`, which code sets with setTime().
-    KanteTimeField {
+    // Built in Kante only: with its hour and minute grids it is the larger half of the field.
+    Loader {
         id: kanteTime
         Layout.fillWidth: true
         Layout.preferredHeight: Math.max(implicitHeight, TouchUi.controlMinHeight)
-        visible: KanteStyle.active
-        hourText: i18n("Hours")
-        minuteText: i18n("Minutes")
-        onTimeEdited: function(hour, minute) {
-            // Emptied: a time entry always has a time, so the field shows it again.
-            if (hour < 0 || minute < 0) {
-                kanteTime.hour = root.hours
-                kanteTime.minute = root.minutes
-                return
+        active: KanteStyle.active
+        visible: active
+        sourceComponent: KanteTimeField {
+            id: kanteTimeField
+            hourText: i18n("Hours")
+            minuteText: i18n("Minutes")
+            onTimeEdited: function(hour, minute) {
+                // Emptied: a time entry always has a time, so the field shows it again.
+                if (hour < 0 || minute < 0) {
+                    kanteTimeField.hour = root.hours
+                    kanteTimeField.minute = root.minutes
+                    return
+                }
+                root.editTime(hour, minute)
             }
-            root.editTime(hour, minute)
+            Component.onCompleted: {
+                hour = root.hours
+                minute = root.minutes
+            }
         }
     }
-    onHoursChanged: kanteTime.hour = hours
-    onMinutesChanged: kanteTime.minute = minutes
-
-    Component.onCompleted: {
-        refreshText()
-        kanteTime.hour = hours
-        kanteTime.minute = minutes
+    onHoursChanged: {
+        if (kanteTime.item) {
+            kanteTime.item.hour = hours
+        }
     }
+    onMinutesChanged: {
+        if (kanteTime.item) {
+            kanteTime.item.minute = minutes
+        }
+    }
+
+    Component.onCompleted: refreshText()
 }

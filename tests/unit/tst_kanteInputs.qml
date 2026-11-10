@@ -53,8 +53,13 @@ TestCase {
         KanteStyle.kind = data.kind
         var field = create("DateField")
         var kante = findItem(field, function(i) { return i.dateEdited !== undefined && i.todayText !== undefined })
+        // Each field built both and hid one; System builds no Kante field (and its calendar).
+        if (!data.kante) {
+            compare(kante, null, "System builds no Kante field")
+            return
+        }
         verify(kante !== null)
-        compare(kante.visible, data.kante)
+        verify(kante.visible)
 
         // Code -> Kante field.
         field.setDate(new Date(2026, 2, 12))
@@ -105,8 +110,12 @@ TestCase {
         KanteStyle.kind = data.kind
         var field = create("TimeField")
         var kante = findItem(field, function(i) { return i.timeEdited !== undefined && i.minuteStep !== undefined })
+        if (!data.kante) {
+            compare(kante, null, "System builds no Kante field")
+            return
+        }
         verify(kante !== null)
-        compare(kante.visible, data.kante)
+        verify(kante.visible)
 
         // 12-hour clock where the locale's short time has AM/PM.
         compare(kante.twelveHour, /a/i.test(Qt.locale().timeFormat(Locale.ShortFormat)))
@@ -127,6 +136,20 @@ TestCase {
         kante.pick(-1, -1)
         compare(field.hours, 14)
         compare(kante.hour, 14)
+    }
+
+    // The style changes while the fields exist: the Kante field shows their value.
+    function test_styleSwitchKeepsValue() {
+        var date = create("DateField")
+        var time = create("TimeField")
+        date.setDate(new Date(2026, 2, 12))
+        time.setTime(9, 45)
+        KanteStyle.kind = KanteStyle.Kind.Kante
+        var kanteDate = findItem(date, function(i) { return i.dateEdited !== undefined && i.todayText !== undefined })
+        var kanteTime = findItem(time, function(i) { return i.timeEdited !== undefined && i.minuteStep !== undefined })
+        compare(kanteDate.date.toDateString(), new Date(2026, 2, 12).toDateString())
+        compare(kanteTime.hour, 9)
+        compare(kanteTime.minute, 45)
     }
 
     // Pickers: Kante shows a KanteSearchCombo with the customers as headings.
