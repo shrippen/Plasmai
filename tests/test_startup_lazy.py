@@ -50,7 +50,7 @@ def test_timer_page_builds_its_forms_when_they_open():
     assert not found, "build it in a Loader active while the form is open: " + ", ".join(found)
 
 
-def test_drawer_entries_come_after_the_start():
+def test_drawer_rows_come_after_the_start():
     text = (ROOT / "app/qml/main.qml").read_text(encoding="utf-8")
     inline = [line for name, line, above in blocks(text)
               if name == "Kirigami.Action" and "Kirigami.GlobalDrawer" in above]

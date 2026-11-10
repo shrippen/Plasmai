@@ -74,6 +74,12 @@ QtObject {
 
     /** A write runs: inputs are locked until it answered. */
     property bool busy: false
+    /**
+     * Inputs that write are locked: a write runs, or the running entry is not known yet (the
+     * start, a profile switch). A poll does not lock them; until the first answer a tap would
+     * start without the switch question, or stop another profile's entry.
+     */
+    readonly property bool locked: busy || !timer.loaded
     /** A refresh of the running entry runs (the loading indicator; inputs stay usable). */
     readonly property bool refreshing: timer.refreshes > 0
     /** Writes started so far: a refresh asked before one answers the old state. */

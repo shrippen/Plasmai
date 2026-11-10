@@ -180,10 +180,10 @@ Kirigami.ApplicationWindow {
         const s = session.settings
         var items = [{ id: "open", text: i18n("Open Plasmai") }, { separator: true }]
         if (t.tracking) {
-            items.push({ id: "stop", text: i18n("Stop %1 · %2", t.project, t.activity), enabled: !session.busy })
+            items.push({ id: "stop", text: i18n("Stop %1 · %2", t.project, t.activity), enabled: !session.locked })
         } else if (t.hasLastUsed) {
             items.push({ id: "startLast", text: i18n("Start %1 · %2", s.lastUsedProjectName, s.lastUsedActivityName),
-                         enabled: !session.busy && session.connection.configured })
+                         enabled: !session.locked && session.connection.configured })
         }
         items.push({ separator: true })
         if (autostartService) {
@@ -401,8 +401,9 @@ Kirigami.ApplicationWindow {
         pageStack.push(component)
     }
 
-    // ── The drawer's entries, built a moment after the start or when the drawer opens first:
-    // with them the Android start built eight entries of a closed drawer. ──
+    // ── The drawer's entries: the Actions are made with the window, their rows in the drawer a
+    // moment after the start or when the drawer opens first (the Android start built the eight
+    // rows of a closed drawer). ──
     property bool drawerReady: false
     readonly property list<Kirigami.Action> drawerEntries: [
         Kirigami.Action {
@@ -484,7 +485,7 @@ Kirigami.ApplicationWindow {
             easing.type: Easing.OutCubic
         }
 
-        // The entries come shortly after the start (drawerEntries below): the drawer is closed then.
+        // The rows come shortly after the start (drawerEntries above): the drawer is closed then.
         actions: root.drawerReady ? root.drawerEntries : []
     }
 

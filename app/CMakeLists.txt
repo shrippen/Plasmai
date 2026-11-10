@@ -113,7 +113,8 @@ function(plasmai_split_qrc qrc out_qrc out_files)
             # qmlcachegen names its output after the path below this folder: for ../contents
             # Qt 6.10 made "plasmai-app_../contents", which Windows cannot create. Files from
             # outside are compiled from a copy under their resource name (re-copied on change).
-            if(NOT source MATCHES "^${CMAKE_CURRENT_SOURCE_DIR}/")
+            cmake_path(IS_PREFIX CMAKE_CURRENT_SOURCE_DIR "${source}" NORMALIZE inside)
+            if(NOT inside)
                 configure_file("${source}" "${CMAKE_CURRENT_BINARY_DIR}/qml-outside/${alias}" COPYONLY)
                 set(source "${CMAKE_CURRENT_BINARY_DIR}/qml-outside/${alias}")
             endif()
