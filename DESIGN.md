@@ -721,9 +721,11 @@ read as Kante. It is the design system's `KanteStyle.Kind.KanteLight`:
   `com.github.shrippen.plasmai`. What is taken over:
   - The folders under `~/.config`, `~/.cache` and `~/.local/share` are copied, not moved, so a
     widget or app of the old id still running keeps its own. The widget's scripts and the app's
-    `AppIdMigration` copy them, whichever starts first. An existing new folder is never
-    overwritten. The widget's `plasmoid/` (its offline outbox among it) is copied by the widget
-    only.
+    `AppIdMigration` copy them, whichever starts first; the app copies entry by entry what is
+    missing, once per folder (a marker file), so it also takes its `app/` and `tokens/` when the
+    new widget made the folder first, and nothing it removed later comes back. An existing entry
+    is never overwritten. The widget's `plasmoid/` (its offline outbox among it) is copied by
+    the widget only.
   - The keychain entries (`kwallet.sh`, `TokenStore`) are copied, then the old one is deleted.
     A clear clears both, so a token not yet moved cannot come back.
   - The placed widgets: `install-linux.sh` replaces each with one of the new id in the same
