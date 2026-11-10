@@ -136,6 +136,9 @@ QtObject {
 
     /** Starts a timer; while one runs this is a restart request (Hint or Confirm). */
     function start(projectId, activityId, projectLabel, activityLabel, description, extras) {
+        if (!loaded) {
+            return Ui.Session.Restart.Ignored
+        }
         if (tracking) {
             return requestRestart({ project: projectId, activity: activityId, description: description || "" })
         }
@@ -159,7 +162,7 @@ QtObject {
 
     /** Stops the running entry and starts another (starts when nothing runs). */
     function switchTo(projectId, activityId, projectLabel, activityLabel, description, extras) {
-        if (!session.connection.configured || session.busy) {
+        if (!session.connection.configured || session.locked) {
             return Ui.Session.Restart.Ignored
         }
         if (!tracking) {
@@ -191,7 +194,7 @@ QtObject {
     }
 
     function stop() {
-        if (!timesheetId) {
+        if (!timesheetId || !loaded) {
             return
         }
         const c = session.connection
@@ -213,7 +216,7 @@ QtObject {
 
     /** Restarts a stopped entry (same project, activity, description). */
     function continueEntry(ts) {
-        if (!ts) {
+        if (!ts || !loaded) {
             return
         }
         const c = session.connection
@@ -239,7 +242,7 @@ QtObject {
      * (the same activity runs already) or Confirm (the view asks before switching).
      */
     function requestRestart(ts) {
-        if (!session.connection.configured || session.busy || !ts) {
+        if (!session.connection.configured || session.locked || !ts) {
             return Ui.Session.Restart.Ignored
         }
         if (!tracking) {
@@ -254,7 +257,7 @@ QtObject {
 
     /** A favorite: { projectId, activityId, projectName, activityName }. */
     function startPinned(entry) {
-        if (!entry || !session.connection.configured || session.busy) {
+        if (!entry || !session.connection.configured || session.locked) {
             return Ui.Session.Restart.Ignored
         }
         if (tracking) {
@@ -266,7 +269,7 @@ QtObject {
     /** Continue-button fallback before any Recent exists. */
     function startLastUsed() {
         const s = session.settings
-        if (!hasLastUsed || tracking || session.busy) {
+        if (!hasLastUsed || tracking || session.locked) {
             return
         }
         start(s.lastUsedProjectId, s.lastUsedActivityId, s.lastUsedProjectName, s.lastUsedActivityName, "")
