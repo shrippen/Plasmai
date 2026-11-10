@@ -49,6 +49,16 @@ PlasmaComponents3.Button {
     property bool busy: false
     /** Sits on a hard 4 px shadow and presses into it (a big, single action). */
     property bool raised: false
+    /** Removes or resets (1.55): a Normal or Quiet button with the text in the negative
+     *  colour, for a removal that should not outweigh the actions beside it (Destructive
+     *  is the filled red one). Filled buttons keep their ink. Kante style only: System and
+     *  Kante Light keep the platform's button (its styles do not take a label colour). */
+    property bool destructive: false
+
+    // Return and Enter press a focused button like Space (1.49, WCAG 2.1.1): Qt Quick
+    // Controls take only Space, so keyboard users pressed Return and nothing happened.
+    Keys.onReturnPressed: function (event) { KanteStyle.pressByKey(control, event) }
+    Keys.onEnterPressed: function (event) { KanteStyle.pressByKey(control, event) }
 
     /** Kante draws this button: always in Kante, only the primary one in Kante Light. */
     readonly property bool drawn: KanteStyle.themed || (KanteStyle.active && emphasis === KantePlasmaButton.Emphasis.Primary)
@@ -78,8 +88,9 @@ PlasmaComponents3.Button {
         case KantePlasmaButton.Emphasis.Primary: return KanteStyle.primaryTextColor
         case KantePlasmaButton.Emphasis.Destructive: return KanteStyle.onStateColor
         case KantePlasmaButton.Emphasis.Data: return KanteStyle.focusColor
-        case KantePlasmaButton.Emphasis.Quiet: return hovered ? KanteStyle.strongTextColor : KanteStyle.mutedTextColor
-        default: return KanteStyle.textColor
+        case KantePlasmaButton.Emphasis.Quiet:
+            return destructive ? KanteStyle.negativeTextColor : hovered ? KanteStyle.strongTextColor : KanteStyle.mutedTextColor
+        default: return destructive ? KanteStyle.negativeTextColor : KanteStyle.textColor
         }
     }
     readonly property color kanteFrame: emphasis === KantePlasmaButton.Emphasis.Data
@@ -138,9 +149,16 @@ PlasmaComponents3.Button {
     RowLayout {
         id: kanteContent
         visible: control.drawn
-        x: control.leftPadding + Math.max(0, (control.availableWidth - width) / 2)
-        y: control.topPadding
-        width: Math.min(implicitWidth, control.availableWidth)
+        // At least 8 px each side: the desktop style's padding is 0, its native button draws its own margin.
+        readonly property real leftEdge: Math.max(control.leftPadding, KanteStyle.unit(8))
+        readonly property real rightEdge: Math.max(control.rightPadding, KanteStyle.unit(8))
+        readonly property real room: control.width - leftEdge - rightEdge
+        // A lone symbol stands in the middle of the whole button: on a narrow one the margin and the
+        // style's padding give way, and it is not squeezed.
+        readonly property bool loneIcon: control.display === T.AbstractButton.IconOnly || control.text.length === 0
+        x: loneIcon ? (control.width - width) / 2 : leftEdge + Math.max(0, (room - width) / 2)
+        y: (control.height - height) / 2    // the middle: the style's padding may be uneven
+        width: loneIcon ? implicitWidth : Math.max(0, Math.min(implicitWidth, room))
         height: control.availableHeight
         spacing: Math.max(control.spacing, Kirigami.Units.smallSpacing)
         opacity: control.enabled ? 1 : 0.5
@@ -152,15 +170,13 @@ PlasmaComponents3.Button {
             size: KanteStyle.unit(5)
         }
 
-        Kirigami.Icon {
-            readonly property var iconSource: control.icon.name !== "" ? control.icon.name : control.icon.source
+        KanteIcon {
             visible: !control.busy && control.display !== T.AbstractButton.TextOnly && String(iconSource).length > 0
             Layout.preferredWidth: Kirigami.Units.iconSizes.small
             Layout.preferredHeight: Kirigami.Units.iconSizes.small
             Layout.alignment: Qt.AlignVCenter
-            source: iconSource
+            iconSource: control.icon.name !== "" ? control.icon.name : control.icon.source
             color: control.kanteInk
-            isMask: true
         }
 
         PlasmaComponents3.Label {
@@ -179,7 +195,7 @@ PlasmaComponents3.Button {
         target: control
         property: "implicitWidth"
         value: Math.max(control.implicitBackgroundWidth + control.leftInset + control.rightInset,
-                        kanteContent.implicitWidth + control.leftPadding + control.rightPadding)
+                        kanteContent.implicitWidth + kanteContent.leftEdge + kanteContent.rightEdge)
         when: control.drawn
         restoreMode: Binding.RestoreBindingOrValue
     }
