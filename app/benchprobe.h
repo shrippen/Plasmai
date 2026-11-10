@@ -11,7 +11,9 @@
 #include <QRegularExpression>
 #include <QVariantMap>
 #include <ctime>
+#if defined(Q_OS_LINUX) || defined(Q_OS_ANDROID)
 #include <unistd.h>
+#endif
 
 class BenchProbe : public QObject {
     Q_OBJECT
@@ -80,8 +82,10 @@ public:
 
 private:
     /** Age of this process in ms from /proc/self/stat's start time (clock ticks since boot), -1 if unknown. */
+    // From the process start on; -1 where there is no /proc (Windows, macOS).
     static qint64 processAgeMs()
     {
+#if defined(Q_OS_LINUX) || defined(Q_OS_ANDROID)
         QFile f(QStringLiteral("/proc/self/stat"));
         timespec now {};
         if (!f.open(QIODevice::ReadOnly) || clock_gettime(CLOCK_BOOTTIME, &now) != 0) {
@@ -95,6 +99,9 @@ private:
         }
         const qint64 startMs = fields.at(starttime).toLongLong() * 1000 / sysconf(_SC_CLK_TCK);
         return qint64(now.tv_sec) * 1000 + now.tv_nsec / 1000000 - startMs;
+#else
+        return -1;
+#endif
     }
 
     bool m_requested;
