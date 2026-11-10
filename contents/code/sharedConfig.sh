@@ -2,6 +2,7 @@
 # Shared settings for all Plasmai plasmoid instances.
 #
 # Subcommands:
+#   init  -> create the folder (SharedConfigWatch needs it to exist).
 #   load  -> print shared JSON on stdout (exit 0). Exit 1 if missing.
 #   store -> write JSON from $KIMAI_SHARED_JSON env var.
 #   append <job>  -> append $KIMAI_SHARED_JSON to the part file of <job>.
@@ -28,6 +29,9 @@ if [ ! -e "$DIR" ] && [ -d "$OLD_DIR" ]; then
 fi
 
 case "${1:-}" in
+    init)
+        mkdir -p "$DIR"
+        ;;
     load)
         if [ ! -f "$FILE" ]; then
             exit 1
@@ -72,7 +76,7 @@ case "${1:-}" in
         fi
         ;;
     *)
-        echo "usage: $0 {load|store|append <job>|commit <job>}" >&2
+        echo "usage: $0 {init|load|store|append <job>|commit <job>}" >&2
         exit 64
         ;;
 esac

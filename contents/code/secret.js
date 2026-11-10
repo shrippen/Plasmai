@@ -185,6 +185,12 @@ function notify(dataSource, scriptPath, summary, body, callback) {
     })
 }
 
+function ensureSharedDir(dataSource, scriptPath, callback) {
+    _run(dataSource, "sh " + shQuote(scriptPath) + " init", function(data) {
+        callback(data["exit code"] === 0)
+    })
+}
+
 function loadSharedConfig(dataSource, scriptPath, callback) {
     var cmd = "sh " + shQuote(scriptPath) + " load"
     _run(dataSource, cmd, function(data) {

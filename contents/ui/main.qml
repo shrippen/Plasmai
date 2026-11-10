@@ -353,10 +353,15 @@ PlasmoidItem {
 
     // Profile changes made elsewhere (shared.json): read when the folder says the file is new.
     // Reading takes a shell process, so no polling every few seconds; the timer only catches
-    // what a watcher can miss (the folder did not exist yet).
+    // what a watcher can miss. The folder is created first (sharedConfig.sh init): a watcher
+    // on a folder that does not exist yet never reports.
+    property bool sharedDirReady: false
+
     SharedConfigWatch {
-        folder: QtCore.StandardPaths.writableLocation(QtCore.StandardPaths.GenericConfigLocation)
-                + "/io.github.shrippen.Plasmai"
+        folder: root.sharedDirReady
+                ? QtCore.StandardPaths.writableLocation(QtCore.StandardPaths.GenericConfigLocation)
+                  + "/io.github.shrippen.Plasmai"
+                : ""
         fileName: "shared.json"
         onChanged: {
             if (!root.reloading && root.session.connection.tokenLoaded) {
@@ -2999,6 +3004,7 @@ PlasmoidItem {
     Component.onCompleted: {
         Platform.setBackend(DesktopBackend.create(kwalletScript, idleScript, notifyScript,
             sharedConfigScript, catalogCacheScript, localStoreScript, systemCheckScript))
+        Secret.ensureSharedDir(execSource, sharedConfigScript, function() { root.sharedDirReady = true })
         showNewActivityForm = !compactPopupLayout && plasmoid.configuration.desktopShowNewActivity
         reload(Session.Probe.Fresh)
     }
