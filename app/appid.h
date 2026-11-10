@@ -7,6 +7,6 @@
 // the Flatpak and the Android package. Keep it stable.
 inline const QString APP_ID = QStringLiteral("io.github.shrippen.Plasmai");
 
-// The id up to 2.6.3. Folders and keychain entries under it move to APP_ID on the first start
-// (platform/appidmigration.h, TokenStore::load); the Android package of that id is another app.
+// The id up to 2.6.3. On the first start its folders are copied and its keychain entries moved
+// to APP_ID (platform/appidmigration.h, TokenStore::load); its Android package is another app.
 inline const QString OLD_APP_ID = QStringLiteral("com.github.shrippen.plasmai");

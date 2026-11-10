@@ -44,7 +44,7 @@ int runTui(int argc, char *argv[], const QString &version)
     app.setApplicationName(APP_ID);
     app.setOrganizationDomain(QStringLiteral("kde.org"));
     app.setApplicationVersion(version);
-    AppIdMigration::moveFolders(OLD_APP_ID, APP_ID);
+    AppIdMigration::copyFolders(OLD_APP_ID, APP_ID);
 
     if (!Terminal::isSupported()) {
         fprintf(stderr, "plasmai-app: --tui is not available on this platform\n");

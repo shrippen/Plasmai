@@ -156,7 +156,7 @@ int main(int argc, char *argv[])
 #endif
 
     // Names the token files and QStandardPaths depend on: keep them as the builds had them
-    // (desktop: APP_ID, the old id's folders move below; Android: Qt's defaults as set here).
+    // (desktop: APP_ID, the old id's folders are copied below; Android: Qt's defaults as set here).
 #ifdef Q_OS_ANDROID
     app.setApplicationName(QStringLiteral("Plasmai"));
     app.setOrganizationName(QStringLiteral("shrippen"));
@@ -165,8 +165,8 @@ int main(int argc, char *argv[])
     app.setOrganizationDomain(QStringLiteral("kde.org"));
     app.setApplicationDisplayName(QStringLiteral("Plasmai"));
     QGuiApplication::setDesktopFileName(APP_ID);
-    // Folders of the id up to 2.6.3 move before anything reads them.
-    AppIdMigration::moveFolders(OLD_APP_ID, APP_ID);
+    // Folders of the id up to 2.6.3 are copied before anything reads them.
+    AppIdMigration::copyFolders(OLD_APP_ID, APP_ID);
 #endif
     app.setApplicationVersion(kAppVersion);
 

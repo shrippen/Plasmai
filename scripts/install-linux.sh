@@ -24,7 +24,9 @@ FILE="$TMP/Plasmai-${VERSION}.plasmoid"
 echo "Downloading Plasmai ${VERSION} ..."
 curl -fsSL "https://github.com/${REPO}/releases/download/${TAG}/Plasmai-${VERSION}.plasmoid" -o "$FILE"
 
-if kpackagetool6 -t Plasma/Applet -l 2>/dev/null | grep -qx "$APPLET"; then
+# Listed once: `grep -q` stops reading early, and under pipefail the listing could then fail.
+INSTALLED="$(kpackagetool6 -t Plasma/Applet -l 2>/dev/null || true)"
+if grep -x "$APPLET" >/dev/null <<<"$INSTALLED"; then
     kpackagetool6 -t Plasma/Applet -u "$FILE"
 else
     kpackagetool6 -t Plasma/Applet -i "$FILE"
@@ -47,21 +49,23 @@ plasma_script() {
 }
 # BEGIN unsent-outbox (tests/test_app_id.py runs this part)
 # Offline changes not sent yet. The outbox file is named after the widget's applet id, and a
-# moved widget gets a new one: moved now, they would never go out.
+# moved widget gets a new one: moved now, they would never go out. Only the old id's folder: a
+# widget of the old id writes there (the new id's folder holds at most a copy of it).
 unsent_outboxes() {
     local data="${XDG_DATA_HOME:-$HOME/.local/share}" f
-    for f in "$data"/com.github.shrippen.plasmai/plasmoid/offline-outbox-plasmoid-*.json \
-             "$data"/io.github.shrippen.Plasmai/plasmoid/offline-outbox-plasmoid-*.json; do
+    for f in "$data"/com.github.shrippen.plasmai/plasmoid/offline-outbox-plasmoid-*.json; do
         if [ -f "$f" ] && grep -Eq '"ops"[[:space:]]*:[[:space:]]*\[[[:space:]]*[^][:space:]]' "$f"; then
             echo "$f"
         fi
     done
 }
 # END unsent-outbox
-if kpackagetool6 -t Plasma/Applet -l 2>/dev/null | grep -qx "$OLD_APPLET" && [ -n "$(unsent_outboxes)" ]; then
+OLD_INSTALLED=0
+grep -x "$OLD_APPLET" >/dev/null <<<"$INSTALLED" && OLD_INSTALLED=1
+if [ "$OLD_INSTALLED" = 1 ] && [ -n "$(unsent_outboxes)" ]; then
     echo "note: the widget has offline changes not sent yet; it keeps the old id until they are." >&2
     echo "      Open it while online so they go out, then run this script again." >&2
-elif kpackagetool6 -t Plasma/Applet -l 2>/dev/null | grep -qx "$OLD_APPLET"; then
+elif [ "$OLD_INSTALLED" = 1 ]; then
     # BEGIN widget-move (tests/test_app_id.py runs this part)
     MOVE_SCRIPT=$(cat <<'JS'
 const OLD = "com.github.shrippen.plasmai";

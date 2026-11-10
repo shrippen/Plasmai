@@ -15,11 +15,17 @@ set -eu
 CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
 DIR="$CACHE_HOME/io.github.shrippen.Plasmai"
 FILE="$DIR/catalog-cache.json"
-# Up to 2.6.3 the folder had the old id's name: it moves once, unless the new one is there
-# (when another process moved it first, mv fails and that one's result counts).
+# Up to 2.6.3 the folder had the old id's name. It is copied once, not moved: a widget or app
+# of the old id still running keeps using it. The copy gets its name at the end, so nobody reads
+# it half-way; when another process was first, its copy counts.
 OLD_DIR="$CACHE_HOME/com.github.shrippen.plasmai"
 if [ ! -e "$DIR" ] && [ -d "$OLD_DIR" ]; then
-    mv "$OLD_DIR" "$DIR" 2>/dev/null || true
+    COPY="$DIR.copy.$$"
+    mkdir -p "${DIR%/*}"
+    if cp -R "$OLD_DIR" "$COPY" 2>/dev/null && [ ! -e "$DIR" ]; then
+        mv "$COPY" "$DIR" 2>/dev/null || true
+    fi
+    rm -rf "$COPY" "$DIR/${COPY##*/}" 2>/dev/null || true
 fi
 
 case "${1:-}" in

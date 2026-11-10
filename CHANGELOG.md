@@ -3,7 +3,7 @@
 ## [Unreleased]
 
 - Note (en): Plasmai has one id everywhere, `io.github.shrippen.Plasmai` (before
-  `com.github.shrippen.plasmai`). Settings, caches and stored tokens move on the first start.
+  `com.github.shrippen.plasmai`). Settings, caches and stored tokens are taken over on the first start.
   `install-linux.sh` swaps the placed widgets once no offline changes wait to be sent; from the
   KDE Store the widget comes as a new one (let it send its offline changes while online, then add
   the new one and remove the old one). On Android the app is a new one: install it, sign in

@@ -718,16 +718,21 @@ read as Kante. It is the design system's `KanteStyle.Kind.KanteLight`:
     pauses while the window is hidden.
 - **App id:** `io.github.shrippen.Plasmai` everywhere (Flathub takes no new `com.github.*`
   ids). Up to 2.6.3 everything but the Flatpak and the desktop file was
-  `com.github.shrippen.plasmai`. What moves: the folders under `~/.config`, `~/.cache` and
-  `~/.local/share` (the widget's scripts and the app's `AppIdMigration`, whichever starts
-  first; an existing new folder is never overwritten), the keychain entries (`kwallet.sh`,
-  `TokenStore`: copied, then the old one deleted, and a clear clears both so a token not yet
-  moved cannot come back), and the placed widgets (`install-linux.sh` replaces each with one of
-  the new id in the same place, with its settings, and removes the old package once none is
-  left; it waits while an outbox holds unsent changes, since the outbox file is named after the
-  applet id and the new widget has another). Plasma itself knows no renaming, so a widget updated through the KDE Store comes as a
-  second widget. The Android package is new: Android sees another app, data and login start
-  fresh.
+  `com.github.shrippen.plasmai`. What is taken over:
+  - The folders under `~/.config`, `~/.cache` and `~/.local/share` are copied, not moved, so a
+    widget or app of the old id still running keeps its own. The widget's scripts and the app's
+    `AppIdMigration` copy them, whichever starts first. An existing new folder is never
+    overwritten. The widget's `plasmoid/` (its offline outbox among it) is copied by the widget
+    only.
+  - The keychain entries (`kwallet.sh`, `TokenStore`) are copied, then the old one is deleted.
+    A clear clears both, so a token not yet moved cannot come back.
+  - The placed widgets: `install-linux.sh` replaces each with one of the new id in the same
+    place, with its settings, and removes the old package once none is left. It waits while an
+    outbox in the old folder holds unsent changes, since the outbox file is named after the
+    applet id and the new widget has another.
+
+  Plasma itself knows no renaming, so a widget updated through the KDE Store comes as a second
+  widget. The Android package is new: Android sees another app, data and login start fresh.
 - **App start** (Android first: `demo/bench-app.sh android --startup --warm`
   measures the start in phases from the process start):
   - Build what shows, not what may show: dialogs are `LazyDialog`s (built

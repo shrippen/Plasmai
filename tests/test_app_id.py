@@ -91,7 +91,8 @@ def run_script(name, args, env):
 
 
 @pytest.mark.parametrize("name,args,xdg,sub,file", SCRIPTS)
-def test_widget_folder_of_the_old_id_moves(tmp_path, name, args, xdg, sub, file):
+def test_widget_folder_of_the_old_id_is_copied(tmp_path, name, args, xdg, sub, file):
+    """Copied, not moved: a widget or app of the old id still running keeps its folder."""
     base = tmp_path / xdg
     old = base / OLD / sub
     old.mkdir(parents=True)
@@ -102,8 +103,23 @@ def test_widget_folder_of_the_old_id_moves(tmp_path, name, args, xdg, sub, file)
     result = run_script(name, args, env)
     assert result.returncode == 0, result.stderr
     assert result.stdout == '{"from":"old"}'
-    assert not (base / OLD).exists()
-    assert (base / NEW / "other.json").read_text() == "kept"
+    assert (old / file).read_text() == '{"from":"old"}', "the old one stays"
+    if sub:
+        # localStore.sh takes the widget's own folder only; the rest of it is the app's.
+        assert not (base / NEW / "other.json").exists()
+    else:
+        assert (base / NEW / "other.json").read_text() == "kept"
+    assert not [p for p in (base / NEW).rglob("*.copy.*")], "no copy left half-way"
+
+
+def test_widget_files_follow_after_the_app_copied_its_own(tmp_path):
+    """The app copies the data folder without plasmoid/; the widget takes plasmoid/ itself."""
+    base = tmp_path / "XDG_DATA_HOME"
+    (base / OLD / "plasmoid").mkdir(parents=True)
+    (base / OLD / "plasmoid" / "outbox.json").write_text("old")
+    (base / NEW / "app").mkdir(parents=True)
+    result = run_script("localStore.sh", ["load", "outbox"], {**os.environ, "XDG_DATA_HOME": str(base)})
+    assert (result.returncode, result.stdout) == (0, "old")
 
 
 @pytest.mark.parametrize("name,args,xdg,sub,file", SCRIPTS)
@@ -297,7 +313,9 @@ def unsent(tmp_path, files):
 def test_unsent_offline_changes_are_found(tmp_path):
     found = unsent(tmp_path, {
         f"{OLD}/plasmoid/offline-outbox-plasmoid-94-default.json": '{"v":2,"counter":3,"ops":[{"kind":"stop"}]}',
-        f"{NEW}/plasmoid/offline-outbox-plasmoid-5-work.json": '{"v": 2, "counter": 1, "ops": [ {"kind": "start"} ]}',
+        f"{OLD}/plasmoid/offline-outbox-plasmoid-5-work.json": '{"v": 2, "counter": 1, "ops": [ {"kind": "start"} ]}',
+        # A copy in the new folder is no widget's of the old id: ignored.
+        f"{NEW}/plasmoid/offline-outbox-plasmoid-94-default.json": '{"v":2,"counter":3,"ops":[{"kind":"stop"}]}',
         f"{OLD}/plasmoid/offline-outbox-plasmoid-2-demo.json": '{"v":2,"counter":0,"ops":[]}',
         f"{OLD}/plasmoid/offline-state-plasmoid-94-default.json": '{"ops":[1]}',
     })
@@ -321,3 +339,10 @@ def test_folder_move_is_posix():
     for name in ("sharedConfig.sh", "catalogCache.sh", "localStore.sh"):
         text = (ROOT / "contents/code" / name).read_text(encoding="utf-8")
         assert "mv -T" not in text, f"{name}: mv -T is GNU only"
+
+
+def test_installed_packages_listed_once():
+    """kpackagetool6 -l | grep -q twice under pipefail: the first could fail with SIGPIPE and
+    the second pass, and the widget would move although changes wait."""
+    src = (ROOT / "scripts/install-linux.sh").read_text(encoding="utf-8")
+    assert src.count('grep -qx "$OLD_APPLET"') == 0

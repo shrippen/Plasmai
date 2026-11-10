@@ -6,7 +6,7 @@
 
 #include "platform/appidmigration.h"
 
-// Up to 2.6.3 the desktop app's folders had the old id's name; the first start moves them.
+// Up to 2.6.3 the desktop app's folders had the old id's name; the first start copies them.
 class TstAppIdMigration : public QObject {
     Q_OBJECT
 
@@ -58,23 +58,39 @@ private slots:
         }
     }
 
-    void oldFoldersMoveOnce()
+    // Copied, not moved: a widget or app of the old id still running keeps its folders (review
+    // of PR #52: moved by the app, an old widget's waiting offline changes were lost).
+    void oldFoldersAreCopiedOnce()
     {
         write(config(m_old) + "/shared.json", "{\"profiles\":1}");
         write(data(m_old) + "/app/today.json", "[1]");
         write(cache(m_old) + "/catalog-cache.json", "{}");
         QCoreApplication::setApplicationName(m_new);
 
-        QVERIFY(AppIdMigration::moveFolders(m_old, m_new) >= 2);
+        QVERIFY(AppIdMigration::copyFolders(m_old, m_new) >= 2);
         QCOMPARE(read(config(m_new) + "/shared.json"), QByteArray("{\"profiles\":1}"));
         QCOMPARE(read(data(m_new) + "/app/today.json"), QByteArray("[1]"));
         QCOMPARE(read(cache(m_new) + "/catalog-cache.json"), QByteArray("{}"));
-        QVERIFY(!QFileInfo::exists(config(m_old)));
-        QVERIFY(!QFileInfo::exists(data(m_old)));
+        QCOMPARE(read(config(m_old) + "/shared.json"), QByteArray("{\"profiles\":1}"));
+        QCOMPARE(read(data(m_old) + "/app/today.json"), QByteArray("[1]"));
         // The application name is left as it was.
         QCOMPARE(QCoreApplication::applicationName(), m_new);
-        // A second start finds nothing to move.
-        QCOMPARE(AppIdMigration::moveFolders(m_old, m_new), 0);
+        // A second start copies nothing.
+        write(config(m_old) + "/shared.json", "changed");
+        QCOMPARE(AppIdMigration::copyFolders(m_old, m_new), 0);
+        QCOMPARE(read(config(m_new) + "/shared.json"), QByteArray("{\"profiles\":1}"));
+    }
+
+    // The widget's own files (plasmoid/, its outbox among them) are the widget's to take.
+    void widgetFilesStay()
+    {
+        write(data(m_old) + "/app/today.json", "[1]");
+        write(data(m_old) + "/plasmoid/offline-outbox-plasmoid-9-default.json", "{\"ops\":[1]}");
+
+        AppIdMigration::copyFolders(m_old, m_new);
+        QCOMPARE(read(data(m_new) + "/app/today.json"), QByteArray("[1]"));
+        QVERIFY(!QFileInfo::exists(data(m_new) + "/plasmoid"));
+        QVERIFY(QFileInfo::exists(data(m_old) + "/plasmoid/offline-outbox-plasmoid-9-default.json"));
     }
 
     void newFolderIsNotOverwritten()
@@ -82,14 +98,14 @@ private slots:
         write(config(m_old) + "/shared.json", "old");
         write(config(m_new) + "/shared.json", "new");
 
-        AppIdMigration::moveFolders(m_old, m_new);
+        AppIdMigration::copyFolders(m_old, m_new);
         QCOMPARE(read(config(m_new) + "/shared.json"), QByteArray("new"));
         QCOMPARE(read(config(m_old) + "/shared.json"), QByteArray("old"));
     }
 
-    void nothingToMove()
+    void nothingToCopy()
     {
-        QCOMPARE(AppIdMigration::moveFolders(m_old, m_new), 0);
+        QCOMPARE(AppIdMigration::copyFolders(m_old, m_new), 0);
         QVERIFY(!QFileInfo::exists(config(m_new)));
     }
 };
