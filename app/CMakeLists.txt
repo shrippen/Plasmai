@@ -127,7 +127,8 @@ endfunction()
 # ../contents/... became ".rcc/qmlcache/plasmai-app_../contents", which Windows cannot create
 # (with the build folder beside app/, a copy in it would be "plasmai-app_../build"). Qt 6.11 and
 # later take the shorter path and replace "..". So before 6.11 (the Windows builds) the QML stays
-# in the qrc and compiles at run time, as before; Android (6.11) and Linux compile it here.
+# in the qrc and compiles at run time, as before; Android, Linux and macOS (6.11 and later)
+# compile it here.
 set(PLASMAI_QML_AT_BUILD_TIME TRUE)
 if(Qt6_VERSION VERSION_LESS 6.11)
     set(PLASMAI_QML_AT_BUILD_TIME FALSE)

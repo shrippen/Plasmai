@@ -1,4 +1,5 @@
-"""The app's QML and JavaScript are compiled at build time (qmlcachegen, app/CMakeLists.txt).
+"""The app's QML and JavaScript are compiled at build time from Qt 6.11 on (qmlcachegen,
+app/CMakeLists.txt; the Windows build with Qt 6.10 keeps the plain qrc, see the last test).
 
 Loaded from the plain qrc, every file was compiled on the device at the first start after an
 install or update (Pixel 6: data shown after 2.74 s; compiled at build time 1.94 s) and typed
