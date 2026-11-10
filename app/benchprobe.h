@@ -62,6 +62,7 @@ public:
     /** CPU time (user + system) of the process in ms, -1 if unknown. */
     Q_INVOKABLE qint64 cpuMs() const
     {
+#if defined(Q_OS_LINUX) || defined(Q_OS_ANDROID)
         QFile f(QStringLiteral("/proc/self/stat"));
         if (!f.open(QIODevice::ReadOnly)) {
             return -1;
@@ -75,6 +76,9 @@ public:
         }
         const qint64 ticks = fields.at(utime).toLongLong() + fields.at(utime + 1).toLongLong();
         return ticks * 1000 / sysconf(_SC_CLK_TCK);
+#else
+        return -1;
+#endif
     }
 
     /** ms since the probe was made (first thing in main). */
