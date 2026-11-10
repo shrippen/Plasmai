@@ -1,6 +1,6 @@
 # Review guide
 
-Every PR is reviewed before it is merged (rule in `agent.md`): by PR-Agent
+Every PR is reviewed before it is merged (rule in `RULES.md`, procedure in the skill `pr-review`): by PR-Agent
 (owner, 22.10.2026); a new Claude agent checks the **Wichtig** of earlier
 rounds, and reviews when PR-Agent fails. The
 reviewer knows nothing of the session that wrote the change: it gets the
@@ -27,7 +27,7 @@ SolidTime). A bug that matters costs the user hours or trust:
 
 ## What to check in particular
 
-- Bug fixes: a test that failed before the fix (`agent.md`); does the fix
+- Bug fixes: a test that failed before the fix (`RULES.md`); does the fix
   remove the cause, not one case of it?
 - Tests: new behaviour in `tests/unit` (runs in three time zones),
   `tests/locales.sh` (12/24 h, RTL, native digits), `app/tests`. Say what
@@ -42,7 +42,7 @@ SolidTime). A bug that matters costs the user hours or trust:
   is a copy from Kante (`scripts/sync-kante.sh`) and is not edited here.
 - Layers: pages call the session/tracker, never a provider or shell helper
   directly; shell helpers stay POSIX `sh`, arguments quoted (`shQuote`).
-- `agent.md` code rules: braces on every `if`, no new public members
+- `RULES.md` code rules: braces on every `if`, no new public members
   without the owner's consent, no unrelated changes.
 
 ## Skip
@@ -67,5 +67,5 @@ SolidTime). A bug that matters costs the user hours or trust:
 - In a later round: say for each open **Wichtig** of the last round whether
   it is fixed, or whether its answer is accepted, with the reason. PR-Agent
   sees no earlier round: it reports only its own findings with their labels,
-  and a new Claude agent closes the open ones (`agent.md`).
+  and a new Claude agent closes the open ones (skill `pr-review`).
 - Findings in German, code names as they are.

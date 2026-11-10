@@ -1,7 +1,7 @@
 # Releasing Plasmai (Plasmoid, Android, Windows, desktop Linux)
 
 Commands and reasoning per target. The order of a release, from the version bump to done, is
-the list "Release steps" in `agent.md`; this file has the details behind its steps.
+the list "Release steps" in `RELEASE.md`; this file has the details behind its steps.
 
 ## 1. Version numbers
 
@@ -23,7 +23,7 @@ only increase from here (F-Droid, Play Store).
 ## 2. Changelog
 
 `CHANGELOG.md` gets a section `## [X.Y.Z] — YYYY-MM-DD` below `## [Unreleased]`, in the format
-of step 2 of the release steps in `agent.md`; the landing page gets the same text (step 3).
+of step 2 of the release steps in `RELEASE.md`; the landing page gets the same text (step 3).
 
 ## 3. Plasmoid (store.kde.org)
 
@@ -240,7 +240,7 @@ hand with `tag` set: `gh workflow run release.yml -R shrippen/Plasmai -f tag=vX.
 
 Git work goes to Gitea (git.arianw.de); its push mirror carries commits and tags to GitHub,
 but not releases. So a release is made in two places, the second one automatically (steps 5–7
-of the release steps in `agent.md`):
+of the release steps in `RELEASE.md`):
 
 1. Tag the merge commit of the release PR and push it to Gitea:
    `git tag -a vX.Y.Z -m "X.Y.Z" <merge commit> && git push origin vX.Y.Z`.
