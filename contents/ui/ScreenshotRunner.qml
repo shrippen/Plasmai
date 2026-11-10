@@ -5,7 +5,7 @@ import "../code/kimaiApi.js" as KimaiApi
 
 /**
  * Landing-page screenshots, only when a plan file exists:
- *   $XDG_CONFIG_HOME/com.github.shrippen.plasmai/screenshots.json
+ *   $XDG_CONFIG_HOME/io.github.shrippen.Plasmai/screenshots.json
  *   { "dir": "/out", "shots": [ { "name": "timer", "view": "main|manual|stats|stats-activity|filmday|edit|datepicker|timepicker|create|switch|offline|unsynced|online" } ] }
  * demo/shots.sh writes it into a scratch config home together with a demo profile, then
  * runs plasmoidviewer offscreen. Each view is grabbed with grabToImage into dir/name.png
@@ -32,7 +32,7 @@ Item {
     }
 
     function load() {
-        var file = "\"${XDG_CONFIG_HOME:-$HOME/.config}/com.github.shrippen.plasmai/screenshots.json\""
+        var file = "\"${XDG_CONFIG_HOME:-$HOME/.config}/io.github.shrippen.Plasmai/screenshots.json\""
         Secret._run(execSource, "cat " + file + " 2>/dev/null", function(data) {
             var parsed = Secret.parseJsonPayload(data && data.stdout)
             if (parsed && parsed.dir && parsed.shots) {

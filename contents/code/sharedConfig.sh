@@ -12,8 +12,20 @@
 set -eu
 
 CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
-DIR="$CONFIG_HOME/com.github.shrippen.plasmai"
+DIR="$CONFIG_HOME/io.github.shrippen.Plasmai"
 FILE="$DIR/shared.json"
+# Up to 2.6.3 the folder had the old id's name. It is copied once, not moved: a widget or app
+# of the old id still running keeps using it. The copy gets its name at the end, so nobody reads
+# it half-way; when another process was first, its copy counts.
+OLD_DIR="$CONFIG_HOME/com.github.shrippen.plasmai"
+if [ ! -e "$DIR" ] && [ -d "$OLD_DIR" ]; then
+    COPY="$DIR.copy.$$"
+    mkdir -p "${DIR%/*}"
+    if cp -R "$OLD_DIR" "$COPY" 2>/dev/null && [ ! -e "$DIR" ]; then
+        mv "$COPY" "$DIR" 2>/dev/null || true
+    fi
+    rm -rf "$COPY" "$DIR/${COPY##*/}" 2>/dev/null || true
+fi
 
 case "${1:-}" in
     load)

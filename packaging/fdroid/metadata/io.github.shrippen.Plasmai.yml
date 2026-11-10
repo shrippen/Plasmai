@@ -1,4 +1,4 @@
-# F-Droid recipe for the Plasmai Android app (app/, package com.github.shrippen.plasmai; the
+# F-Droid recipe for the Plasmai Android app (app/, package io.github.shrippen.Plasmai; the
 # Plasma widget is a separate distribution, see RELEASING.md 4 vs 5). BUILD-VERIFIED: its
 # v2.0.0 form (before build: moved into scripts/build-apk-reproducible.sh) produced a working,
 # signed-by-F-Droid-test-keys APK in a real GitLab CI pipeline (a merge_request_event pipeline
@@ -11,18 +11,18 @@
 # repeating it all here.
 #
 # This file keeps comments for maintenance; the version actually pushed (shrippen/fdroiddata
-# fork, branch new/com.github.shrippen.plasmai) has none, because `fdroid rewritemeta` — which
+# fork, branch new/io.github.shrippen.Plasmai) has none, because `fdroid rewritemeta` — which
 # fdroiddata's CI checks the file against — strips all comments and reflows lines its own way
 # (and its exact wrap points only match Debian trixie's apt-installed fdroidserver/ruamel.yaml,
 # not any local pip or git-master install — verify idempotency locally, but take the CI job's own
 # diff as the correction for wrap points, not a local rewritemeta run). After editing this file:
 #   1. Copy it into the fdroiddata clone's metadata/, run
-#      `fdroid rewritemeta com.github.shrippen.plasmai` there.
+#      `fdroid rewritemeta io.github.shrippen.Plasmai` there.
 #   2. Diff against git HEAD; if the line noted below reappears unwrapped, that's expected
 #      (local rewritemeta disagrees with CI on this spot) — re-apply by hand:
 #        - `output: <path>` -> `output: \n      <path>` (trailing space after the colon)
-#   3. `check-jsonschema --schemafile schemas/metadata.json metadata/com.github.shrippen.plasmai.yml`
-#      and `fdroid lint com.github.shrippen.plasmai` should both pass clean.
+#   3. `check-jsonschema --schemafile schemas/metadata.json metadata/io.github.shrippen.Plasmai.yml`
+#      and `fdroid lint io.github.shrippen.Plasmai` should both pass clean.
 #   4. Commit and push to the fork; if you want to re-verify before the real submission, open a
 #      throwaway MR against the fork's own master (triggers a merge_request_event pipeline) and
 #      close it once done, as above.
@@ -30,7 +30,7 @@
 # Reproducible Builds: `build:` runs scripts/build-apk-reproducible.sh, the same script as the
 # GitHub release job, so F-Droid's build is byte-identical to our signed release APK (checked in
 # F-Droid's buildserver image with packaging/fdroid/check-reproducible.sh, RELEASING.md 4.6) and F-Droid publishes it with our signature.
-# The fdroiddata copy needs metadata/com.github.shrippen.plasmai/signatures/<versionCode>/ for
+# The fdroiddata copy needs metadata/io.github.shrippen.Plasmai/signatures/<versionCode>/ for
 # every build: `fdroid signatures <signed APK from the GitHub release>` there.
 #
 # Before opening the real PR to F-Droid/fdroiddata (MR template

@@ -6,7 +6,8 @@
 # The build must have the demo (-DPLASMAI_DEMO=ON). Each run starts the app fresh with empty
 # settings; the table is the median of all runs (demo/bench-report.py, as for the widget).
 #   desktop  own XDG folders, so your settings stay untouched (QPA: BENCH_QPA, default xcb)
-#   flatpak  flatpak-builder --run in the build folder: nothing is installed, own folders per run;
+#   flatpak  flatpak-builder --run in the build folder (manifest: demo/flatpak-bench.yml):
+#            nothing is installed, own folders per run;
 #            Wayland (the build sandbox has no X11)
 #   android  installs the APK (a debug build is its own app, ".dev") and clears its data
 #            before each run; back up that app's data first if it holds any

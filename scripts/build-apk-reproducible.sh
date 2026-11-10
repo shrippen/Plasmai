@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Reproducible release APK: the one build both the GitHub release (.github/workflows/release.yml)
-# and F-Droid (packaging/fdroid/metadata/com.github.shrippen.plasmai.yml) run, so F-Droid can
+# and F-Droid (packaging/fdroid/metadata/io.github.shrippen.Plasmai.yml) run, so F-Droid can
 # check its build against the signed GitHub APK byte for byte (Reproducible Builds) and ship ours.
 #
 # Usage: ANDROID_SDK_ROOT=<sdk> ./scripts/build-apk-reproducible.sh

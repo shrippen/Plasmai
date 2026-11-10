@@ -4,7 +4,7 @@ This file is the source of truth for how Plasmai should look, behave, and be
 extended. Follow it for new features, refactors, and UI tweaks. Code comments
 explain local mechanics; this document explains *why*.
 
-Plugin ID: `com.github.shrippen.plasmai`  
+Plugin ID: `io.github.shrippen.Plasmai`  
 Stack: KDE Plasma 6, QML, JavaScript (`.pragma library`). No compiled binaries
 (KDE Store QML applet requirement).
 
@@ -174,10 +174,10 @@ view ──binds / calls──▶ Session (contents/ui/Session.qml, QtQml only)
   (QtKeychain's insecure fallback stays off). Never write tokens to `main.xml`,
   `shared.json`, files, or logs.
 - **Settings:** shared across every Plasmai instance through
-  `~/.config/com.github.shrippen.plasmai/shared.json` (`sharedConfig.js` /
+  `~/.config/io.github.shrippen.Plasmai/shared.json` (`sharedConfig.js` /
   `sharedConfig.sh`). Instance config is a cache; edits persist a patch into
   the shared file.
-- **Catalog cache:** `~/.cache/com.github.shrippen.plasmai/catalog-cache.json`.
+- **Catalog cache:** `~/.cache/io.github.shrippen.Plasmai/catalog-cache.json`.
   Favorites settings should read this cache, not hit the live API on every
   open. The widget writes it only after a real catalog fetch, so the
   `FRESH_MS` age check keeps working.
@@ -195,7 +195,7 @@ view ──binds / calls──▶ Session (contents/ui/Session.qml, QtQml only)
 - **Offline snapshot and outbox** (`offline.js`, Kimai only): each client keeps
   its own two files per profile, never shared (two writers on one file was the
   `filmDaysPending` problem): the Plasmoid in
-  `$XDG_DATA_HOME/com.github.shrippen.plasmai/plasmoid/` via `localStore.sh`
+  `$XDG_DATA_HOME/io.github.shrippen.Plasmai/plasmoid/` via `localStore.sh`
   (widget id in the name, so two widgets in one plasmashell keep apart), the app
   in `<AppData>/app/` via `FileStore.saveLocal` (mode 0600 on both). The token
   never goes to disk. See "Offline" below.
@@ -716,6 +716,27 @@ read as Kante. It is the design system's `KanteStyle.Kind.KanteLight`:
     day's labels tick only while shown, a list row lays out its running counter
     only while it shows it; the app builds one day chart, and its 30 s tick
     pauses while the window is hidden.
+- **App id:** `io.github.shrippen.Plasmai` everywhere (Flathub takes no new `com.github.*`
+  ids). Up to 2.6.3 everything but the Flatpak and the desktop file was
+  `com.github.shrippen.plasmai`. What is taken over:
+  - The folders under `~/.config`, `~/.cache` and `~/.local/share` are copied, not moved, so a
+    widget or app of the old id still running keeps its own. The widget's scripts and the app's
+    `AppIdMigration` copy them, whichever starts first; the app copies entry by entry what is
+    missing, once per folder (a marker file), so it also takes its `app/` when the new widget
+    made the folder first, and nothing it removed later comes back. Plain-text token files of
+    builds before 2.1 (`tokens/`) are never copied: `TokenStore` moves them into the keychain
+    from the old folder and deletes them there. An existing entry
+    is never overwritten. The widget's `plasmoid/` (its offline outbox among it) is copied by
+    the widget only.
+  - The keychain entries (`kwallet.sh`, `TokenStore`) are copied, then the old one is deleted.
+    A clear clears both, so a token not yet moved cannot come back.
+  - The placed widgets: `install-linux.sh` replaces each with one of the new id in the same
+    place, with its settings, and removes the old package once none is left. It waits while an
+    outbox in the old folder holds unsent changes, since the outbox file is named after the
+    applet id and the new widget has another.
+
+  Plasma itself knows no renaming, so a widget updated through the KDE Store comes as a second
+  widget. The Android package is new: Android sees another app, data and login start fresh.
 - **App start** (Android first: `demo/bench-app.sh android --startup --warm`
   measures the start in phases from the process start):
   - Build what shows, not what may show: dialogs are `LazyDialog`s (built

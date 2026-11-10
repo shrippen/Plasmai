@@ -134,7 +134,7 @@ submitting, since policies change. Submitting means a PR to
 [F-Droid/fdroiddata](https://gitlab.com/fdroid/fdroiddata) with a recipe, not an artifact
 produced here.
 
-A recipe is prepared under `packaging/fdroid/metadata/com.github.shrippen.plasmai.yml` (mirrors
+A recipe is prepared under `packaging/fdroid/metadata/io.github.shrippen.Plasmai.yml` (mirrors
 how `packaging/flatpak/` holds the Flathub draft). `sudo:` installs Qt6, the NDK, the android-36
 platform and a handful of runtime libs (root, network available); `build:` runs
 `scripts/build-apk-reproducible.sh`, which builds OpenSSL from source, cross-compiles ECM →
@@ -166,21 +166,21 @@ Submission is prepared as far as it can be without opening the PR yourself:
 
 1. A fork `shrippen/fdroiddata` exists (`glab repo fork fdroid/fdroiddata`), cloned to
    `/home/arian/Hacking/eigene/fdroiddata`.
-2. Branch `new/com.github.shrippen.plasmai` there has the verified recipe committed and pushed
+2. Branch `new/io.github.shrippen.Plasmai` there has the verified recipe committed and pushed
    to the fork.
 3. Before opening the MR: release a version built by the reproducible release job (2.0.1 or
    later; v2.0.0's APK can't be reproduced), point `Builds[0].commit`/`versionName`/`versionCode`
    at its tag, run `fdroid signatures <its signed APK from the GitHub release>` in the fdroiddata
-   clone and commit `metadata/com.github.shrippen.plasmai/signatures/`. Then run the throwaway
+   clone and commit `metadata/io.github.shrippen.Plasmai/signatures/`. Then run the throwaway
    MR once more: `fdroid build` must pass including the signature check. Still open from the
    template: KF6 sources as git submodules instead of a plain clone (not a blocker).
 4. Open the MR yourself at `https://gitlab.com/shrippen/fdroiddata/-/merge_requests/new` (branch
-   `new/com.github.shrippen.plasmai` against `fdroid/fdroiddata:master`), with an AI-disclosure
+   `new/io.github.shrippen.Plasmai` against `fdroid/fdroiddata:master`), with an AI-disclosure
    note (same reasoning as Flathub, 5.2) — expect review rounds; F-Droid maintainers test the
    build themselves before merging, so treat this as a strong starting point, not a guaranteed
    merge.
 5. TODO once accepted: add the F-Droid "Get it on" badge and a shields.io version badge
-   (`https://img.shields.io/f-droid/v/com.github.shrippen.plasmai.svg?logo=F-Droid`, per
+   (`https://img.shields.io/f-droid/v/io.github.shrippen.Plasmai.svg?logo=F-Droid`, per
    CONTRIBUTING.md) to the project's README.md on Gitea/GitHub — not the landing page
    (`docs/index.html`), where it wouldn't fit stylistically.
 
@@ -221,9 +221,9 @@ Publishing to Flathub means a PR to
 [flathub/flathub](https://github.com/flathub/flathub) with this manifest (their bot builds and
 tests it, then a human reviewer approves). The Linux app ID is `io.github.shrippen.Plasmai`
 (Flathub does not take new `com.github.*` IDs): file names under `packaging/`, the desktop file
-name (`KAboutData::setDesktopFileName`) and the Flatpak `app-id`. Internally the app keeps
-`com.github.shrippen.plasmai` as the keychain service and the config folder it shares with the
-widget, and Android keeps it as the package name. The manifest builds from the local checkout;
+name (`QGuiApplication::setDesktopFileName`) and the Flatpak `app-id`, and after 2.6.3 also the
+widget id, the keychain service, the config folder shared with the widget and the Android package
+(before: `com.github.shrippen.plasmai`; see "App id" in `DESIGN.md` for what moves). The manifest builds from the local checkout;
 for Flathub switch the `plasmai` source to `type: git` with the release tag and commit.
 
 ## 6. Tagging and publishing

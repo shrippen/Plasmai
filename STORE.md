@@ -13,7 +13,7 @@ The version comes from `metadata.json`. Attach both this file and `scripts/insta
 ## 2. Test the package locally
 
 ```bash
-kpackagetool6 -r com.github.shrippen.plasmai -t Plasma/Applet 2>/dev/null || true
+kpackagetool6 -r io.github.shrippen.Plasmai -t Plasma/Applet 2>/dev/null || true
 kpackagetool6 -i ./dist/plasmoid/Plasmai-<version>.plasmoid -t Plasma/Applet
 ```
 
@@ -46,7 +46,7 @@ Add the widget to a panel and verify start/stop, pickers, sparkline, stats, and 
 
 - [x] `KPackageStructure`: `Plasma/Applet`
 - [x] `X-Plasma-API-Minimum-Version`: `6.0`
-- [x] Unique `Id`: `com.github.shrippen.plasmai`
+- [x] Unique `Id`: `io.github.shrippen.Plasmai`
 - [x] `Website` / `BugReportUrl` set
 - [x] Author: shrippen
 - [x] Pure QML/JS (no compiled binaries — required for Store QML applets)

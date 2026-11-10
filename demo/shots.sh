@@ -6,7 +6,7 @@ set -euo pipefail
 source "$(dirname "$0")/common.sh"
 OUT="${SHOT_DIR:-${ROOT}/build/demo-shots}"
 mkdir -p "${OUT}"
-python3 - "${OUT}" "${ROOT}/demo/shots.json" > "${CONFIG}/com.github.shrippen.plasmai/screenshots.json" <<'PY'
+python3 - "${OUT}" "${ROOT}/demo/shots.json" > "${CONFIG}/io.github.shrippen.Plasmai/screenshots.json" <<'PY'
 import json, sys
 shots = json.load(open(sys.argv[2]))["shots"]
 print(json.dumps({"dir": sys.argv[1], "shots": [{"name": s["name"], "view": s.get("view", "main")} for s in shots if s.get("view") != "none"]}))  # "none": cropped below

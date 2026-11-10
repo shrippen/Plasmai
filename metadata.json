@@ -23,7 +23,7 @@
         "Description[zh_CN]": "从 Plasma 面板用 Kimai、Clockify、Toggl Track 或 SolidTime 记录工时",
         "EnabledByDefault": true,
         "Icon": "plasmai",
-        "Id": "com.github.shrippen.plasmai",
+        "Id": "io.github.shrippen.Plasmai",
         "License": "GPL-3.0-or-later",
         "Name": "Plasmai",
         "Name[de]": "Plasmai",

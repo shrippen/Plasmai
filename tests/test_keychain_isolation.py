@@ -11,7 +11,7 @@ from pathlib import Path
 from lib.viewer import TEST_SECRET_SERVICE, ViewerSession
 
 ROOT = Path(__file__).resolve().parent.parent
-REAL_SERVICE = "com.github.shrippen.plasmai"
+REAL_SERVICE = "io.github.shrippen.Plasmai"
 
 
 def test_kwallet_script_honours_service_override(tmp_path):
@@ -47,4 +47,4 @@ def test_viewer_sessions_use_test_service(monkeypatch):
 
 def test_demo_uses_own_service():
     src = (ROOT / "demo" / "common.sh").read_text(encoding="utf-8")
-    assert 'export PLASMAI_SECRET_SERVICE="com.github.shrippen.plasmai.demo"' in src
+    assert 'export PLASMAI_SECRET_SERVICE="io.github.shrippen.Plasmai.demo"' in src

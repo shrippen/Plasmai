@@ -15,7 +15,8 @@
 //
 // Builds before 2.0.2 wrote tokens to <AppData>/tokens/<profile>.token. A load
 // moves such a file into the keychain and deletes it; while the keychain cannot
-// take it (none running), the file stays so the token is not lost.
+// take it (none running), the file stays so the token is not lost. Up to 2.6.3
+// the keychain service was OLD_APP_ID; its entry moves to APP_ID the same way.
 class TokenStore : public QObject {
     Q_OBJECT
 public:
@@ -32,10 +33,12 @@ signals:
     void removed(const QString &profileId, bool ok);
 
 private:
+    void migrateOldService(const QString &profileId);
     void migrate(const QString &profileId);
     void write(const QString &profileId, const QString &token, const std::function<void(bool, const QString &)> &done);
 
     static QString legacyPath(const QString &profileId);
+    static QString oldIdLegacyPath(const QString &profileId);
     static QString readLegacy(const QString &profileId);
     static void removeLegacy(const QString &profileId);
 };

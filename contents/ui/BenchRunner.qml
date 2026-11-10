@@ -3,7 +3,7 @@ import "../code/secret.js" as Secret
 
 /**
  * Internal benchmark of the widget, only when a plan file exists:
- *   $XDG_CONFIG_HOME/com.github.shrippen.plasmai/bench.json   { "rounds": 3 }
+ *   $XDG_CONFIG_HOME/io.github.shrippen.Plasmai/bench.json   { "rounds": 3 }
  * demo/bench.sh writes it next to the demo profile and reads the result lines:
  *   PLASMAI_BENCH {"name": "...", ...}   then PLASMAI_BENCH_DONE, and the viewer quits.
  *
@@ -69,7 +69,7 @@ Item {
     }
 
     function load() {
-        const file = "\"${XDG_CONFIG_HOME:-$HOME/.config}/com.github.shrippen.plasmai/bench.json\""
+        const file = "\"${XDG_CONFIG_HOME:-$HOME/.config}/io.github.shrippen.Plasmai/bench.json\""
         Secret._run(execSource, "cat " + file + " 2>/dev/null", function(data) {
             const parsed = Secret.parseJsonPayload(data && data.stdout)
             if (parsed) {

@@ -17,7 +17,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 source "$(dirname "$0")/common.sh"
-echo '{ "rounds": 3 }' > "${CONFIG}/com.github.shrippen.plasmai/bench.json"
+echo '{ "rounds": 3 }' > "${CONFIG}/io.github.shrippen.Plasmai/bench.json"
 LINES="${WORK}/bench.jsonl"
 : > "${LINES}"
 for ((run = 1; run <= RUNS; run++)); do

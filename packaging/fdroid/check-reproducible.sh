@@ -31,7 +31,7 @@ aqt install-qt linux desktop 6.11.3 linux_gcc_64 -m qtshadertools -O /opt/plasma
 yes | sdkmanager --licenses > /dev/null || true
 sdkmanager "ndk;27.2.12479018" "platforms;android-36" "build-tools;36.0.0" > /dev/null
 chown -R vagrant "$SDK"
-B=/home/vagrant/build/com.github.shrippen.plasmai
+B=/home/vagrant/build/io.github.shrippen.Plasmai
 mkdir -p /home/vagrant/build
 git clone -q https://github.com/shrippen/Plasmai.git $B
 git -C $B checkout -q "$COMMIT"

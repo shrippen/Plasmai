@@ -68,7 +68,7 @@ def _isolated_env(tmp_path: Path) -> dict[str, str]:
     for p in (cfg, cache, data, state):
         p.mkdir(parents=True)
 
-    shared_dir = cfg / "com.github.shrippen.plasmai"
+    shared_dir = cfg / "io.github.shrippen.Plasmai"
     shared_dir.mkdir(parents=True)
     (shared_dir / "shared.json").write_text(
         json.dumps(
@@ -91,7 +91,7 @@ def _isolated_env(tmp_path: Path) -> dict[str, str]:
         encoding="utf-8",
     )
 
-    cache_dir = cache / "com.github.shrippen.plasmai"
+    cache_dir = cache / "io.github.shrippen.Plasmai"
     cache_dir.mkdir(parents=True)
     (cache_dir / "catalog-cache.json").write_text(
         json.dumps(_large_catalog()), encoding="utf-8"

@@ -4,7 +4,7 @@ set -eu
 ROOT="$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)"
 cd "$ROOT/translate"
 
-PLUGIN_ID="com.github.shrippen.plasmai"
+PLUGIN_ID="io.github.shrippen.Plasmai"
 DOMAIN="plasma_applet_${PLUGIN_ID}"
 
 for po in *.po; do

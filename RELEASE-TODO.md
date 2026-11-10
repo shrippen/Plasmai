@@ -29,8 +29,9 @@ gegen das Plasmoid. Technische Details und Begründungen zu jedem Punkt hier ste
 ## Entschieden (2026-09-27)
 - [x] **Zweites Backend** ist kein 2.0-Kriterium mehr, sondern das Ziel für 3.0 (`ROADMAP.md`).
 - [x] **App-ID für Linux/Flathub**: `io.github.shrippen.Plasmai` (Dateien in `packaging/`, Desktop-Dateiname,
-      Flatpak-`app-id`). Intern bleibt `com.github.shrippen.plasmai` (Keychain, gemeinsamer Konfigordner mit dem
-      Widget, Android-Paketname).
+      Flatpak-`app-id`). Seit 2026-11-10 überall: Widget-Id, Keychain, gemeinsamer Konfigordner mit dem
+      Widget, Android-Paketname (bis 2.6.3 `com.github.shrippen.plasmai`; Ordner und Keychain ziehen beim
+      ersten Start um, `install-linux.sh` setzt platzierte Widgets um, Android ist ein neues Paket).
 - [x] **versionCode**: `Major*10000+Minor*100+Patch`, 2.0.0 = 20000.
 - [x] **F-Droid-Weg**: IzzyOnDroid (nimmt die signierte APK aus dem GitHub-Release). Das Haupt-F-Droid-Repo
       bleibt für später (Qt und OpenSSL müssten dort aus dem Quellcode gebaut werden, `RELEASING.md` §4.6).
@@ -60,7 +61,7 @@ gegen das Plasmoid. Technische Details und Begründungen zu jedem Punkt hier ste
 ## 5. Flatpak verifizieren
 - [x] Manifest korrigiert: baut jetzt aus dem ganzen Repo (`subdir: app`; vorher fehlten `contents/code` und `translate`), App-Icon statt Chronometer-Symbol, neue App-ID. Metainfo mit Mobil-Angaben (Touch, Mindestbreite 360 px), validiert mit `appstreamcli`.
 - [x] `flatpak-builder` + KDE-Runtime 6.11 installiert, Flatpak baut, `flatpak-builder-lint` ohne Fehler (außer Screenshot-Spiegelung, die Flathub selbst macht).
-- [ ] `packaging/flatpak/com.github.shrippen.plasmai.yml` bauen, App testen (genauer Ablauf in
+- [ ] `packaging/flatpak/io.github.shrippen.Plasmai.yml` bauen, App testen (genauer Ablauf in
       der Datei selbst und `RELEASING.md` §5.2). Manifest-Kommentare abarbeiten (Runtime-Version
       aktuell? QtKeychain schon in der Runtime? qtkeychain-Tag aktuell?).
 - [x] Screenshots in die Metainfo (`packaging/screenshots/`, per raw.githubusercontent.com verlinkt; erst nach dem Push erreichbar).

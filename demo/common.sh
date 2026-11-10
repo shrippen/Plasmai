@@ -5,14 +5,14 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/plasmai-demo-XXXXXX")"
 trap 'rm -rf "${WORK}"' EXIT
 CONFIG="${WORK}/config"
-mkdir -p "${CONFIG}/com.github.shrippen.plasmai"
+mkdir -p "${CONFIG}/io.github.shrippen.Plasmai"
 cp -p "${XDG_CONFIG_HOME:-${HOME}/.config}/kdeglobals" "${CONFIG}/" 2>/dev/null || true
-cat > "${CONFIG}/com.github.shrippen.plasmai/shared.json" <<'JSON'
+cat > "${CONFIG}/io.github.shrippen.Plasmai/shared.json" <<'JSON'
 {"profilesJson": "[{\"id\":\"demo\",\"name\":\"Demo\",\"url\":\"https://demo.invalid\",\"provider\":\"kimai\"}]",
  "activeProfileId": "demo", "settingsVersion": 2}
 JSON
 # The keychain is not isolated by XDG_CONFIG_HOME: an own namespace keeps the real tokens out of reach.
-export PLASMAI_SECRET_SERVICE="com.github.shrippen.plasmai.demo"
+export PLASMAI_SECRET_SERVICE="io.github.shrippen.Plasmai.demo"
 LANG_="${1:-${DEMO_LANG:-de}}"
 case "${LANG_}" in de) LOCALE=de_DE.UTF-8 ;; *) LOCALE=en_GB.UTF-8 ;; esac
 # The package's translations only load for an installed widget; offer them from a data dir.

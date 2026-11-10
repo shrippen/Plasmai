@@ -87,7 +87,7 @@ def _isolated_env(tmp_path: Path) -> dict[str, str]:
 
     # Seed shared.json with two profiles + pinnedActivities so KCM UI can show
     # a stable activity checklist without hitting the network.
-    shared_dir = cfg / "com.github.shrippen.plasmai"
+    shared_dir = cfg / "io.github.shrippen.Plasmai"
     shared_dir.mkdir(parents=True)
     (shared_dir / "shared.json").write_text(
         json.dumps(
@@ -115,7 +115,7 @@ def _isolated_env(tmp_path: Path) -> dict[str, str]:
 
     # Seed catalog cache on disk so Favorites tab can render project + activities
     # without requiring an API token.
-    cache_dir = cache / "com.github.shrippen.plasmai"
+    cache_dir = cache / "io.github.shrippen.Plasmai"
     cache_dir.mkdir(parents=True)
     (cache_dir / "catalog-cache.json").write_text(
         json.dumps(
@@ -177,7 +177,7 @@ def _click_tab(tab_name: str) -> None:
 def _read_shared_json(env: dict[str, str]) -> dict:
     shared = (
         Path(env["XDG_CONFIG_HOME"])
-        / "com.github.shrippen.plasmai"
+        / "io.github.shrippen.Plasmai"
         / "shared.json"
     )
     return json.loads(shared.read_text(encoding="utf-8"))
@@ -238,7 +238,7 @@ def test_kcm_tab_option_persistence(repo_root: Path, tmp_path: Path):
 
     shared_path = (
         Path(env["XDG_CONFIG_HOME"])
-        / "com.github.shrippen.plasmai"
+        / "io.github.shrippen.Plasmai"
         / "shared.json"
     )
 
