@@ -55,14 +55,6 @@ inline bool copyTree(const QString &from, const QString &to, const QStringList &
     return true;
 }
 
-// Copies what is missing of oldName's folders, entry by entry at the top level, once per folder
-// (a marker file remembers it); returns how many entries were copied. Copied, not moved: a widget or app of the old id still running
-// keeps its folders. An entry the new folder has already is never overwritten, so it does not
-// matter who started first (the new widget makes the data folder with plasmoid/ only; the
-// app's app/ follows later). plasmoid/ (the widget's files, its offline outbox among
-// them) is left to the widget's localStore.sh: taken by the app, an old widget's waiting
-// changes were lost. Each entry is copied under a name of this process and renamed at the end,
-// so a half copy is never taken for the entry.
 // Removes "<entry>.copy.<pid>" a start left when it crashed mid-copy. One younger than
 // STALE_COPY_SECS may be another start's copy in progress and stays.
 inline void removeStaleCopies(const QString &folder)
@@ -82,6 +74,14 @@ inline void removeStaleCopies(const QString &folder)
     }
 }
 
+// Copies what is missing of oldName's folders, entry by entry at the top level, once per folder
+// (a marker file remembers it); returns how many entries were copied. Copied, not moved: a widget or app of the old id still running
+// keeps its folders. An entry the new folder has already is never overwritten, so it does not
+// matter who started first (the new widget makes the data folder with plasmoid/ only; the
+// app's app/ follows later). plasmoid/ (the widget's files, its offline outbox among
+// them) is left to the widget's localStore.sh: taken by the app, an old widget's waiting
+// changes were lost. Each entry is copied under a name of this process and renamed at the end,
+// so a half copy is never taken for the entry.
 inline int copyFolders(const QString &oldName, const QString &newName)
 {
     const QStringList from = folders(oldName);

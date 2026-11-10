@@ -4,8 +4,8 @@ profilesJson is the default profile there instead of main.xml's "" (see sharedCo
 
 import json
 import os
-import subprocess
 import re
+import subprocess
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -57,11 +57,6 @@ def test_defaults_match_main_xml():
     assert not differ, f"DEFAULTS differ from main.xml (js, xml): {differ}"
 
 
-if __name__ == "__main__":
-    test_defaults_match_main_xml()
-    print("shared defaults: ok")
-
-
 def test_init_creates_the_shared_folder(tmp_path):
     """SharedConfigWatch watches the folder; without it only the 5-minute poll sees changes."""
     base = tmp_path / "config"
@@ -72,3 +67,8 @@ def test_init_creates_the_shared_folder(tmp_path):
 
     assert result.returncode == 0, result.stderr
     assert (base / "io.github.shrippen.Plasmai").is_dir()
+
+
+if __name__ == "__main__":
+    test_defaults_match_main_xml()
+    print("shared defaults: ok")
