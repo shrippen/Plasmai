@@ -1,0 +1,1 @@
+Plasmai 2.7.0: Faster app start (warm start under a second on Android), a quieter widget, fixes after a profile switch. New id io.github.shrippen.Plasmai: this is a new app; sign in again, then uninstall the old one.

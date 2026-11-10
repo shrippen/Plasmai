@@ -2,18 +2,47 @@
 
 ## [Unreleased]
 
-- Note (en): Plasmai has one id everywhere, `io.github.shrippen.Plasmai` (before
-  `com.github.shrippen.plasmai`). Settings, caches and stored tokens are taken over on the first start.
-  `install-linux.sh` swaps the placed widgets once no offline changes wait to be sent; from the
-  KDE Store the widget comes as a new one (let it send its offline changes while online, then add
-  the new one and remove the old one). On Android the app is a new one: install it, sign in
-  again, uninstall the old one.
-- Hinweis (de): Plasmai hat überall dieselbe Id, `io.github.shrippen.Plasmai` (vorher
-  `com.github.shrippen.plasmai`). Einstellungen, Caches und gespeicherte Tokens ziehen beim
-  ersten Start um. `install-linux.sh` tauscht die platzierten Widgets aus, sobald keine
-  Offline-Änderungen mehr auf das Senden warten; aus dem KDE Store kommt das Widget als neues
-  (erst online die Offline-Änderungen senden lassen, dann neu hinzufügen und das alte entfernen). Unter Android ist die App
-  eine neue: installieren, neu anmelden, die alte deinstallieren.
+## [2.7.0] — 2026-11-10
+
+### English
+
+Faster: a warm start of the Android app shows its first frame in under a second, the widget does less in the background. Plasmai now has one id everywhere, `io.github.shrippen.Plasmai`.
+
+#### Improved
+
+- App (Android): a warm start shows the first frame after 0.96 s instead of 1.46 s and your data after 1.16 s instead of 1.82 s; a cold start shows it after 1.9 s instead of 3.5 s (Pixel 6, debug build, before and after these changes). The QML is compiled at build time, dialogs and menus are built when first opened, and sun and moon are computed once a day.
+- App (Android): at rest it draws 1.6 instead of 90 frames a second, which saves battery. A stopped loading indicator kept animating its fade-out.
+- Widget: views you do not see (sky animation, chart variants, week timeline, pickers, row menus) are no longer built or animated; changes to the profiles are noticed when the file changes instead of reading it every 5 seconds; the inputs no longer lock during the regular update.
+- Setup: screen readers read the steps ("Step 2 of 4: Access, current") in the app's language, not in German.
+
+#### Fixed
+
+- After switching profiles, a late answer for the previous profile could show its running entry, recent entries or projects in the new one; starting one of those sent the previous profile's ids to the new server.
+
+#### Note
+
+- Plasmai has one id everywhere, `io.github.shrippen.Plasmai` (before `com.github.shrippen.plasmai`). Settings, caches and stored tokens are taken over on the first start. `install-linux.sh` swaps the placed widgets once no offline changes wait to be sent. From the KDE Store the widget comes as a new one: let the old one send its offline changes while online, then add the new one and remove the old one. On Android the app is a new one: install it, sign in again, uninstall the old one.
+
+All changes: https://github.com/shrippen/Plasmai/compare/v2.6.3...v2.7.0
+
+### Deutsch
+
+Schneller: Ein warmer Start der Android-App zeigt das erste Bild in unter einer Sekunde, das Widget tut im Hintergrund weniger. Plasmai hat jetzt überall dieselbe Id, `io.github.shrippen.Plasmai`.
+
+#### Verbessert
+
+- App (Android): Ein warmer Start zeigt das erste Bild nach 0,96 s statt 1,46 s und deine Daten nach 1,16 s statt 1,82 s; ein kalter Start zeigt sie nach 1,9 s statt 3,5 s (Pixel 6, Debug-Build, vor und nach diesen Änderungen). Das QML wird beim Bauen kompiliert, Dialoge und Menüs entstehen beim ersten Öffnen, Sonne und Mond werden einmal am Tag berechnet.
+- App (Android): Im Leerlauf zeichnet sie 1,6 statt 90 Bilder pro Sekunde, das schont den Akku. Eine angehaltene Ladeanzeige animierte ihr Ausblenden weiter.
+- Widget: Ansichten, die du nicht siehst (Himmelsanimation, Diagrammvarianten, Wochen-Zeitleiste, Auswahlfelder, Zeilenmenüs), werden nicht mehr gebaut oder animiert. Änderungen an den Profilen fallen auf, wenn sich die Datei ändert, statt sie alle 5 Sekunden zu lesen. Die Eingaben sperren beim regelmäßigen Aktualisieren nicht mehr.
+- Einrichtung: Screenreader lesen die Schritte („Schritt 2 von 4: Zugang, aktuell“) in der Sprache der App vor, nicht immer auf Deutsch.
+
+#### Behoben
+
+- Nach einem Profilwechsel konnte eine späte Antwort zum vorigen Profil dessen laufenden Eintrag, letzte Einträge oder Projekte im neuen zeigen; ein Start daraus schickte die Ids des vorigen Profils an den neuen Server.
+
+#### Hinweis
+
+- Plasmai hat überall dieselbe Id, `io.github.shrippen.Plasmai` (vorher `com.github.shrippen.plasmai`). Einstellungen, Caches und gespeicherte Tokens ziehen beim ersten Start um. `install-linux.sh` tauscht die platzierten Widgets aus, sobald keine Offline-Änderungen mehr auf das Senden warten. Aus dem KDE Store kommt das Widget als neues: erst online das alte seine Offline-Änderungen senden lassen, dann das neue hinzufügen und das alte entfernen. Unter Android ist die App eine neue: installieren, neu anmelden, die alte deinstallieren.
 
 ## [2.6.3] — 2026-10-29
 

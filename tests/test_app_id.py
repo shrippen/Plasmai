@@ -30,6 +30,7 @@ MIGRATION = {
     "scripts/install-linux.sh",
     "tests/test_app_id.py",
     "CHANGELOG.md",
+    "docs/index.html",
     "DESIGN.md",
     "RELEASING.md",
     "RELEASE-TODO.md",
