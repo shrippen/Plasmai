@@ -170,6 +170,29 @@ kpackagetool6 -i . -t Plasma/Applet</div>
   <h2 lang="en">Changes</h2><h2 lang="de">Änderungen</h2>
   <p lang="en">What each release brought, newest first. Every release adds an entry here and the same notes on the release page.</p><p lang="de">Was jede Version gebracht hat, die neueste zuerst. Jede Version bekommt hier einen Eintrag und dieselben Notizen auf der Release-Seite.</p>
   <ol class="changelog">
+    <li class="release" id="v2.7.0">
+      <div class="release-head"><b class="release-version">2.7.0</b><time datetime="2026-11-10"><span lang="en">10 Nov 2026</span><span lang="de">10. Nov. 2026</span></time></div>
+      <div class="release-body">
+        <p class="release-lead"><span lang="en">Faster: the Android app shows its first frame in under a second, the widget does less in the background. Plasmai now has one id everywhere, <code>io.github.shrippen.Plasmai</code>.</span><span lang="de">Schneller: Die Android-App zeigt ihr erstes Bild in unter einer Sekunde, das Widget tut im Hintergrund weniger. Plasmai hat jetzt überall dieselbe Id, <code>io.github.shrippen.Plasmai</code>.</span></p>
+        <div class="release-group" data-kind="improved"><h3><span lang="en">Improved</span><span lang="de">Verbessert</span></h3><ul>
+          <li><span lang="en">App (Android): a warm start shows the first frame after 0.96 s instead of 1.46 s and your data after 1.16 s instead of 1.82 s; a cold start shows it after 1.9 s instead of 3.5 s (Pixel 6). The QML is compiled at build time, dialogs and menus are built when first opened, and sun and moon are computed once a day.</span><span lang="de">App (Android): Ein warmer Start zeigt das erste Bild nach 0,96 s statt 1,46 s und deine Daten nach 1,16 s statt 1,82 s; ein kalter Start zeigt sie nach 1,9 s statt 3,5 s (Pixel 6). Das QML wird beim Bauen kompiliert, Dialoge und Menüs entstehen beim ersten Öffnen, Sonne und Mond werden einmal am Tag berechnet.</span></li>
+          <li><span lang="en">App (Android): at rest it draws 1.6 instead of 90 frames a second, which saves battery. A stopped loading indicator kept animating its fade-out.</span><span lang="de">App (Android): Im Leerlauf zeichnet sie 1,6 statt 90 Bilder pro Sekunde, das schont den Akku. Eine angehaltene Ladeanzeige animierte ihr Ausblenden weiter.</span></li>
+          <li><span lang="en">Widget: views you do not see (sky animation, chart variants, week timeline, pickers, row menus) are no longer built or animated; changes to the profiles are noticed when the file changes instead of reading it every 5 seconds; the inputs no longer lock during the regular update.</span><span lang="de">Widget: Ansichten, die du nicht siehst (Himmelsanimation, Diagrammvarianten, Wochen-Zeitleiste, Auswahlfelder, Zeilenmenüs), werden nicht mehr gebaut oder animiert. Änderungen an den Profilen fallen auf, wenn sich die Datei ändert, statt sie alle 5 Sekunden zu lesen. Die Eingaben sperren beim regelmäßigen Aktualisieren nicht mehr.</span></li>
+          <li><span lang="en">Setup: screen readers read the steps (“Step 2 of 4: Access, current”) in the app’s language, not in German.</span><span lang="de">Einrichtung: Screenreader lesen die Schritte („Schritt 2 von 4: Zugang, aktuell“) in der Sprache der App vor, nicht immer auf Deutsch.</span></li>
+        </ul></div>
+        <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3><ul>
+          <li><span lang="en">Starting, stopping or editing right after the start, before Plasmai knew the running entry, could act on the wrong state. Those buttons now wait until it is known.</span><span lang="de">Starten, Stoppen oder Bearbeiten direkt nach dem Start, bevor Plasmai den laufenden Eintrag kannte, konnte auf einem falschen Stand arbeiten. Diese Knöpfe warten jetzt, bis er bekannt ist.</span></li>
+          <li><span lang="en">After switching profiles, a late answer for the previous profile could show its running entry, recent entries or projects in the new one; starting one of those sent the previous profile’s ids to the new server.</span><span lang="de">Nach einem Profilwechsel konnte eine späte Antwort zum vorigen Profil dessen laufenden Eintrag, letzte Einträge oder Projekte im neuen zeigen; ein Start daraus schickte die Ids des vorigen Profils an den neuen Server.</span></li>
+          <li><span lang="en">After switching profiles, offline data of the previous profile that was not yet saved could be lost.</span><span lang="de">Nach einem Profilwechsel konnten noch nicht gespeicherte Offline-Daten des vorigen Profils verloren gehen.</span></li>
+          <li><span lang="en">Widget: when its settings folder did not exist yet, profile changes made in another widget or in the settings showed only after up to 5 minutes.</span><span lang="de">Widget: Fehlte sein Einstellungsordner noch, zeigten sich Profiländerungen aus einem anderen Widget oder den Einstellungen erst nach bis zu 5 Minuten.</span></li>
+        </ul></div>
+        <div class="release-group" data-kind="note"><h3><span lang="en">Note</span><span lang="de">Hinweis</span></h3><ul>
+          <li><span lang="en">Plasmai has one id everywhere, <code>io.github.shrippen.Plasmai</code> (before <code>com.github.shrippen.plasmai</code>). Settings, caches and stored tokens are taken over on the first start. <code>install-linux.sh</code> swaps the placed widgets once no offline changes wait to be sent. From the KDE Store the widget comes as a new one: let the old one send its offline changes while online, then add the new one and remove the old one. On Android the app is a new one: install it, sign in again, uninstall the old one.</span><span lang="de">Plasmai hat überall dieselbe Id, <code>io.github.shrippen.Plasmai</code> (vorher <code>com.github.shrippen.plasmai</code>). Einstellungen, Caches und gespeicherte Tokens ziehen beim ersten Start um. <code>install-linux.sh</code> tauscht die platzierten Widgets aus, sobald keine Offline-Änderungen mehr auf das Senden warten. Aus dem KDE Store kommt das Widget als neues: erst online das alte seine Offline-Änderungen senden lassen, dann das neue hinzufügen und das alte entfernen. Unter Android ist die App eine neue: installieren, neu anmelden, die alte deinstallieren.</span></li>
+        </ul></div>
+        <div class="table-wrap"><table class="table"><caption><span lang="en">App start on Android (Pixel 6, median of 7 runs, seconds)</span><span lang="de">App-Start unter Android (Pixel 6, Median aus 7 Läufen, Sekunden)</span></caption><thead><tr><th><span lang="en">Until</span><span lang="de">Bis</span></th><th>2.6.3</th><th>2.7.0</th></tr></thead><tbody><tr><td><span lang="en">First frame (warm)</span><span lang="de">Erstes Bild (warm)</span></td><td><span lang="en">1.46</span><span lang="de">1,46</span></td><td><span lang="en">0.96</span><span lang="de">0,96</span></td></tr><tr><td><span lang="en">Data shown (warm)</span><span lang="de">Daten sichtbar (warm)</span></td><td><span lang="en">1.82</span><span lang="de">1,82</span></td><td><span lang="en">1.16</span><span lang="de">1,16</span></td></tr><tr><td><span lang="en">Data shown (cold)</span><span lang="de">Daten sichtbar (kalt)</span></td><td><span lang="en">3.53</span><span lang="de">3,53</span></td><td><span lang="en">1.94</span><span lang="de">1,94</span></td></tr></tbody></table></div>
+        <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v2.6.3...v2.7.0"><span lang="en">All changes since 2.6.3 →</span><span lang="de">Alle Änderungen seit 2.6.3 →</span></a>
+      </div>
+    </li>
     <li class="release" id="v2.6.3">
       <div class="release-head"><b class="release-version">2.6.3</b><time datetime="2026-10-29"><span lang="en">29 Oct 2026</span><span lang="de">29. Okt. 2026</span></time></div>
       <div class="release-body">
@@ -196,25 +219,25 @@ kpackagetool6 -i . -t Plasma/Applet</div>
         <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v2.6.1...v2.6.2"><span lang="en">All changes since 2.6.1 →</span><span lang="de">Alle Änderungen seit 2.6.1 →</span></a>
       </div>
     </li>
-    <li class="release" id="v2.6.1">
-      <div class="release-head"><b class="release-version">2.6.1</b><time datetime="2026-10-13"><span lang="en">13 Oct 2026</span><span lang="de">13. Okt. 2026</span></time></div>
-      <div class="release-body">
-        <p class="release-lead"><span lang="en">The Plasma widget for 2.6.0: its package was missing from the 2.6.0 release.</span><span lang="de">Das Plasma-Widget zu 2.6.0: Sein Paket fehlte im Release 2.6.0.</span></p>
-        <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3><ul>
-          <li><span lang="en">2.6.0 came without the widget package (<code>.plasmoid</code>) and the install script, so the one-line install command failed with "not found" while 2.6.0 was the latest release. The package build stopped at a comment that named the internal screenshot code it removes. The checks now build the widget package on every pull request, so this shows before a release.</span><span lang="de">2.6.0 kam ohne das Widget-Paket (<code>.plasmoid</code>) und das Installationsskript, deshalb schlug der Einzeiler zur Installation mit „nicht gefunden“ fehl, solange 2.6.0 das neueste Release war. Der Paketbau brach an einem Kommentar ab, der den internen Screenshot-Code nannte, den er entfernt. Die Prüfungen bauen das Widget-Paket jetzt bei jedem Pull Request, so fällt das vor einem Release auf.</span></li>
-        </ul></div>
-        <div class="release-group" data-kind="note"><h3><span lang="en">Note</span><span lang="de">Hinweis</span></h3><ul>
-          <li><span lang="en">No changes in the app or the widget beyond 2.6.0: everything new in 2.6.0 below applies.</span><span lang="de">App und Widget sind gegenüber 2.6.0 unverändert: Alles Neue aus 2.6.0 unten gilt.</span></li>
-        </ul></div>
-        <div class="release-shots">
-          <figure><img lang="en" src="shots/release-2.6.1-pipeline-en.webp" alt="Release files of 2.6.0 and 2.6.1: 2.6.0 lacks the plasmoid and the install script, 2.6.1 has all six" loading="lazy"><img lang="de" src="shots/release-2.6.1-pipeline-de.webp" alt="Release-Dateien von 2.6.0 und 2.6.1: 2.6.0 fehlen Plasmoid und Installationsskript, 2.6.1 hat alle sechs" loading="lazy"><figcaption><span lang="en">Release files per version</span><span lang="de">Release-Dateien je Version</span></figcaption></figure>
-        </div>
-        <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v2.6.0...v2.6.1"><span lang="en">All changes since 2.6.0 →</span><span lang="de">Alle Änderungen seit 2.6.0 →</span></a>
-      </div>
-    </li>
   </ol>
   <details class="changelog-more"><summary><span lang="en">Older releases</span><span lang="de">Ältere Versionen</span></summary>
     <ol class="changelog">
+      <li class="release" id="v2.6.1">
+        <div class="release-head"><b class="release-version">2.6.1</b><time datetime="2026-10-13"><span lang="en">13 Oct 2026</span><span lang="de">13. Okt. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">The Plasma widget for 2.6.0: its package was missing from the 2.6.0 release.</span><span lang="de">Das Plasma-Widget zu 2.6.0: Sein Paket fehlte im Release 2.6.0.</span></p>
+          <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3><ul>
+            <li><span lang="en">2.6.0 came without the widget package (<code>.plasmoid</code>) and the install script, so the one-line install command failed with "not found" while 2.6.0 was the latest release. The package build stopped at a comment that named the internal screenshot code it removes. The checks now build the widget package on every pull request, so this shows before a release.</span><span lang="de">2.6.0 kam ohne das Widget-Paket (<code>.plasmoid</code>) und das Installationsskript, deshalb schlug der Einzeiler zur Installation mit „nicht gefunden“ fehl, solange 2.6.0 das neueste Release war. Der Paketbau brach an einem Kommentar ab, der den internen Screenshot-Code nannte, den er entfernt. Die Prüfungen bauen das Widget-Paket jetzt bei jedem Pull Request, so fällt das vor einem Release auf.</span></li>
+          </ul></div>
+          <div class="release-group" data-kind="note"><h3><span lang="en">Note</span><span lang="de">Hinweis</span></h3><ul>
+            <li><span lang="en">No changes in the app or the widget beyond 2.6.0: everything new in 2.6.0 below applies.</span><span lang="de">App und Widget sind gegenüber 2.6.0 unverändert: Alles Neue aus 2.6.0 unten gilt.</span></li>
+          </ul></div>
+          <div class="release-shots">
+            <figure><img lang="en" src="shots/release-2.6.1-pipeline-en.webp" alt="Release files of 2.6.0 and 2.6.1: 2.6.0 lacks the plasmoid and the install script, 2.6.1 has all six" loading="lazy"><img lang="de" src="shots/release-2.6.1-pipeline-de.webp" alt="Release-Dateien von 2.6.0 und 2.6.1: 2.6.0 fehlen Plasmoid und Installationsskript, 2.6.1 hat alle sechs" loading="lazy"><figcaption><span lang="en">Release files per version</span><span lang="de">Release-Dateien je Version</span></figcaption></figure>
+          </div>
+          <a class="release-notes" href="https://github.com/shrippen/Plasmai/compare/v2.6.0...v2.6.1"><span lang="en">All changes since 2.6.0 →</span><span lang="de">Alle Änderungen seit 2.6.0 →</span></a>
+        </div>
+      </li>
       <li class="release" id="v2.6.0">
         <div class="release-head"><b class="release-version">2.6.0</b><time datetime="2026-10-13"><span lang="en">13 Oct 2026</span><span lang="de">13. Okt. 2026</span></time></div>
         <div class="release-body">
@@ -656,7 +679,7 @@ kpackagetool6 -i . -t Plasma/Applet</div>
       <div><h4><span lang="en">Source</span><span lang="de">Quelltext</span></h4><a href="https://github.com/shrippen/Plasmai">GitHub</a><a href="https://github.com/shrippen/Plasmai/issues">Issues</a><a href="https://github.com/shrippen/Plasmai/blob/main/CHANGELOG.md">Changelog</a><a href="https://store.kde.org/p/2368175/">KDE Store</a></div>
     </nav>
   </div>
-  <div class="foot-meta"><p>GPL-3.0-or-later · shrippen · <a href="#changes">v2.6.3</a></p></div>
+  <div class="foot-meta"><p>GPL-3.0-or-later · shrippen · <a href="#changes">v2.7.0</a></p></div>
 </footer>
 
 </body>

@@ -89,6 +89,12 @@
     <binary>plasmai-app</binary>
   </provides>
   <releases>
+    <release version="2.7.0" date="2026-11-10">
+      <description>
+        <p>Faster start of the app and a quieter widget. Fixes data of the previous profile
+        showing after a profile switch. The id is now io.github.shrippen.Plasmai everywhere.</p>
+      </description>
+    </release>
     <release version="2.6.3" date="2026-10-29">
       <description>
         <p>Fixes missing buttons in two dialogs of the Plasma widget. No changes in the app.</p>
