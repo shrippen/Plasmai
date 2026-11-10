@@ -40,3 +40,14 @@ def test_every_qml_and_script_entry_is_one_cmake_reads():
                 found = [line for line in lines if f'"{path}"' in line or f">{path}<" in line]
                 assert found and ENTRY.search(found[0]), \
                     f"app/{name}: write {path} as <file alias=\"{path}\">source</file> on one line"
+
+
+def test_sources_outside_app_are_copied_into_the_build():
+    """qmlcachegen names its output after the source's path below app/. For ../contents/... Qt
+    6.10 made ".rcc/qmlcache/plasmai-app_../contents", and the Windows build stopped with
+    "ninja: error: mkdir(.rcc/qmlcache/plasmai-app_../contents): No such file or directory".
+    Files outside app/ are copied into the build folder under their resource name first."""
+    text = (ROOT / "app/CMakeLists.txt").read_text(encoding="utf-8")
+    body = re.search(r"function\(plasmai_split_qrc.*?endfunction\(\)", text, re.S).group(0)
+    assert re.search(r'configure_file\("\$\{source\}"\s+"\$\{CMAKE_CURRENT_BINARY_DIR\}/[^"]*\$\{alias\}"\s+COPYONLY\)',
+                     body), "copy sources outside app/ into the build folder (configure_file ... COPYONLY)"

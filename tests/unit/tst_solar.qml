@@ -46,15 +46,22 @@ TestCase {
         compare(Solar.lunarDaysSampled - before, 3, "another day or place is worked out anew")
     }
 
+    // Any time zone (CI runs UTC, UTC-8 and UTC+14): each hour of a June day, cached against
+    // worked out anew (another place in between empties the cache).
     function test_cachedSkyStillFollowsTheTimeOfDay() {
-        var night = Solar.daySkyModel(new Date(2031, 5, 10, 2, 0, 0), 50.979, 11.33, 8 / 24, 18 / 24)
-        var noon = Solar.daySkyModel(new Date(2031, 5, 10, 12, 0, 0), 50.979, 11.33, 8 / 24, 18 / 24)
-        verify(!night.sun.up, "sun down at 2 am")
-        verify(noon.sun.up, "sun up at noon")
-        verify(!night.work.up)
-        verify(noon.work.up)
-        compare(noon.now, 0.5)
-        var direct = Solar.dayLunarFractions(new Date(2031, 5, 10, 12, 0, 0), 50.979, 11.33)
-        compare(noon.moon.up, direct.up, "moon up as worked out without the cache")
+        var sunStates = {}
+        for (var h = 0; h < 24; ++h) {
+            var at = new Date(2031, 5, 10, h, 30, 0)
+            Solar.daySkyModel(new Date(2031, 5, 10, 0, 0, 0), 50.979, 11.33, 8 / 24, 18 / 24)
+            var cached = Solar.daySkyModel(at, 50.979, 11.33, 8 / 24, 18 / 24)
+            Solar.daySkyModel(at, 48.1, 11.58, 8 / 24, 18 / 24)
+            var fresh = Solar.daySkyModel(at, 50.979, 11.33, 8 / 24, 18 / 24)
+            compare(cached.sun.up, fresh.sun.up, "sun at " + h + ":30")
+            compare(cached.moon.up, fresh.moon.up, "moon at " + h + ":30")
+            compare(cached.work.up, h >= 8 && h < 18, "working hours at " + h + ":30")
+            compare(cached.now, (h + 0.5) / 24)
+            sunStates[cached.sun.up] = true
+        }
+        verify(sunStates[true] && sunStates[false], "the sun rises and sets over the day")
     }
 }
