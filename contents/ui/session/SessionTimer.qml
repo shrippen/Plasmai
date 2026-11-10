@@ -292,7 +292,7 @@ QtObject {
 
     /** Changes the running entry (project, activity, begin, billable, tags); done() once saved. */
     function patchActive(fields, done) {
-        if (!timesheetId) {
+        if (!timesheetId || !loaded) {
             return
         }
         const c = session.connection
@@ -324,7 +324,7 @@ QtObject {
 
     /** Saves the typed description now. */
     function flushDescription() {
-        if (!tracking || !timesheetId || savingDescription || draft === description) {
+        if (!tracking || !timesheetId || !loaded || savingDescription || draft === description) {
             return
         }
         const c = session.connection

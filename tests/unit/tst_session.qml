@@ -121,7 +121,13 @@ TestCase {
         compare(s.timer.start("1", "1", "", "", ""), Ui.Session.Restart.Ignored)
         s.timer.stop()
         s.timer.continueEntry(s.recent.list[0])
+        let patched = false
+        s.timer.patchActive({ billable: true }, function() { patched = true })
+        s.timer.draft = s.timer.description + " x"
+        s.timer.flushDescription()
+        verify(!s.timer.savingDescription, "the description waits too")
         verify(!s.busy, "no write was sent")
+        verify(!patched)
         verify(s.timer.tracking)
         s.refresh()
         tryCompare(s.timer, "loaded", true)
