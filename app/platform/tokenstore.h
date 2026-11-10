@@ -38,6 +38,7 @@ private:
     void write(const QString &profileId, const QString &token, const std::function<void(bool, const QString &)> &done);
 
     static QString legacyPath(const QString &profileId);
+    static QString oldIdLegacyPath(const QString &profileId);
     static QString readLegacy(const QString &profileId);
     static void removeLegacy(const QString &profileId);
 };

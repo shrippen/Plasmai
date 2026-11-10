@@ -8,6 +8,7 @@
 #include <qt6keychain/keychain.h>
 
 #include "appid.h"
+#include "platform/appidmigration.h"
 #include "platform/tokenstore.h"
 
 // TokenStore never keeps a token in plain text. With a keychain running (a
@@ -23,6 +24,21 @@ private:
     {
         return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)
             + QStringLiteral("/tokens/") + profile + QStringLiteral(".token");
+    }
+
+    // Where the builds up to 2.6.3 had the file: the AppData folder of the old id.
+    static QString oldIdLegacyPath(const QString &profile)
+    {
+        return AppIdMigration::folders(OLD_APP_ID).first() + QStringLiteral("/tokens/") + profile
+            + QStringLiteral(".token");
+    }
+
+    static void writeOldIdLegacy(const QString &profile, const QByteArray &token)
+    {
+        QDir().mkpath(QFileInfo(oldIdLegacyPath(profile)).absolutePath());
+        QFile f(oldIdLegacyPath(profile));
+        QVERIFY(f.open(QIODevice::WriteOnly));
+        f.write(token);
     }
 
     static void writeLegacy(const QString &profile, const QByteArray &token)
@@ -154,6 +170,20 @@ private slots:
         QCOMPARE(loadToken(store, m_profile), QStringLiteral("old-id-5"));
         QVERIFY(readKeychain(OLD_APP_ID, m_profile).isNull());
         QCOMPARE(readKeychain(APP_ID, m_profile), QStringLiteral("old-id-5"));
+
+        // A token file of a build before 2.1 under the id up to 2.6.3 moves into the keychain
+        // and is deleted there (review of PR #52: copied to the new folder, the original stayed).
+        store.remove(m_profile);
+        QVERIFY(removedSpy.wait(10000));
+        writeOldIdLegacy(m_profile, "old-file-7\n");
+        QCOMPARE(loadToken(store, m_profile), QStringLiteral("old-file-7"));
+        QVERIFY(!QFile::exists(oldIdLegacyPath(m_profile)));
+        QVERIFY(!plainTextAnywhere("old-file-7"));
+        // remove() deletes one not yet moved too.
+        writeOldIdLegacy(m_profile, "old-file-8\n");
+        store.remove(m_profile);
+        QVERIFY(removedSpy.wait(10000));
+        QVERIFY(!QFile::exists(oldIdLegacyPath(m_profile)));
 
         // remove() clears an old entry not yet moved, so it does not come back.
         store.remove(m_profile);

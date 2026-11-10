@@ -79,7 +79,10 @@ inline int copyFolders(const QString &oldName, const QString &newName)
         const auto entries = QDir(from[i]).entryInfoList(QDir::AllEntries | QDir::Hidden | QDir::NoDotAndDotDot);
         for (const QFileInfo &entry : entries) {
             const QString target = to[i] + QLatin1Char('/') + entry.fileName();
-            if (entry.fileName() == QLatin1String("plasmoid") || entry.fileName().contains(QLatin1String(".copy."))
+            // plasmoid/ is the widget's; tokens/ holds plain-text token files of builds before 2.1,
+            // which TokenStore moves into the keychain from where they are (never copied).
+            if (entry.fileName() == QLatin1String("plasmoid") || entry.fileName() == QLatin1String("tokens")
+                || entry.fileName().contains(QLatin1String(".copy."))
                 || entry.fileName().startsWith(QLatin1String(".taken-over-from-"))
                 || QFileInfo::exists(target)) {
                 continue;
@@ -103,8 +106,11 @@ inline int copyFolders(const QString &oldName, const QString &newName)
             }
         }
         if (!failed) {
+            QDir().mkpath(to[i]);
             QFile mark(marker);
-            mark.open(QIODevice::WriteOnly);
+            if (!mark.open(QIODevice::WriteOnly)) {
+                qWarning("plasmai: could not write %s", qPrintable(marker));
+            }
         }
     }
     return copied;

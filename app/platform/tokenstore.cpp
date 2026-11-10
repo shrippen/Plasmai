@@ -1,5 +1,6 @@
 #include "tokenstore.h"
 
+#include <QCoreApplication>
 #include <QFile>
 #include <QStandardPaths>
 #include <qt6keychain/keychain.h>
@@ -136,16 +137,41 @@ QString TokenStore::legacyPath(const QString &profileId)
         + QStringLiteral("/tokens/") + profileId + QStringLiteral(".token");
 }
 
-QString TokenStore::readLegacy(const QString &profileId)
+// The same file where the builds up to 2.6.3 had it: the AppData folder of the old id (desktop;
+// on Android that package is another app). Read and deleted there in place, never copied
+// (AppIdMigration leaves tokens/ out), so no plain-text copy stays behind.
+QString TokenStore::oldIdLegacyPath(const QString &profileId)
 {
-    QFile f(legacyPath(profileId));
-    if (!f.open(QIODevice::ReadOnly | QIODevice::Text)) {
+#ifdef Q_OS_ANDROID
+    Q_UNUSED(profileId)
+    return QString();
+#else
+    const QString base = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    const QString name = QCoreApplication::applicationName();
+    if (name == OLD_APP_ID || !base.endsWith(QLatin1Char('/') + name)) {
         return QString();
     }
-    return QString::fromUtf8(f.readAll()).trimmed();
+    return base.left(base.size() - name.size()) + OLD_APP_ID + QStringLiteral("/tokens/") + profileId
+        + QStringLiteral(".token");
+#endif
+}
+
+QString TokenStore::readLegacy(const QString &profileId)
+{
+    for (const QString &path : {legacyPath(profileId), oldIdLegacyPath(profileId)}) {
+        QFile f(path);
+        if (!path.isEmpty() && f.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            return QString::fromUtf8(f.readAll()).trimmed();
+        }
+    }
+    return QString();
 }
 
 void TokenStore::removeLegacy(const QString &profileId)
 {
     QFile::remove(legacyPath(profileId));
+    const QString old = oldIdLegacyPath(profileId);
+    if (!old.isEmpty()) {
+        QFile::remove(old);
+    }
 }

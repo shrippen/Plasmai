@@ -94,7 +94,7 @@ private slots:
     }
 
     // The new widget may start first: its localStore.sh makes the new data folder with
-    // plasmoid/ only. The app's own entries (app/, tokens/) are still copied (review of PR #52).
+    // plasmoid/ only. The app's own entries (app/) are still copied (review of PR #52).
     void appEntriesFollowAWidgetThatStartedFirst()
     {
         write(data(m_old) + "/app/offline-outbox-default.json", "{\"ops\":[1]}");
@@ -103,7 +103,8 @@ private slots:
 
         QVERIFY(AppIdMigration::copyFolders(m_old, m_new) >= 1);
         QCOMPARE(read(data(m_new) + "/app/offline-outbox-default.json"), QByteArray("{\"ops\":[1]}"));
-        QCOMPARE(read(data(m_new) + "/tokens/default.token"), QByteArray("t"));
+        // Token files are plain text: never copied (TokenStore takes them from the old place).
+        QVERIFY(!QFileInfo::exists(data(m_new) + "/tokens"));
         QCOMPARE(read(data(m_new) + "/plasmoid/offline-state-plasmoid-5-default.json"), QByteArray("{}"));
         // An entry the new folder has already is never overwritten, and a second start copies nothing.
         write(data(m_old) + "/app/offline-outbox-default.json", "changed");
@@ -112,8 +113,6 @@ private slots:
         // Taken over once: what the app removes later does not come back from the old folder
         // (sent changes would be sent again).
         QDir(data(m_new) + "/app").removeRecursively();
-        QFile::remove(data(m_new) + "/tokens/default.token");
-        QDir(data(m_new) + "/tokens").removeRecursively();
         QCOMPARE(AppIdMigration::copyFolders(m_old, m_new), 0);
         QVERIFY(!QFileInfo::exists(data(m_new) + "/app"));
     }
