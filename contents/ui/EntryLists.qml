@@ -78,8 +78,8 @@ ColumnLayout {
         activitySectionTitles: view.activitySectionTitles
         pickerOpenBelow: view.pickerOpenBelow
         pickerViewport: pickerScroll
-        projectEnabled: session.connection.configured && !session.busy && view.connectionState !== "error"
-        activityEnabled: session.connection.configured && !session.busy && view.connectionState !== "error"
+        projectEnabled: session.connection.configured && !session.locked && view.connectionState !== "error"
+        activityEnabled: session.connection.configured && !session.locked && view.connectionState !== "error"
                      && !!view.selectedProjectId
         projectVisible: session.catalog.loaded
         activityVisible: session.catalog.loaded || view.activityPickerModel.length > 0
@@ -108,7 +108,7 @@ ColumnLayout {
         }
     Layout.fillWidth: true
         visible: view.showNewActivityHere && view.showNewActivityForm
-        enabled: session.connection.configured && !session.busy && view.connectionState !== "error"
+        enabled: session.connection.configured && !session.locked && view.connectionState !== "error"
         placeholderText: i18n("Description (optional)")
     }
 
@@ -120,7 +120,7 @@ ColumnLayout {
         KantePlasmaButton {
             Layout.fillWidth: true
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
-            enabled: session.connection.configured && !session.busy && !session.timer.tracking && view.connectionState !== "error"
+            enabled: session.connection.configured && !session.locked && !session.timer.tracking && view.connectionState !== "error"
                      && switchPickers.projectCombo.currentIndex >= 0
                      && switchPickers.activityCombo.currentIndex >= 0
             text: i18n("Start")
@@ -136,7 +136,7 @@ ColumnLayout {
             Layout.fillWidth: true
             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
             visible: session.timer.tracking
-            enabled: session.connection.configured && !session.busy && view.connectionState !== "error"
+            enabled: session.connection.configured && !session.locked && view.connectionState !== "error"
                      && switchPickers.projectCombo.currentIndex >= 0
                      && switchPickers.activityCombo.currentIndex >= 0
             text: i18n("Switch")
@@ -200,7 +200,7 @@ ColumnLayout {
                     }
                     return bits.join(" · ")
                 }
-                rowEnabled: session.connection.configured && !session.busy && view.connectionState !== "error"
+                rowEnabled: session.connection.configured && !session.locked && view.connectionState !== "error"
                 showPlayIcon: true
                 showHistoryActions: true
                 canPin: true
@@ -383,7 +383,7 @@ ColumnLayout {
                         bits.push(view.formatRelativeTime(ts.end || ts.begin))
                         return bits.join(" · ")
                     }
-                    rowEnabled: session.connection.configured && !session.busy && view.connectionState !== "error"
+                    rowEnabled: session.connection.configured && !session.locked && view.connectionState !== "error"
                     runningHintVisible: view.alreadyRunningHintKey === tsKey
                     runningHintText: i18n("Already running.")
                     runningHintCounterText: session.timer.tracking

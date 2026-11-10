@@ -180,10 +180,10 @@ Kirigami.ApplicationWindow {
         const s = session.settings
         var items = [{ id: "open", text: i18n("Open Plasmai") }, { separator: true }]
         if (t.tracking) {
-            items.push({ id: "stop", text: i18n("Stop %1 · %2", t.project, t.activity), enabled: !session.busy })
+            items.push({ id: "stop", text: i18n("Stop %1 · %2", t.project, t.activity), enabled: !session.locked })
         } else if (t.hasLastUsed) {
             items.push({ id: "startLast", text: i18n("Start %1 · %2", s.lastUsedProjectName, s.lastUsedActivityName),
-                         enabled: !session.busy && session.connection.configured })
+                         enabled: !session.locked && session.connection.configured })
         }
         items.push({ separator: true })
         if (autostartService) {

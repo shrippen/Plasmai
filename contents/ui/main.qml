@@ -897,7 +897,7 @@ PlasmoidItem {
     }
 
     function saveActiveEdit(projectId, activityId, beginText, billable, tags) {
-        if (!session.timer.tracking || session.busy || !session.timer.timesheetId) {
+        if (!session.timer.tracking || session.locked || !session.timer.timesheetId) {
             return
         }
         const beginDate = DTF.parseStamp(beginText)
@@ -1667,7 +1667,7 @@ PlasmoidItem {
 
     function requestStop() {
         const t = session.timer
-        if (!session.connection.configured || session.busy || !t.tracking || !t.timesheetId) {
+        if (!session.connection.configured || session.locked || !t.tracking || !t.timesheetId) {
             return
         }
         if (session.settings.confirmBeforeStop && stopConfirmDialogRef) {
@@ -2476,7 +2476,7 @@ PlasmoidItem {
                             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                             display: TouchUi.active ? QQC2.AbstractButton.TextBesideIcon
                                                     : QQC2.AbstractButton.IconOnly
-                            enabled: !root.session.busy && root.connectionState !== "error"
+                            enabled: !root.session.locked && root.connectionState !== "error"
                             onClicked: root.openManualEntry()
                             PlasmaComponents3.ToolTip.text: i18n("Add a manual time entry")
                             PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
@@ -2491,7 +2491,7 @@ PlasmoidItem {
                             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                             display: TouchUi.active ? QQC2.AbstractButton.TextBesideIcon
                                                     : QQC2.AbstractButton.IconOnly
-                            enabled: !root.session.busy
+                            enabled: !root.session.locked
                             onClicked: root.openStatsView()
                             PlasmaComponents3.ToolTip.text: i18n("Show statistics")
                             PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
@@ -2505,7 +2505,7 @@ PlasmoidItem {
                             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                             display: TouchUi.active ? QQC2.AbstractButton.TextBesideIcon
                                                     : QQC2.AbstractButton.IconOnly
-                            enabled: !root.session.busy && root.connectionState !== "error"
+                            enabled: !root.session.locked && root.connectionState !== "error"
                             onClicked: root.openFilmDayView()
                             PlasmaComponents3.ToolTip.text: i18n("Log a shooting day")
                             PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active
@@ -2519,7 +2519,7 @@ PlasmoidItem {
                             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                             display: TouchUi.active ? QQC2.AbstractButton.TextBesideIcon
                                                     : QQC2.AbstractButton.IconOnly
-                            enabled: !root.session.busy && !root.tripBusy && root.connectionState !== "error"
+                            enabled: !root.session.locked && !root.tripBusy && root.connectionState !== "error"
                             onClicked: root.openNewTrip()
                             PlasmaComponents3.ToolTip.text: i18n("Log a trip (Anfahrten plugin)")
                             PlasmaComponents3.ToolTip.visible: hovered && !TouchUi.active

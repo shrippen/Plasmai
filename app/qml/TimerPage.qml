@@ -398,7 +398,7 @@ Kirigami.Page {
                             display: QQC2.AbstractButton.IconOnly
                             icon.name: "media-playback-start"
                             text: i18n("Switch to another activity…")
-                            enabled: !session.busy && session.connection.state !== "error"
+                            enabled: !session.locked && session.connection.state !== "error"
                             Layout.preferredHeight: TouchUi.active ? TouchUi.buttonMinHeight : implicitHeight
                             onClicked: page.openNewActivityForm()
                             QQC2.ToolTip.text: text; QQC2.ToolTip.visible: hovered && !Kirigami.Settings.isMobile; QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
@@ -620,7 +620,7 @@ Kirigami.Page {
                         Material.foreground: KanteStyle.textColor
                             Layout.fillWidth: true
                             visible: !session.timer.tracking && session.connection.configured && session.settings.popupShowContinue && (session.recent.last || session.timer.hasLastUsed)
-                            enabled: !session.busy && session.connection.state !== "error"
+                            enabled: !session.locked && session.connection.state !== "error"
                             icon.name: "media-playback-start"
                             text: session.recent.last
                                   ? i18n("Continue · %1 · %2", KimaiApi.displayProjectName(session.recent.last, session.catalog.projects), KimaiApi.displayActivityName(session.recent.last, session.catalog.activities, session.catalog.activitiesByProject))
@@ -635,7 +635,7 @@ Kirigami.Page {
                             Layout.fillWidth: !continueRow.continueShown
                             Layout.preferredHeight: continueRow.continueShown ? continueButton.height : implicitHeight
                             Layout.preferredWidth: continueRow.continueShown ? continueButton.height : implicitWidth
-                            enabled: !session.busy && session.connection.state !== "error"
+                            enabled: !session.locked && session.connection.state !== "error"
                             icon.name: "media-playback-start"
                             text: i18n("Start something else…")
                             onClicked: page.openNewActivityForm()
@@ -677,7 +677,7 @@ Kirigami.Page {
                                         Layout.fillWidth: true
                                         text: session.timer.tracking ? i18n("Switch") : i18n("Start")
                                         icon.name: session.timer.tracking ? "media-skip-forward" : "media-playback-start"
-                                        enabled: !session.busy && newActivityPickers.projectCombo.currentIndex >= 0 && newActivityPickers.activityCombo.currentIndex >= 0
+                                        enabled: !session.locked && newActivityPickers.projectCombo.currentIndex >= 0 && newActivityPickers.activityCombo.currentIndex >= 0
                                         onClicked: {
                                             var proj = newActivityPickers.projectCombo.currentItem.value
                                             var act = newActivityPickers.activityCombo.currentItem.value

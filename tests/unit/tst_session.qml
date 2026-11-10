@@ -105,6 +105,29 @@ TestCase {
         tryCompare(s, "refreshing", false)
     }
 
+    // Review of PR #50: without the lock of every refresh, a favorite or a recent row tapped
+    // before the first answer started a timer while one ran on the server (no switch question),
+    // and after a profile switch Stop sent the old profile's entry. Until the running entry is
+    // known, writes wait; the poll keeps the inputs usable.
+    function test_writesWaitForTheRunningEntry() {
+        const s = openDemo()
+        tryVerify(function() { return s.timer.tracking })
+        tryCompare(s, "refreshing", false)
+        verify(!s.locked, "known running entry: usable")
+        s.timer.loaded = false
+        verify(s.locked, "not known yet: locked")
+        compare(s.timer.startPinned({ projectId: "1", activityId: "1" }), Ui.Session.Restart.Ignored)
+        compare(s.timer.requestRestart(s.recent.list[0]), Ui.Session.Restart.Ignored)
+        compare(s.timer.start("1", "1", "", "", ""), Ui.Session.Restart.Ignored)
+        s.timer.stop()
+        s.timer.continueEntry(s.recent.list[0])
+        verify(!s.busy, "no write was sent")
+        verify(s.timer.tracking)
+        s.refresh()
+        tryCompare(s.timer, "loaded", true)
+        verify(!s.locked)
+    }
+
     // A refresh asked before a write answers the state before it: dropped, the
     // write refreshes itself once it is through.
     function test_staleRefreshDropped() {
