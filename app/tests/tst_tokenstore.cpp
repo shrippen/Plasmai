@@ -171,9 +171,10 @@ private slots:
         // new id share it there, and there is nothing to move.
         const bool shared = readKeychain(APP_ID, m_profile) == QStringLiteral("old-id-5");
         QCOMPARE(loadToken(store, m_profile), QStringLiteral("old-id-5"));
+        // Shared or moved, the token is under APP_ID afterwards.
+        QCOMPARE(readKeychain(APP_ID, m_profile), QStringLiteral("old-id-5"));
         if (!shared) {
             QVERIFY(readKeychain(OLD_APP_ID, m_profile).isNull());
-            QCOMPARE(readKeychain(APP_ID, m_profile), QStringLiteral("old-id-5"));
         }
 
         // A token file of a build before 2.1 under the id up to 2.6.3 moves into the keychain

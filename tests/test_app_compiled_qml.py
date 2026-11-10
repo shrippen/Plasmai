@@ -50,7 +50,7 @@ def test_qt_610_keeps_the_qrc():
     "plasmai-app_../build", so the Windows build stopped with "ninja: error: mkdir(...): No such
     file or directory". Qt 6.11 and later take the shorter of the paths below the source and
     the build folder and replace "..". Before 6.11 the QML stays in the qrc, compiled at run
-    time as before; Android (6.11) and the desktop builds compile it at build time."""
+    time as before; Android, Linux and macOS (6.11 and later) compile it at build time."""
     gate = re.search(r"if\(Qt6_VERSION VERSION_LESS 6\.11\)(.*?)\nelse\(\)(.*?)\nendif\(\)", CMAKE, re.S)
     assert gate, "app/CMakeLists.txt: if(Qt6_VERSION VERSION_LESS 6.11) … else() … endif()"
     old, new = gate.group(1), gate.group(2)
