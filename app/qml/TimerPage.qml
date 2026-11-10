@@ -476,7 +476,7 @@ Kirigami.Page {
                         elapsedSeconds: session.timer.elapsedSeconds
                         projectPickerModel: session.catalog.projectPickerModel
                         activityPickerModel: page.editActivityPickerModel
-                        busy: session.busy
+                        busy: session.locked
                         configured: session.connection.configured
                         connectionOk: session.connection.state !== "error"
                         supportsBillableEdit: session.connection.capabilities.billableEdit
