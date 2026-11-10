@@ -42,12 +42,17 @@ def test_every_qml_and_script_entry_is_one_cmake_reads():
                     f"app/{name}: write {path} as <file alias=\"{path}\">source</file> on one line"
 
 
-def test_sources_outside_app_are_copied_into_the_build():
-    """qmlcachegen names its output after the source's path below app/. For ../contents/... Qt
-    6.10 made ".rcc/qmlcache/plasmai-app_../contents", and the Windows build stopped with
-    "ninja: error: mkdir(.rcc/qmlcache/plasmai-app_../contents): No such file or directory".
-    Files outside app/ are copied into the build folder under their resource name first."""
-    text = (ROOT / "app/CMakeLists.txt").read_text(encoding="utf-8")
-    body = re.search(r"function\(plasmai_split_qrc.*?endfunction\(\)", text, re.S).group(0)
-    assert re.search(r'configure_file\("\$\{source\}"\s+"\$\{CMAKE_CURRENT_BINARY_DIR\}/[^"]*\$\{alias\}"\s+COPYONLY\)',
-                     body), "copy sources outside app/ into the build folder (configure_file ... COPYONLY)"
+def test_qt_610_keeps_the_qrc():
+    """qmlcachegen names its output after the source's path. Qt 6.10 took the path below app/
+    only: for ../contents/... it made ".rcc/qmlcache/plasmai-app_../contents", and with the build
+    folder beside app/ (the Windows CI) even a copy in the build folder became
+    "plasmai-app_../build", so the Windows build stopped with "ninja: error: mkdir(...): No such
+    file or directory". Qt 6.11 and later take the shorter of the paths below the source and
+    the build folder and replace "..". Before 6.11 the QML stays in the qrc, compiled at run
+    time as before; Android (6.11) and the desktop builds compile it at build time."""
+    gate = re.search(r"if\(Qt6_VERSION VERSION_LESS 6\.11\)(.*?)\nelse\(\)(.*?)\nendif\(\)", CMAKE, re.S)
+    assert gate, "app/CMakeLists.txt: if(Qt6_VERSION VERSION_LESS 6.11) … else() … endif()"
+    old, new = gate.group(1), gate.group(2)
+    assert "plasmai-app.qrc" in old and "qt_add_qml_module" not in old
+    assert "qt_add_qml_module(plasmai-app" in new
+    assert "qml-outside" not in CMAKE, "no copies: they do not help Qt 6.10 with an outside build folder"

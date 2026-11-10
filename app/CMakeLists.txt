@@ -110,14 +110,6 @@ function(plasmai_split_qrc qrc out_qrc out_files)
         if(prefix STREQUAL "/" AND line MATCHES "<file alias=\"([^\"]+\\.(qml|js))\">([^<]+)</file>")
             set(alias "${CMAKE_MATCH_1}")
             get_filename_component(source "${CMAKE_CURRENT_SOURCE_DIR}/${CMAKE_MATCH_3}" ABSOLUTE)
-            # qmlcachegen names its output after the path below this folder: for ../contents
-            # Qt 6.10 made "plasmai-app_../contents", which Windows cannot create. Files from
-            # outside are compiled from a copy under their resource name (re-copied on change).
-            cmake_path(IS_PREFIX CMAKE_CURRENT_SOURCE_DIR "${source}" NORMALIZE inside)
-            if(NOT inside)
-                configure_file("${source}" "${CMAKE_CURRENT_BINARY_DIR}/qml-outside/${alias}" COPYONLY)
-                set(source "${CMAKE_CURRENT_BINARY_DIR}/qml-outside/${alias}")
-            endif()
             set_source_files_properties("${source}" PROPERTIES
                 QT_RESOURCE_ALIAS "${alias}" QT_QML_SKIP_QMLDIR_ENTRY TRUE)
             list(APPEND compiled "${source}")
@@ -131,18 +123,29 @@ function(plasmai_split_qrc qrc out_qrc out_files)
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${qrc}")
     set(${out_files} "${compiled}" PARENT_SCOPE)
 endfunction()
-plasmai_split_qrc(plasmai-app.qrc plasmai-app-assets.qrc PLASMAI_QML_FILES)
-target_sources(plasmai-app PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/plasmai-app-assets.qrc")
-qt_add_qml_module(plasmai-app
-    URI PlasmaiApp
-    VERSION 1.0
-    RESOURCE_PREFIX /
-    NO_RESOURCE_TARGET_PATH
-    NO_LINT
-    # The addons' C++ types keep their registration in main.cpp (org.kde.kirigamiaddons...).
-    NO_GENERATE_QMLTYPES
-    QML_FILES ${PLASMAI_QML_FILES}
-)
+# qmlcachegen names its output after the source's path. Qt 6.10 takes the path below app/ only:
+# ../contents/... became ".rcc/qmlcache/plasmai-app_../contents", which Windows cannot create
+# (with the build folder beside app/, a copy in it would be "plasmai-app_../build"). Qt 6.11 and
+# later take the shorter path and replace "..". So before 6.11 (the Windows builds) the QML stays
+# in the qrc and compiles at run time, as before; Android (6.11) and Linux compile it here.
+set(PLASMAI_QML_AT_BUILD_TIME TRUE)
+if(Qt6_VERSION VERSION_LESS 6.11)
+    set(PLASMAI_QML_AT_BUILD_TIME FALSE)
+    target_sources(plasmai-app PRIVATE plasmai-app.qrc)
+else()
+    plasmai_split_qrc(plasmai-app.qrc plasmai-app-assets.qrc PLASMAI_QML_FILES)
+    target_sources(plasmai-app PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/plasmai-app-assets.qrc")
+    qt_add_qml_module(plasmai-app
+        URI PlasmaiApp
+        VERSION 1.0
+        RESOURCE_PREFIX /
+        NO_RESOURCE_TARGET_PATH
+        NO_LINT
+        # The addons' C++ types keep their registration in main.cpp (org.kde.kirigamiaddons...).
+        NO_GENERATE_QMLTYPES
+        QML_FILES ${PLASMAI_QML_FILES}
+    )
+endif()
 
 if(ANDROID)
     set_property(TARGET plasmai-app APPEND PROPERTY
@@ -226,9 +229,14 @@ endif()
 # off by default, on for the test-driver build.
 option(PLASMAI_DEMO "Include the internal demo mode (development only)" ${PLASMAI_TEST_DRIVER})
 if(PLASMAI_DEMO)
-    plasmai_split_qrc(demo.qrc demo-assets.qrc PLASMAI_DEMO_QML_FILES)
-    target_sources(plasmai-app PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/demo-assets.qrc" benchprobe.h)
-    qt_target_qml_sources(plasmai-app QML_FILES ${PLASMAI_DEMO_QML_FILES})
+    target_sources(plasmai-app PRIVATE benchprobe.h)
+    if(PLASMAI_QML_AT_BUILD_TIME)
+        plasmai_split_qrc(demo.qrc demo-assets.qrc PLASMAI_DEMO_QML_FILES)
+        target_sources(plasmai-app PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/demo-assets.qrc")
+        qt_target_qml_sources(plasmai-app QML_FILES ${PLASMAI_DEMO_QML_FILES})
+    else()
+        target_sources(plasmai-app PRIVATE demo.qrc)
+    endif()
     target_compile_definitions(plasmai-app PRIVATE PLASMAI_DEMO)
 endif()
 
