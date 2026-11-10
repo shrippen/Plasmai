@@ -6,21 +6,18 @@
 
 ### English
 
-Faster: the Android app shows its first frame in under a second, the widget does less in the background. Plasmai now has one id everywhere, `io.github.shrippen.Plasmai`.
+Faster: a warm start of the Android app shows its first frame in under a second, the widget does less in the background. Plasmai now has one id everywhere, `io.github.shrippen.Plasmai`.
 
 #### Improved
 
-- App (Android): a warm start shows the first frame after 0.96 s instead of 1.46 s and your data after 1.16 s instead of 1.82 s; a cold start shows it after 1.9 s instead of 3.5 s (Pixel 6). The QML is compiled at build time, dialogs and menus are built when first opened, and sun and moon are computed once a day.
+- App (Android): a warm start shows the first frame after 0.96 s instead of 1.46 s and your data after 1.16 s instead of 1.82 s; a cold start shows it after 1.9 s instead of 3.5 s (Pixel 6, debug build, before and after these changes). The QML is compiled at build time, dialogs and menus are built when first opened, and sun and moon are computed once a day.
 - App (Android): at rest it draws 1.6 instead of 90 frames a second, which saves battery. A stopped loading indicator kept animating its fade-out.
 - Widget: views you do not see (sky animation, chart variants, week timeline, pickers, row menus) are no longer built or animated; changes to the profiles are noticed when the file changes instead of reading it every 5 seconds; the inputs no longer lock during the regular update.
 - Setup: screen readers read the steps ("Step 2 of 4: Access, current") in the app's language, not in German.
 
 #### Fixed
 
-- Starting, stopping or editing right after the start, before Plasmai knew the running entry, could act on the wrong state. Those buttons now wait until it is known.
 - After switching profiles, a late answer for the previous profile could show its running entry, recent entries or projects in the new one; starting one of those sent the previous profile's ids to the new server.
-- After switching profiles, offline data of the previous profile that was not yet saved could be lost.
-- Widget: when its settings folder did not exist yet, profile changes made in another widget or in the settings showed only after up to 5 minutes.
 
 #### Note
 
@@ -30,21 +27,18 @@ All changes: https://github.com/shrippen/Plasmai/compare/v2.6.3...v2.7.0
 
 ### Deutsch
 
-Schneller: Die Android-App zeigt ihr erstes Bild in unter einer Sekunde, das Widget tut im Hintergrund weniger. Plasmai hat jetzt überall dieselbe Id, `io.github.shrippen.Plasmai`.
+Schneller: Ein warmer Start der Android-App zeigt das erste Bild in unter einer Sekunde, das Widget tut im Hintergrund weniger. Plasmai hat jetzt überall dieselbe Id, `io.github.shrippen.Plasmai`.
 
 #### Verbessert
 
-- App (Android): Ein warmer Start zeigt das erste Bild nach 0,96 s statt 1,46 s und deine Daten nach 1,16 s statt 1,82 s; ein kalter Start zeigt sie nach 1,9 s statt 3,5 s (Pixel 6). Das QML wird beim Bauen kompiliert, Dialoge und Menüs entstehen beim ersten Öffnen, Sonne und Mond werden einmal am Tag berechnet.
+- App (Android): Ein warmer Start zeigt das erste Bild nach 0,96 s statt 1,46 s und deine Daten nach 1,16 s statt 1,82 s; ein kalter Start zeigt sie nach 1,9 s statt 3,5 s (Pixel 6, Debug-Build, vor und nach diesen Änderungen). Das QML wird beim Bauen kompiliert, Dialoge und Menüs entstehen beim ersten Öffnen, Sonne und Mond werden einmal am Tag berechnet.
 - App (Android): Im Leerlauf zeichnet sie 1,6 statt 90 Bilder pro Sekunde, das schont den Akku. Eine angehaltene Ladeanzeige animierte ihr Ausblenden weiter.
 - Widget: Ansichten, die du nicht siehst (Himmelsanimation, Diagrammvarianten, Wochen-Zeitleiste, Auswahlfelder, Zeilenmenüs), werden nicht mehr gebaut oder animiert. Änderungen an den Profilen fallen auf, wenn sich die Datei ändert, statt sie alle 5 Sekunden zu lesen. Die Eingaben sperren beim regelmäßigen Aktualisieren nicht mehr.
 - Einrichtung: Screenreader lesen die Schritte („Schritt 2 von 4: Zugang, aktuell“) in der Sprache der App vor, nicht immer auf Deutsch.
 
 #### Behoben
 
-- Starten, Stoppen oder Bearbeiten direkt nach dem Start, bevor Plasmai den laufenden Eintrag kannte, konnte auf einem falschen Stand arbeiten. Diese Knöpfe warten jetzt, bis er bekannt ist.
 - Nach einem Profilwechsel konnte eine späte Antwort zum vorigen Profil dessen laufenden Eintrag, letzte Einträge oder Projekte im neuen zeigen; ein Start daraus schickte die Ids des vorigen Profils an den neuen Server.
-- Nach einem Profilwechsel konnten noch nicht gespeicherte Offline-Daten des vorigen Profils verloren gehen.
-- Widget: Fehlte sein Einstellungsordner noch, zeigten sich Profiländerungen aus einem anderen Widget oder den Einstellungen erst nach bis zu 5 Minuten.
 
 #### Hinweis
 
