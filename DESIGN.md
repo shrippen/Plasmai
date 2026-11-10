@@ -742,9 +742,12 @@ read as Kante. It is the design system's `KanteStyle.Kind.KanteLight`:
   - Build what shows, not what may show: dialogs are `LazyDialog`s (built
     when first opened), forms of the timer page sit in Loaders active while
     open, the drawer's entries come a moment after the first frame.
-  - The QML and JavaScript are compiled at build time (`qt_add_qml_module`
-    in `app/CMakeLists.txt`, files taken from `plasmai-app.qrc`): no
-    compiling on the device after an install or update.
+  - The QML and JavaScript are compiled at build time from Qt 6.11 on
+    (Android, Linux, macOS; `qt_add_qml_module` in `app/CMakeLists.txt`,
+    files taken from `plasmai-app.qrc`): no compiling on the device after an
+    install or update. The Windows build (Qt 6.10, whose qmlcachegen cannot
+    name files from outside `app/`) keeps the plain qrc and compiles at run
+    time.
   - Work that depends on the day only is worked out once a day
     (`solar.js` keeps the sky of the last day and place).
 
