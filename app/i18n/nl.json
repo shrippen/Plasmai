@@ -635,6 +635,8 @@
 "You were idle for %1. Keep this time, discard it, or discard and continue?": "Je was %1 inactief. Deze tijd behouden, verwerpen of verwerpen en doorgaan?",
 "Your Plasma theme, unchanged.": "Je Plasma-thema, ongewijzigd.",
 "Your work day": "Je werkdag",
+"current": "huidig",
+"done": "klaar",
 "far longer than the straight line: check the places.": "veel langer dan hemelsbreed: controleer de plaatsen.",
 "https://api.solidtime.io or https://time.example.com": "https://api.solidtime.io of https://time.example.com",
 "https://kimai.example.com or https://www.kimai.cloud": "https://kimai.example.com of https://www.kimai.cloud",
@@ -645,6 +647,8 @@
 "round trip": "heen en terug",
 "running": "loopt",
 "shorter than the straight line: check the places or the km.": "korter dan hemelsbreed: controleer de plaatsen of de km.",
+"skipped": "overgeslagen",
+"upcoming": "nog te doen",
 "yesterday": "gisteren",
 "© OpenStreetMap contributors": "© OpenStreetMap-bijdragers"
 }

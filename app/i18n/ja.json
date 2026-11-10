@@ -645,6 +645,8 @@
 "You were idle for %1. Keep this time, discard it, or discard and continue?": "%1 間アイドル状態でした。この時間を残しますか、破棄しますか、それとも破棄して続けますか？",
 "Your Plasma theme, unchanged.": "Plasma テーマをそのまま使います。",
 "Your work day": "あなたの勤務日",
+"current": "現在",
+"done": "完了",
 "far longer than the straight line: check the places.": "直線距離よりかなり長いです。場所を確認してください。",
 "https://api.solidtime.io or https://time.example.com": "https://api.solidtime.io または https://time.example.com",
 "https://kimai.example.com or https://www.kimai.cloud": "https://kimai.example.com または https://www.kimai.cloud",
@@ -654,6 +656,8 @@
 "round trip": "往復",
 "running": "計測中",
 "shorter than the straight line: check the places or the km.": "直線距離より短いです。場所または km を確認してください。",
+"skipped": "スキップ",
+"upcoming": "未完了",
 "yesterday": "昨日",
 "© OpenStreetMap contributors": "© OpenStreetMap の貢献者"
 }

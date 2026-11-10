@@ -648,6 +648,8 @@
 "You were idle for %1. Keep this time, discard it, or discard and continue?": "你已空闲 %1。保留这段时间、丢弃，还是丢弃并继续？",
 "Your Plasma theme, unchanged.": "保持你的 Plasma 主题不变。",
 "Your work day": "你的工作日",
+"current": "当前",
+"done": "已完成",
 "far longer than the straight line: check the places.": "远长于直线距离：请检查地点。",
 "https://api.solidtime.io or https://time.example.com": "https://api.solidtime.io 或 https://time.example.com",
 "https://kimai.example.com or https://www.kimai.cloud": "https://kimai.example.com 或 https://www.kimai.cloud",
@@ -658,6 +660,8 @@
 "round trip": "往返",
 "running": "进行中",
 "shorter than the straight line: check the places or the km.": "比直线距离还短：请检查地点或公里数。",
+"skipped": "已跳过",
+"upcoming": "待完成",
 "yesterday": "昨天",
 "© OpenStreetMap contributors": "© OpenStreetMap 贡献者"
 }

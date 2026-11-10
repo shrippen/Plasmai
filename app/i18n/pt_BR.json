@@ -645,6 +645,8 @@
 "You were idle for %1. Keep this time, discard it, or discard and continue?": "Você ficou ocioso por %1. Manter esse tempo, descartá-lo ou descartar e continuar?",
 "Your Plasma theme, unchanged.": "Seu tema do Plasma, sem alterações.",
 "Your work day": "Seu dia de trabalho",
+"current": "atual",
+"done": "concluído",
 "far longer than the straight line: check the places.": "bem mais longo que a linha reta: confira os locais.",
 "https://api.solidtime.io or https://time.example.com": "https://api.solidtime.io ou https://time.example.com",
 "https://kimai.example.com or https://www.kimai.cloud": "https://kimai.example.com ou https://www.kimai.cloud",
@@ -655,6 +657,8 @@
 "round trip": "ida e volta",
 "running": "em andamento",
 "shorter than the straight line: check the places or the km.": "mais curto que a linha reta: confira os locais ou os km.",
+"skipped": "ignorado",
+"upcoming": "pendente",
 "yesterday": "ontem",
 "© OpenStreetMap contributors": "© colaboradores do OpenStreetMap"
 }
