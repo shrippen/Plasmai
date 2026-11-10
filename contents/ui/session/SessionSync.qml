@@ -54,6 +54,8 @@ QtObject {
         if (state && state.host.key === key && state.inner === inner) {
             return Promise.resolve()
         }
+        // The old session's deferred save would be replaced by the new one's.
+        flushSave()
         const s = Offline.createSession(inner, {
             key: key,
             url: function() { return session.connection.url },
