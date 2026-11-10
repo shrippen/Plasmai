@@ -110,6 +110,13 @@ function(plasmai_split_qrc qrc out_qrc out_files)
         if(prefix STREQUAL "/" AND line MATCHES "<file alias=\"([^\"]+\\.(qml|js))\">([^<]+)</file>")
             set(alias "${CMAKE_MATCH_1}")
             get_filename_component(source "${CMAKE_CURRENT_SOURCE_DIR}/${CMAKE_MATCH_3}" ABSOLUTE)
+            # qmlcachegen names its output after the path below this folder: for ../contents
+            # Qt 6.10 made "plasmai-app_../contents", which Windows cannot create. Files from
+            # outside are compiled from a copy under their resource name (re-copied on change).
+            if(NOT source MATCHES "^${CMAKE_CURRENT_SOURCE_DIR}/")
+                configure_file("${source}" "${CMAKE_CURRENT_BINARY_DIR}/qml-outside/${alias}" COPYONLY)
+                set(source "${CMAKE_CURRENT_BINARY_DIR}/qml-outside/${alias}")
+            endif()
             set_source_files_properties("${source}" PROPERTIES
                 QT_RESOURCE_ALIAS "${alias}" QT_QML_SKIP_QMLDIR_ENTRY TRUE)
             list(APPEND compiled "${source}")
