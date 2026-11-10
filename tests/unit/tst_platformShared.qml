@@ -70,6 +70,24 @@ TestCase {
         compare(got.secretTool, false)
     }
 
+    // The widget creates the folder of shared.json before it watches it; the app has none.
+    function test_prepareSharedAsksBackend() {
+        var got = null
+        Platform.prepareShared(null).then(function(r) { got = r })
+        tryVerify(function() { return got !== null })
+        compare(got, true)
+
+        var backend = fakeBackend()
+        var asked = 0
+        backend.prepareSharedConfig = function(ds, cb) { asked++; cb(false) }
+        Platform.setBackend(backend)
+        got = null
+        Platform.prepareShared(null).then(function(r) { got = r })
+        tryVerify(function() { return got !== null })
+        compare(asked, 1)
+        compare(got, false)
+    }
+
     function test_dataMapMergedWithOtherWriter() {
         // This process last saw {app:1}; the Plasmoid has added "widget" on disk since.
         disk.pluginProbesJson = JSON.stringify({ app: 1, widget: 2 })

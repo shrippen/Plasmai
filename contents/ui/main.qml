@@ -3004,7 +3004,7 @@ PlasmoidItem {
     Component.onCompleted: {
         Platform.setBackend(DesktopBackend.create(kwalletScript, idleScript, notifyScript,
             sharedConfigScript, catalogCacheScript, localStoreScript, systemCheckScript))
-        Secret.ensureSharedDir(execSource, sharedConfigScript, function() { root.sharedDirReady = true })
+        Platform.prepareShared(execSource).then(function() { root.sharedDirReady = true })
         showNewActivityForm = !compactPopupLayout && plasmoid.configuration.desktopShowNewActivity
         reload(Session.Probe.Fresh)
     }

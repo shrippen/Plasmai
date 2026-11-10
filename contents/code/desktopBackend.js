@@ -32,6 +32,9 @@ function create(kwalletScript, idleScript, notifyScript,
         notify: function(ds, summary, body, cb) {
             Secret.notify(ds, notifyScript, summary, body, cb)
         },
+        prepareSharedConfig: function(ds, cb) {
+            Secret.ensureSharedDir(ds, sharedConfigScript, cb)
+        },
         loadSharedConfig: function(ds, cb) {
             Secret.loadSharedConfig(ds, sharedConfigScript, cb)
         },
