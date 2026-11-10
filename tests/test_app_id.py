@@ -37,8 +37,9 @@ MIGRATION = {
 
 
 def tracked():
-    out = subprocess.run(["git", "ls-files", "-z"], cwd=ROOT, capture_output=True, check=True).stdout
-    return [p for p in out.decode().split("\0") if p]
+    run = subprocess.run(["git", "ls-files", "-z"], cwd=ROOT, capture_output=True)
+    assert run.returncode == 0, f"git ls-files: {run.stderr.decode()}"
+    return [p for p in run.stdout.decode().split("\0") if p]
 
 
 def test_old_id_only_where_it_migrates():

@@ -26,3 +26,11 @@ def test_ci_has_node_for_the_widget_move_test():
     """test_app_id.py runs install-linux.sh's widget move in node; without it, it skips."""
     workflow = (ROOT / ".github/workflows/checks.yml").read_text(encoding="utf-8")
     assert re.search(r"pacman -Syu[^\n]*\bnodejs\b", workflow)
+
+
+def test_ci_trusts_the_checkout_for_git():
+    """Review of PR #55: in the archlinux container the checkout belongs to another user, git
+    refused it ("dubious ownership", exit 128) and test_app_id.py's `git ls-files` failed."""
+    workflow = (ROOT / ".github/workflows/checks.yml").read_text(encoding="utf-8")
+    unit = workflow.split("- uses: actions/checkout@v7", 2)[1]
+    assert 'git config --global --add safe.directory "$GITHUB_WORKSPACE"' in unit.split("- name: pytest")[0]

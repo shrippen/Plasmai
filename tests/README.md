@@ -26,7 +26,7 @@ Plasmai has two layers of automated tests:
 
 ```bash
 ./tests/run.sh          # QML units + pytest, skip live plasmashell panel test
-./tests/run.sh unit     # QML units + log-classifier pytest only (no viewer)
+./tests/run.sh unit     # QML units + tests/test_*.py + log classifier (no viewer)
 QT_QPA_PLATFORM=xcb ./tests/run.sh   # if offscreen qmltestrunner misbehaves
 ```
 

@@ -51,6 +51,10 @@ jobs:
         run: |
           pacman -Syu --noconfirm --needed qt6-declarative kirigami kirigami-addons libplasma plasma5support tzdata python python-pytest git gettext zip nodejs
       - uses: actions/checkout@v7
+      # The checkout belongs to another user than the container's root: git refuses it
+      # ("dubious ownership") and test_app_id.py's `git ls-files` fails.
+      - name: Trust the checkout for git
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       # Release headings "## [X.Y.Z] — YYYY-MM-DD": a wrong one shows up here, not at the tag.
       - name: CHANGELOG.md headings
