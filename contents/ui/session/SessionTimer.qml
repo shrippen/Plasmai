@@ -57,19 +57,17 @@ QtObject {
 
     /** Refreshes waiting for their answer (session.refreshing). */
     property int refreshes: 0
-    /** Counts profile switches; an answer asked under an older one is dropped (refresh). */
-    property int generation: 0
 
     // Not session.busy: the poll must not lock the inputs (and restyle every control) twice a refresh.
     function refresh() {
         const c = session.connection
         const writes = session.writes
-        const asked = generation
+        const asked = c.generation
         refreshes++
         c.tracker.fetchActiveTimesheet(c.url, c.token, function(result) {
             refreshes--
             // The profile changed meanwhile: this is the old profile's answer.
-            if (asked !== generation) {
+            if (asked !== c.generation) {
                 return
             }
             loaded = true

@@ -74,29 +74,30 @@ QtObject {
             Platform.saveCatalog(session.dataSource, CatalogCache.exportPayload())
         }
 
-        c.tracker.loadProjects(c.url, c.token, function(result) {
+        // c.current: answers for the previous profile are dropped (this load then never ends).
+        c.tracker.loadProjects(c.url, c.token, c.current(function(result) {
             if (result.ok) {
                 projects = result.data || []
             }
             done(result)
-        })
-        c.tracker.loadCustomers(c.url, c.token, function(result) {
+        }))
+        c.tracker.loadCustomers(c.url, c.token, c.current(function(result) {
             if (result.ok) {
                 customers = result.data || []
                 customersById = indexById(customers)
             }
             done(result)
-        })
+        }))
         if (typeof c.tracker.loadAllActivities !== "function") {
             done({ ok: true })
             return
         }
-        c.tracker.loadAllActivities(c.url, c.token, function(result) {
+        c.tracker.loadAllActivities(c.url, c.token, c.current(function(result) {
             if (result.ok) {
                 activities = result.data || []
             }
             done(result)
-        })
+        }))
     }
 
     /** The next refresh asks the server, not the cache (a reload, a new project). */

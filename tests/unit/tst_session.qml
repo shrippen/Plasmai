@@ -176,6 +176,35 @@ TestCase {
         compare(s.timer.refreshes, 0)
     }
 
+    // Review of PR #56: the recent list and the catalog took A's late answer into B too; a
+    // restart from that list sent A's project and activity ids to B's server.
+    function test_oldProfileListsDropped() {
+        const s = openDemo()
+        tryCompare(s, "refreshing", false)
+        tryVerify(function() { return s.recent.list.length > 0 && s.catalog.projects.length > 0 })
+        const recentA = s.recent.list
+        const projectsA = s.catalog.projects
+        let recentAnswer = null
+        let projectsAnswer = null
+        s.connection.tracker.fetchRecentTimesheets = function(_url, _token, _n, cb) { recentAnswer = cb }
+        s.connection.tracker.loadProjects = function(_url, _token, cb) { projectsAnswer = cb }
+        s.connection.tracker.loadCustomers = function(_url, _token, cb) { cb({ ok: true, data: [] }) }
+        s.connection.tracker.loadAllActivities = function(_url, _token, cb) { cb({ ok: true, data: [] }) }
+        s.recent.refresh()
+        s.catalog.invalidate()
+        s.catalog.refresh()
+        verify(recentAnswer && projectsAnswer, "A's requests are out")
+
+        s.connection.useProfile({ id: "other", name: "B", url: "http://other.invalid" })
+        s.recent.list = []
+        s.catalog.projects = []
+        recentAnswer({ ok: true, data: recentA })
+        projectsAnswer({ ok: true, data: projectsA })
+        verify(!s.recent.loaded, "the old answer does not mark B's list loaded")
+        compare(s.recent.list.length, 0)
+        compare(s.catalog.projects.length, 0)
+    }
+
     // The poll reloads today and the week; the same entries keep the same arrays, so the
     // day sparkline and the charts do not recompute (sun and moon paths, every bar).
     function test_sameTotalsKeepArrays() {
