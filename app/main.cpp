@@ -16,6 +16,7 @@
 #include "addons/infinitecalendarviewmodel.h"
 #include "appid.h"
 #include "i18nfallback.h"
+#include "platform/appidmigration.h"
 #include "platform/autostart.h"
 #include "platform/filestore.h"
 #include "platform/idlewatcher.h"
@@ -155,7 +156,7 @@ int main(int argc, char *argv[])
 #endif
 
     // Names the token files and QStandardPaths depend on: keep them as the builds had them
-    // (desktop: KAboutData's component name and domain; Android: Qt's defaults as set here).
+    // (desktop: APP_ID, the old id's folders move below; Android: Qt's defaults as set here).
 #ifdef Q_OS_ANDROID
     app.setApplicationName(QStringLiteral("Plasmai"));
     app.setOrganizationName(QStringLiteral("shrippen"));
@@ -163,8 +164,9 @@ int main(int argc, char *argv[])
     app.setApplicationName(APP_ID);
     app.setOrganizationDomain(QStringLiteral("kde.org"));
     app.setApplicationDisplayName(QStringLiteral("Plasmai"));
-    // Desktop identity (Flathub ID); APP_ID stays the keychain service and the config folder shared with the widget.
-    QGuiApplication::setDesktopFileName(QStringLiteral("io.github.shrippen.Plasmai"));
+    QGuiApplication::setDesktopFileName(APP_ID);
+    // Folders of the id up to 2.6.3 move before anything reads them.
+    AppIdMigration::moveFolders(OLD_APP_ID, APP_ID);
 #endif
     app.setApplicationVersion(kAppVersion);
 

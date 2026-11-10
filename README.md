@@ -2,7 +2,7 @@
 
 A KDE Plasma 6 panel widget for time tracking — Kimai, Clockify, Toggl Track, or SolidTime.
 
-**Plugin ID:** `com.github.shrippen.plasmai`  
+**Plugin ID:** `io.github.shrippen.Plasmai`  
 **Repository:** https://github.com/shrippen/Plasmai
 **KDE Store:** https://store.kde.org/p/2368175/
 
@@ -84,7 +84,7 @@ Use **+** on the widget for manual entries and the chart icon for statistics.
 
 Profiles, favorites, display, and behavior settings are shared across all Plasmai instances via:
 
-`~/.config/com.github.shrippen.plasmai/shared.json`
+`~/.config/io.github.shrippen.Plasmai/shared.json`
 
 ## Packaging
 
@@ -106,7 +106,7 @@ UI strings use Plasma `i18n`. Bundled languages: `en`, `de`, `fr`, `es`, `it`, `
 ./translate/build.sh     # compile .mo into contents/locale/
 ```
 
-Compiled catalogs ship in `contents/locale/<lang>/LC_MESSAGES/plasma_applet_com.github.shrippen.plasmai.mo`.
+Compiled catalogs ship in `contents/locale/<lang>/LC_MESSAGES/plasma_applet_io.github.shrippen.Plasmai.mo`.
 
 ## Development
 
@@ -114,8 +114,8 @@ Design decisions and UI principles: [DESIGN.md](DESIGN.md).
 Product direction: [ROADMAP.md](ROADMAP.md).
 
 ```bash
-plasmoidviewer -a com.github.shrippen.plasmai -l topedge -f horizontal
-plasmoidviewer -a com.github.shrippen.plasmai
+plasmoidviewer -a io.github.shrippen.Plasmai -l topedge -f horizontal
+plasmoidviewer -a io.github.shrippen.Plasmai
 ```
 
 ## Testing
@@ -151,7 +151,7 @@ See `contents/code/providers/NOTES.txt` for implementation details.
 ## Uninstall
 
 ```bash
-kpackagetool6 -r com.github.shrippen.plasmai -t Plasma/Applet
+kpackagetool6 -r io.github.shrippen.Plasmai -t Plasma/Applet
 ```
 
 ## License

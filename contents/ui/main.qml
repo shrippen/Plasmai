@@ -356,7 +356,7 @@ PlasmoidItem {
     // what a watcher can miss (the folder did not exist yet).
     SharedConfigWatch {
         folder: QtCore.StandardPaths.writableLocation(QtCore.StandardPaths.GenericConfigLocation)
-                + "/com.github.shrippen.plasmai"
+                + "/io.github.shrippen.Plasmai"
         fileName: "shared.json"
         onChanged: {
             if (!root.reloading && root.session.connection.tokenLoaded) {

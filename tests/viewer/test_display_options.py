@@ -1,7 +1,7 @@
 """Toggle Display settings in plasmoidviewer and assert Apply enables.
 
 Uses an isolated XDG_CONFIG_HOME so the run cannot rewrite the user's
-~/.config/com.github.shrippen.plasmai/shared.json.
+~/.config/io.github.shrippen.Plasmai/shared.json.
 """
 
 from __future__ import annotations
@@ -57,7 +57,7 @@ def _isolated_env(tmp_path: Path) -> dict[str, str]:
     state = tmp_path / "state"
     for p in (cfg, cache, data, state):
         p.mkdir()
-    shared_dir = cfg / "com.github.shrippen.plasmai"
+    shared_dir = cfg / "io.github.shrippen.Plasmai"
     shared_dir.mkdir(parents=True)
     (shared_dir / "shared.json").write_text(
         json.dumps({**_FALSE_DISPLAY, "settingsVersion": settings_version()}), encoding="utf-8"
@@ -114,7 +114,7 @@ def test_display_option_toggles_enable_apply(repo_root: Path, tmp_path: Path):
     """Each Display checkbox must enable Apply; Apply click must succeed."""
     _require_tools()
     env = _isolated_env(tmp_path)
-    shared = Path(env["XDG_CONFIG_HOME"]) / "com.github.shrippen.plasmai" / "shared.json"
+    shared = Path(env["XDG_CONFIG_HOME"]) / "io.github.shrippen.Plasmai" / "shared.json"
 
     with ViewerSession(
         repo_root,

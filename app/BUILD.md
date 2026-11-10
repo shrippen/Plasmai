@@ -112,7 +112,7 @@ Installiere Qt 6.8+ mit Android Kit via [Qt Online Installer](https://www.qt.io/
 ## Plattformspezifische Hinweise
 
 ### shared.json Interop
-- **Desktop**: `~/.config/com.github.shrippen.plasmai/shared.json`
+- **Desktop**: `~/.config/io.github.shrippen.Plasmai/shared.json`
 - **Android**: App-Internal Storage (nicht teilbar)
 - Profile, Favoriten und Einstellungen werden auf Desktop zwischen Plasmoid
   und App geteilt. Auf Android ist die App eigenständig.

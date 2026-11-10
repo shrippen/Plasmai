@@ -7,6 +7,7 @@
 #include <QTest>
 #include <qt6keychain/keychain.h>
 
+#include "appid.h"
 #include "platform/tokenstore.h"
 
 // TokenStore never keeps a token in plain text. With a keychain running (a
@@ -69,6 +70,33 @@ private:
         return spy.wait(10000) && spy.takeFirst().at(1).toBool();
     }
 
+    static bool writeKeychain(const QString &service, const QString &key, const QString &token)
+    {
+        QKeychain::WritePasswordJob job(service);
+        job.setAutoDelete(false);
+        job.setInsecureFallback(false);
+        job.setKey(key);
+        job.setTextData(token);
+        QSignalSpy spy(&job, &QKeychain::Job::finished);
+        job.start();
+        return spy.wait(10000) && job.error() == QKeychain::NoError;
+    }
+
+    // The entry's text, a null string when there is none.
+    static QString readKeychain(const QString &service, const QString &key)
+    {
+        QKeychain::ReadPasswordJob job(service);
+        job.setAutoDelete(false);
+        job.setInsecureFallback(false);
+        job.setKey(key);
+        QSignalSpy spy(&job, &QKeychain::Job::finished);
+        job.start();
+        if (!spy.wait(10000) || job.error() != QKeychain::NoError) {
+            return QString();
+        }
+        return job.textData();
+    }
+
     static bool keychainRunning()
     {
         // A write that succeeds tells for sure (isAvailable() only sees the bus name).
@@ -118,6 +146,23 @@ private slots:
         QVERIFY(!QFile::exists(legacyPath(m_profile)));
         QVERIFY(!plainTextAnywhere("legacy-2"));
         QCOMPARE(loadToken(store, m_profile), QStringLiteral("legacy-2"));
+
+        // An entry under the id up to 2.6.3 moves to APP_ID and is deleted there.
+        store.remove(m_profile);
+        QVERIFY(removedSpy.wait(10000));
+        QVERIFY(writeKeychain(OLD_APP_ID, m_profile, QStringLiteral("old-id-5")));
+        QCOMPARE(loadToken(store, m_profile), QStringLiteral("old-id-5"));
+        QVERIFY(readKeychain(OLD_APP_ID, m_profile).isNull());
+        QCOMPARE(readKeychain(APP_ID, m_profile), QStringLiteral("old-id-5"));
+
+        // remove() clears an old entry not yet moved, so it does not come back.
+        store.remove(m_profile);
+        QVERIFY(removedSpy.wait(10000));
+        QVERIFY(writeKeychain(OLD_APP_ID, m_profile, QStringLiteral("old-id-6")));
+        store.remove(m_profile);
+        QVERIFY(removedSpy.wait(10000));
+        QVERIFY(readKeychain(OLD_APP_ID, m_profile).isNull());
+        QCOMPARE(loadToken(store, m_profile), QString());
     }
 
     void withoutKeychain()

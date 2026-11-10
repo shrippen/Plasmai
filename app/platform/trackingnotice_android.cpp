@@ -5,7 +5,7 @@
 #include <QtCore/qjnitypes.h>
 
 // The Java side builds and posts the notification (app/android/src).
-Q_DECLARE_JNI_CLASS(TrackingNoticeJava, "com/github/shrippen/plasmai/TrackingNotice")
+Q_DECLARE_JNI_CLASS(TrackingNoticeJava, "io/github/shrippen/Plasmai/TrackingNotice")
 
 TrackingNotice::TrackingNotice(QObject *parent)
     : QObject(parent)

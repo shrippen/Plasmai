@@ -4,7 +4,7 @@ This file is the source of truth for how Plasmai should look, behave, and be
 extended. Follow it for new features, refactors, and UI tweaks. Code comments
 explain local mechanics; this document explains *why*.
 
-Plugin ID: `com.github.shrippen.plasmai`  
+Plugin ID: `io.github.shrippen.Plasmai`  
 Stack: KDE Plasma 6, QML, JavaScript (`.pragma library`). No compiled binaries
 (KDE Store QML applet requirement).
 
@@ -174,10 +174,10 @@ view ──binds / calls──▶ Session (contents/ui/Session.qml, QtQml only)
   (QtKeychain's insecure fallback stays off). Never write tokens to `main.xml`,
   `shared.json`, files, or logs.
 - **Settings:** shared across every Plasmai instance through
-  `~/.config/com.github.shrippen.plasmai/shared.json` (`sharedConfig.js` /
+  `~/.config/io.github.shrippen.Plasmai/shared.json` (`sharedConfig.js` /
   `sharedConfig.sh`). Instance config is a cache; edits persist a patch into
   the shared file.
-- **Catalog cache:** `~/.cache/com.github.shrippen.plasmai/catalog-cache.json`.
+- **Catalog cache:** `~/.cache/io.github.shrippen.Plasmai/catalog-cache.json`.
   Favorites settings should read this cache, not hit the live API on every
   open. The widget writes it only after a real catalog fetch, so the
   `FRESH_MS` age check keeps working.
@@ -195,7 +195,7 @@ view ──binds / calls──▶ Session (contents/ui/Session.qml, QtQml only)
 - **Offline snapshot and outbox** (`offline.js`, Kimai only): each client keeps
   its own two files per profile, never shared (two writers on one file was the
   `filmDaysPending` problem): the Plasmoid in
-  `$XDG_DATA_HOME/com.github.shrippen.plasmai/plasmoid/` via `localStore.sh`
+  `$XDG_DATA_HOME/io.github.shrippen.Plasmai/plasmoid/` via `localStore.sh`
   (widget id in the name, so two widgets in one plasmashell keep apart), the app
   in `<AppData>/app/` via `FileStore.saveLocal` (mode 0600 on both). The token
   never goes to disk. See "Offline" below.
@@ -716,6 +716,17 @@ read as Kante. It is the design system's `KanteStyle.Kind.KanteLight`:
     day's labels tick only while shown, a list row lays out its running counter
     only while it shows it; the app builds one day chart, and its 30 s tick
     pauses while the window is hidden.
+- **App id:** `io.github.shrippen.Plasmai` everywhere (Flathub takes no new `com.github.*`
+  ids). Up to 2.6.3 everything but the Flatpak and the desktop file was
+  `com.github.shrippen.plasmai`. What moves: the folders under `~/.config`, `~/.cache` and
+  `~/.local/share` (the widget's scripts and the app's `AppIdMigration`, whichever starts
+  first; an existing new folder is never overwritten), the keychain entries (`kwallet.sh`,
+  `TokenStore`: copied, then the old one deleted, and a clear clears both so a token not yet
+  moved cannot come back), and the placed widgets (`install-linux.sh` replaces each with one of
+  the new id in the same place, with its settings, and removes the old package once none is
+  left). Plasma itself knows no renaming, so a widget updated through the KDE Store comes as a
+  second widget. The Android package is new: Android sees another app, data and login start
+  fresh.
 - **App start** (Android first: `demo/bench-app.sh android --startup --warm`
   measures the start in phases from the process start):
   - Build what shows, not what may show: dialogs are `LazyDialog`s (built

@@ -1,4 +1,4 @@
-package com.github.shrippen.plasmai;
+package io.github.shrippen.Plasmai;
 
 import android.Manifest;
 import android.app.Activity;

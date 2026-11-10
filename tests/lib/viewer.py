@@ -20,7 +20,7 @@ def settings_version() -> int:
     return int(re.search(r"^var SETTINGS_VERSION = (\d+)", src, re.M).group(1))
 
 
-TEST_SECRET_SERVICE = "com.github.shrippen.plasmai.test"
+TEST_SECRET_SERVICE = "io.github.shrippen.Plasmai.test"
 
 
 def clear_test_secrets() -> None:

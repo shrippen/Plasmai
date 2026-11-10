@@ -12,8 +12,14 @@
 set -eu
 
 CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
-DIR="$CONFIG_HOME/com.github.shrippen.plasmai"
+DIR="$CONFIG_HOME/io.github.shrippen.Plasmai"
 FILE="$DIR/shared.json"
+# Up to 2.6.3 the folder had the old id's name: it moves once, unless the new one is there
+# (mv -T fails when another process moved it first; that one's result counts).
+OLD_DIR="$CONFIG_HOME/com.github.shrippen.plasmai"
+if [ ! -e "$DIR" ] && [ -d "$OLD_DIR" ]; then
+    mv -T "$OLD_DIR" "$DIR" 2>/dev/null || true
+fi
 
 case "${1:-}" in
     load)
