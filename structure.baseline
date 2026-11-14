@@ -1,0 +1,69 @@
+# What is over a structure limit today (tools/structure-check.py). An entry may shrink,
+# never grow; a raised or new entry needs its reason in the PR. Rewrite with --update.
+# Lines: exclude<TAB>glob | path<TAB>function or - for the file<TAB>metric=value ...
+exclude	contents/ui/Kante/*
+exclude	contents/ui/KantePlasma/*
+exclude	app/qml/kirigami-addons/*
+exclude	app/addons/*
+app/i18nfallback.cpp	I18nFallback::pluralIndex	ccn=16
+app/main.cpp	main	ccn=38 length=174
+app/platform/appidmigration.h	AppIdMigration::copyFolders	ccn=20
+app/platform/traycontroller.cpp	TrayController::onBorderEvent	ccn=16
+app/qml/TimerPage.qml	-	lines=1001
+app/qml/main.qml	formatRelativeTime	nesting=5
+app/qml/main.qml	trayAction	nesting=5
+app/qml/platform/appBackend.js	create	length=121
+app/qml/tui/Tui.qml	handle	nesting=6
+app/testdriver.h	TestDriver::next	ccn=22 nesting=10
+app/tui/terminal_posix.cpp	Terminal::readInput	ccn=23 nesting=9
+contents/code/dateTimeFormat.js	coerceDate	ccn=19
+contents/code/dateTimeFormat.js	parseLocaleDate	ccn=23 nesting=5
+contents/code/dateTimeFormat.js	parseLocaleTime	ccn=25
+contents/code/dateTimeFormat.js	timeSegmentRoles	ccn=16
+contents/code/demoKimai.js	applyFields	nesting=7
+contents/code/demoKimai.js	drehzettel	ccn=16
+contents/code/demoKimai.js	handle	ccn=23
+contents/code/demoKimai.js	mileage	ccn=25
+contents/code/demoKimai.js	timesheets	ccn=31
+contents/code/favorites.js	resolvePinnedEntries	ccn=20 nesting=5
+contents/code/filmDaySync.js	-	lines=859
+contents/code/filmDaySync.js	viewInfo	ccn=28
+contents/code/filmDays.js	normalizeServer	ccn=18
+contents/code/kimaiApi.js	-	lines=2354
+contents/code/kimaiApi.js	colorFromTagName	nesting=5
+contents/code/kimaiApi.js	dayIntervalsFromTimesheets	ccn=17
+contents/code/kimaiApi.js	hydrateTimesheets	ccn=32
+contents/code/mileage.js	validateForm	ccn=27
+contents/code/offline.js	-	lines=1246
+contents/code/offline.js	wrapTracker	length=156
+contents/code/providers/clockify.js	(anonymous)	ccn=19
+contents/code/providers/solidtime.js	(anonymous)	ccn=17
+contents/code/providers/solidtime.js	(anonymous)#2	ccn=17
+contents/code/providers/toggl.js	(anonymous)	ccn=26
+contents/code/sharedConfig.js	resolveConnectionState	ccn=17
+contents/code/solar.js	dayLunarFractions	ccn=19
+contents/code/solar.js	daySolarFractions	length=82
+contents/code/statsData.js	activityBreakdown	ccn=21
+contents/code/statsData.js	weeklyHourTimeline	ccn=42 length=163
+contents/code/statsData.js	weeklyProjectStacks	ccn=24 length=92
+contents/ui/DaySparkline.qml	-	lines=1225
+contents/ui/FilmDayView.qml	-	lines=1165
+contents/ui/FilmDayView.qml	applyLoadedDay	ccn=16
+contents/ui/ScreenshotRunner.qml	(anonymous)	nesting=10
+contents/ui/ScreenshotRunner.qml	step	ccn=30 length=135 nesting=15
+contents/ui/SearchableCombo.qml	Keys.onPressed	nesting=5
+contents/ui/SetupWizard.qml	-	lines=901
+contents/ui/config/ConfigDisplay.qml	-	lines=987
+contents/ui/config/ConfigDisplay.qml	applyShared	ccn=34 length=113
+contents/ui/main.qml	-	lines=3087
+demo/bench-report.py	medians	ccn=27
+tests/lib/atspi_clicks.py	collect_clickables	ccn=18
+tests/lib/atspi_clicks.py	should_skip	ccn=21
+tests/lib/atspi_clicks.py	showing_nodes	nesting=5
+tests/lib/atspi_clicks.py	sweep	ccn=17
+tests/test_startup_lazy.py	blocks	nesting=5
+tests/unit/tst_filmDaySync.qml	-	lines=846
+tests/unit/tst_offline.qml	fakeKimai	length=102
+tests/viewer/test_kcm_tab_persistence.py	test_kcm_tab_option_persistence	length=190
+translate/fill_po.py	read_entries	ccn=21
+translate/po2json.py	parse	ccn=18
