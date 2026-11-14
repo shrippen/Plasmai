@@ -18,7 +18,7 @@ is published, so the owner confirms it in words.
 
 ## Repository (this project)
 
-- CI runs on the GitHub mirror (`.github/workflows/checks.yml`, since 16.10.2026) and reports back to Gitea as the commit status `github / test`.
+- CI runs on the GitHub mirror (`.github/workflows/checks.yml`, since 16.10.2026) and reports back to Gitea as the commit status `github / test`. The `unit` job starts with the structure limits (`tools/structure-check.py`, baseline `structure.baseline`).
 - The merge waits for: CI is green on the PR's latest commit: every CI check that runs on each push (such as `github / test` from the GitHub mirror) shows success there.
 - The owner also confirms: `packaging/`.
 - Everything else: `RULES.md` (Repository) and the skill `pr-review`.
