@@ -29,17 +29,18 @@ favourites, statistics, offline work; for Kimai also film days and trips.
 | `app/qml/` | The app's pages and its start; `tui/` the terminal client's screens. They reuse `contents/ui/` and `contents/code/`. |
 | `app/main.cpp`, `app/platform/`, `app/tui/`, `app/android/` | The app's C++ start; one file per platform for tray, idle, notifications, token store, autostart; the terminal; the Android package. |
 | `app/addons/`, `app/qml/kirigami-*`, `app/libs/` | Foreign code the app ships. Not edited here. |
-| `tests/`, `app/tests/` | Unit tests in QML (`unit/`), tests of packaging and structure in Python, tests in the running widget (`viewer/`); C++ tests of the app's platform files. |
+| `tests/`, `app/tests/` | Unit tests in QML (`unit/`), tests of packaging and structure in Python, tests in the running widget (`viewer/`); C++ tests of the app. |
 | `scripts/`, `packaging/`, `translate/`, `demo/`, `docs/`, `fastlane/`, `tools/` | Build, install and package per platform; store packages; translations; the demo start, screenshots and benchmarks; landing page; store texts; the structure check (synced copy). |
 
 ## Layers
 
 ```
- widget (contents/ui/main.qml)     app pages (app/qml/)     terminal (app/qml/tui/)
-        │         │                   │         │                    │
-        │         └──► shared components ◄──────┘                    │
-        │              (contents/ui/)  │                             │
-        ▼                    ▼         ▼                             ▼
+ widget (contents/ui/main.qml)          app pages (app/qml/)   terminal (app/qml/tui/)
+        │                                       │                    │
+        ├────────────► shared components ◄──────┤                    │
+        │              (contents/ui/)           │                    │
+        │                     │                 │                    │
+        ▼                     ▼                 ▼                    ▼
  Session (contents/ui/Session.qml + session/): state, actions, signals, no texts
         │                               │                    │
         ▼                               ▼                    ▼
@@ -49,12 +50,13 @@ favourites, statistics, offline work; for Kimai also film days and trips.
         ▼                                                    ▼
  the service's server                         shared.json, tokens, files, idle, notify
 
- pure logic (contents/code/): used by views, components and the session
+ pure logic (contents/code/): used by every layer
 ```
 
 - A view never calls a provider and never sends a request. It binds to the session's
   state, calls its actions and puts its signals into words.
-- Only the session uses `platform.js`. The exceptions: each host sets the backend at
+- Only the session uses the platform (`platform.js`, its backends, the app's C++
+  services). The exceptions: each host sets the backend at
   start; the widget's `main.qml` carries its Plasma configuration to `shared.json`
   and back; the app's host drives its own glue to the system (tray, permanent
   notification, network status, autostart); demo, screenshot and benchmark code.
