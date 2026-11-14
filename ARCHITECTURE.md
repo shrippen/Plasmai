@@ -1,0 +1,111 @@
+# Architecture
+
+How this repository is meant to be built. Where the code differs today is listed under
+"Known deviations". Change this file in the PR that changes the structure. How the
+session layer works in detail, and how Plasmai looks and behaves, is in `DESIGN.md`.
+
+## What it does
+
+Plasmai is a time tracker for Kimai (and, experimental, Clockify, Toggl, SolidTime): a
+Plasma widget, and the same thing as an app for Android, Plasma Mobile and the Windows
+tray, with a terminal client. Start, switch and stop a timer, book and edit entries,
+favourites, statistics, offline work; for Kimai also film days and trips.
+
+## Building blocks
+
+| Path | Its one task |
+|---|---|
+| `contents/ui/main.qml` and the files only it uses | The widget: panel chip and popup. It keeps view state and words the session's signals. |
+| `contents/ui/` (other files) | Components the widget and the app share: views and editors, pickers, fields, charts, rows, the setup wizard, `ApiErrors` (error kinds to texts), `PlasmaiColors`. |
+| `contents/ui/config/`, `contents/config/` | The widget's settings pages; the description of its settings with their defaults (`main.xml`). |
+| `contents/ui/Session.qml`, `contents/ui/session/` | The session layer: everything a view needs of the tracker, without a view and without texts. One file per part (connection, settings, catalog, timer, entries, totals, sync, film day, trips, reminders, setup). |
+| `contents/code/timeTracker.js`, `kimaiApi.js`, `providers/`, `providerUtil.js` | The providers: the registry with each provider's capabilities, one file per service, and what they share (request, answer, error kinds). |
+| `contents/code/offline.js`, `filmDaySync.js`, `catalogCache.js`, `geocode.js` | What the session uses beside a provider: the outbox for work without network, the film day's sync, the catalog on disk, the place search. |
+| `contents/code/platform.js`, `desktopBackend.js`, `*.sh`, `app/qml/platform/appBackend.js` | The platform: one facade for settings file (`shared.json`), tokens, files, idle time and notifications, with a backend for the widget (shell scripts, KWallet) and one for the app. |
+| `contents/code/sharedConfig.js` | The shared settings: their names and defaults. |
+| `contents/code/` (other files) | Pure logic with tests: dates and durations, day model and totals, statistics, favourites, film days, mileage, layouts, profiles. |
+| `contents/ui/Kante/`, `KantePlasma/` | Synced copies of the design system. Never edited here. |
+| `contents/ui/Controls/`, `app/qml/controls/` | The same controls under one name for each platform: Plasma's in the widget, Kirigami's in the app. |
+| `app/qml/` | The app's pages and its start; `tui/` the terminal client's screens. They reuse `contents/ui/` and `contents/code/`. |
+| `app/main.cpp`, `app/platform/`, `app/tui/`, `app/android/` | The app's C++ start; one file per platform for tray, idle, notifications, token store, autostart; the terminal; the Android package. |
+| `app/addons/`, `app/qml/kirigami-*`, `app/libs/` | Foreign code the app ships. Not edited here. |
+| `tests/` | Unit tests in QML (`unit/`), tests of packaging and structure in Python, tests in the running widget (`viewer/`). |
+| `scripts/`, `packaging/`, `translate/`, `demo/`, `docs/`, `fastlane/`, `tools/` | Build, install and package per platform; store packages; translations; the demo start, screenshots and benchmarks; landing page; store texts; the structure check (synced copy). |
+
+## Layers
+
+```
+ widget (contents/ui/main.qml, views)   app pages (app/qml/)   terminal (app/qml/tui/)
+        │      └────────────┬───────────────┘                        │
+        │                   ▼                                        │
+        │      shared components (contents/ui/) ─► pure logic (contents/code/)
+        ▼                                                            ▼
+ Session (contents/ui/Session.qml + session/): state, actions, signals, no texts
+        │                               │                    │
+        ▼                               ▼                    ▼
+ timeTracker ─► provider         offline, filmDaySync,   platform.js ─► backend
+ (kimaiApi, providers/*)         catalogCache, geocode   (widget: scripts; app: C++)
+        │                                                    │
+        ▼                                                    ▼
+ the service's server                         shared.json, tokens, files, idle, notify
+```
+
+- A view never calls a provider and never sends a request. It binds to the session's
+  state, calls its actions and puts its signals into words.
+- Only the session uses the platform. Two exceptions: each host sets the platform's
+  backend at start, and the widget's `main.qml` carries its Plasma configuration to
+  `shared.json` and back.
+- The session holds no text and no view state. What needs a view comes back as a
+  value or a signal.
+- A flow (load, check, save) that widget and app both need stands once, in the
+  session; a text both show stands once, in a shared file. The two only display.
+- What is particular to one service stays in its provider file, behind
+  `timeTracker` and its capability flags. What providers share (request, reading an
+  answer, error kinds) stands once, in `providerUtil.js`.
+- A helper lives in the file named after its topic; a provider file holds requests,
+  no display helpers.
+- A value stands once: a setting's default and its key in `sharedConfig.js`, the
+  version in `metadata.json`, an error kind in the one list.
+- Pure logic lives in `contents/code/` and has a unit test; the program holds no
+  code only tests call.
+- What differs by platform sits behind one name with a file per platform
+  (`app/platform/*_<platform>.cpp`, the two `Controls` folders, the backends).
+- The widget stays without compiled code; C++ exists only in `app/`.
+- Demo, screenshot and benchmark code is cut out of every package.
+
+## Where new things go
+
+| Change | Touch |
+|---|---|
+| A new action or state of the tracker | A part in `contents/ui/session/` (a new part also in `app/plasmai-app.qrc`), a test in `tests/unit/`; then the views of widget and app |
+| A new call to a service | The provider file; for all services also `timeTracker.js` with a capability flag |
+| A new service | `contents/code/providers/<name>.js`, its entry in `timeTracker.js` |
+| A new shared setting | `contents/code/sharedConfig.js`, `contents/config/main.xml`, until it reads them from there also `contents/ui/session/SessionSettings.qml`; a settings page in `contents/ui/config/` and `app/qml/SettingsPage.qml` |
+| Something both widget and app show | A component in `contents/ui/` (listed in `app/qml/contents-ui.qmldir` and `app/plasmai-app.qrc`) |
+| A calculation or a format | The file for its topic in `contents/code/`, with a test |
+| Something the system does (file, token, notification) | `platform.js` and both backends |
+| Something only one platform of the app does | `app/platform/`, one file per platform |
+| A text | In place with `i18n`; then `translate/` |
+| A design element that is missing | Kante, then `scripts/sync-kante.sh`; never the copies here |
+| A release | The steps in `RELEASE.md` |
+
+## Known deviations
+
+- `kimaiApi.js` rebuilds what `providerUtil.js` has: error kinds, reading an answer,
+  colours (`AUDIT.md`, finding 1).
+- The version stands by hand in ten places (`AUDIT.md`, finding 2).
+- The defaults of the settings stand in three places and differ already
+  (`AUDIT.md`, finding 3).
+- The film day's flow and several texts exist once in the widget and once in the
+  app (`AUDIT.md`, finding 4).
+- `kimaiApi.js` holds, beside Kimai's requests, the display helpers and the day's
+  calculation every service needs (`AUDIT.md`, finding 5).
+- Clockify, Toggl and SolidTime each carry their own copy of the request frame
+  (`AUDIT.md`, finding 6).
+- Error kinds stand partly as loose words; `config` means two things
+  (`AUDIT.md`, finding 7).
+- The date as text is put together in six places (`AUDIT.md`, finding 8).
+- Five functions are called by nothing or only by tests; one colour rule has five
+  names (`AUDIT.md`, finding 9).
+- `contents/ui/main.qml` holds view, film day, trips and the loading of statistics in
+  one file of 3087 lines (`AUDIT.md`, finding 10).
