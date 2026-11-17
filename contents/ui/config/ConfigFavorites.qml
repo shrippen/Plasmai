@@ -252,12 +252,14 @@ ConfigPage {
                     projectsStatus = i18n("Save an API token on the Connection tab first.")
                 }
                 page.loadingProjects = false
+                page.loadingActivities = false
             },
             failed: function() {
                 if (!hadCache) {
                     projectsStatus = i18n("Failed to load projects.")
                 }
                 page.loadingProjects = false
+                page.loadingActivities = false
             },
             // Show the project list as soon as it arrives (flyout already has this).
             projects: function(foundCustomers, foundProjects) {
