@@ -242,7 +242,7 @@ function stopTracking(url, token, timesheetId, callback) {
             return
         }
         if (!timesheetId) {
-            callback(Util.fail({ type: "config", status: 0, detail: "" }))
+            callback(Util.fail({ type: ErrorType.InvalidInput, status: 0, detail: "timesheetId is required" }))
             return
         }
         request("PATCH", url, token, "/workspaces/" + _session.workspaceId + "/time_entries/" + timesheetId + "/stop", undefined, false, function(result) {
@@ -257,7 +257,7 @@ function stopTracking(url, token, timesheetId, callback) {
 
 function restartTimesheet(url, token, timesheetId, callback) {
     if (!timesheetId) {
-        callback(Util.fail({ type: "config", status: 0, detail: "" }))
+        callback(Util.fail({ type: ErrorType.InvalidInput, status: 0, detail: "timesheetId is required" }))
         return
     }
     getJson(url, token, "/me/time_entries/" + timesheetId, {}, function(entryResult) {
@@ -280,7 +280,7 @@ function restartTimesheet(url, token, timesheetId, callback) {
 
 function patchTimesheet(url, token, timesheetId, fields, callback) {
     if (!timesheetId) {
-        callback(Util.fail({ type: "config", status: 0, detail: "" }))
+        callback(Util.fail({ type: ErrorType.InvalidInput, status: 0, detail: "timesheetId is required" }))
         return
     }
     withSession(url, token, function(sessionResult) {
@@ -353,7 +353,7 @@ function createTimesheet(url, token, fields, callback) {
         }
         var f = fields || {}
         if (!f.begin) {
-            callback(Util.fail({ type: "config", status: 0, detail: "begin is required" }))
+            callback(Util.fail({ type: ErrorType.InvalidInput, status: 0, detail: "begin is required" }))
             return
         }
         var beginIso = Util.isoUtc(DTF.parseStamp(f.begin))
@@ -395,7 +395,7 @@ function createTimesheet(url, token, fields, callback) {
 
 function deleteTimesheet(url, token, timesheetId, callback) {
     if (!timesheetId) {
-        callback(Util.fail({ type: "config", status: 0, detail: "" }))
+        callback(Util.fail({ type: ErrorType.InvalidInput, status: 0, detail: "timesheetId is required" }))
         return
     }
     withSession(url, token, function(sessionResult) {
@@ -412,7 +412,7 @@ function deleteTimesheet(url, token, timesheetId, callback) {
 function createCustomer(url, token, fields, callback) {
     var name = String((fields && fields.name) || "").trim()
     if (!name) {
-        callback(Util.fail({ type: "config", status: 0, detail: "name is required" }))
+        callback(Util.fail({ type: ErrorType.InvalidInput, status: 0, detail: "name is required" }))
         return
     }
     withSession(url, token, function(sessionResult) {
@@ -440,7 +440,7 @@ function createProject(url, token, fields, callback) {
     var f = fields || {}
     var name = String(f.name || "").trim()
     if (!name) {
-        callback(Util.fail({ type: "config", status: 0, detail: "name is required" }))
+        callback(Util.fail({ type: ErrorType.InvalidInput, status: 0, detail: "name is required" }))
         return
     }
     withSession(url, token, function(sessionResult) {
@@ -479,7 +479,7 @@ function createActivity(url, token, fields, callback) {
     var name = String(f.name || "").trim()
     var pid = intId(f.project)
     if (!name || !pid) {
-        callback(Util.fail({ type: "config", status: 0, detail: "name and project are required" }))
+        callback(Util.fail({ type: ErrorType.InvalidInput, status: 0, detail: "name and project are required" }))
         return
     }
     withSession(url, token, function(sessionResult) {
@@ -555,7 +555,7 @@ function loadProjects(url, token, callback) {
 function loadActivities(url, token, projectId, callback) {
     var pid = intId(projectId)
     if (!pid) {
-        callback(Util.fail({ type: "config", status: 0, detail: "" }))
+        callback(Util.fail({ type: ErrorType.InvalidInput, status: 0, detail: "projectId is required" }))
         return
     }
     withSession(url, token, function(sessionResult) {

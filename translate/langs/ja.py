@@ -63,6 +63,8 @@ T = {
     'Cancel': 'キャンセル',
     'Unknown error': '不明なエラー',
     'URL and API token are required': 'URL と API トークンが必要です',
+    'Missing or invalid input: %1': '入力がないか無効です: %1',
+    'Missing or invalid input.': '入力がないか無効です。',
     'Configure your time tracker URL and API token': '時間記録サービスの URL と API トークンを設定してください',
     'This action is not supported for the selected service yet.': '選択したサービスではこの操作はまだサポートされていません。',
     'Cannot reach the server. Check your network, URL, or TLS certificate.': 'サーバーに接続できません。ネットワーク、URL、TLS 証明書を確認してください。',

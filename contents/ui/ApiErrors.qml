@@ -5,18 +5,23 @@ import "../code/providerUtil.js" as ProviderUtil
 QtObject {
     /**
      * @param error API / config error object
-     * @param configContext when true, use connection-form wording for config errors
+     * @param configContext when true, use connection-form wording for NotConfigured
      */
     function text(error, configContext) {
         if (!error) {
             return configContext ? i18n("Unknown error") : ""
         }
-        if (error.type === "config") {
+        if (error.type === ProviderUtil.ErrorType.NotConfigured) {
             return configContext
                 ? i18n("URL and API token are required")
                 : i18n("Configure your time tracker URL and API token")
         }
-        if (error.type === "offline") {
+        if (error.type === ProviderUtil.ErrorType.InvalidInput) {
+            return error.detail
+                ? i18n("Missing or invalid input: %1", error.detail)
+                : i18n("Missing or invalid input.")
+        }
+        if (error.type === ProviderUtil.ErrorType.Offline) {
             return i18n("This needs a connection to the server.")
         }
         if (error.type === ProviderUtil.ErrorType.Network) {

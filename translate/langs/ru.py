@@ -63,6 +63,8 @@ T = {
     'Cancel': 'Отмена',
     'Unknown error': 'Неизвестная ошибка',
     'URL and API token are required': 'Требуются URL и API-токен',
+    'Missing or invalid input: %1': 'Данные не указаны или недопустимы: %1',
+    'Missing or invalid input.': 'Данные не указаны или недопустимы.',
     'Configure your time tracker URL and API token': 'Настройте URL и API-токен учёта времени',
     'This action is not supported for the selected service yet.': 'Это действие пока не поддерживается для выбранного сервиса.',
     'Cannot reach the server. Check your network, URL, or TLS certificate.': 'Не удаётся связаться с сервером. Проверьте сеть, URL или TLS-сертификат.',

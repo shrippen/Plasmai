@@ -439,8 +439,8 @@ Kirigami.Page {
                                     }
                                     const err = result.error || {}
                                     let detail = err.detail || err.statusText || i18n("Failed")
-                                    if (err.type === "config") {
-                                        detail = i18n("Missing URL or token (type: %1)", err.type)
+                                    if (err.type === ProviderUtil.ErrorType.NotConfigured) {
+                                        detail = ApiErrors.text(err, true)
                                     }
                                     page.showStatus(detail || i18n("Failed"), true)
                                 },

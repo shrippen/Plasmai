@@ -63,6 +63,8 @@ T = {
     'Cancel': 'Скасувати',
     'Unknown error': 'Невідома помилка',
     'URL and API token are required': 'Потрібні URL та API-токен',
+    'Missing or invalid input: %1': 'Відсутні або недійсні дані: %1',
+    'Missing or invalid input.': 'Відсутні або недійсні дані.',
     'Configure your time tracker URL and API token': 'Налаштуйте URL та API-токен обліку часу',
     'This action is not supported for the selected service yet.': 'Ця дія ще не підтримується для обраного сервісу.',
     'Cannot reach the server. Check your network, URL, or TLS certificate.': 'Не вдається досягти сервера. Перевірте мережу, URL або TLS-сертифікат.',

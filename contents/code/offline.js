@@ -39,7 +39,6 @@
  */
 
 var LOCAL_PREFIX = "local:"
-var OFFLINE = "offline"
 
 var Op = {
     CREATE: "create",
@@ -85,7 +84,7 @@ function isNetworkError(result) {
 }
 
 function offlineFail() {
-    return { ok: false, error: { type: OFFLINE, status: 0, detail: "" } }
+    return { ok: false, error: { type: ProviderUtil.ErrorType.Offline, status: 0, detail: "" } }
 }
 
 function copy(value) {
@@ -540,7 +539,7 @@ function checked(s, op, run, done) {
         if (changed.length) {
             op.state = State.CONFLICT
             op.server = found.data
-            op.error = { type: "conflict", status: 409, detail: changed.join(", ") }
+            op.error = { type: ProviderUtil.ErrorType.Conflict, status: 409, detail: changed.join(", ") }
             done(null)
             return
         }
@@ -600,7 +599,7 @@ function runOp(s, op, done) {
         })
         return
     }
-    done({ ok: false, error: { type: "unknown", status: 0, detail: "unknown op " + op.kind } })
+    done({ ok: false, error: { type: ProviderUtil.ErrorType.Unknown, status: 0, detail: "unknown op " + op.kind } })
 }
 
 /** Sends the outbox in order; callback(sent) when it stops (empty, offline or a failed op). */
@@ -1131,6 +1130,18 @@ function createSession(inner, host) {
     return s
 }
 
+/** Outboxes saved before the error kinds moved into ErrorType stored "config" for missing access. */
+var LEGACY_NOT_CONFIGURED = "config"
+
+function migratedOps(ops) {
+    return ops.map(function(op) {
+        if (op.error && op.error.type === LEGACY_NOT_CONFIGURED) {
+            op.error.type = ProviderUtil.ErrorType.NotConfigured
+        }
+        return op
+    })
+}
+
 /** Loads snapshot and outbox from disk; ops queued before that stay behind the loaded ones. */
 function load(s) {
     if (!s.enabled) {
@@ -1146,7 +1157,7 @@ function load(s) {
         var outbox = parts[1]
         if (outbox && outbox.v === SNAPSHOT_VERSION) {
             s.counter = Math.max(s.counter, outbox.counter || 0)
-            s.ops = (outbox.ops || []).concat(s.ops)
+            s.ops = migratedOps(outbox.ops || []).concat(s.ops)
         }
         notify(s)
     })
