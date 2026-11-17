@@ -18,7 +18,7 @@ TestCase {
         QtObject {
             id: fake
             signal started(var timesheet, int origin, var names)
-            signal stopped(var timesheet, var names)
+            signal stopped(var timesheet, var names, int cause)
             signal trackingBegan(var timesheet)
             property var settings: QtObject {
                 property bool notifyOnStart: true
@@ -29,7 +29,12 @@ TestCase {
                 property string project: "Found P"
                 property string activity: "Found A"
                 property int elapsedSeconds: 90
-                function stop() { fake.stopped(null, { project: "P", activity: "A" }) }
+                property bool answers: true
+                function stop(cause) {
+                    if (answers) {
+                        fake.stopped(null, { project: "P", activity: "A" }, cause)
+                    }
+                }
             }
             property var reminders: Parts.SessionReminders { session: fake }
         }
@@ -82,11 +87,22 @@ TestCase {
 
     function test_stopPlainThenIdle() {
         const f = make()
-        f.stopped(null, { project: "P", activity: "A" })
+        f.stopped(null, { project: "P", activity: "A" }, Ui.Session.StopCause.Manual)
         f.reminders.stopForIdle()
-        f.stopped(null, { project: "P", activity: "A" })
+        f.stopped(null, { project: "P", activity: "A" }, Ui.Session.StopCause.Manual)
         compare(told.map(function(t) { return t[0] }),
                 [Notices.Kind.Stopped, Notices.Kind.IdleStopped, Notices.Kind.Stopped])
+    }
+
+    // A stop for idle that failed must not turn the next stop by hand into an idle one.
+    function test_failedIdleStopDoesNotLeak() {
+        const f = make()
+        f.timer.answers = false
+        f.reminders.stopForIdle()
+        compare(told.length, 0)
+        f.stopped(null, { project: "P", activity: "A" }, Ui.Session.StopCause.Manual)
+        compare(told.length, 1)
+        compare(told[0][0], Notices.Kind.Stopped)
     }
 
     function test_settingsSilenceNotices() {
@@ -97,7 +113,7 @@ TestCase {
         f.started(null, Ui.Session.Origin.Start, { project: "P", activity: "A" })
         f.started(null, Ui.Session.Origin.Switch, { project: "P", activity: "A" })
         f.trackingBegan(null)
-        f.stopped(null, { project: "P", activity: "A" })
+        f.stopped(null, { project: "P", activity: "A" }, Ui.Session.StopCause.Manual)
         f.reminders.stopForIdle()
         compare(told.length, 0)
     }

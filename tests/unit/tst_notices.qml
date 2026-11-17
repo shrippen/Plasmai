@@ -9,27 +9,27 @@ TestCase {
     readonly property var off: ({ notifyOnStart: false, notifyOnStop: false, notifyOnIdleStop: false })
 
     function test_start_kinds() {
-        compare(Notices.forStart(Notices.Origin.Start, on), Notices.Kind.Started)
-        compare(Notices.forStart(Notices.Origin.Continue, on), Notices.Kind.Started)
-        compare(Notices.forStart(Notices.Origin.Switch, on), Notices.Kind.Switched)
-        compare(Notices.forStart(Notices.Origin.Start, off), null)
-        compare(Notices.forStart(Notices.Origin.Switch, off), null)
+        compare(Notices.forStart(Notices.Begin.Start, on), Notices.Kind.Started)
+        compare(Notices.forStart(Notices.Begin.Start, on), Notices.Kind.Started)
+        compare(Notices.forStart(Notices.Begin.Switch, on), Notices.Kind.Switched)
+        compare(Notices.forStart(Notices.Begin.Start, off), null)
+        compare(Notices.forStart(Notices.Begin.Switch, off), null)
     }
 
     function test_stop_kinds() {
-        compare(Notices.forStop(false, on), Notices.Kind.Stopped)
-        compare(Notices.forStop(true, on), Notices.Kind.IdleStopped)
-        compare(Notices.forStop(false, off), null)
-        compare(Notices.forStop(true, off), null)
-        compare(Notices.forStop(false, { notifyOnStop: false, notifyOnIdleStop: true }), null)
-        compare(Notices.forStop(true, { notifyOnStop: true, notifyOnIdleStop: false }), null)
+        compare(Notices.forStop(Notices.Cause.Manual, on), Notices.Kind.Stopped)
+        compare(Notices.forStop(Notices.Cause.Idle, on), Notices.Kind.IdleStopped)
+        compare(Notices.forStop(Notices.Cause.Manual, off), null)
+        compare(Notices.forStop(Notices.Cause.Idle, off), null)
+        compare(Notices.forStop(Notices.Cause.Manual, { notifyOnStop: false, notifyOnIdleStop: true }), null)
+        compare(Notices.forStop(Notices.Cause.Idle, { notifyOnStop: true, notifyOnIdleStop: false }), null)
     }
 
     // A start found by a refresh is news; one of this client was told at its start.
     function test_found_timer() {
-        compare(Notices.forFound(false, on), Notices.Kind.InProgress)
-        compare(Notices.forFound(true, on), null)
-        compare(Notices.forFound(false, off), null)
+        compare(Notices.forFound(Notices.Found.Elsewhere, on), Notices.Kind.InProgress)
+        compare(Notices.forFound(Notices.Found.Own, on), null)
+        compare(Notices.forFound(Notices.Found.Elsewhere, off), null)
     }
 
     function test_idle_discarded() {

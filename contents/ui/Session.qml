@@ -39,6 +39,9 @@ QtObject {
     enum Action { Start, Stop, Switch, Continue, Refresh, Save, Delete, Split, SplitRange, SplitSecond }
     /** How a timer of this client began (started()). */
     enum Origin { Start, Switch, Continue }
+
+    /** Why a stop happens: the user asked, or idle time. */
+    enum StopCause { Manual, Idle }
     /** Plugin probes: the 24 h cache, or ask the server again. */
     enum Probe { Cached, Fresh }
     /** What a start, a pinned start or a restart request did. */
@@ -99,7 +102,7 @@ QtObject {
     signal failed(int action, var result)
     /** A start of this client went through; names: { project, activity } as the view showed them. */
     signal started(var timesheet, int origin, var names)
-    signal stopped(var timesheet, var names)
+    signal stopped(var timesheet, var names, int cause)
     /** The timer went from idle to running: a start here, or one found by a refresh. */
     signal trackingBegan(var timesheet)
     /** Saved, but the server dropped these fields ("billable" without edit_billable). */

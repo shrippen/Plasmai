@@ -8,28 +8,34 @@
 var Kind = { Started: "started", Switched: "switched", Stopped: "stopped", IdleStopped: "idleStopped",
              InProgress: "inProgress", IdleDiscarded: "idleDiscarded", ForgotStart: "forgotStart" }
 
-/** The start's origin, as Session.Origin names it (the QML enum is not visible here). */
-var Origin = { Start: 0, Switch: 1, Continue: 2 }
+/** What began: a fresh start (or a continued entry), or a switch from a running one. */
+var Begin = { Start: "start", Switch: "switch" }
+
+/** Why the timer stopped. */
+var Cause = { Manual: "manual", Idle: "idle" }
+
+/** Where a running timer came from: a start of this client, or one a refresh found. */
+var Found = { Own: "own", Elsewhere: "elsewhere" }
 
 /** A start or switch of this client; null: the settings say nothing. */
-function forStart(origin, settings) {
+function forStart(begin, settings) {
     if (!settings.notifyOnStart) {
         return null
     }
-    return origin === Origin.Switch ? Kind.Switched : Kind.Started
+    return begin === Begin.Switch ? Kind.Switched : Kind.Started
 }
 
-/** A stop of this client; idle: the idle stop made it. */
-function forStop(idle, settings) {
-    if (idle) {
+/** A stop of this client. */
+function forStop(cause, settings) {
+    if (cause === Cause.Idle) {
         return settings.notifyOnIdleStop ? Kind.IdleStopped : null
     }
     return settings.notifyOnStop ? Kind.Stopped : null
 }
 
-/** A running timer the refresh found; local: a start of this client, told already. */
-function forFound(local, settings) {
-    if (local || !settings.notifyOnStart) {
+/** A running timer after a refresh; one of this client's own start was told already. */
+function forFound(found, settings) {
+    if (found === Found.Own || !settings.notifyOnStart) {
         return null
     }
     return Kind.InProgress

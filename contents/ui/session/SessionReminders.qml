@@ -35,8 +35,6 @@ QtObject {
     property string forgotDay: ""
     /** A start of this client just began: its refresh must not tell "in progress" once more. */
     property bool localStart: false
-    /** The next stop is the idle stop's. */
-    property bool idleStop: false
 
     /** Idle time was cut from the running entry; snap: TimerSession.snapshot. */
     signal idleDiscarded(var snap)
@@ -49,18 +47,19 @@ QtObject {
         function onStarted(ts, origin, names) {
             reminders.localStart = true
             Qt.callLater(function() { reminders.localStart = false })
-            reminders.say(Notices.forStart(origin, reminders.session.settings), names)
+            const begin = origin === Ui.Session.Origin.Switch ? Notices.Begin.Switch : Notices.Begin.Start
+            reminders.say(Notices.forStart(begin, reminders.session.settings), names)
         }
 
-        function onStopped(ts, names) {
-            const idle = reminders.idleStop
-            reminders.idleStop = false
-            reminders.say(Notices.forStop(idle, reminders.session.settings), names)
+        function onStopped(ts, names, cause) {
+            const why = cause === Ui.Session.StopCause.Idle ? Notices.Cause.Idle : Notices.Cause.Manual
+            reminders.say(Notices.forStop(why, reminders.session.settings), names)
         }
 
         function onTrackingBegan(ts) {
             const t = reminders.session.timer
-            reminders.say(Notices.forFound(reminders.localStart, reminders.session.settings),
+            const found = reminders.localStart ? Notices.Found.Own : Notices.Found.Elsewhere
+            reminders.say(Notices.forFound(found, reminders.session.settings),
                           { project: t.project, activity: t.activity, elapsedSeconds: t.elapsedSeconds })
         }
     }
@@ -87,8 +86,7 @@ QtObject {
 
     /** Stops the running entry for idle time: its notice says so. */
     function stopForIdle() {
-        idleStop = true
-        session.timer.stop()
+        session.timer.stop(Ui.Session.StopCause.Idle)
     }
 
     function notify(summary, body) {
