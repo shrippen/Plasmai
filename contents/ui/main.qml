@@ -716,7 +716,7 @@ PlasmoidItem {
         }
     }
 
-    // A full catalog answer: pickers, statistics and the open editor take its names.
+    // Old settings were reset: the profile view shows the defaults again.
     Connections {
         target: root.session.connection
         function onOldReset() {
@@ -724,6 +724,7 @@ PlasmoidItem {
         }
     }
 
+    // A full catalog answer: pickers, statistics and the open editor take its names.
     Connections {
         target: root.session.catalog
         function onUpdated() {
