@@ -505,6 +505,50 @@ TestCase {
         verify(trips.ok)
     }
 
+    function openTrips() {
+        const s = openDemo()
+        tryVerify(function() { return s.trips.available && s.trips.canEdit })
+        return s
+    }
+
+    function listTrips(s) {
+        let listed = null
+        s.trips.fetch({ year: new Date().getFullYear() }, function(r) { listed = r })
+        tryVerify(function() { return listed !== null })
+        verify(listed.ok)
+        return listed.data
+    }
+
+    function answer(slot) {
+        return function(r) { slot.r = r }
+    }
+
+    // A trip is created, changed and deleted on the server, and the list shows it.
+    function test_tripsCreatePatchRemove() {
+        const s = openTrips()
+        const before = listTrips(s).length
+        const got = {}
+        const date = new Date().getFullYear() + "-03-04"
+
+        s.trips.create({ purpose: "business", date: date, distanceKm: 7 }, answer(got))
+        tryVerify(function() { return !!got.r })
+        verify(got.r.ok)
+        compare(listTrips(s).length, before + 1)
+
+        const id = listTrips(s)[before].id
+        got.r = null
+        s.trips.patch(id, { distanceKm: 9 }, answer(got))
+        tryVerify(function() { return !!got.r })
+        verify(got.r.ok)
+        compare(listTrips(s)[before].distanceKm, 9)
+
+        got.r = null
+        s.trips.remove(id, answer(got))
+        tryVerify(function() { return !!got.r })
+        verify(got.r.ok)
+        compare(listTrips(s).length, before)
+    }
+
     function test_filmDayOpensToday() {
         const s = openDemo()
         tryVerify(function() { return s.filmDay.available })
