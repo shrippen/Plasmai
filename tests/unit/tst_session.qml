@@ -176,6 +176,37 @@ TestCase {
         compare(s.timer.refreshes, 0)
     }
 
+    // The same profile with another URL is another server: its answers count as a new
+    // generation, the same URL saved again does not.
+    function test_urlChangeCountsAsAnotherProfile() {
+        const s = openDemo()
+        tryCompare(s, "refreshing", false)
+        const before = s.connection.generation
+        s.connection.useProfile(JSON.parse(JSON.stringify(s.connection.profile)))
+        compare(s.connection.generation, before, "the same URL: nothing is dropped")
+        const moved = JSON.parse(JSON.stringify(s.connection.profile))
+        moved.url = "http://moved.invalid"
+        s.connection.useProfile(moved)
+        compare(s.connection.generation, before + 1)
+    }
+
+    // A new token of the same profile (another account) drops the old answers too; the same
+    // token read again does not.
+    function test_tokenChangeCountsAsAnotherProfile() {
+        const s = openDemo()
+        tryCompare(s, "refreshing", false)
+        s.connection.token = "other-account"
+        const before = s.connection.generation
+        let read = false
+        s.connection.readToken().then(function() { read = true })
+        tryVerify(function() { return read })
+        compare(s.connection.generation, before + 1)
+        read = false
+        s.connection.readToken().then(function() { read = true })
+        tryVerify(function() { return read })
+        compare(s.connection.generation, before + 1, "the same token: nothing is dropped")
+    }
+
     // Review of PR #56: the recent list and the catalog took A's late answer into B too; a
     // restart from that list sent A's project and activity ids to B's server.
     function test_oldProfileListsDropped() {
