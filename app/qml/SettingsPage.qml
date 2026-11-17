@@ -171,13 +171,13 @@ Kirigami.Page {
                 KanteTextField {
                     Kirigami.FormData.label: i18n("Begin:")
                     text: session.settings.workDayBegin
-                    placeholderText: "09:00"
+                    placeholderText: SharedConfig.DEFAULTS.workDayBegin
                     onEditingFinished: { page.saveSetting("workDayBegin", text) }
                 }
                 KanteTextField {
                     Kirigami.FormData.label: i18n("End:")
                     text: session.settings.workDayEnd
-                    placeholderText: "17:00"
+                    placeholderText: SharedConfig.DEFAULTS.workDayEnd
                     onEditingFinished: { page.saveSetting("workDayEnd", text) }
                 }
 

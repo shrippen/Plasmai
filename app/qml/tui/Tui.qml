@@ -5,6 +5,7 @@ import "../../contents/code/platform.js" as Platform
 import "../../contents/code/kimaiApi.js" as KimaiApi
 import "../../contents/code/dayModel.js" as DayModel
 import "../../contents/code/statsData.js" as StatsData
+import "../../contents/code/sharedConfig.js" as SharedConfig
 import "tuiView.js" as View
 
 /**
@@ -201,8 +202,8 @@ QtObject {
         return {
             title: Qt.locale().toString(now, "dddd, d. MMMM"),
             blocks: blocks,
-            workFrom: hours(session.settings.workDayBegin, 8),
-            workTo: hours(session.settings.workDayEnd, 17),
+            workFrom: hours(session.settings.workDayBegin, hours(SharedConfig.DEFAULTS.workDayBegin, 0)),
+            workTo: hours(session.settings.workDayEnd, hours(SharedConfig.DEFAULTS.workDayEnd, 0)),
             untilHour: now.getHours() + now.getMinutes() / 60
         }
     }

@@ -133,7 +133,7 @@ var DEFAULTS = {
 
 /** The range of a number setting, for the widget's and the app's settings page alike. */
 var LIMITS = {
-    refreshInterval: { min: 5, max: 300 },
+    refreshInterval: { min: 10, max: 300 },
     recentCount: { min: 3, max: 50 },
     idleStopMinutes: { min: 1, max: 240 }
 }

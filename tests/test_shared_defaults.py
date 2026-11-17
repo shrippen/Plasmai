@@ -94,3 +94,25 @@ def test_init_creates_the_shared_folder(tmp_path):
 if __name__ == "__main__":
     test_defaults_match_main_xml()
     print("shared defaults: ok")
+
+
+def kcfg_limits():
+    out = {}
+    for entry in ET.parse(ROOT / "contents" / "config" / "main.xml").getroot().iter(NS + "entry"):
+        lo, hi = entry.find(NS + "min"), entry.find(NS + "max")
+        if lo is not None or hi is not None:
+            out[entry.get("name")] = (int(lo.text) if lo is not None else None, int(hi.text) if hi is not None else None)
+    return out
+
+
+def js_limits():
+    src = (ROOT / "contents" / "code" / "sharedConfig.js").read_text(encoding="utf-8")
+    body = re.search(r"var LIMITS = \{(.*?)\n\}", src, re.S).group(1)
+    return {k: (int(lo), int(hi)) for k, lo, hi in re.findall(r"(\w+): \{ min: (\d+), max: (\d+) \}", body)}
+
+
+def test_limits_match_main_xml():
+    js, kcfg = js_limits(), kcfg_limits()
+    assert js, "LIMITS not found in sharedConfig.js"
+    differ = {k: (v, kcfg.get(k)) for k, v in js.items() if kcfg.get(k) != v}
+    assert not differ, f"LIMITS differ from main.xml min/max (js, xml): {differ}"

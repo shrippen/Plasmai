@@ -23,7 +23,7 @@
         <entry name="recentCount" type="Int">
             <default>10</default>
             <min>3</min>
-            <max>25</max>
+            <max>50</max>
         </entry>
 
 

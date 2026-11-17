@@ -299,7 +299,7 @@ TestCase {
 
     // One range per setting, for the widget's and the app's settings page alike.
     function test_limits() {
-        compare(SharedConfig.LIMITS.refreshInterval.min, 5)
+        compare(SharedConfig.LIMITS.refreshInterval.min, 10)
         compare(SharedConfig.LIMITS.refreshInterval.max, 300)
         compare(SharedConfig.LIMITS.recentCount.min, 3)
         compare(SharedConfig.LIMITS.recentCount.max, 50)
@@ -314,7 +314,7 @@ TestCase {
     function test_limitInt() {
         compare(SharedConfig.limitInt("recentCount", "40", 10), 40)
         compare(SharedConfig.limitInt("recentCount", 99, 10), 50)
-        compare(SharedConfig.limitInt("refreshInterval", 1, 30), 5)
+        compare(SharedConfig.limitInt("refreshInterval", 1, 30), 10)
         compare(SharedConfig.limitInt("idleStopMinutes", "bogus", 15), 15)
         compare(SharedConfig.limitInt("idleStopMinutes", 0, 15), 1)
     }
