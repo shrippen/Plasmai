@@ -19,6 +19,7 @@ contents/code/dateTimeFormat.js	coerceDate	ccn=19
 contents/code/dateTimeFormat.js	parseLocaleDate	ccn=23 nesting=5
 contents/code/dateTimeFormat.js	parseLocaleTime	ccn=25
 contents/code/dateTimeFormat.js	timeSegmentRoles	ccn=16
+contents/code/dayIntervals.js	dayIntervalsFromTimesheets	ccn=17
 contents/code/demoKimai.js	applyFields	nesting=7
 contents/code/demoKimai.js	drehzettel	ccn=16
 contents/code/demoKimai.js	handle	ccn=23
