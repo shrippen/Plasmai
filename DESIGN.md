@@ -801,8 +801,9 @@ Bad reception on set: Plasmai keeps working and syncs once the server answers
   every profile it opened (by key); leaving a profile closes its session, coming back reopens
   the same one (`Offline.reopen`), also while its replay is waiting for the op on its way, so that
   op is neither sent twice nor lost. Nothing is written while the outbox is read. A closed session
-  writes nothing but the outbox once more when its replay stops (the answer of the op that was on
-  its way); a write asked for meanwhile waits for the reopen. A file that is no JSON is
+  still writes its outbox at once, like an open one (the answer of the op that was on its way, a
+  change queued after the switch); it does not write its snapshot (a cache, and its deferred save
+  would replace the active session's). A file that is no JSON is
   moved aside only when no write of it is running. A profile without offline layer (key "") has
   no files and nothing to read.
 - **Offline begin**: a timer started offline sends its begin explicitly (the

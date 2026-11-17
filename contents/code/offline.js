@@ -443,7 +443,7 @@ function createSession(inner, host) {
         // The outbox file could not be read: it is not written until a read works.
         outboxBlocked: false,
         loadingOutbox: null,
-        // a write was asked for while blocked, loading or closed
+        // a write was asked for while blocked or loading
         saveWaits: false,
         storageError: OfflineState.StorageError.NONE
     }
@@ -464,16 +464,16 @@ function load(s) {
 
 /**
  * The profile of this session is not the active one any more: a replay in flight
- * stops after its op and writes the outbox a last time; nothing else is written.
+ * stops after its op. Its outbox is still written (the file is its alone); its snapshot is not
+ * (a cache, and its deferred save would replace the active session's).
  */
 function close(s) {
     s.closed = true
 }
 
-/** The profile is active again: the same session goes on (its replay too), and writes what it held back. */
+/** The profile is active again: the same session goes on, its replay too. */
 function reopen(s) {
     s.closed = false
-    Outbox.resume(s)
 }
 
 function isOffline(s) {

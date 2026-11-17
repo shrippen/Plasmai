@@ -9,8 +9,7 @@ import "../../contents/code/localFile.js" as LocalFile
 /**
  * The offline layer's files: a read that failed or is still running never lets a
  * write replace the outbox; a failed write is reported; a replay keeps to the
- * connection and the session it started with; a closed session leaves the files
- * to the next one.
+ * connection and the session it started with; a closed session writes its outbox but no snapshot.
  */
 TestCase {
     name: "OfflineStorage"
@@ -189,8 +188,8 @@ TestCase {
         compare(h.saves.filter(function(n) { return n === "offline-outbox-p1" }).length, 1)
     }
 
-    // A closed session leaves its files to the next one.
-    function test_closedSessionWritesNothing() {
+    // A closed session writes no snapshot (a cache; its deferred save would replace the active one's).
+    function test_closedSessionWritesNoSnapshot() {
         var k = fakeKimai()
         var h = fakeHost()
         var s = session(k, h)
@@ -199,20 +198,18 @@ TestCase {
         Offline.close(s)
         startOffline(k, s)
         call(function(cb) { s.tracker.fetchRecentTimesheets("u", "t", 10, cb) })
-        compare(h.saves, [])
+        verify(h.saves.every(function(name) { return name.indexOf("offline-outbox-") === 0 }))
         compare(deferred, 0)
     }
 
-    // A write asked for while closed is made when the session is reopened.
-    function test_reopenWritesWhatWasHeldBack() {
+    // The outbox is the closed session's alone: a change queued after the switch is written at once.
+    function test_closedSessionWritesItsOutbox() {
         var k = fakeKimai()
         var h = fakeHost()
         var s = session(k, h)
         loaded(s)
         Offline.close(s)
         startOffline(k, s)
-        verify(!h.files["offline-outbox-p1"])
-        Offline.reopen(s)
         compare(JSON.parse(h.files["offline-outbox-p1"]).ops.length, 1)
     }
 }

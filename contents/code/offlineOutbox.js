@@ -38,30 +38,13 @@ function newLocalId(s) {
 }
 
 /**
- * Writes the whole outbox, unless the session was closed (the next one for this
- * profile owns the file). See writeOutbox.
- */
-function saveOutbox(s) {
-    if (s.closed) {
-        s.saveWaits = true
-        return
-    }
-    writeOutbox(s)
-}
-
-/** After a reopen: the write that was held back. */
-function resume(s) {
-    if (s.saveWaits && !s.outboxBlocked && !s.loadingOutbox) {
-        saveOutbox(s)
-    }
-}
-
-/**
+ * Writes the whole outbox, also for a closed session (the file has this one session only,
+ * and a change that comes after the profile was left must not wait for its reopen).
  * Not while the file is being read or could not be read (it holds ops this run
  * does not know): the write waits for the read (saveWaits). A failed write sets
  * storageError, the next write carries everything again and a good one clears it.
  */
-function writeOutbox(s) {
+function saveOutbox(s) {
     if (s.outboxBlocked || s.loadingOutbox) {
         s.saveWaits = true
         return
@@ -386,9 +369,7 @@ function replay(s, callback) {
     var sent = 0
     function stop() {
         s.replaying = false
-        // Also when closed: the answer of the op that was on its way must reach the file
-        // before the next session of this profile reads it.
-        writeOutbox(s)
+        saveOutbox(s)
         OfflineState.saveSnapshot(s)
         OfflineState.notify(s)
         var waiters = s.replayWaiters
