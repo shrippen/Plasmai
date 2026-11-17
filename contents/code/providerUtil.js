@@ -6,8 +6,7 @@ var ErrorType = {
     Forbidden: "forbidden",
     NotFound: "not_found",
     Server: "server",
-    Unknown: "unknown",
-    Unsupported: "unsupported"
+    Unknown: "unknown"
 }
 
 var DEFAULT_CUSTOMER_COLOR = "#d2d6de"
