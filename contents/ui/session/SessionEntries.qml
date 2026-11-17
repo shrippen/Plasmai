@@ -15,13 +15,15 @@ QtObject {
     /** Master data and multi-entry changes need the server (offline.js: online only). */
     readonly property bool canCreate: session.connection.capabilities.createEntities && !session.sync.offline
 
-    /** Add (id null) or edit entry `id`; on success the dropped fields are reported and all refreshes. */
+    /** Add (id null) or edit entry `id`; on success the dropped fields are reported and all refreshes, a failure is failed(Save). */
     function write(id, fields, callback) {
         const c = session.connection
         const done = function(result) {
             if (result.ok) {
                 session.noteDropped(result)
                 session.refresh()
+            } else {
+                session.failed(Ui.Session.Action.Save, result)
             }
             callback(result)
         }

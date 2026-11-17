@@ -236,6 +236,42 @@ TestCase {
         tryCompare(s.connection, "state", s.connection.needsSetup)
     }
 
+    // Finding 11: the app's manual entry page showed nothing when saving failed, because
+    // write() reported only to its callback. Like edit(), it also says failed(Save).
+    function test_writeFailureSaysFailed() {
+        const s = openDemo()
+        const failed = createTemporaryObject(signalSpy, this, { target: s, signalName: "failed" })
+        // The server rejects every write (422); reads keep working.
+        const demoRequest = DemoKimai.ROUTE.request
+        KimaiApi.setUrlRoute({
+            handles: DemoKimai.ROUTE.handles,
+            token: DemoKimai.ROUTE.token,
+            request: function() {
+                const xhr = demoRequest()
+                const send = xhr.send
+                xhr.send = function(body) {
+                    if (xhr.method === "GET") {
+                        send(body)
+                        return
+                    }
+                    xhr.status = 422
+                    xhr.readyState = 4
+                    xhr.responseText = "{}"
+                    xhr.onreadystatechange()
+                }
+                return xhr
+            }
+        })
+        let result = null
+        s.entries.write(null, { project: 1, activity: 1, begin: "2026-01-01T09:00:00", end: "2026-01-01T10:00:00" },
+                        function(r) { result = r })
+        tryVerify(function() { return result !== null })
+        KimaiApi.setUrlRoute(DemoKimai.ROUTE)
+        verify(!result.ok)
+        compare(failed.count, 1)
+        compare(failed.signalArguments[0][0], Ui.Session.Action.Save)
+    }
+
     Component {
         id: signalSpy
         SignalSpy { }

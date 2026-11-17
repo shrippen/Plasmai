@@ -1430,8 +1430,8 @@ PlasmoidItem {
         const added = editingId === null
         session.entries.write(editingId, fields, function(result) {
             root.savingEntry = false
+            // A failure is reported by session.failed(Save).
             if (!result.ok) {
-                root.showError(result.error)
                 return
             }
             root.clearError()
