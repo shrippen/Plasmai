@@ -196,10 +196,6 @@ QtObject {
 
     // ── Connection page ──
 
-    function metaOf(id) {
-        return TimeTracker.providerMeta(id)
-    }
-
     /** shared.json as stored (the Connection page edits profiles before they are used). */
     function loadStored() {
         return Platform.loadShared(session.dataSource)
@@ -241,30 +237,6 @@ QtObject {
             api.testConnection(target, t, steps.done)
         }).catch(function(err) {
             steps.failed(err)
-        })
-    }
-
-    /**
-     * Like test, for the profile at `index` of an edited list. done(result) gets
-     * result.profiles with the ids the test reported (workspace, user, ...) set on
-     * that profile, when the test succeeded.
-     */
-    function testProfile(profiles, index, steps) {
-        test(profiles[index], {
-            noToken: steps.noToken,
-            testing: steps.testing,
-            failed: steps.failed,
-            done: function(result) {
-                if (!result.ok) {
-                    steps.done(result)
-                    return
-                }
-                steps.done({
-                    ok: true,
-                    data: result.data,
-                    profiles: Profiles.withTestMeta(profiles, index, result.data)
-                })
-            }
         })
     }
 }

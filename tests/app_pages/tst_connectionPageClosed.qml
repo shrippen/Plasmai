@@ -33,13 +33,12 @@ TestCase {
             function i18n(text) { return text }
             property QtObject session: QtObject {
                 property var connection: QtObject {
-                    function metaOf() { return {} }
                     function hasToken() { return tc.thenable() }
                     function loadStored() { return tc.thenable() }
                     function saveToken() { return tc.thenable() }
                     function clearToken() { return tc.thenable() }
                     function saveProfiles() {}
-                    function testProfile(profiles, index, handlers) { tc.testHandlers = handlers }
+                    function test(profile, handlers) { tc.testHandlers = handlers }
                 }
                 property var setup: QtObject {
                     function listProviders() { return [{ id: "kimai", name: "Kimai", defaultUrl: "" }] }
@@ -167,13 +166,29 @@ TestCase {
         obj.selectedIndex = 0
         findButton(obj, "network-connect").clicked()
         verify(testHandlers !== null)
-        // The session hands back the profiles with the ids the test reported.
-        const tested = [{ id: "p1", name: "One", url: "https://x", provider: "clockify", workspaceId: "w1", userId: "u1" }]
         // The status text throws here (ApiErrors has no i18n in tests), after the profiles are taken.
-        thrownBy([function() { testHandlers.done({ ok: true, data: {}, profiles: tested }) }])
+        thrownBy([function() { testHandlers.done({ ok: true, data: { workspaceId: "w1", userId: "u1" } }) }])
         compare(obj.profiles[0].workspaceId, "w1")
         compare(obj.profiles[0].userId, "u1")
         compare(obj.profiles[0].id, "p1")
+        obj.destroy()
+    }
+
+    /** A profile added while the test runs stays; the ids go to the tested one. */
+    function test_test_answer_keeps_profile_added_meanwhile() {
+        const h = createTemporaryObject(host, tc)
+        const obj = h.pageComponent.createObject(h)
+        verify(obj !== null)
+        obj.profiles = [{ id: "p1", name: "One", url: "https://x", provider: "clockify" }]
+        obj.selectedIndex = 0
+        findButton(obj, "network-connect").clicked()
+        verify(testHandlers !== null)
+        obj.profiles = obj.profiles.concat([{ id: "p2", name: "Two", url: "https://y", provider: "kimai" }])
+        obj.selectedIndex = 1
+        thrownBy([function() { testHandlers.done({ ok: true, data: { workspaceId: "w1" } }) }])
+        compare(obj.profiles.length, 2)
+        compare(obj.profiles[0].workspaceId, "w1")
+        compare(obj.selectedIndex, 1)
         obj.destroy()
     }
 }

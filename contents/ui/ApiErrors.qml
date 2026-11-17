@@ -45,7 +45,7 @@ QtObject {
         return i18n("Request failed (%1).", error.status)
     }
 
-    /** The line under "Test connection": `result` as the session's testProfile hands it, `service` the service's name. */
+    /** The line under "Test connection": `result` as the session's test hands it, `service` the service's name. */
     function testText(result, service) {
         if (!result.ok) {
             return ProviderUtil.serverText(result.error) || text(result.error, true)

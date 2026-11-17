@@ -149,9 +149,13 @@ QtObject {
         return activeId === removedId
     }
 
-    /** Takes the profiles a connection test handed back (with the ids it reported). */
-    function applyTested(tested) {
-        profiles = tested
+    /** Sets the ids a connection test reported on the profile `id` of the current list (it may have changed since the test began). */
+    function applyTested(id, data) {
+        const next = Profiles.withTestMeta(profiles, id, data)
+        if (next === profiles) {
+            return
+        }
+        profiles = next
         edited()
     }
 }

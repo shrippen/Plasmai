@@ -452,7 +452,7 @@ ConfigPage {
                             page.showStatus(i18n("Testing connection…"), false)
                             form.commitUrl(kimaiUrlField.text)
                             const profile = page.profiles[page.selectedIndex]
-                            session.connection.testProfile(page.profiles, page.selectedIndex, {
+                            session.connection.test(profile, {
                                 noToken: function() {
                                     page.testingConnection = false
                                     page.showStatus(i18n("No API token stored. Save a token first."), true)
@@ -461,7 +461,7 @@ ConfigPage {
                                 done: function(result) {
                                     page.testingConnection = false
                                     if (result.ok) {
-                                        form.applyTested(result.profiles)
+                                        form.applyTested(profile.id, result.data)
                                         page.notifyEdited()
                                     }
                                     page.showStatus(ApiErrors.testText(result, session.setup.providerName(profile.provider)), !result.ok)

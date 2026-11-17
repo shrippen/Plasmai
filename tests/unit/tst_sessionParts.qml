@@ -243,23 +243,6 @@ TestCase {
         compare(steps[0], "noToken")
     }
 
-    function test_connectionTestProfile() {
-        const s = openDemo()
-        const list = [{ id: "demo", name: "Demo", url: DemoKimai.DEMO_URL, provider: "kimai" }]
-        let result = null
-        tokens.demo = DemoKimai.ROUTE.token
-        s.connection.testProfile(list, 0, {
-            noToken: function() { result = "noToken" },
-            testing: function() {},
-            done: function(r) { result = r },
-            failed: function(e) { result = "failed " + e }
-        })
-        tryVerify(function() { return result !== null })
-        verify(result.ok, JSON.stringify(result))
-        compare(result.profiles.length, 1)
-        compare(result.profiles[0].id, "demo")
-    }
-
     // ── catalog, favorites ──
 
     function test_catalogPickerAndActivities() {

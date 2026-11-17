@@ -236,7 +236,7 @@ ColumnLayout {
                 root.errorText = ApiErrors.text(result.error, true)
                 return
             }
-            applied.profiles[index] = Wizard.withConnectionMeta(applied.profiles[index], result.data)
+            applied.profiles = Profiles.withTestMeta(applied.profiles, applied.profileId, result.data)
             storeToken(providerId, applied, check.url, token)
         })
     }

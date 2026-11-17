@@ -127,17 +127,23 @@ function withProvider(profiles, index, providerId, defaultUrl) {
     return copy
 }
 
-/** The ids a connection test reports (workspace, user, ...) set on one profile; empty ones change nothing. */
-function withTestMeta(profiles, index, data) {
-    if (!data || !validIndex(profiles, index)) {
+/** The ids a connection test reports (workspace, user, ...) set on the profile with this id; empty ones change nothing, an unknown id changes nothing. */
+function withTestMeta(profiles, id, data) {
+    var index = -1
+    for (var i = 0; i < (profiles || []).length; i++) {
+        if (profiles[i].id === id) {
+            index = i
+        }
+    }
+    if (!data || index < 0) {
         return profiles
     }
     var copy = profiles.slice()
     var row = Object.assign({}, copy[index])
     var keys = ["workspaceId", "userId", "organizationId", "memberId"]
-    for (var i = 0; i < keys.length; i++) {
-        if (data[keys[i]]) {
-            row[keys[i]] = data[keys[i]]
+    for (var k = 0; k < keys.length; k++) {
+        if (data[keys[k]]) {
+            row[keys[k]] = data[keys[k]]
         }
     }
     copy[index] = row

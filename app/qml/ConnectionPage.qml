@@ -370,7 +370,7 @@ Kirigami.Page {
                             page.showStatus(i18n("Testing…"), false)
                             page.persistShared()
                             const profile = page.profiles[page.selectedIndex]
-                            session.connection.testProfile(page.profiles, page.selectedIndex, {
+                            session.connection.test(profile, {
                                 noToken: function() {
                                     if (!page) { return }
                                     page.busy = false
@@ -385,7 +385,7 @@ Kirigami.Page {
                                     if (!page) { return }
                                     page.busy = false
                                     if (result.ok) {
-                                        form.applyTested(result.profiles)
+                                        form.applyTested(profile.id, result.data)
                                         page.persistShared()
                                     }
                                     page.showStatus(ApiErrors.testText(result, session.setup.providerName(profile.provider)), !result.ok)
