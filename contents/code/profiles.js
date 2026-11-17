@@ -86,3 +86,85 @@ function accountForProfile(profileId) {
     }
     return "api-token:" + profileId
 }
+
+function validIndex(profiles, index) {
+    return !!profiles && index >= 0 && index < profiles.length
+}
+
+/** Position of the active profile; 0 when it is unknown. */
+function activeIndex(profiles, activeId) {
+    for (var i = 0; i < (profiles || []).length; i++) {
+        if (profiles[i].id === activeId) {
+            return i
+        }
+    }
+    return 0
+}
+
+/** A profile list with one profile's field set. */
+function withField(profiles, index, field, value) {
+    if (!validIndex(profiles, index)) {
+        return profiles
+    }
+    var copy = profiles.slice()
+    var row = Object.assign({}, copy[index])
+    row[field] = value
+    copy[index] = row
+    return copy
+}
+
+/** Switch a profile's service: take its default URL and forget the ids of the old one. */
+function withProvider(profiles, index, providerId, defaultUrl) {
+    if (!validIndex(profiles, index)) {
+        return profiles
+    }
+    // The same service picked again (a ComboBox reports that too): nothing changes.
+    if (profiles[index].provider === providerId) {
+        return profiles
+    }
+    var copy = profiles.slice()
+    copy[index] = Object.assign({}, copy[index], {
+        provider: providerId,
+        url: defaultUrl || "",
+        workspaceId: "",
+        userId: "",
+        organizationId: "",
+        memberId: ""
+    })
+    return copy
+}
+
+/** Append a Kimai profile; nameOf(n) words its name, n is the first free number. */
+function withNewProfile(profiles, nameOf) {
+    var taken = {}
+    for (var i = 0; i < profiles.length; i++) {
+        taken[profiles[i].name] = true
+    }
+    var num = profiles.length + 1
+    while (taken[nameOf(num)]) {
+        num++
+    }
+    var copy = profiles.slice()
+    copy.push(normalizeProfile({ id: newProfileId(), name: nameOf(num), url: "", provider: "kimai" }))
+    return copy
+}
+
+/** Without the profile at index; the last one stays. */
+function withoutProfile(profiles, index) {
+    if (profiles.length <= 1 || !validIndex(profiles, index)) {
+        return profiles
+    }
+    var copy = profiles.slice()
+    copy.splice(index, 1)
+    return copy
+}
+
+/** The list itself, or the default profile (with the normalized URL) when it is empty. */
+function ensured(profiles, url) {
+    if (profiles.length > 0) {
+        return profiles
+    }
+    var out = defaultProfiles()
+    out[0].url = url || ""
+    return out
+}

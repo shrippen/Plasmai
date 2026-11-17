@@ -145,20 +145,11 @@ ConfigPage {
 
     function ensureSelection() {
         if (profiles.length === 0) {
-            profiles = Profiles.defaultProfiles()
-            if (kimaiUrlField.text) {
-                profiles[0].url = ProviderUtil.normalizeUrl(kimaiUrlField.text)
-            }
+            profiles = Profiles.ensured(profiles, ProviderUtil.normalizeUrl(kimaiUrlField.text))
             syncProfiles()
         }
 
-        var activeIdx = 0
-        for (var i = 0; i < profiles.length; i++) {
-            if (profiles[i].id === activeProfileField.text) {
-                activeIdx = i
-                break
-            }
-        }
+        var activeIdx = Profiles.activeIndex(profiles, activeProfileField.text)
         selectedIndex = activeIdx
         profileCombo.currentIndex = activeIdx
         updateFieldsForSelection()
@@ -181,11 +172,7 @@ ConfigPage {
         if (updatingFields || syncing || profiles.length === 0 || selectedIndex < 0) {
             return
         }
-        var copy = profiles.slice()
-        var row = Object.assign({}, copy[selectedIndex])
-        row[field] = value
-        copy[selectedIndex] = row
-        profiles = copy
+        profiles = Profiles.withField(profiles, selectedIndex, field, value)
         syncProfiles()
     }
 
@@ -199,20 +186,11 @@ ConfigPage {
         }
         var meta = session.setup.providerMeta(providerId)
         var url = meta.defaultUrl || ""
-        var copy = profiles.slice()
-        var row = Object.assign({}, copy[selectedIndex])
-        row.provider = providerId
-        row.url = url
-        row.workspaceId = ""
-        row.userId = ""
-        row.organizationId = ""
-        row.memberId = ""
-        copy[selectedIndex] = row
-        profiles = copy
+        profiles = Profiles.withProvider(profiles, selectedIndex, providerId, url)
         syncProfiles()
 
         updatingFields = true
-        kimaiUrlField.text = url
+        kimaiUrlField.text = profiles[selectedIndex].url || ""
         updatingFields = false
         showStatus("", false)
     }
@@ -465,25 +443,9 @@ ConfigPage {
                         text: i18n("Add profile")
                         icon.name: "list-add"
                         onClicked: {
-                            var copy = page.profiles.slice()
-                            var existingNames = {}
-                            for (var n = 0; n < copy.length; n++) {
-                                existingNames[copy[n].name] = true
-                            }
-                            var num = copy.length + 1
-                            while (existingNames[i18n("Profile %1", num)]) {
-                                num++
-                            }
-                            var profile = Profiles.normalizeProfile({
-                                id: Profiles.newProfileId(),
-                                name: i18n("Profile %1", num),
-                                url: "",
-                                provider: "kimai"
-                            })
-                            copy.push(profile)
-                            page.profiles = copy
+                            page.profiles = Profiles.withNewProfile(page.profiles, function(n) { return i18n("Profile %1", n) })
                             page.syncProfiles()
-                            page.selectedIndex = copy.length - 1
+                            page.selectedIndex = page.profiles.length - 1
                             profileCombo.currentIndex = page.selectedIndex
                             page.updateFieldsForSelection()
                             page.notifyEdited()
@@ -498,9 +460,7 @@ ConfigPage {
                                 return
                             }
                             var removedId = page.profiles[page.selectedIndex].id
-                            var copy = page.profiles.slice()
-                            copy.splice(page.selectedIndex, 1)
-                            page.profiles = copy
+                            page.profiles = Profiles.withoutProfile(page.profiles, page.selectedIndex)
                             page.syncProfiles()
                             page.selectedIndex = Math.max(0, page.selectedIndex - 1)
                             profileCombo.currentIndex = page.selectedIndex
