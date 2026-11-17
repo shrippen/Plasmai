@@ -125,8 +125,10 @@ function main(model, size, t) {
     lines.push("")
     lines.push(paint(Style.BOLD, t.recent))
 
-    // The message wraps over up to MESSAGE_LINES_MAX lines above the footer; no message, one blank line.
-    const message = wrap(model.message, w, MESSAGE_LINES_MAX)
+    // The message wraps over up to MESSAGE_LINES_MAX lines above the footer, fewer on a short
+    // terminal so that the footer and one recent row stay; no message, one blank line.
+    const messageMax = Math.min(MESSAGE_LINES_MAX, Math.max(1, size.rows - lines.length - 2))
+    const message = wrap(model.message, w, messageMax)
     const messageRows = Math.max(1, message.length)
 
     // Recent rows with their number key; the selected one inverted.
