@@ -28,9 +28,6 @@ var Answer = {
     AS_BEFORE: "asBefore"
 }
 
-/** Layouts offered in settings only, marked experimental. */
-var EXPERIMENTAL = [Layout.RING]
-
 const ANSWER_LAYOUT = {
     switchOften: Layout.TILES,
     seeDay: Layout.DAYBAND,
@@ -48,13 +45,4 @@ function normalize(value) {
 /** Layout for a wizard answer; CLASSIC for an unknown answer. */
 function forAnswer(answer) {
     return ANSWER_LAYOUT[answer] || Layout.CLASSIC
-}
-
-/** Wizard answers in display order; the last keeps today's popup. */
-function answers() {
-    return [Answer.SWITCH_OFTEN, Answer.SEE_DAY, Answer.WEEKLY, Answer.AS_BEFORE]
-}
-
-function isExperimental(layout) {
-    return EXPERIMENTAL.indexOf(normalize(layout)) >= 0
 }

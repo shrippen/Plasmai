@@ -120,15 +120,6 @@ function resolveMode(url, token, profileId, probeCache, options, callback) {
     })
 }
 
-/** The extras are shown and editable only with the day loaded from the server. */
-function extrasVisible(mode) {
-    return mode === Mode.SERVER
-}
-
-function extrasEditable(mode) {
-    return mode === Mode.SERVER
-}
-
 function hasId(value) {
     return value !== null && value !== undefined && value !== ""
 }
@@ -283,17 +274,6 @@ function productionDay(ctx, projectId, activityId, activityIds, fromDateStr, dat
         memo.productionDays[key] = { at: nowOf(ctx), toStr: toStr, entries: result.data || [] }
         answer(result.data || [])
     }, { project: projectId })
-}
-
-/**
- * Project of the day's engagement (there is at most one engagement per day;
- * entries of other activities that day belong to none). callback(projectId)
- * or callback(null) without an engagement or without the D1 list.
- */
-function dayEngagementProject(ctx, dateStr, callback) {
-    dayEngagements(ctx, dateStr, function(list) {
-        callback(list.length ? list[0].projectId : null)
-    })
 }
 
 function emptyLoad(mode, error) {

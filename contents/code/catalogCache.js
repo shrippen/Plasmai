@@ -12,7 +12,6 @@ var _customers = []
 var _projects = []
 var _activities = []
 var _loadedAt = 0
-var _fetching = false
 
 /**
  * Skip the API when the catalog is younger than this.
@@ -40,31 +39,6 @@ function isFresh(profileId, url) {
     return (Date.now() - _loadedAt) < FRESH_MS
 }
 
-function ageMs() {
-    if (!_loadedAt) {
-        return -1
-    }
-    return Date.now() - _loadedAt
-}
-
-function shouldRefresh(profileId, force) {
-    if (force) {
-        return true
-    }
-    if (!hasCatalog(profileId)) {
-        return true
-    }
-    return !isFresh(profileId)
-}
-
-function isFetching() {
-    return !!_fetching
-}
-
-function setFetching(value) {
-    _fetching = !!value
-}
-
 function store(profileId, payload) {
     _profileId = String(profileId || "")
     _url = String(payload.url || "")
@@ -72,7 +46,6 @@ function store(profileId, payload) {
     _projects = payload.projects || []
     _activities = payload.activities || []
     _loadedAt = payload.loadedAt || Date.now()
-    _fetching = false
 }
 
 /** Restore from disk / another process. Preserves original loadedAt for TTL. */
@@ -120,5 +93,4 @@ function clear() {
     _projects = []
     _activities = []
     _loadedAt = 0
-    _fetching = false
 }

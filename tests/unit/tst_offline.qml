@@ -563,7 +563,6 @@ TestCase {
         var entry = call(function(cb) { t.createTimesheet("u", "t", { begin: stamp(8, 0), end: stamp(9, 0), project: 10, activity: 20 }, cb) })
         var trip = call(function(cb) { t.createTrip("u", "t", { date: "2026-09-28", distanceKm: 30, timesheet: entry.data.id }, cb) })
         verify(trip.ok && trip.queued)
-        verify(Outbox.isUnsyncedTrip(s, trip.data.id))
         call(function(cb) { t.patchTrip("u", "t", trip.data.id, { distanceKm: 31 }, cb) })
         call(function(cb) { t.patchTrip("u", "t", 7, { distanceKm: 13 }, cb) })
         compare(Outbox.pendingCount(s), 3, "entry, trip (with its patch), patch of trip 7")

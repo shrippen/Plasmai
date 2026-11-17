@@ -9,7 +9,7 @@ app/i18nfallback.cpp	I18nFallback::pluralIndex	ccn=16
 app/main.cpp	main	ccn=38 length=174
 app/platform/appidmigration.h	AppIdMigration::copyFolders	ccn=20
 app/platform/traycontroller.cpp	TrayController::onBorderEvent	ccn=16
-app/qml/TimerPage.qml	-	lines=1002
+app/qml/TimerPage.qml	-	lines=1001
 app/qml/main.qml	trayAction	nesting=5
 app/qml/platform/appBackend.js	create	length=121
 app/qml/tui/Tui.qml	handle	nesting=6
@@ -26,7 +26,7 @@ contents/code/demoKimai.js	handle	ccn=23
 contents/code/demoKimai.js	mileage	ccn=25
 contents/code/demoKimai.js	timesheets	ccn=31
 contents/code/favorites.js	resolvePinnedEntries	ccn=20 nesting=5
-contents/code/filmDaySync.js	-	lines=861
+contents/code/filmDaySync.js	-	lines=841
 contents/code/filmDaySync.js	viewInfo	ccn=28
 contents/code/filmDays.js	normalizeServer	ccn=18
 contents/code/kimaiApi.js	-	lines=1269
@@ -59,7 +59,7 @@ tests/lib/atspi_clicks.py	should_skip	ccn=21
 tests/lib/atspi_clicks.py	showing_nodes	nesting=5
 tests/lib/atspi_clicks.py	sweep	ccn=17
 tests/test_startup_lazy.py	blocks	nesting=5
-tests/unit/tst_filmDaySync.qml	-	lines=847
+tests/unit/tst_filmDaySync.qml	-	lines=831
 tests/unit/tst_offline.qml	fakeKimai	length=102
 tests/viewer/test_kcm_tab_persistence.py	test_kcm_tab_option_persistence	length=190
 translate/fill_po.py	read_entries	ccn=21

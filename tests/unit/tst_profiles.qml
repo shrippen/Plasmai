@@ -39,12 +39,6 @@ TestCase {
         compare(Profiles.profileById([], "x"), null)
     }
 
-    function test_accountForProfile() {
-        compare(Profiles.accountForProfile("default"), "api-token")
-        compare(Profiles.accountForProfile(""), "api-token")
-        compare(Profiles.accountForProfile("p1"), "api-token:p1")
-    }
-
     function test_serializeRoundTrip() {
         var list = Profiles.parseProfiles('[{"id":"x","name":"X","url":"https://u","provider":"kimai"}]', "")
         var again = Profiles.parseProfiles(Profiles.serializeProfiles(list), "")

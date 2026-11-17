@@ -80,13 +80,6 @@ function normalizeProfile(profile) {
     }
 }
 
-function accountForProfile(profileId) {
-    if (!profileId || profileId === "default") {
-        return "api-token"
-    }
-    return "api-token:" + profileId
-}
-
 function validIndex(profiles, index) {
     return !!profiles && index >= 0 && index < profiles.length
 }

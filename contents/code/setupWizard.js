@@ -201,15 +201,6 @@ function steps(issues, systemStep) {
     return list
 }
 
-/** shared.json keys of the Look step: the chosen visualStyle, or {} when it is no Look. */
-function lookPatch(style) {
-    var v = Number(style)
-    if (v !== Look.SYSTEM && v !== Look.KANTE && v !== Look.KANTE_LIGHT) {
-        return {}
-    }
-    return { visualStyle: v }
-}
-
 /**
  * A pasted token without what copying adds: spaces, line breaks and a
  * "Bearer " prefix copied from an API example. Tokens never contain blanks.

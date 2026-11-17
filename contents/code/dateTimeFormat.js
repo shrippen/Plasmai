@@ -33,14 +33,6 @@ function dateTimeText(date) {
     return dateKey(date) + " " + pad2(date.getHours()) + ":" + pad2(date.getMinutes())
 }
 
-function pad4(n) {
-    var s = String(n)
-    while (s.length < 4) {
-        s = "0" + s
-    }
-    return s.slice(-4)
-}
-
 function localeDateFormat() {
     // Locale.ShortFormat === 1 (avoid Locale enum in pragma library)
     return Qt.locale().dateFormat(1)

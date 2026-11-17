@@ -3,7 +3,6 @@ import QtQuick.Controls as QQC2
 import QtQuick.Controls.Material
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
-import "../contents/code/timeTracker.js" as TimeTracker
 import "../contents/code/entityColors.js" as Colors
 import "../contents/code/entityNames.js" as Names
 import "../contents/code/timesheetFields.js" as TimesheetFields
