@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 T = {
+    # Error hint with the server's own text after it
+    '%1 (%2)': '%1 (%2)',
     'Project-specific': 'Specyficzne dla projektu',
     'Global activities': 'Globalne aktywności',
     'Plasmai': 'Plasmai',

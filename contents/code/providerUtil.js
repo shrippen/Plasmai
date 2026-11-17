@@ -76,6 +76,16 @@ var ErrorShow = {
     Both: "both"
 }
 
+// What a server writes when it has nothing of its own to say (HTTP status phrases, Kimai, Laravel);
+// compared lower case, without punctuation. Next to the hint such a text only repeats it.
+var GENERIC_SERVER_TEXTS = ["access denied", "unauthenticated", "unauthorized", "forbidden", "not found",
+                            "server error", "internal server error", "bad gateway", "service unavailable",
+                            "gateway timeout"]
+
+function isGenericText(text) {
+    return GENERIC_SERVER_TEXTS.indexOf(text.toLowerCase().replace(/[^a-z ]/g, "").trim()) >= 0
+}
+
 /** The text the server sent with an error; "" when it sent none or the app raised the error itself. */
 function serverText(error) {
     if (!error || APP_ERRORS.indexOf(error.type) >= 0) {
@@ -86,14 +96,17 @@ function serverText(error) {
 
 /**
  * Hint kinds (401, 403, 404, 5xx) show the hint, plus the server's text when it sent one
- * ("Unauthenticated."); other kinds (a 400 with the plugin's text) show that text, the
+ * unless that is a generic one ("Access denied."); other kinds (a 400 with the plugin's text) show that text, the
  * only useful part; without a text, or for the app's own errors, the hint.
  */
 function errorShow(error) {
     if (!serverText(error)) {
         return ErrorShow.Hint
     }
-    return HINT_ERRORS.indexOf(error.type) >= 0 ? ErrorShow.Both : ErrorShow.Server
+    if (HINT_ERRORS.indexOf(error.type) < 0) {
+        return ErrorShow.Server
+    }
+    return isGenericText(serverText(error)) ? ErrorShow.Hint : ErrorShow.Both
 }
 
 function ok(data) {

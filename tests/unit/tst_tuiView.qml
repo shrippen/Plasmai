@@ -62,6 +62,23 @@ TestCase {
         verify(lines[lines.length - 1].indexOf(t.mainKeys.slice(0, 5)) === 0)
     }
 
+    // Tiny terminals: a long message shrinks to the room left, the footer stays last.
+    function test_mainTinyWithMessage_data() {
+        return [{ rows: 9 }, { rows: 10 }, { rows: 11 }]
+    }
+
+    function test_mainTinyWithMessage(data) {
+        const tiny = { columns: 40, rows: data.rows }
+        const text = View.main({
+            profileName: "Demo", statusText: "Online", tracking: false, selected: 0,
+            message: "Could not start tracking: " + "word ".repeat(30), recent: []
+        }, tiny, t)
+        const lines = plain(text).split("\n")
+
+        compare(lines.length, tiny.rows)
+        verify(lines[lines.length - 1].indexOf(t.mainKeys.slice(0, 5)) === 0)
+    }
+
     // Every line fits the terminal; the screen has exactly `rows` lines.
     function test_mainScreen() {
         const text = View.main({

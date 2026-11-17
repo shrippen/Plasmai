@@ -61,12 +61,15 @@ TestCase {
 
     function test_errorShow() {
         const S = Util.ErrorShow
-        // SolidTime (Laravel) 401 and 5xx: the hint with the server's words.
-        compare(show(401, "Unauthorized", '{"message":"Unauthenticated."}'), S.Both)
-        compare(show(500, "Internal Server Error", '{"message":"Server Error"}'), S.Both)
-        // Kimai 403 and 404.
-        compare(show(403, "Forbidden", '{"code":403,"message":"Access denied."}'), S.Both)
-        compare(show(404, "Not Found", '{"code":404,"message":"Not Found"}'), S.Both)
+        // A server's own words next to the hint.
+        compare(show(401, "Unauthorized", '{"message":"Token expired on Monday."}'), S.Both)
+        compare(show(500, "Internal Server Error", '{"message":"Disk full"}'), S.Both)
+        // Generic texts (Laravel, Kimai, status phrases) only repeat the hint.
+        compare(show(401, "Unauthorized", '{"message":"Unauthenticated."}'), S.Hint)
+        compare(show(500, "Internal Server Error", '{"message":"Server Error"}'), S.Hint)
+        compare(show(403, "Forbidden", '{"code":403,"message":"Access denied."}'), S.Hint)
+        compare(show(404, "Not Found", '{"code":404,"message":"Not Found"}'), S.Hint)
+        compare(show(500, "Internal Server Error", '{"message":"Internal Server Error"}'), S.Hint)
         // No text of its own: the hint alone.
         compare(show(401, "Unauthorized", ""), S.Hint)
         compare(show(503, "Service Unavailable", "<html>"), S.Hint)
