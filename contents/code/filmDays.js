@@ -413,10 +413,7 @@ function localDateKey(value) {
     if (isNaN(ms)) {
         return ""
     }
-    var d = new Date(ms)
-    var mm = d.getMonth() + 1
-    var dd = d.getDate()
-    return d.getFullYear() + "-" + (mm < 10 ? "0" : "") + mm + "-" + (dd < 10 ? "0" : "") + dd
+    return DTF.dateKey(new Date(ms))
 }
 
 /**

@@ -27,6 +27,10 @@ TestCase {
         compare(new Date(KimaiApi.localDateTimeString(d).replace(/([+-]\d{2})(\d{2})$/, "$1:$2")).getTime(), d.getTime())
     }
 
+    function test_localDateString() {
+        compare(KimaiApi.localDateString(new Date(2026, 0, 5, 23, 59)), "2026-01-05")
+    }
+
     // The query filters (begin/end) stay without an offset: Kimai answers 400 to one.
     function test_localQueryStringHasNoOffset() {
         compare(KimaiApi.localQueryString(new Date(2026, 8, 30, 4, 5, 6)), "2026-09-30T04:05:06")

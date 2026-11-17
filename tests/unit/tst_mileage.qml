@@ -36,6 +36,12 @@ TestCase {
         compare(Mileage.formatKm(139.5), "139.5")
     }
 
+    function test_dateString() {
+        compare(Mileage.dateString(new Date(2026, 0, 5, 23, 59)), "2026-01-05")
+        compare(Mileage.dateString(new Date(NaN)), "")
+        compare(Mileage.dateString(null), "")
+    }
+
     function test_ranges() {
         var r = Mileage.monthRange(new Date(2026, 1, 10))
         compare(r.from, "2026-02-01")

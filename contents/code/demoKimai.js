@@ -1,4 +1,5 @@
 .pragma library
+.import "./dateTimeFormat.js" as DTF
 .import "./demoWorld.js" as World
 
 /**
@@ -79,22 +80,14 @@ function isDemoUrl(url) {
 
 // ── Dates ────────────────────────────────────────────────────────────────
 
-function pad2(n) {
-    return (n < 10 ? "0" : "") + n
-}
-
-function dateKey(d) {
-    return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate())
-}
-
 /** Kimai's stamp: local time with offset, "2026-09-22T08:00:00+0200". */
 function stamp(ms) {
     var d = new Date(ms)
     var off = -d.getTimezoneOffset()
     var sign = off >= 0 ? "+" : "-"
     off = Math.abs(off)
-    return dateKey(d) + "T" + pad2(d.getHours()) + ":" + pad2(d.getMinutes()) + ":" + pad2(d.getSeconds())
-        + sign + pad2(Math.floor(off / 60)) + pad2(off % 60)
+    return DTF.dateKey(d) + "T" + DTF.pad2(d.getHours()) + ":" + DTF.pad2(d.getMinutes()) + ":" + DTF.pad2(d.getSeconds())
+        + sign + DTF.pad2(Math.floor(off / 60)) + DTF.pad2(off % 60)
 }
 
 /** "YYYY-MM-DD" or "YYYY-MM-DDTHH:MM[:SS]" (local; any offset is ignored) → ms. */
@@ -158,7 +151,7 @@ function roadKm(a, b) {
 }
 
 function addTrip(entry, from, to, km, comment) {
-    state.trips.push({ id: state.nextTripId++, date: dateKey(new Date(entry.begin)),
+    state.trips.push({ id: state.nextTripId++, date: DTF.dateKey(new Date(entry.begin)),
                        departure: stamp(entry.begin), arrival: stamp(entry.end),
                        purpose: "business", vehicle: "company_car", vehicleId: 1, licensePlate: VEHICLE.plate,
                        start: from.address, destination: to.address, distanceKm: km, roundTrip: true,
@@ -201,7 +194,7 @@ function reset(nowDate, lang) {
         if (end <= begin) {
             end += DAY_MS
         }
-        var key = dateKey(new Date(dayStart(begin)))
+        var key = DTF.dateKey(new Date(dayStart(begin)))
         shootDays[key] = true
         var place = placeOf(d.location)
         var note = World.t(place.name, lang) + " · " + World.t(d.note, lang)
@@ -223,7 +216,7 @@ function reset(nowDate, lang) {
             continue
         }
         var start = World.dateTime(row.day, row.start, fixed).getTime()
-        var dayKey = dateKey(new Date(dayStart(start)))
+        var dayKey = DTF.dateKey(new Date(dayStart(start)))
         if (shootDays[dayKey] && row.project === e.project) {
             continue
         }
@@ -386,7 +379,7 @@ function engagementOn(dateStr, projectId) {
         engagementId: 5, projectId: FILM_PROJECT, projectName: byId(state.projects, FILM_PROJECT).name,
         customerName: byId(state.customers, byId(state.projects, FILM_PROJECT).customer).name,
         rulesetName: PAY.ruleset_name, crewRole: World.t(ENGAGEMENT.position, state.lang),
-        validFrom: dateKey(new Date(state.engagementFrom)), validTo: dateKey(new Date(state.engagementTo)),
+        validFrom: DTF.dateKey(new Date(state.engagementFrom)), validTo: DTF.dateKey(new Date(state.engagementTo)),
         toggleDefault: true, azvEligible: true, travelDays: "counted", cateringDefault: false
     }
 }
@@ -447,7 +440,7 @@ function drehzettel(method, rest, q, body) {
                     permissions: { view: true, manage: false },
                     features: ["errorCodes", "engagements", "defaults", "extraPay", "daySummary", "shootingDayNumber"] })
     }
-    var date = q.date || dateKey(new Date(nowMs()))
+    var date = q.date || DTF.dateKey(new Date(nowMs()))
     if (rest === "/v1/engagements") {
         var e = engagementOn(date, null)
         return ok(e ? [e] : [])
@@ -513,8 +506,8 @@ function mileage(method, rest, q, body) {
         return ok([])
     }
     if (rest === "/trips" && method === "GET") {
-        var from = q.from || (q.year ? q.year + "-" + (q.month ? pad2(+q.month) : "01") + "-01" : "0000")
-        var to = q.to || (q.year ? q.year + "-" + (q.month ? pad2(+q.month) : "12") + "-31" : "9999")
+        var from = q.from || (q.year ? q.year + "-" + (q.month ? DTF.pad2(+q.month) : "01") + "-01" : "0000")
+        var to = q.to || (q.year ? q.year + "-" + (q.month ? DTF.pad2(+q.month) : "12") + "-31" : "9999")
         return ok(state.trips.filter(function(t) { return t.date >= from && t.date <= to }).map(tripJson))
     }
     if (rest === "/trips" && method === "POST") {

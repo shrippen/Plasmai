@@ -1,5 +1,6 @@
 .pragma library
 .import "../../../contents/code/dayModel.js" as DayModel
+.import "../../../contents/code/dateTimeFormat.js" as DTF
 
 /**
  * Screens of the terminal client as text: pure functions from a model to
@@ -46,26 +47,22 @@ function fit(text, width) {
     return s + " ".repeat(width - s.length)
 }
 
-function pad2(n) {
-    return (n < 10 ? "0" : "") + n
-}
-
 /** 5425 → "1:30:25"; seconds always shown, for a running timer. */
 function clock(seconds) {
     const s = Math.max(0, Math.floor(seconds))
-    return Math.floor(s / 3600) + ":" + pad2(Math.floor(s / 60) % 60) + ":" + pad2(s % 60)
+    return Math.floor(s / 3600) + ":" + DTF.pad2(Math.floor(s / 60) % 60) + ":" + DTF.pad2(s % 60)
 }
 
 /** 5425 → "1:30"; for totals. */
 function hm(seconds) {
     const m = Math.round(Math.max(0, seconds) / 60)
-    return Math.floor(m / 60) + ":" + pad2(m % 60)
+    return Math.floor(m / 60) + ":" + DTF.pad2(m % 60)
 }
 
 /** 13.25 → "13:15". */
 function hourLabel(hour) {
     const minutes = Math.round(hour * 60)
-    return pad2(Math.floor(minutes / 60)) + ":" + pad2(minutes % 60)
+    return DTF.pad2(Math.floor(minutes / 60)) + ":" + DTF.pad2(minutes % 60)
 }
 
 function rule(width) {
@@ -162,7 +159,7 @@ function day(model, size, t) {
                 bar += inGap ? paint(Style.FOCUS, "░") : paint(Style.DIM, "·")
             }
         }
-        lines.push(paint(Style.DIM, pad2(h % 24)) + " " + bar + "  " + fit(labels.join(", "), w - 9))
+        lines.push(paint(Style.DIM, DTF.pad2(h % 24)) + " " + bar + "  " + fit(labels.join(", "), w - 9))
     }
 
     lines.push("")
