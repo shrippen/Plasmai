@@ -2,7 +2,6 @@ import QtQuick
 import QtTest
 import "../../contents/ui" as Shared
 import "../../contents/code/platform.js" as Platform
-import "../../contents/code/kimaiApi.js" as KimaiApi
 import "../../contents/code/providerUtil.js" as ProviderUtil
 
 /**

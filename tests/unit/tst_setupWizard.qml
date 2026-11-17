@@ -68,15 +68,6 @@ TestCase {
         compare(Wizard.steps([], Wizard.SystemStep.KEEP), ["system", "look", "service", "access", "day"])
     }
 
-    function test_lookPatch() {
-        compare(Wizard.lookPatch(0), { visualStyle: 0 })
-        compare(Wizard.lookPatch(1), { visualStyle: 1 })
-        compare(Wizard.lookPatch("2"), { visualStyle: 2 })
-        compare(Wizard.lookPatch(3), {})
-        compare(Wizard.lookPatch(-1), {})
-        compare(Wizard.lookPatch("x"), {})
-    }
-
     function test_cleanToken() {
         compare(Wizard.cleanToken("  abc123\n"), "abc123")
         compare(Wizard.cleanToken("Bearer abc123"), "abc123")

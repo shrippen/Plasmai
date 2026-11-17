@@ -5,14 +5,6 @@ import "../../contents/code/timeTracker.js" as TimeTracker
 TestCase {
     name: "TimeTracker"
 
-    function test_providerIds() {
-        var ids = TimeTracker.providerIds()
-        verify(ids.indexOf("kimai") >= 0)
-        verify(ids.indexOf("clockify") >= 0)
-        verify(ids.indexOf("toggl") >= 0)
-        verify(ids.indexOf("solidtime") >= 0)
-    }
-
     function test_normalizeAndMeta() {
         compare(TimeTracker.normalizeProviderId("KIMAI"), "kimai")
         compare(TimeTracker.normalizeProviderId(""), "kimai")
@@ -51,7 +43,7 @@ TestCase {
 
     function test_apiHasWizardCalls() {
         // SetupWizard.qml tests, then greets by name, on every service.
-        var ids = TimeTracker.providerIds()
+        var ids = ["kimai", "clockify", "toggl", "solidtime"]
         for (var i = 0; i < ids.length; i++) {
             compare(typeof TimeTracker.api(ids[i]).testConnection, "function", ids[i])
             compare(typeof TimeTracker.api(ids[i]).fetchCurrentUser, "function", ids[i])
@@ -80,7 +72,5 @@ TestCase {
 
     function test_displayNames() {
         compare(TimeTracker.providerDisplayName("kimai"), "Kimai")
-        var names = TimeTracker.providerNames()
-        verify(names.length === TimeTracker.providerIds().length)
     }
 }

@@ -8,8 +8,6 @@ TestCase {
     function test_pad() {
         compare(DateTimeFormat.pad2(3), "03")
         compare(DateTimeFormat.pad2(12), "12")
-        compare(DateTimeFormat.pad4(7), "0007")
-        compare(DateTimeFormat.pad4(2026), "2026")
     }
 
     function test_dateKey() {

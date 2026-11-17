@@ -8,9 +8,6 @@
  */
 
 .import "./kimaiApi.js" as KimaiApi
-.import "./entityColors.js" as Colors
-.import "./entityNames.js" as Names
-.import "./workTotals.js" as WorkTotals
 .import "./providerUtil.js" as ProviderUtil
 .import "./providers/clockify.js" as ClockifyApi
 .import "./providers/toggl.js" as TogglApi
@@ -207,55 +204,4 @@ function applySession(providerId, profile) {
 
 function providerDisplayName(providerId) {
     return providerMeta(providerId).name
-}
-
-function providerIds() {
-    var ids = []
-    for (var i = 0; i < PROVIDERS.length; i++) {
-        ids.push(PROVIDERS[i].id)
-    }
-    return ids
-}
-
-function providerNames() {
-    var names = []
-    for (var i = 0; i < PROVIDERS.length; i++) {
-        names.push(PROVIDERS[i].name)
-    }
-    return names
-}
-
-/**
- * Aggregate timesheets by project for the stats view.
- * Returns [{ name, seconds, color }, ...] sorted by seconds desc.
- */
-function projectBreakdown(timesheets, customersById, limit) {
-    var map = {}
-    var order = []
-    var i
-    for (i = 0; i < (timesheets || []).length; i++) {
-        var ts = timesheets[i]
-        var pid = Names.projectId(ts)
-        var key = String(pid || "_none")
-        if (!map[key]) {
-            map[key] = {
-                name: Names.projectName(ts) || "—",
-                seconds: 0,
-                color: Colors.projectBarColor(
-                    (ts && typeof ts.project === "object") ? ts.project : null,
-                    customersById || {})
-            }
-            order.push(key)
-        }
-        map[key].seconds += WorkTotals.timesheetDurationSeconds(ts)
-    }
-    order.sort(function(a, b) {
-        return map[b].seconds - map[a].seconds
-    })
-    var max = (typeof limit === "number" && limit > 0) ? limit : order.length
-    var out = []
-    for (i = 0; i < order.length && i < max; i++) {
-        out.push(map[order[i]])
-    }
-    return out
 }

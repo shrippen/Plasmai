@@ -381,11 +381,6 @@ function isUnsynced(s, entryId) {
     return isLocalId(entryId) || OfflineState.opsFor(s, entryId).length > 0
 }
 
-/** The same for a trip. */
-function isUnsyncedTrip(s, tripId) {
-    return isLocalId(tripId) || OfflineState.tripOps(s, tripId).length > 0
-}
-
 function findOp(s, opId) {
     for (var i = 0; i < s.ops.length; i++) {
         if (s.ops[i].opId === opId) {

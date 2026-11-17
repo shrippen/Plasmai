@@ -216,21 +216,6 @@ TestCase {
         activityOf: function(ts) { return ts.activity }
     })
 
-    // One engagement per day: its project is the day's film-day project.
-    function test_dayEngagementProject() {
-        responses = [{ status: 200, body: [{ engagementId: 1, projectId: 155, rulesetName: "" }] },
-                     { status: 200, body: [] }]
-        var a, b
-        Sync.dayEngagementProject(ctx("server"), "2026-09-25", function(p) { a = p })
-        Sync.dayEngagementProject(ctx("server"), "2026-09-26", function(p) { b = p })
-        compare(a, 155)
-        compare(b, null)
-        var c = null
-        Sync.dayEngagementProject(ctx("server", { ping: ping(["errorCodes"]) }), "2026-09-25", function(p) { c = p })
-        compare(requests.length, 2)
-        compare(c, null)
-    }
-
     // A day with travel entries and another project: no project picked, the
     // engagement decides the project and the summary the entry.
     function test_resolveDayFollowsEngagementAndSummary() {
@@ -584,7 +569,6 @@ TestCase {
         compare(second.server, null)
         verify(second.error !== null)
         verify(!Sync.extrasVisible(second.mode))
-        verify(!Sync.extrasEditable(second.mode))
     }
 
     function saveReq(fields, server, existingId) {

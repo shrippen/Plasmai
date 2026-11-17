@@ -40,31 +40,6 @@ function isFresh(profileId, url) {
     return (Date.now() - _loadedAt) < FRESH_MS
 }
 
-function ageMs() {
-    if (!_loadedAt) {
-        return -1
-    }
-    return Date.now() - _loadedAt
-}
-
-function shouldRefresh(profileId, force) {
-    if (force) {
-        return true
-    }
-    if (!hasCatalog(profileId)) {
-        return true
-    }
-    return !isFresh(profileId)
-}
-
-function isFetching() {
-    return !!_fetching
-}
-
-function setFetching(value) {
-    _fetching = !!value
-}
-
 function store(profileId, payload) {
     _profileId = String(profileId || "")
     _url = String(payload.url || "")

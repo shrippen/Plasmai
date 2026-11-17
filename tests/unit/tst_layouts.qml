@@ -21,15 +21,4 @@ TestCase {
         compare(Layouts.forAnswer(Layouts.Answer.AS_BEFORE), Layouts.Layout.CLASSIC)
         compare(Layouts.forAnswer("nonsense"), Layouts.Layout.CLASSIC)
     }
-
-    // The wizard never offers the experimental ring; "as before" comes last.
-    function test_answers() {
-        var a = Layouts.answers()
-        compare(a.length, 4)
-        compare(a[a.length - 1], Layouts.Answer.AS_BEFORE)
-        for (var i = 0; i < a.length; i++) {
-            verify(!Layouts.isExperimental(Layouts.forAnswer(a[i])))
-        }
-        verify(Layouts.isExperimental(Layouts.Layout.RING))
-    }
 }

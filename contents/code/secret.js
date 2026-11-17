@@ -1,5 +1,4 @@
 .pragma library
-.import "sharedConfig.js" as SharedConfig
 
 function shQuote(value) {
     return "'" + String(value).replace(/'/g, "'\\''") + "'"
@@ -369,17 +368,4 @@ function storeJson(dataSource, scriptPath, envName, json, scriptName, callback, 
         })
     }
     next()
-}
-
-/** Load shared.json, merge patch, and save. configuration is plasmoid.configuration. */
-function persistSharedPatch(dataSource, scriptPath, configuration, patch, callback) {
-    loadSharedConfig(dataSource, scriptPath, function(existing) {
-        var base = existing || SharedConfig.fromConfiguration(configuration)
-        base = SharedConfig.sanitizeProfilesForPersistence(base, configuration)
-        var shared = SharedConfig.merge(
-            base,
-            patch || {}
-        )
-        saveSharedConfig(dataSource, scriptPath, shared, callback)
-    })
 }
