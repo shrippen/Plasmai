@@ -120,11 +120,6 @@ function resolveMode(url, token, profileId, probeCache, options, callback) {
     })
 }
 
-/** The extras are shown and editable only with the day loaded from the server. */
-function extrasVisible(mode) {
-    return mode === Mode.SERVER
-}
-
 function hasId(value) {
     return value !== null && value !== undefined && value !== ""
 }

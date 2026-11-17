@@ -135,7 +135,7 @@ TestCase {
         Sync.loadDay(ctx("noPlugin"), 3, "2026-09-14", function(r) { got = r })
         compare(requests.length, 0)
         compare(got.mode, "noPlugin")
-        verify(!Sync.extrasVisible(got.mode))
+        verify(got.mode !== Sync.Mode.SERVER)
     }
 
     function test_loadServerWithRulesetAndSummary() {
@@ -568,7 +568,7 @@ TestCase {
         compare(second.fields.note, "")
         compare(second.server, null)
         verify(second.error !== null)
-        verify(!Sync.extrasVisible(second.mode))
+        verify(second.mode !== Sync.Mode.SERVER)
     }
 
     function saveReq(fields, server, existingId) {

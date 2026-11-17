@@ -26,7 +26,7 @@ contents/code/demoKimai.js	handle	ccn=23
 contents/code/demoKimai.js	mileage	ccn=25
 contents/code/demoKimai.js	timesheets	ccn=31
 contents/code/favorites.js	resolvePinnedEntries	ccn=20 nesting=5
-contents/code/filmDaySync.js	-	lines=846
+contents/code/filmDaySync.js	-	lines=841
 contents/code/filmDaySync.js	viewInfo	ccn=28
 contents/code/filmDays.js	normalizeServer	ccn=18
 contents/code/kimaiApi.js	-	lines=1269

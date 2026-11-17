@@ -12,7 +12,6 @@ var _customers = []
 var _projects = []
 var _activities = []
 var _loadedAt = 0
-var _fetching = false
 
 /**
  * Skip the API when the catalog is younger than this.
@@ -47,7 +46,6 @@ function store(profileId, payload) {
     _projects = payload.projects || []
     _activities = payload.activities || []
     _loadedAt = payload.loadedAt || Date.now()
-    _fetching = false
 }
 
 /** Restore from disk / another process. Preserves original loadedAt for TTL. */
@@ -95,5 +93,4 @@ function clear() {
     _projects = []
     _activities = []
     _loadedAt = 0
-    _fetching = false
 }
