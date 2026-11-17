@@ -38,49 +38,21 @@ function baseUrl(url) {
     return u || DEFAULT_BASE_URL
 }
 
-function createRequest(method, url, endpoint, token, isJson) {
-    var xhr = new XMLHttpRequest()
-    xhr.open(method, baseUrl(url) + endpoint, true)
-    xhr.setRequestHeader("Authorization", Util.basicAuthHeader(token, "api_token"))
-    xhr.setRequestHeader("Accept", "application/json")
-    if (isJson) {
-        xhr.setRequestHeader("Content-Type", "application/json")
-    }
-    return xhr
-}
-
-function request(method, url, token, endpoint, body, isJson, callback) {
-    if (!token) {
-        callback(Util.fail({ type: "config", status: 0, detail: "" }))
-        return
-    }
-    var xhr = createRequest(method, url, endpoint, token, isJson)
-    Util.runRequest(xhr, body, function(status, responseText, statusText) {
-        if (status >= 200 && status < 300) {
-            callback(Util.ok(Util.parseJson(responseText, null)))
-        } else if (status === 404) {
-            callback(Util.ok(null))
-        } else {
-            callback(Util.fail(Util.parseApiError(status, statusText, responseText)))
-        }
-    })
-}
-
-function getJson(url, token, endpoint, emptyValue, callback) {
-    request("GET", url, token, endpoint, undefined, false, function(result) {
-        if (result.ok) {
-            callback(Util.ok(result.data !== null && result.data !== undefined ? result.data : emptyValue))
-        } else {
-            callback(result)
-        }
-    })
-}
+var frame = Util.requestFrame({
+    apiBase: baseUrl,
+    headers: function(token) { return { "Authorization": Util.basicAuthHeader(token, "api_token") } },
+    urlMode: Util.UrlMode.Optional,
+    notFound: Util.NotFoundMode.Empty,
+    session: function() { return _session },
+    ready: function() { return !!(_session.workspaceId && _session.userId) },
+    resolve: resolveSession,
+    notReadyDetail: "Workspace or user not resolved"
+})
+var request = frame.request
+var getJson = frame.getJson
+var withSession = frame.withSession
 
 function resolveSession(url, token, callback) {
-    if (_session.workspaceId && _session.userId) {
-        callback(Util.ok(_session))
-        return
-    }
     getJson(url, token, "/me", {}, function(meResult) {
         if (!meResult.ok) {
             callback(meResult)
@@ -89,20 +61,6 @@ function resolveSession(url, token, callback) {
         var me = meResult.data || {}
         _session.userId = _session.userId || me.id || 0
         _session.workspaceId = _session.workspaceId || me.default_workspace_id || 0
-        callback(Util.ok(_session))
-    })
-}
-
-function withSession(url, token, callback) {
-    resolveSession(url, token, function(result) {
-        if (!result.ok) {
-            callback(result)
-            return
-        }
-        if (!_session.workspaceId || !_session.userId) {
-            callback(Util.fail({ type: "config", status: 0, detail: "Workspace or user not resolved" }))
-            return
-        }
         callback(Util.ok(_session))
     })
 }
@@ -194,10 +152,6 @@ function normalizeTimesheets(entries) {
 }
 
 function testConnection(url, token, callback) {
-    if (!token) {
-        callback(Util.fail({ type: "config", status: 0, detail: "" }))
-        return
-    }
     getJson(url, token, "/me", {}, function(result) {
         if (!result.ok) {
             callback(result)

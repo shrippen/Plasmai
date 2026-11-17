@@ -103,6 +103,17 @@ function pendingRequestCount() {
     return pendingRequests.length
 }
 
+/** Test hook: function() returning an XMLHttpRequest-like object (null = real XHR). */
+var requestFactory = null
+
+function setRequestFactory(factory) {
+    requestFactory = factory || null
+}
+
+function newXhr() {
+    return requestFactory ? requestFactory() : new XMLHttpRequest()
+}
+
 function runRequest(xhr, body, callback) {
     var entry = { xhr: xhr, deadline: Date.now() + REQUEST_TIMEOUT_MS, timedOut: false, finished: false }
     // onerror and DONE can both fire; abort() also reports DONE. Answer once.
@@ -130,6 +141,106 @@ function runRequest(xhr, body, callback) {
         xhr.send(body)
     } else {
         xhr.send()
+    }
+}
+
+/** Whether a request needs the service's address; Optional falls back to a default. */
+var UrlMode = { Optional: "optional", Required: "required" }
+
+/** How a 404 reads: an error, or an empty answer. */
+var NotFoundMode = { Error: "error", Empty: "empty" }
+
+function configFail(detail) {
+    return fail({ type: "config", status: 0, detail: detail })
+}
+
+/**
+ * The request frame of a service, once for Clockify, Toggl and SolidTime.
+ * A service names only what is its own:
+ *   apiBase(url)            full base address of its API
+ *   headers(token)          its authorization headers, { name: value }
+ *   urlMode                 UrlMode, whether an empty address is a config error
+ *   notFound                NotFoundMode
+ *   unwrap(body)            optional, takes the payload out of the body
+ *   session()               its context (workspace, user), set by the profile
+ *   ready()                 whether the context is complete
+ *   resolve(url, token, cb) looks the context up; cb(ok) or cb(fail)
+ *   notReadyDetail          the config error when resolve left it incomplete
+ * Returns { request, getJson, withSession }; a missing token (or required address)
+ * answers a config error without sending:
+ *   request(method, url, token, endpoint, body, isJson, callback)
+ *   getJson(url, token, endpoint, emptyValue, callback)  an empty answer becomes emptyValue
+ *   withSession(url, token, callback)  resolves the context once, then reuses it
+ */
+function requestFrame(spec) {
+    function lacksAccess(url, token) {
+        return !token || (spec.urlMode === UrlMode.Required && !url)
+    }
+
+    function open(method, url, endpoint, token, isJson) {
+        var xhr = newXhr()
+        xhr.open(method, spec.apiBase(url) + endpoint, true)
+        var headers = spec.headers(token)
+        for (var name in headers) {
+            xhr.setRequestHeader(name, headers[name])
+        }
+        xhr.setRequestHeader("Accept", "application/json")
+        if (isJson) {
+            xhr.setRequestHeader("Content-Type", "application/json")
+        }
+        return xhr
+    }
+
+    function request(method, url, token, endpoint, body, isJson, callback) {
+        if (lacksAccess(url, token)) {
+            callback(configFail(""))
+            return
+        }
+        var xhr = open(method, url, endpoint, token, isJson)
+        runRequest(xhr, body, function(status, responseText, statusText) {
+            if (status >= 200 && status < 300) {
+                callback(ok(parseJson(responseText, null)))
+            } else if (status === 404 && spec.notFound === NotFoundMode.Empty) {
+                callback(ok(null))
+            } else {
+                callback(fail(parseApiError(status, statusText, responseText)))
+            }
+        })
+    }
+
+    function getJson(url, token, endpoint, emptyValue, callback) {
+        request("GET", url, token, endpoint, undefined, false, function(result) {
+            if (!result.ok) {
+                callback(result)
+                return
+            }
+            var body = spec.unwrap ? spec.unwrap(result.data) : result.data
+            callback(ok(body !== null && body !== undefined ? body : emptyValue))
+        })
+    }
+
+    function withSession(url, token, callback) {
+        if (spec.ready()) {
+            callback(ok(spec.session()))
+            return
+        }
+        spec.resolve(url, token, function(result) {
+            if (!result.ok) {
+                callback(result)
+                return
+            }
+            if (!spec.ready()) {
+                callback(configFail(spec.notReadyDetail))
+                return
+            }
+            callback(ok(spec.session()))
+        })
+    }
+
+    return {
+        request: request,
+        getJson: getJson,
+        withSession: withSession
     }
 }
 

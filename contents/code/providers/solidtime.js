@@ -42,50 +42,22 @@ function apiBase(url) {
     return base + "/api/v1"
 }
 
-function createRequest(method, url, endpoint, token, isJson) {
-    var xhr = new XMLHttpRequest()
-    xhr.open(method, apiBase(url) + endpoint, true)
-    xhr.setRequestHeader("Authorization", "Bearer " + token)
-    xhr.setRequestHeader("Accept", "application/json")
-    if (isJson) {
-        xhr.setRequestHeader("Content-Type", "application/json")
-    }
-    return xhr
-}
-
-function request(method, url, token, endpoint, body, isJson, callback) {
-    if (!url || !token) {
-        callback(Util.fail({ type: "config", status: 0, detail: "" }))
-        return
-    }
-    var xhr = createRequest(method, url, endpoint, token, isJson)
-    Util.runRequest(xhr, body, function(status, responseText, statusText) {
-        if (status >= 200 && status < 300) {
-            callback(Util.ok(Util.parseJson(responseText, null)))
-        } else if (status === 404) {
-            callback(Util.ok(null))
-        } else {
-            callback(Util.fail(Util.parseApiError(status, statusText, responseText)))
-        }
-    })
-}
-
-function getJson(url, token, endpoint, emptyValue, callback) {
-    request("GET", url, token, endpoint, undefined, false, function(result) {
-        if (result.ok) {
-            var body = Util.unwrapData(result.data)
-            callback(Util.ok(body !== null && body !== undefined ? body : emptyValue))
-        } else {
-            callback(result)
-        }
-    })
-}
+var frame = Util.requestFrame({
+    apiBase: apiBase,
+    headers: function(token) { return { "Authorization": "Bearer " + token } },
+    urlMode: Util.UrlMode.Required,
+    notFound: Util.NotFoundMode.Empty,
+    unwrap: Util.unwrapData,
+    session: function() { return _session },
+    ready: function() { return !!(_session.organizationId && _session.memberId) },
+    resolve: resolveSession,
+    notReadyDetail: "Organization or member not resolved"
+})
+var request = frame.request
+var getJson = frame.getJson
+var withSession = frame.withSession
 
 function resolveSession(url, token, callback) {
-    if (_session.organizationId && _session.memberId) {
-        callback(Util.ok(_session))
-        return
-    }
     getJson(url, token, "/users/me/memberships", [], function(membershipResult) {
         if (!membershipResult.ok) {
             callback(membershipResult)
@@ -111,20 +83,6 @@ function resolveSession(url, token, callback) {
         }
         _session.memberId = _session.memberId || picked.id || ""
         _session.organizationId = _session.organizationId || (picked.organization && picked.organization.id) || ""
-        callback(Util.ok(_session))
-    })
-}
-
-function withSession(url, token, callback) {
-    resolveSession(url, token, function(result) {
-        if (!result.ok) {
-            callback(result)
-            return
-        }
-        if (!_session.organizationId || !_session.memberId) {
-            callback(Util.fail({ type: "config", status: 0, detail: "Organization or member not resolved" }))
-            return
-        }
         callback(Util.ok(_session))
     })
 }
@@ -205,10 +163,6 @@ function normalizeTimesheets(entries) {
 }
 
 function testConnection(url, token, callback) {
-    if (!url || !token) {
-        callback(Util.fail({ type: "config", status: 0, detail: "" }))
-        return
-    }
     getJson(url, token, "/users/me", {}, function(userResult) {
         if (!userResult.ok) {
             callback(userResult)
