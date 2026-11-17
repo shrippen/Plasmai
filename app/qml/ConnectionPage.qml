@@ -27,6 +27,8 @@ Kirigami.Page {
     readonly property string selectedProviderId: selectedProfile && selectedProfile.provider
         ? selectedProfile.provider : "kimai"
     readonly property var selectedProviderMeta: session.connection.metaOf(selectedProviderId)
+    /** Every service in display order (id, name, needsUrl, defaultUrl, …). */
+    readonly property var providers: session.setup.listProviders()
 
     function showStatus(msg, isError) {
         statusMessage = msg
@@ -49,19 +51,10 @@ Kirigami.Page {
 
     function ensureSelection() {
         if (profiles.length === 0) {
-            profiles = Profiles.defaultProfiles()
-            if (urlField.text) {
-                profiles[0].url = ProviderUtil.normalizeUrl(urlField.text)
-            }
+            profiles = Profiles.ensured(profiles, ProviderUtil.normalizeUrl(urlField.text))
             syncProfiles()
         }
-        var activeIdx = 0
-        for (var i = 0; i < profiles.length; i++) {
-            if (profiles[i].id === activeProfileField.text) {
-                activeIdx = i
-                break
-            }
-        }
+        var activeIdx = Profiles.activeIndex(profiles, activeProfileField.text)
         selectedIndex = activeIdx
         profileCombo.currentIndex = activeIdx
         updateFieldsForSelection()
@@ -73,20 +66,27 @@ Kirigami.Page {
         profileNameField.text = profiles[selectedIndex].name
         urlField.text = profiles[selectedIndex].url || ""
         var pid = profiles[selectedIndex].provider || "kimai"
-        var ids = ["kimai", "clockify", "toggl", "solidtime"]
-        var pIdx = ids.indexOf(pid)
+        var pIdx = page.providers.map(function(p) { return p.id }).indexOf(pid)
         providerCombo.currentIndex = pIdx >= 0 ? pIdx : 0
         updatingFields = false
     }
 
     function updateSelectedProfile(field, value) {
         if (updatingFields || syncing || profiles.length === 0 || selectedIndex < 0) return
-        var copy = profiles.slice()
-        var row = Object.assign({}, copy[selectedIndex])
-        row[field] = value
-        copy[selectedIndex] = row
-        profiles = copy
+        profiles = Profiles.withField(profiles, selectedIndex, field, value)
         syncProfiles()
+    }
+
+    /** Switch service: clear URL and session ids, prefill the service's default URL. */
+    function applyProviderChange(providerId) {
+        if (updatingFields || syncing || profiles.length === 0 || selectedIndex < 0) return
+        var url = session.setup.providerMeta(providerId).defaultUrl || ""
+        profiles = Profiles.withProvider(profiles, selectedIndex, providerId, url)
+        syncProfiles()
+        updatingFields = true
+        urlField.text = url
+        updatingFields = false
+        showStatus("", false)
     }
 
     function setActiveProfile() {
@@ -251,21 +251,9 @@ Kirigami.Page {
                         text: i18n("Add")
                         icon.name: "list-add"
                         onClicked: {
-                            var copy = page.profiles.slice()
-                            var existingNames = {}
-                            for (var n = 0; n < copy.length; n++) existingNames[copy[n].name] = true
-                            var num = copy.length + 1
-                            while (existingNames[i18n("Profile %1", num)]) num++
-                            var profile = Profiles.normalizeProfile({
-                                id: Profiles.newProfileId(),
-                                name: i18n("Profile %1", num),
-                                url: "",
-                                provider: page.selectedProviderId || "kimai"
-                            })
-                            copy.push(profile)
-                            page.profiles = copy
+                            page.profiles = Profiles.withNewProfile(page.profiles, function(n) { return i18n("Profile %1", n) })
                             page.syncProfiles()
-                            page.selectedIndex = copy.length - 1
+                            page.selectedIndex = page.profiles.length - 1
                             profileCombo.currentIndex = page.selectedIndex
                             page.updateFieldsForSelection()
                             page.checkStoredToken()
@@ -280,9 +268,7 @@ Kirigami.Page {
                         onClicked: {
                             if (page.profiles.length <= 1) return
                             var removedId = page.profiles[page.selectedIndex].id
-                            var copy = page.profiles.slice()
-                            copy.splice(page.selectedIndex, 1)
-                            page.profiles = copy
+                            page.profiles = Profiles.withoutProfile(page.profiles, page.selectedIndex)
                             page.syncProfiles()
                             page.selectedIndex = Math.max(0, page.selectedIndex - 1)
                             profileCombo.currentIndex = page.selectedIndex
@@ -330,27 +316,10 @@ Kirigami.Page {
                     id: providerCombo
                     Kirigami.FormData.label: i18n("Provider:")
                     Layout.fillWidth: true
-                    model: ["Kimai", "Clockify", "Toggl Track", "SolidTime"]
-                    currentIndex: {
-                        var id = page.selectedProviderId
-                        if (id === "clockify") return 1
-                        if (id === "toggl") return 2
-                        if (id === "solidtime") return 3
-                        return 0
-                    }
-                    onCurrentIndexChanged: {
-                        if (page.updatingFields || page.syncing) return
-                        var ids = ["kimai", "clockify", "toggl", "solidtime"]
-                        var defaults = {
-                            kimai: "",
-                            clockify: "https://api.clockify.me/api/v1",
-                            toggl: "https://api.track.toggl.com/api/v9",
-                            solidtime: "https://api.solidtime.io"
-                        }
-                        var newId = ids[currentIndex] || "kimai"
-                        urlField.placeholderText = defaults[newId] || ""
-                        page.updateSelectedProfile("provider", newId)
-                        page.updateFieldsForSelection()
+                    model: page.providers.map(function(p) { return p.name })
+                    onActivated: function(index) {
+                        if (page.updatingFields) return
+                        page.applyProviderChange(page.providers[index].id)
                     }
                 }
 
@@ -358,7 +327,7 @@ Kirigami.Page {
                     id: urlField
                     Kirigami.FormData.label: i18n("Server URL:")
                     Layout.fillWidth: true
-                    placeholderText: i18n("https://your-server.com")
+                    placeholderText: page.selectedProviderMeta.defaultUrl || i18n("https://your-server.com")
                     onTextChanged: {
                         if (!page.updatingFields && !page.syncing) page.updateSelectedProfile("url", text)
                     }

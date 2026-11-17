@@ -41,6 +41,10 @@ TestCase {
                     function saveProfiles() {}
                     function test(profile, handlers) { tc.testHandlers = handlers }
                 }
+                property var setup: QtObject {
+                    function listProviders() { return [{ id: "kimai", name: "Kimai", defaultUrl: "" }] }
+                    function providerMeta() { return { defaultUrl: "" } }
+                }
                 property var sync: QtObject { property bool offline: false }
                 function open() { tc.opened++ }
             }
