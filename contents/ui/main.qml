@@ -142,20 +142,8 @@ PlasmoidItem {
     /** Trips of this week and month for the statistics (null = not loaded / no plugin). */
     property var statsTrips: null
 
-    // Film day: the shown day; mode, probe and calls are session.filmDay's.
+    // Film day: the shown day; the loaded day, mode, probe and calls are session.filmDay's.
     property var filmDaySelectedDate: new Date()
-    /** The Kimai entry for filmDaySelectedDate + the picked project, if any. */
-    property var filmDayTimesheet: null
-    /** Entry the film day's note belongs to (running or the day's), null before it exists. */
-    property var filmDayNoteEntry: null
-    /** The note as last loaded or saved (its entry's description). */
-    property string filmDaySavedNote: ""
-    property bool loadingFilmDay: false
-    property bool savingFilmDay: false
-    property int filmDayLoadSerial: 0
-    /** Film-day JSON the next save diffs against (server mode). */
-    property var filmDayServer: null
-    property string filmDayLoadMode: ""
 
     // Trips: probe, meta and calls are session.trips'.
     /** Open trip suggestions (Dawarich), shown above Recent. */
@@ -967,7 +955,7 @@ PlasmoidItem {
     function returnToMainView() {
         mainViewMode = "main"
         editingStoppedTimesheet = null
-        filmDayTimesheet = null
+        session.filmDay.forgetDay()
         tripSheetSuggestion = null
         dismissPickerPopups()
     }
@@ -980,11 +968,8 @@ PlasmoidItem {
         editingStoppedTimesheet = null
         mainViewMode = "filmday"
         ensureCatalog()
-        // Load only once the mode is known (plugin present or not).
-        loadingFilmDay = true
-        session.filmDay.resolveMode(Session.Probe.Cached, function() {
-            root.loadFilmDayForDate(root.filmDaySelectedDate)
-        })
+        session.filmDay.openView(Session.Probe.Cached, filmDaySelectedDate, root.pickedFilmProject, false,
+                                 root.showFilmDay, root.showFilmDayProduction)
     }
 
     function stepFilmDay(deltaDays) {
@@ -993,13 +978,10 @@ PlasmoidItem {
         loadFilmDayForDate(next)
     }
 
-    /** Time label of an entry ("12:15–12:45") for the film day's other activities. */
-    function filmDaySpanText(ts) {
-        function clock(v) {
-            const d = v ? DTF.parseStamp(v) : null
-            return d && !isNaN(d.getTime()) ? DTF.formatLocaleTime(d.getHours(), d.getMinutes()) : "…"
-        }
-        return clock(ts.begin) + "–" + clock(ts.end)
+    /** The project the film day view has picked, null before. */
+    function pickedFilmProject() {
+        const view = root.filmDayViewRef
+        return view && view.projectCombo.currentIndex >= 0 ? view.projectCombo.currentItem.value.id : null
     }
 
     /**
@@ -1008,95 +990,47 @@ PlasmoidItem {
      */
     function loadFilmDayForDate(date, preferSelected) {
         filmDaySelectedDate = date
-        if (!session.connection.configured) {
-            return
-        }
-        const view = root.filmDayViewRef
-        const selectedProjectIdForDay = view && view.projectCombo.currentIndex >= 0
-            ? view.projectCombo.currentItem.value.id : null
-        loadingFilmDay = true
-        // Only the latest load may fill the view (fast day steps / project picks).
-        const serial = ++filmDayLoadSerial
-        const dateStr = KimaiApi.localDateString(date)
-        // One engagement per day: it decides the project; the plugin's day
-        // summary decides which of the project's entries is the film day.
-        // Cached days show at once; the live answer follows when it differs.
-        session.filmDay.openDay(date, selectedProjectIdForDay, function(r, entries) {
-            if (serial !== root.filmDayLoadSerial) {
-                return
-            }
-            const day = r.day
-            const cat = root.session.catalog
-            root.loadingFilmDay = false
-            root.filmDayTimesheet = r.match
-            root.filmDayServer = day.server
-            root.filmDayLoadMode = day.mode
-            if (!root.filmDayViewRef) {
-                return
-            }
-            const info = root.session.filmDay.viewInfo(r, {
-                entries: entries, active: root.session.timer.tracking ? root.session.timer.active : null,
-                recent: root.session.recent.list, daysFromToday: -DTF.daysBefore(date, new Date()),
-                ids: root.session.filmDay.ids,
-                labelOf: function(ts) {
-                    return KimaiApi.displayActivityName(ts, cat.activities, cat.activitiesByProject)
-                        + " · " + KimaiApi.displayProjectName(ts, cat.projects)
-                },
-                timeOf: root.filmDaySpanText
-            })
-            root.filmDayNoteEntry = info.timesheet
-            root.filmDaySavedNote = FilmDays.noteOf(info.timesheet)
-            root.filmDayViewRef.applyLoadedDay(date, info.timesheet, day,
-                KimaiApi.customerCurrencyOfProject(cat.projectById(r.projectId), cat.customers),
-                r.others, r.projectId, {
-                    phase: info.phase, isToday: info.isToday, activityId: info.activityId,
-                    engagement: r.engagement, engagements: r.engagements,
-                    otherActivities: info.otherActivities
-                })
-            root.loadFilmDayProductionDay(serial, r, info, dateStr)
-        }, !!preferSelected)
+        session.filmDay.loadDay(date, root.pickedFilmProject(), !!preferSelected, root.showFilmDay, root.showFilmDayProduction)
     }
 
-    /** Production shooting day of the engagement, filled in once counted. */
-    function loadFilmDayProductionDay(serial, r, info, dateStr) {
-        if (!r.engagement || !r.engagement.validFrom) {
-            return
-        }
-        session.filmDay.productionDay(r.projectId, info.activityId, r.activityIds,
-                                      String(r.engagement.validFrom), dateStr, function(count) {
-            const view = root.filmDayViewRef
-            if (serial !== root.filmDayLoadSerial || !count || !view) {
-                return
-            }
-            // A day without its entry yet (before the start) is the next shooting day.
-            view.productionDayNumber = count.includesDay ? count.count
-                : (info.phase === "before" ? count.count + 1 : 0)
-            // No activity from the day or Recent: the engagement's usual film activity.
-            if (view.activityCombo.currentIndex < 0 && count.activityId !== null) {
-                view.pendingActivityId = count.activityId
-                view.trySelectPendingActivity()
-            }
-        })
-    }
-
-    /** Direct save of the film day's extras (no busy state: the fields stay usable). */
-    function saveFilmDayExtras(fields) {
+    function showFilmDay(loaded) {
         const view = root.filmDayViewRef
         if (!view) {
             return
         }
-        const projectId = view.projectCombo.currentIndex >= 0 ? view.projectCombo.currentItem.value.id : null
+        const r = loaded.r
+        const info = loaded.info
+        view.applyLoadedDay(loaded.date, info.timesheet, loaded.day, loaded.currency, r.others, r.projectId, {
+            phase: info.phase, isToday: info.isToday, activityId: info.activityId,
+            engagement: r.engagement, engagements: r.engagements,
+            otherActivities: info.otherActivities
+        })
+    }
+
+    function showFilmDayProduction(production) {
+        const view = root.filmDayViewRef
+        if (!view) {
+            return
+        }
+        view.productionDayNumber = production.number
+        // No activity from the day or Recent: the engagement's usual film activity.
+        if (view.activityCombo.currentIndex < 0 && production.activityId !== null) {
+            view.pendingActivityId = production.activityId
+            view.trySelectPendingActivity()
+        }
+    }
+
+    /** Direct save of the film day's extras (no busy state: the fields stay usable). */
+    function saveFilmDayExtras(fields) {
+        if (!root.filmDayViewRef) {
+            return
+        }
         session.filmDay.saveExtras({
-            projectId: projectId, dateStr: KimaiApi.localDateString(root.filmDaySelectedDate), fields: fields,
-            server: filmDayServer, dayMode: filmDayLoadMode
+            projectId: root.pickedFilmProject(), date: root.filmDaySelectedDate, fields: fields
         }, function(result) {
             if (result.extras === "failed") {
                 root.userMessage = i18n("The film day was not saved: %1",
                                         (result.error && result.error.detail) || ApiErrors.text(result.error))
-                return
-            }
-            if (result.server) {
-                root.filmDayServer = result.server
             }
         }, function(payCents) {
             if (root.filmDayViewRef) {
@@ -1105,97 +1039,66 @@ PlasmoidItem {
         })
     }
 
-    /** The note is the entry's description; before the entry exists it goes with Start / Save. */
     function saveFilmDayNote(text) {
-        session.filmDay.saveNote({
-            timesheetId: filmDayNoteEntry ? filmDayNoteEntry.id : null, note: text, previous: filmDaySavedNote
-        }, function(result) {
+        session.filmDay.saveNote(text, function(result) {
             if (result.saved === "failed") {
                 root.showError(result.error)
-                return
-            }
-            if (result.saved === "saved") {
-                root.filmDaySavedNote = result.note
             }
         })
     }
 
     /** Saves entry and extras. direct: begin / end of the shown entry changed (no message, fields stay usable). */
     function saveFilmDay(projectId, activityId, beginText, endText, filmDayFields, direct) {
-        if (!session.connection.configured || session.busy || savingFilmDay) {
+        if (!session.connection.configured || session.busy) {
             return
         }
-        const beginDate = DTF.parseStamp(beginText)
-        const endDate = DTF.parseStamp(endText)
-        if (isNaN(beginDate.getTime()) || isNaN(endDate.getTime())) {
-            userMessage = i18n("Enter valid begin and end date/time.")
-            return
-        }
-        if (endDate.getTime() <= beginDate.getTime()) {
+        const view = root.filmDayViewRef
+        userMessage = ""
+        session.filmDay.saveDay({
+            projectId: projectId, activityId: activityId, date: root.filmDaySelectedDate,
+            beginText: beginText, endText: endText, fields: filmDayFields, direct: direct,
+            // B3: the other entries of the project on this day, deleted after a successful save.
+            mergeIds: (view && view.mergeOthers) ? view.otherEntryIds() : [],
+            breakMinutes: (view && view.extrasVisible) ? view.effectiveBreakMinutes : 0,
+            note: view ? view.noteText() : ""
+        }, function(result) {
+            root.filmDaySaved(result, direct)
+        })
+    }
+
+    function filmDaySaved(result, direct) {
+        if (result.invalid === FilmDays.SpanProblem.ORDER) {
             userMessage = i18n("End must be after begin.")
             return
         }
-        savingFilmDay = !direct
-        userMessage = ""
-        const view = root.filmDayViewRef
-        const breakMinutes = (view && view.extrasVisible) ? view.effectiveBreakMinutes : 0
-        // B3: the other entries of the project on this day, deleted after a successful save.
-        const mergeIds = (view && view.mergeOthers) ? view.otherEntryIds() : []
-        const existingId = FilmDays.saveTargetId(filmDayTimesheet, projectId, KimaiApi.projectId)
-        const timesheetFields = {
-            begin: KimaiApi.localDateTimeString(beginDate),
-            end: KimaiApi.localDateTimeString(endDate),
-            project: projectId,
-            activity: activityId
+        if (result.invalid === FilmDays.SpanProblem.DATES) {
+            userMessage = i18n("Enter valid begin and end date/time.")
+            return
         }
-        // A new entry takes the note typed before it existed.
-        if (!existingId && view) {
-            timesheetFields.description = view.noteText()
+        if (!result.ok) {
+            root.showError(result.error)
+            return
         }
-        session.filmDay.saveDay({
-            projectId: projectId,
-            dateStr: KimaiApi.localDateString(root.filmDaySelectedDate),
-            existingId: existingId,
-            timesheetFields: timesheetFields,
-            fields: filmDayFields,
-            server: filmDayServer,
-            dayMode: filmDayLoadMode
-        }, function(result) {
-            root.savingFilmDay = false
-            if (!result.ok) {
-                root.showError(result.error)
-                return
-            }
-            root.clearError()
-            function finish(deleteReport) {
-                const messages = []
-                if (result.extras === "failed") {
-                    messages.push(i18n("Begin and end were saved, but the film day extras were not: %1",
-                                       (result.error && result.error.detail) || ApiErrors.text(result.error)))
-                }
-                if (deleteReport && deleteReport.failed.length > 0) {
-                    messages.push(i18np("%1 other entry of this day could not be deleted: %2",
-                                        "%1 other entries of this day could not be deleted: %2",
-                                        deleteReport.failed.length, ApiErrors.text(deleteReport.failed[0].error)))
-                }
-                if (messages.length > 0) {
-                    root.userMessage = messages.join(" ")
-                }
-                root.session.refresh()
-                if (!direct) {
-                    root.notify(
-                        i18n("Shooting day saved"),
-                        KimaiApi.formatDurationShort(FilmDays.workSecondsFromSpan(
-                            beginDate.getTime(), endDate.getTime(), breakMinutes)))
-                }
-                root.loadFilmDayForDate(root.filmDaySelectedDate)
-            }
-            if (mergeIds.length > 0) {
-                root.session.filmDay.deleteEntries(mergeIds, finish)
-            } else {
-                finish(null)
-            }
-        })
+        root.clearError()
+        const report = result.deleteReport
+        const messages = []
+        if (result.extras === "failed") {
+            messages.push(i18n("Begin and end were saved, but the film day extras were not: %1",
+                               (result.error && result.error.detail) || ApiErrors.text(result.error)))
+        }
+        if (report && report.failed.length > 0) {
+            messages.push(i18np("%1 other entry of this day could not be deleted: %2",
+                                "%1 other entries of this day could not be deleted: %2",
+                                report.failed.length, ApiErrors.text(report.failed[0].error)))
+        }
+        if (messages.length > 0) {
+            root.userMessage = messages.join(" ")
+        }
+        root.session.refresh()
+        if (!direct && messages.length === 0) {
+            root.notify(i18n("Shooting day saved"), KimaiApi.formatDurationShort(result.workSeconds))
+        }
+        root.loadFilmDayForDate(root.filmDaySelectedDate)
     }
 
     // ── Trips (kimai-anfahrten) ──────────────────────────────────────────
@@ -2710,7 +2613,7 @@ PlasmoidItem {
                     activitySectionTitles: root.activitySectionTitles
                     pickerOpenBelow: root.pickerOpenBelow
                     pickerViewport: popupScroll
-                    busy: root.session.busy || root.savingFilmDay || root.loadingFilmDay
+                    busy: root.session.busy || root.session.filmDay.saving || root.session.filmDay.loading
                     configured: root.session.connection.configured
                     connectionOk: root.connectionState !== "error"
                     showCreateActions: root.session.entries.canCreate
@@ -2765,7 +2668,7 @@ PlasmoidItem {
                         root.loadFilmDayForDate(root.filmDaySelectedDate, true)
                     }
                     tripsAvailable: root.session.trips.canEdit
-                    onTripRequested: root.openTripForTimesheet(root.filmDayTimesheet)
+                    onTripRequested: root.openTripForTimesheet(root.session.filmDay.dayTimesheet)
                     onCancelled: root.returnToMainView()
                     onCreateProjectRequested: root.openCreateEntity("project")
                     onCreateActivityRequested: root.openCreateEntity("activity")

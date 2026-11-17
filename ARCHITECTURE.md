@@ -98,11 +98,11 @@ favourites, statistics, offline work; for Kimai also film days and trips.
 
 ## Known deviations
 
-- The film day's flow and several texts exist once in the widget and once in the
-  app (`AUDIT.md`, finding 4).
+- Several texts exist once in the widget and once in the app; the film day's and the
+  trips' flows stand once, in the session (`AUDIT.md`, finding 4; statistics follow).
 - `kimaiApi.js` holds, beside Kimai's requests, the display helpers and the day's
   calculation every service needs (`AUDIT.md`, finding 5).
 - Error kinds stand partly as loose words; `config` means two things
   (`AUDIT.md`, finding 7).
-- `contents/ui/main.qml` holds view, film day, trips and the loading of statistics in
-  one file of 3087 lines (`AUDIT.md`, finding 10).
+- `contents/ui/main.qml` holds the view and the loading of statistics in
+  one file of 2950 lines (`AUDIT.md`, finding 10).

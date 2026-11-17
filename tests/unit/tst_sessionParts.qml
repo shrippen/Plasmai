@@ -600,13 +600,134 @@ TestCase {
         verify(!s.trips.busy)
     }
 
-    function test_filmDayOpensToday() {
+
+    // ── film day flow ──
+
+    function filmDay9to17(s, extra) {
+        const day = new Date()
+        day.setDate(day.getDate() - 4)
+        day.setHours(0, 0, 0, 0)
+        const req = {
+            projectId: DemoKimai.FILM_PROJECT, activityId: DemoKimai.SHOOTING, date: day,
+            beginText: KimaiApi.localDateString(day) + "T09:00:00", endText: KimaiApi.localDateString(day) + "T17:00:00",
+            fields: {}, direct: true, mergeIds: [], breakMinutes: 0, note: "flow marker"
+        }
+        for (const k in extra) {
+            req[k] = extra[k]
+        }
+        return req
+    }
+
+    function entriesWith(s, req, marker) {
+        let range = null
+        s.entries.fetchRange(req.date, new Date(req.date.getTime() + 86400000 - 1), function(r) { range = r })
+        tryVerify(function() { return range !== null })
+        return range.data.filter(function(ts) { return ts.description === marker })
+    }
+
+    function addStopped(s, req, hour, marker) {
+        const day = KimaiApi.localDateString(req.date)
+        let created = null
+        s.entries.write(null, { project: req.projectId, activity: req.activityId,
+                                begin: day + "T" + hour + ":00:00", end: day + "T" + hour + ":30:00",
+                                description: marker }, function(r) { created = r.data })
+        tryVerify(function() { return created !== null })
+        return created.id
+    }
+
+    function test_filmDaySaveRejectsBadSpan() {
         const s = openDemo()
         tryVerify(function() { return s.filmDay.available })
-        let opened = null
-        s.filmDay.openDay(new Date(), null, function(r, entries) { opened = r })
-        tryVerify(function() { return opened !== null })
-        verify(!!opened.day)
+        let answer = null
+        const early = filmDay9to17(s)
+        early.endText = KimaiApi.localDateString(early.date) + "T01:00:00"
+        s.filmDay.saveDay(early, function(r) { answer = r })
+        tryVerify(function() { return answer !== null })
+        verify(!answer.ok)
+        compare(answer.invalid, "order")
+        answer = null
+        s.filmDay.saveDay(filmDay9to17(s, { beginText: "nonsense" }), function(r) { answer = r })
+        tryVerify(function() { return answer !== null })
+        compare(answer.invalid, "dates")
+        verify(!s.filmDay.saving)
+    }
+
+    function test_filmDaySaveCreatesEntry() {
+        const s = openDemo()
+        tryVerify(function() { return s.filmDay.available })
+        const req = filmDay9to17(s, { note: "created by flow", breakMinutes: 60 })
+        let answer = null
+        s.filmDay.saveDay(req, function(r) { answer = r })
+        tryVerify(function() { return answer !== null })
+        verify(answer.ok)
+        compare(answer.invalid, "")
+        compare(answer.workSeconds, 7 * 3600)
+        compare(entriesWith(s, req, "created by flow").length, 1)
+    }
+
+    function test_filmDayMergeDeletesOthers() {
+        const s = openDemo()
+        tryVerify(function() { return s.filmDay.available })
+        const req = filmDay9to17(s, { note: "merged" })
+        const ids = [addStopped(s, req, "06", "other-a"), addStopped(s, req, "07", "other-b")]
+        req.mergeIds = ids
+        let answer = null
+        s.filmDay.saveDay(req, function(r) { answer = r })
+        tryVerify(function() { return answer !== null })
+        verify(answer.ok)
+        compare(answer.deleteReport.deleted, 2)
+        compare(entriesWith(s, req, "other-a").length, 0)
+        compare(entriesWith(s, req, "other-b").length, 0)
+    }
+
+    // The page that asked may be gone: the deletion belongs to the save, not to the page.
+    function test_filmDayMergeDeletesWithoutCallback() {
+        const s = openDemo()
+        tryVerify(function() { return s.filmDay.available })
+        const req = filmDay9to17(s, { note: "merged quietly" })
+        req.mergeIds = [addStopped(s, req, "06", "gone-a"), addStopped(s, req, "07", "gone-b")]
+        s.filmDay.saveDay(req, function() {})
+        tryVerify(function() { return entriesWith(s, req, "gone-a").length === 0 && entriesWith(s, req, "gone-b").length === 0 })
+        compare(entriesWith(s, req, "merged quietly").length, 1)
+    }
+
+    function test_filmDayLoadFillsState() {
+        const s = openDemo()
+        tryVerify(function() { return s.filmDay.available })
+        let loaded = null
+        let production = null
+        s.filmDay.loadDay(new Date(), null, false, function(l) { loaded = l }, function(p) { production = p })
+        tryVerify(function() { return loaded !== null })
+        verify(!!loaded.info.phase)
+        compare(s.filmDay.dayMode, loaded.day.mode)
+        verify(!s.filmDay.loading)
+        tryVerify(function() { return production !== null })
+        verify(production.number >= 0)
+    }
+
+    // Opening the view: the mode first, then the day with the project picked by then.
+    function test_filmDayOpenViewLoads() {
+        const s = openDemo()
+        tryVerify(function() { return s.filmDay.available })
+        let loaded = null
+        let askedForProject = false
+        s.filmDay.openView(Ui.Session.Probe.Cached, new Date(),
+                           function() { askedForProject = true; return null }, false,
+                           function(l) { loaded = l }, null)
+        tryVerify(function() { return loaded !== null })
+        verify(askedForProject)
+        verify(!!loaded.info.phase)
+        verify(!s.filmDay.loading)
+    }
+
+    function test_filmDayLatestLoadWins() {
+        const s = openDemo()
+        tryVerify(function() { return s.filmDay.available })
+        const answered = []
+        s.filmDay.loadDay(new Date(), null, false, function() { answered.push("first") }, null)
+        s.filmDay.loadDay(new Date(), null, false, function() { answered.push("second") }, null)
+        tryVerify(function() { return answered.indexOf("second") >= 0 })
+        compare(answered.indexOf("first"), -1)
     }
 
     // ── reminders, setup ──

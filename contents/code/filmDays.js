@@ -59,6 +59,35 @@ function effectiveCategory(entry, isoWeekday) {
     return categoryFromWeekday(isoWeekday)
 }
 
+/** Why a begin / end pair cannot be saved ("" when it can). */
+var SpanProblem = {
+    NONE: "",
+    DATES: "dates",
+    ORDER: "order"
+}
+
+/** Begin and end text of the film day: { problem, beginMs, endMs }; the end must follow the begin. */
+function checkSpan(beginText, endText) {
+    var beginMs = DTF.parseStamp(beginText).getTime()
+    var endMs = DTF.parseStamp(endText).getTime()
+    var problem = SpanProblem.NONE
+    if (isNaN(beginMs) || isNaN(endMs)) {
+        problem = SpanProblem.DATES
+    } else if (endMs <= beginMs) {
+        problem = SpanProblem.ORDER
+    }
+    return { problem: problem, beginMs: beginMs, endMs: endMs }
+}
+
+/** Time label of an entry ("12:15–12:45"); "…" for a missing or running end. */
+function spanText(timesheet) {
+    function clock(stamp) {
+        var d = stamp ? DTF.parseStamp(stamp) : null
+        return d && !isNaN(d.getTime()) ? DTF.formatLocaleTime(d.getHours(), d.getMinutes()) : "…"
+    }
+    return clock(timesheet.begin) + "–" + clock(timesheet.end)
+}
+
 /** Net work time in seconds: span minus break, floored at 0. */
 function workSecondsFromSpan(beginMs, endMs, breakMinutes) {
     if (!(beginMs >= 0) || !(endMs > beginMs)) {

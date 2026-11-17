@@ -11,6 +11,20 @@ TestCase {
         compare(FilmDays.localDateKey("nonsense"), "")
     }
 
+    function test_checkSpan() {
+        compare(FilmDays.checkSpan("2026-11-10T09:00:00", "2026-11-10T17:00:00").problem, FilmDays.SpanProblem.NONE)
+        compare(FilmDays.checkSpan("2026-11-10T09:00:00", "2026-11-10T09:00:00").problem, FilmDays.SpanProblem.ORDER)
+        compare(FilmDays.checkSpan("2026-11-10T09:00:00", "2026-11-10T08:00:00").problem, FilmDays.SpanProblem.ORDER)
+        compare(FilmDays.checkSpan("nonsense", "2026-11-10T08:00:00").problem, FilmDays.SpanProblem.DATES)
+        compare(FilmDays.checkSpan("2026-11-10T09:00:00", "").problem, FilmDays.SpanProblem.DATES)
+    }
+
+    function test_spanText() {
+        verify(FilmDays.spanText({ begin: "2026-11-10T09:05:00", end: "2026-11-10T10:00:00" }).indexOf("–") > 0)
+        compare(FilmDays.spanText({ begin: "2026-11-10T09:05:00", end: null }).slice(-1), "…")
+        compare(FilmDays.spanText({}), "…–…")
+    }
+
     function test_otherDayEntriesAndSpan() {
         function pid(ts) { return ts.project }
         var a = { id: 1, project: 5, begin: "2026-09-23T09:00:00+0200", end: "2026-09-23T12:00:00+0200" }
