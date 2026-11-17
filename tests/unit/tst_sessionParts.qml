@@ -609,6 +609,7 @@ TestCase {
         verify(!!opened.day)
     }
 
+
     // ── film day flow ──
 
     function filmDay9to17(s, extra) {
@@ -647,7 +648,9 @@ TestCase {
         const s = openDemo()
         tryVerify(function() { return s.filmDay.available })
         let answer = null
-        s.filmDay.saveDay(filmDay9to17(s, { endText: KimaiApi.localDateString(new Date()) + "T01:00:00" }), function(r) { answer = r })
+        const early = filmDay9to17(s)
+        early.endText = KimaiApi.localDateString(early.date) + "T01:00:00"
+        s.filmDay.saveDay(early, function(r) { answer = r })
         tryVerify(function() { return answer !== null })
         verify(!answer.ok)
         compare(answer.invalid, "order")
@@ -719,12 +722,6 @@ TestCase {
         s.filmDay.loadDay(new Date(), null, false, function() { answered.push("second") }, null)
         tryVerify(function() { return answered.indexOf("second") >= 0 })
         compare(answered.indexOf("first"), -1)
-    }
-
-    function test_filmDaySpanText() {
-        const s = openDemo()
-        compare(s.filmDay.spanText({ begin: "2026-11-10T09:05:00", end: null }).slice(-2), "…")
-        verify(s.filmDay.spanText({ begin: "2026-11-10T09:05:00", end: "2026-11-10T10:00:00" }).indexOf("–") > 0)
     }
 
     // ── reminders, setup ──

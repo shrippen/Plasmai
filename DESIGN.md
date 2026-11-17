@@ -475,7 +475,7 @@ read as Kante. It is the design system's `KanteStyle.Kind.KanteLight`:
   reused). If the project has more stopped entries that day, the view says so
   (their total time) and offers "Merge into one entry": begin/end stretch over
   all of them, and after a successful save the other entries are deleted
-  (`FilmDaySync.deleteEntries`; failures are reported, never retried silently). The film-specific extras — break, catering, day category, day type,
+  (by the session's `filmDay.saveDay`, even if the page is gone; failures are reported, the view stays on the day, never retried silently). The film-specific extras — break, catering, day category, day type,
   production shooting day, surcharge day, extra pay, note — belong to
   [kimai-drehzettel-bundle](https://github.com/shrippen/kimai-drehzettel-bundle).
 - **Server first** (`filmDaySync.js`, shared by Plasmoid and app so the

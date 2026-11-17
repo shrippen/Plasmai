@@ -19,14 +19,20 @@ TestCase {
             id: root
             property QtObject session: QtObject {
                 property var filmDay: QtObject {
-                    property var ids: ({})
-                    function resolveMode(mode, cb) { tc.pending.push(cb) }
-                    function openDay(date, projectId, cb, prefer) { tc.pending.push(function() { cb({}, []) }) }
-                    function productionDay() {}
-                    function viewInfo() { return {} }
-                    function saveExtras() {}
-                    function saveNote() {}
-                    function saveDay() {}
+                    property bool loading: false
+                    property bool saving: false
+                    property var dayTimesheet: null
+                    function openView(probe, date, projectId, prefer, onDay, onProduction) {
+                        tc.pending.push(function() { onDay({}); onProduction({}) })
+                    }
+                    function loadDay(date, projectId, prefer, onDay, onProduction) {
+                        tc.pending.push(function() { onDay({}); onProduction({}) })
+                    }
+                    function saveExtras(req, cb, earnings) {
+                        tc.pending.push(function() { cb({ extras: "saved" }); earnings(100) })
+                    }
+                    function saveNote(text, cb) { tc.pending.push(function() { cb({ saved: "saved", note: text }) }) }
+                    function saveDay(req, cb) { tc.pending.push(function() { cb({ ok: true, invalid: "", deleteReport: null }) }) }
                 }
                 property var catalog: QtObject {
                     property var projectPickerModel: []
@@ -40,6 +46,7 @@ TestCase {
                 }
                 property var connection: QtObject { property bool configured: true; property string state: "ok" }
                 property var timer: QtObject { property bool tracking: false; property var active: null; property int elapsedSeconds: 0 }
+                property var reminders: QtObject { function notify() {} }
                 property var sync: QtObject { property bool offline: false }
                 property var entries: QtObject { property bool canCreate: true }
                 property var trips: QtObject { property bool canEdit: false }
@@ -88,16 +95,39 @@ TestCase {
         return null
     }
 
-    function test_late_mode_answer_does_not_throw() {
+    function test_late_day_answer_does_not_throw() {
         compare(lateAnswers(function() { compare(pending.length, 1) }), [])
     }
 
-    function test_late_day_answer_does_not_throw() {
-        // The mode answer arrives while the page is open and asks for the day.
-        compare(lateAnswers(function() {
-            pending.shift()()
-            compare(pending.length, 1)
-        }), [])
+    /** Opens a page, lets `act(view)` start one request, closes the page; returns what the answer threw. */
+    function lateRequest(act) {
+        const h = createTemporaryObject(host, tc)
+        const page = h.pageComponent.createObject(h)
+        const view = findView(page)
+        verify(view !== null)
+        pending = []
+        act(view)
+        compare(pending.length, 1)
+        page.destroy()
+        wait(0)
+
+        const thrown = []
+        for (const cb of pending.splice(0)) {
+            try { cb() } catch (e) { thrown.push(String(e)) }
+        }
+        return thrown
+    }
+
+    function test_late_save_answer_does_not_throw() {
+        compare(lateRequest(function(view) { view.saveRequested(7, 8, "2026-11-10T09:00:00", "2026-11-10T17:00:00", {}) }), [])
+    }
+
+    function test_late_extras_answer_does_not_throw() {
+        compare(lateRequest(function(view) { view.extrasEdited({}) }), [])
+    }
+
+    function test_late_note_answer_does_not_throw() {
+        compare(lateRequest(function(view) { view.noteEdited("text") }), [])
     }
 
     function test_late_activities_answer_does_not_throw() {
