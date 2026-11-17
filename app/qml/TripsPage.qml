@@ -35,8 +35,8 @@ Kirigami.Page {
     function reload() {
         if (!session.trips.available) return
         page.loading = true
-        var r = page.range
-        var query = Mileage.hasFeature(session.trips.ping, "dateRange") ? r
+        const r = page.range
+        const query = Mileage.hasFeature(session.trips.ping, "dateRange") ? r
             : { year: page.month.getFullYear(), month: page.month.getMonth() + 1 }
         session.trips.fetch(query, function(res) {
             // The page is gone: nothing to show.
@@ -68,8 +68,8 @@ Kirigami.Page {
     }
 
     function tripDetails(trip) {
-        var d = Mileage.parseDateString(trip.date)
-        var bits = [d ? d.toLocaleDateString(Qt.locale(), Locale.ShortFormat) : trip.date,
+        const d = Mileage.parseDateString(trip.date)
+        const bits = [d ? d.toLocaleDateString(Qt.locale(), Locale.ShortFormat) : trip.date,
                     Mileage.labelOf(session.trips.meta ? session.trips.meta.purposes : null, trip.purpose, page.purposeFallback)]
         if (trip.roundTrip) {
             bits.push(i18n("round trip"))
@@ -89,7 +89,7 @@ Kirigami.Page {
         if (page.busy) return
         if (Mileage.commuteKm(session.trips.ping) === null) {
             // No commute distance in the Kimai profile: let the user enter it.
-            var f = Mileage.emptyForm(session.trips.ping, Mileage.dateString(new Date()))
+            const f = Mileage.emptyForm(session.trips.ping, Mileage.dateString(new Date()))
             f.purpose = Mileage.Purpose.COMMUTE
             pushEdit({ form: f })
             return
