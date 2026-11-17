@@ -87,10 +87,6 @@ ColumnLayout {
     readonly property var localErrors: Mileage.validateForm(currentForm(), ping)
     readonly property bool formValid: !Mileage.hasErrors(localErrors)
 
-    function pad2(n) {
-        return (n < 10 ? "0" : "") + n
-    }
-
     function indexOfValue(opts, value) {
         for (var i = 0; i < opts.length; i++) {
             if (String(opts[i].value) === String(value)) {
@@ -158,8 +154,8 @@ ColumnLayout {
         f.start = startField.text
         f.destination = destinationField.text
         f.withTimes = timesCheck.checked
-        f.departure = pad2(departureField.hours) + ":" + pad2(departureField.minutes)
-        f.arrival = pad2(arrivalField.hours) + ":" + pad2(arrivalField.minutes)
+        f.departure = DTF.pad2(departureField.hours) + ":" + DTF.pad2(departureField.minutes)
+        f.arrival = DTF.pad2(arrivalField.hours) + ":" + DTF.pad2(arrivalField.minutes)
         f.comment = commentField.text
         return f
     }

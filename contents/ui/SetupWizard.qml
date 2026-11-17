@@ -4,6 +4,7 @@ import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
 import "../code/setupWizard.js" as Wizard
 import "../code/profiles.js" as Profiles
+import "../code/dateTimeFormat.js" as DTF
 import "."
 import "session"
 import "Kante"
@@ -276,13 +277,9 @@ ColumnLayout {
         })
     }
 
-    function pad2(n) {
-        return (n < 10 ? "0" : "") + n
-    }
-
     /** A TimeField as "08:30". */
     function clockOf(field) {
-        return pad2(field.hours) + ":" + pad2(field.minutes)
+        return DTF.pad2(field.hours) + ":" + DTF.pad2(field.minutes)
     }
 
     function finish() {

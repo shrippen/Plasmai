@@ -9,6 +9,22 @@ function pad2(n) {
     return (n < 10 ? "0" : "") + n
 }
 
+/** Local "YYYY-MM-DD" of a Date; "" if invalid. */
+function dateKey(date) {
+    if (!date || isNaN(date.getTime())) {
+        return ""
+    }
+    return date.getFullYear() + "-" + pad2(date.getMonth() + 1) + "-" + pad2(date.getDate())
+}
+
+/** Local "YYYY-MM-DD HH:MM" of a Date; "" if invalid. */
+function dateTimeText(date) {
+    if (!date || isNaN(date.getTime())) {
+        return ""
+    }
+    return dateKey(date) + " " + pad2(date.getHours()) + ":" + pad2(date.getMinutes())
+}
+
 function pad4(n) {
     var s = String(n)
     while (s.length < 4) {

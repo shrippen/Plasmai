@@ -990,7 +990,7 @@ function fetchHolidayPublicHolidays(kimaiUrl, apiToken, year, callback) {
 }
 
 function localDateString(date) {
-    return WorkAdjust.dateKey(date)
+    return DTF.dateKey(date)
 }
 
 function probeGet(kimaiUrl, apiToken, endpoint, callback) {
@@ -1643,14 +1643,14 @@ function localDateTimeString(date) {
     var offset = -date.getTimezoneOffset()
     var abs = Math.abs(offset)
     return localQueryString(date)
-        + (offset < 0 ? "-" : "+") + WorkAdjust.pad2(Math.floor(abs / 60)) + WorkAdjust.pad2(abs % 60)
+        + (offset < 0 ? "-" : "+") + DTF.pad2(Math.floor(abs / 60)) + DTF.pad2(abs % 60)
 }
 
 /** The same without an offset, for the query filters (begin/end), which Kimai rejects with one. */
 function localQueryString(date) {
-    return WorkAdjust.dateKey(date)
-        + "T" + WorkAdjust.pad2(date.getHours()) + ":" + WorkAdjust.pad2(date.getMinutes())
-        + ":" + WorkAdjust.pad2(date.getSeconds())
+    return DTF.dateKey(date)
+        + "T" + DTF.pad2(date.getHours()) + ":" + DTF.pad2(date.getMinutes())
+        + ":" + DTF.pad2(date.getSeconds())
 }
 
 function startOfLocalDay(date) {

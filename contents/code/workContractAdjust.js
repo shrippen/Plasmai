@@ -36,14 +36,6 @@ function holidayPluginCacheSource(entry, nowMs, ttlMs) {
     return entry.source
 }
 
-function pad2(n) {
-    return (n < 10 ? "0" : "") + n
-}
-
-function dateKey(date) {
-    return date.getFullYear() + "-" + pad2(date.getMonth() + 1) + "-" + pad2(date.getDate())
-}
-
 function parseIsoDate(text) {
     if (!text) {
         return null
@@ -206,7 +198,7 @@ function absenceCoversDate(absence, date) {
 }
 
 function publicHolidayForDate(publicHolidays, date) {
-    var key = dateKey(date)
+    var key = DTF.dateKey(date)
     for (var i = 0; i < (publicHolidays || []).length; i++) {
         var ph = publicHolidays[i]
         if (ph && String(ph.date || "").substring(0, 10) === key) {
@@ -323,7 +315,7 @@ function entrySecondsOnLocalDate(entry, date, nowMs) {
     if (isNaN(begin.getTime())) {
         return 0
     }
-    if (dateKey(begin) !== dateKey(date)) {
+    if (DTF.dateKey(begin) !== DTF.dateKey(date)) {
         return 0
     }
     if (entry.end) {

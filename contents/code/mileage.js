@@ -32,15 +32,8 @@ var MAX_COMMENT = 1000
 var PURPOSES = ["commute", "business", "private"]
 var VEHICLES = ["own_car", "rental_car", "company_car", "motorcycle", "bicycle", "public_transport", "other"]
 
-function pad2(n) {
-    return (n < 10 ? "0" : "") + n
-}
-
 function dateString(date) {
-    if (!date || isNaN(date.getTime())) {
-        return ""
-    }
-    return date.getFullYear() + "-" + pad2(date.getMonth() + 1) + "-" + pad2(date.getDate())
+    return DTF.dateKey(date)
 }
 
 function isDateString(s) {
@@ -278,7 +271,7 @@ function validateForm(form, ping) {
 
 function normTime(s) {
     var m = /^(\d{1,2}):(\d{2})$/.exec(String(s || ""))
-    return m ? pad2(Number(m[1])) + ":" + m[2] : ""
+    return m ? DTF.pad2(Number(m[1])) + ":" + m[2] : ""
 }
 
 function hasErrors(errors) {
@@ -409,8 +402,8 @@ function formFromSuggestion(ping, suggestion) {
     form.distanceKm = (sg.distanceKm === null || sg.distanceKm === undefined) ? "" : formatKm(sg.distanceKm)
     if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
         form.withTimes = true
-        form.departure = pad2(start.getHours()) + ":" + pad2(start.getMinutes())
-        form.arrival = pad2(end.getHours()) + ":" + pad2(end.getMinutes())
+        form.departure = DTF.pad2(start.getHours()) + ":" + DTF.pad2(start.getMinutes())
+        form.arrival = DTF.pad2(end.getHours()) + ":" + DTF.pad2(end.getMinutes())
     }
     if (sg.project !== undefined && sg.project !== null) {
         form.project = sg.project

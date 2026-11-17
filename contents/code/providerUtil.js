@@ -1,4 +1,5 @@
 .pragma library
+.import "./dateTimeFormat.js" as DTF
 
 var ErrorType = {
     Network: "network",
@@ -133,15 +134,11 @@ function runRequest(xhr, body, callback) {
     }
 }
 
-function pad2(n) {
-    return (n < 10 ? "0" : "") + n
-}
-
 /** UTC ISO 8601 without fractional seconds, ending in Z. */
 function isoUtc(date) {
     var d = date || new Date()
-    return d.getUTCFullYear() + "-" + pad2(d.getUTCMonth() + 1) + "-" + pad2(d.getUTCDate())
-        + "T" + pad2(d.getUTCHours()) + ":" + pad2(d.getUTCMinutes()) + ":" + pad2(d.getUTCSeconds()) + "Z"
+    return d.getUTCFullYear() + "-" + DTF.pad2(d.getUTCMonth() + 1) + "-" + DTF.pad2(d.getUTCDate())
+        + "T" + DTF.pad2(d.getUTCHours()) + ":" + DTF.pad2(d.getUTCMinutes()) + ":" + DTF.pad2(d.getUTCSeconds()) + "Z"
 }
 
 /**

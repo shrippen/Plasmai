@@ -152,16 +152,8 @@ ColumnLayout {
         return value !== null && value !== undefined && value !== ""
     }
 
-    function pad2(n) {
-        return (n < 10 ? "0" : "") + n
-    }
-
     function stampText(date, timeField) {
-        if (!date || isNaN(date.getTime())) {
-            return ""
-        }
-        return date.getFullYear() + "-" + pad2(date.getMonth() + 1) + "-" + pad2(date.getDate())
-            + " " + pad2(timeField.hours) + ":" + pad2(timeField.minutes)
+        return DTF.dateTimeText(combineStamp(date, timeField))
     }
 
     function combineStamp(date, timeField) {

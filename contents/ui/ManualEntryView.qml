@@ -57,10 +57,6 @@ ColumnLayout {
         pickers.closePickers()
     }
 
-    function pad2(n) {
-        return (n < 10 ? "0" : "") + n
-    }
-
     function combineStamp(dateField, timeField) {
         var d = DTF.coerceDate(dateField.selectedDate)
         if (!d) {
@@ -75,12 +71,7 @@ ColumnLayout {
     }
 
     function stampText(dateField, timeField) {
-        var d = combineStamp(dateField, timeField)
-        if (!d || isNaN(d.getTime())) {
-            return ""
-        }
-        return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate())
-            + " " + pad2(d.getHours()) + ":" + pad2(d.getMinutes())
+        return DTF.dateTimeText(combineStamp(dateField, timeField))
     }
 
     readonly property int durationSeconds: {
