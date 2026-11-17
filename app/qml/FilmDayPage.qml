@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
-import "../contents/code/filmDays.js" as FilmDays
 import "../contents/code/dateTimeFormat.js" as DTF
 import "shared"
 import "Kante"
@@ -100,12 +99,8 @@ Kirigami.Page {
     }
 
     function saved(result, direct) {
-        if (result.invalid === FilmDays.SpanProblem.ORDER) {
-            root.showPassiveNotification(i18n("End must be after begin."))
-            return
-        }
-        if (result.invalid === FilmDays.SpanProblem.DATES) {
-            root.showPassiveNotification(i18n("Enter valid begin and end date/time."))
+        if (result.invalid) {
+            root.showPassiveNotification(EntryTexts.timeProblem(result.invalid))
             return
         }
         if (!result.ok) {

@@ -110,5 +110,5 @@ favourites, statistics, offline work; for Kimai also film days and trips.
   layer and around both (`AUDIT.md`, finding 7).
 - The offline layer's files belong to a profile, the catalog cache to a profile and
   its server (`AUDIT.md`, finding 9).
-- `contents/ui/main.qml` is one file of 2789 lines, still over the size limit; film day,
+- `contents/ui/main.qml` is one file of 2771 lines, still over the size limit; film day,
   trips, statistics and the shared texts have left it (`AUDIT.md`, finding 10).

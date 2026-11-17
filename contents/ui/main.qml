@@ -20,7 +20,6 @@ import "../code/favorites.js" as Favorites
 import "../code/sharedConfig.js" as SharedConfig
 import "../code/buildInfo.js" as BuildInfo
 import "../code/timesheetFields.js" as TimesheetFields
-import "../code/filmDays.js" as FilmDays
 import "../code/dateTimeFormat.js" as DTF
 import "../code/mileage.js" as Mileage
 import "../code/statsData.js" as StatsData
@@ -950,12 +949,9 @@ PlasmoidItem {
     }
 
     function filmDaySaved(result, direct) {
-        if (result.invalid === FilmDays.SpanProblem.ORDER) {
-            userMessage = i18n("End must be after begin.")
-            return
-        }
-        if (result.invalid === FilmDays.SpanProblem.DATES) {
-            userMessage = i18n("Enter valid begin and end date/time.")
+        // The film day's span problems are TimeProblem values (DATES, ORDER).
+        if (result.invalid) {
+            userMessage = EntryTexts.timeProblem(result.invalid)
             return
         }
         if (!result.ok) {

@@ -77,6 +77,7 @@ Kirigami.Page {
     }
     function isOverTime() { return session.totals.hasWorkContract && (session.totals.remainingTodaySeconds < 0 || session.totals.remainingWeekSeconds < 0) }
 
+    Connections { target: session.timer; function onTrackingChanged() { if (!session.timer.tracking) { page.editingActive = false } } } // ended elsewhere: nothing to save
     function openEdit() {
         if (!session.timer.tracking || !session.timer.active) return
         editingActive = true
