@@ -1,6 +1,8 @@
 import QtQuick
 import QtTest
 import "../../contents/code/offline.js" as Offline
+import "../../contents/code/offlineOutbox.js" as Outbox
+import "../../contents/code/offlineState.js" as OfflineState
 import "../../contents/code/kimaiApi.js" as KimaiApi
 import "../../contents/code/providerUtil.js" as ProviderUtil
 
@@ -162,7 +164,7 @@ TestCase {
         call(function(cb) { t.fetchRecentTimesheets("u", "t", 10, cb) })
         call(function(cb) { t.loadProjects("u", "t", cb) })
         verify(!Offline.isOffline(s))
-        compare(Offline.stateAt(s), t0)
+        compare(OfflineState.stateAt(s), t0)
 
         k.net = false
         var active = call(function(cb) { t.fetchActiveTimesheet("u", "t", cb) })
@@ -199,7 +201,7 @@ TestCase {
             call(function(cb) { t.fetchRecentTimesheets("u", "t", 10, cb) })
         }
         compare(saves, 1)
-        h.clock = t0 + Offline.SAVE_AGE_MS + 1
+        h.clock = t0 + OfflineState.SAVE_AGE_MS + 1
         call(function(cb) { t.fetchRecentTimesheets("u", "t", 10, cb) })
         compare(saves, 2)
         k.server[2] = { id: 2, begin: stamp(11, 0), project: 10, activity: 21 }
@@ -284,17 +286,17 @@ TestCase {
         k.calls = []
         var started = call(function(cb) { t.startTracking("u", "t", 10, 20, "Dreh", cb, {}) })
         verify(started.ok && started.queued)
-        verify(Offline.isLocalId(started.data.id))
+        verify(Outbox.isLocalId(started.data.id))
         compare(started.data.begin, stamp(12, 0))
         compare(k.calls, [], "offline: no request")
         var active = call(function(cb) { t.fetchActiveTimesheet("u", "t", cb) })
         compare(active.data[0].id, started.data.id)
-        verify(Offline.isUnsynced(s, started.data.id))
+        verify(Outbox.isUnsynced(s, started.data.id))
 
         h.clock = t0 + 45 * 60000
         var stopped = call(function(cb) { t.stopTracking("u", "t", started.data.id, cb) })
         verify(stopped.ok)
-        compare(Offline.pendingCount(s), 1, "the stop went into the waiting create")
+        compare(Outbox.pendingCount(s), 1, "the stop went into the waiting create")
         active = call(function(cb) { t.fetchActiveTimesheet("u", "t", cb) })
         compare(active.data.length, 0)
         var recent = call(function(cb) { t.fetchRecentTimesheets("u", "t", 10, cb) })
@@ -306,7 +308,7 @@ TestCase {
         k.calls = []
         active = call(function(cb) { t.fetchActiveTimesheet("u", "t", cb) })
         compare(k.calls, ["active", "create", "active"])
-        compare(Offline.pendingCount(s), 0)
+        compare(Outbox.pendingCount(s), 0)
         compare(h.renamed.length, 1)
         compare(h.renamed[0][1], 100)
         compare(k.server[100].begin, stamp(12, 0))
@@ -324,9 +326,9 @@ TestCase {
         verify(Offline.isOffline(s) === true)
         // The create is not sent yet: a later patch of it is merged, not queued.
         call(function(cb) { t.patchTimesheet("u", "t", a.data.id, { description: "x" }, cb) })
-        compare(Offline.pendingCount(s), 1)
+        compare(Outbox.pendingCount(s), 1)
         k.net = true
-        var sent = call(function(cb) { Offline.replay(s, cb) })
+        var sent = call(function(cb) { Outbox.replay(s, cb) })
         compare(sent, 1)
         compare(k.server[100].description, "x")
     }
@@ -342,11 +344,11 @@ TestCase {
         verify(Offline.isOffline(s))
         compare(Object.keys(k.server).length, 1)
         k.calls = []
-        call(function(cb) { Offline.replay(s, cb) })
+        call(function(cb) { Outbox.replay(s, cb) })
         compare(k.calls[0], "range", "looks for the lost create first")
         verify(k.calls.indexOf("create") < 0, "no second create")
         compare(Object.keys(k.server).length, 1)
-        compare(Offline.pendingCount(s), 0)
+        compare(Outbox.pendingCount(s), 0)
     }
 
     function test_replayStopsAtFailure() {
@@ -359,23 +361,23 @@ TestCase {
         call(function(cb) { t.fetchRecentTimesheets("u", "t", 10, cb) })
         var a = call(function(cb) { t.createTimesheet("u", "t", { begin: stamp(7, 0), end: stamp(8, 0), project: 10, activity: 20 }, cb) })
         call(function(cb) { t.patchTimesheet("u", "t", 1, { description: "later" }, cb) })
-        compare(Offline.pendingCount(s), 2)
+        compare(Outbox.pendingCount(s), 2)
 
         k.net = true
         k.refuse = { create: { type: "unknown", status: 400, detail: "overlap" } }
-        call(function(cb) { Offline.replay(s, cb) })
-        var ops = Offline.ops(s)
+        call(function(cb) { Outbox.replay(s, cb) })
+        var ops = Outbox.ops(s)
         compare(ops.length, 2)
-        compare(ops[0].state, Offline.State.FAILED)
+        compare(ops[0].state, OfflineState.State.FAILED)
         compare(ops[0].error.detail, "overlap")
-        compare(ops[1].state, Offline.State.PENDING)
+        compare(ops[1].state, OfflineState.State.PENDING)
         compare(k.server[1].description, "", "the later op waits")
         verify(k.calls.indexOf("patch 1") < 0)
 
         // Fixed elsewhere: retry sends both.
         k.refuse = null
-        call(function(cb) { Offline.retry(s, ops[0].opId, cb) })
-        compare(Offline.pendingCount(s), 0)
+        call(function(cb) { Outbox.retry(s, ops[0].opId, cb) })
+        compare(Outbox.pendingCount(s), 0)
         compare(k.server[1].description, "later")
     }
 
@@ -388,15 +390,15 @@ TestCase {
         var a = call(function(cb) { t.startTracking("u", "t", 10, 20, "", cb, {}) })
         k.net = true
         k.refuse = { create: { type: "unknown", status: 400, detail: "no" } }
-        call(function(cb) { Offline.replay(s, cb) })
-        var ops = Offline.ops(s)
-        compare(ops[0].state, Offline.State.FAILED)
+        call(function(cb) { Outbox.replay(s, cb) })
+        var ops = Outbox.ops(s)
+        compare(ops[0].state, OfflineState.State.FAILED)
         // Failed: a later stop cannot merge into it and waits as a patch.
         k.net = false
         call(function(cb) { t.stopTracking("u", "t", a.data.id, cb) })
-        compare(Offline.pendingCount(s), 2)
-        Offline.discard(s, ops[0].opId)
-        compare(Offline.pendingCount(s), 0)
+        compare(Outbox.pendingCount(s), 2)
+        Outbox.discard(s, ops[0].opId)
+        compare(Outbox.pendingCount(s), 0)
     }
 
     function test_conflictWhenChangedOnServer() {
@@ -411,15 +413,15 @@ TestCase {
         // Meanwhile someone else changed the entry.
         k.server[1].description = "changed elsewhere"
         k.net = true
-        call(function(cb) { Offline.replay(s, cb) })
-        var op = Offline.ops(s)[0]
-        compare(op.state, Offline.State.CONFLICT)
+        call(function(cb) { Outbox.replay(s, cb) })
+        var op = Outbox.ops(s)[0]
+        compare(op.state, OfflineState.State.CONFLICT)
         compare(op.error.detail, "description")
         compare(op.server.description, "changed elsewhere")
         compare(k.server[1].end, stamp(10, 0), "not overwritten")
-        call(function(cb) { Offline.overwrite(s, op.opId, cb) })
+        call(function(cb) { Outbox.overwrite(s, op.opId, cb) })
         compare(k.server[1].end, stamp(10, 30))
-        compare(Offline.pendingCount(s), 0)
+        compare(Outbox.pendingCount(s), 0)
     }
 
     function test_deleteOfflineAndGoneOnServer() {
@@ -434,8 +436,8 @@ TestCase {
         compare(recent.data.length, 0, "shown as deleted")
         delete k.server[1]
         k.net = true
-        call(function(cb) { Offline.replay(s, cb) })
-        compare(Offline.pendingCount(s), 0, "already gone counts as done")
+        call(function(cb) { Outbox.replay(s, cb) })
+        compare(Outbox.pendingCount(s), 0, "already gone counts as done")
     }
 
     function test_restartOfflineFromSnapshot() {
@@ -481,13 +483,13 @@ TestCase {
         var loaded = false
         Offline.load(s2).then(function() { loaded = true })
         tryVerify(function() { return loaded })
-        compare(Offline.pendingCount(s2), 1)
+        compare(Outbox.pendingCount(s2), 1)
         var active = call(function(cb) { s2.tracker.fetchActiveTimesheet("u", "t", cb) })
         compare(active.data.length, 1)
-        verify(Offline.isLocalId(active.data[0].id))
+        verify(Outbox.isLocalId(active.data[0].id))
         k.net = true
-        call(function(cb) { Offline.replay(s2, cb) })
-        compare(Offline.pendingCount(s2), 0)
+        call(function(cb) { Outbox.replay(s2, cb) })
+        compare(Outbox.pendingCount(s2), 0)
     }
 
     function test_outboxOfAnOlderVersionKeepsItsSetupError() {
@@ -501,7 +503,7 @@ TestCase {
         var loaded = false
         Offline.load(s).then(function() { loaded = true })
         tryVerify(function() { return loaded })
-        var ops = Offline.ops(s)
+        var ops = Outbox.ops(s)
         compare(ops[0].error.type, ProviderUtil.ErrorType.NotConfigured)
         compare(ops[1].error.type, ProviderUtil.ErrorType.Unknown)
     }
@@ -515,13 +517,13 @@ TestCase {
         call(function(cb) { t.createTimesheet("u", "t", { begin: stamp(7, 0), end: stamp(8, 0), project: 10, activity: 20 }, cb) })
         k.net = true
         k.refuse = { create: { type: "unknown", status: 400, detail: "no" } }
-        call(function(cb) { Offline.replay(s, cb) })
+        call(function(cb) { Outbox.replay(s, cb) })
         verify(!Offline.isOffline(s))
         // Online, but an op failed: a new write stays behind it (order).
         k.calls = []
         var r = call(function(cb) { t.createTimesheet("u", "t", { begin: stamp(9, 0), end: stamp(10, 0), project: 10, activity: 20 }, cb) })
         verify(r.queued)
-        compare(Offline.pendingCount(s), 2)
+        compare(Outbox.pendingCount(s), 2)
     }
 
     function test_otherProviderPassesThrough() {
@@ -540,12 +542,12 @@ TestCase {
         var k = fakeKimai()
         var h = fakeHost()
         var s = session(k, h)
-        Offline.rememberFilmDays(s, { "2026-09-28": { timesheets: { at: 1, result: { ok: true, data: [] } } } })
+        OfflineState.rememberFilmDays(s, { "2026-09-28": { timesheets: { at: 1, result: { ok: true, data: [] } } } })
         var s2 = session(k, fakeHost(h.files))
         var loaded = false
         Offline.load(s2).then(function() { loaded = true })
         tryVerify(function() { return loaded })
-        verify(Offline.filmDays(s2)["2026-09-28"].timesheets.result.ok)
+        verify(OfflineState.filmDays(s2)["2026-09-28"].timesheets.result.ok)
     }
 
     function test_tripsOffline() {
@@ -561,10 +563,10 @@ TestCase {
         var entry = call(function(cb) { t.createTimesheet("u", "t", { begin: stamp(8, 0), end: stamp(9, 0), project: 10, activity: 20 }, cb) })
         var trip = call(function(cb) { t.createTrip("u", "t", { date: "2026-09-28", distanceKm: 30, timesheet: entry.data.id }, cb) })
         verify(trip.ok && trip.queued)
-        verify(Offline.isUnsyncedTrip(s, trip.data.id))
+        verify(Outbox.isUnsyncedTrip(s, trip.data.id))
         call(function(cb) { t.patchTrip("u", "t", trip.data.id, { distanceKm: 31 }, cb) })
         call(function(cb) { t.patchTrip("u", "t", 7, { distanceKm: 13 }, cb) })
-        compare(Offline.pendingCount(s), 3, "entry, trip (with its patch), patch of trip 7")
+        compare(Outbox.pendingCount(s), 3, "entry, trip (with its patch), patch of trip 7")
         var list = call(function(cb) { t.fetchTrips("u", "t", range, cb) })
         verify(list.offline)
         compare(list.data.length, 2)
@@ -576,8 +578,8 @@ TestCase {
         compare(accept.error.type, ProviderUtil.ErrorType.Offline)
 
         k.net = true
-        call(function(cb) { Offline.replay(s, cb) })
-        compare(Offline.pendingCount(s), 0)
+        call(function(cb) { Outbox.replay(s, cb) })
+        compare(Outbox.pendingCount(s), 0)
         compare(k.trips[500].timesheet, 100, "linked to the entry's server id")
         compare(k.trips[500].distanceKm, 31)
         compare(k.trips[7].distanceKm, 13)
@@ -598,11 +600,11 @@ TestCase {
         compare(list.data.length, 1)
         compare(list.data[0].distanceKm, 5)
         // Discarding the entry keeps its trip, unlinked.
-        var createOp = Offline.ops(s).filter(function(o) { return o.kind === Offline.Op.CREATE })[0]
-        Offline.discard(s, createOp.opId)
-        compare(Offline.pendingCount(s), 2)
+        var createOp = Outbox.ops(s).filter(function(o) { return o.kind === OfflineState.Op.CREATE })[0]
+        Outbox.discard(s, createOp.opId)
+        compare(Outbox.pendingCount(s), 2)
         k.net = true
-        call(function(cb) { Offline.replay(s, cb) })
+        call(function(cb) { Outbox.replay(s, cb) })
         verify(!k.trips[7])
         compare(k.trips[500].timesheet, null)
     }

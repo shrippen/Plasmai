@@ -2,6 +2,8 @@ import QtQml
 import "../../code/timeTracker.js" as TimeTracker
 import "../../code/platform.js" as Platform
 import "../../code/offline.js" as Offline
+import "../../code/offlineOutbox.js" as Outbox
+import "../../code/offlineState.js" as OfflineState
 import "../../code/filmDaySync.js" as FilmDaySync
 
 /**
@@ -37,13 +39,13 @@ QtObject {
     Component.onDestruction: flushSave()
 
     readonly property bool offline: revision >= 0 && !!state && Offline.isOffline(state)
-    readonly property int unsynced: revision >= 0 && state ? Offline.pendingCount(state) : 0
+    readonly property int unsynced: revision >= 0 && state ? Outbox.pendingCount(state) : 0
     /** When the snapshot was last written from a server answer (ms, 0 = never). */
-    readonly property double stateAt: revision >= 0 && state ? Offline.stateAt(state) : 0
+    readonly property double stateAt: revision >= 0 && state ? OfflineState.stateAt(state) : 0
     /** Ops that failed or conflict. */
-    readonly property int stuck: ops.filter(function(op) { return op.state !== Offline.State.PENDING }).length
+    readonly property int stuck: ops.filter(function(op) { return op.state !== OfflineState.State.PENDING }).length
     /** The outbox in order (UnsyncedList). */
-    readonly property var ops: revision >= 0 && state ? Offline.ops(state) : []
+    readonly property var ops: revision >= 0 && state ? Outbox.ops(state) : []
 
     /** Opens the outbox of `p` (resolves once loaded); the same profile keeps its session. */
     function openFor(p) {
@@ -75,32 +77,32 @@ QtObject {
         })
         state = s
         return Offline.load(s).then(function() {
-            FilmDaySync.restoreMemo(session.filmDay.context(), Offline.filmDays(s))
+            FilmDaySync.restoreMemo(session.filmDay.context(), OfflineState.filmDays(s))
         })
     }
 
     function isUnsynced(entryId) {
-        return revision >= 0 && !!state && Offline.isUnsynced(state, entryId)
+        return revision >= 0 && !!state && Outbox.isUnsynced(state, entryId)
     }
 
     function retry(opId) {
-        Offline.retry(state, opId, function() { session.refresh() })
+        Outbox.retry(state, opId, function() { session.refresh() })
     }
 
     /** Conflict: send the local change anyway. */
     function overwrite(opId) {
-        Offline.overwrite(state, opId, function() { session.refresh() })
+        Outbox.overwrite(state, opId, function() { session.refresh() })
     }
 
     function discard(opId) {
-        Offline.discard(state, opId)
+        Outbox.discard(state, opId)
         session.refresh()
     }
 
     /** Film day answers kept with the snapshot (filmDaySync's memo). */
     function rememberFilmDays(part) {
         if (state) {
-            Offline.rememberFilmDays(state, part)
+            OfflineState.rememberFilmDays(state, part)
         }
     }
 }

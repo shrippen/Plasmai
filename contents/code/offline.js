@@ -1,7 +1,8 @@
 .pragma library
 .import "./kimaiApi.js" as KimaiApi
 .import "./providerUtil.js" as ProviderUtil
-.import "./dateTimeFormat.js" as DTF
+.import "./offlineState.js" as OfflineState
+.import "./offlineOutbox.js" as Outbox
 
 /**
  * Offline layer (ROADMAP pillar 6), Kimai only. A session wraps the tracker:
@@ -38,763 +39,20 @@
  * }
  */
 
-var LOCAL_PREFIX = "local:"
-
-var Op = {
-    CREATE: "create",
-    PATCH: "patch",
-    DELETE: "delete",
-    FILM_DAY: "filmDay",
-    TRIP_CREATE: "tripCreate",
-    TRIP_PATCH: "tripPatch",
-    TRIP_DELETE: "tripDelete"
-}
-
-var State = {
-    PENDING: "pending",
-    FAILED: "failed",
-    CONFLICT: "conflict"
-}
-
-/** Entries kept in the snapshot (stats, week totals, film days of the last month). */
-var KEEP_DAYS = 45
-var DAY_MS = 24 * 3600 * 1000
-/** A lost create answer: a server entry this close to the local begin is the same one. */
-var DUPLICATE_WINDOW_MS = 3 * 60 * 1000
-/** Fields compared for conflicts (what Plasmai edits). */
-var CHECKED_FIELDS = ["begin", "end", "description", "project", "activity"]
-var SNAPSHOT_VERSION = 1
-/**
- * Unchanged answers (the poll) write the snapshot again only this often, to keep
- * its time on disk (in memory it follows every answer). The file is some 400 KB.
- */
-var SAVE_AGE_MS = 60 * 60 * 1000
-
 /** Reads answered from the snapshot by their call (catalogs, user). */
 var CACHED_READS = ["loadProjects", "loadCustomers", "loadAllActivities", "loadActivities",
                     "fetchCurrentUser", "testConnection", "fetchMileageMeta", "fetchVehicles",
                     "fetchTripSuggestions"]
 
-function isLocalId(id) {
-    return String(id).indexOf(LOCAL_PREFIX) === 0
-}
-
-function isNetworkError(result) {
-    return !!(result && !result.ok && result.error && result.error.type === ProviderUtil.ErrorType.Network)
-}
-
 function offlineFail() {
     return { ok: false, error: { type: ProviderUtil.ErrorType.Offline, status: 0, detail: "" } }
 }
 
-function copy(value) {
-    return value === undefined ? undefined : JSON.parse(JSON.stringify(value))
-}
-
-function nowOf(s) {
-    return s.host.now ? s.host.now() : Date.now()
-}
-
-function notify(s) {
-    if (s.host.changed) {
-        s.host.changed()
-    }
-}
-
-function stateName(s) {
-    return "offline-state-" + s.host.key
-}
-
-function outboxName(s) {
-    return "offline-outbox-" + s.host.key
-}
-
-function newLocalId(s) {
-    s.counter += 1
-    return LOCAL_PREFIX + nowOf(s).toString(36) + "-" + s.counter
-}
-
-// -- Snapshot ------------------------------------------------------------------
-
-function emptySnapshot() {
-    return { v: SNAPSHOT_VERSION, savedAt: 0, entries: {}, activeId: null, recentIds: [], reads: {}, filmDays: {} }
-}
-
-function entryEndMs(ts, nowMs) {
-    return ts.end ? DTF.stampMs(ts.end) : nowMs
-}
-
-function rememberEntries(s, list) {
-    for (var i = 0; i < (list || []).length; i++) {
-        var ts = list[i]
-        if (ts && ts.id !== undefined && ts.id !== null) {
-            s.snapshot.entries[String(ts.id)] = ts
-        }
-    }
-}
-
-function pruneEntries(s) {
-    var limit = nowOf(s) - KEEP_DAYS * DAY_MS
-    var keep = {}
-    keep[String(s.snapshot.activeId)] = true
-    for (var i = 0; i < s.snapshot.recentIds.length; i++) {
-        keep[String(s.snapshot.recentIds[i])] = true
-    }
-    for (var id in s.snapshot.entries) {
-        var ts = s.snapshot.entries[id]
-        if (!keep[id] && entryEndMs(ts, nowOf(s)) < limit) {
-            delete s.snapshot.entries[id]
-        }
-    }
-}
-
-/** Reads of a date range ({from, to}) that ended before the kept days: the poll moves on daily. */
-function pruneReads(s) {
-    const limit = new Date(nowOf(s) - KEEP_DAYS * DAY_MS)
-    const day = DTF.dateKey(limit)
-    for (const key in s.snapshot.reads) {
-        const parts = key.split("|").slice(1)
-        for (let i = 0; i < parts.length; i++) {
-            let arg = null
-            try {
-                arg = JSON.parse(parts[i])
-            } catch (e) {
-            }
-            if (arg && typeof arg.to === "string" && arg.to < day) {
-                delete s.snapshot.reads[key]
-                break
-            }
-        }
-    }
-}
-
-/** Without what changes on its own: the duration of a running entry grows with every poll. */
-function snapshotText(snapshot) {
-    return JSON.stringify(snapshot, function(key, value) {
-        if (key === "savedAt" || (key === "duration" && this && this.begin && !this.end)) {
-            return undefined
-        }
-        return value
-    })
-}
-
-/**
- * Saves the snapshot. With host.defer(fn) once for a burst of answers (a refresh
- * reads a dozen): comparing the text costs a stringify of the whole snapshot.
- */
-function saveSnapshot(s) {
-    if (!s.host.defer) {
-        writeSnapshot(s)
-        return
-    }
-    if (s.saveQueued) {
-        return
-    }
-    s.saveQueued = true
-    s.host.defer(function() {
-        s.saveQueued = false
-        writeSnapshot(s)
-    })
-}
-
-/** Written when its content changed (compared without the time) or the file's time is old. */
-function writeSnapshot(s) {
-    pruneEntries(s)
-    pruneReads(s)
-    var text = snapshotText(s.snapshot)
-    s.snapshot.savedAt = nowOf(s)
-    if (text === s.savedSnapshotText && s.snapshot.savedAt - s.savedSnapshotAt < SAVE_AGE_MS) {
-        return
-    }
-    s.savedSnapshotText = text
-    s.savedSnapshotAt = s.snapshot.savedAt
-    s.host.save(stateName(s), s.snapshot)
-}
-
-function saveOutbox(s) {
-    s.host.save(outboxName(s), { v: SNAPSHOT_VERSION, counter: s.counter, ops: s.ops })
-}
-
-// -- Overlay: the snapshot or a server answer plus what waits in the outbox ----
-
-function opsFor(s, entryId) {
-    return s.ops.filter(function(op) { return op.entryId !== undefined && String(op.entryId) === String(entryId) })
-}
-
-function applyFields(ts, fields) {
-    var out = copy(ts)
-    for (var k in fields) {
-        out[k] = fields[k]
-    }
-    // Views show Kimai's duration (seconds); keep it in step with begin and end.
-    if (out.begin && out.end) {
-        out.duration = Math.max(0, Math.round((DTF.stampMs(out.end) - DTF.stampMs(out.begin)) / 1000))
-    }
-    return out
-}
-
-/** ts with its waiting patches, or null when a delete waits for it. */
-function overlayEntry(s, ts) {
-    var out = ts
-    var ops = opsFor(s, ts.id)
-    for (var i = 0; i < ops.length; i++) {
-        if (ops[i].kind === Op.DELETE) {
-            return null
-        }
-        if (ops[i].kind === Op.PATCH) {
-            out = applyFields(out, ops[i].fields)
-        }
-    }
-    return out
-}
-
-/** Entries created offline, as timesheets (with their later patches). */
-function localEntries(s) {
-    var out = []
-    for (var i = 0; i < s.ops.length; i++) {
-        var op = s.ops[i]
-        if (op.kind === Op.CREATE) {
-            var ts = overlayEntry(s, applyFields({ id: op.entryId }, op.fields))
-            if (ts) {
-                out.push(ts)
-            }
-        }
-    }
-    return out
-}
-
-function overlayList(s, list) {
-    var out = []
-    for (var i = 0; i < (list || []).length; i++) {
-        var ts = overlayEntry(s, list[i])
-        if (ts) {
-            out.push(ts)
-        }
-    }
-    return out
-}
-
-function byBeginDesc(a, b) {
-    return DTF.stampMs(b.begin) - DTF.stampMs(a.begin)
-}
-
-function overlayActive(s, serverList) {
-    var running = overlayList(s, serverList).filter(function(ts) { return !ts.end })
-    var local = localEntries(s).filter(function(ts) { return !ts.end })
-    return local.concat(running).sort(byBeginDesc).slice(0, 1)
-}
-
-function overlayRecent(s, serverList, size) {
-    var list = localEntries(s).concat(overlayList(s, serverList))
-    return list.sort(byBeginDesc).slice(0, size || list.length)
-}
-
-function overlaps(ts, beginMs, endMs, nowMs) {
-    return DTF.stampMs(ts.begin) <= endMs && entryEndMs(ts, nowMs) >= beginMs
-}
-
-function overlayRange(s, serverList, beginDate, endDate) {
-    var b = beginDate.getTime()
-    var e = endDate.getTime()
-    var nowMs = nowOf(s)
-    var local = localEntries(s).filter(function(ts) { return overlaps(ts, b, e, nowMs) })
-    return local.concat(overlayList(s, serverList))
-}
-
-function snapshotEntries(s) {
-    var out = []
-    for (var id in s.snapshot.entries) {
-        out.push(s.snapshot.entries[id])
-    }
-    return out
-}
-
-function snapshotRange(s, beginDate, endDate) {
-    var b = beginDate.getTime()
-    var e = endDate.getTime()
-    var nowMs = nowOf(s)
-    return snapshotEntries(s).filter(function(ts) { return overlaps(ts, b, e, nowMs) })
-}
-
-function snapshotRecent(s) {
-    var out = []
-    for (var i = 0; i < s.snapshot.recentIds.length; i++) {
-        var ts = s.snapshot.entries[String(s.snapshot.recentIds[i])]
-        if (ts) {
-            out.push(ts)
-        }
-    }
-    return out
-}
-
-function snapshotActive(s) {
-    var ts = s.snapshot.activeId !== null ? s.snapshot.entries[String(s.snapshot.activeId)] : null
-    return ts && !ts.end ? [ts] : []
-}
-
-/** The last known version of an entry (for conflict checks and restart). */
-function knownEntry(s, id) {
-    var local = localEntries(s).filter(function(ts) { return String(ts.id) === String(id) })
-    if (local.length) {
-        return local[0]
-    }
-    var ts = s.snapshot.entries[String(id)]
-    return ts ? overlayEntry(s, ts) : null
-}
-
-// -- Offline flag ------------------------------------------------------------
-
-function setOffline(s, offline) {
-    if (s.offline === offline) {
-        return
-    }
-    s.offline = offline
-    notify(s)
-}
-
-/**
- * Every answer tells whether the server is there (a refusal too); a good one
- * also starts a replay unless the caller does that itself.
- */
-function observe(s, result, noReplay) {
-    if (isNetworkError(result)) {
-        setOffline(s, true)
-        return
-    }
-    if (!result) {
-        return
-    }
-    setOffline(s, false)
-    if (result.ok && !noReplay && hasPending(s) && !s.replaying) {
-        replay(s)
-    }
-}
-
-// -- Outbox --------------------------------------------------------------------
-
-function hasPending(s) {
-    return s.ops.some(function(op) { return op.state === State.PENDING })
-}
-
-function enqueue(s, op) {
-    op.opId = newLocalId(s)
-    op.createdAt = nowOf(s)
-    op.attempts = 0
-    op.state = State.PENDING
-    op.error = null
-    s.ops.push(op)
-    saveOutbox(s)
-    notify(s)
-    return op
-}
-
-/** A waiting create of entryId, which later changes can simply update. */
-function pendingCreate(s, entryId) {
-    for (var i = 0; i < s.ops.length; i++) {
-        if (s.ops[i].kind === Op.CREATE && String(s.ops[i].entryId) === String(entryId)) {
-            return s.ops[i]
-        }
-    }
-    return null
-}
-
-function baseOf(ts) {
-    if (!ts) {
-        return null
-    }
-    var base = {}
-    for (var i = 0; i < CHECKED_FIELDS.length; i++) {
-        var k = CHECKED_FIELDS[i]
-        base[k] = comparable(k, ts[k])
-    }
-    return base
-}
-
-function comparable(field, value) {
-    if (field === "project" || field === "activity") {
-        return value === null || value === undefined ? null
-            : String(typeof value === "object" ? value.id : value)
-    }
-    if (field === "begin" || field === "end") {
-        return value ? DTF.stampMs(value) : null
-    }
-    return value === null || value === undefined ? "" : String(value)
-}
-
-/** Fields that differ between the base and the server's entry now. */
-function changedOnServer(base, server) {
-    var out = []
-    var now = baseOf(server)
-    for (var k in base) {
-        if (base[k] !== now[k]) {
-            out.push(k)
-        }
-    }
-    return out
-}
-
 function localNowString(s) {
-    return KimaiApi.localDateTimeString(new Date(nowOf(s)))
+    return KimaiApi.localDateTimeString(new Date(OfflineState.nowOf(s)))
 }
 
-// -- Replay --------------------------------------------------------------------
-
-function rewriteId(s, localId, serverId) {
-    for (var i = 0; i < s.ops.length; i++) {
-        var op = s.ops[i]
-        if (String(op.entryId) === String(localId)) {
-            op.entryId = serverId
-        }
-        if (String(op.tripId) === String(localId)) {
-            op.tripId = serverId
-        }
-        // A trip linked to an entry made offline.
-        if (op.body && String(op.body.timesheet) === String(localId)) {
-            op.body.timesheet = serverId
-        }
-    }
-    if (s.host.idChanged) {
-        s.host.idChanged(localId, serverId)
-    }
-}
-
-function removeOp(s, op) {
-    s.ops = s.ops.filter(function(o) { return o !== op })
-}
-
-function finish(s, op, result) {
-    if (result.ok) {
-        removeOp(s, op)
-        return true
-    }
-    op.attempts += 1
-    observe(s, result, true)
-    if (!isNetworkError(result)) {
-        op.state = State.FAILED
-        op.error = result.error || null
-    }
-    return false
-}
-
-function runCreate(s, op, done) {
-    var inner = s.inner
-    function create() {
-        inner.createTimesheet(s.host.url(), s.host.token(), op.fields, function(result) {
-            if (result.ok && result.data) {
-                rewriteId(s, op.entryId, result.data.id)
-                rememberEntries(s, [result.data])
-            }
-            done(result)
-        })
-    }
-    if (!op.maybeSent) {
-        create()
-        return
-    }
-    // The first try may have reached the server (its answer got lost): adopt that entry.
-    var begin = DTF.stampMs(op.fields.begin)
-    inner.fetchTimesheetsRange(s.host.url(), s.host.token(), new Date(begin - DUPLICATE_WINDOW_MS),
-                               new Date(begin + DUPLICATE_WINDOW_MS), function(found) {
-        if (!found.ok) {
-            done(found)
-            return
-        }
-        var same = (found.data || []).filter(function(ts) {
-            return comparable("project", ts.project) === comparable("project", op.fields.project)
-                && comparable("activity", ts.activity) === comparable("activity", op.fields.activity)
-        })
-        if (!same.length) {
-            create()
-            return
-        }
-        rewriteId(s, op.entryId, same[0].id)
-        rememberEntries(s, [same[0]])
-        // Fields changed offline after the lost create still have to go out.
-        var rest = {}
-        for (var k in op.fields) {
-            if (k !== "begin") {
-                rest[k] = op.fields[k]
-            }
-        }
-        inner.patchTimesheet(s.host.url(), s.host.token(), same[0].id, rest, done)
-    })
-}
-
-/** Reads the entry first: changed on the server since it was loaded → conflict. */
-function checked(s, op, run, done) {
-    if (!op.base || isLocalId(op.entryId)) {
-        run()
-        return
-    }
-    s.inner.fetchTimesheet(s.host.url(), s.host.token(), op.entryId, function(found) {
-        if (!found.ok) {
-            if (op.kind === Op.DELETE && found.error && found.error.status === 404) {
-                done({ ok: true })
-                return
-            }
-            done(found)
-            return
-        }
-        var changed = changedOnServer(op.base, found.data)
-        if (changed.length) {
-            op.state = State.CONFLICT
-            op.server = found.data
-            op.error = { type: ProviderUtil.ErrorType.Conflict, status: 409, detail: changed.join(", ") }
-            done(null)
-            return
-        }
-        run()
-    })
-}
-
-function runOp(s, op, done) {
-    var url = s.host.url()
-    var token = s.host.token()
-    if (op.kind === Op.CREATE) {
-        runCreate(s, op, done)
-        return
-    }
-    if (op.kind === Op.PATCH) {
-        checked(s, op, function() {
-            s.inner.patchTimesheet(url, token, op.entryId, op.fields, function(result) {
-                if (result.ok && result.data) {
-                    rememberEntries(s, [result.data])
-                }
-                done(result)
-            })
-        }, done)
-        return
-    }
-    if (op.kind === Op.DELETE) {
-        checked(s, op, function() {
-            s.inner.deleteTimesheet(url, token, op.entryId, function(result) {
-                if (result.ok) {
-                    delete s.snapshot.entries[String(op.entryId)]
-                }
-                done(result.ok || (result.error && result.error.status === 404) ? { ok: true } : result)
-            })
-        }, done)
-        return
-    }
-    if (op.kind === Op.FILM_DAY) {
-        KimaiApi.putFilmDay(url, token, op.projectId, op.dateStr, op.patch, done)
-        return
-    }
-    if (op.kind === Op.TRIP_CREATE) {
-        s.inner.createTrip(url, token, op.body, function(result) {
-            if (result.ok && result.data) {
-                rewriteId(s, op.tripId, result.data.id)
-            }
-            done(result)
-        })
-        return
-    }
-    if (op.kind === Op.TRIP_PATCH) {
-        s.inner.patchTrip(url, token, op.tripId, op.body, done)
-        return
-    }
-    if (op.kind === Op.TRIP_DELETE) {
-        s.inner.deleteTrip(url, token, op.tripId, function(result) {
-            done(result.ok || (result.error && result.error.status === 404) ? { ok: true } : result)
-        })
-        return
-    }
-    done({ ok: false, error: { type: ProviderUtil.ErrorType.Unknown, status: 0, detail: "unknown op " + op.kind } })
-}
-
-/** Sends the outbox in order; callback(sent) when it stops (empty, offline or a failed op). */
-function replay(s, callback) {
-    if (s.replaying) {
-        if (callback) {
-            s.replayWaiters.push(callback)
-        }
-        return
-    }
-    s.replaying = true
-    var sent = 0
-    function stop() {
-        s.replaying = false
-        saveOutbox(s)
-        saveSnapshot(s)
-        notify(s)
-        var waiters = s.replayWaiters
-        s.replayWaiters = []
-        if (callback) {
-            callback(sent)
-        }
-        for (var i = 0; i < waiters.length; i++) {
-            waiters[i](sent)
-        }
-    }
-    function next() {
-        var op = s.ops.length ? s.ops[0] : null
-        if (!op || op.state !== State.PENDING) {
-            stop()
-            return
-        }
-        runOp(s, op, function(result) {
-            if (!result || !finish(s, op, result)) {
-                stop()
-                return
-            }
-            sent += 1
-            saveOutbox(s)
-            next()
-        })
-    }
-    next()
-}
-
-// -- Trips (kimai-anfahrten) -----------------------------------------------------
-
-function tripOps(s, tripId) {
-    return s.ops.filter(function(op) { return op.tripId !== undefined && String(op.tripId) === String(tripId) })
-}
-
-function pendingTripCreate(s, tripId) {
-    var ops = tripOps(s, tripId).filter(function(op) { return op.kind === Op.TRIP_CREATE })
-    return ops.length ? ops[0] : null
-}
-
-/** trip with its waiting patches, or null when a delete waits for it. */
-function overlayTrip(s, trip) {
-    var out = trip
-    var ops = tripOps(s, trip.id)
-    for (var i = 0; i < ops.length; i++) {
-        if (ops[i].kind === Op.TRIP_DELETE) {
-            return null
-        }
-        if (ops[i].kind === Op.TRIP_PATCH) {
-            out = applyTripBody(out, ops[i].body)
-        }
-    }
-    return out
-}
-
-function applyTripBody(trip, body) {
-    var out = copy(trip)
-    for (var k in body) {
-        out[k] = body[k]
-    }
-    return out
-}
-
-/** range {from, to} ("YYYY-MM-DD") or {year, month}, as fetchTrips takes it; none = all. */
-function tripInRange(trip, range) {
-    var date = String(trip.date || "")
-    if (!range) {
-        return true
-    }
-    if (range.from && range.to) {
-        return date >= range.from && date <= range.to
-    }
-    var prefix = range.year ? String(range.year) : ""
-    if (range.month) {
-        prefix += "-" + (range.month < 10 ? "0" : "") + range.month
-    }
-    return date.indexOf(prefix) === 0
-}
-
-function localTrips(s) {
-    var out = []
-    for (var i = 0; i < s.ops.length; i++) {
-        var op = s.ops[i]
-        if (op.kind === Op.TRIP_CREATE) {
-            var trip = overlayTrip(s, applyTripBody({ id: op.tripId }, op.body))
-            if (trip) {
-                out.push(trip)
-            }
-        }
-    }
-    return out
-}
-
-function overlayTrips(s, list, range) {
-    var out = []
-    for (var i = 0; i < (list || []).length; i++) {
-        var trip = overlayTrip(s, list[i])
-        if (trip) {
-            out.push(trip)
-        }
-    }
-    return out.concat(localTrips(s).filter(function(t) { return tripInRange(t, range) }))
-}
-
-/** The last known version of a trip: made offline, or from a cached trips answer. */
-function knownTrip(s, tripId) {
-    var local = localTrips(s).filter(function(t) { return String(t.id) === String(tripId) })
-    if (local.length) {
-        return local[0]
-    }
-    for (var key in s.snapshot.reads) {
-        if (key.indexOf("fetchTrips|") !== 0) {
-            continue
-        }
-        var list = s.snapshot.reads[key] || []
-        for (var i = 0; i < list.length; i++) {
-            if (list[i] && String(list[i].id) === String(tripId)) {
-                return overlayTrip(s, list[i])
-            }
-        }
-    }
-    return null
-}
-
-function wrapTrips(s, t) {
-    var inner = s.inner
-    t.fetchTrips = wrapRead(s, "fetchTrips", function(result, args) {
-        s.snapshot.reads[readKey("fetchTrips", args, callbackIndex(args))] = result.data
-    }, function(data, args) {
-        return overlayTrips(s, data, args[2])
-    }, function(args) {
-        var hit = s.snapshot.reads[readKey("fetchTrips", args, callbackIndex(args))]
-        return hit === undefined ? undefined : overlayTrips(s, copy(hit), args[2])
-    })
-
-    t.createTrip = function(url, token, body, callback) {
-        write(s, function(done) {
-            inner.createTrip(url, token, body, function(result) { done(result, callback) })
-        }, function() {
-            var id = newLocalId(s)
-            enqueue(s, { kind: Op.TRIP_CREATE, tripId: id, body: copy(body || {}) })
-            callback({ ok: true, data: knownTrip(s, id), queued: true })
-        })
-    }
-
-    t.patchTrip = function(url, token, tripId, body, callback) {
-        write(s, function(done) {
-            inner.patchTrip(url, token, tripId, body, function(result) { done(result, callback) })
-        }, function() {
-            var create = pendingTripCreate(s, tripId)
-            if (create && create.state === State.PENDING) {
-                create.body = applyTripBody(create.body, body || {})
-                saveOutbox(s)
-                notify(s)
-            } else {
-                enqueue(s, { kind: Op.TRIP_PATCH, tripId: tripId, body: copy(body || {}) })
-            }
-            callback({ ok: true, data: knownTrip(s, tripId), queued: true })
-        })
-    }
-
-    t.deleteTrip = function(url, token, tripId, callback) {
-        write(s, function(done) {
-            inner.deleteTrip(url, token, tripId, function(result) { done(result, callback) })
-        }, function() {
-            var create = pendingTripCreate(s, tripId)
-            if (create && create.state === State.PENDING) {
-                s.ops = s.ops.filter(function(op) { return String(op.tripId) !== String(tripId) })
-                saveOutbox(s)
-                notify(s)
-            } else {
-                enqueue(s, { kind: Op.TRIP_DELETE, tripId: tripId })
-            }
-            callback({ ok: true, data: null, queued: true })
-        })
-    }
-}
-
-// -- The wrapped tracker -------------------------------------------------------
+// -- The wrapped tracker --------------------------------------------------------
 
 /** Last argument that is a function: the callback of a tracker call. */
 function callbackIndex(args) {
@@ -825,20 +83,20 @@ function wrapRead(s, name, remember, answer, fallback) {
         var again = true
         function run() {
             args[cbIndex] = function(result) {
-                observe(s, result, true)
+                Outbox.observe(s, result, true)
                 // Back online with ops waiting: send them, then read again (the answer predates them).
-                if (result.ok && again && hasPending(s)) {
+                if (result.ok && again && Outbox.hasPending(s)) {
                     again = false
-                    replay(s, run)
+                    Outbox.replay(s, run)
                     return
                 }
                 if (result.ok) {
                     remember(result, args)
-                    saveSnapshot(s)
+                    OfflineState.saveSnapshot(s)
                     callback({ ok: true, data: answer(result.data, args), droppedFields: result.droppedFields })
                     return
                 }
-                if (isNetworkError(result)) {
+                if (Outbox.isNetworkError(result)) {
                     var data = fallback(args)
                     if (data !== undefined) {
                         callback({ ok: true, data: data, offline: true })
@@ -849,8 +107,8 @@ function wrapRead(s, name, remember, answer, fallback) {
             }
             s.inner[name].apply(s.inner, args)
         }
-        if (hasPending(s) && !s.offline) {
-            replay(s, run)
+        if (Outbox.hasPending(s) && !s.offline) {
+            Outbox.replay(s, run)
         } else {
             run()
         }
@@ -864,7 +122,7 @@ function passThrough(s, name) {
         if (cbIndex >= 0) {
             var callback = args[cbIndex]
             args[cbIndex] = function(result) {
-                observe(s, result)
+                Outbox.observe(s, result)
                 callback(result)
             }
         }
@@ -879,7 +137,7 @@ function cachedRead(s, name) {
         return data
     }, function(args) {
         var hit = s.snapshot.reads[readKey(name, args, callbackIndex(args))]
-        return hit === undefined ? undefined : copy(hit)
+        return hit === undefined ? undefined : OfflineState.copy(hit)
     })
 }
 
@@ -888,13 +146,13 @@ function write(s, sendOnline, queue) {
     if (s.offline || s.ops.length) {
         queue(false)
         if (!s.offline) {
-            replay(s)
+            Outbox.replay(s)
         }
         return
     }
     sendOnline(function(result, callback) {
-        observe(s, result)
-        if (isNetworkError(result)) {
+        Outbox.observe(s, result)
+        if (Outbox.isNetworkError(result)) {
             queue(true)
             return
         }
@@ -903,37 +161,37 @@ function write(s, sendOnline, queue) {
 }
 
 function localAnswer(s, entryId) {
-    return { ok: true, data: knownEntry(s, entryId), queued: true }
+    return { ok: true, data: OfflineState.knownEntry(s, entryId), queued: true }
 }
 
 function queueCreate(s, fields, callback, maybeSent) {
-    var id = newLocalId(s)
-    enqueue(s, { kind: Op.CREATE, entryId: id, fields: fields, maybeSent: !!maybeSent })
+    var id = Outbox.newLocalId(s)
+    Outbox.enqueue(s, { kind: OfflineState.Op.CREATE, entryId: id, fields: fields, maybeSent: !!maybeSent })
     callback(localAnswer(s, id))
 }
 
 /** Changes of an entry: into its waiting create, or a patch with the base for the conflict check. */
 function queuePatch(s, entryId, fields, callback) {
-    var create = pendingCreate(s, entryId)
-    if (create && create.state === State.PENDING) {
-        create.fields = applyFields(create.fields, fields)
-        saveOutbox(s)
-        notify(s)
+    var create = Outbox.pendingCreate(s, entryId)
+    if (create && create.state === OfflineState.State.PENDING) {
+        create.fields = OfflineState.applyFields(create.fields, fields)
+        Outbox.saveOutbox(s)
+        OfflineState.notify(s)
     } else {
-        enqueue(s, { kind: Op.PATCH, entryId: entryId, fields: fields, base: baseOf(knownEntry(s, entryId)) })
+        Outbox.enqueue(s, { kind: OfflineState.Op.PATCH, entryId: entryId, fields: fields, base: Outbox.baseOf(OfflineState.knownEntry(s, entryId)) })
     }
     callback(localAnswer(s, entryId))
 }
 
 function queueDelete(s, entryId, callback) {
-    var create = pendingCreate(s, entryId)
-    if (create && create.state === State.PENDING) {
+    var create = Outbox.pendingCreate(s, entryId)
+    if (create && create.state === OfflineState.State.PENDING) {
         // Never sent: drop the create and everything waiting on it.
         s.ops = s.ops.filter(function(op) { return String(op.entryId) !== String(entryId) })
-        saveOutbox(s)
-        notify(s)
+        Outbox.saveOutbox(s)
+        OfflineState.notify(s)
     } else {
-        enqueue(s, { kind: Op.DELETE, entryId: entryId, base: baseOf(knownEntry(s, entryId)) })
+        Outbox.enqueue(s, { kind: OfflineState.Op.DELETE, entryId: entryId, base: Outbox.baseOf(OfflineState.knownEntry(s, entryId)) })
     }
     callback({ ok: true, data: null, queued: true })
 }
@@ -946,6 +204,60 @@ function writeFields(fields) {
         }
     }
     return out
+}
+
+function wrapTrips(s, t) {
+    var inner = s.inner
+    t.fetchTrips = wrapRead(s, "fetchTrips", function(result, args) {
+        s.snapshot.reads[readKey("fetchTrips", args, callbackIndex(args))] = result.data
+    }, function(data, args) {
+        return OfflineState.overlayTrips(s, data, args[2])
+    }, function(args) {
+        var hit = s.snapshot.reads[readKey("fetchTrips", args, callbackIndex(args))]
+        return hit === undefined ? undefined : OfflineState.overlayTrips(s, OfflineState.copy(hit), args[2])
+    })
+
+    t.createTrip = function(url, token, body, callback) {
+        write(s, function(done) {
+            inner.createTrip(url, token, body, function(result) { done(result, callback) })
+        }, function() {
+            var id = Outbox.newLocalId(s)
+            Outbox.enqueue(s, { kind: OfflineState.Op.TRIP_CREATE, tripId: id, body: OfflineState.copy(body || {}) })
+            callback({ ok: true, data: OfflineState.knownTrip(s, id), queued: true })
+        })
+    }
+
+    t.patchTrip = function(url, token, tripId, body, callback) {
+        write(s, function(done) {
+            inner.patchTrip(url, token, tripId, body, function(result) { done(result, callback) })
+        }, function() {
+            var create = Outbox.pendingTripCreate(s, tripId)
+            if (create && create.state === OfflineState.State.PENDING) {
+                create.body = OfflineState.applyTripBody(create.body, body || {})
+                Outbox.saveOutbox(s)
+                OfflineState.notify(s)
+            } else {
+                Outbox.enqueue(s, { kind: OfflineState.Op.TRIP_PATCH, tripId: tripId, body: OfflineState.copy(body || {}) })
+            }
+            callback({ ok: true, data: OfflineState.knownTrip(s, tripId), queued: true })
+        })
+    }
+
+    t.deleteTrip = function(url, token, tripId, callback) {
+        write(s, function(done) {
+            inner.deleteTrip(url, token, tripId, function(result) { done(result, callback) })
+        }, function() {
+            var create = Outbox.pendingTripCreate(s, tripId)
+            if (create && create.state === OfflineState.State.PENDING) {
+                s.ops = s.ops.filter(function(op) { return String(op.tripId) !== String(tripId) })
+                Outbox.saveOutbox(s)
+                OfflineState.notify(s)
+            } else {
+                Outbox.enqueue(s, { kind: OfflineState.Op.TRIP_DELETE, tripId: tripId })
+            }
+            callback({ ok: true, data: null, queued: true })
+        })
+    }
 }
 
 function wrapTracker(s) {
@@ -965,34 +277,34 @@ function wrapTracker(s) {
     }
 
     t.fetchActiveTimesheet = wrapRead(s, "fetchActiveTimesheet", function(result) {
-        rememberEntries(s, result.data)
+        OfflineState.rememberEntries(s, result.data)
         s.snapshot.activeId = result.data && result.data.length ? result.data[0].id : null
     }, function(data) {
-        return overlayActive(s, data)
+        return OfflineState.overlayActive(s, data)
     }, function() {
-        return overlayActive(s, snapshotActive(s))
+        return OfflineState.overlayActive(s, OfflineState.snapshotActive(s))
     })
 
     t.fetchRecentTimesheets = wrapRead(s, "fetchRecentTimesheets", function(result) {
-        rememberEntries(s, result.data)
+        OfflineState.rememberEntries(s, result.data)
         s.snapshot.recentIds = (result.data || []).map(function(ts) { return ts.id })
     }, function(data, args) {
-        return overlayRecent(s, data, args[2])
+        return OfflineState.overlayRecent(s, data, args[2])
     }, function(args) {
-        return overlayRecent(s, snapshotRecent(s), args[2])
+        return OfflineState.overlayRecent(s, OfflineState.snapshotRecent(s), args[2])
     })
 
     t.fetchTimesheetsRange = wrapRead(s, "fetchTimesheetsRange", function(result, args) {
         // Filtered answers (one project) are incomplete for the range; keep the entries only.
-        rememberEntries(s, result.data)
+        OfflineState.rememberEntries(s, result.data)
     }, function(data, args) {
-        return overlayRange(s, data, args[2], args[3])
+        return OfflineState.overlayRange(s, data, args[2], args[3])
     }, function(args) {
         var filters = args[5]
-        var list = overlayRange(s, snapshotRange(s, args[2], args[3]), args[2], args[3])
+        var list = OfflineState.overlayRange(s, OfflineState.snapshotRange(s, args[2], args[3]), args[2], args[3])
         if (filters && filters.project) {
             list = list.filter(function(ts) {
-                return comparable("project", ts.project) === String(filters.project)
+                return Outbox.comparable("project", ts.project) === String(filters.project)
             })
         }
         return list
@@ -1030,14 +342,14 @@ function wrapTracker(s) {
         write(s, function(done) {
             inner.restartTimesheet(url, token, timesheetId, function(result) { done(result, callback) })
         }, function(maybeSent) {
-            var from = knownEntry(s, timesheetId)
+            var from = OfflineState.knownEntry(s, timesheetId)
             if (!from) {
                 callback(offlineFail())
                 return
             }
             queueCreate(s, writeFields({
-                begin: localNowString(s), project: comparable("project", from.project),
-                activity: comparable("activity", from.activity), description: from.description || "",
+                begin: localNowString(s), project: Outbox.comparable("project", from.project),
+                activity: Outbox.comparable("activity", from.activity), description: from.description || "",
                 tags: from.tags, billable: from.billable
             }), callback, maybeSent)
         })
@@ -1074,7 +386,7 @@ function wrapTracker(s) {
         write(s, function(done) {
             KimaiApi.putFilmDay(url, token, projectId, dateStr, patch, function(result) { done(result, callback) })
         }, function() {
-            enqueue(s, { kind: Op.FILM_DAY, projectId: projectId, dateStr: dateStr, patch: patch })
+            Outbox.enqueue(s, { kind: OfflineState.Op.FILM_DAY, projectId: projectId, dateStr: dateStr, patch: patch })
             callback({ ok: true, data: null, queued: true })
         })
     }
@@ -1105,7 +417,7 @@ function wrapTracker(s) {
     return t
 }
 
-// -- Session -------------------------------------------------------------------
+// -- Session --------------------------------------------------------------------
 
 /**
  * A session for one profile. Without host.key (another provider) the tracker
@@ -1119,7 +431,7 @@ function createSession(inner, host) {
         offline: false,
         ops: [],
         counter: 0,
-        snapshot: emptySnapshot(),
+        snapshot: OfflineState.emptySnapshot(),
         savedSnapshotText: "",
         savedSnapshotAt: 0,
         saveQueued: false,
@@ -1130,129 +442,18 @@ function createSession(inner, host) {
     return s
 }
 
-/** Outboxes saved before the error kinds moved into ErrorType stored "config" for missing access. */
-var LEGACY_NOT_CONFIGURED = "config"
-
-function migratedOps(ops) {
-    return ops.map(function(op) {
-        if (op.error && op.error.type === LEGACY_NOT_CONFIGURED) {
-            op.error.type = ProviderUtil.ErrorType.NotConfigured
-        }
-        return op
-    })
-}
-
-/** Loads snapshot and outbox from disk; ops queued before that stay behind the loaded ones. */
+/** Loads snapshot and outbox from disk. */
 function load(s) {
     if (!s.enabled) {
         return Promise.resolve()
     }
-    return Promise.all([s.host.load(stateName(s)), s.host.load(outboxName(s))]).then(function(parts) {
-        var state = parts[0]
-        if (state && state.v === SNAPSHOT_VERSION) {
-            s.snapshot = state
-            s.savedSnapshotAt = state.savedAt || 0
-            s.savedSnapshotText = snapshotText(state)
-        }
-        var outbox = parts[1]
-        if (outbox && outbox.v === SNAPSHOT_VERSION) {
-            s.counter = Math.max(s.counter, outbox.counter || 0)
-            s.ops = migratedOps(outbox.ops || []).concat(s.ops)
-        }
-        notify(s)
+    return Promise.all([s.host.load(OfflineState.stateName(s)), s.host.load(Outbox.outboxName(s))]).then(function(parts) {
+        OfflineState.restoreSnapshot(s, parts[0])
+        Outbox.restoreOps(s, parts[1])
+        OfflineState.notify(s)
     })
 }
 
 function isOffline(s) {
     return s.enabled && s.offline
-}
-
-/** When the snapshot was last written from a server answer (ms, 0 = never). */
-function stateAt(s) {
-    return s.snapshot.savedAt || 0
-}
-
-/** Ops in order, for the "Unsynced" list. */
-function ops(s) {
-    return copy(s.ops)
-}
-
-function pendingCount(s) {
-    return s.ops.length
-}
-
-/** True when entryId was made offline or has changes waiting. */
-function isUnsynced(s, entryId) {
-    return isLocalId(entryId) || opsFor(s, entryId).length > 0
-}
-
-/** The same for a trip. */
-function isUnsyncedTrip(s, tripId) {
-    return isLocalId(tripId) || tripOps(s, tripId).length > 0
-}
-
-function findOp(s, opId) {
-    for (var i = 0; i < s.ops.length; i++) {
-        if (s.ops[i].opId === opId) {
-            return s.ops[i]
-        }
-    }
-    return null
-}
-
-/** Sends a failed op again (after the cause was fixed elsewhere). */
-function retry(s, opId, callback) {
-    var op = findOp(s, opId)
-    if (op) {
-        op.state = State.PENDING
-        op.error = null
-        saveOutbox(s)
-    }
-    replay(s, callback)
-}
-
-/** Conflict: send the local change anyway (the server's version is overwritten). */
-function overwrite(s, opId, callback) {
-    var op = findOp(s, opId)
-    if (op) {
-        op.base = null
-        op.server = null
-    }
-    retry(s, opId, callback)
-}
-
-/** Drops an op; dropping a create drops what waits on its entry (or trip) too. */
-function discard(s, opId) {
-    var op = findOp(s, opId)
-    if (!op) {
-        return
-    }
-    if (op.kind === Op.CREATE && isLocalId(op.entryId)) {
-        s.ops = s.ops.filter(function(o) { return String(o.entryId) !== String(op.entryId) })
-        // Trips of that entry stay, without the link to an entry that will never exist.
-        for (var i = 0; i < s.ops.length; i++) {
-            if (s.ops[i].body && String(s.ops[i].body.timesheet) === String(op.entryId)) {
-                s.ops[i].body.timesheet = null
-            }
-        }
-    } else if (op.kind === Op.TRIP_CREATE && isLocalId(op.tripId)) {
-        s.ops = s.ops.filter(function(o) { return String(o.tripId) !== String(op.tripId) })
-    } else {
-        removeOp(s, op)
-    }
-    saveOutbox(s)
-    notify(s)
-}
-
-/** Film day answers kept by filmDaySync (memo.days of this profile), persisted with the snapshot. */
-function rememberFilmDays(s, days) {
-    if (!s.enabled) {
-        return
-    }
-    s.snapshot.filmDays = copy(days || {})
-    saveSnapshot(s)
-}
-
-function filmDays(s) {
-    return copy(s.snapshot.filmDays || {})
 }

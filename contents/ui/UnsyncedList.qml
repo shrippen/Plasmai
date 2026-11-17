@@ -6,18 +6,18 @@ import "Kante"
 import "Controls" as Controls
 import "../code/kimaiApi.js" as KimaiApi
 import "../code/dateTimeFormat.js" as DTF
-import "../code/offline.js" as Offline
+import "../code/offlineState.js" as OfflineState
 import "../code/mileage.js" as Mileage
 
 /**
- * The outbox of the offline layer (offline.js), oldest first: what each change
+ * The outbox of the offline layer (offlineOutbox.js), oldest first: what each change
  * is, whether it waits for the connection, was refused (retry / discard) or
  * meets a server change (overwrite / discard). Nothing leaves it silently.
  */
 ColumnLayout {
     id: root
 
-    /** Offline.ops(session). */
+    /** Outbox.ops(session). */
     property var ops: []
     property var projects: []
     property var activities: []
@@ -30,26 +30,26 @@ ColumnLayout {
     spacing: Kirigami.Units.largeSpacing
 
     function kindText(op) {
-        if (op.kind === Offline.Op.CREATE) {
+        if (op.kind === OfflineState.Op.CREATE) {
             return op.fields.end ? i18n("New entry") : i18n("Timer started")
         }
-        if (op.kind === Offline.Op.PATCH) {
+        if (op.kind === OfflineState.Op.PATCH) {
             var keys = Object.keys(op.fields || {})
             return keys.length === 1 && keys[0] === "end" ? i18n("Timer stopped") : i18n("Entry changed")
         }
-        if (op.kind === Offline.Op.DELETE) {
+        if (op.kind === OfflineState.Op.DELETE) {
             return i18n("Entry deleted")
         }
-        if (op.kind === Offline.Op.TRIP_CREATE) {
+        if (op.kind === OfflineState.Op.TRIP_CREATE) {
             return i18n("Trip added")
         }
-        if (op.kind === Offline.Op.TRIP_PATCH) {
+        if (op.kind === OfflineState.Op.TRIP_PATCH) {
             return i18n("Trip changed")
         }
-        if (op.kind === Offline.Op.TRIP_DELETE) {
+        if (op.kind === OfflineState.Op.TRIP_DELETE) {
             return i18n("Trip deleted")
         }
-        if (op.kind === Offline.Op.FILM_DAY) {
+        if (op.kind === OfflineState.Op.FILM_DAY) {
             return i18n("Film day details of %1",
                         new Date(op.dateStr + "T12:00:00").toLocaleDateString(Qt.locale(), Locale.ShortFormat))
         }
@@ -71,23 +71,23 @@ ColumnLayout {
 
     /** "Project · Activity · 28.09. 09:00–10:00" from the change or the entry it changes. */
     function entryText(op) {
-        if (op.kind === Offline.Op.TRIP_CREATE || op.kind === Offline.Op.TRIP_PATCH || op.kind === Offline.Op.TRIP_DELETE) {
+        if (op.kind === OfflineState.Op.TRIP_CREATE || op.kind === OfflineState.Op.TRIP_PATCH || op.kind === OfflineState.Op.TRIP_DELETE) {
             return tripText(op)
         }
-        var f = op.kind === Offline.Op.CREATE ? op.fields : (op.base || {})
-        if (op.kind === Offline.Op.FILM_DAY) {
+        var f = op.kind === OfflineState.Op.CREATE ? op.fields : (op.base || {})
+        if (op.kind === OfflineState.Op.FILM_DAY) {
             f = { project: op.projectId }
         }
         var ts = { project: f.project, activity: f.activity }
         var bits = [KimaiApi.displayProjectName(ts, root.projects),
                     KimaiApi.displayActivityName(ts, root.activities, root.activitiesByProject)]
-        // A create carries stamps; the base of a change keeps ms (offline.js baseOf).
-        var beginMs = op.kind === Offline.Op.CREATE ? DTF.stampMs(f.begin) : f.begin
+        // A create carries stamps; the base of a change keeps ms (offlineOutbox.js baseOf).
+        var beginMs = op.kind === OfflineState.Op.CREATE ? DTF.stampMs(f.begin) : f.begin
         if (beginMs) {
             var b = new Date(beginMs)
             var span = b.toLocaleDateString(Qt.locale(), Locale.ShortFormat) + " "
                 + b.toLocaleTimeString(Qt.locale(), Locale.ShortFormat)
-            var end = op.kind === Offline.Op.CREATE ? f.end : (op.fields && op.fields.end)
+            var end = op.kind === OfflineState.Op.CREATE ? f.end : (op.fields && op.fields.end)
             if (end) {
                 span += "–" + new Date(DTF.stampMs(end)).toLocaleTimeString(Qt.locale(), Locale.ShortFormat)
             }
@@ -104,10 +104,10 @@ ColumnLayout {
     }
 
     function stateText(op) {
-        if (op.state === Offline.State.FAILED) {
+        if (op.state === OfflineState.State.FAILED) {
             return i18n("Not accepted: %1", (op.error && op.error.detail) || ApiErrors.text(op.error))
         }
-        if (op.state === Offline.State.CONFLICT) {
+        if (op.state === OfflineState.State.CONFLICT) {
             return i18n("Changed on the server meanwhile (%1). Overwrite it with this change, or discard this change?",
                         fieldNames(op.error ? op.error.detail : ""))
         }
@@ -127,7 +127,7 @@ ColumnLayout {
         ColumnLayout {
             id: row
             required property var modelData
-            readonly property bool stuck: modelData.state !== Offline.State.PENDING
+            readonly property bool stuck: modelData.state !== OfflineState.State.PENDING
 
             Layout.fillWidth: true
             spacing: Kirigami.Units.smallSpacing
@@ -152,12 +152,12 @@ ColumnLayout {
             RowLayout {
                 spacing: Kirigami.Units.smallSpacing
                 Controls.Button {
-                    visible: row.modelData.state === Offline.State.FAILED
+                    visible: row.modelData.state === OfflineState.State.FAILED
                     text: i18n("Retry")
                     onClicked: root.retryRequested(row.modelData.opId)
                 }
                 Controls.Button {
-                    visible: row.modelData.state === Offline.State.CONFLICT
+                    visible: row.modelData.state === OfflineState.State.CONFLICT
                     text: i18n("Overwrite")
                     onClicked: root.overwriteRequested(row.modelData.opId)
                 }

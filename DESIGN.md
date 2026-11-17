@@ -192,7 +192,7 @@ view ──binds / calls──▶ Session (contents/ui/Session.qml, QtQml only)
   Stores write through `mktemp` + `mv` (app: `QSaveFile`). Idle
   prefers the session idle hint on Wayland (`loginctl` /
   `org.freedesktop.ScreenSaver`) and `xprintidle` on X11.
-- **Offline snapshot and outbox** (`offline.js`, Kimai only): each client keeps
+- **Offline snapshot and outbox** (`offline.js`, `offlineState.js`, `offlineOutbox.js`; Kimai only): each client keeps
   its own two files per profile, never shared (two writers on one file was the
   `filmDaysPending` problem): the Plasmoid in
   `$XDG_DATA_HOME/io.github.shrippen.Plasmai/plasmoid/` via `localStore.sh`
@@ -754,7 +754,7 @@ read as Kante. It is the design system's `KanteStyle.Kind.KanteLight`:
 ## Offline
 
 Bad reception on set: Plasmai keeps working and syncs once the server answers
-(`offline.js`, ROADMAP pillar 6). Kimai only; other providers pass through.
+(`offline.js`, `offlineState.js`, `offlineOutbox.js`, ROADMAP pillar 6). Kimai only; other providers pass through.
 
 - **One layer at the tracker**: a session wraps the provider API with the same
   calls, so pages do not know about it. Reads go to the server first; a network
