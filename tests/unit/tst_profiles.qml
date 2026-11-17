@@ -145,4 +145,25 @@ TestCase {
         var one = [{ id: "x" }]
         compare(Profiles.ensured(one, "https://k.example"), one)
     }
+
+    function test_withTestMeta() {
+        var list = Profiles.parseProfiles('[{"id":"a","workspaceId":"old","userId":"u0"},{"id":"b"}]', "")
+        var out = Profiles.withTestMeta(list, 0, { workspaceId: "w1", organizationId: "o1", memberId: "m1", version: "1.0" })
+        // Ids the test reports replace the stored ones; the others stay.
+        compare(out[0].workspaceId, "w1")
+        compare(out[0].userId, "u0")
+        compare(out[0].organizationId, "o1")
+        compare(out[0].memberId, "m1")
+        compare(out[1].id, "b")
+        // The input list is not touched.
+        compare(list[0].workspaceId, "old")
+        compare(out[0].version, undefined)
+    }
+
+    function test_withTestMetaKeepsWithoutIds() {
+        var list = Profiles.parseProfiles('[{"id":"a","workspaceId":"old"}]', "")
+        compare(Profiles.withTestMeta(list, 0, null), list)
+        compare(Profiles.withTestMeta(list, 5, { workspaceId: "w" }), list)
+        compare(Profiles.withTestMeta(list, 0, { version: "1" })[0].workspaceId, "old")
+    }
 }

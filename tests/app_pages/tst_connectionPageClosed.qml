@@ -156,4 +156,19 @@ TestCase {
         ]
         compare(thrownBy(calls), [])
     }
+
+    /** The ids of workspace and user, which Clockify, Toggl and SolidTime need, survive the test. */
+    function test_test_keeps_workspace_ids() {
+        const h = createTemporaryObject(host, tc)
+        const obj = h.pageComponent.createObject(h)
+        verify(obj !== null)
+        obj.profiles = [{ id: "p1", name: "One", url: "https://x", provider: "clockify" }]
+        obj.selectedIndex = 0
+        findButton(obj, "network-connect").clicked()
+        verify(testHandlers !== null)
+        testHandlers.done({ ok: true, data: { workspaceId: "w1", userId: "u1" } })
+        compare(obj.profiles[0].workspaceId, "w1")
+        compare(obj.profiles[0].userId, "u1")
+        obj.destroy()
+    }
 }
