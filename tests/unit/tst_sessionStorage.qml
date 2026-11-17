@@ -13,7 +13,7 @@ import "../../contents/code/sharedConfig.js" as SharedConfig
 TestCase {
     name: "SessionStorage"
 
-    readonly property string outbox: "offline-outbox-p1"
+    readonly property string outbox: "offline-outbox-tui-p1"
     readonly property var fields: ({ begin: "2026-09-28T07:00:00+0200", end: "2026-09-28T08:00:00+0200", project: 1, activity: 2 })
 
     property var files: ({})

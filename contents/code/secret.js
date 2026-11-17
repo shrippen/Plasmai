@@ -1,4 +1,5 @@
 .pragma library
+.import "localFile.js" as LocalFile
 
 function shQuote(value) {
     return "'" + String(value).replace(/'/g, "'\\''") + "'"
@@ -296,21 +297,30 @@ function saveCatalogCache(dataSource, scriptPath, payload, callback) {
               "catalogCache.sh", callback)
 }
 
-/** The Plasmoid's own file `name` (localStore.sh): callback(object or null, error). */
+/**
+ * The Plasmoid's own file `name` (localStore.sh): callback(status, object), status
+ * as in localFile.js. Exit 1 is "no file", any other failure is "unreadable".
+ */
 function loadLocal(dataSource, scriptPath, name, callback) {
     _run(dataSource, "sh " + shQuote(scriptPath) + " load " + shQuote(name), function(data) {
         var exitCode = data["exit code"]
         if (exitCode === 1) {
-            callback(null, null)
+            callback(LocalFile.Status.MISSING, null)
             return
         }
         if (exitCode !== 0) {
-            var stderr = (data["stderr"] || "").toString().trim()
-            callback(null, stderr || ("localStore.sh load failed (exit " + exitCode + ")"))
+            callback(LocalFile.Status.UNREADABLE, null)
             return
         }
         var parsed = parseJsonPayload(data["stdout"])
-        callback(parsed, parsed ? null : "Invalid JSON in " + name)
+        callback(parsed ? LocalFile.Status.OK : LocalFile.Status.BROKEN, parsed)
+    })
+}
+
+/** Moves a file that is no JSON to `<name>.broken-<time>` (localStore.sh); callback(ok). */
+function quarantineLocal(dataSource, scriptPath, name, callback) {
+    _run(dataSource, "sh " + shQuote(scriptPath) + " quarantine " + shQuote(name), function(data) {
+        callback(data["exit code"] === 0)
     })
 }
 

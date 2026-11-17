@@ -552,6 +552,7 @@ TestCase {
         compare(Outbox.pendingCount(s), 1, "the change waits in memory")
 
         // The file reads again: its ops load, then both are written.
+        tryVerify(function() { return !s.loadingOutbox })
         delete h.readAs["offline-outbox-p1"]
         // Any answer of the server tries the load again.
         Outbox.observe(s, { ok: false, error: { type: ProviderUtil.ErrorType.Unknown, status: 500, detail: "" } })

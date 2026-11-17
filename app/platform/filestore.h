@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QDateTime>
 #include <QDir>
 #include <QFile>
 #include <QObject>
@@ -35,15 +36,33 @@ public:
 
     // The app's own files (offline snapshot, outbox): data, not config, and not
     // shared with the widget. name: letters, digits, "_", "-", "." (no path).
+    // status: "missing" (no file), "ok", "unreadable" (there, not readable: the
+    // caller must not replace it). Whether the content is JSON is the caller's.
     Q_INVOKABLE void loadLocal(const QString &name) {
         QString data;
+        QString status = QStringLiteral("unreadable");
         if (validName(name)) {
             QFile f(localDir() + "/" + name + ".json");
-            if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            if (!f.exists()) {
+                status = QStringLiteral("missing");
+            } else if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
                 data = QString::fromUtf8(f.readAll());
+                if (f.error() == QFileDevice::NoError) {
+                    status = QStringLiteral("ok");
+                } else {
+                    data.clear();
+                }
             }
         }
-        emit localLoaded(name, data);
+        emit localLoaded(name, data, status);
+    }
+
+    // A file that is no JSON: moved to <name>.broken-<time>, never deleted.
+    Q_INVOKABLE void quarantineLocal(const QString &name) {
+        const QString stamp = QDateTime::currentDateTime().toString(QStringLiteral("yyyyMMdd'T'HHmmss"));
+        const bool ok = validName(name)
+            && QFile::rename(localDir() + "/" + name + ".json", localDir() + "/" + name + ".broken-" + stamp);
+        emit localQuarantined(name, ok);
     }
 
     Q_INVOKABLE void saveLocal(const QString &name, const QString &json) {
@@ -103,6 +122,7 @@ private:
 signals:
     void loaded(const QString &fileName, const QString &data);
     void saved(const QString &fileName, bool ok);
-    void localLoaded(const QString &name, const QString &data);
+    void localLoaded(const QString &name, const QString &data, const QString &status);
+    void localQuarantined(const QString &name, bool ok);
     void localSaved(const QString &name, bool ok);
 };

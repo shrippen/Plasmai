@@ -3,7 +3,8 @@
 # Data, not cache: an outbox holds changes not yet on the server.
 #
 # Subcommands (NAME: letters, digits, "_", "-", "."):
-#   load NAME          -> print JSON on stdout (exit 0). Exit 1 if missing.
+#   load NAME          -> print JSON on stdout (exit 0). Exit 1 if missing, 2 if not readable.
+#   quarantine NAME    -> move the file to NAME.broken-<time> (a file that is no JSON).
 #   store NAME         -> write JSON from $PLASMAI_LOCAL_JSON.
 #   append NAME <job>  -> append $PLASMAI_LOCAL_JSON to the part file of <job>.
 #   commit NAME <job>  -> move the part file of <job> into place.
@@ -44,10 +45,14 @@ FILE="$DIR/$NAME.json"
 
 case "$CMD" in
     load)
-        if [ ! -f "$FILE" ]; then
+        if [ ! -e "$FILE" ]; then
             exit 1
         fi
-        exec cat "$FILE"
+        # Not exec: a failed cat must not look like "missing" (exit 1).
+        cat "$FILE" || exit 2
+        ;;
+    quarantine)
+        mv "$FILE" "$DIR/$NAME.broken-$(date +%Y%m%dT%H%M%S)"
         ;;
     store)
         if [ -z "${PLASMAI_LOCAL_JSON:-}" ]; then
@@ -80,7 +85,7 @@ case "$CMD" in
         fi
         ;;
     *)
-        echo "usage: $0 {load NAME|store NAME|append NAME <job>|commit NAME <job>}" >&2
+        echo "usage: $0 {load NAME|quarantine NAME|store NAME|append NAME <job>|commit NAME <job>}" >&2
         exit 64
         ;;
 esac

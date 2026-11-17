@@ -25,6 +25,19 @@ var State = {
     CONFLICT: "conflict"
 }
 
+/**
+ * What is wrong with the files of the layer, for the session to show (no text here).
+ * LOAD: the outbox cannot be read or is of another version, so it is not written
+ * until a read works; SAVE: the last write failed (the next one carries everything);
+ * BROKEN: the outbox file was no JSON and was set aside, the queue starts empty.
+ */
+var StorageError = {
+    NONE: "",
+    LOAD: "load",
+    SAVE: "save",
+    BROKEN: "broken"
+}
+
 /** Entries kept in the snapshot (stats, week totals, film days of the last month). */
 var KEEP_DAYS = 45
 var DAY_MS = 24 * 3600 * 1000
@@ -147,7 +160,10 @@ function writeSnapshot(s) {
     }
     s.savedSnapshotText = text
     s.savedSnapshotAt = s.snapshot.savedAt
-    s.host.save(stateName(s), s.snapshot)
+    // A lost snapshot is a smaller cache, not lost work: warn only.
+    Promise.resolve(s.host.save(stateName(s), s.snapshot)).catch(function(err) {
+        console.warn("Plasmai: could not save", stateName(s), err)
+    })
 }
 
 /** Takes the saved snapshot (a file of another version is ignored). */

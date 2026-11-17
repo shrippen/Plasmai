@@ -55,6 +55,9 @@ function create(kwalletScript, idleScript, notifyScript,
         },
         saveLocal: function(ds, name, payload, cb) {
             Secret.saveLocal(ds, localStoreScript, name, payload, cb)
+        },
+        quarantineLocal: function(ds, name, cb) {
+            Secret.quarantineLocal(ds, localStoreScript, name, cb)
         }
     }
 }

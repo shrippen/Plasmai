@@ -3,6 +3,7 @@
 .import "./providerUtil.js" as ProviderUtil
 .import "./dateTimeFormat.js" as DTF
 .import "./offlineState.js" as OfflineState
+.import "./localFile.js" as LocalFile
 
 /**
  * The outbox of the offline layer: changes made offline wait here, on disk, in
@@ -36,8 +37,31 @@ function newLocalId(s) {
     return LOCAL_PREFIX + OfflineState.nowOf(s).toString(36) + "-" + s.counter
 }
 
+/**
+ * Writes the whole outbox. Not while its file could not be read (the file holds
+ * ops this run does not know); a failed write sets storageError, the next write
+ * carries everything again and a good one clears it.
+ */
 function saveOutbox(s) {
-    s.host.save(outboxName(s), { v: OfflineState.SNAPSHOT_VERSION, counter: s.counter, ops: s.ops })
+    if (s.outboxBlocked) {
+        return
+    }
+    var written = s.host.save(outboxName(s), { v: OfflineState.SNAPSHOT_VERSION, counter: s.counter, ops: s.ops })
+    Promise.resolve(written).then(function() {
+        setStorageError(s, OfflineState.StorageError.NONE, OfflineState.StorageError.SAVE)
+    }, function(err) {
+        console.warn("Plasmai: could not save", outboxName(s), err)
+        setStorageError(s, OfflineState.StorageError.SAVE)
+    })
+}
+
+/** Sets the error; with `only` it replaces just that one (a good write clears a failed write only). */
+function setStorageError(s, error, only) {
+    if (s.storageError === error || (only !== undefined && s.storageError !== only)) {
+        return
+    }
+    s.storageError = error
+    OfflineState.notify(s)
 }
 
 // -- Offline flag ---------------------------------------------------------------
@@ -55,6 +79,10 @@ function setOffline(s, offline) {
  * also starts a replay unless the caller does that itself.
  */
 function observe(s, result, noReplay) {
+    // The outbox file could not be read: any answer is a reason to try again.
+    if (s.outboxBlocked) {
+        loadOutbox(s)
+    }
     if (isNetworkError(result)) {
         setOffline(s, true)
         return
@@ -152,7 +180,8 @@ function rewriteId(s, localId, serverId) {
             op.body.timesheet = serverId
         }
     }
-    if (s.host.idChanged) {
+    // A closed session's ids belong to a profile that is no longer the active one.
+    if (s.host.idChanged && !s.closed) {
         s.host.idChanged(localId, serverId)
     }
 }
@@ -175,10 +204,20 @@ function finish(s, op, result) {
     return false
 }
 
-function runCreate(s, op, done) {
+/** The connection a replay started with. */
+function connectionOf(s) {
+    return { url: s.host.url(), token: s.host.token() }
+}
+
+/** The session was closed, or another profile, URL or token is active now. */
+function moved(s, conn) {
+    return !!s.closed || s.host.url() !== conn.url || s.host.token() !== conn.token
+}
+
+function runCreate(s, op, conn, done) {
     var inner = s.inner
     function create() {
-        inner.createTimesheet(s.host.url(), s.host.token(), op.fields, function(result) {
+        inner.createTimesheet(conn.url, conn.token, op.fields, function(result) {
             if (result.ok && result.data) {
                 rewriteId(s, op.entryId, result.data.id)
                 OfflineState.rememberEntries(s, [result.data])
@@ -192,8 +231,12 @@ function runCreate(s, op, done) {
     }
     // The first try may have reached the server (its answer got lost): adopt that entry.
     var begin = DTF.stampMs(op.fields.begin)
-    inner.fetchTimesheetsRange(s.host.url(), s.host.token(), new Date(begin - DUPLICATE_WINDOW_MS),
+    inner.fetchTimesheetsRange(conn.url, conn.token, new Date(begin - DUPLICATE_WINDOW_MS),
                                new Date(begin + DUPLICATE_WINDOW_MS), function(found) {
+        if (moved(s, conn)) {
+            done(null)
+            return
+        }
         if (!found.ok) {
             done(found)
             return
@@ -215,17 +258,21 @@ function runCreate(s, op, done) {
                 rest[k] = op.fields[k]
             }
         }
-        inner.patchTimesheet(s.host.url(), s.host.token(), same[0].id, rest, done)
+        inner.patchTimesheet(conn.url, conn.token, same[0].id, rest, done)
     })
 }
 
 /** Reads the entry first: changed on the server since it was loaded → conflict. */
-function checked(s, op, run, done) {
+function checked(s, op, conn, run, done) {
     if (!op.base || isLocalId(op.entryId)) {
         run()
         return
     }
-    s.inner.fetchTimesheet(s.host.url(), s.host.token(), op.entryId, function(found) {
+    s.inner.fetchTimesheet(conn.url, conn.token, op.entryId, function(found) {
+        if (moved(s, conn)) {
+            done(null)
+            return
+        }
         if (!found.ok) {
             if (op.kind === OfflineState.Op.DELETE && found.error && found.error.status === 404) {
                 done({ ok: true })
@@ -246,15 +293,15 @@ function checked(s, op, run, done) {
     })
 }
 
-function runOp(s, op, done) {
-    var url = s.host.url()
-    var token = s.host.token()
+function runOp(s, op, conn, done) {
+    var url = conn.url
+    var token = conn.token
     if (op.kind === OfflineState.Op.CREATE) {
-        runCreate(s, op, done)
+        runCreate(s, op, conn, done)
         return
     }
     if (op.kind === OfflineState.Op.PATCH) {
-        checked(s, op, function() {
+        checked(s, op, conn, function() {
             s.inner.patchTimesheet(url, token, op.entryId, op.fields, function(result) {
                 if (result.ok && result.data) {
                     OfflineState.rememberEntries(s, [result.data])
@@ -265,7 +312,7 @@ function runOp(s, op, done) {
         return
     }
     if (op.kind === OfflineState.Op.DELETE) {
-        checked(s, op, function() {
+        checked(s, op, conn, function() {
             s.inner.deleteTimesheet(url, token, op.entryId, function(result) {
                 if (result.ok) {
                     delete s.snapshot.entries[String(op.entryId)]
@@ -301,7 +348,11 @@ function runOp(s, op, done) {
     done({ ok: false, error: { type: ProviderUtil.ErrorType.Unknown, status: 0, detail: "unknown op " + op.kind } })
 }
 
-/** Sends the outbox in order; callback(sent) when it stops (empty, offline or a failed op). */
+/**
+ * Sends the outbox in order; callback(sent) when it stops (empty, offline, a failed op,
+ * or the connection or session changed: the rest waits for the next replay).
+ * URL and token are taken once, so no op goes to another server than the one it was started for.
+ */
 function replay(s, callback) {
     if (s.replaying) {
         if (callback) {
@@ -310,6 +361,7 @@ function replay(s, callback) {
         return
     }
     s.replaying = true
+    var conn = connectionOf(s)
     var sent = 0
     function stop() {
         s.replaying = false
@@ -327,11 +379,11 @@ function replay(s, callback) {
     }
     function next() {
         var op = s.ops.length ? s.ops[0] : null
-        if (!op || op.state !== OfflineState.State.PENDING) {
+        if (!op || op.state !== OfflineState.State.PENDING || moved(s, conn)) {
             stop()
             return
         }
-        runOp(s, op, function(result) {
+        runOp(s, op, conn, function(result) {
             if (!result || !finish(s, op, result)) {
                 stop()
                 return
@@ -360,11 +412,52 @@ function migratedOps(ops) {
 
 /** Takes the saved outbox; ops queued before that stay behind the loaded ones. */
 function restoreOps(s, outbox) {
-    if (!outbox || outbox.v !== OfflineState.SNAPSHOT_VERSION) {
-        return
-    }
     s.counter = Math.max(s.counter, outbox.counter || 0)
     s.ops = migratedOps(outbox.ops || []).concat(s.ops)
+}
+
+/** Reads the outbox file again while it is blocked; resolves when this try is done. */
+function loadOutbox(s) {
+    if (s.loadingOutbox) {
+        return s.loadingOutbox
+    }
+    s.loadingOutbox = s.host.load(outboxName(s)).then(function(file) {
+        s.loadingOutbox = null
+        applyLoaded(s, file)
+        OfflineState.notify(s)
+    })
+    return s.loadingOutbox
+}
+
+/** What a read of the outbox file means for the queue (statuses: localFile.js). */
+function applyLoaded(s, file) {
+    var Status = LocalFile.Status
+    var StorageError = OfflineState.StorageError
+    if (file.status === Status.BROKEN) {
+        // Set aside by the platform: nothing to lose by writing a new one.
+        s.outboxBlocked = false
+        s.storageError = StorageError.BROKEN
+        return
+    }
+    var unusable = file.status === Status.UNREADABLE
+        || (file.status === Status.OK && (!file.data || file.data.v !== OfflineState.SNAPSHOT_VERSION))
+    if (unusable) {
+        s.outboxBlocked = true
+        s.storageError = StorageError.LOAD
+        return
+    }
+    if (file.status === Status.OK) {
+        restoreOps(s, file.data)
+    }
+    var wasBlocked = s.outboxBlocked
+    s.outboxBlocked = false
+    if (s.storageError === StorageError.LOAD) {
+        s.storageError = StorageError.NONE
+    }
+    // Ops made while the file could not be read: now written behind the loaded ones.
+    if (wasBlocked && s.ops.length) {
+        saveOutbox(s)
+    }
 }
 
 /** Ops in order, for the "Unsynced" list. */

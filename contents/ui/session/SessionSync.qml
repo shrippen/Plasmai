@@ -39,6 +39,8 @@ QtObject {
     Component.onDestruction: flushSave()
 
     readonly property bool offline: revision >= 0 && !!state && Offline.isOffline(state)
+    /** What is wrong with the outbox's file (OfflineState.StorageError; no text), "" = nothing. */
+    readonly property string storageError: revision >= 0 && state ? state.storageError : OfflineState.StorageError.NONE
     readonly property int unsynced: revision >= 0 && state ? Outbox.pendingCount(state) : 0
     /** When the snapshot was last written from a server answer (ms, 0 = never). */
     readonly property double stateAt: revision >= 0 && state ? OfflineState.stateAt(state) : 0
@@ -54,20 +56,19 @@ QtObject {
         const key = providerId === TimeTracker.PROVIDER_KIMAI && p
             ? session.offlinePrefix + String(p.id).replace(/[^A-Za-z0-9_-]/g, "_") : ""
         if (state && state.host.key === key && state.inner === inner) {
-            return Promise.resolve()
+            return state.outboxBlocked ? Outbox.loadOutbox(state) : Promise.resolve()
         }
         // The old session's deferred save would be replaced by the new one's.
         flushSave()
+        if (state) {
+            Offline.close(state)
+        }
         const s = Offline.createSession(inner, {
             key: key,
             url: function() { return session.connection.url },
             token: function() { return session.connection.token },
             load: function(name) { return Platform.loadLocal(session.dataSource, name) },
-            save: function(name, obj) {
-                return Platform.saveLocal(session.dataSource, name, obj).catch(function(err) {
-                    console.warn("Plasmai: could not save", name, err)
-                })
-            },
+            save: function(name, obj) { return Platform.saveLocal(session.dataSource, name, obj) },
             defer: function(fn) {
                 sync.pendingSave = fn
                 sync.saveTimer.start()

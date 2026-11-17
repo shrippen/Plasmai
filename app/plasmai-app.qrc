@@ -195,6 +195,7 @@
         <file alias="contents/code/dayModel.js">../contents/code/dayModel.js</file>
         <file alias="contents/code/layouts.js">../contents/code/layouts.js</file>
         <file alias="contents/code/offline.js">../contents/code/offline.js</file>
+        <file alias="contents/code/localFile.js">../contents/code/localFile.js</file>
         <file alias="contents/code/offlineState.js">../contents/code/offlineState.js</file>
         <file alias="contents/code/offlineOutbox.js">../contents/code/offlineOutbox.js</file>
         <file alias="contents/code/workContractAdjust.js">../contents/code/workContractAdjust.js</file>

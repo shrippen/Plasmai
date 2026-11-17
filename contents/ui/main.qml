@@ -2263,11 +2263,12 @@ PlasmoidItem {
                 // Offline and sync state; "Show" opens the list of what is not synced yet.
                 OfflineStatus {
                     Layout.fillWidth: true
-                    visible: (root.session.sync.offline || root.session.sync.unsynced > 0) && root.mainViewMode !== "unsynced"
+                    visible: (root.session.sync.offline || root.session.sync.unsynced > 0 || root.session.sync.storageError !== "") && root.mainViewMode !== "unsynced"
                     offline: root.session.sync.offline
                     stateAt: root.session.sync.stateAt
                     unsynced: root.session.sync.unsynced
                     stuck: root.session.sync.stuck
+                    storageError: root.session.sync.storageError
                     onDetailsRequested: root.openUnsyncedView()
                 }
 
@@ -2282,6 +2283,7 @@ PlasmoidItem {
                         stateAt: root.session.sync.stateAt
                         unsynced: root.session.sync.unsynced
                         stuck: root.session.sync.stuck
+                        storageError: root.session.sync.storageError
                         showDetails: false
                     }
 
