@@ -144,12 +144,30 @@ TestCase {
         compare(f.profiles[0].id, "b")
     }
 
-    function test_applyTestedTakesTheList() {
+    function test_applyTestedSetsIdsOnTheTestedProfile() {
         const f = make()
-        const tested = f.profiles.slice()
-        tested[1] = Object.assign({}, tested[1], { workspaceId: "w2" })
-        f.applyTested(tested)
+        f.applyTested("b", { workspaceId: "w2" })
         compare(f.profiles[1].workspaceId, "w2")
         compare(edits, 1)
+    }
+
+    function test_applyTestedKeepsProfilesAddedMeanwhile() {
+        const f = make()
+        // The test of "a" runs; the user adds a profile; the answer comes.
+        f.add(function(n) { return "Profile " + n })
+        f.applyTested("a", { workspaceId: "w1" })
+        compare(f.profiles.length, 3)
+        compare(f.profiles[0].workspaceId, "w1")
+        compare(f.selectedIndex, 2)
+        compare(f.profiles[2].name, "Profile 3")
+    }
+
+    function test_applyTestedOfARemovedProfileDoesNothing() {
+        const f = make()
+        f.removeSelected("zzz")
+        edits = 0
+        f.applyTested("a", { workspaceId: "w1" })
+        compare(f.profiles.length, 1)
+        compare(edits, 0)
     }
 }
