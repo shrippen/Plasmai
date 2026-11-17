@@ -33,6 +33,21 @@ TestCase {
         compare(Cache.load().projects[0].id, 9)
     }
 
+    function test_catalogBelongsToItsServer() {
+        Cache.storeEntities("p", [], [{ id: 1 }], [], "https://a.test")
+        verify(Cache.hasCatalog("p", "https://a.test"))
+        verify(Cache.isFresh("p", "https://a.test"))
+        verify(!Cache.hasCatalog("p", "https://b.test"))
+        verify(!Cache.isFresh("p", "https://b.test"))
+        verify(Cache.hasCatalog("p"))
+        compare(Cache.exportPayload().url, "https://a.test")
+    }
+
+    function test_catalogFromBeforeServersIsNotTrusted() {
+        Cache.hydrate({ profileId: "p", customers: [], projects: [{ id: 1 }], activities: [], loadedAt: Date.now() })
+        verify(!Cache.hasCatalog("p", "https://a.test"))
+    }
+
     function test_hydrateKeepsLoadedAt() {
         var old = Date.now() - Cache.FRESH_MS - 1000
         Cache.hydrate({ profileId: "p", customers: [], projects: [{ id: 1 }], activities: [], loadedAt: old })

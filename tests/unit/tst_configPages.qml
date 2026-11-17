@@ -127,6 +127,22 @@ TestCase {
         tryVerify(function() { return shared.pinnedActivities.length > 0 })
     }
 
+    // A stored catalog of another profile or server is not shown: its ids are not this account's.
+    function test_favoritesTakesOnlyItsOwnCatalog() {
+        plasmoid.configuration.profilesJson = shared.profilesJson
+        plasmoid.configuration.activeProfileId = "demo"
+        const page = open(favoritesPage)
+        tryVerify(function() { return !!page.activeProfile })
+        const url = page.activeProfile.url
+        const catalog = function(profileId, from) {
+            return { profileId: profileId, url: from, projects: [{ id: 1, name: "P" }], customers: [], activities: [] }
+        }
+        verify(!page.applyPayloadIfUsable(catalog("other", url)))
+        verify(!page.applyPayloadIfUsable(catalog("demo", "https://other.test")))
+        verify(!page.applyPayloadIfUsable(catalog("demo", "")))
+        verify(page.applyPayloadIfUsable(catalog("demo", url)))
+    }
+
     function test_behaviorAndDisplayLoad() {
         const behavior = open(behaviorPage)
         tryCompare(behavior, "ready", true)
