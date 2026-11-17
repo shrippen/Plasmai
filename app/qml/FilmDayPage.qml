@@ -256,7 +256,10 @@ Kirigami.Page {
                 connectionOk: session.connection.state !== "error"
                 showCreateActions: session.entries.canCreate
                 onProjectChosen: function(projectId) {
-                    session.catalog.loadActivities(projectId, function(model) { filmDayView.activityPickerModel = model })
+                    session.catalog.loadActivities(projectId, function(model) {
+                        if (!page) { return }
+                        filmDayView.activityPickerModel = model
+                    })
                 }
                 onProjectPicked: function(projectId) {
                     page.loadForDate(page.selectedDate)
