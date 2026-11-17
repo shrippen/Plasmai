@@ -203,35 +203,16 @@ TestCase {
         compare(deferred, 0)
     }
 
-    // A create on its way when the profile is left: its answer is written once, then the
-    // same profile opened again reads a file without that create (no second create).
-    function test_inFlightCreateSurvivesProfileRoundTrip() {
+    // A write asked for while closed is made when the session is reopened.
+    function test_reopenWritesWhatWasHeldBack() {
         var k = fakeKimai()
         var h = fakeHost()
-        var s1 = session(k, h)
-        k.net = false
-        call(function(cb) { s1.tracker.createTimesheet("u", "t", { begin: stamp(7, 0), end: stamp(8, 0), project: 10, activity: 20 }, cb) })
-        k.net = true
-        var sends = 0
-        var answer = null
-        var create = k.createTimesheet
-        k.createTimesheet = function(u, t, f, cb) { sends++; answer = function() { create(u, t, f, cb) } }
-        var replayed = false
-        Outbox.replay(s1, function() { replayed = true })
-        compare(sends, 1)
-        // Profile B is opened, then A again: the new session waits for the old one's replay.
-        Offline.close(s1)
-        var waited = false
-        var settled = Offline.settled(s1)
-        settled.then(function() { waited = true })
-        wait(20)
-        verify(!waited, "waits while the create is on its way")
-        answer()
-        tryVerify(function() { return waited })
-        var s2 = session(k, h)
-        loaded(s2)
-        compare(Outbox.pendingCount(s2), 0)
-        call(function(cb) { Outbox.replay(s2, cb) })
-        compare(sends, 1, "created once")
+        var s = session(k, h)
+        loaded(s)
+        Offline.close(s)
+        startOffline(k, s)
+        verify(!h.files["offline-outbox-p1"])
+        Offline.reopen(s)
+        compare(JSON.parse(h.files["offline-outbox-p1"]).ops.length, 1)
     }
 }

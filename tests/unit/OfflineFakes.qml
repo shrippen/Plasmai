@@ -53,6 +53,12 @@ QtObject {
                                     : { ok: false, error: { type: "not_found", status: 404, detail: "" } }
             })
         }
+        addWriteCalls(k, answer)
+        addTripCalls(k, answer)
+        return k
+    }
+
+    function addWriteCalls(k, answer) {
         k.createTimesheet = function(u, t, f, cb) {
             answer("create", cb, function() {
                 var ts = JSON.parse(JSON.stringify(f)); ts.id = k.nextId++; k.server[ts.id] = ts
@@ -87,7 +93,10 @@ QtObject {
         k.createProject = function(u, t, f, cb) {
             answer("createProject", cb, function() { return { ok: true, data: { id: 11 } } })
         }
-        // Trips (kimai-anfahrten)
+    }
+
+    // Trips (kimai-anfahrten)
+    function addTripCalls(k, answer) {
         k.trips = {}
         k.nextTrip = 500
         k.fetchTrips = function(u, t, range, cb) {
@@ -115,7 +124,6 @@ QtObject {
         k.acceptTripSuggestion = function(u, t, id, body, cb) {
             answer("accept", cb, function() { return { ok: true, data: {} } })
         }
-        return k
     }
 
     function fakeHost(files) {

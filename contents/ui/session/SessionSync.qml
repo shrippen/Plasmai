@@ -21,8 +21,9 @@ QtObject {
     /** Bumped by offline.js on every change, so the bindings below re-read it. */
     property int revision: 0
 
-    // Closed sessions by profile key: their replay in flight, then their last write (Offline.settled).
-    property var closing: ({})
+    // The session of every profile opened so far, by key: a file has one session, ever. One that
+    // is left keeps its replay going for the op on its way; coming back reopens it, no new one.
+    property var sessions: ({})
 
     // A refresh answers a dozen reads within a second: the snapshot is saved once after them.
     property var pendingSave: null
@@ -59,16 +60,18 @@ QtObject {
         const key = providerId === TimeTracker.PROVIDER_KIMAI && p
             ? session.offlinePrefix + String(p.id).replace(/[^A-Za-z0-9_-]/g, "_") : ""
         if (state && state.host.key === key && state.inner === inner) {
-            if (state.opening) {
-                return state.opening
-            }
-            return state.outboxBlocked ? Outbox.loadOutbox(state) : Promise.resolve()
+            return restored(state)
         }
         // The old session's deferred save would be replaced by the new one's.
         flushSave()
         if (state) {
             Offline.close(state)
-            closing[state.host.key] = Offline.settled(state)
+        }
+        const known = key ? sessions[key] : null
+        if (known && known.inner === inner) {
+            Offline.reopen(known)
+            state = known
+            return restored(known)
         }
         const s = Offline.createSession(inner, {
             key: key,
@@ -84,16 +87,18 @@ QtObject {
             idChanged: function(localId, serverId) { session.timer.followId(localId, serverId) }
         })
         state = s
-        // Not written before the file is read, and not before a closed session of this profile
-        // has written the answer of the op that was on its way (else it is sent twice).
-        s.outboxBlocked = true
-        s.opening = (closing[key] || Promise.resolve()).then(function() {
-            return Offline.load(s)
-        }).then(function() {
-            s.opening = null
+        if (key) {
+            sessions[key] = s
+        }
+        return Offline.load(s).then(function() { return restored(s) })
+    }
+
+    /** Resolves when the outbox of `s` is read (a read that failed is tried again); then the film day memo. */
+    function restored(s) {
+        const read = s.loadingOutbox || (s.outboxBlocked ? Outbox.loadOutbox(s) : Promise.resolve())
+        return read.then(function() {
             FilmDaySync.restoreMemo(session.filmDay.context(), OfflineState.filmDays(s))
         })
-        return s.opening
     }
 
     function isUnsynced(entryId) {

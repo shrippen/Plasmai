@@ -42,8 +42,17 @@ function newLocalId(s) {
  * profile owns the file). See writeOutbox.
  */
 function saveOutbox(s) {
-    if (!s.closed) {
-        writeOutbox(s)
+    if (s.closed) {
+        s.saveWaits = true
+        return
+    }
+    writeOutbox(s)
+}
+
+/** After a reopen: the write that was held back. */
+function resume(s) {
+    if (s.saveWaits && !s.outboxBlocked && !s.loadingOutbox) {
+        saveOutbox(s)
     }
 }
 
@@ -57,24 +66,14 @@ function writeOutbox(s) {
         s.saveWaits = true
         return
     }
+    s.saveWaits = false
     var written = s.host.save(outboxName(s), { v: OfflineState.SNAPSHOT_VERSION, counter: s.counter, ops: s.ops })
-    s.lastWrite = Promise.resolve(written).then(function() {
+    Promise.resolve(written).then(function() {
         setStorageError(s, OfflineState.StorageError.NONE, OfflineState.StorageError.SAVE)
     }, function(err) {
         console.warn("Plasmai: could not save", outboxName(s), err)
         setStorageError(s, OfflineState.StorageError.SAVE)
     })
-}
-
-/** Resolves when no replay of s runs and its last write is done (the file is final). */
-function settled(s) {
-    return new Promise(function(resolve) {
-        if (!s.replaying) {
-            resolve()
-            return
-        }
-        replay(s, resolve)
-    }).then(function() { return s.lastWrite })
 }
 
 /** Sets the error; with `only` it replaces just that one (a good write clears a failed write only). */

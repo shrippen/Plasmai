@@ -797,11 +797,14 @@ Bad reception on set: Plasmai keeps working and syncs once the server answers
   stops the replay; the op stays pending for the next one. Not solved yet: a change of
   the address within the same profile still sends the remaining ops to the new address
   on the next replay (part 2 of the offline rework).
-- **Sessions and their files**: nothing is written while the outbox is read. A closed
-  session writes nothing but the outbox once more when its replay stops, so the answer of the
-  op that was on its way is in the file; opening the same profile again waits for that
-  (`Offline.settled`) and then reads, else the op would be sent twice. A file that is no JSON is
-  moved aside only when no write of it is running.
+- **Sessions and their files**: a file has one session, ever. `SessionSync` keeps the session of
+  every profile it opened (by key); leaving a profile closes its session, coming back reopens
+  the same one (`Offline.reopen`), also while its replay is waiting for the op on its way, so that
+  op is neither sent twice nor lost. Nothing is written while the outbox is read. A closed session
+  writes nothing but the outbox once more when its replay stops (the answer of the op that was on
+  its way); a write asked for meanwhile waits for the reopen. A file that is no JSON is
+  moved aside only when no write of it is running. A profile without offline layer (key "") has
+  no files and nothing to read.
 - **Offline begin**: a timer started offline sends its begin explicitly (the
   device's time); online Kimai stamps its own "now".
 - **UI**: a status line ("Offline · as of 12:04 · 2 changes not synced yet",
