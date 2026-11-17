@@ -809,7 +809,7 @@ TestCase {
     // The offline layer answers the day's timesheets from its snapshot: that
     // is no news for the day cache (not stored, the cached view stays).
     function test_openDayOfflineSnapshotIsNoChange() {
-        var tracker = {
+        var tracker = { fetchFilmDay: KimaiApi.fetchFilmDay, fetchEngagementStatus: KimaiApi.fetchEngagementStatus,
             fetchTimesheetsRange: function(u, t, b, e, cb) {
                 cb({ ok: true, offline: true, data: [{ id: 9, project: 1, activity: 40, begin: "2026-09-14T08:00:00" }] })
             }

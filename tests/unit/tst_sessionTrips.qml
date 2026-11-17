@@ -26,6 +26,12 @@ TestCase {
                 function createTrip(url, token, body, cb) { hold("create", [body, cb]) }
                 function deleteTrip(url, token, id, cb) { hold("remove", [id, cb]) }
                 function patchTrip(url, token, id, body, cb) { hold("patch", [id, body, cb]) }
+                function detectMileage(url, token, options, cb) {
+                    calls.push(["detect", url, options.key])
+                    cb({ state: KimaiApi.PluginState.PRESENT, data: { permissions: { view: true } }, cacheEntry: null })
+                }
+                function fetchMileageMeta(url, token, cb) { calls.push(["meta"]) }
+                function fetchVehicles(url, token, cb) { calls.push(["vehicles"]) }
             }
             property var connection: QtObject {
                 property bool configured: true
@@ -35,7 +41,11 @@ TestCase {
                 property var profile: null
                 property var tracker: fake.tracker
             }
-            property var settings: QtObject { property bool showTrips: true }
+            property var settings: QtObject {
+                property bool showTrips: true
+                property string pluginProbesJson: ""
+                function mergeMaps(map) { }
+            }
             property var sync: QtObject { property bool offline: false; property int unsynced: 0 }
             property var trips: Parts.SessionTrips {
                 session: fake
@@ -60,6 +70,18 @@ TestCase {
 
     function spy(target) {
         return createTemporaryObject(signalSpy, this, { target: target, signalName: "changed" })
+    }
+
+    // The probe and the plugin's meta data are asked of the active tracker.
+    function test_probeThroughTracker() {
+        const f = trips()
+        let done = false
+
+        f.trips.resolve(Ui.Session.Probe.Cached, function() { done = true })
+
+        verify(done)
+        compare(calls[0].slice(0, 2), ["detect", "https://k"])
+        compare(calls.slice(1).map(c => c[0]), ["meta", "vehicles"])
     }
 
     function test_acceptSignalsAndReleasesBusy() {

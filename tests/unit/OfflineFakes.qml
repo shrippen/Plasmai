@@ -55,6 +55,7 @@ QtObject {
         }
         addWriteCalls(k, answer)
         addTripCalls(k, answer)
+        addPluginCalls(k, answer)
         return k
     }
 
@@ -123,6 +124,27 @@ QtObject {
         }
         k.acceptTripSuggestion = function(u, t, id, body, cb) {
             answer("accept", cb, function() { return { ok: true, data: {} } })
+        }
+    }
+
+    // Drehzettel plugin: film-day extras per project and date, a probe
+    function addPluginCalls(k, answer) {
+        k.filmDays = {}
+        k.putFilmDay = function(u, t, pid, date, patch, cb) {
+            answer("putFilmDay " + pid + " " + date, cb, function() {
+                var key = pid + "|" + date
+                var day = k.filmDays[key] || {}
+                for (var field in patch) day[field] = patch[field]
+                k.filmDays[key] = day
+                return { ok: true, data: JSON.parse(JSON.stringify(day)) }
+            })
+        }
+        k.fetchDaySummary = function(u, t, pid, date, cb) {
+            answer("summary", cb, function() { return { ok: true, data: { payCents: 100 } } })
+        }
+        k.detectDrehzettel = function(u, t, options, cb) {
+            k.calls.push("detect")
+            cb(k.net ? { state: "present", data: {}, cacheEntry: null } : { state: "unknown", data: null, cacheEntry: null })
         }
     }
 

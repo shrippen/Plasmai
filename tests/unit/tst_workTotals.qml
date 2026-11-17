@@ -105,4 +105,24 @@ TestCase {
         load(nextWeek.getTime(), nextWeek)
         compare(users, 3)
     }
+
+    // The holiday plugin is asked through the tracker, and only with a contract and the bundle.
+    function test_loadAdjustmentsThroughTracker() {
+        var asked = []
+        var t = tracker({ prefs: wednesdayPrefs }, [])
+        t.fetchContractAdjustments = function(url, token, when, prefs, cb) {
+            asked.push(prefs.work_contract_type)
+            cb({ ok: true, data: { absences: [], publicHolidays: [{ date: "2026-09-30", name: "H" }] } })
+        }
+        var got = null
+        WorkTotals.load({ tracker: t, url: "u", token: "t", holidayBundle: true, nowMs: now.getTime() },
+                        now, function(r) { got = r })
+        compare(asked, ["day"])
+        compare(got.publicHolidays.length, 1)
+
+        asked = []
+        WorkTotals.load({ tracker: t, url: "u", token: "t", holidayBundle: false, nowMs: now.getTime() },
+                        now, function(r) { got = r })
+        compare(asked, [])
+    }
 }

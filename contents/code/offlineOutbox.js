@@ -1,5 +1,4 @@
 .pragma library
-.import "./kimaiApi.js" as KimaiApi
 .import "./providerUtil.js" as ProviderUtil
 .import "./dateTimeFormat.js" as DTF
 .import "./offlineState.js" as OfflineState
@@ -327,7 +326,7 @@ function runOp(s, op, conn, done) {
         return
     }
     if (op.kind === OfflineState.Op.FILM_DAY) {
-        KimaiApi.putFilmDay(url, token, op.projectId, op.dateStr, op.patch, done)
+        s.inner.putFilmDay(url, token, op.projectId, op.dateStr, op.patch, done)
         return
     }
     if (op.kind === OfflineState.Op.TRIP_CREATE) {

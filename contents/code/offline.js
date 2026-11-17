@@ -1,5 +1,4 @@
 .pragma library
-.import "./kimaiApi.js" as KimaiApi
 .import "./dateTimeFormat.js" as DTF
 .import "./providerUtil.js" as ProviderUtil
 .import "./offlineState.js" as OfflineState
@@ -45,6 +44,14 @@
 var CACHED_READS = ["loadProjects", "loadCustomers", "loadAllActivities", "loadActivities",
                     "fetchCurrentUser", "testConnection", "fetchMileageMeta", "fetchVehicles",
                     "fetchTripSuggestions"]
+
+/**
+ * Plugin probes and reads the layer neither caches nor answers: they reach the
+ * server as asked. Not observed either: a probe's or a read's failure says
+ * nothing the entries' calls do not (a probe answers a state, not { ok }).
+ */
+var PLUGIN_CALLS = ["detectDrehzettel", "detectMileage", "fetchContractAdjustments", "fetchFilmDay",
+                    "fetchDrehzettelEngagements", "fetchEngagementStatus", "fetchDaySummary"]
 
 function offlineFail() {
     return { ok: false, error: { type: ProviderUtil.ErrorType.Offline, status: 0, detail: "" } }
@@ -130,6 +137,15 @@ function passThrough(s, name) {
         }
         return s.inner[name].apply(s.inner, args)
     }
+}
+
+/** The inner member as it is, or its call observed by the layer (PLUGIN_CALLS stay as they are). */
+function passed(s, name) {
+    var member = s.inner[name]
+    if (typeof member !== "function" || PLUGIN_CALLS.indexOf(name) >= 0) {
+        return member
+    }
+    return passThrough(s, name)
 }
 
 function cachedRead(s, name) {
@@ -266,11 +282,7 @@ function wrapTracker(s) {
     var inner = s.inner
     var t = {}
     for (var name in inner) {
-        if (typeof inner[name] === "function") {
-            t[name] = passThrough(s, name)
-        } else {
-            t[name] = inner[name]
-        }
+        t[name] = passed(s, name)
     }
     for (var i = 0; i < CACHED_READS.length; i++) {
         if (typeof inner[CACHED_READS[i]] === "function") {
@@ -386,7 +398,7 @@ function wrapTracker(s) {
     /** Film day extras (the Drehzettel plugin), queued like the entry of the day. */
     t.putFilmDay = function(url, token, projectId, dateStr, patch, callback) {
         write(s, function(done) {
-            KimaiApi.putFilmDay(url, token, projectId, dateStr, patch, function(result) { done(result, callback) })
+            inner.putFilmDay(url, token, projectId, dateStr, patch, function(result) { done(result, callback) })
         }, function() {
             Outbox.enqueue(s, { kind: OfflineState.Op.FILM_DAY, projectId: projectId, dateStr: dateStr, patch: patch })
             callback({ ok: true, data: null, queued: true })

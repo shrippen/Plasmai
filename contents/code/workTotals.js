@@ -1,5 +1,4 @@
 .pragma library
-.import "./kimaiApi.js" as KimaiApi
 .import "./dayIntervals.js" as Intervals
 .import "./dateTimeFormat.js" as DTF
 .import "./workContractAdjust.js" as WorkAdjust
@@ -11,7 +10,7 @@
  *
  *   load(ctx, now, callback)
  *     ├─ tracker.fetchCurrentUser        → work preferences → targets
- *     ├─ KimaiApi.fetchContractAdjustments (holiday plugin, with a contract)
+ *     ├─ tracker.fetchContractAdjustments (holiday plugin, with a contract)
  *     └─ tracker.fetchTimesheetsRange    → this week's entries
  *   summarize(...) → { todaySeconds, weekSeconds, targets, credits, … }
  *
@@ -159,7 +158,7 @@ function loadContract(ctx, now, callback) {
             keep(user, null)
             return
         }
-        KimaiApi.fetchContractAdjustments(ctx.url, ctx.token, now, prefs, function(adj) {
+        ctx.tracker.fetchContractAdjustments(ctx.url, ctx.token, now, prefs, function(adj) {
             keep(user, (adj && adj.ok && adj.data) ? adj.data : { absences: [], publicHolidays: [] })
         })
     })

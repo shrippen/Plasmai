@@ -29,9 +29,9 @@ contents/code/favorites.js	resolvePinnedEntries	ccn=20 nesting=5
 contents/code/filmDaySync.js	-	lines=841
 contents/code/filmDaySync.js	viewInfo	ccn=28
 contents/code/filmDays.js	normalizeServer	ccn=18
-contents/code/kimaiApi.js	-	lines=1269
+contents/code/kimaiApi.js	-	lines=1180
 contents/code/mileage.js	validateForm	ccn=27
-contents/code/offline.js	wrapTracker	length=156
+contents/code/offline.js	wrapTracker	length=152
 contents/code/providers/clockify.js	(anonymous)	ccn=19
 contents/code/providers/solidtime.js	(anonymous)	ccn=17
 contents/code/providers/solidtime.js	(anonymous)#2	ccn=17
@@ -44,7 +44,7 @@ contents/code/statsData.js	weeklyHourTimeline	ccn=42 length=163
 contents/code/statsData.js	weeklyProjectStacks	ccn=24 length=92
 contents/code/timesheetFields.js	colorFromTagName	nesting=5
 contents/code/timesheetFields.js	hydrateTimesheets	ccn=32
-contents/ui/FilmDayView.qml	-	lines=1154
+contents/ui/FilmDayView.qml	-	lines=1153
 contents/ui/FilmDayView.qml	applyLoadedDay	ccn=16
 contents/ui/ScreenshotRunner.qml	(anonymous)	nesting=10
 contents/ui/ScreenshotRunner.qml	step	ccn=30 length=135 nesting=15
