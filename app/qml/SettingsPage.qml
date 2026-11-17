@@ -30,6 +30,8 @@ Kirigami.Page {
             if (page.locationQuery.trim().length < 2) { page.locationResults = []; return }
             page.locationSearching = true
             session.setup.searchPlace(page.locationQuery, function(result) {
+                // The page is gone: nothing to show.
+                if (!page) { return }
                 page.locationSearching = false
                 page.locationResults = (result.ok && result.results) ? result.results : []
             })

@@ -26,6 +26,8 @@ Kirigami.Page {
         }
         // The session refreshes right away: otherwise Recent and the totals stay stale until the next poll.
         session.entries.write(page.editMode && page.editTs ? page.editTs.id : null, fields, function(r) {
+            // The page is gone: nothing to close.
+            if (!page) { return }
             page.busy = false
             if (r.ok) {
                 pageStack.pop()
@@ -37,6 +39,8 @@ Kirigami.Page {
         if (editTs) {
             var pid = KimaiApi.projectId(editTs)
             session.catalog.loadActivities(pid, function(model) {
+                // The page is gone: nothing to fill.
+                if (!page) { return }
                 page.activityPickerModel = model
                 manualEntryView.loadFromTimesheet(page.editTs)
             })
@@ -109,7 +113,10 @@ Kirigami.Page {
                 showCreateActions: session.entries.canCreate
                 tagSource: session.entries
                 onProjectChosen: function(projectId) {
-                    session.catalog.loadActivities(projectId, function(model) { page.activityPickerModel = model })
+                    session.catalog.loadActivities(projectId, function(model) {
+                        if (!page) { return }
+                        page.activityPickerModel = model
+                    })
                 }
                 onSaveRequested: function(projectId, activityId, beginText, endText, description, billable, tags) {
                     page.doSave(projectId, activityId, beginText, endText, description, billable, tags)

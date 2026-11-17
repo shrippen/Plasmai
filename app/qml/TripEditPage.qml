@@ -44,7 +44,11 @@ Kirigami.Page {
     function save(body, tripId, form) {
         if (page.busy) return
         page.busy = true
-        var handle = function(r) { if (r.ok) page.done(r.data); else page.failed(r.error) }
+        var handle = function(r) {
+            // The page is gone: nothing to close or show.
+            if (!page) { return }
+            if (r.ok) page.done(r.data); else page.failed(r.error)
+        }
         if (page.suggestion) {
             session.trips.accept(page.suggestion.id,
                                 Mileage.acceptBodyFromForm(session.trips.ping, form, page.suggestion), handle)
@@ -60,6 +64,8 @@ Kirigami.Page {
         if (page.busy) return
         page.busy = true
         session.trips.remove(tripId, function(r) {
+            // The page is gone: nothing to close or show.
+            if (!page) { return }
             if (r.ok) page.done(null); else page.failed(r.error)
         })
     }

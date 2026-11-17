@@ -39,12 +39,15 @@ Kirigami.Page {
         var query = Mileage.hasFeature(session.trips.ping, "dateRange") ? r
             : { year: page.month.getFullYear(), month: page.month.getMonth() + 1 }
         session.trips.fetch(query, function(res) {
+            // The page is gone: nothing to show.
+            if (!page) { return }
             page.loading = false
             if (res.ok) page.trips = Mileage.sortTrips(res.data)
             else root.showPassiveNotification(i18n("Trips could not be loaded: %1", ApiErrors.text(res.error)))
         })
         if (page.hasDawarich && session.trips.canEdit) {
             session.trips.fetchSuggestions(function(res) {
+                if (!page) { return }
                 if (res.ok) page.suggestions = res.data
             })
         } else {
@@ -96,6 +99,7 @@ Kirigami.Page {
         // Offline (or behind waiting changes) the local trip shows the profile's distance.
         var km = session.sync.offline || session.sync.unsynced > 0 ? Mileage.commuteKm(session.trips.ping) : null
         session.trips.create(Mileage.commuteBody(Mileage.dateString(new Date()), km), function(r) {
+            if (!page) { return }
             page.busy = false
             if (r.ok) {
                 root.showPassiveNotification(i18n("Commute logged: %1 km", Mileage.displayKm(Mileage.tripKm(r.data))))
@@ -110,6 +114,7 @@ Kirigami.Page {
         if (page.busy || !sg) return
         page.busy = true
         session.trips.accept(sg.id, {}, function(r) {
+            if (!page) { return }
             page.busy = false
             if (!r.ok && !(r.error && r.error.status === 409)) {
                 root.showPassiveNotification(i18n("The trip could not be accepted: %1", (r.error && r.error.detail) || ApiErrors.text(r.error)))
@@ -123,6 +128,7 @@ Kirigami.Page {
         if (page.busy || !sg) return
         page.busy = true
         session.trips.dismiss(sg.id, function(r) {
+            if (!page) { return }
             page.busy = false
             if (!r.ok) {
                 root.showPassiveNotification(i18n("The trip could not be dismissed: %1", (r.error && r.error.detail) || ApiErrors.text(r.error)))
