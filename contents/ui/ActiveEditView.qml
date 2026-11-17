@@ -3,7 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls as QQC2
 import QtQuick.Controls.Material
 import org.kde.kirigami as Kirigami
-import "../code/kimaiApi.js" as KimaiApi
+import "../code/entityNames.js" as Names
 import "../code/dateTimeFormat.js" as DTF
 import "../code/timesheetFields.js" as TimesheetFields
 import "."
@@ -177,8 +177,8 @@ ColumnLayout {
         beginDate.setDate(begin)
         beginTime.setTime(begin.getHours(), begin.getMinutes())
 
-        pendingActivityId = KimaiApi.activityId(sheet)
-        pendingProjectId = KimaiApi.projectId(sheet)
+        pendingActivityId = Names.activityId(sheet)
+        pendingProjectId = Names.projectId(sheet)
         if (!hasId(pendingProjectId)) {
             pendingProjectId = null
         }

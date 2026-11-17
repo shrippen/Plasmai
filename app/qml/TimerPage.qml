@@ -4,7 +4,8 @@ import QtQuick.Controls.Material
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import "../contents/code/timeTracker.js" as TimeTracker
-import "../contents/code/kimaiApi.js" as KimaiApi
+import "../contents/code/entityColors.js" as Colors
+import "../contents/code/entityNames.js" as Names
 import "../contents/code/timesheetFields.js" as TimesheetFields
 import "../contents/code/dateTimeFormat.js" as DTF
 import "../contents/code/profiles.js" as Profiles
@@ -64,8 +65,8 @@ Kirigami.Page {
     function connColor() { return !session.connection.configured ? KanteStyle.disabledTextColor : session.connection.state === "error" ? KanteStyle.negativeTextColor : KanteStyle.positiveTextColor }
     function workSummaryText() {
         var bits = []
-        bits.push(i18n("Today %1", KimaiApi.formatDurationShort(session.totals.todayLiveSeconds)))
-        bits.push(i18n("Week %1", KimaiApi.formatDurationShort(session.totals.weekLiveSeconds)))
+        bits.push(i18n("Today %1", DTF.formatDurationShort(session.totals.todayLiveSeconds)))
+        bits.push(i18n("Week %1", DTF.formatDurationShort(session.totals.weekLiveSeconds)))
         return bits.join(" · ")
     }
     function remainingText() {
@@ -80,7 +81,7 @@ Kirigami.Page {
     function openEdit() {
         if (!session.timer.tracking || !session.timer.active) return
         editingActive = true
-        var pid = KimaiApi.projectId(session.timer.active)
+        var pid = Names.projectId(session.timer.active)
         session.catalog.loadActivities(pid, function(model) { if (typeof page !== "undefined" && page) { page.editActivityPickerModel = model } }) // not once the page is gone
         activeEditLoader.item.timesheet = session.timer.active
     }
@@ -366,7 +367,7 @@ Kirigami.Page {
 
                     RowLayout { Layout.fillWidth: true; spacing: Kirigami.Units.largeSpacing
                         QQC2.Label {
-                            text: KimaiApi.formatDuration(session.timer.elapsedSeconds)
+                            text: DTF.formatDuration(session.timer.elapsedSeconds)
                             font: KanteStyle.active ? KanteStyle.monoFont(KanteStyle.defaultFont.pointSize * 2.4, true)
                                               : Qt.font({ family: KanteStyle.monoFamily, pointSize: KanteStyle.defaultFont.pointSize + 12, bold: true })
                             color: !KanteStyle.active ? KanteStyle.positiveTextColor
@@ -623,7 +624,7 @@ Kirigami.Page {
                             enabled: !session.locked && session.connection.state !== "error"
                             icon.name: "media-playback-start"
                             text: session.recent.last
-                                  ? i18n("Continue · %1 · %2", KimaiApi.displayProjectName(session.recent.last, session.catalog.projects), KimaiApi.displayActivityName(session.recent.last, session.catalog.activities, session.catalog.activitiesByProject))
+                                  ? i18n("Continue · %1 · %2", Names.displayProjectName(session.recent.last, session.catalog.projects), Names.displayActivityName(session.recent.last, session.catalog.activities, session.catalog.activitiesByProject))
                                   : i18n("Start · %1 · %2", session.settings.lastUsedProjectName, session.settings.lastUsedActivityName)
                             onClicked: session.recent.last ? session.timer.continueEntry(session.recent.last) : session.timer.startLastUsed()
                         }
@@ -726,7 +727,7 @@ Kirigami.Page {
                     canPin: true; isPinned: true
                     runningHintVisible: root.alreadyRunningHintKey === pinKey
                     runningHintText: i18n("Already running.")
-                    runningHintCounterText: KimaiApi.formatDurationShort(session.timer.elapsedSeconds)
+                    runningHintCounterText: DTF.formatDurationShort(session.timer.elapsedSeconds)
                     onRowActivated: root.startPinned(modelData)
                     onPinRequested: session.favorites.toggle(modelData.projectId || "", modelData.activityId || "")
                 }
@@ -781,22 +782,22 @@ Kirigami.Page {
                 ActivityListRow {
                         required property var modelData
                         property string tsKey: session.timer.hintKey(modelData)
-                        readonly property var barColorInfo: KimaiApi.barColorInfoFromTimesheet(modelData, session.catalog.customersById)
-                        titleText: KimaiApi.displayActivityName(modelData, session.catalog.activities, session.catalog.activitiesByProject)
+                        readonly property var barColorInfo: Colors.barColorInfoFromTimesheet(modelData, session.catalog.customersById)
+                        titleText: Names.displayActivityName(modelData, session.catalog.activities, session.catalog.activitiesByProject)
                         timeText: page.beginClock(modelData)
                         durationText: (modelData.duration || 0) > 0 ? DTF.hoursMinutes(modelData.duration) : ""
                         subtitleText: {
                             // Kante: time and duration have their own columns in the time line.
-                            if (KanteStyle.active) return KimaiApi.displayProjectName(modelData, session.catalog.projects)
-                            var bits = [KimaiApi.displayProjectName(modelData, session.catalog.projects)]
+                            if (KanteStyle.active) return Names.displayProjectName(modelData, session.catalog.projects)
+                            var bits = [Names.displayProjectName(modelData, session.catalog.projects)]
                             var secs = modelData.duration || 0
-                            if (secs > 0) bits.push(KimaiApi.formatDurationShort(secs))
+                            if (secs > 0) bits.push(DTF.formatDurationShort(secs))
                             bits.push(EntryTexts.ago(modelData.end || modelData.begin))
                             return bits.join(" · ")
                         }
                         customerColor: barColorInfo.color || PlasmaiColors.entityFallback
                         showHistoryActions: true
-                        canPin: true; isPinned: session.favorites.isPinned(KimaiApi.projectId(modelData), KimaiApi.activityId(modelData))
+                        canPin: true; isPinned: session.favorites.isPinned(Names.projectId(modelData), Names.activityId(modelData))
                         canEditStopped: session.connection.capabilities.editStopped
                         // Split makes a second entry from one: online only, and not for an unsynced one.
                         canSplitEntry: session.connection.capabilities.editStopped && !session.sync.offline && !session.sync.isUnsynced(modelData.id)
@@ -806,9 +807,9 @@ Kirigami.Page {
                         onTripRequested: root.openTripForTimesheet(modelData)
                         runningHintVisible: root.alreadyRunningHintKey === tsKey
                         runningHintText: i18n("Already running.")
-                        runningHintCounterText: KimaiApi.formatDurationShort(session.timer.elapsedSeconds)
+                        runningHintCounterText: DTF.formatDurationShort(session.timer.elapsedSeconds)
                         onRowActivated: root.requestRestartFromRecent(modelData)
-                        onPinRequested: session.favorites.toggle(KimaiApi.projectId(modelData), KimaiApi.activityId(modelData))
+                        onPinRequested: session.favorites.toggle(Names.projectId(modelData), Names.activityId(modelData))
                         onEditRequested: pageStack.push(manualPageComponent, { editTs: modelData })
                         onDeleteRequested: deleteDialog.open({ target: modelData })
                         onSplitRequested: splitDialog.open({ target: modelData })
@@ -869,7 +870,7 @@ Kirigami.Page {
                 // A property, not a child: an Item child would count as dialog content (its ScrollView then sizes to 0).
                 readonly property QtObject kanteSkin: KanteDialogSkin { dialog: switchPrompt }
                 title: i18n("Switch activity")
-                subtitle: root.pendingSwitchTimesheet ? i18n("Switch to %1 · %2?", KimaiApi.displayProjectName(root.pendingSwitchTimesheet, session.catalog.projects), KimaiApi.displayActivityName(root.pendingSwitchTimesheet, session.catalog.activities, session.catalog.activitiesByProject)) : ""
+                subtitle: root.pendingSwitchTimesheet ? i18n("Switch to %1 · %2?", Names.displayProjectName(root.pendingSwitchTimesheet, session.catalog.projects), Names.displayActivityName(root.pendingSwitchTimesheet, session.catalog.activities, session.catalog.activitiesByProject)) : ""
                 // Own footer actions: Qt's standard button texts stay English on Android.
                 standardButtons: Kirigami.Dialog.NoButton
                 customFooterActions: [
@@ -878,7 +879,7 @@ Kirigami.Page {
                 ]
                 onAccepted: {
                     var ts = root.pendingSwitchTimesheet; root.pendingSwitchTimesheet = null
-                    if (ts) session.timer.switchTo(KimaiApi.projectId(ts), KimaiApi.activityId(ts), KimaiApi.displayProjectName(ts, session.catalog.projects), KimaiApi.displayActivityName(ts, session.catalog.activities, session.catalog.activitiesByProject), ts.description || "")
+                    if (ts) session.timer.switchTo(Names.projectId(ts), Names.activityId(ts), Names.displayProjectName(ts, session.catalog.projects), Names.displayActivityName(ts, session.catalog.activities, session.catalog.activitiesByProject), ts.description || "")
                 }
                 onRejected: root.pendingSwitchTimesheet = null
             }
@@ -953,7 +954,7 @@ Kirigami.Page {
                 ColumnLayout { spacing: Kirigami.Units.smallSpacing
                     QQC2.Label {
                         Layout.fillWidth: true; wrapMode: Text.WordWrap
-                        text: i18n("You were idle for %1. Keep this time, discard it, or discard and continue?", KimaiApi.formatDurationShort(Math.round(session.reminders.pendingMs / 1000)))
+                        text: i18n("You were idle for %1. Keep this time, discard it, or discard and continue?", DTF.formatDurationShort(Math.round(session.reminders.pendingMs / 1000)))
                     }
                     KanteButton { Layout.fillWidth: true; text: i18n("Keep time"); onClicked: session.reminders.keep() }
                     // Discarding rewrites the running entry's end: online only (offline.js).

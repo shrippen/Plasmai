@@ -1,5 +1,6 @@
 import QtQml
 import "../../code/kimaiApi.js" as KimaiApi
+import "../../code/entityNames.js" as Names
 import "../../code/filmDaySync.js" as FilmDaySync
 import "../../code/filmDays.js" as FilmDays
 import "../../code/dateTimeFormat.js" as DTF
@@ -46,7 +47,7 @@ QtObject {
     /** Only the latest load may answer (fast day steps, project picks). */
     property int loadSerial: 0
     /** The ids filmDaySync reads from an entry. */
-    readonly property var ids: ({ projectOf: KimaiApi.projectId, activityOf: KimaiApi.activityId })
+    readonly property var ids: ({ projectOf: Names.projectId, activityOf: Names.activityId })
 
     /** The context every filmDaySync call takes. */
     function context() {
@@ -137,8 +138,8 @@ QtObject {
                 recent: session.recent.list, daysFromToday: -DTF.daysBefore(date, new Date()),
                 ids: ids,
                 labelOf: function(ts) {
-                    return KimaiApi.displayActivityName(ts, cat.activities, cat.activitiesByProject)
-                        + " · " + KimaiApi.displayProjectName(ts, cat.projects)
+                    return Names.displayActivityName(ts, cat.activities, cat.activitiesByProject)
+                        + " · " + Names.displayProjectName(ts, cat.projects)
                 },
                 timeOf: FilmDays.spanText
             })
@@ -146,7 +147,7 @@ QtObject {
             savedNote = FilmDays.noteOf(info.timesheet)
             onDay({
                 date: date, r: r, day: r.day, info: info,
-                currency: KimaiApi.customerCurrencyOfProject(cat.projectById(r.projectId), cat.customers)
+                currency: Names.customerCurrencyOfProject(cat.projectById(r.projectId), cat.customers)
             })
             loadProduction(serial, date, r, info, onProduction)
         }, preferSelected)
@@ -158,7 +159,7 @@ QtObject {
             return
         }
         FilmDaySync.productionDay(context(), r.projectId, info.activityId, r.activityIds,
-                                  String(r.engagement.validFrom), KimaiApi.localDateString(date), ids, function(count) {
+                                  String(r.engagement.validFrom), DTF.localDateString(date), ids, function(count) {
             if (serial !== loadSerial || !count) {
                 return
             }
@@ -194,10 +195,10 @@ QtObject {
             return
         }
         saving = !req.direct
-        const existingId = FilmDays.saveTargetId(dayTimesheet, req.projectId, KimaiApi.projectId)
+        const existingId = FilmDays.saveTargetId(dayTimesheet, req.projectId, Names.projectId)
         const fields = {
-            begin: KimaiApi.localDateTimeString(new Date(span.beginMs)),
-            end: KimaiApi.localDateTimeString(new Date(span.endMs)),
+            begin: DTF.localDateTimeString(new Date(span.beginMs)),
+            end: DTF.localDateTimeString(new Date(span.endMs)),
             project: req.projectId,
             activity: req.activityId
         }
@@ -207,7 +208,7 @@ QtObject {
         }
         FilmDaySync.saveDay(context(), {
             projectId: req.projectId,
-            dateStr: KimaiApi.localDateString(req.date),
+            dateStr: DTF.localDateString(req.date),
             existingId: existingId,
             timesheetFields: fields,
             fields: req.fields,
@@ -241,7 +242,7 @@ QtObject {
      */
     function saveExtras(req, callback, earnings) {
         const c = session.connection
-        const dateStr = KimaiApi.localDateString(req.date)
+        const dateStr = DTF.localDateString(req.date)
         FilmDaySync.saveExtras(context(), {
             projectId: req.projectId, dateStr: dateStr, fields: req.fields, server: dayServer, dayMode: dayMode
         }, function(result) {

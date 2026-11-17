@@ -544,3 +544,69 @@ function dayHeaderLabel(date, now, todayLabel, yesterdayLabel) {
     // 0 = QLocale::LongFormat (no Locale enum in a pragma library)
     return Qt.locale().dayName(d.getDay(), 0) + ", " + formatLocaleDate(d)
 }
+
+function localDateString(date) {
+    return dateKey(date)
+}
+
+/**
+ * A time to write (begin / end of an entry), "2026-09-25T13:15:00+0200": the device's
+ * clock with the device's offset. Kimai reads it in the user's own time zone; without the
+ * offset it would take the device's wall clock as its own, which is hours off when the
+ * Kimai profile lives in another zone (checked against Kimai 2.67: it converts).
+ */
+function localDateTimeString(date) {
+    var offset = -date.getTimezoneOffset()
+    var abs = Math.abs(offset)
+    return localQueryString(date)
+        + (offset < 0 ? "-" : "+") + pad2(Math.floor(abs / 60)) + pad2(abs % 60)
+}
+
+/** The same without an offset, for the query filters (begin/end), which Kimai rejects with one. */
+function localQueryString(date) {
+    return dateKey(date)
+        + "T" + pad2(date.getHours()) + ":" + pad2(date.getMinutes())
+        + ":" + pad2(date.getSeconds())
+}
+
+function startOfLocalDay(date) {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0)
+}
+
+function endOfLocalDay(date) {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 0)
+}
+
+function formatDuration(seconds) {
+    var total = Math.max(0, Math.floor(seconds || 0))
+    var hours = Math.floor(total / 3600)
+    var minutes = Math.floor((total % 3600) / 60)
+    var secs = total % 60
+    return (hours < 10 ? "0" : "") + hours + ":" +
+           (minutes < 10 ? "0" : "") + minutes + ":" +
+           (secs < 10 ? "0" : "") + secs
+}
+
+/** Panel taskbar: MM:SS under 1h, otherwise H:MM:SS with minimum hour digits. */
+function formatDurationPanel(seconds) {
+    var total = Math.max(0, Math.floor(seconds || 0))
+    var hours = Math.floor(total / 3600)
+    var minutes = Math.floor((total % 3600) / 60)
+    var secs = total % 60
+    var mm = (minutes < 10 ? "0" : "") + minutes
+    var ss = (secs < 10 ? "0" : "") + secs
+    if (hours === 0) {
+        return mm + ":" + ss
+    }
+    return hours + ":" + mm + ":" + ss
+}
+
+function formatDurationShort(seconds) {
+    var total = Math.max(0, Math.floor(seconds || 0))
+    var hours = Math.floor(total / 3600)
+    var minutes = Math.floor((total % 3600) / 60)
+    if (hours > 0) {
+        return minutes > 0 ? hours + "h " + minutes + "m" : hours + "h"
+    }
+    return minutes + "m"
+}

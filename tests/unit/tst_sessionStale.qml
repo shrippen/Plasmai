@@ -2,6 +2,8 @@ import QtQuick
 import QtTest
 import "../../contents/ui" as Ui
 import "../../contents/code/kimaiApi.js" as KimaiApi
+import "../../contents/code/dateTimeFormat.js" as DTF
+import "../../contents/code/entityNames.js" as Names
 import "../../contents/code/demoKimai.js" as DemoKimai
 import "../../contents/code/platform.js" as Platform
 import "../../contents/code/profiles.js" as Profiles
@@ -68,7 +70,7 @@ TestCase {
         day.setHours(0, 0, 0, 0)
         return {
             projectId: DemoKimai.FILM_PROJECT, activityId: DemoKimai.SHOOTING, date: day,
-            beginText: KimaiApi.localDateString(day) + "T09:00:00", endText: KimaiApi.localDateString(day) + "T17:00:00",
+            beginText: DTF.localDateString(day) + "T09:00:00", endText: DTF.localDateString(day) + "T17:00:00",
             fields: {}, direct: true, mergeIds: [], breakMinutes: 0, note: note
         }
     }
@@ -87,9 +89,9 @@ TestCase {
         const day = new Date()
         day.setDate(day.getDate() - 3)
         day.setHours(9, 0, 0, 0)
-        const fields = { project: KimaiApi.projectId(first), activity: KimaiApi.activityId(first),
-                         begin: KimaiApi.localDateTimeString(day),
-                         end: KimaiApi.localDateTimeString(new Date(day.getTime() + 2 * 3600 * 1000)),
+        const fields = { project: Names.projectId(first), activity: Names.activityId(first),
+                         begin: DTF.localDateTimeString(day),
+                         end: DTF.localDateTimeString(new Date(day.getTime() + 2 * 3600 * 1000)),
                          description: "stale marker" }
         let created = null
         staleAfter(s, function() { s.entries.write(null, fields, function(r) { created = r.data }) })

@@ -1,5 +1,5 @@
 import "arcDraw.js" as Arc
-import "../code/kimaiApi.js" as KimaiApi
+import "../code/dayIntervals.js" as Intervals
 import "../code/solar.js" as Solar
 import QtQuick
 import QtQuick.Effects
@@ -22,8 +22,8 @@ Item {
 
     property var entries: []
     property int targetSeconds: 0
-    property string workDayBegin: KimaiApi.DEFAULT_WORK_DAY_BEGIN
-    property string workDayEnd: KimaiApi.DEFAULT_WORK_DAY_END
+    property string workDayBegin: Intervals.DEFAULT_WORK_DAY_BEGIN
+    property string workDayEnd: Intervals.DEFAULT_WORK_DAY_END
     property real latitude: 52.52
     property real longitude: 13.405
     /** Bump so the live edge and sky refresh (driven at ~30s from main). */
@@ -100,7 +100,7 @@ Item {
 
     readonly property var model: {
         var _force = root.nowTick
-        return KimaiApi.buildDaySparklineModel(
+        return Intervals.buildDaySparklineModel(
             root.entries, root.targetSeconds, root.workDayBegin, root.workDayEnd, Date.now())
     }
     readonly property var sky: {

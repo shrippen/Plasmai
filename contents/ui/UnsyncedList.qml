@@ -4,7 +4,7 @@ import org.kde.kirigami as Kirigami
 import "."
 import "Kante"
 import "Controls" as Controls
-import "../code/kimaiApi.js" as KimaiApi
+import "../code/entityNames.js" as Names
 import "../code/dateTimeFormat.js" as DTF
 import "../code/offlineState.js" as OfflineState
 import "../code/mileage.js" as Mileage
@@ -79,8 +79,8 @@ ColumnLayout {
             f = { project: op.projectId }
         }
         var ts = { project: f.project, activity: f.activity }
-        var bits = [KimaiApi.displayProjectName(ts, root.projects),
-                    KimaiApi.displayActivityName(ts, root.activities, root.activitiesByProject)]
+        var bits = [Names.displayProjectName(ts, root.projects),
+                    Names.displayActivityName(ts, root.activities, root.activitiesByProject)]
         // A create carries stamps; the base of a change keeps ms (offlineOutbox.js baseOf).
         var beginMs = op.kind === OfflineState.Op.CREATE ? DTF.stampMs(f.begin) : f.begin
         if (beginMs) {

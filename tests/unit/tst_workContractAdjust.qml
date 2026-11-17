@@ -2,6 +2,7 @@ import QtQuick
 import QtTest
 import "../../contents/code/workContractAdjust.js" as WorkAdjust
 import "../../contents/code/kimaiApi.js" as KimaiApi
+import "../../contents/code/workTotals.js" as WorkTotals
 
 TestCase {
     name: "WorkContractAdjust"
@@ -18,7 +19,7 @@ TestCase {
         // Monday 2026-08-17
         var monday = new Date(2026, 7, 17, 12, 0, 0)
         var prefs = weekPrefs()
-        var base = KimaiApi.effectiveWeekTargetSeconds(prefs, monday, [], [])
+        var base = WorkTotals.effectiveWeekTargetSeconds(prefs, monday, [], [])
         compare(base, 40 * 3600)
 
         var absences = [{
@@ -28,7 +29,7 @@ TestCase {
             endDate: "2026-08-19",
             halfDay: false
         }]
-        var adjusted = KimaiApi.effectiveWeekTargetSeconds(prefs, monday, absences, [])
+        var adjusted = WorkTotals.effectiveWeekTargetSeconds(prefs, monday, absences, [])
         compare(adjusted, 32 * 3600)
     }
 
@@ -36,7 +37,7 @@ TestCase {
         var monday = new Date(2026, 7, 17, 12, 0, 0)
         var prefs = weekPrefs()
         var holidays = [{ date: "2026-08-20", halfDay: false }]
-        var adjusted = KimaiApi.effectiveWeekTargetSeconds(prefs, monday, [], holidays)
+        var adjusted = WorkTotals.effectiveWeekTargetSeconds(prefs, monday, [], holidays)
         compare(adjusted, 32 * 3600)
     }
 
@@ -50,7 +51,7 @@ TestCase {
             endDate: "2026-08-19",
             halfDay: true
         }]
-        var adjusted = KimaiApi.effectiveWeekTargetSeconds(prefs, monday, absences, [])
+        var adjusted = WorkTotals.effectiveWeekTargetSeconds(prefs, monday, absences, [])
         compare(adjusted, 36 * 3600)
     }
 
@@ -64,7 +65,7 @@ TestCase {
             endDate: "2026-08-19",
             halfDay: false
         }]
-        var adjusted = KimaiApi.effectiveWeekTargetSeconds(prefs, monday, absences, [])
+        var adjusted = WorkTotals.effectiveWeekTargetSeconds(prefs, monday, absences, [])
         compare(adjusted, 40 * 3600)
     }
 
@@ -87,7 +88,7 @@ TestCase {
             half_day: false
         }]
         var holidays = [{ date: "2026-08-20T00:00:00+02:00", half_day: true }]
-        var adjusted = KimaiApi.effectiveWeekTargetSeconds(prefs, monday, absences, holidays)
+        var adjusted = WorkTotals.effectiveWeekTargetSeconds(prefs, monday, absences, holidays)
         // Wednesday full holiday + Thursday half public holiday: 40 - 8 - 4
         compare(adjusted, 28 * 3600)
     }
@@ -103,7 +104,7 @@ TestCase {
                 half_day: false
             }]
         }
-        var adjusted = KimaiApi.effectiveWeekTargetSeconds(prefs, monday, wrapped, [])
+        var adjusted = WorkTotals.effectiveWeekTargetSeconds(prefs, monday, wrapped, [])
         compare(adjusted, 32 * 3600)
     }
 
@@ -116,7 +117,7 @@ TestCase {
             date: "2026-08-19",
             duration: 4
         }]
-        var adjusted = KimaiApi.effectiveWeekTargetSeconds(prefs, monday, absences, [])
+        var adjusted = WorkTotals.effectiveWeekTargetSeconds(prefs, monday, absences, [])
         compare(adjusted, 36 * 3600)
     }
 
@@ -134,8 +135,8 @@ TestCase {
             end: "2026-08-19T16:00:00",
             duration: 8 * 3600
         }]
-        var target = KimaiApi.effectiveWeekTargetSeconds(prefs, monday, absences, [])
-        var credit = KimaiApi.absenceCreditSeconds(prefs, monday, absences, [], entries, monday.getTime())
+        var target = WorkTotals.effectiveWeekTargetSeconds(prefs, monday, absences, [])
+        var credit = WorkTotals.absenceCreditSeconds(prefs, monday, absences, [], entries, monday.getTime())
         compare(target, 32 * 3600)
         compare(credit, 8 * 3600)
         compare(target - (40 * 3600) + credit, 0)
@@ -195,7 +196,7 @@ TestCase {
             half_day: false,
             public_holiday_group: { id: 1, name: "DE-TH" }
         }]
-        var adjusted = KimaiApi.effectiveWeekTargetSeconds(prefs, monday, absences, holidays)
+        var adjusted = WorkTotals.effectiveWeekTargetSeconds(prefs, monday, absences, holidays)
         // Wed holiday 8h + Thu public holiday 8h + Fri half sickness 4h; rejected Tue ignored
         compare(adjusted, 20 * 3600)
     }
@@ -209,6 +210,6 @@ TestCase {
             date: "2026-08-19",
             half_day: false
         }]
-        compare(KimaiApi.effectiveWeekTargetSeconds(weekPrefs(), monday, wrapped, []), 32 * 3600)
+        compare(WorkTotals.effectiveWeekTargetSeconds(weekPrefs(), monday, wrapped, []), 32 * 3600)
     }
 }

@@ -3,7 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls as QQC2
 import org.kde.plasma.components as PlasmaComponents3
 import org.kde.kirigami as Kirigami
-import "../code/kimaiApi.js" as KimaiApi
+import "../code/entityNames.js" as Names
 import "../code/timesheetFields.js" as TimesheetFields
 import "../code/dateTimeFormat.js" as DTF
 import "."
@@ -121,7 +121,7 @@ Item {
 
             PlasmaComponents3.Label {
                 Layout.fillWidth: true
-                text: session.timer.tracking ? KimaiApi.formatDuration(session.timer.elapsedSeconds) : "00:00:00"
+                text: session.timer.tracking ? DTF.formatDuration(session.timer.elapsedSeconds) : "00:00:00"
                 font: KanteStyle.monoFont(KanteStyle.defaultFont.pointSize * 2.6, true)
                 color: session.timer.tracking ? KanteStyle.accentTextColor : KanteStyle.tint(KanteStyle.textColor, 0.3)
                 fontSizeMode: Text.HorizontalFit
@@ -253,8 +253,8 @@ Item {
                 visible: view.showContinueHere && !session.timer.tracking && session.recent.last
                 enabled: session.connection.configured && !session.locked && view.connectionState !== "error"
                 text: i18n("Continue · %1 · %2",
-                           KimaiApi.displayProjectName(session.recent.last, session.catalog.projects),
-                           KimaiApi.displayActivityName(session.recent.last, session.catalog.activities, session.catalog.activitiesByProject))
+                           Names.displayProjectName(session.recent.last, session.catalog.projects),
+                           Names.displayActivityName(session.recent.last, session.catalog.activities, session.catalog.activitiesByProject))
                 icon.name: "media-playback-start"
                 onClicked: view.continueLastActivity()
             }

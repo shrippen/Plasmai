@@ -1,4 +1,5 @@
-import "../code/kimaiApi.js" as KimaiApi
+import "../code/dateTimeFormat.js" as DTF
+import "../code/dayIntervals.js" as Intervals
 import "../code/statsData.js" as StatsData
 import "../code/mileage.js" as Mileage
 import QtQuick
@@ -23,8 +24,8 @@ ColumnLayout {
     property int todayTargetSeconds: 0
     property int weekTargetSeconds: 0
     property bool hasWorkContract: false
-    property string workDayBegin: KimaiApi.DEFAULT_WORK_DAY_BEGIN
-    property string workDayEnd: KimaiApi.DEFAULT_WORK_DAY_END
+    property string workDayBegin: Intervals.DEFAULT_WORK_DAY_BEGIN
+    property string workDayEnd: Intervals.DEFAULT_WORK_DAY_END
     //* "all" | "billable" | "nonbillable"
     property string billableFilter: StatsData.BILLABLE_ALL
     //* 0 = today; negative = past days
@@ -237,8 +238,8 @@ ColumnLayout {
         Repeater {
             model: {
                 var tiles = [
-                    { label: i18n("Today"), value: KimaiApi.formatDurationShort(root.filteredTodaySeconds) },
-                    { label: i18n("This week"), value: KimaiApi.formatDurationShort(root.filteredWeekSeconds) }
+                    { label: i18n("Today"), value: DTF.formatDurationShort(root.filteredTodaySeconds) },
+                    { label: i18n("This week"), value: DTF.formatDurationShort(root.filteredWeekSeconds) }
                 ]
                 if (root.tripSummary !== null) {
                     tiles.push({ label: i18n("Trips this week"), value: i18n("%1 km", Mileage.displayKm(root.tripSummary.weekKm)) })
@@ -297,7 +298,7 @@ ColumnLayout {
             Layout.fillWidth: true
             horizontalAlignment: Text.AlignRight
             font.bold: true
-            text: KimaiApi.formatDurationShort(root.filteredTodaySeconds)
+            text: DTF.formatDurationShort(root.filteredTodaySeconds)
         }
 
         Controls.Label {
@@ -309,7 +310,7 @@ ColumnLayout {
             Layout.fillWidth: true
             horizontalAlignment: Text.AlignRight
             font.bold: true
-            text: KimaiApi.formatDurationShort(root.filteredWeekSeconds)
+            text: DTF.formatDurationShort(root.filteredWeekSeconds)
         }
 
         Controls.Label {
@@ -730,7 +731,7 @@ ColumnLayout {
 
                         Controls.Label {
                             anchors.verticalCenter: parent.verticalCenter
-                            text: KimaiApi.formatDurationShort(modelData.seconds || 0)
+                            text: DTF.formatDurationShort(modelData.seconds || 0)
                             font.pointSize: KanteStyle.smallFont.pointSize
                             font.bold: true
                             opacity: 0.9

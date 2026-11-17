@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import "Controls" as Controls
-import "../code/kimaiApi.js" as KimaiApi
+import "../code/dateTimeFormat.js" as DTF
 import "."
 import "Kante"
 
@@ -214,7 +214,7 @@ ColumnLayout {
                             Controls.ToolTip.delay: Kirigami.Units.toolTipDelay
                             Controls.ToolTip.text: segItem.seg
                                 ? (segItem.seg.name + " · "
-                                   + KimaiApi.formatDurationShort(segItem.seg.seconds))
+                                   + DTF.formatDurationShort(segItem.seg.seconds))
                                 : ""
                         }
                     }
@@ -227,7 +227,7 @@ ColumnLayout {
                 font.pointSize: KanteStyle.smallFont.pointSize - 1
                 opacity: 0.7
                 text: dayRow.day && dayRow.day.totalSeconds > 0
-                      ? KimaiApi.formatDurationShort(dayRow.day.totalSeconds)
+                      ? DTF.formatDurationShort(dayRow.day.totalSeconds)
                       : ""
             }
         }

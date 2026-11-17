@@ -1,5 +1,5 @@
 import QtQml
-import "../../code/kimaiApi.js" as KimaiApi
+import "../../code/timesheetFields.js" as Fields
 
 /** The latest stopped entries, one per project and activity. */
 QtObject {
@@ -20,7 +20,7 @@ QtObject {
             if (!result.ok) {
                 return
             }
-            show(session.catalog.hydrate(KimaiApi.deduplicateRecent(result.data || [])))
+            show(session.catalog.hydrate(Fields.deduplicateRecent(result.data || [])))
         }))
     }
 

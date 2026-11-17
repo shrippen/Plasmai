@@ -37,7 +37,7 @@ _TEST_PROJECT = {
 _TEST_ACTIVITY = {
     "id": 100,
     "name": "Test Activity 1",
-    # KimaiApi.activityProjectId treats object.project.id as project-id.
+    # entityNames.activityProjectId treats object.project.id as project-id.
     "project": {"id": _TEST_PROJECT["id"]},
     "color": "",
 }

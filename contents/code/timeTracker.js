@@ -3,10 +3,14 @@
 /**
  * Time-tracker provider registry.
  * Profiles store `provider` (default kimai). Network calls go through api(providerId).
- * Shared UI helpers (duration formatting, pickers, sparkline) stay in kimaiApi.js.
+ * Shared helpers (durations, names, colors, pickers, day model) live in their own
+ * files in contents/code/, not in a provider file.
  */
 
 .import "./kimaiApi.js" as KimaiApi
+.import "./entityColors.js" as Colors
+.import "./entityNames.js" as Names
+.import "./workTotals.js" as WorkTotals
 .import "./providerUtil.js" as ProviderUtil
 .import "./providers/clockify.js" as ClockifyApi
 .import "./providers/toggl.js" as TogglApi
@@ -231,19 +235,19 @@ function projectBreakdown(timesheets, customersById, limit) {
     var i
     for (i = 0; i < (timesheets || []).length; i++) {
         var ts = timesheets[i]
-        var pid = KimaiApi.projectId(ts)
+        var pid = Names.projectId(ts)
         var key = String(pid || "_none")
         if (!map[key]) {
             map[key] = {
-                name: KimaiApi.projectName(ts) || "—",
+                name: Names.projectName(ts) || "—",
                 seconds: 0,
-                color: KimaiApi.projectBarColor(
+                color: Colors.projectBarColor(
                     (ts && typeof ts.project === "object") ? ts.project : null,
                     customersById || {})
             }
             order.push(key)
         }
-        map[key].seconds += KimaiApi.timesheetDurationSeconds(ts)
+        map[key].seconds += WorkTotals.timesheetDurationSeconds(ts)
     }
     order.sort(function(a, b) {
         return map[b].seconds - map[a].seconds

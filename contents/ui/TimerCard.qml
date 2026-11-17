@@ -3,7 +3,8 @@ import QtQuick.Layouts
 import QtQuick.Controls as QQC2
 import org.kde.plasma.components as PlasmaComponents3
 import org.kde.kirigami as Kirigami
-import "../code/kimaiApi.js" as KimaiApi
+import "../code/dateTimeFormat.js" as DTF
+import "../code/entityNames.js" as Names
 import "../code/timesheetFields.js" as TimesheetFields
 import "."
 import "Kante"
@@ -72,7 +73,7 @@ Rectangle {
                 PlasmaComponents3.Label {
                     id: elapsedLabel
                     Layout.alignment: Qt.AlignVCenter
-                    text: KimaiApi.formatDuration(session.timer.elapsedSeconds)
+                    text: DTF.formatDuration(session.timer.elapsedSeconds)
                     font.family: KanteStyle.monoFamily
                     font.pointSize: KanteStyle.defaultFont.pointSize + 6
                     font.bold: true
@@ -238,9 +239,9 @@ Rectangle {
                     PlasmaComponents3.Label {
                         Layout.fillWidth: true
                         Layout.minimumWidth: 0
-                        text: i18n("Today %1", KimaiApi.formatDurationShort(session.totals.todayLiveSeconds))
+                        text: i18n("Today %1", DTF.formatDurationShort(session.totals.todayLiveSeconds))
                             + " · "
-                            + i18n("Week %1", KimaiApi.formatDurationShort(session.totals.weekLiveSeconds))
+                            + i18n("Week %1", DTF.formatDurationShort(session.totals.weekLiveSeconds))
                         font.pointSize: KanteStyle.smallFont.pointSize
                         opacity: 0.8
                         elide: Text.ElideRight
@@ -345,8 +346,8 @@ Rectangle {
                     visible: view.showContinueHere && !session.timer.tracking && session.recent.last
                     enabled: session.connection.configured && !session.locked && view.connectionState !== "error"
                     text: i18n("Continue · %1 · %2",
-                               KimaiApi.displayProjectName(session.recent.last, session.catalog.projects),
-                               KimaiApi.displayActivityName(session.recent.last, session.catalog.activities, session.catalog.activitiesByProject))
+                               Names.displayProjectName(session.recent.last, session.catalog.projects),
+                               Names.displayActivityName(session.recent.last, session.catalog.activities, session.catalog.activitiesByProject))
                     icon.name: "media-playback-start"
                     onClicked: view.continueLastActivity()
                 }

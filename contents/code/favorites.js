@@ -1,5 +1,6 @@
 .pragma library
-.import "kimaiApi.js" as KimaiApi
+.import "entityColors.js" as Colors
+.import "entityNames.js" as Names
 
 function parsePinned(pinnedStr) {
     if (!pinnedStr) {
@@ -83,7 +84,7 @@ function resolvePinnedEntries(pinnedStr, projects, activitiesByProject, customer
     for (var p = 0; p < (projects || []).length; p++) {
         projectMap[String(projects[p].id)] = projects[p]
     }
-    var activitiesById = KimaiApi.activitiesIndexFromCache(allActivities || [], activitiesByProject || {})
+    var activitiesById = Names.activitiesIndexFromCache(allActivities || [], activitiesByProject || {})
 
     for (var i = 0; i < raw.length; i++) {
         var entry = raw[i]
@@ -106,8 +107,8 @@ function resolvePinnedEntries(pinnedStr, projects, activitiesByProject, customer
         var activityName = activity
             ? (activity.name || activity.title || ("#" + entry.activityId))
             : ("#" + entry.activityId)
-        var customerName = KimaiApi.customerNameOfProject(project, customersById)
-        var bar = KimaiApi.barColorInfo(activity, project, customersById)
+        var customerName = Names.customerNameOfProject(project, customersById)
+        var bar = Colors.barColorInfo(activity, project, customersById)
         result.push({
             projectId: entry.projectId,
             activityId: entry.activityId,

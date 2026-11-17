@@ -132,8 +132,9 @@ plasmoidviewer or plasmashell logs QML errors. See [tests/README.md](tests/READM
 ## Time-tracking backends
 
 Plasmai routes API calls through `contents/code/timeTracker.js`. Profiles store a
-`provider` id (`kimai`, `clockify`, `toggl`, `solidtime`). Shared UI helpers remain
-in `contents/code/kimaiApi.js`; each provider normalizes responses to that shape.
+`provider` id (`kimai`, `clockify`, `toggl`, `solidtime`). Shared helpers (names,
+colors, pickers, durations, day model) live in their own files in `contents/code/`;
+each provider normalizes responses to the Kimai shape.
 
 **Only the Kimai backend is tested.** Clockify, Toggl Track, and SolidTime are
 implemented against their public APIs but have not been verified with live accounts

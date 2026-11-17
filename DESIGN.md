@@ -65,8 +65,8 @@ components, setup wizard, terminal client, the Plasmoid and its settings
 pages) reads state from `Session.qml` and calls its actions. Only the layer
 calls the tracker, `KimaiApi` network calls, `offline.js`, `filmDaySync.js`,
 `workTotals.js`, `Platform` (shared.json, tokens, files, idle, notify),
-`catalogCache.js` and `geocode.js`. Pure helpers (`KimaiApi.format*`,
-`dateTimeFormat.js`, `mileage.js` form helpers, `statsData.js`, Kante) stay
+`catalogCache.js` and `geocode.js`. Pure helpers (`dateTimeFormat.js`,
+`entityNames.js`, `mileage.js` form helpers, `statsData.js`, Kante) stay
 in views.
 
 ```
@@ -131,8 +131,10 @@ view ──binds / calls──▶ Session (contents/ui/Session.qml, QtQml only)
 ### Data model
 
 - All providers normalize to a **Kimai-shaped** timesheet/project/activity
-  object. Shared UI helpers (duration, pickers, sparkline, names) live in
-  `contents/code/kimaiApi.js`. Network routing is `timeTracker.js` →
+  object. Shared helpers live by topic: durations in `dateTimeFormat.js`,
+  names in `entityNames.js`, colors in `entityColors.js`, pickers in
+  `entityPickers.js`, the day chart's model in `dayIntervals.js`, hydrating
+  rows in `timesheetFields.js`. Network routing is `timeTracker.js` →
   `contents/code/providers/*.js`.
 - Do not fork the UI per provider. Gate features with
   `TimeTracker.providerCapabilities(providerId)` (`statistics`,
@@ -620,7 +622,7 @@ read as Kante. It is the design system's `KanteStyle.Kind.KanteLight`:
 - **Pull to refresh** only where the page shows server data (timer,
   statistics, film day, trips, favorites); not in settings, connection or
   the entry and trip forms.
-- **Lists sort Aa→Zz** (`KimaiApi.compareNames`): case and accents do not
+- **Lists sort Aa→Zz** (`Names.compareNames`): case and accents do not
   split the alphabet (Android's `localeCompare` compares code points).
 - **Continue** is “last recent”, not a generic Start. Favorites and Recent
   are one-tap presets. If Recents are empty, **Start · last used** uses the

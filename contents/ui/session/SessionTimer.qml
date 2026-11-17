@@ -1,5 +1,6 @@
 import QtQml
-import "../../code/kimaiApi.js" as KimaiApi
+import "../../code/entityColors.js" as Colors
+import "../../code/entityNames.js" as Names
 import "../../code/timerSession.js" as TimerSession
 import "../../code/providerUtil.js" as ProviderUtil
 import "../../code/dateTimeFormat.js" as DTF
@@ -27,8 +28,8 @@ QtObject {
     property string customer: ""
     property string description: ""
     property int elapsedSeconds: 0
-    /** Customer colour of the running entry ({ color, … }, KimaiApi.barColorInfoFromTimesheet). */
-    readonly property var colorInfo: KimaiApi.barColorInfoFromTimesheet(active, session.catalog.customersById)
+    /** Customer colour of the running entry ({ color, … }, Colors.barColorInfoFromTimesheet). */
+    readonly property var colorInfo: Colors.barColorInfoFromTimesheet(active, session.catalog.customersById)
     /** The description as typed; saved after a pause (saveDescription). */
     property string draft: ""
     property bool savingDescription: false
@@ -246,7 +247,7 @@ QtObject {
             if (result.ok && result.data) {
                 const entry = session.catalog.hydrate([result.data])[0] || result.data
                 session.started(entry, Ui.Session.Origin.Continue,
-                                { project: KimaiApi.projectName(entry), activity: KimaiApi.activityName(entry) })
+                                { project: Names.projectName(entry), activity: Names.activityName(entry) })
                 apply(entry)
                 session.entriesWritten()
             }
@@ -265,13 +266,13 @@ QtObject {
         if (refusals.indexOf(type) < 0) {
             return false
         }
-        const projectId = KimaiApi.projectId(ts)
-        const activityId = KimaiApi.activityId(ts)
+        const projectId = Names.projectId(ts)
+        const activityId = Names.activityId(ts)
         if (!projectId || !activityId) {
             return false
         }
-        start(projectId, activityId, KimaiApi.displayProjectName(ts, session.catalog.projects),
-              KimaiApi.displayActivityName(ts, session.catalog.activities, session.catalog.activitiesByProject),
+        start(projectId, activityId, Names.displayProjectName(ts, session.catalog.projects),
+              Names.displayActivityName(ts, session.catalog.activities, session.catalog.activitiesByProject),
               ts.description || "")
         return true
     }

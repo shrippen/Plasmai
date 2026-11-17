@@ -1,5 +1,6 @@
 import QtQml
-import "../../code/kimaiApi.js" as KimaiApi
+import "../../code/entityPickers.js" as Pickers
+import "../../code/timesheetFields.js" as Fields
 import "../../code/catalogCache.js" as CatalogCache
 import "../../code/platform.js" as Platform
 import "../../code/timeTracker.js" as TimeTracker
@@ -38,7 +39,7 @@ QtObject {
     property bool loaded: false
 
     /** SearchableCombo-shaped project items for every picker. */
-    readonly property var projectPickerModel: KimaiApi.projectPickerItems(projects, customers)
+    readonly property var projectPickerModel: Pickers.projectPickerItems(projects, customers)
 
     onProjectsChanged: session.favorites.resolve()
     onActivitiesChanged: session.favorites.resolve()
@@ -129,30 +130,30 @@ QtObject {
     /** Loads (and caches) project-scoped activities, then hands back a picker model. */
     function loadActivities(projectId, callback) {
         if (!projectId) {
-            callback(KimaiApi.activityPickerItems(activities, null, null, customersById))
+            callback(Pickers.activityPickerItems(activities, null, null, customersById))
             return
         }
         const cached = activitiesByProject[String(projectId)]
         if (cached) {
-            callback(KimaiApi.activityPickerItems(cached, projectId, projectById(projectId), customersById))
+            callback(Pickers.activityPickerItems(cached, projectId, projectById(projectId), customersById))
             return
         }
         const c = session.connection
         c.tracker.loadActivities(c.url, c.token, projectId, function(result) {
             if (!result.ok) {
-                callback(KimaiApi.activityPickerItems(activities, projectId, projectById(projectId), customersById))
+                callback(Pickers.activityPickerItems(activities, projectId, projectById(projectId), customersById))
                 return
             }
             const copy = Object.assign({}, activitiesByProject)
             copy[String(projectId)] = result.data || []
             activitiesByProject = copy
-            callback(KimaiApi.activityPickerItems(result.data || [], projectId, projectById(projectId), customersById))
+            callback(Pickers.activityPickerItems(result.data || [], projectId, projectById(projectId), customersById))
         })
     }
 
     /** Project, activity and customer objects filled in from the catalog. */
     function hydrate(list) {
-        return KimaiApi.hydrateTimesheets(list || [], projects, activities, activitiesByProject)
+        return Fields.hydrateTimesheets(list || [], projects, activities, activitiesByProject)
     }
 
     /** The catalogs timerSession.js reads. */

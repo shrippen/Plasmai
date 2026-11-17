@@ -376,3 +376,12 @@ function dayAbsenceCreditSeconds(prefs, date, absences, publicHolidays, entries,
     }
     return Math.min(trackedSecondsOnLocalDate(entries, date, nowMs), reduce)
 }
+
+function startOfWeekMonday(date) {
+    return mondayOfWeek(date)
+}
+
+function endOfWeekSunday(date) {
+    var start = startOfWeekMonday(date)
+    return new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6, 23, 59, 59, 0)
+}

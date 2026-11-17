@@ -6,70 +6,10 @@ import "../../contents/code/providerUtil.js" as ProviderUtil
 TestCase {
     name: "KimaiApi"
 
-    // Short durations drop "0m" on full hours ("14h", chart axes, work time).
-    function test_formatDurationShort() {
-        compare(KimaiApi.formatDurationShort(14 * 3600), "14h")
-        compare(KimaiApi.formatDurationShort(53 * 3600 + 21 * 60), "53h 21m")
-        compare(KimaiApi.formatDurationShort(45 * 60), "45m")
-        compare(KimaiApi.formatDurationShort(0), "0m")
-    }
-
-    // A time to write carries the device's offset, so Kimai converts it into the profile's zone.
-    function test_localDateTimeStringCarriesTheOffset() {
-        var d = new Date(2026, 8, 30, 4, 5, 6)
-        var offset = -d.getTimezoneOffset()
-        var abs = Math.abs(offset)
-        var expected = "+0000"
-        expected = (offset < 0 ? "-" : "+") + (Math.floor(abs / 60) < 10 ? "0" : "") + Math.floor(abs / 60)
-            + (abs % 60 < 10 ? "0" : "") + (abs % 60)
-        compare(KimaiApi.localDateTimeString(d), "2026-09-30T04:05:06" + expected)
-        verify(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{4}$/.test(KimaiApi.localDateTimeString(d)))
-        // The parser reads it back to the same instant.
-        compare(new Date(KimaiApi.localDateTimeString(d).replace(/([+-]\d{2})(\d{2})$/, "$1:$2")).getTime(), d.getTime())
-    }
-
-    function test_localDateString() {
-        compare(KimaiApi.localDateString(new Date(2026, 0, 5, 23, 59)), "2026-01-05")
-    }
-
-    // The query filters (begin/end) stay without an offset: Kimai answers 400 to one.
-    function test_localQueryStringHasNoOffset() {
-        compare(KimaiApi.localQueryString(new Date(2026, 8, 30, 4, 5, 6)), "2026-09-30T04:05:06")
-    }
-
     function test_normalizeUrl() {
         compare(ProviderUtil.normalizeUrl("https://ki.example.com/"), "https://ki.example.com")
         compare(ProviderUtil.normalizeUrl("https://ki.example.com///"), "https://ki.example.com")
         compare(ProviderUtil.normalizeUrl(""), "")
-    }
-
-    function test_formatDuration() {
-        compare(KimaiApi.formatDuration(0), "00:00:00")
-        compare(KimaiApi.formatDuration(65), "00:01:05")
-        compare(KimaiApi.formatDuration(3600 + 61), "01:01:01")
-        compare(KimaiApi.formatDurationPanel(59), "00:59")
-        compare(KimaiApi.formatDurationPanel(3600), "1:00:00")
-    }
-
-    function test_parseTimeToMinutes() {
-        compare(KimaiApi.parseTimeToMinutes("09:00", 0), 9 * 60)
-        compare(KimaiApi.parseTimeToMinutes("18:30", 0), 18 * 60 + 30)
-        compare(KimaiApi.parseTimeToMinutes("bogus", 99), 99)
-        compare(KimaiApi.parseTimeToMinutes("", 8 * 60), 8 * 60)
-    }
-
-    function test_isWithinWorkHours() {
-        var noon = new Date(2026, 2, 10, 12, 0, 0)
-        var early = new Date(2026, 2, 10, 7, 0, 0)
-        var late = new Date(2026, 2, 10, 19, 0, 0)
-        var night = new Date(2026, 2, 10, 23, 0, 0)
-        var wee = new Date(2026, 2, 10, 3, 0, 0)
-        verify(KimaiApi.isWithinWorkHours("08:00", "18:00", noon))
-        verify(!KimaiApi.isWithinWorkHours("08:00", "18:00", early))
-        verify(!KimaiApi.isWithinWorkHours("08:00", "18:00", late))
-        verify(KimaiApi.isWithinWorkHours("22:00", "06:00", night))
-        verify(KimaiApi.isWithinWorkHours("22:00", "06:00", wee))
-        verify(!KimaiApi.isWithinWorkHours("22:00", "06:00", noon))
     }
 
     function test_customerCreateDefaults() {
@@ -80,114 +20,6 @@ TestCase {
         ])
         compare(fromList.timezone, "Europe/Vienna")
         compare(fromList.country, "AT")
-    }
-
-    function test_splitActivities() {
-        var acts = [
-            { id: 1, name: "Global", project: null },
-            { id: 2, name: "This", project: 4 },
-            { id: 3, name: "Other", project: 9 }
-        ]
-        var split = KimaiApi.splitActivitiesForProject(acts, 4)
-        compare(split.projectSpecific.length, 1)
-        compare(split.projectSpecific[0].id, 2)
-        compare(split.global.length, 1)
-        var model = KimaiApi.activitiesListModel(acts, 4)
-        compare(model.length, 2)
-        compare(model[0].section, "project")
-        compare(model[1].section, "global")
-    }
-
-    function test_projectsGroupedAndPicker() {
-        var customers = [{ id: 1, name: "Acme", color: "#ff0000" }]
-        var projects = [
-            { id: 10, name: "Beta", customer: 1, color: "#00ff00" },
-            { id: 11, name: "Alpha", customer: 1 }
-        ]
-        var rows = KimaiApi.projectsGroupedByCustomer(projects, customers)
-        compare(rows.length, 2)
-        compare(rows[0].project.name, "Alpha")
-        compare(rows[0].customerName, "Acme")
-        var items = KimaiApi.projectPickerItems(projects, customers)
-        compare(items.length, 2)
-        compare(items[0].value.id, 11)
-    }
-
-    function test_hydrateTimesheetNames() {
-        var projects = [{ id: 4, name: "Proj", customer: 1 }]
-        var activities = [{ id: 35, name: "Act" }]
-        var entries = [{ id: 99, project: 4, activity: 35, duration: 60, tags: ["ops"], billable: true }]
-        var out = KimaiApi.hydrateTimesheets(entries, projects, activities, {})
-        compare(out.length, 1)
-        compare(KimaiApi.projectId(out[0]), 4)
-        compare(KimaiApi.activityId(out[0]), 35)
-        compare(out[0].tags[0], "ops")
-        verify(out[0].billable)
-    }
-
-    function test_weekBoundsMonday() {
-        var wed = new Date(2026, 7, 12, 15, 0, 0) // Wed Aug 12 2026
-        var start = KimaiApi.startOfWeekMonday(wed)
-        compare(start.getDay(), 1)
-        compare(start.getDate(), 10)
-        var end = KimaiApi.endOfWeekSunday(wed)
-        compare(end.getDay(), 0)
-        compare(end.getDate(), 16)
-    }
-
-    function test_buildCustomersById() {
-        var map = KimaiApi.buildCustomersById([{ id: 1, name: "A" }, { id: 2, name: "B" }])
-        compare(map["1"].name, "A")
-        compare(map["2"].name, "B")
-    }
-
-    function test_deduplicateRecent() {
-        var entries = [
-            { project: 1, activity: 2, begin: "2026-01-01" },
-            { project: 1, activity: 2, begin: "2026-01-02" },
-            { project: 3, activity: 4, begin: "2026-01-03" }
-        ]
-        var uniq = KimaiApi.deduplicateRecent(entries)
-        compare(uniq.length, 2)
-    }
-
-    function test_panelPillInfo() {
-        var customers = [{ id: 1, name: "Acme", color: "#ff0000" }]
-        var byId = KimaiApi.buildCustomersById(customers)
-        var projects = [{ id: 10, name: "Site", customer: 1, color: "#00aa00" }]
-        var info = KimaiApi.panelPillInfo(
-            { project: 10, activity: 2 }, projects, byId)
-        compare(info.customerId, 1)
-        compare(info.projectId, 10)
-        compare(info.customerColor, ProviderUtil.normalizeCustomerColor("#ff0000"))
-        compare(info.projectColor, ProviderUtil.normalizeCustomerColor("#00aa00"))
-        var noProjectColor = KimaiApi.panelPillInfo(
-            { project: { id: 11, customer: 1 } }, [], byId)
-        compare(noProjectColor.customerColor, ProviderUtil.normalizeCustomerColor("#ff0000"))
-        compare(noProjectColor.projectColor, noProjectColor.customerColor)
-    }
-
-    function test_colorPrecedence() {
-        var byId = KimaiApi.buildCustomersById([{ id: 1, name: "Acme", color: "#ff0000" }])
-        var red = ProviderUtil.normalizeCustomerColor("#ff0000")
-        var green = ProviderUtil.normalizeCustomerColor("#00aa00")
-        var blue = ProviderUtil.normalizeCustomerColor("#0000ff")
-        var withColor = { id: 10, customer: 1, color: "#00aa00" }
-        var noColor = { id: 11, customer: 1 }
-
-        // project before customer
-        compare(KimaiApi.projectBarColor(withColor, byId), green)
-        compare(KimaiApi.projectBarColor(noColor, byId), red)
-        compare(KimaiApi.projectBarColor(null, byId), ProviderUtil.DEFAULT_CUSTOMER_COLOR)
-
-        // activity before project before customer
-        var ts = { project: withColor, activity: { id: 5, color: "#0000ff" } }
-        compare(KimaiApi.timesheetBarColor(ts, byId), blue)
-        ts = { project: withColor, activity: { id: 5 } }
-        compare(KimaiApi.timesheetBarColor(ts, byId), green)
-        ts = { project: noColor, activity: { id: 5 } }
-        compare(KimaiApi.timesheetBarColor(ts, byId), red)
-        compare(KimaiApi.timesheetBarColor(null, byId), ProviderUtil.DEFAULT_CUSTOMER_COLOR)
     }
 
     function test_serializeTimesheetWrite_tagsAreString() {
@@ -229,25 +61,5 @@ TestCase {
         compare(KimaiApi.tagsFindEndpoint(""), "/api/tags/find?name=")
         compare(KimaiApi.tagsFindEndpoint("ops"), "/api/tags/find?name=ops")
         compare(KimaiApi.tagsFindEndpoint("a b"), "/api/tags/find?name=a%20b")
-    }
-
-    function test_tagEntityColor() {
-        compare(KimaiApi.tagEntityColor({ name: "ops", "color-safe": "#336699" }), "#336699")
-        verify(KimaiApi.tagEntityColor({ name: "generated" }).length > 0)
-        compare(KimaiApi.tagEntityName({ name: "review" }), "review")
-    }
-
-    // Names sort Aa→Zz: case and accents do not split the alphabet (Android's
-    // localeCompare compares code points: "Zeta" before "alpha").
-    function test_compareNames() {
-        var names = ["zulu", "Beta", "ärger", "Zeta", "alpha"]
-        names.sort(KimaiApi.compareNames)
-        compare(names, ["alpha", "ärger", "Beta", "Zeta", "zulu"])
-        var rows = KimaiApi.projectsGroupedByCustomer(
-            [{ id: 1, name: "website", customer: 1 }, { id: 2, name: "Admin", customer: 1 }, { id: 3, name: "buch", customer: 2 }],
-            [{ id: 1, name: "studio" }, { id: 2, name: "Agentur" }])
-        compare(rows.map(function(r) { return r.project.name }), ["buch", "Admin", "website"])
-        var acts = KimaiApi.activitiesListModel([{ id: 1, name: "meeting" }, { id: 2, name: "Design" }], 0)
-        compare(acts.map(function(r) { return r.activity.name }), ["Design", "meeting"])
     }
 }

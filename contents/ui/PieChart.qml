@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import "Controls" as Controls
-import "../code/kimaiApi.js" as KimaiApi
+import "../code/dateTimeFormat.js" as DTF
 import "Kante"
 
 /**
@@ -27,7 +27,7 @@ ColumnLayout {
         visible: root.title.length > 0 || (KanteStyle.active && root.totalSeconds > 0)
         // Kante: the total moves from the donut's hole to the title ("Today · 5:30").
         text: KanteStyle.active && root.totalSeconds > 0
-              ? [root.title, KimaiApi.formatDurationShort(root.totalSeconds)].filter(function(t) { return t.length > 0 }).join(" · ")
+              ? [root.title, DTF.formatDurationShort(root.totalSeconds)].filter(function(t) { return t.length > 0 }).join(" · ")
               : root.title
         font.bold: true
         opacity: 0.85
@@ -126,7 +126,7 @@ ColumnLayout {
             horizontalAlignment: Text.AlignHCenter
             font.pointSize: KanteStyle.smallFont.pointSize
             font.bold: true
-            text: KimaiApi.formatDurationShort(root.totalSeconds)
+            text: DTF.formatDurationShort(root.totalSeconds)
         }
 
         // Repaint when data changes
@@ -166,7 +166,7 @@ ColumnLayout {
                 Controls.Label {
                     font.pointSize: KanteStyle.smallFont.pointSize
                     opacity: 0.75
-                    text: KimaiApi.formatDurationShort(modelData.seconds)
+                    text: DTF.formatDurationShort(modelData.seconds)
                 }
             }
         }

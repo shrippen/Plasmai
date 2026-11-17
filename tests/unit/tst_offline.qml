@@ -3,7 +3,7 @@ import QtTest
 import "../../contents/code/offline.js" as Offline
 import "../../contents/code/offlineOutbox.js" as Outbox
 import "../../contents/code/offlineState.js" as OfflineState
-import "../../contents/code/kimaiApi.js" as KimaiApi
+import "../../contents/code/dateTimeFormat.js" as DTF
 import "../../contents/code/providerUtil.js" as ProviderUtil
 
 /**
@@ -17,8 +17,8 @@ TestCase {
     readonly property double t0: new Date(2026, 8, 28, 12, 0).getTime()
 
     function stamp(h, m) {
-        // What the layer writes: the device time with its offset (see KimaiApi.localDateTimeString).
-        return KimaiApi.localDateTimeString(new Date(2026, 8, 28, h, m))
+        // What the layer writes: the device time with its offset (see DTF.localDateTimeString).
+        return DTF.localDateTimeString(new Date(2026, 8, 28, h, m))
     }
 
     function netErr() { return { ok: false, error: { type: "network", status: 0, detail: "" } } }

@@ -1,6 +1,8 @@
 .pragma library
 .import "./kimaiApi.js" as KimaiApi
+.import "./dayIntervals.js" as Intervals
 .import "./dateTimeFormat.js" as DTF
+.import "./workContractAdjust.js" as WorkAdjust
 
 /**
  * Work time of today and this week, the contract targets and the absence
@@ -42,8 +44,8 @@ function empty() {
  * from yesterday counts; the running entry until nowMs).
  */
 function todayEntriesOf(weekEntries, now, nowMs) {
-    var dayStart = KimaiApi.startOfLocalDay(now).getTime()
-    var dayEnd = KimaiApi.endOfLocalDay(now).getTime()
+    var dayStart = DTF.startOfLocalDay(now).getTime()
+    var dayEnd = DTF.endOfLocalDay(now).getTime()
     var out = []
     for (var i = 0; i < (weekEntries || []).length; i++) {
         var entry = weekEntries[i]
@@ -91,18 +93,18 @@ function summarize(input) {
     if (adjusting && input.adjustments) {
         out.absences = input.adjustments.absences || []
         out.publicHolidays = input.adjustments.publicHolidays || []
-        out.weekEffectiveTargetSeconds = KimaiApi.effectiveWeekTargetSeconds(
+        out.weekEffectiveTargetSeconds = effectiveWeekTargetSeconds(
             out.prefs, now, out.absences, out.publicHolidays)
-        out.todayTargetSeconds = KimaiApi.effectiveDayTargetSeconds(
+        out.todayTargetSeconds = effectiveDayTargetSeconds(
             out.prefs, now, out.absences, out.publicHolidays)
     }
 
     if (input.weekEntries) {
         out.entriesLoaded = true
         out.weekEntries = input.weekEntries
-        out.weekSeconds = KimaiApi.sumTimesheetDurations(input.weekEntries, input.nowMs)
+        out.weekSeconds = sumTimesheetDurations(input.weekEntries, input.nowMs)
         out.todayEntries = todayEntriesOf(input.weekEntries, now, input.nowMs)
-        var intervals = KimaiApi.dayIntervalsFromTimesheets(out.todayEntries, now, input.nowMs)
+        var intervals = Intervals.dayIntervalsFromTimesheets(out.todayEntries, now, input.nowMs)
         for (var i = 0; i < intervals.length; i++) {
             out.todaySeconds += intervals[i].endSec - intervals[i].startSec
         }
@@ -110,9 +112,9 @@ function summarize(input) {
 
     // Time tracked on absence days does not use up the targets.
     if (adjusting) {
-        out.weekAbsenceCreditSeconds = KimaiApi.absenceCreditSeconds(
+        out.weekAbsenceCreditSeconds = absenceCreditSeconds(
             out.prefs, now, out.absences, out.publicHolidays, out.weekEntries, input.nowMs)
-        out.todayAbsenceCreditSeconds = KimaiApi.dayAbsenceCreditSeconds(
+        out.todayAbsenceCreditSeconds = dayAbsenceCreditSeconds(
             out.prefs, now, out.absences, out.publicHolidays, out.todayEntries, input.nowMs)
     }
     return out
@@ -132,7 +134,7 @@ var MEMO_MS = 10 * 60 * 1000
  */
 function loadContract(ctx, now, callback) {
     var nowMs = typeof ctx.nowMs === "number" ? ctx.nowMs : Date.now()
-    var week = KimaiApi.startOfWeekMonday(now).getTime()
+    var week = WorkAdjust.startOfWeekMonday(now).getTime()
     var key = ctx.url + "\n" + ctx.token + "\n" + week
     var memo = ctx.memo
     if (memo && memo.user && memo.key === key && nowMs - memo.at < MEMO_MS) {
@@ -197,8 +199,57 @@ function load(ctx, now, callback) {
     })
 
     ctx.tracker.fetchTimesheetsRange(ctx.url, ctx.token,
-        KimaiApi.startOfWeekMonday(now), KimaiApi.endOfWeekSunday(now), function(result) {
+        WorkAdjust.startOfWeekMonday(now), WorkAdjust.endOfWeekSunday(now), function(result) {
         input.weekEntries = result.ok ? (result.data || []) : null
         done()
     })
+}
+
+function effectiveWeekTargetSeconds(prefs, date, absences, publicHolidays) {
+    return WorkAdjust.effectiveWeekTargetSeconds(prefs, date || new Date(), absences, publicHolidays, KimaiApi.workDaySecondsFromPrefs)
+}
+
+function effectiveDayTargetSeconds(prefs, date, absences, publicHolidays) {
+    return WorkAdjust.effectiveDayTargetSeconds(prefs, date || new Date(), absences, publicHolidays, KimaiApi.workDaySecondsFromPrefs)
+}
+
+function absenceCreditSeconds(prefs, date, absences, publicHolidays, entries, nowMs) {
+    return WorkAdjust.absenceCreditSeconds(
+        prefs, date || new Date(), absences, publicHolidays, entries, nowMs, KimaiApi.workDaySecondsFromPrefs)
+}
+
+function dayAbsenceCreditSeconds(prefs, date, absences, publicHolidays, entries, nowMs) {
+    return WorkAdjust.dayAbsenceCreditSeconds(
+        prefs, date || new Date(), absences, publicHolidays, entries, nowMs, KimaiApi.workDaySecondsFromPrefs)
+}
+
+function timesheetDurationSeconds(timesheet, nowMs) {
+    if (!timesheet) {
+        return 0
+    }
+    if (timesheet.duration !== null && timesheet.duration !== undefined && Number(timesheet.duration) > 0) {
+        return Number(timesheet.duration)
+    }
+    if (timesheet.begin) {
+        var begin = DTF.parseStamp(timesheet.begin)
+        if (!isNaN(begin.getTime())) {
+            var endMs = nowMs || Date.now()
+            if (timesheet.end) {
+                var end = DTF.parseStamp(timesheet.end)
+                if (!isNaN(end.getTime())) {
+                    endMs = end.getTime()
+                }
+            }
+            return Math.max(0, Math.floor((endMs - begin.getTime()) / 1000))
+        }
+    }
+    return Number(timesheet.duration) || 0
+}
+
+function sumTimesheetDurations(entries, nowMs) {
+    var total = 0
+    for (var i = 0; i < (entries || []).length; i++) {
+        total += timesheetDurationSeconds(entries[i], nowMs)
+    }
+    return total
 }

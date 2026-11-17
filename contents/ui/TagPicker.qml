@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
-import "../code/kimaiApi.js" as KimaiApi
 import "../code/timesheetFields.js" as Fields
 import "."
 import "Kante"
@@ -57,7 +56,7 @@ ColumnLayout {
         return {
             name: trimmed,
             color: colorHint || (cached && cached.color)
-                     || KimaiApi.tagEntityColor(cached || { name: trimmed })
+                     || Fields.tagEntityColor(cached || { name: trimmed })
         }
     }
 
@@ -102,13 +101,13 @@ ColumnLayout {
     }
 
     function ingestCatalogItem(item) {
-        var name = KimaiApi.tagEntityName(item)
+        var name = Fields.tagEntityName(item)
         if (!name) {
             return null
         }
         var entry = {
             name: name,
-            color: KimaiApi.tagEntityColor(item)
+            color: Fields.tagEntityColor(item)
         }
         tagCatalog[name.toLowerCase()] = entry
         return entry

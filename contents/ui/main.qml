@@ -8,7 +8,9 @@ import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.components as PlasmaComponents3
 import org.kde.plasma.extras as PlasmaExtras
 import org.kde.kirigami as Kirigami
-import "../code/kimaiApi.js" as KimaiApi
+import "../code/dayIntervals.js" as Intervals
+import "../code/entityColors.js" as Colors
+import "../code/entityNames.js" as Names
 import "../code/providerUtil.js" as ProviderUtil
 import "../code/secret.js" as Secret
 import "../code/platform.js" as Platform
@@ -145,8 +147,8 @@ PlasmoidItem {
     property var tripSheetSuggestion: null
 
     readonly property string profileId: session.connection.profile ? session.connection.profile.id : ""
-    readonly property string workDayBegin: session.settings.workDayBegin || KimaiApi.DEFAULT_WORK_DAY_BEGIN
-    readonly property string workDayEnd: session.settings.workDayEnd || KimaiApi.DEFAULT_WORK_DAY_END
+    readonly property string workDayBegin: session.settings.workDayBegin || Intervals.DEFAULT_WORK_DAY_BEGIN
+    readonly property string workDayEnd: session.settings.workDayEnd || Intervals.DEFAULT_WORK_DAY_END
 
     readonly property bool compactPopupLayout:
         plasmoid.formFactor === PlasmaCore.Types.Horizontal
@@ -190,7 +192,7 @@ PlasmoidItem {
         return ""
     }
 
-    readonly property var panelPills: KimaiApi.panelPillInfo(
+    readonly property var panelPills: Colors.panelPillInfo(
         session.timer.active, session.catalog.projects, session.catalog.customersById)
     readonly property color currentCustomerColor: session.timer.colorInfo.color
 
@@ -570,7 +572,7 @@ PlasmoidItem {
             }
             const t = root.session.timer
             root.notify(i18n("Tracking in progress"),
-                        t.project + " · " + t.activity + " · " + KimaiApi.formatDurationShort(t.elapsedSeconds))
+                        t.project + " · " + t.activity + " · " + DTF.formatDurationShort(t.elapsedSeconds))
         }
         /** Kimai saved the entry but ignored billable (no edit_billable permission). */
         function onDroppedFields(fields) {
@@ -818,7 +820,7 @@ PlasmoidItem {
         }
         userMessage = ""
         session.timer.patchActive({
-            begin: KimaiApi.localDateTimeString(beginDate),
+            begin: DTF.localDateTimeString(beginDate),
             project: projectId,
             activity: activityId,
             billable: typeof billable === "boolean" ? billable : undefined,
@@ -981,7 +983,7 @@ PlasmoidItem {
         }
         root.session.refresh()
         if (!direct && messages.length === 0) {
-            root.notify(i18n("Shooting day saved"), KimaiApi.formatDurationShort(result.workSeconds))
+            root.notify(i18n("Shooting day saved"), DTF.formatDurationShort(result.workSeconds))
         }
         root.loadFilmDayForDate(root.filmDaySelectedDate)
     }
@@ -1042,7 +1044,7 @@ PlasmoidItem {
         if (!ts) {
             return
         }
-        openTripSheet(Mileage.formForTimesheet(session.trips.ping, ts, KimaiApi.projectId), null, EntryTexts.summary(ts, session.catalog))
+        openTripSheet(Mileage.formForTimesheet(session.trips.ping, ts, Names.projectId), null, EntryTexts.summary(ts, session.catalog))
     }
 
     function tripSaved(message) {
@@ -1135,8 +1137,8 @@ PlasmoidItem {
         savingEntry = true
         userMessage = ""
         const fields = {
-            begin: KimaiApi.localDateTimeString(beginDate),
-            end: KimaiApi.localDateTimeString(endDate),
+            begin: DTF.localDateTimeString(beginDate),
+            end: DTF.localDateTimeString(endDate),
             project: projectId,
             activity: activityId,
             description: description || "",
@@ -1227,10 +1229,10 @@ PlasmoidItem {
         const lines = []
         const line1 = []
         if (t.tracking) {
-            line1.push(KimaiApi.formatDuration(t.elapsedSeconds))
+            line1.push(DTF.formatDuration(t.elapsedSeconds))
         }
         if (showSummary) {
-            line1.push(i18n("Today %1", KimaiApi.formatDurationShort(sum.todayLiveSeconds)))
+            line1.push(i18n("Today %1", DTF.formatDurationShort(sum.todayLiveSeconds)))
         }
         if (line1.length > 0) {
             lines.push(line1.join(" · "))
@@ -1325,8 +1327,8 @@ PlasmoidItem {
         if (session.timer.tracking || !session.connection.configured) {
             return
         }
-        const pid = last ? KimaiApi.projectId(last) : s.lastUsedProjectId
-        const aid = last ? KimaiApi.activityId(last) : s.lastUsedActivityId
+        const pid = last ? Names.projectId(last) : s.lastUsedProjectId
+        const aid = last ? Names.activityId(last) : s.lastUsedActivityId
         if (!pid || !aid || session.catalog.projectPickerModel.length === 0) {
             return
         }
@@ -1399,8 +1401,8 @@ PlasmoidItem {
         if (!timesheet) {
             return
         }
-        const pid = KimaiApi.projectId(timesheet)
-        const aid = KimaiApi.activityId(timesheet)
+        const pid = Names.projectId(timesheet)
+        const aid = Names.activityId(timesheet)
         if (!pid || !aid) {
             userMessage = i18n("Could not resolve project or activity for that entry")
             return
@@ -1410,8 +1412,8 @@ PlasmoidItem {
         session.timer.switchTo(
             pid,
             aid,
-            KimaiApi.displayProjectName(timesheet, cat.projects),
-            KimaiApi.displayActivityName(timesheet, cat.activities, cat.activitiesByProject),
+            Names.displayProjectName(timesheet, cat.projects),
+            Names.displayActivityName(timesheet, cat.activities, cat.activitiesByProject),
             timesheet.description || "")
     }
 
@@ -1447,7 +1449,7 @@ PlasmoidItem {
         session.entries.remove(timesheet, function() {
             root.clearError()
             root.notify(i18n("Entry deleted"),
-                        KimaiApi.displayActivityName(timesheet, cat.activities, cat.activitiesByProject))
+                        Names.displayActivityName(timesheet, cat.activities, cat.activitiesByProject))
         })
     }
 
@@ -1482,7 +1484,7 @@ PlasmoidItem {
         session.entries.split(timesheet, at, function() {
             root.clearError()
             root.notify(i18n("Entry split"),
-                        KimaiApi.displayActivityName(timesheet, cat.activities, cat.activitiesByProject))
+                        Names.displayActivityName(timesheet, cat.activities, cat.activitiesByProject))
         })
     }
 
@@ -1580,7 +1582,7 @@ PlasmoidItem {
 
             PlasmaComponents3.Label {
                 visible: root.session.timer.tracking && plasmoid.configuration.showElapsedInPanel
-                text: KimaiApi.formatDurationPanel(root.session.timer.elapsedSeconds)
+                text: DTF.formatDurationPanel(root.session.timer.elapsedSeconds)
                 font.family: KanteStyle.monoFamily
                 font.pointSize: KanteStyle.smallFont.pointSize
                 font.bold: true
@@ -1686,17 +1688,17 @@ PlasmoidItem {
             }
 
             readonly property string pendingCustomer: root.pendingSwitchTimesheet
-                ? KimaiApi.customerNameFromTimesheet(root.pendingSwitchTimesheet, root.session.catalog.customersById)
+                ? Names.customerNameFromTimesheet(root.pendingSwitchTimesheet, root.session.catalog.customersById)
                 : ""
             readonly property string pendingProject: root.pendingSwitchTimesheet
-                ? KimaiApi.displayProjectName(root.pendingSwitchTimesheet, root.session.catalog.projects)
+                ? Names.displayProjectName(root.pendingSwitchTimesheet, root.session.catalog.projects)
                 : ""
             readonly property string pendingActivity: root.pendingSwitchTimesheet
-                ? KimaiApi.displayActivityName(
+                ? Names.displayActivityName(
                     root.pendingSwitchTimesheet, root.session.catalog.activities, root.session.catalog.activitiesByProject)
                 : ""
             readonly property var pendingBarInfo: root.pendingSwitchTimesheet
-                ? KimaiApi.barColorInfoFromTimesheet(root.pendingSwitchTimesheet, root.session.catalog.customersById)
+                ? Colors.barColorInfoFromTimesheet(root.pendingSwitchTimesheet, root.session.catalog.customersById)
                 : ({ color: PlasmaiColors.entityFallback, category: "", id: null })
 
             component ActivityCard: Rectangle {
@@ -1844,8 +1846,8 @@ PlasmoidItem {
                         return i18n("Delete this finished entry? This cannot be undone.")
                     }
                     return i18n("Delete \"%1 · %2\"? This cannot be undone.",
-                                KimaiApi.displayProjectName(ts, root.session.catalog.projects),
-                                KimaiApi.displayActivityName(ts, root.session.catalog.activities, root.session.catalog.activitiesByProject))
+                                Names.displayProjectName(ts, root.session.catalog.projects),
+                                Names.displayActivityName(ts, root.session.catalog.activities, root.session.catalog.activitiesByProject))
                 }
             }
 
@@ -2497,7 +2499,7 @@ PlasmoidItem {
                     onRunningBeginEdited: function(beginText) {
                         var ts = root.session.timer.active
                         if (ts) {
-                            root.saveActiveEdit(KimaiApi.projectId(ts), KimaiApi.activityId(ts), beginText, ts.billable, ts.tags || [])
+                            root.saveActiveEdit(Names.projectId(ts), Names.activityId(ts), beginText, ts.billable, ts.tags || [])
                         }
                     }
                     onEngagementPicked: function(projectId) {

@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
-import "../contents/code/kimaiApi.js" as KimaiApi
 import "../contents/code/filmDays.js" as FilmDays
 import "../contents/code/dateTimeFormat.js" as DTF
 import "shared"
@@ -129,7 +128,7 @@ Kirigami.Page {
             // Stay on the page so the field can be fixed or the save repeated.
             root.showPassiveNotification(messages.join(" "))
         } else if (!direct) {
-            session.reminders.notify(i18n("Shooting day saved"), KimaiApi.formatDurationShort(result.workSeconds))
+            session.reminders.notify(i18n("Shooting day saved"), DTF.formatDurationShort(result.workSeconds))
         }
         page.loadForDate(page.selectedDate)
     }
@@ -192,7 +191,7 @@ Kirigami.Page {
                 }
                 onStopRequested: session.timer.stop()
                 onRunningBeginEdited: function(beginText) {
-                    session.timer.patchActive({ begin: KimaiApi.localDateTimeString(page.parseLocalStamp(beginText)) })
+                    session.timer.patchActive({ begin: DTF.localDateTimeString(page.parseLocalStamp(beginText)) })
                 }
                 tripsAvailable: session.trips.canEdit
                 onTripRequested: root.openTripForTimesheet(session.filmDay.dayTimesheet)
