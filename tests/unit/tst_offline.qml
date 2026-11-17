@@ -136,11 +136,22 @@ TestCase {
             renamed: [],
             // name → status the file reads with instead of its content (unreadable, broken)
             readAs: {},
+            // a function: load answers only when it is called (a slow disk)
+            holdLoad: null,
+            saves: [],
             failSave: false,
             currentUrl: "https://kimai.test",
             url: function() { return h.currentUrl },
             token: function() { return "tok" },
             load: function(name) {
+                if (h.holdLoad && name.indexOf("offline-outbox-") === 0) {
+                    return new Promise(function(resolve) {
+                        h.release = function() {
+                            h.holdLoad = null
+                            resolve(h.load(name))
+                        }
+                    })
+                }
                 if (h.readAs[name]) {
                     return Promise.resolve({ status: h.readAs[name], data: null })
                 }
@@ -149,6 +160,7 @@ TestCase {
                     : { status: LocalFile.Status.MISSING, data: null })
             },
             save: function(name, obj) {
+                h.saves.push(name)
                 if (h.failSave) {
                     return Promise.reject("disk full")
                 }
@@ -664,6 +676,76 @@ TestCase {
         call(function(cb) { Outbox.replay(s, cb) })
         compare(urls, ["https://kimai.test"], "only the search went out")
         compare(Outbox.pendingCount(s), 1)
+    }
+
+    // The file is read while a change is made: nothing is written until the read is done,
+    // then the file holds the loaded ops and the new one, once.
+    function test_noWriteWhileTheOutboxLoads() {
+        var k = fakeKimai()
+        var h = fakeHost()
+        h.files["offline-outbox-p1"] = JSON.stringify({ v: 1, counter: 1, ops: [
+            { opId: "local:p", kind: "patch", entryId: 5, fields: { description: "x" }, state: "pending", base: null }
+        ] })
+        var before = h.files["offline-outbox-p1"]
+        h.holdLoad = true
+        var s = session(k, h)
+        var done = false
+        Offline.load(s).then(function() { done = true })
+        startOffline(k, s)
+        compare(h.files["offline-outbox-p1"], before, "not written while loading")
+        h.release()
+        tryVerify(function() { return done })
+        var ops = JSON.parse(h.files["offline-outbox-p1"]).ops
+        compare(ops.length, 2)
+        compare(ops[0].opId, "local:p")
+        compare(ops[1].kind, OfflineState.Op.CREATE)
+        compare(h.saves.filter(function(n) { return n === "offline-outbox-p1" }).length, 1)
+    }
+
+    // A closed session leaves its files to the next one.
+    function test_closedSessionWritesNothing() {
+        var k = fakeKimai()
+        var h = fakeHost()
+        var s = session(k, h)
+        var deferred = 0
+        h.defer = function() { deferred++ }
+        Offline.close(s)
+        startOffline(k, s)
+        call(function(cb) { s.tracker.fetchRecentTimesheets("u", "t", 10, cb) })
+        compare(h.saves, [])
+        compare(deferred, 0)
+    }
+
+    // A create on its way when the profile is left: its answer is written once, then the
+    // same profile opened again reads a file without that create (no second create).
+    function test_inFlightCreateSurvivesProfileRoundTrip() {
+        var k = fakeKimai()
+        var h = fakeHost()
+        var s1 = session(k, h)
+        k.net = false
+        call(function(cb) { s1.tracker.createTimesheet("u", "t", { begin: stamp(7, 0), end: stamp(8, 0), project: 10, activity: 20 }, cb) })
+        k.net = true
+        var sends = 0
+        var answer = null
+        var create = k.createTimesheet
+        k.createTimesheet = function(u, t, f, cb) { sends++; answer = function() { create(u, t, f, cb) } }
+        var replayed = false
+        Outbox.replay(s1, function() { replayed = true })
+        compare(sends, 1)
+        // Profile B is opened, then A again: the new session waits for the old one's replay.
+        Offline.close(s1)
+        var waited = false
+        var settled = Offline.settled(s1)
+        settled.then(function() { waited = true })
+        wait(20)
+        verify(!waited, "waits while the create is on its way")
+        answer()
+        tryVerify(function() { return waited })
+        var s2 = session(k, h)
+        loaded(s2)
+        compare(Outbox.pendingCount(s2), 0)
+        call(function(cb) { Outbox.replay(s2, cb) })
+        compare(sends, 1, "created once")
     }
 
     function test_writesWaitBehindQueueOnline() {

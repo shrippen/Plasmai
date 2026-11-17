@@ -95,4 +95,15 @@ TestCase {
         compare(files[outbox].ops.length, 1, "the file is as it was")
         compare(s.sync.storageError, "load")
     }
+
+    // The terminal client and the widget word the same states from the same place.
+    function test_storageTexts() {
+        const kinds = ["load", "save", "broken"]
+        const texts = kinds.map(function(k) { return Ui.ApiErrors.storageText(k) })
+        compare(Ui.ApiErrors.storageText(""), "")
+        for (let i = 0; i < texts.length; i++) {
+            verify(texts[i].length > 0)
+            compare(texts.indexOf(texts[i]), i, "each kind has its own text")
+        }
+    }
 }

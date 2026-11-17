@@ -185,4 +185,22 @@ TestCase {
         tryVerify(function() { return got !== null })
         compare(got.status, LocalFile.Status.UNREADABLE)
     }
+
+    // A write of the same file is running: its content is not this read's, nothing is moved aside.
+    function test_noQuarantineWhileWriting() {
+        var finish = null
+        var quarantined = 0
+        Platform.setBackend({
+            loadLocal: function(ds, name, cb) { cb("broken", null) },
+            quarantineLocal: function(ds, name, cb) { quarantined++; cb(true) },
+            saveLocal: function(ds, name, payload, cb) { finish = cb }
+        })
+        Platform.saveLocal(null, "x", { v: 1 })
+        var got = null
+        Platform.loadLocal(null, "x").then(function(r) { got = r })
+        tryVerify(function() { return got !== null })
+        compare(got.status, LocalFile.Status.UNREADABLE)
+        compare(quarantined, 0)
+        finish(true, null)
+    }
 }
