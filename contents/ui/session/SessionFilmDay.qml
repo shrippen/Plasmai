@@ -87,14 +87,17 @@ QtObject {
         })
     }
 
-    /** Loads after the mode is known (plugin present or not); see loadDay. */
-    function openView(probe, date, preferSelected, onDay, onProduction) {
+    /**
+     * Loads after the mode is known (plugin present or not); see loadDay.
+     * projectOf(): the project the view has picked by then (null: none).
+     */
+    function openView(probe, date, projectOf, preferSelected, onDay, onProduction) {
         if (!session.connection.configured) {
             return
         }
         loading = true
         resolveMode(probe, function() {
-            loadDay(date, null, preferSelected, onDay, onProduction)
+            loadDay(date, projectOf(), preferSelected, onDay, onProduction)
         })
     }
 

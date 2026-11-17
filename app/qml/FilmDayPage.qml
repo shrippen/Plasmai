@@ -138,7 +138,7 @@ Kirigami.Page {
         if (session.catalog.projectPickerModel.length === 0) {
             session.refresh()
         }
-        session.filmDay.openView(Session.Probe.Cached, page.selectedDate, pickedProject(), false, page.showDay, page.showProduction)
+        session.filmDay.openView(Session.Probe.Cached, page.selectedDate, page.pickedProject, false, page.showDay, page.showProduction)
     }
 
     QQC2.ScrollView {
@@ -243,7 +243,7 @@ Kirigami.Page {
         z: 10
         flickable: pageScroll.contentItem
         busy: session.filmDay.loading
-        onRefreshRequested: session.filmDay.openView(Session.Probe.Fresh, page.selectedDate, page.pickedProject(), false,
+        onRefreshRequested: session.filmDay.openView(Session.Probe.Fresh, page.selectedDate, page.pickedProject, false,
                                                      page.showDay, page.showProduction)
     }
 }

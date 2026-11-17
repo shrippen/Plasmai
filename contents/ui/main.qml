@@ -968,7 +968,7 @@ PlasmoidItem {
         editingStoppedTimesheet = null
         mainViewMode = "filmday"
         ensureCatalog()
-        session.filmDay.openView(Session.Probe.Cached, filmDaySelectedDate, root.pickedFilmProject(), false,
+        session.filmDay.openView(Session.Probe.Cached, filmDaySelectedDate, root.pickedFilmProject, false,
                                  root.showFilmDay, root.showFilmDayProduction)
     }
 

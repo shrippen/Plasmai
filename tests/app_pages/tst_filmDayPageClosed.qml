@@ -22,7 +22,7 @@ TestCase {
                     property bool loading: false
                     property bool saving: false
                     property var dayTimesheet: null
-                    function openView(probe, date, projectId, prefer, onDay, onProduction) {
+                    function openView(probe, date, projectOf, prefer, onDay, onProduction) {
                         tc.pending.push(function() { onDay({}); onProduction({}) })
                     }
                     function loadDay(date, projectId, prefer, onDay, onProduction) {

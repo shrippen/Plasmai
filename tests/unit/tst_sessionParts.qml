@@ -705,6 +705,21 @@ TestCase {
         verify(production.number >= 0)
     }
 
+    // Opening the view: the mode first, then the day with the project picked by then.
+    function test_filmDayOpenViewLoads() {
+        const s = openDemo()
+        tryVerify(function() { return s.filmDay.available })
+        let loaded = null
+        let askedForProject = false
+        s.filmDay.openView(Ui.Session.Probe.Cached, new Date(),
+                           function() { askedForProject = true; return null }, false,
+                           function(l) { loaded = l }, null)
+        tryVerify(function() { return loaded !== null })
+        verify(askedForProject)
+        verify(!!loaded.info.phase)
+        verify(!s.filmDay.loading)
+    }
+
     function test_filmDayLatestLoadWins() {
         const s = openDemo()
         tryVerify(function() { return s.filmDay.available })
