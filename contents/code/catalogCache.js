@@ -7,6 +7,7 @@
  */
 
 var _profileId = ""
+var _url = ""
 var _customers = []
 var _projects = []
 var _activities = []
@@ -19,8 +20,12 @@ var _fetching = false
  */
 var FRESH_MS = 10 * 60 * 1000
 
-function hasCatalog(profileId) {
+/** `url` (optional): the server the catalog came from; a catalog stored without one never matches. */
+function hasCatalog(profileId, url) {
     if (!_loadedAt || String(profileId || "") !== String(_profileId || "")) {
+        return false
+    }
+    if (url !== undefined && String(url || "") !== _url) {
         return false
     }
     return (_customers && _customers.length)
@@ -28,8 +33,8 @@ function hasCatalog(profileId) {
         || (_activities && _activities.length)
 }
 
-function isFresh(profileId) {
-    if (!hasCatalog(profileId)) {
+function isFresh(profileId, url) {
+    if (!hasCatalog(profileId, url)) {
         return false
     }
     return (Date.now() - _loadedAt) < FRESH_MS
@@ -62,6 +67,7 @@ function setFetching(value) {
 
 function store(profileId, payload) {
     _profileId = String(profileId || "")
+    _url = String(payload.url || "")
     _customers = payload.customers || []
     _projects = payload.projects || []
     _activities = payload.activities || []
@@ -81,6 +87,7 @@ function hydrate(payload) {
 function exportPayload() {
     return {
         profileId: _profileId,
+        url: _url,
         customers: _customers,
         projects: _projects,
         activities: _activities,
@@ -88,8 +95,9 @@ function exportPayload() {
     }
 }
 
-function storeEntities(profileId, customers, projects, activities) {
+function storeEntities(profileId, customers, projects, activities, url) {
     store(profileId, {
+        url: url,
         customers: customers,
         projects: projects,
         activities: activities
@@ -107,6 +115,7 @@ function load() {
 
 function clear() {
     _profileId = ""
+    _url = ""
     _customers = []
     _projects = []
     _activities = []

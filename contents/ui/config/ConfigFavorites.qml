@@ -5,6 +5,7 @@ import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
 import "../../code/entityPickers.js" as Pickers
 import "../../code/providerUtil.js" as ProviderUtil
+import "../../code/timeTracker.js" as TimeTracker
 import "../../code/profiles.js" as Profiles
 import "../../code/favorites.js" as Favorites
 import "../../code/sharedConfig.js" as SharedConfig
@@ -113,7 +114,7 @@ ConfigPage {
             page.tryFinishCatalogLoad()
         })
 
-        var cached = session.catalog.cached(page.activeProfile ? page.activeProfile.id : "default")
+        var cached = session.catalog.cached(page.activeProfile ? page.activeProfile.id : "default", page.serverUrl)
         if (cached) {
             page.pendingCatalogPayload = cached
             page.catalogLoadDone = true
@@ -188,8 +189,14 @@ ConfigPage {
         }
     }
 
+    /** The profile and server of this page: a catalog of another one is not used (its ids are not this account's). */
+    readonly property string serverUrl: page.activeProfile ? TimeTracker.resolveUrl(page.activeProfile) : ""
+
+    readonly property string activeProfileId: page.activeProfile ? String(page.activeProfile.id) : "default"
+
     function applyPayloadIfUsable(payload) {
-        if (!payload || !(payload.projects || []).length) {
+        if (!payload || !(payload.projects || []).length || (payload.url || "") !== page.serverUrl
+                || String(payload.profileId || "") !== page.activeProfileId) {
             return false
         }
         session.catalog.keep(payload)
@@ -216,7 +223,7 @@ ConfigPage {
             page.fetchProjectsFromApi(fromCache)
         }
 
-        if (!forceRefresh && page.applyPayloadIfUsable(session.catalog.cached(profileId))) {
+        if (!forceRefresh && page.applyPayloadIfUsable(session.catalog.cached(profileId, page.serverUrl))) {
             afterCache(true)
             return
         }

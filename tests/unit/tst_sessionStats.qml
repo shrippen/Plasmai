@@ -197,7 +197,7 @@ TestCase {
         compare(f.stats.rangeBeginMs, 0)
     }
 
-    // A write (see tst_sessionParts for the real ones) makes the range stale: the next open
+    // A write (see tst_sessionStale for the real ones) makes the range stale: the next open
     // starts over with the preload only; without one it fetches nothing new.
     function test_write_makes_the_range_stale() {
         const f = createTemporaryObject(fixture, this)

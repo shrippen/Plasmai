@@ -181,6 +181,8 @@ view ──binds / calls──▶ Session (contents/ui/Session.qml, QtQml only)
   `sharedConfig.sh`). Instance config is a cache; edits persist a patch into
   the shared file.
 - **Catalog cache:** `~/.cache/io.github.shrippen.Plasmai/catalog-cache.json`.
+  The payload names its profile and server (`profileId`, `url`); a catalog of another
+  profile or server, or one without a `url`, is not used and is loaded again.
   Favorites settings should read this cache, not hit the live API on every
   open. The widget writes it only after a real catalog fetch, so the
   `FRESH_MS` age check keeps working.
