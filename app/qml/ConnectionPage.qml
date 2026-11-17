@@ -13,20 +13,33 @@ Kirigami.Page {
     KantePageTitle { page: page }
     title: i18n("Connection")
 
-    property var profiles: []
-    property int selectedIndex: 0
+    // The profile list and its actions; the page binds its fields to it.
+    ProfileFormModel {
+        id: form
+        session: page.session
+        providers: page.providers
+        onEdited: page.syncProfiles()
+        onFieldsReset: {
+            profileCombo.currentIndex = form.selectedIndex
+            profileNameField.text = form.selectedProfile.name
+            urlField.text = form.selectedProfile.url || ""
+            providerCombo.currentIndex = form.selectedProviderIndex
+        }
+        onUrlReset: urlField.text = form.selectedProfile.url || ""
+        onProviderSwitched: page.showStatus("", false)
+    }
+    property alias profiles: form.profiles
+    property alias selectedIndex: form.selectedIndex
+    property alias updatingFields: form.updatingFields
+    property alias syncing: form.syncing
     property bool busy: false
     property bool hasStoredToken: false
     property string statusMessage: ""
     property bool statusIsError: false
-    property bool syncing: false
-    property bool updatingFields: false
 
-    readonly property var selectedProfile: (profiles.length > 0 && selectedIndex >= 0 && selectedIndex < profiles.length)
-        ? profiles[selectedIndex] : null
-    readonly property string selectedProviderId: selectedProfile && selectedProfile.provider
-        ? selectedProfile.provider : "kimai"
-    readonly property var selectedProviderMeta: session.connection.metaOf(selectedProviderId)
+    readonly property var selectedProfile: form.selectedProfile
+    readonly property string selectedProviderId: form.selectedProviderId
+    readonly property var selectedProviderMeta: form.selectedProviderMeta
     /** Every service in display order (id, name, needsUrl, defaultUrl, …). */
     readonly property var providers: session.setup.listProviders()
 
@@ -50,68 +63,16 @@ Kirigami.Page {
     }
 
     function ensureSelection() {
-        if (profiles.length === 0) {
-            profiles = Profiles.ensured(profiles, ProviderUtil.normalizeUrl(urlField.text))
-            syncProfiles()
-        }
-        var activeIdx = Profiles.activeIndex(profiles, activeProfileField.text)
-        selectedIndex = activeIdx
-        profileCombo.currentIndex = activeIdx
-        updateFieldsForSelection()
-    }
-
-    function updateFieldsForSelection() {
-        if (profiles.length === 0 || selectedIndex < 0) return
-        updatingFields = true
-        profileNameField.text = profiles[selectedIndex].name
-        urlField.text = profiles[selectedIndex].url || ""
-        var pid = profiles[selectedIndex].provider || "kimai"
-        var pIdx = page.providers.map(function(p) { return p.id }).indexOf(pid)
-        providerCombo.currentIndex = pIdx >= 0 ? pIdx : 0
-        updatingFields = false
-    }
-
-    function updateSelectedProfile(field, value) {
-        if (updatingFields || syncing || profiles.length === 0 || selectedIndex < 0) return
-        profiles = Profiles.withField(profiles, selectedIndex, field, value)
-        syncProfiles()
-    }
-
-    /** Switch service: clear URL and session ids, prefill the service's default URL. */
-    function applyProviderChange(providerId) {
-        if (updatingFields || syncing || profiles.length === 0 || selectedIndex < 0) return
-        var url = session.setup.providerMeta(providerId).defaultUrl || ""
-        profiles = Profiles.withProvider(profiles, selectedIndex, providerId, url)
-        syncProfiles()
-        updatingFields = true
-        urlField.text = profiles[selectedIndex].url || ""
-        updatingFields = false
-        showStatus("", false)
+        form.ensureSelection(activeProfileField.text, urlField.text)
     }
 
     function setActiveProfile() {
-        if (profiles.length === 0 || selectedIndex < 0) return
-        commitUrlField()
-        activeProfileField.text = profiles[selectedIndex].id
-        updatingFields = true
-        urlField.text = profiles[selectedIndex].url || ""
-        updatingFields = false
+        activeProfileField.text = form.activate(urlField.text)
         persistShared()
         // Live-apply the newly active profile so the timer view doesn't need
         // an app restart to notice (root only reads shared.json at startup
         // otherwise).
         session.open()
-    }
-
-    function commitUrlField() {
-        if (updatingFields || syncing || profiles.length === 0 || selectedIndex < 0) return
-        var normalized = ProviderUtil.normalizeUrl(urlField.text)
-        updateSelectedProfile("url", normalized)
-        if (urlField.text !== normalized) {
-            updatingFields = true
-            urlField.text = normalized
-            updatingFields = false
-        }
     }
 
     // ── Persistence ──
@@ -219,8 +180,7 @@ Kirigami.Page {
                     currentIndex: page.selectedIndex
                     onActivated: function(index) {
                         if (page.updatingFields) return
-                        page.selectedIndex = index
-                        page.updateFieldsForSelection()
+                        form.select(index)
                         page.checkStoredToken()
                     }
                 }
@@ -230,12 +190,13 @@ Kirigami.Page {
                     Kirigami.FormData.label: i18n("Profile name:")
                     Layout.fillWidth: true
                     onEditingFinished: {
-                        if (!page.updatingFields) {
-                            page.updateSelectedProfile("name", text)
-                            var idx = page.selectedIndex
-                            page.profiles = page.profiles.slice()
-                            profileCombo.currentIndex = idx
+                        if (page.updatingFields) return
+                        if (!form.rename(text)) {
+                            page.showStatus(i18n("A profile named \"%1\" already exists.", text.trim()), true)
+                            return
                         }
+                        page.showStatus("", false)
+                        profileCombo.currentIndex = form.selectedIndex
                     }
                 }
 
@@ -251,11 +212,7 @@ Kirigami.Page {
                         text: i18n("Add")
                         icon.name: "list-add"
                         onClicked: {
-                            page.profiles = Profiles.withNewProfile(page.profiles, function(n) { return i18n("Profile %1", n) })
-                            page.syncProfiles()
-                            page.selectedIndex = page.profiles.length - 1
-                            profileCombo.currentIndex = page.selectedIndex
-                            page.updateFieldsForSelection()
+                            form.add(function(n) { return i18n("Profile %1", n) })
                             page.checkStoredToken()
                             page.persistShared()
                         }
@@ -266,14 +223,7 @@ Kirigami.Page {
                         icon.name: "list-remove"
                         enabled: page.profiles.length > 1
                         onClicked: {
-                            if (page.profiles.length <= 1) return
-                            var removedId = page.profiles[page.selectedIndex].id
-                            page.profiles = Profiles.withoutProfile(page.profiles, page.selectedIndex)
-                            page.syncProfiles()
-                            page.selectedIndex = Math.max(0, page.selectedIndex - 1)
-                            profileCombo.currentIndex = page.selectedIndex
-                            page.updateFieldsForSelection()
-                            if (activeProfileField.text === removedId) page.setActiveProfile()
+                            if (form.removeSelected(activeProfileField.text)) page.setActiveProfile()
                             page.checkStoredToken()
                             page.persistShared()
                         }
@@ -319,7 +269,7 @@ Kirigami.Page {
                     model: page.providers.map(function(p) { return p.name })
                     onActivated: function(index) {
                         if (page.updatingFields) return
-                        page.applyProviderChange(page.providers[index].id)
+                        form.changeProvider(page.providers[index].id)
                     }
                 }
 
@@ -329,9 +279,9 @@ Kirigami.Page {
                     Layout.fillWidth: true
                     placeholderText: page.selectedProviderMeta.defaultUrl || i18n("https://your-server.com")
                     onTextChanged: {
-                        if (!page.updatingFields && !page.syncing) page.updateSelectedProfile("url", text)
+                        if (!page.updatingFields && !page.syncing) form.updateSelected("url", text)
                     }
-                    onEditingFinished: page.commitUrlField()
+                    onEditingFinished: form.commitUrl(urlField.text)
                 }
 
                 Kirigami.Separator { Kirigami.FormData.isSection: true; Layout.fillWidth: true }
@@ -435,8 +385,7 @@ Kirigami.Page {
                                     if (!page) { return }
                                     page.busy = false
                                     if (result.ok) {
-                                        page.profiles = result.profiles
-                                        page.syncProfiles()
+                                        form.applyTested(result.profiles)
                                         page.persistShared()
                                     }
                                     page.showStatus(ApiErrors.testText(result, session.setup.providerName(profile.provider)), !result.ok)

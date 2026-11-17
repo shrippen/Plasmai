@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-11-17 19:06+0100\n"
+"POT-Creation-Date: 2026-11-17 19:25+0100\n"
 "PO-Revision-Date: 2026-08-09 19:45+0200\n"
 "Last-Translator: Cursor Agent\n"
 "Language-Team: Spanish\n"
@@ -45,112 +45,116 @@ msgid "More projects"
 msgstr "Más proyectos"
 
 #: app/qml/ConnectionPage.qml:14 app/qml/main.qml:405
-#: contents/config/config.qml:6 contents/ui/config/ConfigConnection.qml:304
+#: contents/config/config.qml:6 contents/ui/config/ConfigConnection.qml:250
 msgid "Connection"
 msgstr "Conexión"
 
-#: app/qml/ConnectionPage.qml:216 contents/ui/config/ConfigConnection.qml:326
+#: app/qml/ConnectionPage.qml:177 contents/ui/config/ConfigConnection.qml:272
 msgid "Profile:"
 msgstr "Perfil:"
 
-#: app/qml/ConnectionPage.qml:230 contents/ui/config/ConfigConnection.qml:340
+#: app/qml/ConnectionPage.qml:190 contents/ui/config/ConfigConnection.qml:285
 msgid "Profile name:"
 msgstr "Nombre del perfil:"
 
-#: app/qml/ConnectionPage.qml:251
+#: app/qml/ConnectionPage.qml:195 contents/ui/config/ConfigConnection.qml:291
+msgid "A profile named \"%1\" already exists."
+msgstr "Ya existe un perfil llamado «%1»."
+
+#: app/qml/ConnectionPage.qml:212
 msgid "Add"
 msgstr "Añadir"
 
-#: app/qml/ConnectionPage.qml:254 contents/ui/config/ConfigConnection.qml:422
+#: app/qml/ConnectionPage.qml:215 contents/ui/config/ConfigConnection.qml:363
 msgid "Profile %1"
 msgstr "Perfil %1"
 
-#: app/qml/ConnectionPage.qml:265 contents/ui/config/ConfigConnection.qml:431
+#: app/qml/ConnectionPage.qml:222 contents/ui/config/ConfigConnection.qml:368
 #: contents/ui/TagPicker.qml:203
 msgid "Remove"
 msgstr "Eliminar"
 
-#: app/qml/ConnectionPage.qml:283
+#: app/qml/ConnectionPage.qml:233
 msgid "Use this"
 msgstr "Usar este"
 
-#: app/qml/ConnectionPage.qml:297
+#: app/qml/ConnectionPage.qml:247
 msgid "Switching profiles needs a connection to the server."
 msgstr "Cambiar de perfil requiere una conexión con el servidor."
 
-#: app/qml/ConnectionPage.qml:305 contents/ui/config/ConfigConnection.qml:467
+#: app/qml/ConnectionPage.qml:255 contents/ui/config/ConfigConnection.qml:395
 msgid "none"
 msgstr "ninguno"
 
-#: app/qml/ConnectionPage.qml:305
+#: app/qml/ConnectionPage.qml:255
 msgid "Active: %1"
 msgstr "Activo: %1"
 
-#: app/qml/ConnectionPage.qml:317
+#: app/qml/ConnectionPage.qml:267
 msgid "Provider:"
 msgstr "Proveedor:"
 
-#: app/qml/ConnectionPage.qml:328 contents/ui/config/ConfigConnection.qml:70
+#: app/qml/ConnectionPage.qml:278 contents/ui/config/ConfigConnection.qml:84
 msgid "Server URL:"
 msgstr "URL del servidor:"
 
-#: app/qml/ConnectionPage.qml:330
+#: app/qml/ConnectionPage.qml:280
 msgid "https://your-server.com"
 msgstr "https://su-servidor.com"
 
-#: app/qml/ConnectionPage.qml:341
+#: app/qml/ConnectionPage.qml:291
 msgid "API Token:"
 msgstr "Token de API:"
 
-#: app/qml/ConnectionPage.qml:343
+#: app/qml/ConnectionPage.qml:293
 msgid "Token stored."
 msgstr "Token guardado."
 
-#: app/qml/ConnectionPage.qml:343 app/qml/ConnectionPage.qml:427
+#: app/qml/ConnectionPage.qml:293 app/qml/ConnectionPage.qml:377
 msgid "No token stored."
 msgstr "No hay token guardado."
 
-#: app/qml/ConnectionPage.qml:351
+#: app/qml/ConnectionPage.qml:301
 msgid "Enter API token…"
 msgstr "Introduce el token de API…"
 
-#: app/qml/ConnectionPage.qml:365 contents/ui/config/ConfigConnection.qml:480
+#: app/qml/ConnectionPage.qml:315 contents/ui/config/ConfigConnection.qml:408
 msgid "Saving…"
 msgstr "Guardando…"
 
-#: app/qml/ConnectionPage.qml:365 contents/ui/config/ConfigConnection.qml:480
+#: app/qml/ConnectionPage.qml:315 contents/ui/config/ConfigConnection.qml:408
 msgid "Save token"
 msgstr "Guardar token"
 
-#: app/qml/ConnectionPage.qml:383
+#: app/qml/ConnectionPage.qml:333
 msgid "Token saved."
 msgstr "Token guardado."
 
-#: app/qml/ConnectionPage.qml:387
+#: app/qml/ConnectionPage.qml:337
 msgid "Failed to save"
 msgstr "Error al guardar"
 
-#: app/qml/ConnectionPage.qml:393
+#: app/qml/ConnectionPage.qml:343
 msgid "Clear"
 msgstr "Borrar"
 
-#: app/qml/ConnectionPage.qml:405
+#: app/qml/ConnectionPage.qml:355
 msgid "Token removed."
 msgstr "Token eliminado."
 
-#: app/qml/ConnectionPage.qml:409
+#: app/qml/ConnectionPage.qml:359
 msgid "Failed"
 msgstr "Error"
 
-#: app/qml/ConnectionPage.qml:415
+#: app/qml/ConnectionPage.qml:365
 msgid "Test"
 msgstr "Probar"
 
-#: app/qml/ConnectionPage.qml:420
+#: app/qml/ConnectionPage.qml:370
 msgid "Testing…"
 msgstr "Probando…"
 
-#: app/qml/ConnectionPage.qml:432
+#: app/qml/ConnectionPage.qml:382
 msgid "Testing… (%1)"
 msgstr "Probando… (%1)"
 
@@ -1117,99 +1121,95 @@ msgstr "Notificar al detenerse por inactividad"
 msgid "Remind me once if nothing is tracking during work hours"
 msgstr "Recordarme una vez si no hay nada en marcha en horario laboral"
 
-#: contents/ui/config/ConfigConnection.qml:58
+#: contents/ui/config/ConfigConnection.qml:72
 msgid "Clockify cloud API is prefilled. Change only for a regional endpoint (e.g. euc1)."
 msgstr "La API en la nube de Clockify está rellenada. Cámbiela solo para un endpoint regional (p. ej. euc1)."
 
-#: contents/ui/config/ConfigConnection.qml:60
+#: contents/ui/config/ConfigConnection.qml:74
 msgid "Toggl Track cloud API is prefilled. Use your personal API token from Profile settings."
 msgstr "La API en la nube de Toggl Track está rellenada. Usa tu token API personal de la configuración del perfil."
 
-#: contents/ui/config/ConfigConnection.qml:62
+#: contents/ui/config/ConfigConnection.qml:76
 msgid "SolidTime cloud API is prefilled. For self-hosting, replace with your instance base URL."
 msgstr "La API en la nube de SolidTime está rellenada. En autoalojamiento, sustitúyela por la URL base de tu instancia."
 
-#: contents/ui/config/ConfigConnection.qml:65
+#: contents/ui/config/ConfigConnection.qml:79
 msgid "Self-hosted Kimai or the official hosted service (kimai.cloud). Paste the instance URL."
 msgstr "Kimai autoalojado o el servicio oficial alojado (kimai.cloud). Pega la URL de la instancia."
 
-#: contents/ui/config/ConfigConnection.qml:69
+#: contents/ui/config/ConfigConnection.qml:83
 msgid "API URL:"
 msgstr "URL de la API:"
 
-#: contents/ui/config/ConfigConnection.qml:78
+#: contents/ui/config/ConfigConnection.qml:92
 msgid "https://api.solidtime.io or https://time.example.com"
 msgstr "https://api.solidtime.io o https://time.example.com"
 
-#: contents/ui/config/ConfigConnection.qml:81
+#: contents/ui/config/ConfigConnection.qml:95
 msgid "https://kimai.example.com or https://www.kimai.cloud"
 msgstr "https://kimai.example.com o https://www.kimai.cloud"
 
-#: contents/ui/config/ConfigConnection.qml:87
+#: contents/ui/config/ConfigConnection.qml:101
 msgid "API key:"
 msgstr "Clave API:"
 
-#: contents/ui/config/ConfigConnection.qml:89
+#: contents/ui/config/ConfigConnection.qml:103
 msgid "API token:"
 msgstr "Token de API:"
 
-#: contents/ui/config/ConfigConnection.qml:314
+#: contents/ui/config/ConfigConnection.qml:260
 msgid "Configure a time-tracking profile. Choose Kimai, Clockify, Toggl Track, or SolidTime."
 msgstr "Configura un perfil de seguimiento de tiempo. Elige Kimai, Clockify, Toggl Track o SolidTime."
 
-#: contents/ui/config/ConfigConnection.qml:348
-msgid "A profile named \"%1\" already exists."
-msgstr "Ya existe un perfil llamado «%1»."
-
-#: contents/ui/config/ConfigConnection.qml:360
+#: contents/ui/config/ConfigConnection.qml:301
 msgid "Service:"
 msgstr "Servicio:"
 
-#: contents/ui/config/ConfigConnection.qml:406
+#: contents/ui/config/ConfigConnection.qml:347
 msgid "Paste token to save in KWallet"
 msgstr "Pega el token para guardarlo en KWallet"
 
-#: contents/ui/config/ConfigConnection.qml:419
+#: contents/ui/config/ConfigConnection.qml:360
 msgid "Add profile"
 msgstr "Añadir perfil"
 
-#: contents/ui/config/ConfigConnection.qml:451
+#: contents/ui/config/ConfigConnection.qml:379
 msgid "Use this profile"
 msgstr "Usar este perfil"
 
-#: contents/ui/config/ConfigConnection.qml:467
+#: contents/ui/config/ConfigConnection.qml:395
 msgid "Active profile: %1"
 msgstr "Perfil activo: %1"
 
-#: contents/ui/config/ConfigConnection.qml:493
+#: contents/ui/config/ConfigConnection.qml:421
 msgid "Token saved to KWallet for this profile."
 msgstr "Token guardado en KWallet para este perfil."
 
-#: contents/ui/config/ConfigConnection.qml:496
+#: contents/ui/config/ConfigConnection.qml:424
 msgid "Failed to save token"
 msgstr "Error al guardar el token"
 
-#: contents/ui/config/ConfigConnection.qml:501
+#: contents/ui/config/ConfigConnection.qml:429
 msgid "Clear token"
 msgstr "Borrar token"
 
-#: contents/ui/config/ConfigConnection.qml:511
+#: contents/ui/config/ConfigConnection.qml:439
 msgid "Token removed from KWallet."
 msgstr "Token eliminado de KWallet."
 
-#: contents/ui/config/ConfigConnection.qml:514
+#: contents/ui/config/ConfigConnection.qml:442
 msgid "Failed to clear token"
 msgstr "Error al borrar el token"
 
-#: contents/ui/config/ConfigConnection.qml:519
+#: contents/ui/config/ConfigConnection.qml:447
 msgid "Test connection"
 msgstr "Probar conexión"
 
-#: contents/ui/config/ConfigConnection.qml:524
+#: contents/ui/config/ConfigConnection.qml:452
 msgid "Testing connection…"
 msgstr "Probando conexión…"
 
-#: contents/ui/config/ConfigConnection.qml:530
+#: contents/ui/config/ConfigConnection.qml:458
 msgid "No API token stored. Save a token first."
 msgstr "No hay token de API guardado. Guarda un token primero."
 

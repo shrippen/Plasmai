@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-11-17 19:06+0100\n"
+"POT-Creation-Date: 2026-11-17 19:25+0100\n"
 "PO-Revision-Date: 2026-08-09 19:45+0200\n"
 "Last-Translator: Cursor Agent\n"
 "Language-Team: Japanese\n"
@@ -45,112 +45,116 @@ msgid "More projects"
 msgstr "ほかのプロジェクト"
 
 #: app/qml/ConnectionPage.qml:14 app/qml/main.qml:405
-#: contents/config/config.qml:6 contents/ui/config/ConfigConnection.qml:304
+#: contents/config/config.qml:6 contents/ui/config/ConfigConnection.qml:250
 msgid "Connection"
 msgstr "接続"
 
-#: app/qml/ConnectionPage.qml:216 contents/ui/config/ConfigConnection.qml:326
+#: app/qml/ConnectionPage.qml:177 contents/ui/config/ConfigConnection.qml:272
 msgid "Profile:"
 msgstr "プロファイル:"
 
-#: app/qml/ConnectionPage.qml:230 contents/ui/config/ConfigConnection.qml:340
+#: app/qml/ConnectionPage.qml:190 contents/ui/config/ConfigConnection.qml:285
 msgid "Profile name:"
 msgstr "プロファイル名:"
 
-#: app/qml/ConnectionPage.qml:251
+#: app/qml/ConnectionPage.qml:195 contents/ui/config/ConfigConnection.qml:291
+msgid "A profile named \"%1\" already exists."
+msgstr "「%1」という名前のプロファイルは既にあります。"
+
+#: app/qml/ConnectionPage.qml:212
 msgid "Add"
 msgstr "追加"
 
-#: app/qml/ConnectionPage.qml:254 contents/ui/config/ConfigConnection.qml:422
+#: app/qml/ConnectionPage.qml:215 contents/ui/config/ConfigConnection.qml:363
 msgid "Profile %1"
 msgstr "プロファイル %1"
 
-#: app/qml/ConnectionPage.qml:265 contents/ui/config/ConfigConnection.qml:431
+#: app/qml/ConnectionPage.qml:222 contents/ui/config/ConfigConnection.qml:368
 #: contents/ui/TagPicker.qml:203
 msgid "Remove"
 msgstr "削除"
 
-#: app/qml/ConnectionPage.qml:283
+#: app/qml/ConnectionPage.qml:233
 msgid "Use this"
 msgstr "これを使用"
 
-#: app/qml/ConnectionPage.qml:297
+#: app/qml/ConnectionPage.qml:247
 msgid "Switching profiles needs a connection to the server."
 msgstr "プロファイルの切り替えにはサーバーへの接続が必要です。"
 
-#: app/qml/ConnectionPage.qml:305 contents/ui/config/ConfigConnection.qml:467
+#: app/qml/ConnectionPage.qml:255 contents/ui/config/ConfigConnection.qml:395
 msgid "none"
 msgstr "なし"
 
-#: app/qml/ConnectionPage.qml:305
+#: app/qml/ConnectionPage.qml:255
 msgid "Active: %1"
 msgstr "有効: %1"
 
-#: app/qml/ConnectionPage.qml:317
+#: app/qml/ConnectionPage.qml:267
 msgid "Provider:"
 msgstr "プロバイダー:"
 
-#: app/qml/ConnectionPage.qml:328 contents/ui/config/ConfigConnection.qml:70
+#: app/qml/ConnectionPage.qml:278 contents/ui/config/ConfigConnection.qml:84
 msgid "Server URL:"
 msgstr "サーバー URL:"
 
-#: app/qml/ConnectionPage.qml:330
+#: app/qml/ConnectionPage.qml:280
 msgid "https://your-server.com"
 msgstr "https://your-server.com"
 
-#: app/qml/ConnectionPage.qml:341
+#: app/qml/ConnectionPage.qml:291
 msgid "API Token:"
 msgstr "APIトークン:"
 
-#: app/qml/ConnectionPage.qml:343
+#: app/qml/ConnectionPage.qml:293
 msgid "Token stored."
 msgstr "トークンは保存済みです。"
 
-#: app/qml/ConnectionPage.qml:343 app/qml/ConnectionPage.qml:427
+#: app/qml/ConnectionPage.qml:293 app/qml/ConnectionPage.qml:377
 msgid "No token stored."
 msgstr "トークンが保存されていません。"
 
-#: app/qml/ConnectionPage.qml:351
+#: app/qml/ConnectionPage.qml:301
 msgid "Enter API token…"
 msgstr "APIトークンを入力…"
 
-#: app/qml/ConnectionPage.qml:365 contents/ui/config/ConfigConnection.qml:480
+#: app/qml/ConnectionPage.qml:315 contents/ui/config/ConfigConnection.qml:408
 msgid "Saving…"
 msgstr "保存中…"
 
-#: app/qml/ConnectionPage.qml:365 contents/ui/config/ConfigConnection.qml:480
+#: app/qml/ConnectionPage.qml:315 contents/ui/config/ConfigConnection.qml:408
 msgid "Save token"
 msgstr "トークンを保存"
 
-#: app/qml/ConnectionPage.qml:383
+#: app/qml/ConnectionPage.qml:333
 msgid "Token saved."
 msgstr "トークンを保存しました。"
 
-#: app/qml/ConnectionPage.qml:387
+#: app/qml/ConnectionPage.qml:337
 msgid "Failed to save"
 msgstr "保存に失敗しました"
 
-#: app/qml/ConnectionPage.qml:393
+#: app/qml/ConnectionPage.qml:343
 msgid "Clear"
 msgstr "クリア"
 
-#: app/qml/ConnectionPage.qml:405
+#: app/qml/ConnectionPage.qml:355
 msgid "Token removed."
 msgstr "トークンを削除しました。"
 
-#: app/qml/ConnectionPage.qml:409
+#: app/qml/ConnectionPage.qml:359
 msgid "Failed"
 msgstr "失敗しました"
 
-#: app/qml/ConnectionPage.qml:415
+#: app/qml/ConnectionPage.qml:365
 msgid "Test"
 msgstr "テスト"
 
-#: app/qml/ConnectionPage.qml:420
+#: app/qml/ConnectionPage.qml:370
 msgid "Testing…"
 msgstr "テスト中…"
 
-#: app/qml/ConnectionPage.qml:432
+#: app/qml/ConnectionPage.qml:382
 msgid "Testing… (%1)"
 msgstr "テスト中… (%1)"
 
@@ -1115,99 +1119,95 @@ msgstr "アイドルによる停止時に通知"
 msgid "Remind me once if nothing is tracking during work hours"
 msgstr "勤務時間中に何も計測していない場合、一度だけ通知する"
 
-#: contents/ui/config/ConfigConnection.qml:58
+#: contents/ui/config/ConfigConnection.qml:72
 msgid "Clockify cloud API is prefilled. Change only for a regional endpoint (e.g. euc1)."
 msgstr "ClockifyクラウドAPIは事前入力済みです。リージョン用エンドポイント（例: euc1）のときだけ変更してください。"
 
-#: contents/ui/config/ConfigConnection.qml:60
+#: contents/ui/config/ConfigConnection.qml:74
 msgid "Toggl Track cloud API is prefilled. Use your personal API token from Profile settings."
 msgstr "Toggl TrackクラウドAPIは事前入力済みです。プロフィール設定の個人APIトークンを使用してください。"
 
-#: contents/ui/config/ConfigConnection.qml:62
+#: contents/ui/config/ConfigConnection.qml:76
 msgid "SolidTime cloud API is prefilled. For self-hosting, replace with your instance base URL."
 msgstr "SolidTimeクラウドAPIは事前入力済みです。セルフホストの場合はインスタンスのベースURLに置き換えてください。"
 
-#: contents/ui/config/ConfigConnection.qml:65
+#: contents/ui/config/ConfigConnection.qml:79
 msgid "Self-hosted Kimai or the official hosted service (kimai.cloud). Paste the instance URL."
 msgstr "セルフホストのKimai、または公式ホストサービス（kimai.cloud）。インスタンスURLを貼り付けてください。"
 
-#: contents/ui/config/ConfigConnection.qml:69
+#: contents/ui/config/ConfigConnection.qml:83
 msgid "API URL:"
 msgstr "API URL:"
 
-#: contents/ui/config/ConfigConnection.qml:78
+#: contents/ui/config/ConfigConnection.qml:92
 msgid "https://api.solidtime.io or https://time.example.com"
 msgstr "https://api.solidtime.io または https://time.example.com"
 
-#: contents/ui/config/ConfigConnection.qml:81
+#: contents/ui/config/ConfigConnection.qml:95
 msgid "https://kimai.example.com or https://www.kimai.cloud"
 msgstr "https://kimai.example.com または https://www.kimai.cloud"
 
-#: contents/ui/config/ConfigConnection.qml:87
+#: contents/ui/config/ConfigConnection.qml:101
 msgid "API key:"
 msgstr "APIキー:"
 
-#: contents/ui/config/ConfigConnection.qml:89
+#: contents/ui/config/ConfigConnection.qml:103
 msgid "API token:"
 msgstr "API トークン:"
 
-#: contents/ui/config/ConfigConnection.qml:314
+#: contents/ui/config/ConfigConnection.qml:260
 msgid "Configure a time-tracking profile. Choose Kimai, Clockify, Toggl Track, or SolidTime."
 msgstr "時間記録プロファイルを設定してください。Kimai、Clockify、Toggl Track、SolidTime から選択できます。"
 
-#: contents/ui/config/ConfigConnection.qml:348
-msgid "A profile named \"%1\" already exists."
-msgstr "「%1」という名前のプロファイルは既にあります。"
-
-#: contents/ui/config/ConfigConnection.qml:360
+#: contents/ui/config/ConfigConnection.qml:301
 msgid "Service:"
 msgstr "サービス:"
 
-#: contents/ui/config/ConfigConnection.qml:406
+#: contents/ui/config/ConfigConnection.qml:347
 msgid "Paste token to save in KWallet"
 msgstr "トークンを貼り付けて KWallet に保存"
 
-#: contents/ui/config/ConfigConnection.qml:419
+#: contents/ui/config/ConfigConnection.qml:360
 msgid "Add profile"
 msgstr "プロファイルを追加"
 
-#: contents/ui/config/ConfigConnection.qml:451
+#: contents/ui/config/ConfigConnection.qml:379
 msgid "Use this profile"
 msgstr "このプロファイルを使用"
 
-#: contents/ui/config/ConfigConnection.qml:467
+#: contents/ui/config/ConfigConnection.qml:395
 msgid "Active profile: %1"
 msgstr "アクティブなプロファイル: %1"
 
-#: contents/ui/config/ConfigConnection.qml:493
+#: contents/ui/config/ConfigConnection.qml:421
 msgid "Token saved to KWallet for this profile."
 msgstr "このプロファイルのトークンを KWallet に保存しました。"
 
-#: contents/ui/config/ConfigConnection.qml:496
+#: contents/ui/config/ConfigConnection.qml:424
 msgid "Failed to save token"
 msgstr "トークンの保存に失敗しました"
 
-#: contents/ui/config/ConfigConnection.qml:501
+#: contents/ui/config/ConfigConnection.qml:429
 msgid "Clear token"
 msgstr "トークンをクリア"
 
-#: contents/ui/config/ConfigConnection.qml:511
+#: contents/ui/config/ConfigConnection.qml:439
 msgid "Token removed from KWallet."
 msgstr "トークンを KWallet から削除しました。"
 
-#: contents/ui/config/ConfigConnection.qml:514
+#: contents/ui/config/ConfigConnection.qml:442
 msgid "Failed to clear token"
 msgstr "トークンのクリアに失敗しました"
 
-#: contents/ui/config/ConfigConnection.qml:519
+#: contents/ui/config/ConfigConnection.qml:447
 msgid "Test connection"
 msgstr "接続をテスト"
 
-#: contents/ui/config/ConfigConnection.qml:524
+#: contents/ui/config/ConfigConnection.qml:452
 msgid "Testing connection…"
 msgstr "接続をテスト中…"
 
-#: contents/ui/config/ConfigConnection.qml:530
+#: contents/ui/config/ConfigConnection.qml:458
 msgid "No API token stored. Save a token first."
 msgstr "API トークンが保存されていません。先にトークンを保存してください。"
 
