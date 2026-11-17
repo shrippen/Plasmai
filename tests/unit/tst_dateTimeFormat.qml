@@ -25,6 +25,13 @@ TestCase {
         compare(DateTimeFormat.dateTimeText(null), "")
     }
 
+    function test_atTime() {
+        const d = DateTimeFormat.atTime(new Date(2026, 8, 5, 23, 59, 30), 7, 15)
+        compare(d.getTime(), new Date(2026, 8, 5, 7, 15, 0, 0).getTime())
+        compare(DateTimeFormat.atTime(new Date(NaN), 7, 15), null)
+        compare(DateTimeFormat.atTime(null, 7, 15), null)
+    }
+
     function test_coerceDate() {
         var d = DateTimeFormat.coerceDate(new Date(2026, 7, 13, 18, 45, 0))
         compare(d.getFullYear(), 2026)

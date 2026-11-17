@@ -157,11 +157,7 @@ ColumnLayout {
     }
 
     function combineStamp(date, timeField) {
-        if (!date || isNaN(date.getTime())) {
-            return null
-        }
-        return new Date(date.getFullYear(), date.getMonth(), date.getDate(),
-                        timeField.hours, timeField.minutes, 0, 0)
+        return DTF.atTime(date, timeField.hours, timeField.minutes)
     }
 
     readonly property var beginInstant: combineStamp(root.selectedDay, beginTime)

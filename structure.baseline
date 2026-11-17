@@ -47,7 +47,7 @@ contents/code/statsData.js	activityBreakdown	ccn=21
 contents/code/statsData.js	weeklyHourTimeline	ccn=42 length=163
 contents/code/statsData.js	weeklyProjectStacks	ccn=24 length=92
 contents/ui/DaySparkline.qml	-	lines=1225
-contents/ui/FilmDayView.qml	-	lines=1157
+contents/ui/FilmDayView.qml	-	lines=1153
 contents/ui/FilmDayView.qml	applyLoadedDay	ccn=16
 contents/ui/ScreenshotRunner.qml	(anonymous)	nesting=10
 contents/ui/ScreenshotRunner.qml	step	ccn=30 length=135 nesting=15

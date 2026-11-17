@@ -62,12 +62,8 @@ ColumnLayout {
         if (!d) {
             d = dateField.parseDate(dateField.text)
         }
-        if (!d) {
-            return null
-        }
         // hours/minutes are kept in sync by TimeField.setTime / digit entry
-        return new Date(d.getFullYear(), d.getMonth(), d.getDate(),
-                        timeField.hours, timeField.minutes, 0, 0)
+        return DTF.atTime(d, timeField.hours, timeField.minutes)
     }
 
     function stampText(dateField, timeField) {

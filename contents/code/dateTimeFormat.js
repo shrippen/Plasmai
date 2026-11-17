@@ -17,6 +17,14 @@ function dateKey(date) {
     return date.getFullYear() + "-" + pad2(date.getMonth() + 1) + "-" + pad2(date.getDate())
 }
 
+/** The local day of `date` at hours:minutes (seconds 0); null if the date is invalid. */
+function atTime(date, hours, minutes) {
+    if (!date || isNaN(date.getTime())) {
+        return null
+    }
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate(), hours, minutes, 0, 0)
+}
+
 /** Local "YYYY-MM-DD HH:MM" of a Date; "" if invalid. */
 function dateTimeText(date) {
     if (!date || isNaN(date.getTime())) {
