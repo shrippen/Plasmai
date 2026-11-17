@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-11-17 19:25+0100\n"
+"POT-Creation-Date: 2026-11-17 19:59+0100\n"
 "PO-Revision-Date: 2026-08-09 19:45+0200\n"
 "Last-Translator: Cursor Agent\n"
 "Language-Team: Dutch\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: app/qml/AboutPage.qml:11 app/qml/main.qml:413
+#: app/qml/AboutPage.qml:11 app/qml/main.qml:417
 msgid "About"
 msgstr "Over"
 
@@ -44,7 +44,7 @@ msgstr "Broncode"
 msgid "More projects"
 msgstr "Meer projecten"
 
-#: app/qml/ConnectionPage.qml:14 app/qml/main.qml:405
+#: app/qml/ConnectionPage.qml:14 app/qml/main.qml:409
 #: contents/config/config.qml:6 contents/ui/config/ConfigConnection.qml:250
 msgid "Connection"
 msgstr "Verbinding"
@@ -170,12 +170,12 @@ msgstr "Opslaan"
 #: app/qml/TimerPage.qml:901 contents/ui/ActiveEditView.qml:351
 #: contents/ui/ActiveEditView.qml:393 contents/ui/Controls/TimePicker.qml:113
 #: contents/ui/EntryLists.qml:156 contents/ui/FilmDayView.qml:947
-#: contents/ui/main.qml:1813 contents/ui/ManualEntryView.qml:404
+#: contents/ui/main.qml:1795 contents/ui/ManualEntryView.qml:404
 #: contents/ui/TripSheet.qml:433
 msgid "Cancel"
 msgstr "Annuleren"
 
-#: app/qml/FavoritesPage.qml:12 app/qml/main.qml:401 app/qml/TimerPage.qml:708
+#: app/qml/FavoritesPage.qml:12 app/qml/main.qml:405 app/qml/TimerPage.qml:708
 #: contents/config/config.qml:11 contents/ui/config/ConfigDisplay.qml:860
 #: contents/ui/config/ConfigDisplay.qml:915
 #: contents/ui/config/ConfigFavorites.qml:386 contents/ui/EntryLists.qml:168
@@ -190,40 +190,30 @@ msgstr "Tik op een project om de activiteiten te zien en maak de vaak gebruikte 
 msgid "Connect a time tracker first"
 msgstr "Verbind eerst een tijdregistratiedienst"
 
-#: app/qml/FilmDayPage.qml:14 app/qml/TimerPage.qml:59
-#: contents/ui/main.qml:2137 contents/ui/main.qml:2211
+#: app/qml/FilmDayPage.qml:13 app/qml/TimerPage.qml:58
+#: contents/ui/main.qml:2119 contents/ui/main.qml:2193
 msgid "Film day"
 msgstr "Draaidag"
 
-#: app/qml/FilmDayPage.qml:58 contents/ui/main.qml:919
+#: app/qml/FilmDayPage.qml:57 contents/ui/main.qml:914
 msgid "The film day was not saved: %1"
 msgstr "De draaidag is niet opgeslagen: %1"
 
-#: app/qml/FilmDayPage.qml:72 app/qml/main.qml:274
+#: app/qml/FilmDayPage.qml:71 app/qml/main.qml:278
 msgid "Could not save the entry"
 msgstr "Invoer kon niet worden opgeslagen"
 
-#: app/qml/FilmDayPage.qml:104 contents/ui/main.qml:958
-#: contents/ui/main.qml:1134
-msgid "End must be after begin."
-msgstr "Einde moet na begin liggen."
-
-#: app/qml/FilmDayPage.qml:108 contents/ui/main.qml:962
-#: contents/ui/main.qml:1130
-msgid "Enter valid begin and end date/time."
-msgstr "Voer een geldige begin- en einddatum/-tijd in."
-
-#: app/qml/FilmDayPage.qml:119 contents/ui/main.qml:977
+#: app/qml/FilmDayPage.qml:114 contents/ui/main.qml:969
 msgid "%1 other entry of this day could not be deleted: %2"
 msgid_plural "%1 other entries of this day could not be deleted: %2"
 msgstr[0] "%1 andere invoer van deze dag kon niet worden verwijderd: %2"
 msgstr[1] "%1 andere invoeren van deze dag konden niet worden verwijderd: %2"
 
-#: app/qml/FilmDayPage.qml:124 contents/ui/main.qml:973
+#: app/qml/FilmDayPage.qml:119 contents/ui/main.qml:965
 msgid "Begin and end were saved, but the film day extras were not: %1"
 msgstr "Begin en einde zijn opgeslagen, de extra’s van de draaidag niet: %1"
 
-#: app/qml/FilmDayPage.qml:131 contents/ui/main.qml:986
+#: app/qml/FilmDayPage.qml:126 contents/ui/main.qml:978
 msgid "Shooting day saved"
 msgstr "Draaidag opgeslagen"
 
@@ -272,14 +262,14 @@ msgstr ":"
 msgid "Minutes"
 msgstr "Minuten"
 
-#: app/qml/main.qml:114 app/qml/main.qml:202 app/qml/main.qml:432
-#: app/qml/TimerPage.qml:19 contents/ui/main.qml:275 contents/ui/main.qml:277
-#: contents/ui/main.qml:1496 contents/ui/main.qml:2141
+#: app/qml/main.qml:114 app/qml/main.qml:202 app/qml/main.qml:436
+#: app/qml/TimerPage.qml:18 contents/ui/main.qml:274 contents/ui/main.qml:276
+#: contents/ui/main.qml:1478 contents/ui/main.qml:2123
 msgid "Plasmai"
 msgstr "Plasmai"
 
-#: app/qml/main.qml:114 contents/ui/main.qml:291
-#: contents/ui/OfflineStatus.qml:42
+#: app/qml/main.qml:114 contents/ui/main.qml:290
+#: contents/ui/OfflineStatus.qml:48
 msgid "Offline"
 msgstr "Offline"
 
@@ -316,19 +306,19 @@ msgstr "Gestart"
 msgid "Stopped"
 msgstr "Gestopt"
 
-#: app/qml/main.qml:235 contents/ui/main.qml:574
+#: app/qml/main.qml:235 contents/ui/main.qml:573
 msgid "Tracking in progress"
 msgstr "Bijhouden bezig"
 
-#: app/qml/main.qml:240 contents/ui/main.qml:579
+#: app/qml/main.qml:240 contents/ui/main.qml:578
 msgid "Saved without the billable change: your Kimai account is not allowed to edit billable."
 msgstr "Opgeslagen zonder de wijziging van factureerbaar: je Kimai-account mag dat niet bewerken."
 
-#: app/qml/main.qml:254 contents/ui/main.qml:641
+#: app/qml/main.qml:254 contents/ui/main.qml:644
 msgid "Idle time discarded"
 msgstr "Inactieve tijd verworpen"
 
-#: app/qml/main.qml:258 contents/ui/main.qml:648
+#: app/qml/main.qml:258 contents/ui/main.qml:651
 msgid "Nothing is tracking"
 msgstr "Er wordt niets bijgehouden"
 
@@ -336,66 +326,66 @@ msgstr "Er wordt niets bijgehouden"
 msgid "Start tracking when you begin work."
 msgstr "Start de tijdregistratie wanneer je begint met werken."
 
-#: app/qml/main.qml:268 app/qml/tui/Tui.qml:238
+#: app/qml/main.qml:268 app/qml/tui/Tui.qml:241
 msgid "Could not start tracking"
 msgstr "Registratie kon niet worden gestart"
 
-#: app/qml/main.qml:271 app/qml/tui/Tui.qml:236
+#: app/qml/main.qml:271 app/qml/tui/Tui.qml:239
 msgid "Could not stop tracking"
 msgstr "Registratie kon niet worden gestopt"
 
-#: app/qml/main.qml:277
+#: app/qml/main.qml:281
 msgid "Could not delete the entry"
 msgstr "Invoer kon niet worden verwijderd"
 
-#: app/qml/main.qml:280
+#: app/qml/main.qml:284
 msgid "Could not split the entry"
 msgstr "Invoer kon niet worden gesplitst"
 
-#: app/qml/main.qml:298
+#: app/qml/main.qml:302
 msgid "%1: %2"
 msgstr "%1: %2"
 
-#: app/qml/main.qml:322
+#: app/qml/main.qml:326
 msgid "%1h %2m"
 msgstr "%1u %2m"
 
-#: app/qml/main.qml:322
+#: app/qml/main.qml:326
 msgid "%1m %2s"
 msgstr "%1m %2s"
 
-#: app/qml/main.qml:346
+#: app/qml/main.qml:350
 msgid "Menu"
 msgstr "Menu"
 
-#: app/qml/main.qml:384
+#: app/qml/main.qml:388
 msgid "Timer"
 msgstr "Timer"
 
-#: app/qml/main.qml:388
+#: app/qml/main.qml:392
 msgid "Add Entry"
 msgstr "Invoer toevoegen"
 
-#: app/qml/main.qml:392 app/qml/StatsPage.qml:13 app/qml/TimerPage.qml:53
-#: contents/ui/main.qml:2136 contents/ui/main.qml:2197
+#: app/qml/main.qml:396 app/qml/StatsPage.qml:13 app/qml/TimerPage.qml:52
+#: contents/ui/main.qml:2118 contents/ui/main.qml:2179
 msgid "Statistics"
 msgstr "Statistieken"
 
-#: app/qml/main.qml:396 app/qml/TripsPage.qml:18
+#: app/qml/main.qml:400 app/qml/TripsPage.qml:17
 msgid "Trips"
 msgstr "Ritten"
 
-#: app/qml/main.qml:409 app/qml/SettingsPage.qml:13
+#: app/qml/main.qml:413 app/qml/SettingsPage.qml:13
 msgid "Settings"
 msgstr "Instellingen"
 
 #: app/qml/ManualEntryPage.qml:14 contents/ui/ActivityListRow.qml:364
-#: contents/ui/main.qml:2140
+#: contents/ui/main.qml:2122
 msgid "Edit entry"
 msgstr "Invoer bewerken"
 
-#: app/qml/ManualEntryPage.qml:14 app/qml/TimerPage.qml:47
-#: contents/ui/main.qml:2140 contents/ui/main.qml:2182
+#: app/qml/ManualEntryPage.qml:14 app/qml/TimerPage.qml:46
+#: contents/ui/main.qml:2122 contents/ui/main.qml:2164
 msgid "Add entry"
 msgstr "Invoer toevoegen"
 
@@ -583,47 +573,47 @@ msgstr "Vergeten te starten met registreren"
 msgid "Settings sync with the Plasma widget via shared.json on the same machine."
 msgstr "Instellingen synchroniseren met de Plasma-widget via shared.json op dezelfde machine."
 
-#: app/qml/TimerPage.qml:68 app/qml/TimerPage.qml:527 contents/ui/main.qml:1235
+#: app/qml/TimerPage.qml:67 app/qml/TimerPage.qml:527 contents/ui/main.qml:1217
 #: contents/ui/TimerCardKante.qml:301 contents/ui/TimerCard.qml:242
 msgid "Today %1"
 msgstr "Vandaag %1"
 
-#: app/qml/TimerPage.qml:69 app/qml/TimerPage.qml:528
+#: app/qml/TimerPage.qml:68 app/qml/TimerPage.qml:528
 #: contents/ui/TimerCardKante.qml:306 contents/ui/TimerCard.qml:244
 msgid "Week %1"
 msgstr "Week %1"
 
-#: app/qml/TimerPage.qml:169 contents/ui/main.qml:512
+#: app/qml/TimerPage.qml:169 contents/ui/main.qml:511
 msgid "Not configured"
 msgstr "Niet geconfigureerd"
 
-#: app/qml/TimerPage.qml:170 app/qml/tui/Tui.qml:153
+#: app/qml/TimerPage.qml:170 app/qml/tui/Tui.qml:156
 #: contents/ui/SetupWizard.qml:888
 msgid "Connecting…"
 msgstr "Verbinden…"
 
-#: app/qml/TimerPage.qml:171 app/qml/TimerPage.qml:188 contents/ui/main.qml:518
+#: app/qml/TimerPage.qml:171 app/qml/TimerPage.qml:188 contents/ui/main.qml:517
 msgid "Connection problem"
 msgstr "Verbindingsprobleem"
 
-#: app/qml/TimerPage.qml:174 contents/ui/main.qml:522
+#: app/qml/TimerPage.qml:174 contents/ui/main.qml:521
 msgid "Connected to %1 (%2)"
 msgstr "Verbonden met %1 (%2)"
 
-#: app/qml/TimerPage.qml:174 contents/ui/main.qml:523
+#: app/qml/TimerPage.qml:174 contents/ui/main.qml:522
 msgid "Connected to %1"
 msgstr "Verbonden met %1"
 
-#: app/qml/TimerPage.qml:190 contents/ui/main.qml:2363
+#: app/qml/TimerPage.qml:190 contents/ui/main.qml:2347
 #: contents/ui/UnsyncedList.qml:156
 msgid "Retry"
 msgstr "Opnieuw proberen"
 
-#: app/qml/TimerPage.qml:191 contents/ui/main.qml:2368
+#: app/qml/TimerPage.qml:191 contents/ui/main.qml:2352
 msgid "Configure"
 msgstr "Configureren"
 
-#: app/qml/TimerPage.qml:241 contents/ui/main.qml:2351
+#: app/qml/TimerPage.qml:241 contents/ui/main.qml:2335
 msgid "More options in the settings"
 msgstr "Meer opties in de instellingen"
 
@@ -637,9 +627,9 @@ msgid "Not tracking"
 msgstr "Niet aan het registreren"
 
 #: app/qml/TimerPage.qml:356 app/qml/TimerPage.qml:385
-#: app/qml/TripEditPage.qml:19 app/qml/TripsPage.qml:141
+#: app/qml/TripEditPage.qml:18 app/qml/TripsPage.qml:140
 #: contents/ui/ActivityListRow.qml:378 contents/ui/FilmDayView.qml:886
-#: contents/ui/main.qml:2225 contents/ui/TimerCardKante.qml:89
+#: contents/ui/main.qml:2207 contents/ui/TimerCardKante.qml:89
 #: contents/ui/TimerCard.qml:91 contents/ui/TripSheet.qml:204
 #: contents/ui/TripSheet.qml:420
 msgid "Log trip"
@@ -705,7 +695,7 @@ msgid "Description (optional)"
 msgstr "Beschrijving (optioneel)"
 
 #: app/qml/TimerPage.qml:679 app/qml/TimerPage.qml:877
-#: contents/ui/EntryLists.qml:144 contents/ui/main.qml:1807
+#: contents/ui/EntryLists.qml:144 contents/ui/main.qml:1789
 msgid "Switch"
 msgstr "Wisselen"
 
@@ -736,7 +726,7 @@ msgstr "Vandaag"
 msgid "Yesterday"
 msgstr "Gisteren"
 
-#: app/qml/TimerPage.qml:833 contents/ui/main.qml:1653
+#: app/qml/TimerPage.qml:833 contents/ui/main.qml:1635
 msgid "Stop tracking?"
 msgstr "Registratie stoppen?"
 
@@ -744,7 +734,7 @@ msgstr "Registratie stoppen?"
 msgid "Stop %1 · %2?"
 msgstr "%1 · %2 stoppen?"
 
-#: app/qml/TimerPage.qml:853 contents/ui/main.qml:1829
+#: app/qml/TimerPage.qml:853 contents/ui/main.qml:1811
 msgid "Delete entry?"
 msgstr "Invoer verwijderen?"
 
@@ -757,7 +747,7 @@ msgid "Delete"
 msgstr "Verwijderen"
 
 #: app/qml/TimerPage.qml:872 contents/ui/EntryLists.qml:58
-#: contents/ui/main.qml:1677
+#: contents/ui/main.qml:1659
 msgid "Switch activity"
 msgstr "Activiteit wisselen"
 
@@ -766,7 +756,7 @@ msgid "Switch to %1 · %2?"
 msgstr "Overschakelen naar %1 · %2?"
 
 #: app/qml/TimerPage.qml:896 app/qml/TimerPage.qml:900
-#: contents/ui/ActivityListRow.qml:371 contents/ui/main.qml:1862
+#: contents/ui/ActivityListRow.qml:371 contents/ui/main.qml:1844
 msgid "Split entry"
 msgstr "Invoer splitsen"
 
@@ -774,7 +764,7 @@ msgstr "Invoer splitsen"
 msgid "Split at:"
 msgstr "Splitsen op:"
 
-#: app/qml/TimerPage.qml:948 contents/ui/main.qml:1968
+#: app/qml/TimerPage.qml:948 contents/ui/main.qml:1950
 msgid "You were idle"
 msgstr "Je was inactief"
 
@@ -782,110 +772,110 @@ msgstr "Je was inactief"
 msgid "You were idle for %1. Keep this time, discard it, or discard and continue?"
 msgstr "Je was %1 inactief. Deze tijd behouden, verwerpen of verwerpen en doorgaan?"
 
-#: app/qml/TimerPage.qml:959 contents/ui/main.qml:2010
+#: app/qml/TimerPage.qml:959 contents/ui/main.qml:1992
 msgid "Keep time"
 msgstr "Tijd behouden"
 
-#: app/qml/TimerPage.qml:964 contents/ui/main.qml:1999
+#: app/qml/TimerPage.qml:964 contents/ui/main.qml:1981
 msgid "Discarding idle time needs a connection to the server."
 msgstr "Inactieve tijd verwerpen kan alleen met een verbinding met de server."
 
-#: app/qml/TimerPage.qml:966 contents/ui/main.qml:2020
+#: app/qml/TimerPage.qml:966 contents/ui/main.qml:2002
 msgid "Discard idle"
 msgstr "Inactiviteit verwerpen"
 
-#: app/qml/TimerPage.qml:967 contents/ui/main.qml:2030
+#: app/qml/TimerPage.qml:967 contents/ui/main.qml:2012
 msgid "Discard and continue"
 msgstr "Verwerpen en doorgaan"
 
-#: app/qml/TripEditPage.qml:19 contents/ui/TripSuggestionList.qml:72
+#: app/qml/TripEditPage.qml:18 contents/ui/TripSuggestionList.qml:72
 msgid "Detected trip"
 msgstr "Gedetecteerde rit"
 
-#: app/qml/TripEditPage.qml:19 contents/ui/TripSheet.qml:204
+#: app/qml/TripEditPage.qml:18 contents/ui/TripSheet.qml:204
 msgid "Edit trip"
 msgstr "Rit bewerken"
 
-#: app/qml/TripEditPage.qml:29
+#: app/qml/TripEditPage.qml:28
 msgid "Trip saved: %1 km"
 msgstr "Rit opgeslagen: %1 km"
 
-#: app/qml/TripsPage.qml:30 contents/ui/TripSheet.qml:61
+#: app/qml/TripsPage.qml:29 contents/ui/TripSheet.qml:61
 #: contents/ui/TripSuggestionList.qml:36
 msgid "Business trip"
 msgstr "Zakenreis"
 
-#: app/qml/TripsPage.qml:31 contents/ui/TripSheet.qml:62
+#: app/qml/TripsPage.qml:30 contents/ui/TripSheet.qml:62
 #: contents/ui/TripSuggestionList.qml:37
 msgid "Commute"
 msgstr "Woon-werkverkeer"
 
-#: app/qml/TripsPage.qml:32 contents/ui/TripSheet.qml:63
+#: app/qml/TripsPage.qml:31 contents/ui/TripSheet.qml:63
 #: contents/ui/TripSuggestionList.qml:38
 msgid "Private"
 msgstr "Privé"
 
-#: app/qml/TripsPage.qml:46
+#: app/qml/TripsPage.qml:45
 msgid "Trips could not be loaded: %1"
 msgstr "Ritten konden niet worden geladen: %1"
 
-#: app/qml/TripsPage.qml:75
+#: app/qml/TripsPage.qml:74
 msgid "round trip"
 msgstr "heen en terug"
 
-#: app/qml/TripsPage.qml:81 contents/ui/main.qml:1088
+#: app/qml/TripsPage.qml:80 contents/ui/main.qml:1080
 #: contents/ui/StatsView.qml:245 contents/ui/StatsView.qml:327
 #: contents/ui/TripSuggestionList.qml:84 contents/ui/UnsyncedList.qml:67
 msgid "%1 km"
 msgstr "%1 km"
 
-#: app/qml/TripsPage.qml:100
+#: app/qml/TripsPage.qml:99
 msgid "Commute logged: %1 km"
 msgstr "Woon-werkrit vastgelegd: %1 km"
 
-#: app/qml/TripsPage.qml:111 contents/ui/main.qml:1110
+#: app/qml/TripsPage.qml:110 contents/ui/main.qml:1102
 msgid "The trip could not be accepted: %1"
 msgstr "De rit kon niet worden geaccepteerd: %1"
 
-#: app/qml/TripsPage.qml:120 contents/ui/main.qml:1118
+#: app/qml/TripsPage.qml:119 contents/ui/main.qml:1110
 msgid "The trip could not be dismissed: %1"
 msgstr "De rit kon niet worden genegeerd: %1"
 
-#: app/qml/TripsPage.qml:147
+#: app/qml/TripsPage.qml:146
 msgid "Commute today"
 msgstr "Woon-werk vandaag"
 
-#: app/qml/TripsPage.qml:153
+#: app/qml/TripsPage.qml:152
 msgid "Refresh"
 msgstr "Vernieuwen"
 
-#: app/qml/TripsPage.qml:177 contents/ui/EntryLists.qml:283
+#: app/qml/TripsPage.qml:176 contents/ui/EntryLists.qml:283
 msgid "Detected trips"
 msgstr "Gedetecteerde ritten"
 
-#: app/qml/TripsPage.qml:197
+#: app/qml/TripsPage.qml:196
 msgid "Previous month"
 msgstr "Vorige maand"
 
-#: app/qml/TripsPage.qml:209
+#: app/qml/TripsPage.qml:208
 msgid "Next month"
 msgstr "Volgende maand"
 
-#: app/qml/TripsPage.qml:219
+#: app/qml/TripsPage.qml:218
 msgid "%2 km in 1 trip"
 msgid_plural "%2 km in %1 trips"
 msgstr[0] "%2 km in %1 rit"
 msgstr[1] "%2 km in %1 ritten"
 
-#: app/qml/TripsPage.qml:220
+#: app/qml/TripsPage.qml:219
 msgid "month closed"
 msgstr "maand afgesloten"
 
-#: app/qml/TripsPage.qml:232
+#: app/qml/TripsPage.qml:231
 msgid "No trips this month"
 msgstr "Geen ritten deze maand"
 
-#: app/qml/TripsPage.qml:246
+#: app/qml/TripsPage.qml:245
 msgid "Time entry #%1"
 msgstr "Tijdregistratie #%1"
 
@@ -933,23 +923,23 @@ msgstr "Stel eerst een verbinding in in de Plasmai-app"
 msgid "Server not reachable"
 msgstr "Server niet bereikbaar"
 
-#: app/qml/tui/Tui.qml:150
+#: app/qml/tui/Tui.qml:153
 msgid "Offline · %1 not synced"
 msgstr "Offline · %1 niet gesynchroniseerd"
 
-#: app/qml/tui/Tui.qml:155
+#: app/qml/tui/Tui.qml:158
 msgid "Online"
 msgstr "Online"
 
-#: app/qml/tui/Tui.qml:237
+#: app/qml/tui/Tui.qml:240
 msgid "Could not refresh"
 msgstr "Vernieuwen mislukt"
 
-#: app/qml/tui/Tui.qml:247
+#: app/qml/tui/Tui.qml:250
 msgid "This build has no demo"
 msgstr "Deze build heeft geen demo"
 
-#: app/qml/UnsyncedPage.qml:14 contents/ui/main.qml:2135
+#: app/qml/UnsyncedPage.qml:14 contents/ui/main.qml:2117
 msgid "Not synced"
 msgstr "Niet gesynchroniseerd"
 
@@ -1009,63 +999,75 @@ msgstr "Als favoriet vastmaken"
 msgid "Delete entry"
 msgstr "Invoer verwijderen"
 
-#: contents/ui/ApiErrors.qml:12
+#: contents/ui/ApiErrors.qml:10
+msgid "Waiting changes could not be saved on this device"
+msgstr "Wachtende wijzigingen konden niet op dit apparaat worden opgeslagen"
+
+#: contents/ui/ApiErrors.qml:13
+msgid "Waiting changes could not be read; new ones are kept in memory only"
+msgstr "Wachtende wijzigingen konden niet worden gelezen; nieuwe blijven alleen in het geheugen"
+
+#: contents/ui/ApiErrors.qml:16
+msgid "The saved list of waiting changes was damaged and set aside"
+msgstr "De opgeslagen lijst met wachtende wijzigingen was beschadigd en is apart gezet"
+
+#: contents/ui/ApiErrors.qml:27
 msgid "Unknown error"
 msgstr "Onbekende fout"
 
-#: contents/ui/ApiErrors.qml:16
+#: contents/ui/ApiErrors.qml:31
 msgid "URL and API token are required"
 msgstr "URL en API-token zijn verplicht"
 
-#: contents/ui/ApiErrors.qml:17
+#: contents/ui/ApiErrors.qml:32
 msgid "Configure your time tracker URL and API token"
 msgstr "Configureer de URL en het API-token van je tijdregistratiedienst"
 
-#: contents/ui/ApiErrors.qml:21
+#: contents/ui/ApiErrors.qml:36
 msgid "Missing or invalid input: %1"
 msgstr "Invoer ontbreekt of is ongeldig: %1"
 
-#: contents/ui/ApiErrors.qml:22
+#: contents/ui/ApiErrors.qml:37
 msgid "Missing or invalid input."
 msgstr "Invoer ontbreekt of is ongeldig."
 
-#: contents/ui/ApiErrors.qml:25
+#: contents/ui/ApiErrors.qml:40
 msgid "This needs a connection to the server."
 msgstr "Hiervoor is een verbinding met de server nodig."
 
-#: contents/ui/ApiErrors.qml:28
+#: contents/ui/ApiErrors.qml:43
 msgid "Cannot reach the server. Check your network, URL, or TLS certificate."
 msgstr "Kan de server niet bereiken. Controleer je netwerk, URL of TLS-certificaat."
 
-#: contents/ui/ApiErrors.qml:31
+#: contents/ui/ApiErrors.qml:46
 msgid "Authentication failed. Check your API token."
 msgstr "Authenticatie mislukt. Controleer je API-token."
 
-#: contents/ui/ApiErrors.qml:34
+#: contents/ui/ApiErrors.qml:49
 msgid "Server not found. Check your URL."
 msgstr "Server niet gevonden. Controleer je URL."
 
-#: contents/ui/ApiErrors.qml:37
+#: contents/ui/ApiErrors.qml:52
 msgid "Access denied. Your token may lack required permissions."
 msgstr "Toegang geweigerd. Je token heeft mogelijk niet de vereiste rechten."
 
-#: contents/ui/ApiErrors.qml:40
+#: contents/ui/ApiErrors.qml:55
 msgid "Server error (%1)."
 msgstr "Serverfout (%1)."
 
-#: contents/ui/ApiErrors.qml:43
+#: contents/ui/ApiErrors.qml:58
 msgid "Request failed: %1"
 msgstr "Verzoek mislukt: %1"
 
-#: contents/ui/ApiErrors.qml:45
+#: contents/ui/ApiErrors.qml:60
 msgid "Request failed (%1)."
 msgstr "Verzoek mislukt (%1)."
 
-#: contents/ui/ApiErrors.qml:54
+#: contents/ui/ApiErrors.qml:69
 msgid "ok"
 msgstr "ok"
 
-#: contents/ui/ApiErrors.qml:55
+#: contents/ui/ApiErrors.qml:70
 msgid "Connected to %1 (%2)."
 msgstr "Verbonden met %1 (%2)."
 
@@ -1474,11 +1476,11 @@ msgstr "Geen API-token beschikbaar."
 msgid "Failed to load activities."
 msgstr "Activiteiten laden mislukt."
 
-#: contents/ui/config/ConfigFavorites.qml:354 contents/ui/main.qml:207
+#: contents/ui/config/ConfigFavorites.qml:354 contents/ui/main.qml:206
 msgid "Project-specific"
 msgstr "Projectspecifiek"
 
-#: contents/ui/config/ConfigFavorites.qml:357 contents/ui/main.qml:208
+#: contents/ui/config/ConfigFavorites.qml:357 contents/ui/main.qml:207
 msgid "Global activities"
 msgstr "Globale activiteiten"
 
@@ -1577,53 +1579,69 @@ msgstr "Geen recente activiteiten"
 msgid "Start tracking to build your recent list."
 msgstr "Start met registreren om je recente lijst op te bouwen."
 
-#: contents/ui/EntryTexts.qml:13
+#: contents/ui/EntryTexts.qml:14
 msgid "just now"
 msgstr "zojuist"
 
-#: contents/ui/EntryTexts.qml:15
+#: contents/ui/EntryTexts.qml:16
 msgid "%1 minute ago"
 msgid_plural "%1 minutes ago"
 msgstr[0] "%1 minuut geleden"
 msgstr[1] "%1 minuten geleden"
 
-#: contents/ui/EntryTexts.qml:17
+#: contents/ui/EntryTexts.qml:18
 msgid "%1 hour ago"
 msgid_plural "%1 hours ago"
 msgstr[0] "%1 uur geleden"
 msgstr[1] "%1 uur geleden"
 
-#: contents/ui/EntryTexts.qml:19
+#: contents/ui/EntryTexts.qml:20
 msgid "yesterday"
 msgstr "gisteren"
 
-#: contents/ui/EntryTexts.qml:21
+#: contents/ui/EntryTexts.qml:22
 msgid "%1 day ago"
 msgid_plural "%1 days ago"
 msgstr[0] "%1 dag geleden"
 msgstr[1] "%1 dagen geleden"
 
-#: contents/ui/EntryTexts.qml:36
+#: contents/ui/EntryTexts.qml:37
 msgid "%1 left today"
 msgstr "%1 resterend vandaag"
 
-#: contents/ui/EntryTexts.qml:38
+#: contents/ui/EntryTexts.qml:39
 msgid "%1 over today"
 msgstr "%1 over vandaag"
 
-#: contents/ui/EntryTexts.qml:43
+#: contents/ui/EntryTexts.qml:44
 msgid "%1 left this week"
 msgstr "%1 resterend deze week"
 
-#: contents/ui/EntryTexts.qml:45
+#: contents/ui/EntryTexts.qml:46
 msgid "%1 over this week"
 msgstr "%1 over deze week"
 
-#: contents/ui/EntryTexts.qml:48
+#: contents/ui/EntryTexts.qml:53
+msgid "Enter valid begin and end date/time."
+msgstr "Voer een geldige begin- en einddatum/-tijd in."
+
+#: contents/ui/EntryTexts.qml:55
+msgid "End must be after begin."
+msgstr "Einde moet na begin liggen."
+
+#: contents/ui/EntryTexts.qml:57
+msgid "Enter a valid start date/time."
+msgstr "Voer een geldige startdatum/-tijd in."
+
+#: contents/ui/EntryTexts.qml:59
+msgid "Start must not be in the future."
+msgstr "Start mag niet in de toekomst liggen."
+
+#: contents/ui/EntryTexts.qml:64
 msgid "Split time must be between begin and end."
 msgstr "De splittijd moet tussen begin en einde liggen."
 
-#: contents/ui/EntryTexts.qml:49
+#: contents/ui/EntryTexts.qml:65
 msgid "The first half was saved, but the second half could not be created."
 msgstr "De eerste helft is opgeslagen, maar de tweede helft kon niet worden aangemaakt."
 
@@ -1823,161 +1841,153 @@ msgstr "Notitie (optioneel)"
 msgid "Other activities"
 msgstr "Andere activiteiten"
 
-#: contents/ui/main.qml:281
+#: contents/ui/main.qml:280
 msgid "Loading…"
 msgstr "Laden…"
 
-#: contents/ui/main.qml:284
+#: contents/ui/main.qml:283
 msgid "Not configured — click to set up"
 msgstr "Niet ingesteld — klik om in te stellen"
 
-#: contents/ui/main.qml:294 contents/ui/OfflineStatus.qml:47
+#: contents/ui/main.qml:293 contents/ui/OfflineStatus.qml:53
 msgid "%1 change not synced yet"
 msgid_plural "%1 changes not synced yet"
 msgstr[0] "%1 wijziging nog niet gesynchroniseerd"
 msgstr[1] "%1 wijzigingen nog niet gesynchroniseerd"
 
-#: contents/ui/main.qml:515
+#: contents/ui/main.qml:514
 msgid "Connecting to %1…"
 msgstr "Verbinden met %1…"
 
-#: contents/ui/main.qml:555
+#: contents/ui/main.qml:554
 msgid "Switched activity"
 msgstr "Activiteit gewisseld"
 
-#: contents/ui/main.qml:555
+#: contents/ui/main.qml:554
 msgid "Tracking started"
 msgstr "Registratie gestart"
 
-#: contents/ui/main.qml:563
+#: contents/ui/main.qml:562
 msgid "Tracking stopped (idle)"
 msgstr "Registratie gestopt (inactief)"
 
-#: contents/ui/main.qml:565
+#: contents/ui/main.qml:564
 msgid "Tracking stopped"
 msgstr "Registratie gestopt"
 
-#: contents/ui/main.qml:648
+#: contents/ui/main.qml:651
 msgid "Work hours have started. Start a timer when you begin."
 msgstr "De werkuren zijn begonnen. Start een timer wanneer je begint."
 
-#: contents/ui/main.qml:724
+#: contents/ui/main.qml:727
 msgid "Customer created"
 msgstr "Klant aangemaakt"
 
-#: contents/ui/main.qml:724
+#: contents/ui/main.qml:727
 msgid "Project created"
 msgstr "Project aangemaakt"
 
-#: contents/ui/main.qml:724
+#: contents/ui/main.qml:727
 msgid "Activity created"
 msgstr "Activiteit aangemaakt"
 
-#: contents/ui/main.qml:814
-msgid "Enter a valid start date/time."
-msgstr "Voer een geldige startdatum/-tijd in."
-
-#: contents/ui/main.qml:818
-msgid "Start must not be in the future."
-msgstr "Start mag niet in de toekomst liggen."
-
-#: contents/ui/main.qml:1054
+#: contents/ui/main.qml:1046
 msgid "Trip saved"
 msgstr "Rit opgeslagen"
 
-#: contents/ui/main.qml:1160
+#: contents/ui/main.qml:1142
 msgid "Entry added"
 msgstr "Invoer toegevoegd"
 
-#: contents/ui/main.qml:1160
+#: contents/ui/main.qml:1142
 msgid "Entry updated"
 msgstr "Invoer bijgewerkt"
 
-#: contents/ui/main.qml:1161
+#: contents/ui/main.qml:1143
 msgid "Manual time entry"
 msgstr "Handmatige tijdregistratie"
 
-#: contents/ui/main.qml:1161
+#: contents/ui/main.qml:1143
 msgid "Timesheet updated"
 msgstr "Urenstaat bijgewerkt"
 
-#: contents/ui/main.qml:1407
+#: contents/ui/main.qml:1389
 msgid "Could not resolve project or activity for that entry"
 msgstr "Project of activiteit voor deze vermelding kon niet worden opgelost"
 
-#: contents/ui/main.qml:1451 contents/ui/UnsyncedList.qml:41
+#: contents/ui/main.qml:1433 contents/ui/UnsyncedList.qml:41
 msgid "Entry deleted"
 msgstr "Invoer verwijderd"
 
-#: contents/ui/main.qml:1486
+#: contents/ui/main.qml:1468
 msgid "Entry split"
 msgstr "Invoer gesplitst"
 
-#: contents/ui/main.qml:1497
+#: contents/ui/main.qml:1479
 msgid "Open or close the Plasmai popup"
 msgstr "Plasmai-popup openen of sluiten"
 
-#: contents/ui/main.qml:1666
+#: contents/ui/main.qml:1648
 msgid "Stop tracking %1 · %2?"
 msgstr "Registratie stoppen voor %1 · %2?"
 
-#: contents/ui/main.qml:1771
+#: contents/ui/main.qml:1753
 msgid "Current"
 msgstr "Huidig"
 
-#: contents/ui/main.qml:1790
+#: contents/ui/main.qml:1772
 msgid "Switch to"
 msgstr "Wisselen naar"
 
-#: contents/ui/main.qml:1846
+#: contents/ui/main.qml:1828
 msgid "Delete this finished entry? This cannot be undone."
 msgstr "Deze afgeronde invoer verwijderen? Dit kan niet ongedaan worden gemaakt."
 
-#: contents/ui/main.qml:1848
+#: contents/ui/main.qml:1830
 msgid "Delete \"%1 · %2\"? This cannot be undone."
 msgstr "„%1 · %2” verwijderen? Dit kan niet ongedaan worden gemaakt."
 
-#: contents/ui/main.qml:1913
+#: contents/ui/main.qml:1895
 msgid "The first half keeps the original start. The second half starts at the split time."
 msgstr "De eerste helft behoudt de oorspronkelijke start. De tweede helft start op het splitmoment."
 
-#: contents/ui/main.qml:1918
+#: contents/ui/main.qml:1900
 msgid "Split at"
 msgstr "Splitsen op"
 
-#: contents/ui/main.qml:1954
+#: contents/ui/main.qml:1936
 msgid "Both halves will have a positive duration."
 msgstr "Beide helften hebben een positieve duur."
 
-#: contents/ui/main.qml:1992
+#: contents/ui/main.qml:1974
 msgid "Keep the time, discard the idle gap, or discard and continue the same activity."
 msgstr "Tijd behouden, de inactieve periode verwerpen, of verwerpen en dezelfde activiteit voortzetten."
 
-#: contents/ui/main.qml:2138
+#: contents/ui/main.qml:2120
 msgid "Trip"
 msgstr "Rit"
 
-#: contents/ui/main.qml:2188
+#: contents/ui/main.qml:2170
 msgid "Add a manual time entry"
 msgstr "Handmatige tijdregistratie toevoegen"
 
-#: contents/ui/main.qml:2203
+#: contents/ui/main.qml:2185
 msgid "Show statistics"
 msgstr "Statistieken tonen"
 
-#: contents/ui/main.qml:2217
+#: contents/ui/main.qml:2199
 msgid "Log a shooting day"
 msgstr "Een draaidag vastleggen"
 
-#: contents/ui/main.qml:2231
+#: contents/ui/main.qml:2213
 msgid "Log a trip (Anfahrten plugin)"
 msgstr "Een rit vastleggen (Anfahrten-plugin)"
 
-#: contents/ui/main.qml:2241 contents/ui/SetupWizard.qml:856
+#: contents/ui/main.qml:2223 contents/ui/SetupWizard.qml:856
 msgid "Back"
 msgstr "Terug"
 
-#: contents/ui/main.qml:2246
+#: contents/ui/main.qml:2228
 msgid "Back to timer"
 msgstr "Terug naar timer"
 
@@ -2009,17 +2019,17 @@ msgstr "Wijzigingen opslaan"
 msgid "Save entry"
 msgstr "Boeking opslaan"
 
-#: contents/ui/OfflineStatus.qml:42
+#: contents/ui/OfflineStatus.qml:48
 msgid "Offline · as of %1"
 msgstr "Offline · stand van %1"
 
-#: contents/ui/OfflineStatus.qml:45
+#: contents/ui/OfflineStatus.qml:51
 msgid "%1 change needs your decision"
 msgid_plural "%1 changes need your decision"
 msgstr[0] "%1 wijziging wacht op je beslissing"
 msgstr[1] "%1 wijzigingen wachten op je beslissing"
 
-#: contents/ui/OfflineStatus.qml:63 contents/ui/OfflineStatus.qml:91
+#: contents/ui/OfflineStatus.qml:72 contents/ui/OfflineStatus.qml:100
 #: contents/ui/SetupWizard.qml:696
 msgid "Show"
 msgstr "Tonen"
