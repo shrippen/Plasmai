@@ -433,7 +433,8 @@ PlasmoidItem {
             }
         }
         Platform.loadShared(execSource).then(function(shared) {
-            return root.resetOwnOld(shared)
+            // An instance without shared.json but with a connection of its own is old too.
+            return root.session.connection.resetOld(shared, ownConnection() ? SharedConfig.fromConfiguration(plasmoid.configuration) : null)
         }).then(function(shared) {
             if (shared) {
                 SharedConfig.applyToConfiguration(plasmoid.configuration, shared)
@@ -450,30 +451,6 @@ PlasmoidItem {
     function ownConnection() {
         return (plasmoid.configuration.kimaiUrl || "").length > 0
                || (plasmoid.configuration.profilesJson || "").length > 0
-    }
-
-    /**
-     * Settings of a version before the setup wizard (sharedConfig.js needsReset): once,
-     * tokens cleared and every setting at its default, so the wizard runs. Resolves with
-     * the settings to load. An instance without shared.json but with a connection of its
-     * own (older still) counts as old too; a fresh one does not.
-     */
-    function resetOwnOld(shared) {
-        const own = SharedConfig.fromConfiguration(plasmoid.configuration)
-        const old = shared || (ownConnection() ? own : null)
-        if (!SharedConfig.needsReset(old)) {
-            return shared
-        }
-        const fresh = SharedConfig.resetShared()
-        const ids = SharedConfig.profileIds(old).concat(SharedConfig.profileIds(own))
-        const clears = ids.map(function(id) {
-            return root.session.connection.clearToken(id).catch(function() {})
-        })
-        resetProfileView()
-        session.catalog.invalidate()
-        return Promise.all(clears).then(function() {
-            return Platform.saveShared(execSource, fresh)
-        }).then(function() { return fresh }, function() { return fresh })
     }
 
     /** This instance's configuration wins (after the settings dialog). */
@@ -736,6 +713,14 @@ PlasmoidItem {
                 return
             }
             root.notify(i18n("Nothing is tracking"), i18n("Work hours have started. Start a timer when you begin."))
+        }
+    }
+
+    // Old settings were reset: the profile view shows the defaults again.
+    Connections {
+        target: root.session.connection
+        function onOldReset() {
+            root.resetProfileView()
         }
     }
 
