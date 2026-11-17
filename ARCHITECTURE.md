@@ -102,9 +102,8 @@ favourites, statistics, offline work; for Kimai also film days and trips.
 
 ## Known deviations
 
-- Widget and app each bind the film day and trip views to the session, word the
-  notifications and choose between the server's text and the error kind
-  (`AUDIT.md`, findings 1, 3, 4).
+- Widget and app each bind the film day and trip views to the session and choose
+  between the server's text and the error kind (`AUDIT.md`, findings 1, 4).
 - Kimai's plugins are reached three ways: through the provider, through the offline
   layer and around both (`AUDIT.md`, finding 7).
 - The offline layer's files belong to a profile, the catalog cache to a profile and

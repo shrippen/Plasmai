@@ -1,6 +1,7 @@
 pragma Singleton
 import QtQuick
 import "../code/entryText.js" as EntryText
+import "../code/notices.js" as Notices
 import "../code/dateTimeFormat.js" as DTF
 import "../code/timesheetFields.js" as TimesheetFields
 
@@ -63,4 +64,37 @@ QtObject {
 
     readonly property string splitRange: i18n("Split time must be between begin and end.")
     readonly property string splitSecond: i18n("The first half was saved, but the second half could not be created.")
+
+    /** The title of a system notice (Notices.Kind). */
+    function noticeTitle(kind) {
+        switch (kind) {
+        case Notices.Kind.Started:
+            return i18n("Tracking started")
+        case Notices.Kind.Switched:
+            return i18n("Switched activity")
+        case Notices.Kind.Stopped:
+            return i18n("Tracking stopped")
+        case Notices.Kind.IdleStopped:
+            return i18n("Tracking stopped (idle)")
+        case Notices.Kind.InProgress:
+            return i18n("Tracking in progress")
+        case Notices.Kind.IdleDiscarded:
+            return i18n("Idle time discarded")
+        case Notices.Kind.ForgotStart:
+            return i18n("Nothing is tracking")
+        }
+        return ""
+    }
+
+    /** The text of a system notice; names: { project, activity, elapsedSeconds }. */
+    function noticeBody(kind, names) {
+        if (kind === Notices.Kind.ForgotStart) {
+            return i18n("Work hours have started. Start a timer when you begin.")
+        }
+        const what = names.project + " · " + names.activity
+        if (kind === Notices.Kind.InProgress) {
+            return what + " · " + DTF.formatDurationShort(names.elapsedSeconds)
+        }
+        return what
+    }
 }

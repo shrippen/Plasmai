@@ -1,5 +1,6 @@
 import QtQml
 import "../../code/dateTimeFormat.js" as DTF
+import "../../code/notices.js" as Notices
 import "../../code/platform.js" as Platform
 import "../../code/timerSession.js" as TimerSession
 import ".." as Ui
@@ -9,7 +10,10 @@ import ".." as Ui
  * notifications, where the platform offers them (the host says so).
  *
  *   every minute ─▶ Platform.checkIdle ─▶ verdict ─▶ idlePending ─▶ keep() | discard(after)
- *   every 5 min  ─▶ forgotToStartDay ─▶ forgotToStart()
+ *   every 5 min  ─▶ forgotToStartDay ─▶ notice(ForgotStart)
+ *
+ * Also decides when a system notice is due (notices.js) and says it as `notice(kind, names)`;
+ * the view words it (EntryTexts.noticeTitle, noticeBody) and shows it.
  */
 QtObject {
     id: reminders
@@ -29,10 +33,36 @@ QtObject {
     property double pendingSince: 0
     property var snapshot: null
     property string forgotDay: ""
+    /** A start of this client just began: its refresh must not tell "in progress" once more. */
+    property bool localStart: false
 
     /** Idle time was cut from the running entry; snap: TimerSession.snapshot. */
     signal idleDiscarded(var snap)
-    signal forgotToStart()
+    /** Something to tell: kind is Notices.Kind; names { project, activity, elapsedSeconds } as far as it needs. */
+    signal notice(string kind, var names)
+
+    property Connections sessionEvents: Connections {
+        target: reminders.session
+
+        function onStarted(ts, origin, names) {
+            reminders.localStart = true
+            Qt.callLater(function() { reminders.localStart = false })
+            const begin = origin === Ui.Session.Origin.Switch ? Notices.Begin.Switch : Notices.Begin.Start
+            reminders.say(Notices.forStart(begin, reminders.session.settings), names)
+        }
+
+        function onStopped(ts, names, cause) {
+            const why = cause === Ui.Session.StopCause.Idle ? Notices.Cause.Idle : Notices.Cause.Manual
+            reminders.say(Notices.forStop(why, reminders.session.settings), names)
+        }
+
+        function onTrackingBegan(ts) {
+            const t = reminders.session.timer
+            const found = reminders.localStart ? Notices.Found.Own : Notices.Found.Elsewhere
+            reminders.say(Notices.forFound(found, reminders.session.settings),
+                          { project: t.project, activity: t.activity, elapsedSeconds: t.elapsedSeconds })
+        }
+    }
 
     property Timer idleTimer: Timer {
         interval: 60000
@@ -46,6 +76,17 @@ QtObject {
         repeat: true
         running: reminders.notificationsAvailable && reminders.session.connection.configured
         onTriggered: reminders.checkForgot()
+    }
+
+    function say(kind, names) {
+        if (kind) {
+            notice(kind, names)
+        }
+    }
+
+    /** Stops the running entry for idle time: its notice says so. */
+    function stopForIdle() {
+        session.timer.stop(Ui.Session.StopCause.Idle)
     }
 
     function notify(summary, body) {
@@ -114,6 +155,7 @@ QtObject {
             session.entriesWritten()
             session.refresh()
             idleDiscarded(snap)
+            say(Notices.forIdleDiscard(session.settings), { project: snap.projectName, activity: snap.activityName })
             if (after === Ui.Session.AfterIdle.Continue && TimerSession.canContinue(snap)) {
                 session.timer.start(snap.projectId, snap.activityId, snap.projectName, snap.activityName, snap.description || "")
             }
@@ -130,6 +172,6 @@ QtObject {
             return
         }
         forgotDay = day
-        forgotToStart()
+        notice(Notices.Kind.ForgotStart, {})
     }
 }

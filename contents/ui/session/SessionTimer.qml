@@ -204,7 +204,7 @@ QtObject {
         return Ui.Session.Restart.Started
     }
 
-    function stop() {
+    function stop(cause = Ui.Session.StopCause.Manual) {
         if (!timesheetId || !loaded) {
             return
         }
@@ -219,7 +219,7 @@ QtObject {
                 session.refresh()
                 return
             }
-            session.stopped(before, names)
+            session.stopped(before, names, cause)
             apply(null)
             session.entriesWritten()
             session.refresh()

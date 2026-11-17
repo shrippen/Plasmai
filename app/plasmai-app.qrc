@@ -127,6 +127,7 @@
         <file alias="contents/code/entityNames.js">../contents/code/entityNames.js</file>
         <file alias="contents/code/entityPickers.js">../contents/code/entityPickers.js</file>
         <file alias="contents/code/entryText.js">../contents/code/entryText.js</file>
+        <file alias="contents/code/notices.js">../contents/code/notices.js</file>
         <file alias="contents/ui/BarChart.qml">../contents/ui/BarChart.qml</file>
         <file alias="contents/ui/ColorLabelRow.qml">../contents/ui/ColorLabelRow.qml</file>
         <file alias="contents/ui/CustomerColorDot.qml">../contents/ui/CustomerColorDot.qml</file>
