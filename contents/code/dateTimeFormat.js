@@ -537,6 +537,12 @@ function dayHeaderLabel(date, now, todayLabel, yesterdayLabel) {
     return Qt.locale().dayName(d.getDay(), 0) + ", " + formatLocaleDate(d)
 }
 
+/** ISO weekday of date: 1 = Monday .. 7 = Sunday (Kimai's work-day numbering). */
+function isoWeekday(date) {
+    var day = date.getDay()
+    return day === 0 ? 7 : day
+}
+
 function localDateString(date) {
     return dateKey(date)
 }

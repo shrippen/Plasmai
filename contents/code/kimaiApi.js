@@ -1106,11 +1106,6 @@ function loadTags(kimaiUrl, apiToken, term, callback) {
     getJson(kimaiUrl, apiToken, tagsFindEndpoint(term), [], callback)
 }
 
-function kimaiWeekday(date) {
-    var day = date.getDay()
-    return day === 0 ? 7 : day
-}
-
 function preferenceMap(user) {
     var map = {}
     var prefs = (user && user.preferences) ? user.preferences : []
@@ -1120,90 +1115,6 @@ function preferenceMap(user) {
         }
     }
     return map
-}
-
-function parseSecondsPref(value) {
-    var n = parseInt(value, 10)
-    return isNaN(n) ? 0 : Math.max(0, n)
-}
-
-function parseWeekdaySet(csv, fallback) {
-    var parts = String(csv || fallback || "").split(",")
-    var set = {}
-    var count = 0
-    for (var i = 0; i < parts.length; i++) {
-        var n = parseInt(parts[i], 10)
-        if (!isNaN(n) && n >= 1 && !set[n]) {
-            set[n] = true
-            count++
-        }
-    }
-    return { set: set, count: count }
-}
-
-function workDaySecondsFromPrefs(prefs, date) {
-    if (!prefs) {
-        return 0
-    }
-    var type = String(prefs.work_contract_type || "")
-    var weekday = kimaiWeekday(date)
-    var dayKeys = {
-        1: "work_monday",
-        2: "work_tuesday",
-        3: "work_wednesday",
-        4: "work_thursday",
-        5: "work_friday",
-        6: "work_saturday",
-        7: "work_sunday"
-    }
-
-    if (type === "day") {
-        return parseSecondsPref(prefs[dayKeys[weekday]])
-    }
-
-    if (type === "week") {
-        var weekDays = parseWeekdaySet(prefs.work_days_week, "1,2,3,4,5")
-        if (!weekDays.set[weekday]) {
-            return 0
-        }
-        var weekHours = parseSecondsPref(prefs.hours_per_week)
-        if (weekHours <= 0 || weekDays.count <= 0) {
-            return 0
-        }
-        return Math.round(weekHours / weekDays.count)
-    }
-
-    if (type === "month") {
-        var monthDays = parseWeekdaySet(prefs.work_days_month, "1,2,3,4,5")
-        if (!monthDays.set[weekday]) {
-            return 0
-        }
-        // Approximate daily target from monthly hours / ~21.67 workdays.
-        var monthHours = parseSecondsPref(prefs.hours_per_month)
-        return monthHours > 0 ? Math.round(monthHours / 21.67) : 0
-    }
-
-    return 0
-}
-
-function workWeekSecondsFromPrefs(prefs, date) {
-    if (!prefs) {
-        return 0
-    }
-    var type = String(prefs.work_contract_type || "")
-    if (type === "week") {
-        return parseSecondsPref(prefs.hours_per_week)
-    }
-    if (type === "day" || type === "month") {
-        var start = WorkAdjust.startOfWeekMonday(date)
-        var total = 0
-        for (var i = 0; i < 7; i++) {
-            var day = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i)
-            total += workDaySecondsFromPrefs(prefs, day)
-        }
-        return total
-    }
-    return 0
 }
 
 /**

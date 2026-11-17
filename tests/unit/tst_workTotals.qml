@@ -17,11 +17,12 @@ TestCase {
         return new Date(2026, 8, day, h, m).toISOString()
     }
 
+    // Kimai's work preferences: one hour on Wednesdays (now), nothing else.
+    readonly property var wednesdayPrefs: ({ work_contract_type: "day", work_wednesday: "3600" })
+
     function tracker(user, entries) {
         return {
             preferenceMap: function(u) { return u.prefs },
-            workDaySecondsFromPrefs: function(p) { return p.day || 0 },
-            workWeekSecondsFromPrefs: function(p) { return p.week || 0 },
             fetchCurrentUser: function(url, token, cb) {
                 cb(user ? { ok: true, data: user } : { ok: false, error: {} })
             },
@@ -38,7 +39,7 @@ TestCase {
         var running = { begin: at(30, 10, 0), end: null }
         var t = WorkTotals.summarize({
             now: now, nowMs: now.getTime(), tracker: tracker(null, null),
-            user: { prefs: { day: 8 * 3600, week: 40 * 3600 } }, holidayBundle: false,
+            user: { prefs: { work_contract_type: "week", hours_per_week: 40 * 3600 } }, holidayBundle: false,
             adjustments: null, weekEntries: [night, running]
         })
         verify(t.entriesLoaded)
@@ -69,13 +70,13 @@ TestCase {
         var calls = 0
         var got = null
         var entries = [{ begin: at(30, 8, 0), end: at(30, 9, 0) }]
-        WorkTotals.load({ tracker: tracker({ prefs: { day: 3600, week: 7200 } }, entries), url: "u", token: "t",
+        WorkTotals.load({ tracker: tracker({ prefs: wednesdayPrefs }, entries), url: "u", token: "t",
                           holidayBundle: false, nowMs: now.getTime() }, now, function(t) { calls++; got = t })
         compare(calls, 1)
         compare(got.todaySeconds, 3600)
         compare(got.todayTargetSeconds, 3600)
 
-        WorkTotals.load({ tracker: tracker({ prefs: { day: 3600 } }, null), url: "u", token: "t",
+        WorkTotals.load({ tracker: tracker({ prefs: wednesdayPrefs }, null), url: "u", token: "t",
                           holidayBundle: false, nowMs: now.getTime() }, now, function(t) { got = t })
         verify(!got.entriesLoaded)
         compare(got.todayTargetSeconds, 3600)
@@ -85,7 +86,7 @@ TestCase {
     // reloads the week's entries only. Another week or an older memo fetches again.
     function test_loadMemo() {
         var users = 0
-        var t = tracker({ prefs: { day: 3600 } }, [])
+        var t = tracker({ prefs: wednesdayPrefs }, [])
         var fetchUser = t.fetchCurrentUser
         t.fetchCurrentUser = function(url, token, cb) { users++; fetchUser(url, token, cb) }
         var memo = {}

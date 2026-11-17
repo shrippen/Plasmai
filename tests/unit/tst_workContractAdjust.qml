@@ -2,6 +2,7 @@ import QtQuick
 import QtTest
 import "../../contents/code/workContractAdjust.js" as WorkAdjust
 import "../../contents/code/kimaiApi.js" as KimaiApi
+import "../../contents/code/dateTimeFormat.js" as DTF
 import "../../contents/code/workTotals.js" as WorkTotals
 
 TestCase {
@@ -216,9 +217,9 @@ TestCase {
     // -- Daily and weekly target from Kimai's work preferences
 
     function test_weekdayIsIsoMonday1Sunday7() {
-        compare(KimaiApi.kimaiWeekday(new Date(2026, 7, 17)), 1)
-        compare(KimaiApi.kimaiWeekday(new Date(2026, 7, 22)), 6)
-        compare(KimaiApi.kimaiWeekday(new Date(2026, 7, 23)), 7)
+        compare(DTF.isoWeekday(new Date(2026, 7, 17)), 1)
+        compare(DTF.isoWeekday(new Date(2026, 7, 22)), 6)
+        compare(DTF.isoWeekday(new Date(2026, 7, 23)), 7)
     }
 
     function test_preferenceMapByName() {
@@ -230,31 +231,31 @@ TestCase {
     function test_dayTargetFromWeekContract() {
         var monday = new Date(2026, 7, 17)
         var saturday = new Date(2026, 7, 22)
-        compare(KimaiApi.workDaySecondsFromPrefs(weekPrefs(), monday), 8 * 3600)
-        compare(KimaiApi.workDaySecondsFromPrefs(weekPrefs(), saturday), 0)
-        compare(KimaiApi.workDaySecondsFromPrefs(null, monday), 0)
-        compare(KimaiApi.workDaySecondsFromPrefs({}, monday), 0)
+        compare(WorkAdjust.workDaySecondsFromPrefs(weekPrefs(), monday), 8 * 3600)
+        compare(WorkAdjust.workDaySecondsFromPrefs(weekPrefs(), saturday), 0)
+        compare(WorkAdjust.workDaySecondsFromPrefs(null, monday), 0)
+        compare(WorkAdjust.workDaySecondsFromPrefs({}, monday), 0)
     }
 
     function test_dayTargetFromDayContract() {
         var prefs = { work_contract_type: "day", work_monday: "28800", work_tuesday: "14400" }
-        compare(KimaiApi.workDaySecondsFromPrefs(prefs, new Date(2026, 7, 17)), 28800)
-        compare(KimaiApi.workDaySecondsFromPrefs(prefs, new Date(2026, 7, 18)), 14400)
-        compare(KimaiApi.workDaySecondsFromPrefs(prefs, new Date(2026, 7, 19)), 0)
+        compare(WorkAdjust.workDaySecondsFromPrefs(prefs, new Date(2026, 7, 17)), 28800)
+        compare(WorkAdjust.workDaySecondsFromPrefs(prefs, new Date(2026, 7, 18)), 14400)
+        compare(WorkAdjust.workDaySecondsFromPrefs(prefs, new Date(2026, 7, 19)), 0)
     }
 
     function test_dayTargetFromMonthContract() {
         var prefs = { work_contract_type: "month", hours_per_month: 21.67 * 8 * 3600, work_days_month: "1,2,3,4,5" }
-        compare(KimaiApi.workDaySecondsFromPrefs(prefs, new Date(2026, 7, 17)), 8 * 3600)
-        compare(KimaiApi.workDaySecondsFromPrefs(prefs, new Date(2026, 7, 23)), 0)
+        compare(WorkAdjust.workDaySecondsFromPrefs(prefs, new Date(2026, 7, 17)), 8 * 3600)
+        compare(WorkAdjust.workDaySecondsFromPrefs(prefs, new Date(2026, 7, 23)), 0)
     }
 
     function test_weekTargetPerContractType() {
         var anyDay = new Date(2026, 7, 19)
-        compare(KimaiApi.workWeekSecondsFromPrefs(weekPrefs(), anyDay), 40 * 3600)
+        compare(WorkAdjust.workWeekSecondsFromPrefs(weekPrefs(), anyDay), 40 * 3600)
         var days = { work_contract_type: "day", work_monday: "28800", work_friday: "14400" }
-        compare(KimaiApi.workWeekSecondsFromPrefs(days, anyDay), 28800 + 14400)
-        compare(KimaiApi.workWeekSecondsFromPrefs({ work_contract_type: "none" }, anyDay), 0)
-        compare(KimaiApi.workWeekSecondsFromPrefs(null, anyDay), 0)
+        compare(WorkAdjust.workWeekSecondsFromPrefs(days, anyDay), 28800 + 14400)
+        compare(WorkAdjust.workWeekSecondsFromPrefs({ work_contract_type: "none" }, anyDay), 0)
+        compare(WorkAdjust.workWeekSecondsFromPrefs(null, anyDay), 0)
     }
 }

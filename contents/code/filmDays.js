@@ -40,7 +40,7 @@ function entryDefaults() {
     }
 }
 
-/** ISO weekday (1=Monday..7=Sunday) as used by KimaiApi.kimaiWeekday. */
+/** ISO weekday (1=Monday..7=Sunday) as used by DTF.isoWeekday. */
 function categoryFromWeekday(isoWeekday) {
     if (isoWeekday === 6) {
         return DayCategory.SATURDAY

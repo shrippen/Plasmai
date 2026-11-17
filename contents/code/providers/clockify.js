@@ -637,10 +637,3 @@ function preferenceMap(user) {
     return {}
 }
 
-function workDaySecondsFromPrefs(prefs, date) {
-    return 0
-}
-
-function workWeekSecondsFromPrefs(prefs, date) {
-    return 0
-}
