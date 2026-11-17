@@ -10,7 +10,7 @@ import "Kante"
 /**
  * One trip of the kimai-anfahrten plugin: new, edit (original set), linked
  * to a Kimai entry, or a detected trip before accepting it (suggestion set).
- * Pops itself after a successful save and emits saved().
+ * Pops itself after a successful save; the lists follow session.trips.changed().
  */
 Kirigami.Page {
     id: page
@@ -22,47 +22,29 @@ Kirigami.Page {
     property var original: null
     property string linkedText: ""
     property var suggestion: null
-    property bool busy: false
-
-    signal saved()
+    readonly property bool busy: session.trips.busy
 
     function done(tripJson) {
-        page.busy = false
         if (tripJson) {
             root.showPassiveNotification(i18n("Trip saved: %1 km", Mileage.displayKm(Mileage.tripKm(tripJson))))
         }
-        page.saved()
         pageStack.pop()
     }
 
     function failed(error) {
-        page.busy = false
         sheet.serverErrors = (error && error.fields) ? error.fields : ({})
         sheet.errorText = (error && error.detail) ? error.detail : ApiErrors.text(error)
     }
 
     function save(body, tripId, form) {
-        if (page.busy) return
-        page.busy = true
-        var handle = function(r) {
+        session.trips.save(body, tripId, form, page.suggestion, function(r) {
             // The page is gone: nothing to close or show.
             if (!page) { return }
             if (r.ok) page.done(r.data); else page.failed(r.error)
-        }
-        if (page.suggestion) {
-            session.trips.accept(page.suggestion.id,
-                                Mileage.acceptBodyFromForm(session.trips.ping, form, page.suggestion), handle)
-        } else if (tripId !== null && tripId !== undefined) {
-            if (Mileage.isEmptyBody(body)) { page.done(null); return }
-            session.trips.patch(tripId, body, handle)
-        } else {
-            session.trips.create(body, handle)
-        }
+        })
     }
 
     function remove(tripId) {
-        if (page.busy) return
-        page.busy = true
         session.trips.remove(tripId, function(r) {
             // The page is gone: nothing to close or show.
             if (!page) { return }

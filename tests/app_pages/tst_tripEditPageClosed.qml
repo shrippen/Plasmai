@@ -22,9 +22,8 @@ TestCase {
                     property var ping: ({})
                     property var meta: null
                     property var vehicles: []
-                    function accept(id, body, cb) { tc.pending.push(cb) }
-                    function patch(id, body, cb) { tc.pending.push(cb) }
-                    function create(body, cb) { tc.pending.push(cb) }
+                    property bool busy: false
+                    function save(body, tripId, form, suggestion, cb) { tc.pending.push(cb) }
                     function remove(id, cb) { tc.pending.push(cb) }
                 }
                 property var setup: QtObject {}
