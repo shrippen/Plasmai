@@ -218,26 +218,15 @@ Kirigami.ApplicationWindow {
     Connections {
         target: root.session
         function onFailed(action, result) { root.reportFailure(action, result) }
-        function onStarted(ts, origin, names) {
-            if (origin === Session.Origin.Start && root.session.settings.notifyOnStart) {
-                root.session.reminders.notify(i18n("Started"), names.project + " · " + names.activity)
-            }
-        }
-        function onStopped(ts, names) {
-            if (root.session.settings.notifyOnStop) {
-                root.session.reminders.notify(i18n("Stopped"), names.project + " · " + names.activity)
-            }
-        }
-        // Starts here notify above too; this one also covers timers started elsewhere.
-        function onTrackingBegan(ts) {
-            const t = root.session.timer
-            if (root.session.settings.notifyOnStart) {
-                root.session.reminders.notify(i18n("Tracking in progress"), t.project + " · " + t.activity + " · " + DTF.formatDurationShort(t.elapsedSeconds))
-            }
-        }
         /** Kimai saved the entry but ignored billable (no edit_billable permission). */
         function onDroppedFields(fields) {
             root.showPassiveNotification(i18n("Saved without the billable change: your Kimai account is not allowed to edit billable."))
+        }
+    }
+    Connections {
+        target: root.session.reminders
+        function onNotice(kind, names) {
+            root.session.reminders.notify(EntryTexts.noticeTitle(kind), EntryTexts.noticeBody(kind, names))
         }
     }
     Connections {
@@ -245,17 +234,6 @@ Kirigami.ApplicationWindow {
         function onDescriptionSaved() {
             root.descriptionSavedFlash = true
             descriptionFlashTimer.restart()
-        }
-    }
-    Connections {
-        target: root.session.reminders
-        function onIdleDiscarded(snap) {
-            if (root.session.settings.notifyOnIdleStop) {
-                root.session.reminders.notify(i18n("Idle time discarded"), snap.projectName + " · " + snap.activityName)
-            }
-        }
-        function onForgotToStart() {
-            root.session.reminders.notify(i18n("Nothing is tracking"), i18n("Start tracking when you begin work."))
         }
     }
 

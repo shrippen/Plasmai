@@ -648,7 +648,9 @@ read as Kante. It is the design system's `KanteStyle.Kind.KanteLight`:
   that hold.
 - **Already running:** the first `applyActiveTimesheet` after load that was
   not a local Start/Switch/Continue sends one “Tracking in progress”
-  notification. Poll refreshes must not repeat it.
+  notification. Poll refreshes must not repeat it. When a notice is due is decided
+  once, in `notices.js` via `SessionReminders` (signal `notice`); `EntryTexts` words
+  it, widget and app only show it. "Tracking in progress" follows `notifyOnStart`.
 - **Forgot-to-start** is one notification per local day during configured
   work hours, opt-in on Behavior. The notification daemon handles Do Not
   Disturb.

@@ -24,6 +24,7 @@ import "../code/dateTimeFormat.js" as DTF
 import "../code/mileage.js" as Mileage
 import "../code/statsData.js" as StatsData
 import "../code/rowHit.js" as RowHit
+import "../code/notices.js" as Notices
 import "."
 import "Kante"
 import "KantePlasma"
@@ -89,10 +90,6 @@ PlasmoidItem {
     property var pendingSwitchTimesheet: null
     property var pendingDeleteTimesheet: null
     property var pendingSplitTimesheet: null
-    /** A start of this widget runs: trackingBegan is no news then. */
-    property bool localStart: false
-    /** The next stop is the idle prompt's (its own notification). */
-    property bool stopFromIdle: false
     /** Dialogs live inside fullRepresentation; keep refs so root JS can open them. */
     property var stopConfirmDialogRef: null
     property var switchRecentDialogRef: null
@@ -539,39 +536,25 @@ PlasmoidItem {
     }
 
     Connections {
+        target: root.session.reminders
+        function onNotice(kind, names) {
+            if (kind === Notices.Kind.ForgotStart && plasmoid.userConfiguring) {
+                return
+            }
+            root.notify(EntryTexts.noticeTitle(kind), EntryTexts.noticeBody(kind, names))
+        }
+    }
+
+    Connections {
         target: root.session
         function onFailed(action, result) {
             root.reportFailure(action, result)
         }
         function onStarted(ts, origin, names) {
             root.clearError()
-            // trackingBegan follows at once: no "in progress" news for a start here.
-            root.localStart = true
-            Qt.callLater(function() { root.localStart = false })
-            if (!root.session.settings.notifyOnStart) {
-                return
-            }
-            root.notify(origin === Session.Origin.Switch ? i18n("Switched activity") : i18n("Tracking started"),
-                        names.project + " · " + names.activity)
         }
         function onStopped(ts, names) {
             root.clearError()
-            const idle = root.stopFromIdle
-            root.stopFromIdle = false
-            if (idle && root.session.settings.notifyOnIdleStop) {
-                root.notify(i18n("Tracking stopped (idle)"), names.project + " · " + names.activity)
-            } else if (!idle && root.session.settings.notifyOnStop) {
-                root.notify(i18n("Tracking stopped"), names.project + " · " + names.activity)
-            }
-        }
-        // A timer found by a refresh (started elsewhere, or before this widget ran).
-        function onTrackingBegan(ts) {
-            if (root.localStart) {
-                return
-            }
-            const t = root.session.timer
-            root.notify(i18n("Tracking in progress"),
-                        t.project + " · " + t.activity + " · " + DTF.formatDurationShort(t.elapsedSeconds))
         }
         /** Kimai saved the entry but ignored billable (no edit_billable permission). */
         function onDroppedFields(fields) {
@@ -635,20 +618,10 @@ PlasmoidItem {
                 return
             }
             root.session.reminders.clearPending()
-            root.stopFromIdle = true
-            root.session.timer.stop()
+            root.session.reminders.stopForIdle()
         }
         function onIdleDiscarded(snap) {
             root.clearError()
-            if (root.session.settings.notifyOnIdleStop) {
-                root.notify(i18n("Idle time discarded"), snap.projectName + " · " + snap.activityName)
-            }
-        }
-        function onForgotToStart() {
-            if (plasmoid.userConfiguring) {
-                return
-            }
-            root.notify(i18n("Nothing is tracking"), i18n("Work hours have started. Start a timer when you begin."))
         }
     }
 

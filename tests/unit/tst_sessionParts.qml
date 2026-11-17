@@ -9,6 +9,7 @@ import "../../contents/code/platform.js" as Platform
 import "../../contents/code/catalogCache.js" as CatalogCache
 import "../../contents/code/profiles.js" as Profiles
 import "../../contents/code/sharedConfig.js" as SharedConfig
+import "../../contents/code/notices.js" as Notices
 
 /**
  * The parts of Session.qml against the demo Kimai (in memory, no network):
@@ -305,6 +306,22 @@ TestCase {
         compare(began.count, 1)
         compare(s.settings.lastUsedProjectId, String(Names.projectId(first)))
         verify(s.timer.hasLastUsed)
+    }
+
+    // The app showed two notices for one start ("Started" and "Tracking in progress").
+    function test_startNoticesOnce() {
+        const s = openDemo()
+        s.timer.stop()
+        tryCompare(s.timer, "tracking", false)
+        tryCompare(s, "busy", false)
+        const notices = spy(s.reminders, "notice")
+        const first = s.recent.list[0]
+        s.timer.start(Names.projectId(first), Names.activityId(first), "P", "A", "")
+        tryCompare(s.timer, "tracking", true)
+        wait(50)
+        compare(notices.count, 1)
+        compare(notices.signalArguments[0][0], Notices.Kind.Started)
+        compare(notices.signalArguments[0][1].project, "P")
     }
 
     function test_descriptionSavedAfterPause() {
