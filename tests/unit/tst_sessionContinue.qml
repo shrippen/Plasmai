@@ -80,6 +80,19 @@ TestCase {
         compare(failures, [Ui.Session.Action.Continue])
     }
 
+    // A 502 or 504 of a proxy often comes after the server restarted the entry: no second one.
+    function test_server_error_starts_nothing() {
+        run({ ok: false, error: { type: ProviderUtil.ErrorType.Server, status: 502 } })
+        compare(calls, [["restart", 7]])
+        compare(failures, [Ui.Session.Action.Continue])
+    }
+
+    function test_unknown_error_starts_nothing() {
+        run({ ok: false, error: { type: ProviderUtil.ErrorType.Unknown } })
+        compare(calls, [["restart", 7]])
+        compare(failures, [Ui.Session.Action.Continue])
+    }
+
     function test_offline_starts_nothing() {
         run({ ok: false, error: { type: ProviderUtil.ErrorType.Offline } })
         compare(calls, [["restart", 7]])
