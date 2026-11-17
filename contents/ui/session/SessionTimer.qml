@@ -220,6 +220,9 @@ QtObject {
         })
     }
 
+    /** Errors that say the server looked at the restart and refused it. */
+    readonly property var refusals: [ProviderUtil.ErrorType.Forbidden, ProviderUtil.ErrorType.NotFound, ProviderUtil.ErrorType.InvalidInput]
+
     /** Restarts a stopped entry (same project, activity, description). */
     function continueEntry(ts) {
         if (!ts || !loaded) {
@@ -248,13 +251,13 @@ QtObject {
 
     /**
      * A refused restart (rights, a service that cannot do it) starts a new entry with the
-     * same project, activity and description, so work goes on. Without an answer of the
-     * server (network, offline) nothing starts: the restart may have arrived, a second
-     * entry would double it. True when a start was made.
+     * same project, activity and description, so work goes on. Only a clear refusal counts;
+     * network, offline, 5xx or unknown may follow a restart that arrived (a proxy's 502
+     * after Kimai restarted the entry), and a second entry would double it. True when a start was made.
      */
     function startAnew(ts, result) {
         const type = result.error ? result.error.type : ""
-        if (type === ProviderUtil.ErrorType.Network || type === ProviderUtil.ErrorType.Offline) {
+        if (refusals.indexOf(type) < 0) {
             return false
         }
         const projectId = KimaiApi.projectId(ts)
