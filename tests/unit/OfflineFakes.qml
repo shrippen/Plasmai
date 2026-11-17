@@ -214,8 +214,11 @@ QtObject {
         return out
     }
 
+    /** A session whose account is checked (the fake's /api/users/me answers at once). */
     function session(k, h) {
-        return Offline.createSession(k, h || fakeHost())
+        var s = Offline.createSession(k, h || fakeHost())
+        Offline.verify(s)
+        return s
     }
 
     /** `s` read from its files (resolves when loaded). */

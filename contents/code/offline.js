@@ -3,6 +3,7 @@
 .import "./providerUtil.js" as ProviderUtil
 .import "./offlineState.js" as OfflineState
 .import "./offlineOutbox.js" as Outbox
+.import "./offlineOwner.js" as Owner
 
 /**
  * Offline layer (ROADMAP pillar 6), Kimai only. A session wraps the tracker:
@@ -37,6 +38,9 @@
  *   now()      ms, optional
  *   changed()  offline flag, ops or snapshot changed (views re-read), optional
  *   idChanged(localId, serverId)   a local entry got its server id, optional
+ *   ownerChanged()   the waiting changes went to another owner (what the views hold is not
+ *              the new owner's), optional
+ *   refresh()  the views should read again (the owner changed after the first read), optional
  * }
  */
 
@@ -100,8 +104,11 @@ function wrapRead(s, name, remember, answer, fallback) {
                     return
                 }
                 if (result.ok) {
-                    remember(result, args)
-                    OfflineState.saveSnapshot(s)
+                    // Before the account check the answer may be of another owner: not kept.
+                    if (s.verified) {
+                        remember(result, args)
+                        OfflineState.saveSnapshot(s)
+                    }
                     callback({ ok: true, data: answer(result.data, args), droppedFields: result.droppedFields })
                     return
                 }
@@ -457,9 +464,32 @@ function createSession(inner, host) {
         loadingOutbox: null,
         // a write was asked for while blocked or loading
         saveWaits: false,
-        storageError: OfflineState.StorageError.NONE
+        storageError: OfflineState.StorageError.NONE,
+        // Whose the waiting changes are (offlineOwner.js), the groups of other owners parked.
+        owner: null,
+        held: [],
+        // The outbox file was read (an owner can be settled).
+        loaded: false,
+        // The account of the connection was confirmed by the server (verify).
+        verified: false,
+        account: "",
+        accountName: "",
+        verifying: null,
+        // A change of owner asked for during a replay.
+        settleWaits: false
     }
     s.tracker = s.enabled ? wrapTracker(s) : inner
+    // For offlineOutbox.js, which cannot import this file.
+    s.verify = function() {
+        return verify(s).then(function(settled) {
+            // A check after the views read (the server was away): they read again.
+            var changed = settled === Owner.Result.PARKED || settled === Owner.Result.RESUMED
+            if (changed && s.host.refresh) {
+                s.host.refresh()
+            }
+        })
+    }
+    s.settle = function() { return settleNow(s) }
     return s
 }
 
@@ -470,8 +500,136 @@ function load(s) {
     }
     return Promise.all([s.host.load(OfflineState.stateName(s)), Outbox.loadOutbox(s)]).then(function(parts) {
         OfflineState.restoreSnapshot(s, parts[0].data)
+        settleNow(s)
         OfflineState.notify(s)
     })
+}
+
+// -- Owner ----------------------------------------------------------------------
+
+/** Server and account the connection is on now (account "" until the server confirmed it). */
+function identityOf(s) {
+    return { server: Owner.serverOf(s.host.url()),
+             account: s.verified ? s.account : "", name: s.verified ? s.accountName : "" }
+}
+
+/**
+ * Brings the owner of the waiting changes in line with the connection, once the outbox
+ * is read. Not while a replay is on its way (its op is sent to the old owner and
+ * must be taken off the queue first) nor for a closed session (the connection is
+ * another profile's then).
+ */
+function settleNow(s) {
+    if (!s.enabled || !s.loaded || s.closed) {
+        return Owner.Result.NONE
+    }
+    if (s.replaying) {
+        s.settleWaits = true
+        return Owner.Result.NONE
+    }
+    var result = Owner.settle(s, identityOf(s), OfflineState.nowOf(s))
+    if (result === Owner.Result.NONE) {
+        return result
+    }
+    Outbox.saveOutbox(s)
+    if (result === Owner.Result.PARKED) {
+        OfflineState.saveSnapshot(s)
+        if (s.host.ownerChanged) {
+            s.host.ownerChanged()
+        }
+    }
+    OfflineState.notify(s)
+    return result
+}
+
+/** The connection (URL, token) may have changed: unchecked again, and the owner settled by server. */
+function retarget(s) {
+    if (!s.enabled) {
+        return
+    }
+    s.verified = false
+    s.account = ""
+    s.accountName = ""
+    settleNow(s)
+}
+
+/**
+ * Asks the server who the token is (never from the cache) and settles the owner with
+ * that. A network error leaves it unchecked (offline), so does a refusal: a token the
+ * server does not accept is not "another account". Resolves with what settle did, "" when unchecked.
+ */
+function verify(s) {
+    var url = s.host.url()
+    var token = s.host.token()
+    if (!s.enabled || !Owner.serverOf(url) || !token) {
+        return Promise.resolve("")
+    }
+    if (s.verifying && s.verifying.url === url && s.verifying.token === token) {
+        return s.verifying.promise
+    }
+    var attempt = { url: url, token: token, promise: null }
+    s.verifying = attempt
+    attempt.promise = new Promise(function(resolve) {
+        s.inner.fetchCurrentUser(url, token, function(result) {
+            if (s.verifying === attempt) {
+                s.verifying = null
+            }
+            resolve(checked(s, attempt, result))
+        })
+    })
+    return attempt.promise
+}
+
+function checked(s, attempt, result) {
+    // Another connection or profile since: the answer is of no use.
+    if (s.closed || s.host.url() !== attempt.url || s.host.token() !== attempt.token) {
+        return ""
+    }
+    var user = result.ok ? result.data : null
+    if (!user || user.id === undefined || user.id === null || user.id === "") {
+        if (!result.ok) {
+            Outbox.observe(s, result, true)
+        }
+        return ""
+    }
+    s.verified = true
+    s.account = String(user.id)
+    s.accountName = user.alias || user.username || ""
+    Outbox.observe(s, result, true)
+    var settled = settleNow(s)
+    if (Outbox.hasPending(s) && !s.offline && !s.replaying) {
+        Outbox.replay(s)
+    }
+    return settled
+}
+
+// -- Parked groups --------------------------------------------------------------
+
+function groups(s) {
+    return Owner.groups(s)
+}
+
+function heldCount(s) {
+    return Owner.heldCount(s)
+}
+
+/** Sends a parked group to this address (same account only); callback(sent) when the replay stops. */
+function adopt(s, index, callback) {
+    if (!Owner.adopt(s, index)) {
+        return false
+    }
+    Outbox.saveOutbox(s)
+    OfflineState.notify(s)
+    Outbox.replay(s, callback)
+    return true
+}
+
+function discardGroup(s, index) {
+    if (!Owner.dropGroup(s, index)) {
+        return
+    }
+    Outbox.saveOutbox(s)
+    OfflineState.notify(s)
 }
 
 /**

@@ -135,10 +135,8 @@ function snapshotText(snapshot) {
  * reads a dozen): comparing the text costs a stringify of the whole snapshot.
  */
 function saveSnapshot(s) {
-    if (s.closed) {
-        return
-    }
-    if (!s.host.defer) {
+    // A closed session is written at once: its deferred save would replace the active session's.
+    if (s.closed || !s.host.defer) {
         writeSnapshot(s)
         return
     }
@@ -156,6 +154,9 @@ function saveSnapshot(s) {
 function writeSnapshot(s) {
     pruneEntries(s)
     pruneReads(s)
+    if (s.owner) {
+        s.snapshot.owner = s.owner
+    }
     var text = snapshotText(s.snapshot)
     s.snapshot.savedAt = nowOf(s)
     if (text === s.savedSnapshotText && s.snapshot.savedAt - s.savedSnapshotAt < SAVE_AGE_MS) {

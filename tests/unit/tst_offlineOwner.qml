@@ -149,7 +149,7 @@ TestCase {
 
     function test_unknownAccountFillsInOnVerify() {
         const s = sessionOf({ server: "https://other.test", account: "", name: "" }, [createOp(3)])
-        compare(Owner.settle(s, { server: "https://other.test", account: "3", name: "Three" }), Owner.Result.NONE)
+        compare(Owner.settle(s, { server: "https://other.test", account: "3", name: "Three" }), Owner.Result.FILLED)
         compare(s.owner.account, "3")
         compare(s.ops.length, 1)
     }
@@ -179,7 +179,7 @@ TestCase {
         const k = fakeKimai()
         const h = fakeHost()
         h.files[outboxName] = outboxFile(null, [createOp(1)])
-        const s = fakes.session(k, h)
+        const s = Offline.createSession(k, h)
         fakes.loaded(s, this)
         compare(h.saves.length, 0, "unknown account: nothing claimed")
         Outbox.replay(s)

@@ -9,7 +9,7 @@ import "../../contents/code/localFile.js" as LocalFile
 /**
  * The offline layer's files: a read that failed or is still running never lets a
  * write replace the outbox; a failed write is reported; a replay keeps to the
- * connection and the session it started with; a closed session writes its outbox but no snapshot.
+ * connection and the session it started with; a closed session writes its outbox and its snapshot at once.
  */
 TestCase {
     name: "OfflineStorage"
@@ -87,8 +87,8 @@ TestCase {
         var k = fakeKimai()
         var h = fakeHost()
         var s = session(k, h)
-        loaded(s)
         h.failSave = true
+        loaded(s)
         startOffline(k, s)
         tryCompare(s, "storageError", OfflineState.StorageError.SAVE)
         verify(!h.files["offline-outbox-p1"])
@@ -188,18 +188,19 @@ TestCase {
         compare(h.saves.filter(function(n) { return n === "offline-outbox-p1" }).length, 1)
     }
 
-    // A closed session writes no snapshot (a cache; its deferred save would replace the active one's).
-    function test_closedSessionWritesNoSnapshot() {
+    // A closed session never defers its snapshot (the deferred save would replace the active
+    // one's); what it still learns is written at once.
+    function test_closedSessionWritesItsSnapshotAtOnce() {
         var k = fakeKimai()
+        k.server[1] = { id: 1, begin: stamp(9, 0), end: stamp(10, 0), project: 10, activity: 20 }
         var h = fakeHost()
         var s = session(k, h)
         var deferred = 0
         h.defer = function() { deferred++ }
         Offline.close(s)
-        startOffline(k, s)
         call(function(cb) { s.tracker.fetchRecentTimesheets("u", "t", 10, cb) })
-        verify(h.saves.every(function(name) { return name.indexOf("offline-outbox-") === 0 }))
         compare(deferred, 0)
+        verify(h.files["offline-state-p1"])
     }
 
     // The outbox is the closed session's alone: a change queued after the switch is written at once.

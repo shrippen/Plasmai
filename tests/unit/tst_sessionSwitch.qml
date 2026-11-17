@@ -51,6 +51,14 @@ TestCase {
                     getResponseHeader: function() { return null },
                     abort: function() {},
                     send: function(body) {
+                        // The account check answers at once; the tests hold the reads and creates.
+                        if (xhr.url.indexOf("/api/users/me") > 0) {
+                            xhr.status = 200
+                            xhr.responseText = JSON.stringify({ id: 1, alias: "One" })
+                            xhr.readyState = 4
+                            xhr.onreadystatechange()
+                            return
+                        }
                         const entry = { post: xhr.method === "POST", deliver: function(status, text) {
                             xhr.status = status
                             xhr.responseText = text
@@ -92,7 +100,7 @@ TestCase {
     function opened(sync, prof, url) {
         fakeSession.connection = { url: url, token: "tok" }
         let done = false
-        sync.openFor(prof).then(function() { done = true })
+        sync.openFor(prof).then(function() { return sync.verify() }).then(function() { done = true })
         return function() { return done }
     }
 

@@ -358,6 +358,8 @@ TestCase {
         compare(active.data.length, 1)
         verify(Outbox.isLocalId(active.data[0].id))
         k.net = true
+        // Started without network: the account is checked once the server is there.
+        Offline.verify(s2)
         call(function(cb) { Outbox.replay(s2, cb) })
         compare(Outbox.pendingCount(s2), 0)
     }

@@ -120,7 +120,7 @@ TestCase {
         compare(sync.unsynced, 0)
         compare(sync.held, 1)
         compare(sync.groups.length, 1)
-        compare(sync.groups[0].name, "One")
+        compare(sync.groups[0].name, "User 1", "the name the server gave last")
         compare(sync.groups[0].server, "http://a.test")
         verify(sync.groups[0].canAdopt)
         compare(posts().length, 0)

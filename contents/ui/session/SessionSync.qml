@@ -52,6 +52,12 @@ QtObject {
     readonly property int stuck: ops.filter(function(op) { return op.state !== OfflineState.State.PENDING }).length
     /** The outbox in order (UnsyncedList). */
     readonly property var ops: revision >= 0 && state ? Outbox.ops(state) : []
+    /** Changes parked for another server or account, one group each (Offline.groups); they wait for a decision. */
+    readonly property var groups: revision >= 0 && state ? Offline.groups(state) : []
+    /** Their number. */
+    readonly property int held: revision >= 0 && state ? Offline.heldCount(state) : 0
+    /** Something to show in the status line. */
+    readonly property bool visible: offline || unsynced > 0 || held > 0 || storageError !== OfflineState.StorageError.NONE
 
     /** Opens the outbox of `p` (resolves once loaded); the same profile keeps its session. */
     function openFor(p) {
@@ -59,7 +65,9 @@ QtObject {
         const inner = TimeTracker.api(providerId)
         const key = providerId === TimeTracker.PROVIDER_KIMAI && p
             ? session.offlinePrefix + String(p.id).replace(/[^A-Za-z0-9_-]/g, "_") : ""
+        // Also the same profile: its address or token may have changed since.
         if (state && state.host.key === key && state.inner === inner) {
+            Offline.retarget(state)
             return restored(state)
         }
         // The old session's deferred save would be replaced by the new one's.
@@ -70,6 +78,7 @@ QtObject {
         const known = key ? sessions[key] : null
         if (known && known.inner === inner) {
             Offline.reopen(known)
+            Offline.retarget(known)
             state = known
             return restored(known)
         }
@@ -84,13 +93,28 @@ QtObject {
                 sync.saveTimer.start()
             },
             changed: function() { sync.revision++ },
-            idChanged: function(localId, serverId) { session.timer.followId(localId, serverId) }
+            idChanged: function(localId, serverId) { session.timer.followId(localId, serverId) },
+            ownerChanged: sync.ownerChanged,
+            refresh: function() { session.refresh() }
         })
         state = s
         if (key) {
             sessions[key] = s
         }
         return Offline.load(s).then(function() { return restored(s) })
+    }
+
+    /** The waiting changes went to another owner: nothing shown is the new owner's. */
+    function ownerChanged() {
+        session.catalog.invalidate()
+        session.timer.apply(null)
+        FilmDaySync.restoreMemo(session.filmDay.context(), {})
+        session.entriesWritten()
+    }
+
+    /** Asks the server whose token this is (once per connection); the waiting changes go out after that. */
+    function verify() {
+        return state ? Offline.verify(state) : Promise.resolve("")
     }
 
     /** Resolves when the outbox of `s` is read (a read that failed is tried again); then the film day memo. */
@@ -124,6 +148,18 @@ QtObject {
         Outbox.discard(state, opId)
         session.entriesWritten()
         session.refresh()
+    }
+
+    /** Sends a parked group to this server (the same account made it on another address). */
+    function adopt(index) {
+        Offline.adopt(state, index, function() {
+            session.entriesWritten()
+            session.refresh()
+        })
+    }
+
+    function discardGroup(index) {
+        Offline.discardGroup(state, index)
     }
 
     /** Film day answers kept with the snapshot (filmDaySync's memo). */
