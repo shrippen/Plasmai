@@ -48,7 +48,7 @@ QtObject {
     /** The line under "Test connection": `result` as the session's testProfile hands it, `service` the service's name. */
     function testText(result, service) {
         if (!result.ok) {
-            return text(result.error, true)
+            return ProviderUtil.serverText(result.error) || text(result.error, true)
         }
         const data = result.data
         const version = (data && (data.version || data.name)) || i18n("ok")

@@ -37,4 +37,12 @@ TestCase {
         verify(Util.ok(1).ok)
         verify(!Util.fail({ type: "x" }).ok)
     }
+
+    function test_serverText() {
+        compare(Util.serverText({ type: Util.ErrorType.Server, detail: "Disk full" }), "Disk full")
+        compare(Util.serverText({ type: Util.ErrorType.Unknown, statusText: "Bad" }), "Bad")
+        compare(Util.serverText({ type: Util.ErrorType.Unauthorized }), "")
+        compare(Util.serverText({ type: Util.ErrorType.NotConfigured, detail: "no url" }), "")
+        compare(Util.serverText(null), "")
+    }
 }
