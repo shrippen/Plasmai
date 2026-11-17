@@ -103,5 +103,5 @@ favourites, statistics, offline work; for Kimai also film days and trips.
 
 - `kimaiApi.js` holds, beside Kimai's requests, the display helpers and the day's
   calculation every service needs (`AUDIT.md`, finding 5).
-- `contents/ui/main.qml` is one file of 2795 lines, still over the size limit; film day,
+- `contents/ui/main.qml` is one file of 2787 lines, still over the size limit; film day,
   trips, statistics and the shared texts have left it (`AUDIT.md`, finding 10).

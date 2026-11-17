@@ -559,6 +559,21 @@ function prefetchSpan(now) {
     return { begin: begin, end: endOfWeek(now) }
 }
 
+/**
+ * The loaded entries with the entries of one week replaced by weekEntries: what a
+ * later answer for that week brings, without touching the older weeks around it.
+ */
+function replaceWeek(timesheets, weekEntries, weekBeginMs, weekEndMs) {
+    var out = []
+    for (var i = 0; i < timesheets.length; i++) {
+        var ms = DTF.parseStamp(timesheets[i].begin).getTime()
+        if (ms < weekBeginMs || ms > weekEndMs) {
+            out.push(timesheets[i])
+        }
+    }
+    return out.concat(weekEntries)
+}
+
 /** { from, to } covering this week and this month (weeks can reach into the previous/next month). */
 function tripRangeFor(nowDate) {
     var now = nowDate || new Date()

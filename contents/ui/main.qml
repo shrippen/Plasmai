@@ -829,13 +829,6 @@ PlasmoidItem {
         })
     }
 
-    // The statistics view is shown: the week's entries do not replace its range.
-    Binding {
-        target: root.session.stats
-        property: "shown"
-        value: root.mainViewMode === "stats"
-    }
-
     function openStatsView() {
         if (!session.connection.configured || !session.connection.capabilities.statistics) {
             return
@@ -999,7 +992,6 @@ PlasmoidItem {
     function resetProfileView() {
         tripSuggestions = []
         tripSuggestionsLoadedAt = 0
-        session.stats.forget()
         resetTrackingView()
     }
 

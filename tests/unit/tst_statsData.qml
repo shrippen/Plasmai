@@ -104,4 +104,12 @@ TestCase {
         compare(span.begin.getMonth(), 6)
         compare(span.end.getDate(), 16)
     }
+
+    function test_replaceWeek_keeps_other_weeks() {
+        var b = new Date(2026, 7, 10).getTime()
+        var e = new Date(2026, 7, 16, 23, 59).getTime()
+        var list = [{ id: 1, begin: "2026-08-03T10:00:00+0000" }, { id: 2, begin: "2026-08-12T10:00:00+0000" }]
+        var out = StatsData.replaceWeek(list, [{ id: 3, begin: "2026-08-13T10:00:00+0000" }], b, e)
+        compare(out.map(function(x) { return x.id }), [1, 3])
+    }
 }

@@ -12,12 +12,7 @@ Kirigami.Page {
     KantePageTitle { page: page }
     title: i18n("Statistics")
 
-    // While the page lives the week's entries do not replace the loaded range.
-    Component.onCompleted: {
-        session.stats.shown = true
-        session.stats.open()
-    }
-    Component.onDestruction: session.stats.shown = false
+    Component.onCompleted: session.stats.open()
 
     /** Pull to refresh: forget the loaded range, fetch it, trips and totals again. */
     function reloadAll() {

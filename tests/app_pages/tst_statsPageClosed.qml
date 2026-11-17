@@ -19,7 +19,6 @@ TestCase {
             id: root
             property QtObject session: QtObject {
                 property var stats: QtObject {
-                    property bool shown: false
                     property var timesheets: []
                     property var trips: null
                     property bool loading: false
@@ -49,10 +48,8 @@ TestCase {
         const obj = h.pageComponent.createObject(h)
         verify(obj !== null)
         verify(pending.indexOf("open") >= 0)
-        verify(h.session.stats.shown)
         obj.destroy()
         wait(0)
-        verify(!h.session.stats.shown)
     }
 
     // A page that is gone leaves the part usable: no callback of the page is left to throw.

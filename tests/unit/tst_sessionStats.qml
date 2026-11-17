@@ -15,7 +15,9 @@ TestCase {
         id: fixture
         QtObject {
             id: fake
-            property var connection: QtObject { property bool configured: true }
+            property var connection: QtObject { property bool configured: true; property int generation: 0
+                function current(cb) { const g = generation; return function(r) { if (g === generation) { cb(r) } } }
+            }
             property var entries: QtObject {
                 function fetchRange(begin, end, cb) { fetches.push({ begin: begin, end: end }); answers.push(cb) }
             }
@@ -33,6 +35,7 @@ TestCase {
                 property var ping: ({})
                 function fetch(range, cb) { fetches.push({ trips: range }); answers.push(cb) }
             }
+            property bool busy: false
             property var stats: Parts.SessionStats { session: fake }
         }
     }
@@ -127,18 +130,88 @@ TestCase {
         compare(fetches.length, 0)
     }
 
-    // The totals' week fills the range while the view is closed, never while it shows entries.
-    function test_week_seed_only_when_not_shown() {
+    // The totals' week fills an empty range.
+    function test_week_seeds_an_empty_range() {
         const f = createTemporaryObject(fixture, this)
-        f.totals.weekEntries = [{ id: 1 }]
+        f.totals.weekEntries = [{ id: 1, begin: new Date().toISOString() }]
         compare(f.stats.timesheets.length, 1)
         verify(f.stats.rangeBeginMs > 0)
-        f.stats.shown = true
-        f.totals.weekEntries = [{ id: 2 }, { id: 3 }]
-        compare(f.stats.timesheets.length, 1)
-        f.stats.shown = false
-        f.totals.weekEntries = [{ id: 2 }, { id: 3 }]
-        compare(f.stats.timesheets.length, 2)
+    }
+
+    // A loaded range of several weeks keeps its older entries; only this week's are replaced.
+    function test_week_seed_never_shrinks_the_range() {
+        const f = createTemporaryObject(fixture, this)
+        const now = new Date()
+        f.stats.load(StatsData.addDays(now, -30), now)
+        const old = new Date(now.getTime() - 20 * 86400000).toISOString()
+        answers[0]({ ok: true, data: [{ id: 1, begin: old }, { id: 2, begin: now.toISOString() }] })
+        const before = f.stats.rangeBeginMs
+        f.totals.weekEntries = [{ id: 3, begin: now.toISOString() }]
+        compare(f.stats.rangeBeginMs, before)
+        compare(f.stats.timesheets.map(function(e) { return e.id }).sort(), [1, 3])
+    }
+
+    // The loading of an overlapping ask: the preload runs, the view pages six weeks back and
+    // the answers come in reverse order. The week asked for must be loaded in the end.
+    function test_overlapping_loads_keep_the_union() {
+        const s = stats()
+        s.open()
+        const preload = answers[1]
+        const now = new Date()
+        const far = StatsData.addDays(now, -42)
+        s.load(far, StatsData.addDays(far, 6))
+        compare(weekFetches().length, 2)
+        answers[2]({ ok: true, data: [{ id: 2 }] })
+        verify(!s.loading)
+        preload({ ok: true, data: [{ id: 1 }] })
+        compare(s.timesheets.length, 1)
+        compare(s.timesheets[0].id, 2)
+        verify(s.rangeBeginMs <= StatsData.startOfDay(far).getTime())
+        compare(weekFetches().length, 2)
+    }
+
+    function test_loading_stays_until_the_latest_answer() {
+        const s = stats()
+        s.open()
+        const far = StatsData.addDays(new Date(), -42)
+        s.load(far, far)
+        answers[1]({ ok: true, data: [] })
+        verify(s.loading)
+        answers[2]({ ok: true, data: [] })
+        verify(!s.loading)
+    }
+
+    // Another profile: the loaded entries go and an answer of the old one is dropped.
+    function test_profile_switch_forgets_and_drops_old_answers() {
+        const f = createTemporaryObject(fixture, this)
+        f.stats.load(new Date(), new Date())
+        f.connection.generation++
+        answers[0]({ ok: true, data: [{ id: 1 }] })
+        compare(f.stats.timesheets.length, 0)
+        compare(f.stats.rangeBeginMs, 0)
+        verify(!f.stats.loading)
+        f.stats.timesheets = [{ id: 5 }]
+        f.stats.rangeBeginMs = 5
+        f.connection.generation++
+        compare(f.stats.timesheets.length, 0)
+        compare(f.stats.rangeBeginMs, 0)
+    }
+
+    // A write (an entry created, changed, deleted, split, the timer stopped) makes the range stale:
+    // the next open fetches it again, without one it does not.
+    function test_write_makes_the_range_stale() {
+        const f = createTemporaryObject(fixture, this)
+        const now = new Date()
+        f.stats.open()
+        answers[1]({ ok: true, data: [{ id: 1 }] })
+        const n = weekFetches().length
+        f.stats.open()
+        compare(weekFetches().length, n)
+        f.busy = true
+        f.busy = false
+        f.stats.open()
+        compare(weekFetches().length, n + 1)
+        verify(weekFetches()[n].begin.getTime() <= f.stats.rangeBeginMs)
     }
 
     function test_catalog_update_rehydrates() {
