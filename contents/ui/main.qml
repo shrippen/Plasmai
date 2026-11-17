@@ -135,14 +135,6 @@ PlasmoidItem {
     /** A manual entry is being saved. */
     property bool savingEntry: false
 
-    // Statistics: entries of several weeks (the week's from the totals until more is asked).
-    property var statsTimesheets: []
-    property var statsRangeBeginMs: 0
-    property var statsRangeEndMs: 0
-    property bool loadingStats: false
-    /** Trips of this week and month for the statistics (null = not loaded / no plugin). */
-    property var statsTrips: null
-
     // Film day: the shown day; the loaded day, mode, probe and calls are session.filmDay's.
     property var filmDaySelectedDate: new Date()
 
@@ -721,20 +713,6 @@ PlasmoidItem {
         }
     }
 
-    // Outside the statistics the week's entries stand in for its first range.
-    Connections {
-        target: root.session.totals
-        function onWeekEntriesChanged() {
-            if (root.statsTimesheets.length && root.mainViewMode === "stats") {
-                return
-            }
-            const now = new Date()
-            root.statsTimesheets = root.session.totals.weekEntries
-            root.statsRangeBeginMs = KimaiApi.startOfWeekMonday(now).getTime()
-            root.statsRangeEndMs = KimaiApi.endOfWeekSunday(now).getTime()
-        }
-    }
-
     // The plugin probe answered: Detected trips load while the popup shows.
     Connections {
         target: root.session.trips
@@ -901,56 +879,19 @@ PlasmoidItem {
         })
     }
 
+    // The statistics view is shown: the week's entries do not replace its range.
+    Binding {
+        target: root.session.stats
+        property: "shown"
+        value: root.mainViewMode === "stats"
+    }
+
     function openStatsView() {
         if (!session.connection.configured || !session.connection.capabilities.statistics) {
             return
         }
         mainViewMode = "stats"
-        session.totals.refresh()
-        loadStatsTrips()
-        // Prefetch a few weeks so day/week switchers work immediately.
-        const now = new Date()
-        const begin = KimaiApi.startOfWeekMonday(now)
-        begin.setDate(begin.getDate() - 7 * 4)
-        loadStatsRange(begin, KimaiApi.endOfWeekSunday(now))
-    }
-
-    /**
-     * Ensure statsTimesheets covers [beginDate, endDate]. Fetches when needed.
-     */
-    function loadStatsRange(beginDate, endDate) {
-        if (!session.connection.configured || !beginDate || !endDate) {
-            return
-        }
-        const bMs = beginDate.getTime()
-        const eMs = endDate.getTime()
-        if (statsRangeBeginMs && statsRangeEndMs
-            && bMs >= statsRangeBeginMs && eMs <= statsRangeEndMs
-            && statsTimesheets.length > 0) {
-            rehydrateStatsTimesheets()
-            return
-        }
-        // Padded to full weeks.
-        const fetchBegin = KimaiApi.startOfWeekMonday(new Date(statsRangeBeginMs && statsRangeBeginMs < bMs ? statsRangeBeginMs : bMs))
-        const fetchEnd = KimaiApi.endOfWeekSunday(new Date(statsRangeEndMs && statsRangeEndMs > eMs ? statsRangeEndMs : eMs))
-        loadingStats = true
-        session.entries.fetchRange(fetchBegin, fetchEnd, function(result) {
-            root.loadingStats = false
-            if (!result.ok) {
-                return
-            }
-            root.statsTimesheets = result.data || []
-            // An offline answer (the snapshot) does not count as loaded: fetch again once online.
-            root.statsRangeBeginMs = result.offline ? 0 : fetchBegin.getTime()
-            root.statsRangeEndMs = result.offline ? 0 : fetchEnd.getTime()
-        })
-    }
-
-    function rehydrateStatsTimesheets() {
-        if (!statsTimesheets || statsTimesheets.length === 0) {
-            return
-        }
-        statsTimesheets = session.catalog.hydrate(statsTimesheets)
+        session.stats.open()
     }
 
     function returnToMainView() {
@@ -1108,7 +1049,7 @@ PlasmoidItem {
     function resetProfileView() {
         tripSuggestions = []
         tripSuggestionsLoadedAt = 0
-        statsTrips = null
+        session.stats.forget()
         resetTrackingView()
     }
 
@@ -1193,7 +1134,6 @@ PlasmoidItem {
                 root.removeSuggestion(data)
                 return
             }
-            root.statsTrips = null
             if (change === Session.TripChange.Accepted) {
                 root.removeSuggestion(data)
                 return
@@ -1248,19 +1188,6 @@ PlasmoidItem {
             if (!r.ok) {
                 root.userMessage = i18n("The trip could not be dismissed: %1", (r.error && r.error.detail) || ApiErrors.text(r.error))
             }
-        })
-    }
-
-    /** A6: trips of this week and month for the statistics summary. */
-    function loadStatsTrips() {
-        if (!session.trips.available) {
-            statsTrips = null
-            return
-        }
-        const now = new Date()
-        const range = Mileage.hasFeature(session.trips.ping, "dateRange") ? StatsData.tripRangeFor(now) : { year: now.getFullYear() }
-        session.trips.fetch(range, function(r) {
-            root.statsTrips = r.ok ? r.data : null
         })
     }
 
@@ -1468,7 +1395,6 @@ PlasmoidItem {
         if (selectedProjectId) {
             session.catalog.loadActivities(selectedProjectId, function(model) { root.activityPickerModel = model })
         }
-        rehydrateStatsTimesheets()
         if (session.timer.active && editingActiveEntry) {
             Qt.callLater(function() {
                 if (root.editingActiveEntry && root.activeEditViewRef) {
@@ -2579,7 +2505,7 @@ PlasmoidItem {
                     visible: active
                     sourceComponent: Component {
                         StatsView {
-                            timesheets: root.statsTimesheets
+                            timesheets: root.session.stats.timesheets
                             customersById: root.session.catalog.customersById
                             todayTargetSeconds: root.session.totals.todayTargetSeconds
                             weekTargetSeconds: root.session.totals.weekTargetSeconds
@@ -2588,10 +2514,10 @@ PlasmoidItem {
                             workDayBegin: root.workDayBegin
                             workDayEnd: root.workDayEnd
                             supportsBillableFilter: root.session.connection.capabilities.billableFilter
-                            tripSummary: root.statsTrips ? StatsData.tripKmSummary(root.statsTrips, new Date()) : null
+                            tripSummary: root.session.stats.trips ? StatsData.tripKmSummary(root.session.stats.trips, new Date()) : null
                             onBackRequested: root.returnToMainView()
                             onNeedMoreHistory: function(rangeBegin, rangeEnd) {
-                                root.loadStatsRange(rangeBegin, rangeEnd)
+                                root.session.stats.load(rangeBegin, rangeEnd)
                             }
                         }
                     }

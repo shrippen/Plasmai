@@ -57,7 +57,6 @@ TestCase {
         s.open()
         compare(refreshes, 1)
         compare(fetches.length, 2)
-        verify(s.shown)
         const span = StatsData.prefetchSpan(new Date())
         compare(weekFetches()[0].begin.getTime(), span.begin.getTime())
         compare(weekFetches()[0].end.getTime(), span.end.getTime())
@@ -134,10 +133,10 @@ TestCase {
         f.totals.weekEntries = [{ id: 1 }]
         compare(f.stats.timesheets.length, 1)
         verify(f.stats.rangeBeginMs > 0)
-        f.stats.open()
+        f.stats.shown = true
         f.totals.weekEntries = [{ id: 2 }, { id: 3 }]
         compare(f.stats.timesheets.length, 1)
-        f.stats.close()
+        f.stats.shown = false
         f.totals.weekEntries = [{ id: 2 }, { id: 3 }]
         compare(f.stats.timesheets.length, 2)
     }

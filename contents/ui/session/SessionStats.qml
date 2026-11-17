@@ -14,7 +14,7 @@ QtObject {
 
     property QtObject session: null
 
-    /** The view is shown: the week's entries from the totals no longer replace the range. */
+    /** Set by the view while it is shown: the week's entries from the totals no longer replace the range. */
     property bool shown: false
     property var timesheets: []
     property double rangeBeginMs: 0
@@ -25,15 +25,10 @@ QtObject {
 
     /** The view opens: fresh totals, trips, and a few weeks so day/week switchers work at once. */
     function open() {
-        shown = true
         session.totals.refresh()
         loadTrips()
         const span = StatsData.prefetchSpan(new Date())
         load(span.begin, span.end)
-    }
-
-    function close() {
-        shown = false
     }
 
     /** Makes the entries cover [begin, end]; fetches only what is missing. */

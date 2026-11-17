@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
-import "../contents/code/mileage.js" as Mileage
 import "../contents/code/statsData.js" as StatsData
 import "shared"
 import "Kante"
@@ -13,51 +12,19 @@ Kirigami.Page {
     KantePageTitle { page: page }
     title: i18n("Statistics")
 
-    property var timesheets: []
-    property bool loading: false
-    property var _rangeBeginMs: 0
-    property var _rangeEndMs: 0
-    /** Trips of this week and month (kimai-anfahrten), null = no plugin / not loaded. */
-    property var trips: null
-
-    function loadTrips() {
-        if (!session.trips.available) { trips = null; return }
-        var now = new Date()
-        var range = Mileage.hasFeature(session.trips.ping, "dateRange") ? StatsData.tripRangeFor(now) : { year: now.getFullYear() }
-        session.trips.fetch(range, function(r) {
-            // The page is gone: nothing to show.
-            if (!page) { return }
-            page.trips = r.ok ? r.data : null
-        })
+    // While the page lives the week's entries do not replace the loaded range.
+    Component.onCompleted: {
+        session.stats.shown = true
+        session.stats.open()
     }
+    Component.onDestruction: session.stats.shown = false
 
-    Component.onCompleted: loadTrips()
-
-    /** Pull to refresh: forget the loaded range and fetch it, trips and totals again. */
+    /** Pull to refresh: forget the loaded range, fetch it, trips and totals again. */
     function reloadAll() {
-        _rangeBeginMs = 0
-        _rangeEndMs = 0
-        timesheets = []
+        session.stats.forget()
         statsView.ensureRangeForOffsets()
-        loadTrips()
+        session.stats.open()
         session.refresh()
-    }
-
-    function loadRange(rangeBegin, rangeEnd) {
-        if (!session.connection.configured) return
-        var bMs = rangeBegin.getTime(), eMs = rangeEnd.getTime()
-        if (_rangeBeginMs && _rangeEndMs && bMs >= _rangeBeginMs && eMs <= _rangeEndMs && timesheets.length > 0) return
-        loading = true
-        session.entries.fetchRange(rangeBegin, rangeEnd, function(r) {
-            // The page is gone: nothing to show.
-            if (!page) { return }
-            loading = false
-            if (r.ok) {
-                timesheets = r.data
-                // An offline answer (the snapshot) does not count as loaded: fetch again once online.
-                _rangeBeginMs = r.offline ? 0 : bMs; _rangeEndMs = r.offline ? 0 : eMs
-            }
-        })
     }
 
     QQC2.ScrollView {
@@ -76,7 +43,7 @@ Kirigami.Page {
             StatsView {
                 id: statsView
                 Layout.fillWidth: true
-                timesheets: page.timesheets
+                timesheets: session.stats.timesheets
                 customersById: session.catalog.customersById
                 todayTargetSeconds: session.totals.todayTargetSeconds
                 weekTargetSeconds: session.totals.weekEffectiveTargetSeconds
@@ -84,8 +51,8 @@ Kirigami.Page {
                 workDayBegin: session.settings.workDayBegin
                 workDayEnd: session.settings.workDayEnd
                 supportsBillableFilter: session.connection.capabilities.billableFilter
-                tripSummary: page.trips ? StatsData.tripKmSummary(page.trips, new Date()) : null
-                onNeedMoreHistory: function(rangeBegin, rangeEnd) { page.loadRange(rangeBegin, rangeEnd) }
+                tripSummary: session.stats.trips ? StatsData.tripKmSummary(session.stats.trips, new Date()) : null
+                onNeedMoreHistory: function(rangeBegin, rangeEnd) { session.stats.load(rangeBegin, rangeEnd) }
             }
 
             Item { Layout.fillHeight: true; Layout.minimumHeight: Kirigami.Units.largeSpacing }
@@ -98,7 +65,7 @@ Kirigami.Page {
         anchors.fill: parent
         z: 10
         flickable: pageScroll.contentItem
-        busy: page.loading
+        busy: session.stats.loading
         onRefreshRequested: page.reloadAll()
     }
 }
