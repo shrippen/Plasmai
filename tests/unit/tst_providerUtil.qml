@@ -40,10 +40,16 @@ TestCase {
 
     function test_serverText() {
         compare(Util.serverText({ type: Util.ErrorType.Server, detail: "Disk full" }), "Disk full")
-        compare(Util.serverText({ type: Util.ErrorType.Unknown, statusText: "Bad" }), "Bad")
+        compare(Util.serverText({ type: Util.ErrorType.Unknown, detail: "Bad" }), "Bad")
         compare(Util.serverText({ type: Util.ErrorType.Unauthorized }), "")
         compare(Util.serverText({ type: Util.ErrorType.NotConfigured, detail: "no url" }), "")
         compare(Util.serverText(null), "")
+        // A bare status line is not the server's own text.
+        compare(Util.serverText({ type: Util.ErrorType.Forbidden, detail: "Forbidden" }), "")
+        compare(Util.serverText({ type: Util.ErrorType.NotFound, detail: "Not Found" }), "")
+        compare(Util.serverText({ type: Util.ErrorType.Server, detail: "internal server error" }), "")
+        compare(Util.serverText({ type: Util.ErrorType.Unknown, detail: "This month of the logbook is closed." }),
+                "This month of the logbook is closed.")
         // The app's own errors carry no server text, even with a detail.
         compare(Util.serverText({ type: Util.ErrorType.InvalidInput, detail: "projectId" }), "")
         compare(Util.serverText({ type: Util.ErrorType.Offline, detail: "x" }), "")

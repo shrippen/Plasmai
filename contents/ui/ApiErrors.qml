@@ -3,8 +3,8 @@ import QtQuick
 import "../code/providerUtil.js" as ProviderUtil
 import "../code/offlineState.js" as OfflineState
 
-// The rule: where a server answered, show its own text (`withServer`); the translated kind
-// (`text`) is the fallback, and the only text for errors without a server (setup, offline, network).
+// The rule: where a server answered with a text of its own, show it (`withServer`); the translated kind
+// (`text`) is the fallback, also for a bare status line ("Not Found") and for errors without a server (setup, offline, network).
 QtObject {
     /** The words for the offline layer's storage problem (OfflineState.StorageError); "" for none. */
     function storageText(storageError) {

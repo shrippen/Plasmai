@@ -65,12 +65,20 @@ function parseApiError(status, statusText, responseText) {
 // Errors the app raises itself: no server answered, so there is no server text.
 var APP_ERRORS = [ErrorType.NotConfigured, ErrorType.InvalidInput, ErrorType.Offline, ErrorType.Network]
 
-/** The text the server sent with an error; "" when it sent none or the app raised the error itself. */
+// The standard reason phrases of the statuses the providers report as their own error kinds.
+var STATUS_PHRASES = ["unauthorized", "forbidden", "not found", "internal server error",
+                      "bad gateway", "service unavailable", "gateway timeout"]
+
+/**
+ * The text the server sent with an error; "" when it sent none, only the status line
+ * ("Not Found", "Forbidden"), or the app raised the error itself.
+ */
 function serverText(error) {
     if (!error || APP_ERRORS.indexOf(error.type) >= 0) {
         return ""
     }
-    return error.detail || error.statusText || ""
+    const text = error.detail || ""
+    return STATUS_PHRASES.indexOf(text.trim().toLowerCase()) >= 0 ? "" : text
 }
 
 function ok(data) {
