@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 T = {
+    # Error hint with the server's own text after it
+    '%1 (%2)': '%1 (%2)',
     # Trips (kimai-anfahrten)
     '%1 (from your profile)': '%1 (aus deinem Profil)',
     '%1 km': '%1 km',

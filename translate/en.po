@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-11-17 22:54+0100\n"
+"POT-Creation-Date: 2026-11-17 23:03+0100\n"
 "PO-Revision-Date: 2026-08-09 19:45+0200\n"
 "Last-Translator: Cursor Agent\n"
 "Language-Team: English\n"
@@ -178,7 +178,7 @@ msgstr "Cancel"
 #: app/qml/FavoritesPage.qml:12 app/qml/main.qml:383 app/qml/TimerPage.qml:708
 #: contents/config/config.qml:11 contents/ui/config/ConfigDisplay.qml:860
 #: contents/ui/config/ConfigDisplay.qml:915
-#: contents/ui/config/ConfigFavorites.qml:386 contents/ui/EntryLists.qml:168
+#: contents/ui/config/ConfigFavorites.qml:388 contents/ui/EntryLists.qml:168
 msgid "Favorites"
 msgstr "Favorites"
 
@@ -1434,54 +1434,54 @@ msgstr "Select a project to pin activities."
 msgid "Save an API token on the Connection tab first."
 msgstr "Save an API token on the Connection tab first."
 
-#: contents/ui/config/ConfigFavorites.qml:258
+#: contents/ui/config/ConfigFavorites.qml:259
 msgid "Failed to load projects."
 msgstr "Failed to load projects."
 
-#: contents/ui/config/ConfigFavorites.qml:273
-#: contents/ui/config/ConfigFavorites.qml:306
+#: contents/ui/config/ConfigFavorites.qml:275
+#: contents/ui/config/ConfigFavorites.qml:308
 msgid "Loading activities…"
 msgstr "Loading activities…"
 
-#: contents/ui/config/ConfigFavorites.qml:293
-#: contents/ui/config/ConfigFavorites.qml:323
+#: contents/ui/config/ConfigFavorites.qml:295
+#: contents/ui/config/ConfigFavorites.qml:325
 msgid "%1 project-specific, %2 global"
 msgstr "%1 project-specific, %2 global"
 
-#: contents/ui/config/ConfigFavorites.qml:309
+#: contents/ui/config/ConfigFavorites.qml:311
 msgid "No API token available."
 msgstr "No API token available."
 
-#: contents/ui/config/ConfigFavorites.qml:314
+#: contents/ui/config/ConfigFavorites.qml:316
 msgid "Failed to load activities."
 msgstr "Failed to load activities."
 
-#: contents/ui/config/ConfigFavorites.qml:354 contents/ui/main.qml:203
+#: contents/ui/config/ConfigFavorites.qml:356 contents/ui/main.qml:203
 msgid "Project-specific"
 msgstr "Project-specific"
 
-#: contents/ui/config/ConfigFavorites.qml:357 contents/ui/main.qml:204
+#: contents/ui/config/ConfigFavorites.qml:359 contents/ui/main.qml:204
 msgid "Global activities"
 msgstr "Global activities"
 
-#: contents/ui/config/ConfigFavorites.qml:395
+#: contents/ui/config/ConfigFavorites.qml:397
 msgid "Projects"
 msgstr "Projects"
 
-#: contents/ui/config/ConfigFavorites.qml:400
+#: contents/ui/config/ConfigFavorites.qml:402
 msgid "Reload"
 msgstr "Reload"
 
-#: contents/ui/config/ConfigFavorites.qml:418
-#: contents/ui/config/ConfigFavorites.qml:493
+#: contents/ui/config/ConfigFavorites.qml:420
+#: contents/ui/config/ConfigFavorites.qml:495
 msgid "Loading projects"
 msgstr "Loading projects"
 
-#: contents/ui/config/ConfigFavorites.qml:511
+#: contents/ui/config/ConfigFavorites.qml:513
 msgid "Activities — %1"
 msgstr "Activities — %1"
 
-#: contents/ui/config/ConfigFavorites.qml:512
+#: contents/ui/config/ConfigFavorites.qml:514
 msgid "Activities"
 msgstr "Activities"
 
