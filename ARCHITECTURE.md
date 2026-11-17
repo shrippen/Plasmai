@@ -117,7 +117,6 @@ favourites, statistics, offline work; for Kimai also film days and trips.
   names (`AUDIT.md`, finding 9).
 - `contents/ui/main.qml` holds view, film day, trips and the loading of statistics in
   one file of 3087 lines (`AUDIT.md`, finding 10).
-- Saving an entry reports its failure only to the caller (`AUDIT.md`, finding 11).
 - The app's connection page has its own list of services (`AUDIT.md`, finding 12).
 - `main.qml` repeats the session's reset of old settings (`AUDIT.md`, finding 13).
 - A stub for unknown services is never reached (`AUDIT.md`, finding 14).
