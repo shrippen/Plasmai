@@ -31,15 +31,29 @@ TestCase {
         return frames
     }
 
-    function sparkline(masks) {
+    function sparkline(masks, arcs, open) {
         const c = Qt.createComponent(Qt.resolvedUrl("../../contents/ui/DaySparkline.qml"))
         verify(c.status === Component.Ready, c.errorString())
-        return createTemporaryObject(c, this, { width: 600, masksRender: masks, showArcs: true, flyoutOpen: true })
+        return createTemporaryObject(c, this, { width: 600, masksRender: masks, showArcs: arcs, flyoutOpen: open })
     }
 
     // With the GPU the mask draws the sun, the spinning icon stays hidden.
     function test_sparklineMasked() {
-        sparkline(true)
+        sparkline(true, true, true)
+        const n = idleFrames()
+        verify(n <= maxIdleFrames, "frames while idle: " + n)
+    }
+
+    // Without the GPU the sun spins on the scene graph; a closed flyout stops it.
+    function test_sparklineUnmaskedFlyoutClosed() {
+        sparkline(false, true, false)
+        const n = idleFrames()
+        verify(n <= maxIdleFrames, "frames while idle: " + n)
+    }
+
+    // Arcs off: no sun, no moon, nothing to animate.
+    function test_sparklineUnmaskedNoArcs() {
+        sparkline(false, false, true)
         const n = idleFrames()
         verify(n <= maxIdleFrames, "frames while idle: " + n)
     }
