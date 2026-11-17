@@ -51,6 +51,16 @@ function serverOf(url) {
     return scheme + "://" + host + parts[3]
 }
 
+/** A short hash of a token (never the token): tells one token from another, 0 for none. */
+function markOf(token) {
+    var text = String(token || "")
+    var hash = 0
+    for (var i = 0; i < text.length; i++) {
+        hash = (Math.imul(hash, 31) + text.charCodeAt(i)) | 0
+    }
+    return text ? (hash || 1) : 0
+}
+
 function clone(value) {
     return JSON.parse(JSON.stringify(value))
 }

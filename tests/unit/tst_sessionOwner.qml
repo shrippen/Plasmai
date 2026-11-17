@@ -3,6 +3,7 @@ import QtTest
 import "../../contents/ui/session" as Parts
 import "../../contents/code/platform.js" as Platform
 import "../../contents/code/kimaiApi.js" as KimaiApi
+import "../../contents/code/offlineOwner.js" as Owner
 
 /**
  * SessionSync and the owner of the waiting changes: a changed address in the same profile is
@@ -15,9 +16,9 @@ TestCase {
 
     readonly property string fileA: "offline-outbox-tui-a"
     readonly property var profA: ({ id: "a", provider: "kimai" })
-    readonly property var owner: ({ server: "http://a.test", account: "1", name: "One" })
+    readonly property var owner: ({ server: "http://a.test", mark: Owner.markOf("tok"), account: "1", name: "One" })
     readonly property var parkedOp: ({ opId: "local:1", kind: "create", entryId: "local:1", state: "failed",
-        attempts: 1, maybeSent: false, error: { type: "unknown", status: 500, detail: "x" },
+        attempts: 1, maybeSent: false, by: ({ server: "http://a.test", mark: Owner.markOf("tok") }), error: { type: "unknown", status: 500, detail: "x" },
         fields: { begin: "2026-09-28T07:00:00+0200", end: "2026-09-28T08:00:00+0200", project: 1, activity: 2 } })
 
     property var files: ({})
@@ -132,7 +133,7 @@ TestCase {
         const sync = createTemporaryObject(syncComponent, this)
         opened(sync, "http://a.test")
         opened(sync, "http://a.test/kimai")
-        sync.adopt(0)
+        sync.adopt(sync.groups[0].id)
         tryCompare(sync, "held", 0)
         compare(posts().length, 1)
         verify(posts()[0].indexOf("http://a.test/kimai/api/timesheets") > 0)
@@ -142,7 +143,7 @@ TestCase {
         const sync = createTemporaryObject(syncComponent, this)
         opened(sync, "http://a.test")
         opened(sync, "http://a.test/kimai")
-        sync.discardGroup(0)
+        sync.discardGroup(sync.groups[0].id)
         compare(sync.held, 0)
         compare(files[fileA].held.length, 0)
         compare(posts().length, 0)
@@ -154,7 +155,7 @@ TestCase {
         opened(sync, "http://a.test")
         compare(sync.held, 1)
         verify(!sync.groups[0].canAdopt)
-        sync.adopt(0)
+        sync.adopt(sync.groups[0].id)
         compare(sync.held, 1)
         compare(posts().length, 0)
     }

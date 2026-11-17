@@ -16,10 +16,13 @@ TestCase {
 
     readonly property var op: ({ opId: "local:1", kind: "delete", entryId: 5, state: "failed",
         error: { type: "unknown", status: 500, detail: "x" }, base: { project: "1", activity: "2" } })
-    readonly property var sendable: ({ index: 0, name: "Ann", server: "https://old.test", to: "https://new.test",
-        account: "7", count: 2, canAdopt: true, ops: [op, op] })
-    readonly property var foreign: ({ index: 1, name: "Bob", server: "https://new.test", to: "https://new.test",
-        account: "8", count: 1, canAdopt: false, ops: [op] })
+    readonly property var sendable: ({ id: "g1", name: "Ann", server: "https://old.test", to: "https://new.test",
+        account: "7", sameServer: false, count: 2, canAdopt: true, ops: [op, op] })
+    readonly property var foreign: ({ id: "g2", name: "Bob", server: "https://new.test", to: "https://new.test",
+        account: "8", sameServer: true, count: 1, canAdopt: false, ops: [op] })
+    // Made on an address the token was not checked on, and the token is not the one in use.
+    readonly property var orphan: ({ id: "g3", name: "", server: "https://b.test", to: "https://new.test",
+        account: "", sameServer: false, count: 1, canAdopt: false, ops: [op] })
 
     Component {
         id: listComponent
@@ -49,6 +52,9 @@ TestCase {
         compare(Ui.ApiErrors.heldGroupText(foreign), "1 change waits for Bob on https://new.test")
         compare(Ui.ApiErrors.heldHint(foreign), "Sign in as Bob to send them.")
         compare(Ui.ApiErrors.heldHint(sendable), "")
+        // No name to show: the words do not leave a hole, and say what brings the changes back.
+        compare(Ui.ApiErrors.heldGroupText(orphan), "1 change waits on https://b.test")
+        compare(Ui.ApiErrors.heldHint(orphan), "Enter the old address or token again to send them.")
         const question = Ui.ApiErrors.adoptQuestion(sendable)
         verify(question.indexOf("https://old.test") >= 0 && question.indexOf("https://new.test") >= 0)
     }
@@ -84,7 +90,7 @@ TestCase {
         verify(findChild(l, "confirmText").text.indexOf("https://new.test") >= 0)
         findChild(l, "confirmButton").clicked()
         compare(adoptSpy.count, 1)
-        compare(adoptSpy.signalArguments[0][0], 0)
+        compare(adoptSpy.signalArguments[0][0], "g1")
     }
 
     function test_cancelSendsNothing() {
@@ -103,7 +109,7 @@ TestCase {
         verify(findChild(l, "confirmText").text.indexOf("2") >= 0)
         findChild(l, "confirmButton").clicked()
         compare(dropSpy.count, 1)
-        compare(dropSpy.signalArguments[0][0], 0)
+        compare(dropSpy.signalArguments[0][0], "g1")
     }
 
     // Another account on the same server (the owner's decision): no way to send, only the hint.
@@ -112,6 +118,13 @@ TestCase {
         verify(!findChild(l, "adoptButton").visible)
         verify(findChild(l, "discardGroupButton").visible)
         compare(findChild(l, "heldHint").text, "Sign in as Bob to send them.")
+        verify(findChild(l, "heldHint").visible)
+    }
+
+    function test_groupWithoutNameOffersOnlyDiscardAndTheWayBack() {
+        const l = list([orphan])
+        compare(findChild(l, "heldGroupTitle").text, "1 change waits on https://b.test")
+        verify(!findChild(l, "adoptButton").visible)
         verify(findChild(l, "heldHint").visible)
     }
 }
