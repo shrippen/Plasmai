@@ -5,6 +5,7 @@ import org.kde.kirigami as Kirigami
 import "../code/setupWizard.js" as Wizard
 import "../code/profiles.js" as Profiles
 import "../code/dateTimeFormat.js" as DTF
+import "../code/sharedConfig.js" as SharedConfig
 import "."
 import "session"
 import "Kante"
@@ -42,8 +43,8 @@ ColumnLayout {
     property string activeProfileId: "default"
     /** The platform can show a reminder (app: a Notifier exists; Plasmoid: always). */
     property bool supportsReminders: true
-    property string workDayBegin: "08:00"
-    property string workDayEnd: "18:00"
+    property string workDayBegin: SharedConfig.DEFAULTS.workDayBegin
+    property string workDayEnd: SharedConfig.DEFAULTS.workDayEnd
     property string locationName: ""
     property bool notifyForgotToStart: false
     /** The look in use (host's visualStyle); the Look step reports a change by styleChosen. */

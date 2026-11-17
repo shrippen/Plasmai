@@ -1,5 +1,6 @@
 import QtQml
 import "../code/providerUtil.js" as ProviderUtil
+import "../code/sharedConfig.js" as SharedConfig
 import "session"
 
 /**
@@ -102,7 +103,7 @@ QtObject {
 
     // Keeps polling after an error too, so it recovers by itself once the network is back.
     property Timer pollTimer: Timer {
-        interval: Math.max(10, session.settings.refreshInterval) * 1000
+        interval: Math.max(SharedConfig.LIMITS.refreshInterval.min, session.settings.refreshInterval) * 1000
         repeat: true
         running: session.connection.configured
                  && (session.connection.state === session.connection.online

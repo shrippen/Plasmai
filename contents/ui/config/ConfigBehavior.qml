@@ -24,7 +24,7 @@ ConfigPage {
     property string loadedBehaviorState: ""
 
     function coerceIdleMinutes(value, fallback) {
-        return SharedConfig.coerceInt(value, fallback, 1, 240)
+        return SharedConfig.limitInt("idleStopMinutes", value, fallback)
     }
 
     function behaviorPatch() {
@@ -68,7 +68,7 @@ ConfigPage {
             plasmoid.configuration.idleStopMinutes !== undefined
                 ? plasmoid.configuration.idleStopMinutes
                 : page.cfg_idleStopMinutes,
-            page.cfg_idleStopMinutesDefault || 15)
+            page.cfg_idleStopMinutesDefault || SharedConfig.DEFAULTS.idleStopMinutes)
         notifyStartCheck.checked = page.boolFrom(
             page.cfg_notifyOnStart, plasmoid.configuration.notifyOnStart, true)
         notifyStopCheck.checked = page.boolFrom(
@@ -277,8 +277,8 @@ ConfigPage {
                 QQC2.SpinBox {
                     id: idleStopSpin
                     Kirigami.FormData.label: i18n("Idle threshold (minutes):")
-                    from: 1
-                    to: 240
+                    from: SharedConfig.LIMITS.idleStopMinutes.min
+                    to: SharedConfig.LIMITS.idleStopMinutes.max
                     stepSize: 1
                     enabled: idleStopCheck.checked
                     onValueChanged: page.notifyEdited()

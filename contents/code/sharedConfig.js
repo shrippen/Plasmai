@@ -50,6 +50,17 @@ var SHARED_KEYS = [
     "settingsVersion"
 ]
 
+/** The shared keys the session holds (SessionSettings.qml has a property for each). */
+var SESSION_KEYS = [
+    "refreshInterval", "recentCount", "confirmBeforeStop", "confirmStartBeforePreviousEnd",
+    "popupShowWorkSummary", "popupShowRecent", "popupShowFavorites", "popupShowContinue",
+    "popupShowNewActivity", "popupShowSparkline", "showSparklineArcs", "showTrips", "visualStyle",
+    "pinnedActivities", "workDayBegin", "workDayEnd", "latitude", "longitude", "locationName",
+    "idleStopEnabled", "idleStopMinutes", "notifyOnStart", "notifyOnStop", "notifyOnIdleStop",
+    "notifyForgotToStart", "lastUsedProjectId", "lastUsedActivityId", "lastUsedProjectName",
+    "lastUsedActivityName", "pluginProbesJson"
+]
+
 /**
  * Version of the settings in shared.json; every write through Platform.patchShared
  * carries it. Settings without it were written by a version before the setup wizard
@@ -118,6 +129,18 @@ var DEFAULTS = {
     touchMode: 0,
     visualStyle: 0,
     trackingIndicator: 0
+}
+
+/** The range of a number setting, for the widget's and the app's settings page alike. */
+var LIMITS = {
+    refreshInterval: { min: 10, max: 300 },
+    recentCount: { min: 3, max: 50 },
+    idleStopMinutes: { min: 1, max: 240 }
+}
+
+/** A LIMITS setting's value from KConfig / shared.json, kept inside its range. */
+function limitInt(key, value, fallback) {
+    return coerceInt(value, fallback, LIMITS[key].min, LIMITS[key].max)
 }
 
 /** Settings of a version before the setup wizard: some setting, but no settings version. */

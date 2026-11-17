@@ -296,4 +296,36 @@ TestCase {
         verify(SharedConfig.SHARED_KEYS.indexOf("filmDaysJson") < 0)
         verify(SharedConfig.SHARED_KEYS.indexOf("filmDaysPending") < 0)
     }
+
+    // One range per setting, for the widget's and the app's settings page alike.
+    function test_limits() {
+        compare(SharedConfig.LIMITS.refreshInterval.min, 10)
+        compare(SharedConfig.LIMITS.refreshInterval.max, 300)
+        compare(SharedConfig.LIMITS.recentCount.min, 3)
+        compare(SharedConfig.LIMITS.recentCount.max, 50)
+        compare(SharedConfig.LIMITS.idleStopMinutes.min, 1)
+        compare(SharedConfig.LIMITS.idleStopMinutes.max, 240)
+        for (var key in SharedConfig.LIMITS) {
+            var limit = SharedConfig.LIMITS[key]
+            verify(SharedConfig.DEFAULTS[key] >= limit.min && SharedConfig.DEFAULTS[key] <= limit.max, key)
+        }
+    }
+
+    function test_limitInt() {
+        compare(SharedConfig.limitInt("recentCount", "40", 10), 40)
+        compare(SharedConfig.limitInt("recentCount", 99, 10), 50)
+        compare(SharedConfig.limitInt("refreshInterval", 1, 30), 10)
+        compare(SharedConfig.limitInt("idleStopMinutes", "bogus", 15), 15)
+        compare(SharedConfig.limitInt("idleStopMinutes", 0, 15), 1)
+    }
+
+    // The keys the session holds are shared keys with a default.
+    function test_sessionKeys() {
+        verify(SharedConfig.SESSION_KEYS.length > 0)
+        for (var i = 0; i < SharedConfig.SESSION_KEYS.length; i++) {
+            var key = SharedConfig.SESSION_KEYS[i]
+            verify(SharedConfig.SHARED_KEYS.indexOf(key) >= 0, key)
+            verify(key in SharedConfig.DEFAULTS, key)
+        }
+    }
 }
