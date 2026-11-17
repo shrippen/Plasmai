@@ -112,6 +112,27 @@ TestCase {
         KimaiApi.createTimesheet("http://k", "t", { end: "2026-09-20T09:00:00", project: 2, activity: 2 },
                                  function(r) { got = r })
         verify(!got.ok)
+        compare(got.error.type, ProviderUtil.ErrorType.InvalidInput)
+        compare(requests.length, 0)
+    }
+
+    function test_missingInputIsNotMissingAccess() {
+        var got = null
+        var keep = function(r) { got = r }
+        KimaiApi.createCustomer("http://k", "t", { name: "  " }, keep)
+        compare(got.error.type, ProviderUtil.ErrorType.InvalidInput)
+        compare(got.error.detail, "name is required")
+        KimaiApi.createProject("http://k", "t", { name: "x" }, keep)
+        compare(got.error.type, ProviderUtil.ErrorType.InvalidInput)
+        KimaiApi.createActivity("http://k", "t", { name: "" }, keep)
+        compare(got.error.type, ProviderUtil.ErrorType.InvalidInput)
+        KimaiApi.fetchFilmDay("http://k", "t", 1, "not a date", keep)
+        compare(got.error.type, ProviderUtil.ErrorType.InvalidInput)
+        compare(got.error.code, "invalid_date")
+        compare(requests.length, 0)
+
+        KimaiApi.createCustomer("", "", { name: "Acme" }, keep)
+        compare(got.error.type, ProviderUtil.ErrorType.NotConfigured)
         compare(requests.length, 0)
     }
 

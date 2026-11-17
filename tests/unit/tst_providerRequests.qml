@@ -188,16 +188,16 @@ TestCase {
                 var token = t === 0 ? "" : undefined
                 var r = call(svc, "loadCustomers", [svc.url, token])
                 verify(!r.ok, svc.name)
-                compare(r.error.type, "config", svc.name)
+                compare(r.error.type, Util.ErrorType.NotConfigured, svc.name)
                 compare(r.error.status, 0)
                 compare(r.error.detail, "")
             }
             compare(requests.length, 0, svc.name + ": nothing sent without token")
 
             r = call(svc, "testConnection", [svc.url, ""])
-            compare(r.error.type, "config", svc.name)
+            compare(r.error.type, Util.ErrorType.NotConfigured, svc.name)
             r = call(svc, "deleteTimesheet", [svc.url, "", 5])
-            compare(r.error.type, "config", svc.name)
+            compare(r.error.type, Util.ErrorType.NotConfigured, svc.name)
             compare(requests.length, 0, svc.name)
         }
     }
@@ -212,7 +212,7 @@ TestCase {
             var r = call(svc, "loadCustomers", ["", "tok"])
             if (svc.needsUrl) {
                 verify(!r.ok, svc.name)
-                compare(r.error.type, "config", svc.name)
+                compare(r.error.type, Util.ErrorType.NotConfigured, svc.name)
                 compare(requests.length, 0, svc.name)
                 continue
             }
@@ -519,7 +519,7 @@ TestCase {
             responses = svc.unresolvedAnswers
             var r = del(svc)
             verify(!r.ok, svc.name)
-            compare(r.error.type, "config", svc.name)
+            compare(r.error.type, Util.ErrorType.NotConfigured, svc.name)
             compare(r.error.status, 0, svc.name)
             if (svc.name === "solidtime") {
                 // No membership at all has its own message.
@@ -531,13 +531,73 @@ TestCase {
         }
     }
 
+    function test_togglNeedsWorkspaceAndUser() {
+        // Both ids must be known; one alone leaves the context unresolved.
+        var svc = services()[1]
+        var cases = [
+            { preset: { workspaceId: 9, userId: 0 }, me: { default_workspace_id: 9 } },
+            { preset: { workspaceId: 0, userId: 7 }, me: { id: 7 } },
+            { preset: { workspaceId: 0, userId: 0 }, me: {} }
+        ]
+        for (var i = 0; i < cases.length; i++) {
+            Toggl.setSession(cases[i].preset)
+            requests = []
+            responses = [{ status: 200, body: cases[i].me }]
+            var r = del(svc)
+            verify(!r.ok, "case " + i)
+            compare(r.error.type, Util.ErrorType.NotConfigured, "case " + i)
+            compare(r.error.detail, "Workspace or user not resolved", "case " + i)
+            compare(requests.length, 1, "case " + i + ": the call itself is not sent")
+        }
+        Toggl.setSession({ workspaceId: 9, userId: 7 })
+        responses = [{ status: 204, text: "" }]
+        verify(del(svc).ok, "both known")
+    }
+
+    function test_solidTimeNeedsOrganizationAndMember() {
+        var svc = services()[2]
+        var cases = [
+            { organization: { id: "o1" } },
+            { id: "m1" },
+            { id: "m1", organization: {} }
+        ]
+        for (var i = 0; i < cases.length; i++) {
+            SolidTime.setSession({ organizationId: "", memberId: "" })
+            requests = []
+            responses = [{ status: 200, body: { data: [cases[i]] } }]
+            var r = del(svc)
+            verify(!r.ok, "case " + i)
+            compare(r.error.type, Util.ErrorType.NotConfigured, "case " + i)
+            compare(r.error.detail, "Organization or member not resolved", "case " + i)
+            compare(requests.length, 1, "case " + i + ": the call itself is not sent")
+        }
+    }
+
+    function test_missingInputIsNotMissingAccess() {
+        var all = services()
+        for (var i = 0; i < all.length; i++) {
+            var svc = all[i]
+            svc.preset()
+            requests = []
+            var r = call(svc, "createCustomer", [svc.url, "tok", { name: " " }])
+            verify(!r.ok, svc.name)
+            compare(r.error.type, Util.ErrorType.InvalidInput, svc.name)
+            compare(r.error.detail, "name is required", svc.name)
+            r = call(svc, "createProject", [svc.url, "tok", { name: "P" }])
+            compare(r.error.type, Util.ErrorType.InvalidInput, svc.name)
+            r = call(svc, "createActivity", [svc.url, "tok", { name: "A" }])
+            compare(r.error.type, Util.ErrorType.InvalidInput, svc.name)
+            compare(requests.length, 0, svc.name + ": nothing sent")
+        }
+    }
+
     function test_togglContextNotFoundCountsAsEmpty() {
         // 404 on /me reads as an empty answer, so the context stays unresolved.
         Toggl.setSession({ workspaceId: 0, userId: 0 })
         responses = [{ status: 404, text: "" }]
         var r = del(services()[1])
         verify(!r.ok)
-        compare(r.error.type, "config")
+        compare(r.error.type, Util.ErrorType.NotConfigured)
         compare(r.error.detail, "Workspace or user not resolved")
     }
 

@@ -2,6 +2,7 @@ import QtQuick
 import QtTest
 import "../../contents/code/offline.js" as Offline
 import "../../contents/code/kimaiApi.js" as KimaiApi
+import "../../contents/code/providerUtil.js" as ProviderUtil
 
 /**
  * offline.js: snapshot answers, outbox, replay, local ids, conflicts. A fake
@@ -452,7 +453,7 @@ TestCase {
         compare(r.data.description, "Szene 4")
         compare(r.data.end, undefined)
         var unknown = call(function(cb) { t.restartTimesheet("u", "t", 999, cb) })
-        compare(unknown.error.type, "offline")
+        compare(unknown.error.type, ProviderUtil.ErrorType.Offline)
     }
 
     function test_onlineOnlyRefusedOffline() {
@@ -463,7 +464,7 @@ TestCase {
         call(function(cb) { t.fetchActiveTimesheet("u", "t", cb) })
         k.calls = []
         var r = call(function(cb) { t.createProject("u", "t", { name: "x" }, cb) })
-        compare(r.error.type, "offline")
+        compare(r.error.type, ProviderUtil.ErrorType.Offline)
         compare(k.calls, [])
     }
 
@@ -556,7 +557,7 @@ TestCase {
         var other = call(function(cb) { t.fetchTrips("u", "t", { year: 2026, month: 8 }, cb) })
         verify(!other.ok, "an unknown range stays an error")
         var accept = call(function(cb) { t.acceptTripSuggestion("u", "t", 1, {}, cb) })
-        compare(accept.error.type, "offline")
+        compare(accept.error.type, ProviderUtil.ErrorType.Offline)
 
         k.net = true
         call(function(cb) { Offline.replay(s, cb) })
