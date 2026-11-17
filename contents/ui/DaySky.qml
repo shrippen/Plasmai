@@ -1,4 +1,4 @@
-import "../code/arcDraw.js" as Arc
+import "arcDraw.js" as Arc
 import "../code/solar.js" as Solar
 import QtQuick
 import QtQuick.Effects
@@ -174,7 +174,6 @@ Item {
     }
 
     readonly property var sunPoint: {
-        var _force = root.nowTick
         var s = root.sky.sun || {}
         if (s.polarDay) {
             return Solar.arcPoint(0, 1, root.sky.now, false)
@@ -185,7 +184,6 @@ Item {
         return Solar.arcPoint(s.sunrise, s.sunset, root.sky.now, false)
     }
     readonly property var moonPoint: {
-        var _force = root.nowTick
         var m = root.sky.moon || {}
         if (!m.valid || m.alwaysDown) {
             return { visible: false, xFrac: 0, yNorm: 0, t: 0 }

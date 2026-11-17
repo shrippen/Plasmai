@@ -1,4 +1,4 @@
-import "../code/arcDraw.js" as Arc
+import "arcDraw.js" as Arc
 import "../code/kimaiApi.js" as KimaiApi
 import "../code/solar.js" as Solar
 import QtQuick
