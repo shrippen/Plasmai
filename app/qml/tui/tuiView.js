@@ -125,8 +125,12 @@ function main(model, size, t) {
     lines.push("")
     lines.push(paint(Style.BOLD, t.recent))
 
+    // The message wraps over up to MESSAGE_LINES_MAX lines above the footer; no message, one blank line.
+    const message = wrap(model.message, w, MESSAGE_LINES_MAX)
+    const messageRows = Math.max(1, message.length)
+
     // Recent rows with their number key; the selected one inverted.
-    const room = Math.max(1, size.rows - lines.length - 3)
+    const room = Math.max(1, size.rows - lines.length - 2 - messageRows)
     const rows = (model.recent || []).slice(0, room)
     for (let i = 0; i < rows.length; i++) {
         const key = i < 9 ? String(i + 1) : " "
@@ -137,9 +141,7 @@ function main(model, size, t) {
         lines.push(paint(Style.DIM, t.noRecent))
     }
 
-    // The message wraps over up to MESSAGE_LINES_MAX lines above the footer; no message, one blank line.
-    const message = wrap(model.message, w, MESSAGE_LINES_MAX)
-    while (lines.length < size.rows - 1 - Math.max(1, message.length)) {
+    while (lines.length < size.rows - 1 - messageRows) {
         lines.push("")
     }
     if (message.length === 0) {

@@ -59,26 +59,41 @@ function parseApiError(status, statusText, responseText) {
     if (status >= 500) {
         return { type: ErrorType.Server, status: status, detail: detail }
     }
-    return { type: ErrorType.Unknown, status: status, detail: detail || statusText }
+    return { type: ErrorType.Unknown, status: status, detail: detail, statusText: statusText }
 }
 
 // Errors the app raises itself: no server answered, so there is no server text.
-var APP_ERRORS = [ErrorType.NotConfigured, ErrorType.InvalidInput, ErrorType.Offline, ErrorType.Network]
+var APP_ERRORS = [ErrorType.NotConfigured, ErrorType.InvalidInput, ErrorType.Offline,
+                  ErrorType.Network, ErrorType.CacheMiss]
 
-// The standard reason phrases of the statuses the providers report as their own error kinds.
-var STATUS_PHRASES = ["unauthorized", "forbidden", "not found", "internal server error",
-                      "bad gateway", "service unavailable", "gateway timeout"]
+// Kinds the app has a hint for ("Check your API token."), whatever the server wrote.
+var HINT_ERRORS = [ErrorType.Unauthorized, ErrorType.Forbidden, ErrorType.NotFound, ErrorType.Server]
 
-/**
- * The text the server sent with an error; "" when it sent none, only the status line
- * ("Not Found", "Forbidden"), or the app raised the error itself.
- */
+// Which parts of an error a view shows: the app's hint, the server's text, or the hint with the text.
+var ErrorShow = {
+    Hint: "hint",
+    Server: "server",
+    Both: "both"
+}
+
+/** The text the server sent with an error; "" when it sent none or the app raised the error itself. */
 function serverText(error) {
     if (!error || APP_ERRORS.indexOf(error.type) >= 0) {
         return ""
     }
-    const text = error.detail || ""
-    return STATUS_PHRASES.indexOf(text.trim().toLowerCase()) >= 0 ? "" : text
+    return error.detail || ""
+}
+
+/**
+ * Hint kinds (401, 403, 404, 5xx) show the hint, plus the server's text when it sent one
+ * ("Unauthenticated."); other kinds (a 400 with the plugin's text) show that text, the
+ * only useful part; without a text, or for the app's own errors, the hint.
+ */
+function errorShow(error) {
+    if (!serverText(error)) {
+        return ErrorShow.Hint
+    }
+    return HINT_ERRORS.indexOf(error.type) >= 0 ? ErrorShow.Both : ErrorShow.Server
 }
 
 function ok(data) {
