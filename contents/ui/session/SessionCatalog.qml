@@ -183,13 +183,21 @@ QtObject {
         CatalogCache.hydrate(payload)
     }
 
+    property int fetchCount: 0
+
     /**
      * Customers, projects and activities of `p` with its stored token, then stored for
      * the widget. steps: noToken(), failed(), projects(customers, projects),
      * activitiesLoading(), activities(list) (stored; null: the provider has no full list).
      */
     function fetchFor(p, steps) {
+        // Only the latest fetch counts: the answer of an older one is dropped (steps and store).
+        const mine = ++fetchCount
+        const current = function() { return mine === fetchCount }
         Platform.loadToken(session.dataSource, p.id).then(function(token) {
+            if (!current()) {
+                return
+            }
             if (!token) {
                 steps.noToken()
                 return
@@ -197,8 +205,14 @@ QtObject {
             const api = TimeTracker.applySession(p.provider || TimeTracker.PROVIDER_KIMAI, p)
             const url = TimeTracker.resolveUrl(p)
             api.loadCustomers(url, token, function(customersResult) {
+                if (!current()) {
+                    return
+                }
                 const found = customersResult.ok ? (customersResult.data || []) : []
                 api.loadProjects(url, token, function(result) {
+                    if (!current()) {
+                        return
+                    }
                     if (!result.ok) {
                         steps.failed()
                         return
@@ -206,6 +220,9 @@ QtObject {
                     const list = result.data || []
                     steps.projects(found, list)
                     function store(acts) {
+                        if (!current()) {
+                            return
+                        }
                         CatalogCache.storeEntities(p.id, found, list, acts || [], url)
                         Platform.saveCatalog(session.dataSource, CatalogCache.exportPayload())
                         steps.activities(acts)

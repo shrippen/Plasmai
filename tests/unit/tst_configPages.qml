@@ -30,6 +30,38 @@ TestCase {
     property var tokens: ({})
     property string catalogText: ""
 
+    // Demo Kimai whose next `holdNext` requests wait in `held` until the test runs them.
+    property var held: []
+    property int holdNext: 0
+    property int delivered: 0
+    property int catalogSaves: 0
+
+    function gatedRoute() {
+        const test = this
+        return {
+            handles: DemoKimai.isDemoUrl,
+            token: DemoKimai.ROUTE.token,
+            request: function() {
+                const xhr = DemoKimai.request()
+                const send = xhr.send
+                xhr.send = function(body) {
+                    const answer = xhr.onreadystatechange
+                    xhr.onreadystatechange = function() {
+                        answer()
+                        test.delivered++
+                    }
+                    if (test.holdNext <= 0) {
+                        send(body)
+                        return
+                    }
+                    test.holdNext--
+                    test.held = test.held.concat([function() { send(body) }])
+                }
+                return xhr
+            }
+        }
+    }
+
     function backend() {
         return {
             loadSharedConfig: function(_ds, cb) { cb(shared ? JSON.parse(JSON.stringify(shared)) : null) },
@@ -39,7 +71,7 @@ TestCase {
             clearToken: function(_ds, id, cb) { delete tokens[id]; cb(true, null) },
             loadCatalogCacheText: function(_ds, cb) { cb(catalogText) },
             loadCatalogCache: function(_ds, cb) { cb(catalogText ? JSON.parse(catalogText) : null) },
-            saveCatalogCache: function(_ds, payload, cb) { catalogText = JSON.stringify(payload); if (cb) { cb(true) } }
+            saveCatalogCache: function(_ds, payload, cb) { catalogSaves++; catalogText = JSON.stringify(payload); if (cb) { cb(true) } }
         }
     }
 
@@ -70,6 +102,11 @@ TestCase {
         shared = demoShared()
         tokens = { demo: DemoKimai.ROUTE.token }
         catalogText = ""
+        catalogSaves = 0
+        held = []
+        holdNext = 0
+        delivered = 0
+        KimaiApi.setUrlRoute(gatedRoute())
         plasmoid = { configuration: SharedConfig.fromConfiguration(SharedConfig.DEFAULTS), userConfiguring: true }
     }
 
@@ -134,6 +171,55 @@ TestCase {
         page.toggleActivity(page.availableProjects[0].id, page.allActivities[0].id)
         page.persistShared()
         tryVerify(function() { return shared.pinnedActivities.length > 0 })
+    }
+
+    /** A favourites page whose first load (no cache) waits at its first request. */
+    function pageWithHeldLoad() {
+        plasmoid.configuration.profilesJson = shared.profilesJson
+        plasmoid.configuration.activeProfileId = "demo"
+        holdNext = 1
+        const page = open(favoritesPage)
+        tryVerify(function() { return held.length === 1 }, 5000)
+        verify(page.loadingProjects)
+        return page
+    }
+
+    // Reload while the first load runs: the first load's late answer is dropped, it does not overwrite the stored catalog.
+    function test_favoritesLateFirstLoadIsDropped() {
+        const page = pageWithHeldLoad()
+        page.beginLoadingUi()
+        page.loadProjects(true)
+        tryVerify(function() { return catalogSaves === 1 }, 5000)
+        tryCompare(page, "loadingProjects", false)
+
+        // The first load now answers; unless dropped, it goes on to projects and activities.
+        const before = delivered
+        held[0]()
+        tryVerify(function() { return delivered > before }, 5000)
+        wait(300)
+        compare(catalogSaves, 1)
+    }
+
+    // Reload while the first load runs: the first load's answer does not end the loading state of the second.
+    function test_favoritesEarlyFirstLoadKeepsLoading() {
+        plasmoid.configuration.profilesJson = shared.profilesJson
+        plasmoid.configuration.activeProfileId = "demo"
+        holdNext = 2
+        const page = open(favoritesPage)
+        tryVerify(function() { return held.length === 1 }, 5000)
+        page.beginLoadingUi()
+        page.loadProjects(true)
+        tryVerify(function() { return held.length === 2 }, 5000)
+
+        held[0]()
+        tryVerify(function() { return delivered > 0 }, 5000)
+        wait(300)
+        verify(page.loadingProjects)
+        compare(catalogSaves, 0)
+
+        held[1]()
+        tryCompare(page, "loadingProjects", false)
+        tryVerify(function() { return catalogSaves === 1 }, 5000)
     }
 
     // A stored catalog of another profile or server is not shown: its ids are not this account's.
