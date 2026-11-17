@@ -33,6 +33,8 @@ TestCase {
     // Demo Kimai whose next `holdNext` requests wait in `held` until the test runs them.
     property var held: []
     property int holdNext: 0
+    // Requests to this path answer 500 instead of reaching the demo.
+    property string failPath: ""
     property int delivered: 0
     property int catalogSaves: 0
 
@@ -49,6 +51,14 @@ TestCase {
                     xhr.onreadystatechange = function() {
                         answer()
                         test.delivered++
+                    }
+                    if (test.failPath && xhr.url.indexOf(test.failPath) >= 0) {
+                        Qt.callLater(function() {
+                            xhr.status = 500
+                            xhr.readyState = 4
+                            xhr.onreadystatechange()
+                        })
+                        return
                     }
                     if (test.holdNext <= 0) {
                         send(body)
@@ -105,6 +115,7 @@ TestCase {
         catalogSaves = 0
         held = []
         holdNext = 0
+        failPath = ""
         delivered = 0
         KimaiApi.setUrlRoute(gatedRoute())
         plasmoid = { configuration: SharedConfig.fromConfiguration(SharedConfig.DEFAULTS), userConfiguring: true }
@@ -220,6 +231,21 @@ TestCase {
         held[1]()
         tryCompare(page, "loadingProjects", false)
         tryVerify(function() { return catalogSaves === 1 }, 5000)
+    }
+
+    // An older load stopped at its activities: a newer load that fails still ends the activities' spinner.
+    function test_favoritesFailedReloadEndsActivitiesLoading() {
+        plasmoid.configuration.profilesJson = shared.profilesJson
+        plasmoid.configuration.activeProfileId = "demo"
+        const page = open(favoritesPage)
+        tryCompare(page, "loadingProjects", false)
+        CatalogCache.clear()
+        catalogText = ""
+        page.loadingActivities = true
+        failPath = "/api/projects"
+        page.loadProjects(true)
+        tryCompare(page, "loadingProjects", false)
+        tryCompare(page, "loadingActivities", false)
     }
 
     // A stored catalog of another profile or server is not shown: its ids are not this account's.
