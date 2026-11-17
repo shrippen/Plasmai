@@ -154,7 +154,7 @@ QtObject {
                      sub: Ui.ApiErrors.opStateText(op), canAdopt: false }
         })
         const groups = session.sync.groups.map(function(group) {
-            return { kind: View.ItemKind.GROUP, id: group.index, title: Ui.ApiErrors.heldGroupText(group),
+            return { kind: View.ItemKind.GROUP, id: group.id, title: Ui.ApiErrors.heldGroupText(group),
                      sub: Ui.ApiErrors.heldHint(group), canAdopt: group.canAdopt, group: group }
         })
         return ops.concat(groups)

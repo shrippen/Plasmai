@@ -11,6 +11,9 @@
 "\u0004%1 change waits for another server or account": [
 "%1 件の変更が別のサーバーまたはアカウントを待っています"
 ],
+"\u0004%1 change waits on %2": [
+"%1 件の変更が %2 で待機しています"
+],
 "\u0004%1 day ago": [
 "%1 日前"
 ],
@@ -235,6 +238,7 @@
 "Enter a distance between 0 and %1 km.": "0〜%1 km の距離を入力してください。",
 "Enter a valid start date/time.": "有効な開始日時を入力してください。",
 "Enter the distance.": "距離を入力してください。",
+"Enter the old address or token again to send them.": "送信するには、以前のアドレスまたはトークンを再入力してください。",
 "Enter the server address.": "サーバーのアドレスを入力してください。",
 "Enter times instead": "時刻を入力する",
 "Enter valid begin and end date/time.": "有効な開始・終了日時を入力してください。",

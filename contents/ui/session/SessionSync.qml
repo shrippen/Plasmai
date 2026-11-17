@@ -150,16 +150,16 @@ QtObject {
         session.refresh()
     }
 
-    /** Sends a parked group to this server (the same account made it on another address). */
-    function adopt(index) {
-        Offline.adopt(state, index, function() {
+    /** Sends a parked group to this server (made on another address with the same token). */
+    function adopt(id) {
+        Offline.adopt(state, id, function() {
             session.entriesWritten()
             session.refresh()
         })
     }
 
-    function discardGroup(index) {
-        Offline.discardGroup(state, index)
+    function discardGroup(id) {
+        Offline.discardGroup(state, id)
     }
 
     /** Film day answers kept with the snapshot (filmDaySync's memo). */

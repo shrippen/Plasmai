@@ -15,6 +15,10 @@
 "%1 alteração aguarda outro servidor ou outra conta",
 "%1 alterações aguardam outro servidor ou outra conta"
 ],
+"\u0004%1 change waits on %2": [
+"%1 alteração aguarda em %2",
+"%1 alterações aguardam em %2"
+],
 "\u0004%1 day ago": [
 "há %1 dia",
 "há %1 dias"
@@ -245,6 +249,7 @@
 "Enter a distance between 0 and %1 km.": "Informe uma distância entre 0 e %1 km.",
 "Enter a valid start date/time.": "Informe uma data/hora de início válida.",
 "Enter the distance.": "Informe a distância.",
+"Enter the old address or token again to send them.": "Informe novamente o endereço ou o token antigo para enviá-las.",
 "Enter the server address.": "Digite o endereço do servidor.",
 "Enter times instead": "Informar horários",
 "Enter valid begin and end date/time.": "Informe data/hora de início e fim válidas.",

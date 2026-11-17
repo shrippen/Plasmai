@@ -11,6 +11,9 @@
 "\u0004%1 change waits for another server or account": [
 "%1 项更改在等待其他服务器或账户"
 ],
+"\u0004%1 change waits on %2": [
+"%1 项更改在 %2 上等待"
+],
 "\u0004%1 day ago": [
 "%1 天前"
 ],
@@ -238,6 +241,7 @@
 "Enter a distance between 0 and %1 km.": "请输入 0 到 %1 公里之间的距离。",
 "Enter a valid start date/time.": "请输入有效的开始日期/时间。",
 "Enter the distance.": "请输入距离。",
+"Enter the old address or token again to send them.": "重新输入旧地址或令牌即可发送。",
 "Enter the server address.": "请输入服务器地址。",
 "Enter times instead": "改为输入时间",
 "Enter valid begin and end date/time.": "请输入有效的开始和结束日期/时间。",

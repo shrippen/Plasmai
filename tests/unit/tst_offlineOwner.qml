@@ -767,6 +767,7 @@ TestCase {
         Offline.retarget(s)
         const ids = Offline.groups(s).map(function(g) { return g.id })
         compare(ids.length, 1)
+        k.net = false
         call(function(cb) { s.tracker.startTracking("u", "t", 10, 20, "x", cb, {}) })
         h.currentUrl = urlA
         h.currentToken = "again"

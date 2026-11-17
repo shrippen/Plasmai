@@ -29,9 +29,9 @@ ColumnLayout {
     signal retryRequested(string opId)
     signal overwriteRequested(string opId)
     signal discardRequested(string opId)
-    /** The group at this index goes to the address in use / is dropped (asked before). */
-    signal adoptRequested(int index)
-    signal discardGroupRequested(int index)
+    /** The group with this id goes to the address in use / is dropped (asked before). */
+    signal adoptRequested(string id)
+    signal discardGroupRequested(string id)
 
     spacing: Kirigami.Units.largeSpacing
 
@@ -193,9 +193,9 @@ ColumnLayout {
                         const adopt = block.asking === "adopt"
                         block.asking = ""
                         if (adopt) {
-                            root.adoptRequested(block.group.index)
+                            root.adoptRequested(block.group.id)
                         } else {
-                            root.discardGroupRequested(block.group.index)
+                            root.discardGroupRequested(block.group.id)
                         }
                     }
                 }

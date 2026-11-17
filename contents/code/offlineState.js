@@ -187,7 +187,8 @@ function stateAt(s) {
 
 /** Film day answers kept by filmDaySync (memo.days of this profile), persisted with the snapshot. */
 function rememberFilmDays(s, days) {
-    if (!s.enabled) {
+    // Before the account check the answers may be of another owner.
+    if (!s.enabled || !s.verified) {
         return
     }
     s.snapshot.filmDays = copy(days || {})

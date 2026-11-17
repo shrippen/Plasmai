@@ -4,6 +4,7 @@ import "../../code/kimaiApi.js" as KimaiApi
 import "../../code/profiles.js" as Profiles
 import "../../code/platform.js" as Platform
 import "../../code/sharedConfig.js" as SharedConfig
+import "../../code/offlineOwner.js" as Owner
 import ".." as Ui
 
 /**
@@ -97,14 +98,6 @@ QtObject {
     /** Hash of the last token that was set, kept over a cleared one to tell another account (never the token). */
     property int lastTokenHash: 0
 
-    function hashOf(text) {
-        let hash = 0
-        for (let i = 0; i < text.length; i++) {
-            hash = (Math.imul(hash, 31) + text.charCodeAt(i)) | 0
-        }
-        return hash || 1
-    }
-
     /** Wraps a read's callback: dropped when the profile changed before the answer came. */
     function current(callback) {
         const asked = generation
@@ -149,11 +142,11 @@ QtObject {
         return pending.then(function(t) {
             // Another account on the same profile (also after a cleared token in between):
             // answers asked with the old token are dropped.
-            const previous = token ? hashOf(token) : lastTokenHash
-            if (t && previous && previous !== hashOf(t)) {
+            const previous = token ? Owner.markOf(token) : lastTokenHash
+            if (t && previous && previous !== Owner.markOf(t)) {
                 generation++
             }
-            lastTokenHash = t ? hashOf(t) : lastTokenHash
+            lastTokenHash = t ? Owner.markOf(t) : lastTokenHash
             token = t || ""
             tokenLoaded = true
             state = token ? online : unconfigured

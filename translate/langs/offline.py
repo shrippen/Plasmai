@@ -168,6 +168,8 @@ ROWS = [
      "↑↓ wählen · r erneut senden · a hierher senden · d verwerfen · Esc zurück", "↑↓ choisir · r renvoyer · a envoyer ici · d abandonner · Esc retour", "↑↓ elegir · r reenviar · a enviar aquí · d descartar · Esc volver", "↑↓ scegli · r reinvia · a invia qui · d scarta · Esc indietro", "↑↓ kiezen · r opnieuw sturen · a hierheen sturen · d verwerpen · Esc terug", "↑↓ escolher · r reenviar · a enviar para cá · d descartar · Esc voltar", "↑↓ wybierz · r wyślij ponownie · a wyślij tutaj · d odrzuć · Esc wstecz", "↑↓ вибір · r надіслати знову · a надіслати сюди · d відкинути · Esc назад", "↑↓ выбор · r отправить снова · a отправить сюда · d отменить · Esc назад", "↑↓ 選択 · r 再送信 · a ここに送信 · d 破棄 · Esc 戻る", "↑↓ 选择 · r 重新发送 · a 发送到此处 · d 放弃 · Esc 返回"),
     ("Changes need a decision · u",
      "Änderungen warten auf Entscheidung · u", "Modifications en attente de décision · u", "Cambios pendientes de decisión · u", "Modifiche in attesa di decisione · u", "Wijzigingen wachten op beslissing · u", "Alterações aguardam decisão · u", "Zmiany czekają na decyzję · u", "Зміни чекають на рішення · u", "Изменения ждут решения · u", "判断が必要な変更あり · u", "有更改需要决定 · u"),
+    ("Enter the old address or token again to send them.",
+     "Trage die alte Adresse oder das alte Token wieder ein, um sie zu senden.", "Saisis à nouveau l’ancienne adresse ou l’ancien jeton pour les envoyer.", "Vuelve a introducir la dirección o el token anteriores para enviarlos.", "Inserisci di nuovo il vecchio indirizzo o token per inviarle.", "Voer het oude adres of de oude token opnieuw in om ze te versturen.", "Informe novamente o endereço ou o token antigo para enviá-las.", "Wpisz ponownie stary adres lub token, aby je wysłać.", "Введіть стару адресу або токен знову, щоб надіслати їх.", "Введите старый адрес или токен снова, чтобы отправить их.", "送信するには、以前のアドレスまたはトークンを再入力してください。", "重新输入旧地址或令牌即可发送。"),
 ]
 
 PLURALS = {
@@ -235,6 +237,19 @@ PLURALS = {
         "ru": ["Отменить %1 изменение для %2?", "Отменить %1 изменения для %2?", "Отменить %1 изменений для %2?"],
         "ja": ["%2 の %1 件の変更を破棄しますか？"],
         "zh_CN": ["放弃 %2 的 %1 项更改？"],
+    },
+    "%1 change waits on %2": {
+        "de": ["%1 Änderung wartet auf %2", "%1 Änderungen warten auf %2"],
+        "fr": ["%1 modification attend sur %2", "%1 modifications attendent sur %2"],
+        "es": ["%1 cambio espera en %2", "%1 cambios esperan en %2"],
+        "it": ["%1 modifica attende su %2", "%1 modifiche attendono su %2"],
+        "nl": ["%1 wijziging wacht op %2", "%1 wijzigingen wachten op %2"],
+        "pt_BR": ["%1 alteração aguarda em %2", "%1 alterações aguardam em %2"],
+        "pl": ["%1 zmiana czeka na %2", "%1 zmiany czekają na %2", "%1 zmian czeka na %2"],
+        "uk": ["%1 зміна чекає на %2", "%1 зміни чекають на %2", "%1 змін чекають на %2"],
+        "ru": ["%1 изменение ждёт на %2", "%1 изменения ждут на %2", "%1 изменений ждут на %2"],
+        "ja": ["%1 件の変更が %2 で待機しています"],
+        "zh_CN": ["%1 项更改在 %2 上等待"],
     },
 }
 

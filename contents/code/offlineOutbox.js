@@ -2,6 +2,7 @@
 .import "./providerUtil.js" as ProviderUtil
 .import "./dateTimeFormat.js" as DTF
 .import "./offlineState.js" as OfflineState
+.import "./offlineOwner.js" as Owner
 .import "./localFile.js" as LocalFile
 
 /**
@@ -115,6 +116,8 @@ function hasPending(s) {
 
 function enqueue(s, op) {
     op.opId = newLocalId(s)
+    // The connection it is made on: a replay sends it over that one only.
+    op.by = { server: Owner.serverOf(s.host.url()), mark: Owner.markOf(s.host.token()) }
     op.createdAt = OfflineState.nowOf(s)
     op.attempts = 0
     op.state = OfflineState.State.PENDING
@@ -380,6 +383,7 @@ function replay(s, callback) {
     }
     s.replaying = true
     var conn = connectionOf(s)
+    var key = { server: Owner.serverOf(conn.url), mark: Owner.markOf(conn.token) }
     var sent = 0
     function stop() {
         s.replaying = false
@@ -402,7 +406,7 @@ function replay(s, callback) {
     }
     function next() {
         var op = s.ops.length ? s.ops[0] : null
-        if (!op || op.state !== OfflineState.State.PENDING || moved(s, conn)) {
+        if (!op || op.state !== OfflineState.State.PENDING || moved(s, conn) || !s.verified || !Owner.sameKey(op.by, key)) {
             stop()
             return
         }
@@ -436,9 +440,16 @@ function migratedOps(ops) {
 /** Takes the saved outbox; ops queued before that stay behind the loaded ones. */
 function restoreOps(s, outbox) {
     s.counter = Math.max(s.counter, outbox.counter || 0)
-    s.ops = migratedOps(outbox.ops || []).concat(s.ops)
+    var ops = migratedOps(outbox.ops || [])
+    // Ops of a file of 2.7.0 and before carry no connection: they are the owner's of the file.
+    if (outbox.owner) {
+        Owner.stampUnowned(ops, outbox.owner)
+    }
+    s.ops = ops.concat(s.ops)
     s.held = (outbox.held || []).map(function(group) {
         group.ops = migratedOps(group.ops || [])
+        group.id = group.id || Owner.newGroupId(s)
+        Owner.stampUnowned(group.ops, group.owner)
         return group
     }).concat(s.held)
     if (outbox.owner) {

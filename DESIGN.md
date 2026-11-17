@@ -798,29 +798,38 @@ Bad reception on set: Plasmai keeps working and syncs once the server answers
   each op, a changed connection or a closed session (another profile was opened)
   stops the replay; the op stays pending for the next one. Nothing is sent before the
   account is known (see "Owner").
-- **Owner** (`offlineOwner.js`): the outbox and the snapshot belong to a server and an account
-  (`owner: { server, account, name }`; the server is the address without a trailing slash, with
-  scheme and host in lower case and without the standard port, the account is the id from
-  `/api/users/me`, the name is for display). A file without an owner (made before) gets one after
-  the first good check. `SessionSync.openFor` settles the owner on every open, also of the same
-  profile, and `verify` asks `/api/users/me` (never cached, with the URL and token of that moment)
-  beside the first refresh, which does not wait for it; the views read again when the check
-  changed the owner or sent what waited. A network error or a refused token (401, 403) leaves the account
-  unknown: the changes stay, nothing is sent and no answer is kept in the snapshot until it
-  is known. Another server (also http for https, IP for name, another path) or a checked other
-  account parks the waiting ops as a group in `held` (one group per owner), empties the
-  snapshot and sets the owner to the new one; nothing is laid over the new owner's answers and
-  nothing blocks its writes. Going back to the old address or token resumes the group by itself.
-  While a replay runs, the settling waits for its end (the op on its way must come off the queue).
-  A group made for the same account on another address can be sent here ("Send here", with a
-  question that names both addresses): its ops go behind the queue as pending, a refusal or
-  conflict is forgotten but `base` stays, so every server entry is read again and a difference is
-  a conflict. A group of another account on the same server cannot be sent, only discarded
-  ("Sign in as ... to send them"). Local ids are never shared between groups (the counter is
-  the file's), a timer that follows a parked op's local id is cleared by the owner change.
-  The status line counts parked changes apart (also online); the list shows one foldable block
-  per group. The terminal client opens the same list with `u` (retry, discard, send here, each
-  confirmed with `y`), so a failed op no longer blocks it for good. Not done: the catalog per account.
+- **Owner** (`offlineOwner.js`): a connection is an address and a token. Its key is the server
+  (the address without a trailing slash, scheme and host in lower case, without the standard
+  port) and a short hash of the token (`mark`; the file holds the hash, never the token, and it
+  stays private to the device). Every waiting op carries the key it was made on (`op.by`), and a
+  replay sends an op only over a connection of that key; only "Send here" and resuming restamp
+  it. The account is what the server says of a connection (`/api/users/me`, the id), checked
+  after the key and kept in the owner (`owner: { server, mark, account, name }`; the name is for
+  display). A file without an owner or stamps (2.7.0) is claimed after the first good check.
+  `SessionSync.openFor` settles on every open, also of the same profile, a write settles before
+  it is queued, and `verify` asks `/api/users/me` (never cached, with the address and token of
+  that moment) beside the first refresh, which does not wait for it; the views read again when
+  the check changed the owner or sent what waited. A network error or a refused token (401, 403)
+  leaves the account unknown: the changes stay, nothing is sent and no answer is kept in the
+  snapshot until it is known. Another key parks the ops of the old key as a group in `held`
+  (one group per key and account, each with a fixed id), empties the snapshot and sets the owner
+  to the new connection with the account empty until the check. The same key with another
+  checked account (the database behind it was swapped) parks the ops under the old account.
+  Going back to a connection resumes its group by itself, also unchecked, as long as no known
+  account differs; so does a renewed token of the same account on the same server, after the
+  check. While a replay runs, settling to another key waits for its end (the op on its way must
+  come off the queue). A group made on another address can be sent here ("Send here", with a
+  question that names both addresses) only with the same token: its ops go behind the queue as
+  pending and stamped anew, a refusal or conflict is forgotten but `base` stays, so every
+  server entry that is changed or deleted is read again and a difference is a conflict (a
+  create is not checked: it books what it says on the new server). A group of another token
+  cannot be sent, only discarded, with the hint to enter the old address or token again ("Sign
+  in as ..." where the name of the account is known on the same server). Local ids are never
+  shared between groups (the counter is the file's); a timer that follows a parked op's local
+  id is cleared by the owner change. The status line counts parked changes apart (also
+  online); the list shows one foldable block per group. The terminal client opens the same list
+  with `u` (retry, discard, send here, each confirmed with `y`, the group meant by its id), so a
+  failed op no longer blocks it for good. Not done: the catalog per account.
 - **Sessions and their files**: a file has one session, ever. `SessionSync` keeps the session of
   every profile it opened (by key); leaving a profile closes its session, coming back reopens
   the same one (`Offline.reopen`), also while its replay is waiting for the op on its way, so that

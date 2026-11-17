@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-11-17 23:24+0100\n"
+"POT-Creation-Date: 2026-11-17 23:43+0100\n"
 "PO-Revision-Date: 2026-08-09 19:45+0200\n"
 "Last-Translator: Cursor Agent\n"
 "Language-Team: Spanish\n"
@@ -1152,21 +1152,31 @@ msgid_plural "%1 changes wait for another server or account"
 msgstr[0] "%1 cambio espera a otro servidor u otra cuenta"
 msgstr[1] "%1 cambios esperan a otro servidor u otra cuenta"
 
-#: contents/ui/ApiErrors.qml:145
+#: contents/ui/ApiErrors.qml:146
+msgid "%1 change waits on %2"
+msgid_plural "%1 changes wait on %2"
+msgstr[0] "%1 cambio espera en %2"
+msgstr[1] "%1 cambios esperan en %2"
+
+#: contents/ui/ApiErrors.qml:148
 msgid "%1 change waits for %2 on %3"
 msgid_plural "%1 changes wait for %2 on %3"
 msgstr[0] "%1 cambio espera para %2 en %3"
 msgstr[1] "%1 cambios esperan para %2 en %3"
 
-#: contents/ui/ApiErrors.qml:150
+#: contents/ui/ApiErrors.qml:157
 msgid "Sign in as %1 to send them."
 msgstr "Inicia sesión como %1 para enviarlos."
 
-#: contents/ui/ApiErrors.qml:155
+#: contents/ui/ApiErrors.qml:159
+msgid "Enter the old address or token again to send them."
+msgstr "Vuelve a introducir la dirección o el token anteriores para enviarlos."
+
+#: contents/ui/ApiErrors.qml:164
 msgid "Send these changes to %1 instead of %2? Each entry is checked on the server first."
 msgstr "¿Enviar estos cambios a %1 en lugar de %2? Cada entrada se comprueba antes en el servidor."
 
-#: contents/ui/ApiErrors.qml:159
+#: contents/ui/ApiErrors.qml:168
 msgid "Discard %1 change for %2?"
 msgid_plural "Discard %1 changes for %2?"
 msgstr[0] "¿Descartar %1 cambio de %2?"

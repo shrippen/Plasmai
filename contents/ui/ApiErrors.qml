@@ -140,14 +140,23 @@ QtObject {
         return i18np("%1 change waits for another server or account", "%1 changes wait for another server or account", count)
     }
 
-    /** A parked group (Offline.groups): "2 changes wait for Ann on https://kimai.test". */
+    /** A parked group (Offline.groups): "2 changes wait for Ann on https://kimai.test"; without a name, "... wait on ...". */
     function heldGroupText(group) {
+        if (!group.name) {
+            return i18np("%1 change waits on %2", "%1 changes wait on %2", group.count, group.server)
+        }
         return i18np("%1 change waits for %2 on %3", "%1 changes wait for %2 on %3", group.count, group.name, group.server)
     }
 
     /** What to do with a group that cannot be sent here ("" for one that can). */
     function heldHint(group) {
-        return group.canAdopt ? "" : i18n("Sign in as %1 to send them.", group.name)
+        if (group.canAdopt) {
+            return ""
+        }
+        if (group.name && group.sameServer) {
+            return i18n("Sign in as %1 to send them.", group.name)
+        }
+        return i18n("Enter the old address or token again to send them.")
     }
 
     /** The question before a group is sent to the address in use; it names both addresses. */

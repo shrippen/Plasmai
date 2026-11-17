@@ -15,6 +15,10 @@
 "%1 Änderung wartet auf einen anderen Server oder ein anderes Konto",
 "%1 Änderungen warten auf einen anderen Server oder ein anderes Konto"
 ],
+"\u0004%1 change waits on %2": [
+"%1 Änderung wartet auf %2",
+"%1 Änderungen warten auf %2"
+],
 "\u0004%1 day ago": [
 "vor %1 Tag",
 "vor %1 Tagen"
@@ -245,6 +249,7 @@
 "Enter a distance between 0 and %1 km.": "Entfernung zwischen 0 und %1 km eingeben.",
 "Enter a valid start date/time.": "Gültiges Startdatum/-zeit eingeben.",
 "Enter the distance.": "Entfernung eingeben.",
+"Enter the old address or token again to send them.": "Trage die alte Adresse oder das alte Token wieder ein, um sie zu senden.",
 "Enter the server address.": "Gib die Serveradresse ein.",
 "Enter times instead": "Zeiten nachtragen",
 "Enter valid begin and end date/time.": "Gültiges Start- und Enddatum/-zeit eingeben.",

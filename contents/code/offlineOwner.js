@@ -3,19 +3,23 @@
 .import "./offlineState.js" as OfflineState
 
 /**
- * Whose changes are waiting. The outbox and the snapshot belong to an owner, the server and
- * the account the changes were made for (`{ server, account, name }`; the name is for display).
- * Another server or account never gets them and never sees them laid over its answers: they
- * are parked in `held`, one group per owner, until the user sends or discards them.
+ * Whose changes are waiting. A connection is an address and a token: its key is the server
+ * (`serverOf`) and a hash of the token (`markOf`, never the token). Every waiting change (op)
+ * is stamped with the key it was made on (`op.by`) and a replay sends it over that key only.
+ * The account is what the server says of a connection (`/api/users/me`), checked later and
+ * kept in the owner: `{ server, mark, account, name }` (the name is for display).
+ * Changes of another key never go out on their own and never show over the answers of the
+ * connection in use: they wait in `held`, one group per owner, until the connection of their
+ * key is back or the user sends or discards them.
  *
- *   settle(identity):  owner ──same──► nothing
- *                        │ other server / verified other account
- *                        ▼
- *                      ops ──► held[owner]     snapshot emptied     owner = identity
- *                      held group of the identity ──► ops again (back on the old address)
+ *   settle(identity)
+ *     key of the connection ≠ key of the owner ─► owner = identity, ops of the old key ─► held
+ *     same key, other account (checked) ─────────► ops under the old account ─► held
+ *     a group of this connection (account empty or the same) ─► back into the queue, stamped
+ *     a group of the same account and server, other token (renewed) ─► the same
  *
- * An owner without an account is a server that was not checked yet (offline): ops are kept
- * and nothing is sent until the account is known. Pure functions on the session object.
+ * An owner without an account is a connection that was not checked yet (offline): ops are
+ * kept and nothing is sent until the account is known. Pure functions on the session object.
  */
 
 var Result = {
@@ -61,81 +65,226 @@ function markOf(token) {
     return text ? (hash || 1) : 0
 }
 
+var DEFAULT_PORT = { http: "80", https: "443" }
+var ADDRESS = /^([a-z][a-z0-9+.-]*):\/\/([^\/?#]*)(.*)$/i
+
+/**
+ * The server of an address: the same server whatever its spelling may be at the end
+ * (slash), in scheme and host (case) and in the standard port. Anything else (http or
+ * https, IP or name, a path) is another server: the user decides once.
+ */
+function serverOf(url) {
+    var text = ProviderUtil.normalizeUrl(url)
+    var parts = ADDRESS.exec(text)
+    if (!parts) {
+        return text
+    }
+    var scheme = parts[1].toLowerCase()
+    var host = parts[2].toLowerCase().replace(/:(\d+)$/, function(all, port) {
+        return port === DEFAULT_PORT[scheme] ? "" : all
+    })
+    return scheme + "://" + host + parts[3]
+}
+
+/** A short hash of a token (never the token): tells one token from another, 0 for none. */
+function markOf(token) {
+    var text = String(token || "")
+    var hash = 0
+    for (var i = 0; i < text.length; i++) {
+        hash = (Math.imul(hash, 31) + text.charCodeAt(i)) | 0
+    }
+    return text ? (hash || 1) : 0
+}
+
 function clone(value) {
     return JSON.parse(JSON.stringify(value))
 }
 
-function sameOwner(a, b) {
-    return a.server === b.server && a.account === b.account
+function sameKey(a, b) {
+    return !!a && !!b && a.server === b.server && a.mark === b.mark
 }
 
-/** Both known to be one server and no known difference in the account. */
-function compatible(a, b) {
-    return a.server === b.server && (!a.account || !b.account || a.account === b.account)
+/** No known difference between two accounts ("" = not known yet). */
+function accountsFit(a, b) {
+    return !a || !b || a === b
 }
 
-function groupOf(s, owner) {
+function stamp(op, key) {
+    op.by = { server: key.server, mark: key.mark }
+}
+
+function stampUnowned(ops, key) {
+    for (var i = 0; i < ops.length; i++) {
+        if (!ops[i].by) {
+            stamp(ops[i], key)
+        }
+    }
+}
+
+function newGroupId(s) {
+    s.counter = (s.counter || 0) + 1
+    return "group:" + s.counter
+}
+
+/** The group of a key and account (made if there is none). */
+function groupOf(s, key, account, name, now) {
     for (var i = 0; i < s.held.length; i++) {
-        if (sameOwner(s.held[i].owner, owner)) {
+        var owner = s.held[i].owner
+        if (sameKey(owner, key) && owner.account === account) {
             return s.held[i]
         }
     }
-    return null
+    var group = { id: newGroupId(s), owner: { server: key.server, mark: key.mark, account: account, name: name },
+                  ops: [], heldAt: now || Date.now() }
+    s.held.push(group)
+    return group
 }
 
-function park(s, now) {
-    s.snapshot = OfflineState.emptySnapshot()
-    if (!s.ops.length) {
+/** Moves the ops of `ops` that `wanted` picks into the group of `key`, account `owner`'s when it is theirs. */
+function park(s, picked, owner, now) {
+    var kept = []
+    for (var i = 0; i < s.ops.length; i++) {
+        var op = s.ops[i]
+        if (!picked(op)) {
+            kept.push(op)
+            continue
+        }
+        var mine = sameKey(owner, op.by)
+        groupOf(s, op.by, mine ? owner.account : "", mine ? owner.name : "", now).ops.push(op)
+    }
+    var moved = kept.length !== s.ops.length
+    s.ops = kept
+    return moved
+}
+
+/** Fills the account of the groups of the connection in use, then joins groups that are the same now. */
+function fillGroups(s) {
+    var owner = s.owner
+    if (!owner.account) {
         return
     }
-    var group = groupOf(s, s.owner)
-    if (group) {
-        group.ops = group.ops.concat(s.ops)
-    } else {
-        s.held.push({ owner: clone(s.owner), ops: s.ops, heldAt: now || Date.now() })
+    var joined = []
+    for (var i = 0; i < s.held.length; i++) {
+        var group = s.held[i]
+        if (sameKey(group.owner, owner) && !group.owner.account) {
+            group.owner.account = owner.account
+            group.owner.name = owner.name
+        }
+        var twin = joined.filter(function(g) {
+            return sameKey(g.owner, group.owner) && g.owner.account === group.owner.account
+        })[0]
+        if (twin) {
+            twin.ops = twin.ops.concat(group.ops)
+        } else {
+            joined.push(group)
+        }
     }
-    s.ops = []
-}
-
-/** The held group of the owner goes back into the queue, in front of what was made meanwhile. */
-function resume(s) {
-    var group = groupOf(s, s.owner)
-    if (!group) {
-        return false
-    }
-    s.held = s.held.filter(function(g) { return g !== group })
-    s.ops = group.ops.concat(s.ops)
-    return true
+    s.held = joined
 }
 
 /**
- * Brings the session's owner in line with `identity` ({ server, account, name }; account ""
- * while not checked). Returns what happened (Result). Without a server (no address yet)
- * nothing is decided. A snapshot of another owner is dropped on the way.
+ * A group comes back when it is of this connection and no known account differs, also
+ * unchecked (going back to an address and token must not wait for the server), or when
+ * the token was renewed for the same account on the same server (checked).
  */
-function settle(s, identity, now) {
-    if (!identity || !identity.server) {
-        return Result.NONE
+function resumable(owner, group) {
+    if (sameKey(group, owner)) {
+        return accountsFit(group.account, owner.account)
     }
-    var result = Result.NONE
-    if (!s.owner) {
+    return group.server === owner.server && !!owner.account && group.account === owner.account
+}
+
+function resume(s) {
+    var owner = s.owner
+    var back = []
+    s.held = s.held.filter(function(group) {
+        if (!resumable(owner, group.owner)) {
+            return true
+        }
+        // An account known of the group is taken on: a check that names another one parks it again.
+        if (!owner.account && group.owner.account) {
+            owner.account = group.owner.account
+            owner.name = group.owner.name
+        }
+        for (var i = 0; i < group.ops.length; i++) {
+            stamp(group.ops[i], owner)
+        }
+        back = back.concat(group.ops)
+        return false
+    })
+    s.ops = back.concat(s.ops)
+    return back.length > 0
+}
+
+/** Both are one server and no account is known to differ. */
+function compatible(a, b) {
+    return a.server === b.server && accountsFit(a.account, b.account)
+}
+
+/**
+ * True when `identity` is another owner than the session's: another key, or a checked account
+ * that is not the one known. A replay on its way must end before that is settled.
+ */
+function needsMove(s, identity) {
+    var owner = s.owner
+    if (!owner || !identity || !identity.server || !identity.mark) {
+        return false
+    }
+    return !sameKey(owner, identity) || !accountsFit(owner.account, identity.account)
+}
+
+/** The owner of the session becomes `identity` where that is a change (or is learned); returns what it was. */
+function takeIdentity(s, prev, identity, now) {
+    if (!prev) {
         if (!identity.account) {
             return Result.NONE
         }
         s.owner = clone(identity)
-        result = Result.CLAIMED
-    } else if (!compatible(s.owner, identity)) {
-        park(s, now)
-        s.owner = clone(identity)
-        result = Result.PARKED
-    } else if (identity.account && !s.owner.account) {
-        s.owner.account = identity.account
-        s.owner.name = identity.name
-        result = Result.FILLED
-    } else if (identity.name) {
-        s.owner.name = identity.name
+        stampUnowned(s.ops, identity)
+        return Result.CLAIMED
     }
-    if (s.owner.account && resume(s) && result !== Result.PARKED) {
+    if (!sameKey(prev, identity)) {
+        stampUnowned(s.ops, prev)
+        s.owner = clone(identity)
+        s.snapshot = OfflineState.emptySnapshot()
+        return Result.PARKED
+    }
+    if (!accountsFit(prev.account, identity.account)) {
+        // Same address and token, another account: the database behind it was swapped.
+        park(s, function(op) { return sameKey(op.by || prev, prev) }, prev, now)
+        s.owner = clone(identity)
+        s.snapshot = OfflineState.emptySnapshot()
+        return Result.PARKED
+    }
+    var learned = identity.account && !prev.account
+    if (identity.account) {
+        prev.account = identity.account
+        prev.name = identity.name || prev.name
+    }
+    return learned ? Result.FILLED : Result.NONE
+}
+
+/**
+ * Brings the session's owner and its ops in line with `identity` ({ server, mark, account,
+ * name }; account "" while not checked). Returns what happened (Result). Without a server or
+ * token nothing is decided. A snapshot of another owner is dropped on the way.
+ */
+function settle(s, identity, now) {
+    if (!identity || !identity.server || !identity.mark) {
+        return Result.NONE
+    }
+    var prev = s.owner
+    var result = takeIdentity(s, prev, identity, now)
+    if (!s.owner) {
+        return result
+    }
+
+    // Whatever is not of the key in use (made before, or while the file was read) waits in its group.
+    if (park(s, function(op) { return !!op.by && !sameKey(op.by, s.owner) }, prev, now)) {
+        result = Result.PARKED
+    }
+    fillGroups(s)
+    if (resume(s) && result !== Result.PARKED) {
         result = Result.RESUMED
     }
     if (s.snapshot.owner && !compatible(s.snapshot.owner, s.owner)) {
@@ -146,10 +295,14 @@ function settle(s, identity, now) {
 
 // -- Held groups ----------------------------------------------------------------
 
-/** A group may be sent here when it was made on another address of the same account. */
+/**
+ * A group may be sent here when it was made on another address with the token in use (the
+ * same user there, as far as an account is known). Another token is another user: no.
+ */
 function canAdopt(s, group) {
-    return !!s.verified && !!s.owner && !!group.owner.account
-        && group.owner.server !== s.owner.server && group.owner.account === s.owner.account
+    var owner = s.owner
+    return !!s.verified && !!owner && group.owner.server !== owner.server
+        && group.owner.mark === owner.mark && accountsFit(group.owner.account, owner.account)
 }
 
 function ownerName(owner) {
@@ -158,10 +311,10 @@ function ownerName(owner) {
 
 /** The groups for the lists: owner, count, whether they can be sent here. */
 function groups(s) {
-    return s.held.map(function(group, index) {
-        return { index: index, name: ownerName(group.owner), server: group.owner.server,
+    return s.held.map(function(group) {
+        return { id: group.id, name: ownerName(group.owner), server: group.owner.server,
                  account: group.owner.account, count: group.ops.length, heldAt: group.heldAt,
-                 to: s.owner ? s.owner.server : "",
+                 to: s.owner ? s.owner.server : "", sameServer: !!s.owner && group.owner.server === s.owner.server,
                  canAdopt: canAdopt(s, group), ops: clone(group.ops) }
     })
 }
@@ -170,32 +323,44 @@ function heldCount(s) {
     return s.held.reduce(function(sum, group) { return sum + group.ops.length }, 0)
 }
 
+function indexOfGroup(s, id) {
+    for (var i = 0; i < s.held.length; i++) {
+        if (s.held[i].id === id) {
+            return i
+        }
+    }
+    return -1
+}
+
 /**
- * The group's ops go behind the queue, pending again: what blocked them (a refusal, a
- * conflict, a forced overwrite) was said to another server. Their base stays, so every
- * server entry is read again and a difference is a conflict, nothing is overwritten blind.
+ * The group's ops go behind the queue, pending again and stamped with the connection in use:
+ * what blocked them (a refusal, a conflict, a forced overwrite) was said to another server.
+ * Their base stays, so every server entry that is changed or deleted is read again and a
+ * difference is a conflict; nothing is overwritten blind.
  */
-function adopt(s, index) {
-    var group = s.held[index]
-    if (!group || !canAdopt(s, group)) {
+function adopt(s, id) {
+    var at = indexOfGroup(s, id)
+    if (at < 0 || !canAdopt(s, s.held[at])) {
         return false
     }
-    s.held.splice(index, 1)
+    var group = s.held.splice(at, 1)[0]
     for (var i = 0; i < group.ops.length; i++) {
         var op = group.ops[i]
         op.state = OfflineState.State.PENDING
         op.error = null
         delete op.server
         delete op.force
+        stamp(op, s.owner)
     }
     s.ops = s.ops.concat(group.ops)
     return true
 }
 
-function dropGroup(s, index) {
-    if (!s.held[index]) {
+function dropGroup(s, id) {
+    var at = indexOfGroup(s, id)
+    if (at < 0) {
         return false
     }
-    s.held.splice(index, 1)
+    s.held.splice(at, 1)
     return true
 }

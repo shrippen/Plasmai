@@ -84,6 +84,11 @@ function readKey(name, args, cbIndex) {
     })).join("|")
 }
 
+/** Ops wait and the account is known: they may go out (before that a read is just a read). */
+function canReplay(s) {
+    return s.verified && Outbox.hasPending(s)
+}
+
 /**
  * Wraps one read: server first (after the outbox went out), then snapshot.
  * answer(serverResult) → data laid over; fallback() → data from the snapshot.
@@ -98,7 +103,7 @@ function wrapRead(s, name, remember, answer, fallback) {
             args[cbIndex] = function(result) {
                 Outbox.observe(s, result, true)
                 // Back online with ops waiting: send them, then read again (the answer predates them).
-                if (result.ok && again && Outbox.hasPending(s)) {
+                if (result.ok && again && canReplay(s)) {
                     again = false
                     Outbox.replay(s, run)
                     return
@@ -123,7 +128,7 @@ function wrapRead(s, name, remember, answer, fallback) {
             }
             s.inner[name].apply(s.inner, args)
         }
-        if (Outbox.hasPending(s) && !s.offline) {
+        if (canReplay(s) && !s.offline) {
             Outbox.replay(s, run)
         } else {
             run()
@@ -168,6 +173,8 @@ function cachedRead(s, name) {
 
 /** Offline or ops waiting: goes to the outbox. Else the server, the outbox on a network error. */
 function write(s, sendOnline, queue) {
+    // The connection may have changed since: the change is queued for what is asked now.
+    settleNow(s)
     if (s.offline || s.ops.length) {
         queue(false)
         if (!s.offline) {
@@ -511,7 +518,7 @@ function load(s) {
 
 /** Server and account the connection is on now (account "" until the server confirmed it). */
 function identityOf(s) {
-    return { server: Owner.serverOf(s.host.url()),
+    return { server: Owner.serverOf(s.host.url()), mark: Owner.markOf(s.host.token()),
              account: s.verified ? s.account : "", name: s.verified ? s.accountName : "" }
 }
 
@@ -525,11 +532,13 @@ function settleNow(s) {
     if (!s.enabled || !s.loaded || s.closed) {
         return Owner.Result.NONE
     }
-    if (s.replaying) {
+    var identity = identityOf(s)
+    // The op on its way must come off the queue first when another owner is settled.
+    if (s.replaying && Owner.needsMove(s, identity)) {
         s.settleWaits = true
         return Owner.Result.NONE
     }
-    var result = Owner.settle(s, identityOf(s), OfflineState.nowOf(s))
+    var result = Owner.settle(s, identity, OfflineState.nowOf(s))
     if (result === Owner.Result.NONE) {
         return result
     }
@@ -615,9 +624,9 @@ function heldCount(s) {
     return Owner.heldCount(s)
 }
 
-/** Sends a parked group to this address (same account only); callback(sent) when the replay stops. */
-function adopt(s, index, callback) {
-    if (!Owner.adopt(s, index)) {
+/** Sends a parked group over the connection in use (same token only); callback(sent) when the replay stops. */
+function adopt(s, id, callback) {
+    if (!Owner.adopt(s, id)) {
         return false
     }
     Outbox.saveOutbox(s)
@@ -626,8 +635,8 @@ function adopt(s, index, callback) {
     return true
 }
 
-function discardGroup(s, index) {
-    if (!Owner.dropGroup(s, index)) {
+function discardGroup(s, id) {
+    if (!Owner.dropGroup(s, id)) {
         return
     }
     Outbox.saveOutbox(s)
@@ -636,8 +645,9 @@ function discardGroup(s, index) {
 
 /**
  * The profile of this session is not the active one any more: a replay in flight
- * stops after its op. Its outbox is still written (the file is its alone); its snapshot is not
- * (a cache, and its deferred save would replace the active session's).
+ * stops after its op. Its outbox is still written (the file is its alone), and so is its
+ * snapshot, at once (a deferred save would replace the active session's). Its owner is not
+ * settled while it is closed: the connection is another profile's then.
  */
 function close(s) {
     s.closed = true

@@ -15,6 +15,10 @@
 "%1 wijziging wacht op een andere server of een ander account",
 "%1 wijzigingen wachten op een andere server of een ander account"
 ],
+"\u0004%1 change waits on %2": [
+"%1 wijziging wacht op %2",
+"%1 wijzigingen wachten op %2"
+],
 "\u0004%1 day ago": [
 "%1 dag geleden",
 "%1 dagen geleden"
@@ -242,6 +246,7 @@
 "Enter a distance between 0 and %1 km.": "Voer een afstand tussen 0 en %1 km in.",
 "Enter a valid start date/time.": "Voer een geldige startdatum/-tijd in.",
 "Enter the distance.": "Voer de afstand in.",
+"Enter the old address or token again to send them.": "Voer het oude adres of de oude token opnieuw in om ze te versturen.",
 "Enter the server address.": "Voer het serveradres in.",
 "Enter times instead": "Tijden invoeren",
 "Enter valid begin and end date/time.": "Voer een geldige begin- en einddatum/-tijd in.",
