@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-11-17 22:38+0100\n"
+"POT-Creation-Date: 2026-11-17 22:54+0100\n"
 "PO-Revision-Date: 2026-08-09 19:45+0200\n"
 "Last-Translator: Cursor Agent\n"
 "Language-Team: Ukrainian\n"
@@ -977,75 +977,79 @@ msgstr "Закріпити як обране"
 msgid "Delete entry"
 msgstr "Видалити запис"
 
-#: contents/ui/ApiErrors.qml:10
+#: contents/ui/ApiErrors.qml:12
 msgid "Waiting changes could not be saved on this device"
 msgstr "Не вдалося зберегти зміни, що очікують, на цьому пристрої"
 
-#: contents/ui/ApiErrors.qml:13
+#: contents/ui/ApiErrors.qml:15
 msgid "Waiting changes could not be read; new ones are kept in memory only"
 msgstr "Не вдалося прочитати зміни, що очікують; нові зберігаються лише в пам'яті"
 
-#: contents/ui/ApiErrors.qml:16
+#: contents/ui/ApiErrors.qml:18
 msgid "The saved list of waiting changes was damaged and set aside"
 msgstr "Збережений список змін, що очікують, було пошкоджено, його відкладено"
 
-#: contents/ui/ApiErrors.qml:27
+#: contents/ui/ApiErrors.qml:29
 msgid "Unknown error"
 msgstr "Невідома помилка"
 
-#: contents/ui/ApiErrors.qml:31
+#: contents/ui/ApiErrors.qml:33
 msgid "URL and API token are required"
 msgstr "Потрібні URL та API-токен"
 
-#: contents/ui/ApiErrors.qml:32
+#: contents/ui/ApiErrors.qml:34
 msgid "Configure your time tracker URL and API token"
 msgstr "Налаштуйте URL та API-токен обліку часу"
 
-#: contents/ui/ApiErrors.qml:36
+#: contents/ui/ApiErrors.qml:38
 msgid "Missing or invalid input: %1"
 msgstr "Відсутні або недійсні дані: %1"
 
-#: contents/ui/ApiErrors.qml:37
+#: contents/ui/ApiErrors.qml:39
 msgid "Missing or invalid input."
 msgstr "Відсутні або недійсні дані."
 
-#: contents/ui/ApiErrors.qml:40
+#: contents/ui/ApiErrors.qml:42
 msgid "This needs a connection to the server."
 msgstr "Для цього потрібне з’єднання із сервером."
 
-#: contents/ui/ApiErrors.qml:43
+#: contents/ui/ApiErrors.qml:45
 msgid "Cannot reach the server. Check your network, URL, or TLS certificate."
 msgstr "Не вдається досягти сервера. Перевірте мережу, URL або TLS-сертифікат."
 
-#: contents/ui/ApiErrors.qml:46
+#: contents/ui/ApiErrors.qml:48
 msgid "Authentication failed. Check your API token."
 msgstr "Помилка автентифікації. Перевірте API-токен."
 
-#: contents/ui/ApiErrors.qml:49
+#: contents/ui/ApiErrors.qml:51
 msgid "Server not found. Check your URL."
 msgstr "Сервер не знайдено. Перевірте URL."
 
-#: contents/ui/ApiErrors.qml:52
+#: contents/ui/ApiErrors.qml:54
 msgid "Access denied. Your token may lack required permissions."
 msgstr "Доступ заборонено. Можливо, у вашого токена немає потрібних прав."
 
-#: contents/ui/ApiErrors.qml:55
+#: contents/ui/ApiErrors.qml:57
 msgid "Server error (%1)."
 msgstr "Помилка сервера (%1)."
 
-#: contents/ui/ApiErrors.qml:58
+#: contents/ui/ApiErrors.qml:61
 msgid "Request failed: %1"
 msgstr "Запит не вдався: %1"
 
-#: contents/ui/ApiErrors.qml:60
+#: contents/ui/ApiErrors.qml:63
 msgid "Request failed (%1)."
 msgstr "Запит не вдався (%1)."
 
-#: contents/ui/ApiErrors.qml:69
+#: contents/ui/ApiErrors.qml:76
+msgid "%1 (%2)"
+msgstr ""
+
+#: contents/ui/ApiErrors.qml:85
 msgid "ok"
 msgstr "ok"
 
-#: contents/ui/ApiErrors.qml:70
+#: contents/ui/ApiErrors.qml:86
 msgid "Connected to %1 (%2)."
 msgstr "Підключено до %1 (%2)."
 
