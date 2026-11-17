@@ -11,9 +11,6 @@ TestCase {
     height: 400
 
     property var pending: []
-    property var errors: []
-
-    function quiet() {}
 
     // Stands in for `root` of main.qml: the page reads root.session.
     Component {
@@ -38,7 +35,7 @@ TestCase {
                     property var projects: []
                     property var customers: []
                     signal changed()
-                    function loadActivities() {}
+                    function loadActivities(projectId, cb) { tc.pending.push(function() { cb([]) }) }
                     function projectById() { return null }
                 }
                 property var connection: QtObject { property bool configured: true; property string state: "ok" }
@@ -77,6 +74,20 @@ TestCase {
         return thrown
     }
 
+    /** The film day view inside the page: the item with the view's signal. */
+    function findView(item) {
+        if (typeof item.projectChosen === "function" && typeof item.otherEntryIds === "function") {
+            return item
+        }
+        for (const child of item.children) {
+            const found = findView(child)
+            if (found) {
+                return found
+            }
+        }
+        return null
+    }
+
     function test_late_mode_answer_does_not_throw() {
         compare(lateAnswers(function() { compare(pending.length, 1) }), [])
     }
@@ -87,5 +98,23 @@ TestCase {
             pending.shift()()
             compare(pending.length, 1)
         }), [])
+    }
+
+    function test_late_activities_answer_does_not_throw() {
+        const h = createTemporaryObject(host, tc)
+        const page = h.pageComponent.createObject(h)
+        const view = findView(page)
+        verify(view !== null)
+        pending = []
+        view.projectChosen(7)
+        compare(pending.length, 1)
+        page.destroy()
+        wait(0)
+
+        const thrown = []
+        for (const cb of pending.splice(0)) {
+            try { cb() } catch (e) { thrown.push(String(e)) }
+        }
+        compare(thrown, [])
     }
 }
