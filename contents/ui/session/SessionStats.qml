@@ -10,7 +10,7 @@ import "../../code/statsData.js" as StatsData
  *   open ─▶ trips + prefetch of a few weeks      load(begin, end) ─▶ grows the range
  *
  * Only the latest request answers. Another profile forgets everything; a write marks
- * the range stale, and the next open fetches it again.
+ * the range stale, and the next open starts over with the preload.
  */
 QtObject {
     id: stats
@@ -32,13 +32,14 @@ QtObject {
     /** A write ended since the range was loaded. */
     property bool stale: false
 
-    /** The view opens: fresh totals, trips, a stale range again, and a few weeks so day/week switchers work at once. */
+    /** The view opens: fresh totals, trips, and a few weeks (all of them after a write) so day/week switchers work at once. */
     function open() {
         session.totals.refresh()
-        loadTrips()
-        if (stale && rangeEndMs) {
-            fetchSpan(new Date(rangeBeginMs), new Date(rangeEndMs))
+        // A write since: start over with the preload, not the whole grown range.
+        if (stale) {
+            forget()
         }
+        loadTrips()
         const span = StatsData.prefetchSpan(new Date())
         load(span.begin, span.end)
     }
@@ -136,11 +137,7 @@ QtObject {
         session.trips.changed.connect(function() { trips = null })
         session.catalog.updated.connect(rehydrate)
         session.connection.generationChanged.connect(forget)
-        session.busyChanged.connect(function() {
-            if (!session.busy) {
-                stale = true
-            }
-        })
+        session.entriesWritten.connect(function() { stale = true })
         session.totals.weekEntriesChanged.connect(function() { seed(session.totals.weekEntries, new Date()) })
     }
 }

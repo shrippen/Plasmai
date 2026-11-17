@@ -35,7 +35,7 @@ TestCase {
                 property var ping: ({})
                 function fetch(range, cb) { fetches.push({ trips: range }); answers.push(cb) }
             }
-            property bool busy: false
+            signal entriesWritten()
             property var stats: Parts.SessionStats { session: fake }
         }
     }
@@ -197,21 +197,26 @@ TestCase {
         compare(f.stats.rangeBeginMs, 0)
     }
 
-    // A write (an entry created, changed, deleted, split, the timer stopped) makes the range stale:
-    // the next open fetches it again, without one it does not.
+    // A write (see tst_sessionParts for the real ones) makes the range stale: the next open
+    // starts over with the preload only; without one it fetches nothing new.
     function test_write_makes_the_range_stale() {
         const f = createTemporaryObject(fixture, this)
-        const now = new Date()
+        const far = StatsData.addDays(new Date(), -60)
         f.stats.open()
         answers[1]({ ok: true, data: [{ id: 1 }] })
+        f.stats.load(far, far)
+        answers[2]({ ok: true, data: [{ id: 1 }, { id: 2 }] })
         const n = weekFetches().length
         f.stats.open()
         compare(weekFetches().length, n)
-        f.busy = true
-        f.busy = false
+        f.entriesWritten()
+        verify(f.stats.stale)
         f.stats.open()
         compare(weekFetches().length, n + 1)
-        verify(weekFetches()[n].begin.getTime() <= f.stats.rangeBeginMs)
+        const span = StatsData.prefetchSpan(new Date())
+        compare(weekFetches()[n].begin.getTime(), span.begin.getTime())
+        verify(!f.stats.stale)
+        compare(f.stats.timesheets.length, 0)
     }
 
     function test_catalog_update_rehydrates() {

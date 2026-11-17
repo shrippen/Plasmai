@@ -104,6 +104,8 @@ QtObject {
     signal trackingBegan(var timesheet)
     /** Saved, but the server dropped these fields ("billable" without edit_billable). */
     signal droppedFields(var fields)
+    /** An entry was created, changed, deleted or split on the server (the statistics' range is stale). */
+    signal entriesWritten()
 
     // Keeps polling after an error too, so it recovers by itself once the network is back.
     property Timer pollTimer: Timer {

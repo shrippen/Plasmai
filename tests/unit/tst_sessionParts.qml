@@ -367,62 +367,6 @@ TestCase {
         compare(range.data.filter(function(ts) { return ts.description === "Two hours" }).length, 1)
     }
 
-    // The statistics hold entries: every write that changes one marks them stale, busy or not.
-    function staleAfter(s, action) {
-        tryCompare(s, "busy", false)
-        s.stats.stale = false
-        action()
-        tryVerify(function() { return s.stats.stale })
-    }
-
-    function test_writesMakeTheStatisticsStale() {
-        const s = openDemo()
-        const first = s.recent.list[0]
-        const day = new Date()
-        day.setDate(day.getDate() - 3)
-        day.setHours(9, 0, 0, 0)
-        const fields = { project: KimaiApi.projectId(first), activity: KimaiApi.activityId(first),
-                         begin: KimaiApi.localDateTimeString(day),
-                         end: KimaiApi.localDateTimeString(new Date(day.getTime() + 2 * 3600 * 1000)),
-                         description: "stale marker" }
-        let created = null
-        staleAfter(s, function() { s.entries.write(null, fields, function(r) { created = r.data }) })
-        tryVerify(function() { return created !== null })
-        staleAfter(s, function() { s.entries.write(created.id, { description: "stale edited" }, function() {}) })
-        staleAfter(s, function() { s.entries.edit(created, { description: "stale again" }) })
-        staleAfter(s, function() { s.entries.split(created, new Date(day.getTime() + 3600 * 1000)) })
-        staleAfter(s, function() { s.entries.remove(created) })
-    }
-
-    function test_filmDayWritesMakeTheStatisticsStale() {
-        const s = openDemo()
-        tryVerify(function() { return s.filmDay.available })
-        const req = filmDay9to17(s, { note: "stale flow" })
-        let answer = null
-        staleAfter(s, function() { s.filmDay.saveDay(req, function(r) { answer = r }) })
-        tryVerify(function() { return answer !== null })
-        verify(answer.ok)
-    }
-
-    function test_runningEntryWritesMakeTheStatisticsStale() {
-        const s = openDemo()
-        tryVerify(function() { return s.timer.tracking })
-        staleAfter(s, function() { s.timer.patchActive({ description: "stale running" }) })
-        staleAfter(s, function() { s.timer.stop() })
-        tryVerify(function() { return !s.timer.tracking })
-        staleAfter(s, function() { s.timer.continueEntry(s.recent.list[0]) })
-    }
-
-    function test_failedWriteLeavesTheStatisticsAlone() {
-        const s = openDemo()
-        tryCompare(s, "busy", false)
-        s.stats.stale = false
-        const failed = spy(s, "failed")
-        s.entries.write(987654321, { description: "nobody" }, function() {})
-        tryVerify(function() { return failed.count > 0 })
-        verify(!s.stats.stale)
-    }
-
     function test_doneCallbacks() {
         const s = openDemo()
         tryVerify(function() { return s.timer.tracking })

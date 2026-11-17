@@ -161,6 +161,7 @@ QtObject {
             session.started(result.data, Ui.Session.Origin.Start, { project: projectLabel || "", activity: activityLabel || "" })
             rememberLastUsed(projectId, activityId, projectLabel, activityLabel)
             apply(session.catalog.hydrate([result.data])[0] || result.data)
+            session.entriesWritten()
             session.refresh()
         }, extras || {})
         return Ui.Session.Restart.Started
@@ -180,12 +181,14 @@ QtObject {
                                  { projectId: projectId, activityId: activityId, description: description, extras: extras }, {
             stopped: function() {
                 apply(null)
+                session.entriesWritten()
             },
             started: function(ts) {
                 session.busy = false
                 session.started(ts, Ui.Session.Origin.Switch, { project: projectLabel || "", activity: activityLabel || "" })
                 rememberLastUsed(projectId, activityId, projectLabel, activityLabel)
                 apply(session.catalog.hydrate([ts])[0] || ts)
+                session.entriesWritten()
                 session.refresh()
             },
             failed: function(phase, result) {
@@ -216,6 +219,7 @@ QtObject {
             }
             session.stopped(before, names)
             apply(null)
+            session.entriesWritten()
             session.refresh()
         })
     }
@@ -244,6 +248,7 @@ QtObject {
                 session.started(entry, Ui.Session.Origin.Continue,
                                 { project: KimaiApi.projectName(entry), activity: KimaiApi.activityName(entry) })
                 apply(entry)
+                session.entriesWritten()
             }
             session.refresh()
         })
@@ -338,6 +343,7 @@ QtObject {
                 return
             }
             session.noteDropped(result)
+            session.entriesWritten()
             session.refresh()
             if (done) {
                 done()

@@ -111,6 +111,7 @@ QtObject {
                 return
             }
             session.timer.apply(null)
+            session.entriesWritten()
             session.refresh()
             idleDiscarded(snap)
             if (after === Ui.Session.AfterIdle.Continue && TimerSession.canContinue(snap)) {

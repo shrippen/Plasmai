@@ -27,6 +27,7 @@ TestCase {
             signal failed(int action, var result)
             signal started(var timesheet, int origin, var names)
             signal trackingBegan(var timesheet)
+            signal entriesWritten()
             property bool busy: false
             property bool locked: false
             function refresh() {}

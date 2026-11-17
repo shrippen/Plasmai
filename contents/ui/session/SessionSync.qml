@@ -86,16 +86,23 @@ QtObject {
     }
 
     function retry(opId) {
-        Outbox.retry(state, opId, function() { session.refresh() })
+        Outbox.retry(state, opId, function() {
+            session.entriesWritten()
+            session.refresh()
+        })
     }
 
     /** Conflict: send the local change anyway. */
     function overwrite(opId) {
-        Outbox.overwrite(state, opId, function() { session.refresh() })
+        Outbox.overwrite(state, opId, function() {
+            session.entriesWritten()
+            session.refresh()
+        })
     }
 
     function discard(opId) {
         Outbox.discard(state, opId)
+        session.entriesWritten()
         session.refresh()
     }
 

@@ -217,12 +217,16 @@ QtObject {
             result.invalid = FilmDays.SpanProblem.NONE
             result.deleteReport = null
             result.workSeconds = FilmDays.workSecondsFromSpan(span.beginMs, span.endMs, req.breakMinutes)
+            if (result.ok) {
+                session.entriesWritten()
+            }
             if (!result.ok || !req.mergeIds || req.mergeIds.length === 0) {
                 saving = false
                 callback(result)
                 return
             }
             FilmDaySync.deleteEntries(context(), req.mergeIds, function(report) {
+                session.entriesWritten()
                 saving = false
                 result.deleteReport = report
                 callback(result)
@@ -263,6 +267,7 @@ QtObject {
         }, function(result) {
             if (result.saved === "saved") {
                 savedNote = result.note
+                session.entriesWritten()
             }
             callback(result)
         })
