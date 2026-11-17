@@ -1,5 +1,11 @@
 cmake_minimum_required(VERSION 3.20)
-project(plasmai-app VERSION 2.7.0 LANGUAGES CXX)
+
+# The version stands only in ../metadata.json (KPlugin.Version).
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/../metadata.json" PLASMAI_METADATA)
+string(JSON PLASMAI_VERSION GET "${PLASMAI_METADATA}" KPlugin Version)
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../metadata.json")
+
+project(plasmai-app VERSION ${PLASMAI_VERSION} LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -148,14 +154,19 @@ else()
     )
 endif()
 
+# Android versionCode = major * 10000 + minor * 100 + patch (2.7.0 -> 20700)
+math(EXPR PLASMAI_VERSION_CODE
+    "${plasmai-app_VERSION_MAJOR} * 10000 + ${plasmai-app_VERSION_MINOR} * 100 + ${plasmai-app_VERSION_PATCH}")
+target_compile_definitions(plasmai-app PRIVATE PLASMAI_VERSION="${PLASMAI_VERSION}")
+
 if(ANDROID)
     set_property(TARGET plasmai-app APPEND PROPERTY
         QT_ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android"
     )
     set_target_properties(plasmai-app PROPERTIES
         QT_ANDROID_PACKAGE_NAME "io.github.shrippen.Plasmai"
-        QT_ANDROID_VERSION_NAME "2.7.0"
-        QT_ANDROID_VERSION_CODE "20700"
+        QT_ANDROID_VERSION_NAME "${PLASMAI_VERSION}"
+        QT_ANDROID_VERSION_CODE "${PLASMAI_VERSION_CODE}"
         QT_ANDROID_MIN_SDK_VERSION "28"
         QT_ANDROID_TARGET_SDK_VERSION "34"
         # Pinned instead of "newest installed": GitHub's runner and F-Droid's buildserver have
