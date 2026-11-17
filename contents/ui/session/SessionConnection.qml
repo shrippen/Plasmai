@@ -96,6 +96,16 @@ QtObject {
 
     /** Counts profile switches, and a changed URL or token: an answer asked under an older one belongs to another server or account. */
     property int generation: 0
+    /** Hash of the last token that was set, kept over a cleared one to tell another account (never the token). */
+    property int lastTokenHash: 0
+
+    function hashOf(text) {
+        let hash = 0
+        for (let i = 0; i < text.length; i++) {
+            hash = (Math.imul(hash, 31) + text.charCodeAt(i)) | 0
+        }
+        return hash || 1
+    }
 
     /** Wraps a read's callback: dropped when the profile changed before the answer came. */
     function current(callback) {
@@ -112,6 +122,7 @@ QtObject {
         // Another profile: its first answers are pending again (views show loading rows).
         if (!profile || !p || profile.id !== p.id || url !== TimeTracker.resolveUrl(p)) {
             generation++
+            lastTokenHash = 0
             session.timer.apply(null)
             session.timer.loaded = false
             session.recent.loaded = false
@@ -138,10 +149,13 @@ QtObject {
         const routed = KimaiApi.routeToken(profile.url)
         const pending = routed ? Promise.resolve(routed) : Platform.loadToken(session.dataSource, profile.id)
         return pending.then(function(t) {
-            // Another account on the same profile: answers asked with the old token are dropped.
-            if (token && t && token !== t) {
+            // Another account on the same profile (also after a cleared token in between):
+            // answers asked with the old token are dropped.
+            const previous = token ? hashOf(token) : lastTokenHash
+            if (t && previous && previous !== hashOf(t)) {
                 generation++
             }
+            lastTokenHash = t ? hashOf(t) : lastTokenHash
             token = t || ""
             tokenLoaded = true
             state = token ? online : unconfigured

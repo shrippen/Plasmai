@@ -51,7 +51,7 @@ QtObject {
     function refresh() {
         const c = session.connection
         const profileId = c.profile ? c.profile.id : ""
-        if (useCache && CatalogCache.isFresh(profileId) && projects.length > 0) {
+        if (useCache && CatalogCache.isFresh(profileId, c.url) && projects.length > 0) {
             loaded = true
             return
         }
@@ -71,7 +71,7 @@ QtObject {
             if (!useCache || !fromServer) {
                 return
             }
-            CatalogCache.storeEntities(profileId, customers, projects, activities)
+            CatalogCache.storeEntities(profileId, customers, projects, activities, c.url)
             Platform.saveCatalog(session.dataSource, CatalogCache.exportPayload())
         }
 
@@ -163,9 +163,9 @@ QtObject {
 
     // ── Settings dialog (Favorites): a profile this session has not opened ──
 
-    /** The catalog of profileId kept in memory (a payload with its profileId), or null. */
-    function cached(profileId) {
-        return CatalogCache.hasCatalog(profileId) ? CatalogCache.exportPayload() : null
+    /** The catalog of profileId from this server kept in memory (a payload with its profileId), or null. */
+    function cached(profileId, url) {
+        return CatalogCache.hasCatalog(profileId, url) ? CatalogCache.exportPayload() : null
     }
 
     /** catalog-cache.json as text ("" when missing), for parsing off the UI thread. */
@@ -206,7 +206,7 @@ QtObject {
                     const list = result.data || []
                     steps.projects(found, list)
                     function store(acts) {
-                        CatalogCache.storeEntities(p.id, found, list, acts || [])
+                        CatalogCache.storeEntities(p.id, found, list, acts || [], url)
                         Platform.saveCatalog(session.dataSource, CatalogCache.exportPayload())
                         steps.activities(acts)
                     }
