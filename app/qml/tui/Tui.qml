@@ -146,6 +146,9 @@ QtObject {
         if (c.state === c.error) {
             return { text: i18n("Server not reachable"), style: View.Style.DANGER }
         }
+        if (session.sync.storageError !== "") {
+            return { text: Ui.ApiErrors.storageText(session.sync.storageError), style: View.Style.DANGER }
+        }
         if (session.sync.offline) {
             return { text: i18n("Offline · %1 not synced", session.sync.unsynced), style: View.Style.PRIMARY }
         }

@@ -1,6 +1,7 @@
 import QtQuick
 import QtTest
 import "../../contents/code/platform.js" as Platform
+import "../../contents/code/localFile.js" as LocalFile
 
 /** platform.js patchShared: serialized read-modify-write and data-map merge (B9). */
 TestCase {
@@ -145,5 +146,61 @@ TestCase {
         Platform.saveCatalog(null, { p1: { projects: [1, 2] } }).then(function() { done++ })
         tryVerify(function() { return done === 3 })
         compare(saves, 2)
+    }
+
+    // A file that is missing, unreadable or broken is told apart; a broken one is moved aside.
+    function test_loadLocalStatus() {
+        var quarantined = []
+        var answers = {
+            gone: ["missing", null],
+            fine: ["ok", { v: 1 }],
+            locked: ["unreadable", null],
+            garbled: ["broken", null]
+        }
+        Platform.setBackend({
+            loadLocal: function(ds, name, cb) { cb(answers[name][0], answers[name][1]) },
+            quarantineLocal: function(ds, name, cb) { quarantined.push(name); cb(true) }
+        })
+        var got = {}
+        for (var name in answers) {
+            (function(n) { Platform.loadLocal(null, n).then(function(r) { got[n] = r }) })(name)
+        }
+        tryVerify(function() { return Object.keys(got).length === 4 })
+        compare(got.gone.status, LocalFile.Status.MISSING)
+        compare(got.fine.status, LocalFile.Status.OK)
+        compare(got.fine.data.v, 1)
+        compare(got.locked.status, LocalFile.Status.UNREADABLE)
+        compare(got.garbled.status, LocalFile.Status.BROKEN)
+        compare(quarantined, ["garbled"])
+    }
+
+    // Not moved aside: the file stays, so it must not count as "empty".
+    function test_brokenFileThatCannotMoveIsUnreadable() {
+        Platform.setBackend({
+            loadLocal: function(ds, name, cb) { cb("broken", null) },
+            quarantineLocal: function(ds, name, cb) { cb(false) }
+        })
+        var got = null
+        Platform.loadLocal(null, "x").then(function(r) { got = r })
+        tryVerify(function() { return got !== null })
+        compare(got.status, LocalFile.Status.UNREADABLE)
+    }
+
+    // A write of the same file is running: its content is not this read's, nothing is moved aside.
+    function test_noQuarantineWhileWriting() {
+        var finish = null
+        var quarantined = 0
+        Platform.setBackend({
+            loadLocal: function(ds, name, cb) { cb("broken", null) },
+            quarantineLocal: function(ds, name, cb) { quarantined++; cb(true) },
+            saveLocal: function(ds, name, payload, cb) { finish = cb }
+        })
+        Platform.saveLocal(null, "x", { v: 1 })
+        var got = null
+        Platform.loadLocal(null, "x").then(function(r) { got = r })
+        tryVerify(function() { return got !== null })
+        compare(got.status, LocalFile.Status.UNREADABLE)
+        compare(quarantined, 0)
+        finish(true, null)
     }
 }

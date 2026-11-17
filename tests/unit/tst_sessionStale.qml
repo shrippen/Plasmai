@@ -24,7 +24,7 @@ TestCase {
             loadSharedConfig: function(_ds, cb) { cb(shared) },
             saveSharedConfig: function(_ds, obj, cb) { shared = obj; if (cb) { cb(true) } },
             loadToken: function(_ds, _id, cb) { cb("", null) },
-            loadLocal: function(_ds, name, cb) { cb(files[name] || null) },
+            loadLocal: function(_ds, name, cb) { cb(files[name] ? "ok" : "missing", files[name] || null) },
             saveLocal: function(_ds, name, payload, cb) { files[name] = payload; cb(true, null) }
         }
     }

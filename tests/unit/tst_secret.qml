@@ -141,12 +141,29 @@ TestCase {
     function test_loadLocal() {
         var ds = fakeSource()
         var got = "unset"
-        Secret.loadLocal(ds, "/p/localStore.sh", "offline-state-p1", function(obj, err) { got = obj })
+        Secret.loadLocal(ds, "/p/localStore.sh", "offline-state-p1", function(status, obj) { got = [status, obj] })
         verify(ds.sources[0].indexOf("sh '/p/localStore.sh' load 'offline-state-p1'") === 0)
         Secret.handleData(ds, ds.sources[0], { "exit code": 0, stdout: '{"v":1}\n', stderr: "" })
-        compare(got.v, 1)
-        Secret.loadLocal(ds, "/p/localStore.sh", "none", function(obj, err) { got = [obj, err] })
+        compare(got[0], "ok")
+        compare(got[1].v, 1)
+        Secret.loadLocal(ds, "/p/localStore.sh", "none", function(status, obj) { got = [status, obj] })
         Secret.handleData(ds, ds.sources[1], { "exit code": 1, stdout: "", stderr: "" })
-        compare(got, [null, null])
+        compare(got, ["missing", null])
+        // A failed read (the script's exit 2, no process, no right) is not "missing".
+        Secret.loadLocal(ds, "/p/localStore.sh", "locked", function(status, obj) { got = [status, obj] })
+        Secret.handleData(ds, ds.sources[2], { "exit code": 2, stdout: "", stderr: "cat: denied" })
+        compare(got, ["unreadable", null])
+        Secret.loadLocal(ds, "/p/localStore.sh", "garbled", function(status, obj) { got = [status, obj] })
+        Secret.handleData(ds, ds.sources[3], { "exit code": 0, stdout: "{not json", stderr: "" })
+        compare(got, ["broken", null])
+    }
+
+    function test_quarantineLocal() {
+        var ds = fakeSource()
+        var got = "unset"
+        Secret.quarantineLocal(ds, "/p/localStore.sh", "offline-outbox-p1", function(ok) { got = ok })
+        verify(ds.sources[0].indexOf("sh '/p/localStore.sh' quarantine 'offline-outbox-p1'") === 0)
+        Secret.handleData(ds, ds.sources[0], { "exit code": 0, stdout: "", stderr: "" })
+        compare(got, true)
     }
 }

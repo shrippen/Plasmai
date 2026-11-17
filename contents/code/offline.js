@@ -33,7 +33,8 @@
  * host: {
  *   key        profile key; "" = no offline layer (not Kimai), the tracker is passed through
  *   url(), token()
- *   load(name) → Promise<object|null>, save(name, object) → Promise   (client-private files)
+ *   load(name) → Promise<{ status, data }> (localFile.js; data with OK only)
+ *   save(name, object) → Promise, rejects when the write failed   (client-private files)
  *   now()      ms, optional
  *   changed()  offline flag, ops or snapshot changed (views re-read), optional
  *   idChanged(localId, serverId)   a local entry got its server id, optional
@@ -437,7 +438,14 @@ function createSession(inner, host) {
         savedSnapshotAt: 0,
         saveQueued: false,
         replaying: false,
-        replayWaiters: []
+        replayWaiters: [],
+        closed: false,
+        // The outbox file could not be read: it is not written until a read works.
+        outboxBlocked: false,
+        loadingOutbox: null,
+        // a write was asked for while blocked or loading
+        saveWaits: false,
+        storageError: OfflineState.StorageError.NONE
     }
     s.tracker = s.enabled ? wrapTracker(s) : inner
     return s
@@ -448,11 +456,24 @@ function load(s) {
     if (!s.enabled) {
         return Promise.resolve()
     }
-    return Promise.all([s.host.load(OfflineState.stateName(s)), s.host.load(Outbox.outboxName(s))]).then(function(parts) {
-        OfflineState.restoreSnapshot(s, parts[0])
-        Outbox.restoreOps(s, parts[1])
+    return Promise.all([s.host.load(OfflineState.stateName(s)), Outbox.loadOutbox(s)]).then(function(parts) {
+        OfflineState.restoreSnapshot(s, parts[0].data)
         OfflineState.notify(s)
     })
+}
+
+/**
+ * The profile of this session is not the active one any more: a replay in flight
+ * stops after its op. Its outbox is still written (the file is its alone); its snapshot is not
+ * (a cache, and its deferred save would replace the active session's).
+ */
+function close(s) {
+    s.closed = true
+}
+
+/** The profile is active again: the same session goes on, its replay too. */
+function reopen(s) {
+    s.closed = false
 }
 
 function isOffline(s) {

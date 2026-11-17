@@ -5,6 +5,7 @@ import "../../contents/code/offlineOutbox.js" as Outbox
 import "../../contents/code/offlineState.js" as OfflineState
 import "../../contents/code/dateTimeFormat.js" as DTF
 import "../../contents/code/providerUtil.js" as ProviderUtil
+import "../../contents/code/localFile.js" as LocalFile
 
 /**
  * offline.js: snapshot answers, outbox, replay, local ids, conflicts. A fake
@@ -13,146 +14,15 @@ import "../../contents/code/providerUtil.js" as ProviderUtil
 TestCase {
     name: "Offline"
 
-    // 2026-09-28 12:00 local
-    readonly property double t0: new Date(2026, 8, 28, 12, 0).getTime()
+    OfflineFakes { id: fakes }
 
-    function stamp(h, m) {
-        // What the layer writes: the device time with its offset (see DTF.localDateTimeString).
-        return DTF.localDateTimeString(new Date(2026, 8, 28, h, m))
-    }
-
-    function netErr() { return { ok: false, error: { type: "network", status: 0, detail: "" } } }
-
-    function fakeKimai() {
-        var k = {
-            net: true,
-            calls: [],
-            nextId: 100,
-            server: {},              // id → timesheet
-            refuse: null,            // name → error (server-side refusal)
-            loseAnswer: false,       // next write reaches the server, answer lost
-            projects: [{ id: 10, name: "P" }]
-        }
-        function answer(name, cb, fn) {
-            k.calls.push(name)
-            if (!k.net) { cb(netErr()); return }
-            if (k.refuse && k.refuse[name]) { cb({ ok: false, error: k.refuse[name] }); return }
-            var result = fn()
-            if (k.loseAnswer) { k.loseAnswer = false; cb(netErr()); return }
-            cb(result)
-        }
-        function list() { var out = []; for (var id in k.server) out.push(JSON.parse(JSON.stringify(k.server[id]))); return out }
-        k.fetchActiveTimesheet = function(u, t, cb) {
-            answer("active", cb, function() { return { ok: true, data: list().filter(function(ts) { return !ts.end }) } })
-        }
-        k.fetchRecentTimesheets = function(u, t, size, cb) {
-            answer("recent", cb, function() { return { ok: true, data: list().slice(0, size) } })
-        }
-        k.fetchTimesheetsRange = function(u, t, b, e, cb, filters) {
-            answer("range", cb, function() {
-                return { ok: true, data: list().filter(function(ts) {
-                    return new Date(ts.begin).getTime() <= e.getTime()
-                        && (ts.end ? new Date(ts.end).getTime() : e.getTime()) >= b.getTime() }) }
-            })
-        }
-        k.fetchTimesheet = function(u, t, id, cb) {
-            answer("get " + id, cb, function() {
-                return k.server[id] ? { ok: true, data: JSON.parse(JSON.stringify(k.server[id])) }
-                                    : { ok: false, error: { type: "not_found", status: 404, detail: "" } }
-            })
-        }
-        k.createTimesheet = function(u, t, f, cb) {
-            answer("create", cb, function() {
-                var ts = JSON.parse(JSON.stringify(f)); ts.id = k.nextId++; k.server[ts.id] = ts
-                return { ok: true, data: ts }
-            })
-        }
-        k.startTracking = function(u, t, pid, aid, desc, cb, extras) {
-            answer("start", cb, function() {
-                var ts = { id: k.nextId++, begin: stamp(12, 0), project: pid, activity: aid, description: desc || "" }
-                k.server[ts.id] = ts
-                return { ok: true, data: ts }
-            })
-        }
-        k.stopTracking = function(u, t, id, cb) {
-            answer("stop " + id, cb, function() { k.server[id].end = stamp(12, 30); return { ok: true, data: null } })
-        }
-        k.restartTimesheet = function(u, t, id, cb) {
-            answer("restart " + id, cb, function() { return { ok: true, data: null } })
-        }
-        k.patchTimesheet = function(u, t, id, f, cb) {
-            answer("patch " + id, cb, function() {
-                for (var key in f) k.server[id][key] = f[key]
-                return { ok: true, data: JSON.parse(JSON.stringify(k.server[id])) }
-            })
-        }
-        k.deleteTimesheet = function(u, t, id, cb) {
-            answer("delete " + id, cb, function() { delete k.server[id]; return { ok: true, data: null } })
-        }
-        k.loadProjects = function(u, t, cb) {
-            answer("projects", cb, function() { return { ok: true, data: k.projects } })
-        }
-        k.createProject = function(u, t, f, cb) {
-            answer("createProject", cb, function() { return { ok: true, data: { id: 11 } } })
-        }
-        // Trips (kimai-anfahrten)
-        k.trips = {}
-        k.nextTrip = 500
-        k.fetchTrips = function(u, t, range, cb) {
-            answer("trips", cb, function() {
-                var out = []
-                for (var id in k.trips) out.push(JSON.parse(JSON.stringify(k.trips[id])))
-                return { ok: true, data: out }
-            })
-        }
-        k.createTrip = function(u, t, body, cb) {
-            answer("createTrip", cb, function() {
-                var trip = JSON.parse(JSON.stringify(body)); trip.id = k.nextTrip++; k.trips[trip.id] = trip
-                return { ok: true, data: trip }
-            })
-        }
-        k.patchTrip = function(u, t, id, body, cb) {
-            answer("patchTrip " + id, cb, function() {
-                for (var key in body) k.trips[id][key] = body[key]
-                return { ok: true, data: k.trips[id] }
-            })
-        }
-        k.deleteTrip = function(u, t, id, cb) {
-            answer("deleteTrip " + id, cb, function() { delete k.trips[id]; return { ok: true, data: null } })
-        }
-        k.acceptTripSuggestion = function(u, t, id, body, cb) {
-            answer("accept", cb, function() { return { ok: true, data: {} } })
-        }
-        return k
-    }
-
-    function fakeHost(files) {
-        var h = {
-            key: "p1",
-            files: files || {},
-            clock: t0,
-            changes: 0,
-            renamed: [],
-            url: function() { return "https://kimai.test" },
-            token: function() { return "tok" },
-            load: function(name) { return Promise.resolve(h.files[name] ? JSON.parse(h.files[name]) : null) },
-            save: function(name, obj) { h.files[name] = JSON.stringify(obj); return Promise.resolve(true) },
-            now: function() { return h.clock },
-            changed: function() { h.changes += 1 },
-            idChanged: function(localId, serverId) { h.renamed.push([localId, serverId]) }
-        }
-        return h
-    }
-
-    function call(fn) {
-        var out = null
-        fn(function(r) { out = r })
-        return out
-    }
-
-    function session(k, h) {
-        return Offline.createSession(k, h || fakeHost())
-    }
+    readonly property double t0: fakes.t0
+    function stamp(h, m) { return fakes.stamp(h, m) }
+    function netErr() { return fakes.netErr() }
+    function fakeKimai() { return fakes.fakeKimai() }
+    function fakeHost(files) { return fakes.fakeHost(files) }
+    function call(fn) { return fakes.call(fn) }
+    function session(k, h) { return fakes.session(k, h) }
 
     function test_readsFallBackToSnapshot() {
         var k = fakeKimai()

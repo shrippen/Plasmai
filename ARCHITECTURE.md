@@ -25,7 +25,7 @@ favourites, statistics, offline work; for Kimai also film days and trips.
 | `contents/code/offlineState.js` | The stored state of that layer: the snapshot of server answers on disk and the overlay of waiting changes on it. |
 | `contents/code/offlineOutbox.js` | The outbox of that layer: queued changes, sending them again in order, conflicts, retry and discard. |
 | `contents/code/filmDaySync.js`, `catalogCache.js`, `geocode.js` | What the session uses beside a provider: the film day's sync, the catalog on disk, the place search. |
-| `contents/code/platform.js`, `desktopBackend.js`, `secret.js`, `*.sh`, `contents/ui/ExecSource.qml`, `app/qml/platform/appBackend.js` | The platform: one facade for settings file (`shared.json`), tokens, files, idle time and notifications, with a backend for the widget (shell scripts, KWallet) and one for the app. |
+| `contents/code/platform.js`, `localFile.js`, `desktopBackend.js`, `secret.js`, `*.sh`, `contents/ui/ExecSource.qml`, `app/qml/platform/appBackend.js` | The platform: one facade for settings file (`shared.json`), tokens, files, idle time and notifications, with a backend for the widget (shell scripts, KWallet) and one for the app. |
 | `contents/code/sharedConfig.js` | The shared settings: their names and defaults. |
 | `contents/code/` (other files) | Pure logic with tests: dates and durations, day model and totals, statistics, favourites, film days, mileage, layouts, profiles. |
 | `contents/ui/Kante/`, `KantePlasma/` | Synced copies of the design system. Never edited here. |

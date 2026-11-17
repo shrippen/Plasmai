@@ -6,6 +6,7 @@
  * interface; all public methods delegate to it via Promises.
  */
 .import "sharedConfig.js" as SharedConfig
+.import "localFile.js" as LocalFile
 
 var _backend = null
 
@@ -178,9 +179,27 @@ function saveCatalog(dataSource, payload) {
 
 // -- Client-private files (offline snapshot, outbox; not shared with the other client)
 
+/**
+ * Reads the file: resolves { status, data } (status as in localFile.js, data
+ * only with OK). A file with broken JSON is moved aside first; when that fails
+ * it stays and counts as UNREADABLE (never as empty).
+ */
 function loadLocal(dataSource, name) {
     return new Promise(function(resolve) {
-        _backend.loadLocal(dataSource, name, function(payload) { resolve(payload || null) })
+        _backend.loadLocal(dataSource, name, function(status, data) {
+            if (status !== LocalFile.Status.BROKEN) {
+                resolve({ status: status, data: status === LocalFile.Status.OK ? data : null })
+                return
+            }
+            // A write of this file is running: the content read may be the one it replaces.
+            if (_localWrites[name] && _localWrites[name].running) {
+                resolve({ status: LocalFile.Status.UNREADABLE, data: null })
+                return
+            }
+            _backend.quarantineLocal(dataSource, name, function(moved) {
+                resolve({ status: moved ? LocalFile.Status.BROKEN : LocalFile.Status.UNREADABLE, data: null })
+            })
+        })
     })
 }
 

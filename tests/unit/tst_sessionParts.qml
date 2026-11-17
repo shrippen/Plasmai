@@ -32,7 +32,7 @@ TestCase {
             loadToken: function(_ds, id, cb) { cb(tokens[id] || "", null) },
             saveToken: function(_ds, id, token, cb) { tokens[id] = token; cb(true, null) },
             clearToken: function(_ds, id, cb) { delete tokens[id]; cb(true, null) },
-            loadLocal: function(_ds, name, cb) { cb(files[name] || null) },
+            loadLocal: function(_ds, name, cb) { cb(files[name] ? "ok" : "missing", files[name] || null) },
             saveLocal: function(_ds, name, payload, cb) { files[name] = payload; cb(true, null) },
             runIdle: function(_ds, cb) { cb(idleMs, null) },
             notify: function(_ds, summary, body, cb) { notes.push(summary); cb() }

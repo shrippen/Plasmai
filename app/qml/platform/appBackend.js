@@ -1,6 +1,23 @@
 .pragma library
 
 /**
+ * [status, object] for platform.js loadLocal: the file store's "missing", "ok"
+ * and "unreadable" as they are; "broken" when an "ok" file is no JSON object.
+ */
+function localResult(status, data) {
+    if (status !== "ok") {
+        return [status, null]
+    }
+    var obj = null
+    try {
+        obj = JSON.parse(data)
+    } catch (e) {
+        obj = null
+    }
+    return obj !== null && typeof obj === "object" ? ["ok", obj] : ["broken", null]
+}
+
+/**
  * App backend for platform.js.
  * Uses C++ TokenStore (QtKeychain) and FileStore (QStandardPaths).
  * These are set as context properties by main.cpp.
@@ -115,16 +132,15 @@ function create(tokenStore, fileStore, idleWatcher, notifier) {
         },
 
         loadLocal: function(_ds, name, cb) {
-            _connectOnce(fileStore.localLoaded, name, function(_name, data) {
-                var obj = null
-                try {
-                    obj = data ? JSON.parse(data) : null
-                } catch (e) {
-                    obj = null
-                }
-                cb(obj)
+            _connectOnce(fileStore.localLoaded, name, function(_name, data, status) {
+                cb.apply(null, localResult(status, data))
             })
             fileStore.loadLocal(name)
+        },
+
+        quarantineLocal: function(_ds, name, cb) {
+            _connectOnce(fileStore.localQuarantined, name, function(_name, ok) { cb(ok) })
+            fileStore.quarantineLocal(name)
         },
 
         saveLocal: function(_ds, name, payload, cb) {
