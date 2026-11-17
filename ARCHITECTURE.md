@@ -105,4 +105,4 @@ favourites, statistics, offline work; for Kimai also film days and trips.
 - Error kinds stand partly as loose words; `config` means two things
   (`AUDIT.md`, finding 7).
 - `contents/ui/main.qml` holds the view and the loading of statistics in
-  one file of LINES lines (`AUDIT.md`, finding 10).
+  one file of 2950 lines (`AUDIT.md`, finding 10).
