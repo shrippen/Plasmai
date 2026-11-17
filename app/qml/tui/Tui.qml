@@ -11,7 +11,8 @@ import "tuiView.js" as View
 /**
  * The terminal client (`plasmai-app --tui`): the same Session as the app,
  * drawn as text. Keys: 1–9 or ↑↓ Enter start or switch to a recent entry,
- * s stop, t day, w week, r refresh, Esc back, q quit.
+ * s stop, t day, w week, r refresh, Esc back, q quit; u lists the waiting changes
+ * (↑↓ select, r send again, a send a parked group here, d discard; y confirms).
  *
  *   Terminal.keyPressed ──▶ handle() ──▶ Session actions
  *   Session state / 1 s tick ──▶ draw() ──▶ View.main|day|week ──▶ Terminal.render
@@ -25,11 +26,18 @@ QtObject {
     readonly property string viewMain: "main"
     readonly property string viewDay: "day"
     readonly property string viewWeek: "week"
+    readonly property string viewUnsynced: "unsynced"
+    /** The keys that open a view. */
+    readonly property var viewKeys: ({ "t": viewDay, "w": viewWeek, "u": viewUnsynced })
     readonly property int maxNumberKey: 9
 
     property string view: viewMain
     property int selected: 0
     property string message: ""
+    /** The row selected in the list of waiting changes. */
+    property int listSelected: 0
+    /** What waits for a "y": { action (View.Action), item }, or null. */
+    property var asked: null
 
     property Ui.Session session: Ui.Session {
         offlinePrefix: "tui-"
@@ -74,12 +82,15 @@ QtObject {
             Qt.quit()
             return
         }
+        if (view === viewUnsynced && handleUnsynced(key)) {
+            draw()
+            return
+        }
         if (key === "escape") {
             view = viewMain
-        } else if (key === "t") {
-            view = viewDay
-        } else if (key === "w") {
-            view = viewWeek
+            asked = null
+        } else if (viewKeys[key]) {
+            view = viewKeys[key]
         } else if (key === "r") {
             session.refresh()
         } else if (key === "s") {
@@ -111,6 +122,72 @@ QtObject {
         }
     }
 
+    /** Keys of the list of waiting changes; false for a key that is not for the list. */
+    function handleUnsynced(key) {
+        const items = unsyncedItems()
+        if (asked) {
+            const pending = asked
+            asked = null
+            if (key === "y") {
+                perform(pending)
+            }
+            return true
+        }
+        if (key === "up" || key === "down") {
+            const next = listSelected + (key === "up" ? -1 : 1)
+            listSelected = Math.max(0, Math.min(Math.max(0, items.length - 1), next))
+            return true
+        }
+        const item = items[listSelected]
+        const action = View.unsyncedAction(key, item)
+        if (action === View.Action.NONE) {
+            return false
+        }
+        asked = { action: action, item: item }
+        return true
+    }
+
+    /** The waiting changes, then the parked groups, as rows of the list. */
+    function unsyncedItems() {
+        const ops = session.sync.ops.map(function(op) {
+            return { kind: View.ItemKind.OP, id: op.opId, title: Ui.ApiErrors.opKindText(op),
+                     sub: Ui.ApiErrors.opStateText(op), canAdopt: false }
+        })
+        const groups = session.sync.groups.map(function(group) {
+            return { kind: View.ItemKind.GROUP, id: group.index, title: Ui.ApiErrors.heldGroupText(group),
+                     sub: Ui.ApiErrors.heldHint(group), canAdopt: group.canAdopt, group: group }
+        })
+        return ops.concat(groups)
+    }
+
+    function perform(pending) {
+        const item = pending.item
+        if (pending.action === View.Action.RETRY) {
+            session.sync.retry(item.id)
+        } else if (pending.action === View.Action.ADOPT) {
+            session.sync.adopt(item.id)
+        } else if (item.kind === View.ItemKind.GROUP) {
+            session.sync.discardGroup(item.id)
+        } else {
+            session.sync.discard(item.id)
+        }
+    }
+
+    /** The question for what waits for a "y". */
+    function questionText() {
+        if (!asked) {
+            return ""
+        }
+        const item = asked.item
+        let question = i18n("Send this change again?")
+        if (asked.action === View.Action.ADOPT) {
+            question = Ui.ApiErrors.adoptQuestion(item.group)
+        } else if (asked.action === View.Action.DISCARD) {
+            question = item.kind === View.ItemKind.GROUP ? Ui.ApiErrors.discardGroupQuestion(item.group) : i18n("Discard this change?")
+        }
+        return i18n("%1 (y = yes, any other key = no)", question)
+    }
+
     /** Continues a recent entry; while another runs, switches to it (no confirmation here). */
     function restart(ts) {
         if (session.timer.requestRestart(ts) !== Ui.Session.Restart.Confirm) {
@@ -133,6 +210,9 @@ QtObject {
             noGaps: i18n("No gaps in the work day"),
             gaps: i18n("Gaps:"),
             total: i18n("Total"),
+            unsyncedTitle: i18n("Not synced"),
+            unsyncedKeys: i18n("↑↓ select · r send again · a send here · d discard · Esc back"),
+            allSynced: i18n("Everything is synced."),
             mainKeys: i18n("1–9 start · s stop · t day · w week · r refresh · q quit"),
             subKeys: i18n("Esc back · s stop · r refresh · q quit")
         }
@@ -148,6 +228,9 @@ QtObject {
         }
         if (session.sync.storageError !== "") {
             return { text: Ui.ApiErrors.storageText(session.sync.storageError), style: View.Style.DANGER }
+        }
+        if (session.sync.held > 0 || session.sync.stuck > 0) {
+            return { text: i18n("Changes need a decision · u"), style: View.Style.DANGER }
         }
         if (session.sync.offline) {
             return { text: i18n("Offline · %1 not synced", session.sync.unsynced), style: View.Style.PRIMARY }
@@ -178,6 +261,15 @@ QtObject {
         }
         if (view === viewWeek) {
             terminal.render(View.week(Object.assign(model, weekModel()), size, t))
+            return
+        }
+
+        if (view === viewUnsynced) {
+            const items = unsyncedItems()
+            listSelected = Math.min(listSelected, Math.max(0, items.length - 1))
+            terminal.render(View.unsynced(Object.assign(model, {
+                items: items, selected: listSelected, question: questionText(), message: message
+            }), size, t))
             return
         }
 

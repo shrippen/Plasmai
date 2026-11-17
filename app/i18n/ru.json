@@ -9,6 +9,16 @@
 "%1 изменения ещё не синхронизированы",
 "%1 изменений ещё не синхронизировано"
 ],
+"\u0004%1 change waits for %2 on %3": [
+"%1 изменение ждёт для %2 на %3",
+"%1 изменения ждут для %2 на %3",
+"%1 изменений ждут для %2 на %3"
+],
+"\u0004%1 change waits for another server or account": [
+"%1 изменение ждёт другого сервера или учётной записи",
+"%1 изменения ждут другого сервера или учётной записи",
+"%1 изменений ждут другого сервера или учётной записи"
+],
 "\u0004%1 day ago": [
 "%1 день назад",
 "%1 дня назад",
@@ -54,6 +64,11 @@
 "+%1 найденные поездки",
 "+%1 найденных поездок"
 ],
+"\u0004Discard %1 change for %2?": [
+"Отменить %1 изменение для %2?",
+"Отменить %1 изменения для %2?",
+"Отменить %1 изменений для %2?"
+],
 "\u0004Plural-Forms": "(n%10==1&&n%100!=11?0:n%10>=2&&n%10<=4&&(n%100<10||n%100>=20)?1:2)",
 "\u0004This activity has %1 more entry on this day (%2); the work time above does not include it.": [
 "У этого вида деятельности в этот день есть ещё %1 запись (%2); рабочее время выше её не учитывает.",
@@ -62,6 +77,7 @@
 ],
 "\"%1\" was not found": "«%1» не найдено",
 "%1 (from your profile)": "%1 (из вашего профиля)",
+"%1 (y = yes, any other key = no)": "%1 (y = да, другая клавиша = нет)",
 "%1 km": "%1 км",
 "%1 left": "осталось %1",
 "%1 left this week": "На этой неделе осталось %1",
@@ -139,6 +155,7 @@
 "Change engagement": "Сменить ангажемент",
 "Change project, activity, range, billable, and tags for this finished entry.": "Изменить проект, деятельность, интервал, оплачиваемость и теги этой завершённой записи.",
 "Changed on the server meanwhile (%1). Overwrite it with this change, or discard this change?": "Тем временем изменено на сервере (%1). Перезаписать этим изменением или отменить это изменение?",
+"Changes need a decision · u": "Изменения ждут решения · u",
 "Check again": "Проверить снова",
 "Check your system": "Проверьте систему",
 "Choose a look": "Выберите внешний вид",
@@ -218,6 +235,7 @@
 "Discard": "Отменить",
 "Discard and continue": "Отбросить и продолжить",
 "Discard idle": "Отбросить простой",
+"Discard this change?": "Отменить это изменение?",
 "Discarding idle time needs a connection to the server.": "Чтобы отменить время простоя, нужно подключение к серверу.",
 "Dismiss": "Отклонить",
 "Dismiss this detected trip": "Отклонить эту найденную поездку",
@@ -488,6 +506,9 @@
 "Select customer…": "Выбрать клиента…",
 "Select project…": "Выберите проект…",
 "Self-hosted Kimai or the official hosted service (kimai.cloud). Paste the instance URL.": "Самостоятельно размещённый Kimai или официальный хостинг (kimai.cloud). Вставьте URL экземпляра.",
+"Send here": "Отправить сюда",
+"Send these changes to %1 instead of %2? Each entry is checked on the server first.": "Отправить эти изменения на %1 вместо %2? Каждая запись сначала проверяется на сервере.",
+"Send this change again?": "Отправить это изменение ещё раз?",
 "Server URL:": "URL сервера:",
 "Server address": "Адрес сервера",
 "Server error (%1).": "Ошибка сервера (%1).",
@@ -513,6 +534,7 @@
 "Show sun, moon, and work arcs": "Показывать дуги солнца, луны и работы",
 "Show work summary (today / week totals)": "Показывать сводку работы (итоги за сегодня / неделю)",
 "Show:": "Показывать:",
+"Sign in as %1 to send them.": "Войдите как %1, чтобы отправить их.",
 "Skip": "Пропустить",
 "So the day bar and the remaining hours fit you. All of this can be changed later in the settings.": "Чтобы полоса дня и оставшиеся часы подходили вам. Всё можно изменить позже в настройках.",
 "SolidTime cloud API is prefilled. For self-hosting, replace with your instance base URL.": "Облачный API SolidTime уже заполнен. При самостоятельном хостинге замените на базовый URL вашего экземпляра.",
@@ -682,5 +704,6 @@
 "skipped": "пропущено",
 "upcoming": "впереди",
 "yesterday": "вчера",
-"© OpenStreetMap contributors": "© участники OpenStreetMap"
+"© OpenStreetMap contributors": "© участники OpenStreetMap",
+"↑↓ select · r send again · a send here · d discard · Esc back": "↑↓ выбор · r отправить снова · a отправить сюда · d отменить · Esc назад"
 }

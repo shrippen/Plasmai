@@ -137,7 +137,9 @@ TestCase {
 
         compare(lines.length, size.rows)
         verify(lines.some(function(l) { return l.indexOf("Not synced") === 0 }))
-        verify(lines.some(function(l) { return l.indexOf("Entry deleted") >= 0 && l.indexOf("Not accepted: x") >= 0 }))
+        const at = lines.findIndex(function(l) { return l.indexOf("Entry deleted") === 0 })
+        verify(at >= 0)
+        verify(lines[at + 1].indexOf("Not accepted: x") >= 0, "why, under it")
         verify(lines.some(function(l) { return l.indexOf("Sign in as Bob") >= 0 }))
         verify(lines.every(function(l) { return l.length <= size.columns }))
         verify(text.indexOf(View.Style.INVERSE) >= 0)

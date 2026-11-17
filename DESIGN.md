@@ -796,16 +796,38 @@ Bad reception on set: Plasmai keeps working and syncs once the server answers
   and a good one clears it.
 - **Replay and the connection**: URL and token are taken once when a replay starts. Before
   each op, a changed connection or a closed session (another profile was opened)
-  stops the replay; the op stays pending for the next one. Not solved yet: a change of
-  the address within the same profile still sends the remaining ops to the new address
-  on the next replay (part 2 of the offline rework).
+  stops the replay; the op stays pending for the next one. Nothing is sent before the
+  account is known (see "Owner").
+- **Owner** (`offlineOwner.js`): the outbox and the snapshot belong to a server and an account
+  (`owner: { server, account, name }`; the server is the address without a trailing slash, with
+  scheme and host in lower case and without the standard port, the account is the id from
+  `/api/users/me`, the name is for display). A file without an owner (made before) gets one after
+  the first good check. `SessionSync.openFor` settles the owner on every open, also of the same
+  profile, and `verify` asks `/api/users/me` (never cached, with the URL and token of that moment)
+  before the first refresh. A network error or a refused token (401, 403) leaves the account
+  unknown: the changes stay, nothing is sent and no answer is kept in the snapshot until it
+  is known. Another server (also http for https, IP for name, another path) or a checked other
+  account parks the waiting ops as a group in `held` (one group per owner), empties the
+  snapshot and sets the owner to the new one; nothing is laid over the new owner's answers and
+  nothing blocks its writes. Going back to the old address or token resumes the group by itself.
+  While a replay runs, the settling waits for its end (the op on its way must come off the queue).
+  A group made for the same account on another address can be sent here ("Send here", with a
+  question that names both addresses): its ops go behind the queue as pending, a refusal or
+  conflict is forgotten but `base` stays, so every server entry is read again and a difference is
+  a conflict. A group of another account on the same server cannot be sent, only discarded
+  ("Sign in as ... to send them"). Local ids are never shared between groups (the counter is
+  the file's), a timer that follows a parked op's local id is cleared by the owner change.
+  The status line counts parked changes apart (also online); the list shows one foldable block
+  per group. The terminal client opens the same list with `u` (retry, discard, send here, each
+  confirmed with `y`), so a failed op no longer blocks it for good. Not done: the catalog per account.
 - **Sessions and their files**: a file has one session, ever. `SessionSync` keeps the session of
   every profile it opened (by key); leaving a profile closes its session, coming back reopens
   the same one (`Offline.reopen`), also while its replay is waiting for the op on its way, so that
   op is neither sent twice nor lost. Nothing is written while the outbox is read. A closed session
   still writes its outbox at once, like an open one (the answer of the op that was on its way, a
-  change queued after the switch); it does not write its snapshot (a cache, and its deferred save
-  would replace the active session's). A file that is no JSON is
+  change queued after the switch), and its snapshot at once too, never deferred (its deferred save
+  would replace the active session's), so an entry it deleted does not come back after a restart.
+  A file that is no JSON is
   moved aside only when no write of it is running. A profile without offline layer (key "") has
   no files and nothing to read.
 - **Offline begin**: a timer started offline sends its begin explicitly (the

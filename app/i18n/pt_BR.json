@@ -7,6 +7,14 @@
 "%1 alteração ainda não sincronizada",
 "%1 alterações ainda não sincronizadas"
 ],
+"\u0004%1 change waits for %2 on %3": [
+"%1 alteração aguarda para %2 em %3",
+"%1 alterações aguardam para %2 em %3"
+],
+"\u0004%1 change waits for another server or account": [
+"%1 alteração aguarda outro servidor ou outra conta",
+"%1 alterações aguardam outro servidor ou outra conta"
+],
 "\u0004%1 day ago": [
 "há %1 dia",
 "há %1 dias"
@@ -43,6 +51,10 @@
 "+%1 viagem detectada",
 "+%1 viagens detectadas"
 ],
+"\u0004Discard %1 change for %2?": [
+"Descartar %1 alteração de %2?",
+"Descartar %1 alterações de %2?"
+],
 "\u0004Plural-Forms": "(n>1)",
 "\u0004This activity has %1 more entry on this day (%2); the work time above does not include it.": [
 "Esta atividade tem mais %1 entrada neste dia (%2); o tempo de trabalho acima não a inclui.",
@@ -50,6 +62,7 @@
 ],
 "\"%1\" was not found": "“%1” não foi encontrado",
 "%1 (from your profile)": "%1 (do seu perfil)",
+"%1 (y = yes, any other key = no)": "%1 (y = sim, outra tecla = não)",
 "%1 left": "faltam %1",
 "%1 left this week": "%1 restantes nesta semana",
 "%1 left today": "%1 restantes hoje",
@@ -122,6 +135,7 @@
 "Change engagement": "Trocar contratação",
 "Change project, activity, range, billable, and tags for this finished entry.": "Alterar projeto, atividade, intervalo, faturável e tags desta entrada encerrada.",
 "Changed on the server meanwhile (%1). Overwrite it with this change, or discard this change?": "Alterado no servidor nesse meio-tempo (%1). Sobrescrever com esta alteração ou descartar esta alteração?",
+"Changes need a decision · u": "Alterações aguardam decisão · u",
 "Check again": "Verificar novamente",
 "Check your system": "Verifique seu sistema",
 "Choose a look": "Escolha uma aparência",
@@ -201,6 +215,7 @@
 "Discard": "Descartar",
 "Discard and continue": "Descartar e continuar",
 "Discard idle": "Descartar ociosidade",
+"Discard this change?": "Descartar esta alteração?",
 "Discarding idle time needs a connection to the server.": "Descartar o tempo ocioso precisa de uma conexão com o servidor.",
 "Dismiss": "Descartar",
 "Dismiss this detected trip": "Descartar esta viagem detectada",
@@ -465,6 +480,9 @@
 "Select customer…": "Selecionar cliente…",
 "Select project…": "Selecionar projeto…",
 "Self-hosted Kimai or the official hosted service (kimai.cloud). Paste the instance URL.": "Kimai auto-hospedado ou o serviço oficial hospedado (kimai.cloud). Cole a URL da instância.",
+"Send here": "Enviar para cá",
+"Send these changes to %1 instead of %2? Each entry is checked on the server first.": "Enviar estas alterações para %1 em vez de %2? Cada entrada é verificada antes no servidor.",
+"Send this change again?": "Enviar esta alteração novamente?",
 "Server URL:": "URL do servidor:",
 "Server address": "Endereço do servidor",
 "Server error (%1).": "Erro do servidor (%1).",
@@ -490,6 +508,7 @@
 "Show sun, moon, and work arcs": "Mostrar arcos do sol, da lua e do trabalho",
 "Show work summary (today / week totals)": "Mostrar resumo do trabalho (totais de hoje / semana)",
 "Show:": "Mostrar:",
+"Sign in as %1 to send them.": "Entre como %1 para enviá-las.",
 "Skip": "Pular",
 "So the day bar and the remaining hours fit you. All of this can be changed later in the settings.": "Para que a barra do dia e as horas restantes combinem com você. Tudo pode ser alterado depois nas configurações.",
 "SolidTime cloud API is prefilled. For self-hosting, replace with your instance base URL.": "A API em nuvem do SolidTime já está preenchida. Em auto-hospedagem, substitua pela URL base da sua instância.",
@@ -656,5 +675,6 @@
 "skipped": "ignorado",
 "upcoming": "pendente",
 "yesterday": "ontem",
-"© OpenStreetMap contributors": "© colaboradores do OpenStreetMap"
+"© OpenStreetMap contributors": "© colaboradores do OpenStreetMap",
+"↑↓ select · r send again · a send here · d discard · Esc back": "↑↓ escolher · r reenviar · a enviar para cá · d descartar · Esc voltar"
 }

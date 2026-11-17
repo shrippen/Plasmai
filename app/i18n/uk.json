@@ -9,6 +9,16 @@
 "%1 зміни ще не синхронізовані",
 "%1 змін ще не синхронізовано"
 ],
+"\u0004%1 change waits for %2 on %3": [
+"%1 зміна чекає для %2 на %3",
+"%1 зміни чекають для %2 на %3",
+"%1 змін чекають для %2 на %3"
+],
+"\u0004%1 change waits for another server or account": [
+"%1 зміна чекає на інший сервер або обліковий запис",
+"%1 зміни чекають на інший сервер або обліковий запис",
+"%1 змін чекають на інший сервер або обліковий запис"
+],
 "\u0004%1 day ago": [
 "%1 день тому",
 "%1 дні тому",
@@ -54,6 +64,11 @@
 "+%1 виявлені поїздки",
 "+%1 виявлених поїздок"
 ],
+"\u0004Discard %1 change for %2?": [
+"Відкинути %1 зміну для %2?",
+"Відкинути %1 зміни для %2?",
+"Відкинути %1 змін для %2?"
+],
 "\u0004Plural-Forms": "(n%10==1&&n%100!=11?0:n%10>=2&&n%10<=4&&(n%100<10||n%100>=20)?1:2)",
 "\u0004This activity has %1 more entry on this day (%2); the work time above does not include it.": [
 "Ця діяльність має цього дня ще %1 запис (%2); робочий час вище його не враховує.",
@@ -62,6 +77,7 @@
 ],
 "\"%1\" was not found": "«%1» не знайдено",
 "%1 (from your profile)": "%1 (з вашого профілю)",
+"%1 (y = yes, any other key = no)": "%1 (y = так, інша клавіша = ні)",
 "%1 km": "%1 км",
 "%1 left": "залишилось %1",
 "%1 left this week": "На цьому тижні залишилось %1",
@@ -139,6 +155,7 @@
 "Change engagement": "Змінити ангажемент",
 "Change project, activity, range, billable, and tags for this finished entry.": "Змінити проєкт, діяльність, діапазон, оплатність і теги цього завершеного запису.",
 "Changed on the server meanwhile (%1). Overwrite it with this change, or discard this change?": "Тим часом змінено на сервері (%1). Перезаписати цією зміною чи відкинути цю зміну?",
+"Changes need a decision · u": "Зміни чекають на рішення · u",
 "Check again": "Перевірити знову",
 "Check your system": "Перевірте систему",
 "Choose a look": "Оберіть вигляд",
@@ -218,6 +235,7 @@
 "Discard": "Відкинути",
 "Discard and continue": "Відкинути й продовжити",
 "Discard idle": "Відкинути простій",
+"Discard this change?": "Відкинути цю зміну?",
 "Discarding idle time needs a connection to the server.": "Щоб відкинути час простою, потрібне з’єднання із сервером.",
 "Dismiss": "Відхилити",
 "Dismiss this detected trip": "Відхилити цю виявлену поїздку",
@@ -488,6 +506,9 @@
 "Select customer…": "Вибрати клієнта…",
 "Select project…": "Оберіть проєкт…",
 "Self-hosted Kimai or the official hosted service (kimai.cloud). Paste the instance URL.": "Самостійно розміщений Kimai або офіційний хостинг (kimai.cloud). Вставте URL екземпляра.",
+"Send here": "Надіслати сюди",
+"Send these changes to %1 instead of %2? Each entry is checked on the server first.": "Надіслати ці зміни на %1 замість %2? Кожен запис спершу перевіряється на сервері.",
+"Send this change again?": "Надіслати цю зміну ще раз?",
 "Server URL:": "URL сервера:",
 "Server address": "Адреса сервера",
 "Server error (%1).": "Помилка сервера (%1).",
@@ -513,6 +534,7 @@
 "Show sun, moon, and work arcs": "Показати дуги сонця, місяця та роботи",
 "Show work summary (today / week totals)": "Показувати підсумок роботи (сьогодні / тиждень)",
 "Show:": "Показувати:",
+"Sign in as %1 to send them.": "Увійдіть як %1, щоб надіслати їх.",
 "Skip": "Пропустити",
 "So the day bar and the remaining hours fit you. All of this can be changed later in the settings.": "Щоб смуга дня й решта годин відповідали вам. Усе можна змінити пізніше в налаштуваннях.",
 "SolidTime cloud API is prefilled. For self-hosting, replace with your instance base URL.": "Хмарний API SolidTime заповнено. Для самостійного хостингу замініть на базову URL вашого екземпляра.",
@@ -682,5 +704,6 @@
 "skipped": "пропущено",
 "upcoming": "попереду",
 "yesterday": "учора",
-"© OpenStreetMap contributors": "© учасники OpenStreetMap"
+"© OpenStreetMap contributors": "© учасники OpenStreetMap",
+"↑↓ select · r send again · a send here · d discard · Esc back": "↑↓ вибір · r надіслати знову · a надіслати сюди · d відкинути · Esc назад"
 }

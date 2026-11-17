@@ -7,6 +7,14 @@
 "%1 wijziging nog niet gesynchroniseerd",
 "%1 wijzigingen nog niet gesynchroniseerd"
 ],
+"\u0004%1 change waits for %2 on %3": [
+"%1 wijziging wacht voor %2 op %3",
+"%1 wijzigingen wachten voor %2 op %3"
+],
+"\u0004%1 change waits for another server or account": [
+"%1 wijziging wacht op een andere server of een ander account",
+"%1 wijzigingen wachten op een andere server of een ander account"
+],
 "\u0004%1 day ago": [
 "%1 dag geleden",
 "%1 dagen geleden"
@@ -43,6 +51,10 @@
 "+%1 andere gedetecteerde rit",
 "+%1 andere gedetecteerde ritten"
 ],
+"\u0004Discard %1 change for %2?": [
+"%1 wijziging voor %2 verwerpen?",
+"%1 wijzigingen voor %2 verwerpen?"
+],
 "\u0004Plural-Forms": "(n!=1)",
 "\u0004This activity has %1 more entry on this day (%2); the work time above does not include it.": [
 "Deze activiteit heeft op deze dag nog %1 invoer (%2); de werktijd hierboven telt die niet mee.",
@@ -50,6 +62,7 @@
 ],
 "\"%1\" was not found": "‘%1’ niet gevonden",
 "%1 (from your profile)": "%1 (uit je profiel)",
+"%1 (y = yes, any other key = no)": "%1 (y = ja, andere toets = nee)",
 "%1 left": "nog %1",
 "%1 left this week": "%1 resterend deze week",
 "%1 left today": "%1 resterend vandaag",
@@ -120,6 +133,7 @@
 "Change engagement": "Engagement wijzigen",
 "Change project, activity, range, billable, and tags for this finished entry.": "Project, activiteit, bereik, factureerbaar en tags van deze afgeronde invoer wijzigen.",
 "Changed on the server meanwhile (%1). Overwrite it with this change, or discard this change?": "Intussen op de server gewijzigd (%1). Overschrijven met deze wijziging of deze wijziging verwerpen?",
+"Changes need a decision · u": "Wijzigingen wachten op beslissing · u",
 "Check again": "Opnieuw controleren",
 "Check your system": "Controleer je systeem",
 "Choose a look": "Kies een uiterlijk",
@@ -199,6 +213,7 @@
 "Discard": "Verwerpen",
 "Discard and continue": "Verwerpen en doorgaan",
 "Discard idle": "Inactiviteit verwerpen",
+"Discard this change?": "Deze wijziging verwerpen?",
 "Discarding idle time needs a connection to the server.": "Inactieve tijd verwerpen kan alleen met een verbinding met de server.",
 "Dismiss": "Negeren",
 "Dismiss this detected trip": "Deze gedetecteerde rit negeren",
@@ -461,6 +476,9 @@
 "Select customer…": "Klant kiezen…",
 "Select project…": "Project selecteren…",
 "Self-hosted Kimai or the official hosted service (kimai.cloud). Paste the instance URL.": "Zelfgehoste Kimai of de officiële hosted dienst (kimai.cloud). Plak de instantie-URL.",
+"Send here": "Hierheen sturen",
+"Send these changes to %1 instead of %2? Each entry is checked on the server first.": "Deze wijzigingen naar %1 sturen in plaats van naar %2? Elk item wordt eerst op de server gecontroleerd.",
+"Send this change again?": "Deze wijziging opnieuw sturen?",
 "Server URL:": "Server-URL:",
 "Server address": "Serveradres",
 "Server error (%1).": "Serverfout (%1).",
@@ -486,6 +504,7 @@
 "Show sun, moon, and work arcs": "Zon-, maan- en werkbogen tonen",
 "Show work summary (today / week totals)": "Werkoverzicht tonen (totalen vandaag / week)",
 "Show:": "Tonen:",
+"Sign in as %1 to send them.": "Meld je aan als %1 om ze te versturen.",
 "Skip": "Overslaan",
 "So the day bar and the remaining hours fit you. All of this can be changed later in the settings.": "Zodat de dagbalk en de resterende uren bij je passen. Alles is later in de instellingen te wijzigen.",
 "SolidTime cloud API is prefilled. For self-hosting, replace with your instance base URL.": "SolidTime-cloud-API is vooraf ingevuld. Vervang bij self-hosting door de basis-URL van je instantie.",
@@ -646,5 +665,6 @@
 "skipped": "overgeslagen",
 "upcoming": "nog te doen",
 "yesterday": "gisteren",
-"© OpenStreetMap contributors": "© OpenStreetMap-bijdragers"
+"© OpenStreetMap contributors": "© OpenStreetMap-bijdragers",
+"↑↓ select · r send again · a send here · d discard · Esc back": "↑↓ kiezen · r opnieuw sturen · a hierheen sturen · d verwerpen · Esc terug"
 }

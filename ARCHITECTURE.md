@@ -24,6 +24,7 @@ favourites, statistics, offline work; for Kimai also film days and trips.
 | `contents/code/offline.js` | The offline layer's session: wraps the tracker so reads and writes work without network. |
 | `contents/code/offlineState.js` | The stored state of that layer: the snapshot of server answers on disk and the overlay of waiting changes on it. |
 | `contents/code/offlineOutbox.js` | The outbox of that layer: queued changes, sending them again in order, conflicts, retry and discard. |
+| `contents/code/offlineOwner.js` | Whose the waiting changes are: server and account; changes of another owner are parked, not sent. |
 | `contents/code/filmDaySync.js`, `catalogCache.js`, `geocode.js` | What the session uses beside a provider: the film day's sync, the catalog on disk, the place search. |
 | `contents/code/platform.js`, `localFile.js`, `desktopBackend.js`, `secret.js`, `*.sh`, `contents/ui/ExecSource.qml`, `app/qml/platform/appBackend.js` | The platform: one facade for settings file (`shared.json`), tokens, files, idle time and notifications, with a backend for the widget (shell scripts, KWallet) and one for the app. |
 | `contents/code/sharedConfig.js` | The shared settings: their names and defaults. |
@@ -102,7 +103,5 @@ favourites, statistics, offline work; for Kimai also film days and trips.
 
 ## Known deviations
 
-- The offline layer's files belong to a profile, the catalog cache to a profile and
-  its server (`AUDIT.md`, finding 9).
-- `contents/ui/main.qml` is one file of 2771 lines, still over the size limit; film day,
+- `contents/ui/main.qml` is one file of about 2570 lines, still over the size limit; film day,
   trips, statistics and the shared texts have left it (`AUDIT.md`, finding 10).
