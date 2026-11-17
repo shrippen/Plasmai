@@ -362,16 +362,14 @@ TestCase {
         }
     }
 
-    function test_solidTimeActiveWithNullDataIsARow() {
-        // Quirk kept as is: unwrapData() hands back { data: null } itself, which is
-        // truthy, so it becomes an entry without id instead of "nothing running".
+    function test_solidTimeActiveWithNullDataIsNothing() {
+        // { data: null } means nothing is running, not an entry without id.
         SolidTime.setSession({ organizationId: "o1", memberId: "m1" })
         responses = [{ status: 200, body: { data: null } }]
         var out = null
         SolidTime.fetchActiveTimesheet("https://st.example", "tok", function(r) { out = r })
         verify(out.ok)
-        compare(out.data.length, 1)
-        compare(out.data[0].id, undefined)
+        compare(out.data.length, 0)
     }
 
     function test_errorStatuses() {
