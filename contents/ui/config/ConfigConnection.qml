@@ -461,7 +461,7 @@ ConfigPage {
                                 done: function(result) {
                                     page.testingConnection = false
                                     if (result.ok) {
-                                        form.applyTested(profile.id, result.data)
+                                        form.applyTested(profile.id, result.data, profile.provider, profile.url)
                                         page.notifyEdited()
                                     }
                                     page.showStatus(ApiErrors.testText(result, session.setup.providerName(profile.provider)), !result.ok)
