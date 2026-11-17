@@ -179,4 +179,22 @@ TestCase {
         compare(timerApplied.length, 1)
         compare(timerApplied[0], null)
     }
+
+    // The terminal client had no way out of a failed op, and every start waited behind it.
+    function test_discardingAFailedOpLetsTheNextStartThrough() {
+        const sync = createTemporaryObject(syncComponent, this)
+        opened(sync, "http://a.test")
+        compare(sync.stuck, 1)
+        let queued = null
+        sync.state.tracker.startTracking("http://a.test", "tok", 1, 2, "", function(r) { queued = r }, {})
+        verify(queued.queued, "behind the failed op")
+        compare(posts().length, 0)
+
+        sync.discard("local:1")
+        sync.discard(sync.ops[0].opId)
+        let direct = null
+        sync.state.tracker.startTracking("http://a.test", "tok", 1, 2, "", function(r) { direct = r }, {})
+        verify(!direct.queued)
+        compare(posts().length, 1)
+    }
 }
