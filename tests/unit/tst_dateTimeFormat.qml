@@ -12,6 +12,19 @@ TestCase {
         compare(DateTimeFormat.pad4(2026), "2026")
     }
 
+    function test_dateKey() {
+        compare(DateTimeFormat.dateKey(new Date(2026, 0, 5, 23, 59)), "2026-01-05")
+        compare(DateTimeFormat.dateKey(new Date(2026, 11, 31, 0, 0)), "2026-12-31")
+        compare(DateTimeFormat.dateKey(new Date(NaN)), "")
+        compare(DateTimeFormat.dateKey(null), "")
+    }
+
+    function test_dateTimeText() {
+        compare(DateTimeFormat.dateTimeText(new Date(2026, 8, 5, 4, 7, 59)), "2026-09-05 04:07")
+        compare(DateTimeFormat.dateTimeText(new Date(NaN)), "")
+        compare(DateTimeFormat.dateTimeText(null), "")
+    }
+
     function test_coerceDate() {
         var d = DateTimeFormat.coerceDate(new Date(2026, 7, 13, 18, 45, 0))
         compare(d.getFullYear(), 2026)

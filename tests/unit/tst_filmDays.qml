@@ -5,6 +5,12 @@ import "../../contents/code/filmDays.js" as FilmDays
 TestCase {
     name: "FilmDays"
 
+    function test_localDateKey() {
+        compare(FilmDays.localDateKey(new Date(2026, 0, 5, 23, 59).getTime()), "2026-01-05")
+        compare(FilmDays.localDateKey("2026-09-05T04:07:00"), "2026-09-05")
+        compare(FilmDays.localDateKey("nonsense"), "")
+    }
+
     function test_otherDayEntriesAndSpan() {
         function pid(ts) { return ts.project }
         var a = { id: 1, project: 5, begin: "2026-09-23T09:00:00+0200", end: "2026-09-23T12:00:00+0200" }
