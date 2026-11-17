@@ -19,9 +19,6 @@ QtObject {
         if (error.type === "offline") {
             return i18n("This needs a connection to the server.")
         }
-        if (error.type === "unsupported") {
-            return i18n("This action is not supported for the selected service yet.")
-        }
         if (error.type === KimaiApi.ErrorType.Network) {
             return i18n("Cannot reach the server. Check your network, URL, or TLS certificate.")
         }

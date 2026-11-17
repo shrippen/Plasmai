@@ -118,4 +118,3 @@ favourites, statistics, offline work; for Kimai also film days and trips.
   one file of 3087 lines (`AUDIT.md`, finding 10).
 - The app's connection page has its own list of services (`AUDIT.md`, finding 12).
 - `main.qml` repeats the session's reset of old settings (`AUDIT.md`, finding 13).
-- A stub for unknown services is never reached (`AUDIT.md`, finding 14).
