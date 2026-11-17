@@ -65,4 +65,43 @@ TestCase {
         compare(StatsData.paletteColor(0), StatsData.PALETTE[0])
         compare(StatsData.paletteColor(StatsData.PALETTE.length), StatsData.PALETTE[0])
     }
+
+    // Nothing loaded: the asked days, padded to whole weeks (Mon..Sun).
+    function test_missingSpan_padsToWeeks() {
+        var span = StatsData.missingSpan(0, 0, 0, new Date(2026, 7, 12, 10), new Date(2026, 7, 13, 10))
+        compare(span.begin.getDay(), 1)
+        compare(span.begin.getDate(), 10)
+        compare(span.end.getDay(), 0)
+        compare(span.end.getDate(), 16)
+    }
+
+    function test_missingSpan_coveredIsNull() {
+        var b = new Date(2026, 7, 10).getTime()
+        var e = new Date(2026, 7, 16, 23).getTime()
+        compare(StatsData.missingSpan(b, e, 3, new Date(2026, 7, 11), new Date(2026, 7, 12)), null)
+    }
+
+    // An empty list is not "loaded", even with a range.
+    function test_missingSpan_emptyListFetchesAgain() {
+        var b = new Date(2026, 7, 10).getTime()
+        var e = new Date(2026, 7, 16, 23).getTime()
+        verify(StatsData.missingSpan(b, e, 0, new Date(2026, 7, 11), new Date(2026, 7, 12)) !== null)
+    }
+
+    // Asking before the loaded range grows it; the loaded end stays.
+    function test_missingSpan_growsLoadedRange() {
+        var b = new Date(2026, 7, 10).getTime()
+        var e = new Date(2026, 7, 16, 23).getTime()
+        var span = StatsData.missingSpan(b, e, 3, new Date(2026, 6, 28), new Date(2026, 7, 12))
+        compare(span.begin.getDate(), 27)
+        compare(span.begin.getMonth(), 6)
+        compare(span.end.getDate(), 16)
+    }
+
+    function test_prefetchSpan() {
+        var span = StatsData.prefetchSpan(new Date(2026, 7, 13, 10))
+        compare(span.begin.getDate(), 13)
+        compare(span.begin.getMonth(), 6)
+        compare(span.end.getDate(), 16)
+    }
 }
