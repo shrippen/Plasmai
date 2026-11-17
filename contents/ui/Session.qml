@@ -44,6 +44,8 @@ QtObject {
     enum Restart { Ignored, Started, Continued, Hint, Confirm }
     /** Settings missing or older than the setup wizard. */
     enum Setup { Report, Run }
+    /** What a trip call changed on the server (trips.changed()). */
+    enum TripChange { Saved, Removed, Accepted, Dismissed }
     /** After discarding idle time. */
     enum AfterIdle { Stop, Continue }
 

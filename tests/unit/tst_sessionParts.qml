@@ -505,6 +505,101 @@ TestCase {
         verify(trips.ok)
     }
 
+    function openTrips() {
+        const s = openDemo()
+        tryVerify(function() { return s.trips.available && s.trips.canEdit })
+        return s
+    }
+
+    function listTrips(s) {
+        let listed = null
+        s.trips.fetch({ year: new Date().getFullYear() }, function(r) { listed = r })
+        tryVerify(function() { return listed !== null })
+        verify(listed.ok)
+        return listed.data
+    }
+
+    function answer(slot) {
+        return function(r) { slot.r = r }
+    }
+
+    // A trip is created, changed and deleted on the server, and the list shows it.
+    function test_tripsCreatePatchRemove() {
+        const s = openTrips()
+        const before = listTrips(s).length
+        const got = {}
+        const date = new Date().getFullYear() + "-03-04"
+
+        s.trips.save({ purpose: "business", date: date, distanceKm: 7 }, null, {}, null, answer(got))
+        tryVerify(function() { return !!got.r })
+        verify(got.r.ok)
+        compare(listTrips(s).length, before + 1)
+
+        const id = listTrips(s)[before].id
+        got.r = null
+        s.trips.save({ distanceKm: 9 }, id, {}, null, answer(got))
+        tryVerify(function() { return !!got.r })
+        verify(got.r.ok)
+        compare(listTrips(s)[before].distanceKm, 9)
+
+        got.r = null
+        s.trips.remove(id, answer(got))
+        tryVerify(function() { return !!got.r })
+        verify(got.r.ok)
+        compare(listTrips(s).length, before)
+    }
+
+    // The session reports a saved or deleted trip whoever asked and whether or not
+    // anybody still waits for the answer: a closed page must not leave the list stale.
+    function test_tripsSignalWithoutCallback() {
+        const s = openTrips()
+        const changes = spy(s.trips, "changed")
+        const date = new Date().getFullYear() + "-03-05"
+
+        s.trips.save({ purpose: "business", date: date, distanceKm: 4 }, null, {}, null, null)
+        tryCompare(changes, "count", 1)
+        compare(changes.signalArguments[0][0], Ui.Session.TripChange.Saved)
+        const created = changes.signalArguments[0][1]
+        verify(created.id > 0)
+        tryVerify(function() { return !s.trips.busy })
+
+        s.trips.save({ distanceKm: 6 }, created.id, {}, null, null)
+        tryCompare(changes, "count", 2)
+        compare(changes.signalArguments[1][0], Ui.Session.TripChange.Saved)
+        tryVerify(function() { return !s.trips.busy })
+
+        s.trips.remove(created.id, null)
+        tryCompare(changes, "count", 3)
+        compare(changes.signalArguments[2][0], Ui.Session.TripChange.Removed)
+        compare(listTrips(s).filter(function(t) { return t.id === created.id }).length, 0)
+    }
+
+    function test_tripsEmptyPatchChangesNothing() {
+        const s = openTrips()
+        const changes = spy(s.trips, "changed")
+        const got = {}
+
+        s.trips.save({}, 1, {}, null, answer(got))
+        tryVerify(function() { return !!got.r })
+        verify(got.r.ok)
+        compare(changes.count, 0)
+        verify(!s.trips.busy)
+    }
+
+    function test_tripsBusyUntilAnswered() {
+        const s = openTrips()
+        const changes = spy(s.trips, "changed")
+        const date = new Date().getFullYear() + "-03-06"
+
+        s.trips.save({ purpose: "business", date: date, distanceKm: 1 }, null, {}, null, null)
+        verify(s.trips.busy)
+        s.trips.save({ purpose: "business", date: date, distanceKm: 2 }, null, {}, null, null)
+        tryCompare(changes, "count", 1)
+        wait(50)
+        compare(changes.count, 1)
+        verify(!s.trips.busy)
+    }
+
     function test_filmDayOpensToday() {
         const s = openDemo()
         tryVerify(function() { return s.filmDay.available })

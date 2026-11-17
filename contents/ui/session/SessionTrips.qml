@@ -5,7 +5,7 @@ import ".." as Ui
 
 /**
  * Trips of the kimai-anfahrten plugin (MileageBundle): the probe, the
- * plugin's meta data and vehicles, and every trip call.
+ * plugin's meta data and vehicles, and every trip call and flow.
  *
  *   resolve ─▶ state, ping ─▶ available / canEdit ─▶ meta + vehicles (once per profile)
  */
@@ -14,6 +14,11 @@ QtObject {
 
     property QtObject session: null
 
+    /** The server's trips changed: change is Session.TripChange, data the trip, id or suggestion. */
+    signal changed(int change, var data)
+
+    /** A call is under way; one at a time. */
+    property bool busy: false
     property string state: KimaiApi.PluginState.UNKNOWN
     property var ping: null
     property var meta: null
@@ -78,28 +83,91 @@ QtObject {
         c.tracker.fetchTripSuggestions(c.url, c.token, range || null, callback)
     }
 
-    function create(body, callback) {
+    /**
+     * Saves a trip: accepts the suggestion, patches tripId or creates one.
+     * An empty patch changes nothing and answers ok without a call.
+     * callback(r) is optional, a page may be gone by then; changed() tells every view.
+     */
+    function save(body, tripId, form, suggestion, callback) {
+        if (!canEdit || busy) {
+            return
+        }
         const c = session.connection
-        c.tracker.createTrip(c.url, c.token, body, callback)
-    }
-
-    function patch(tripId, body, callback) {
-        const c = session.connection
-        c.tracker.patchTrip(c.url, c.token, tripId, body, callback)
+        const tracker = c.tracker
+        if (suggestion) {
+            busy = true
+            tracker.acceptTripSuggestion(c.url, c.token, suggestion.id,
+                Mileage.acceptBodyFromForm(ping, form, suggestion), answered(Ui.Session.TripChange.Saved, null, callback))
+            return
+        }
+        const isNew = tripId === null || tripId === undefined
+        if (!isNew && Mileage.isEmptyBody(body)) {
+            if (callback) {
+                callback({ ok: true, data: null })
+            }
+            return
+        }
+        busy = true
+        const answer = answered(Ui.Session.TripChange.Saved, null, callback)
+        if (isNew) {
+            tracker.createTrip(c.url, c.token, body, answer)
+            return
+        }
+        tracker.patchTrip(c.url, c.token, tripId, body, answer)
     }
 
     function remove(tripId, callback) {
+        if (!available || busy) {
+            return
+        }
         const c = session.connection
-        c.tracker.deleteTrip(c.url, c.token, tripId, callback)
+        busy = true
+        c.tracker.deleteTrip(c.url, c.token, tripId, answered(Ui.Session.TripChange.Removed, tripId, callback))
     }
 
-    function accept(suggestionId, body, callback) {
+    /** Takes a detected trip as suggested; 409 (settled elsewhere meanwhile) counts as done. */
+    function acceptSuggestion(sg, callback) {
+        if (!canEdit || busy || !sg) {
+            return
+        }
         const c = session.connection
-        c.tracker.acceptTripSuggestion(c.url, c.token, suggestionId, body, callback)
+        busy = true
+        c.tracker.acceptTripSuggestion(c.url, c.token, sg.id, {}, answered(Ui.Session.TripChange.Accepted, sg, callback, true))
     }
 
-    function dismiss(suggestionId, callback) {
+    function dismissSuggestion(sg, callback) {
+        if (!canEdit || busy || !sg) {
+            return
+        }
         const c = session.connection
-        c.tracker.dismissTripSuggestion(c.url, c.token, suggestionId, callback)
+        busy = true
+        c.tracker.dismissTripSuggestion(c.url, c.token, sg.id, answered(Ui.Session.TripChange.Dismissed, sg, callback))
+    }
+
+    /** Logs today's commute; offline (or behind waiting changes) the waiting trip shows the profile's distance. */
+    function logCommute(callback) {
+        if (!canEdit || busy) {
+            return
+        }
+        const c = session.connection
+        const local = session.sync.offline || session.sync.unsynced > 0
+        busy = true
+        c.tracker.createTrip(c.url, c.token,
+            Mileage.commuteBody(Mileage.dateString(new Date()), local ? Mileage.commuteKm(ping) : null),
+            answered(Ui.Session.TripChange.Saved, null, callback))
+    }
+
+    /** The answer of a call: frees busy, reports the change, then calls the caller's callback. */
+    function answered(change, subject, callback, conflictIsDone) {
+        return function(r) {
+            busy = false
+            const settled = conflictIsDone && r.error && r.error.status === 409
+            if (r.ok || settled) {
+                changed(change, subject || r.data)
+            }
+            if (callback) {
+                callback(settled ? { ok: true, data: null } : r)
+            }
+        }
     }
 }

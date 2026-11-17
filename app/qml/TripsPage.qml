@@ -21,7 +21,7 @@ Kirigami.Page {
     property var trips: []
     property var suggestions: []
     property bool loading: false
-    property bool busy: false
+    readonly property bool busy: session.trips.busy
     readonly property var range: Mileage.monthRange(page.month)
     readonly property var summary: Mileage.summarize(page.trips, range.from, range.to)
     readonly property bool monthLocked: Mileage.isMonthLocked(session.trips.ping, range.from)
@@ -35,8 +35,8 @@ Kirigami.Page {
     function reload() {
         if (!session.trips.available) return
         page.loading = true
-        var r = page.range
-        var query = Mileage.hasFeature(session.trips.ping, "dateRange") ? r
+        const r = page.range
+        const query = Mileage.hasFeature(session.trips.ping, "dateRange") ? r
             : { year: page.month.getFullYear(), month: page.month.getMonth() + 1 }
         session.trips.fetch(query, function(res) {
             // The page is gone: nothing to show.
@@ -68,8 +68,8 @@ Kirigami.Page {
     }
 
     function tripDetails(trip) {
-        var d = Mileage.parseDateString(trip.date)
-        var bits = [d ? d.toLocaleDateString(Qt.locale(), Locale.ShortFormat) : trip.date,
+        const d = Mileage.parseDateString(trip.date)
+        const bits = [d ? d.toLocaleDateString(Qt.locale(), Locale.ShortFormat) : trip.date,
                     Mileage.labelOf(session.trips.meta ? session.trips.meta.purposes : null, trip.purpose, page.purposeFallback)]
         if (trip.roundTrip) {
             bits.push(i18n("round trip"))
@@ -82,28 +82,22 @@ Kirigami.Page {
     }
 
     function pushEdit(props) {
-        var p = pageStack.push(tripEditPageComponent, props)
-        if (p) p.saved.connect(page.reload)
+        pageStack.push(tripEditPageComponent, props)
     }
 
     function commuteToday() {
         if (page.busy) return
         if (Mileage.commuteKm(session.trips.ping) === null) {
             // No commute distance in the Kimai profile: let the user enter it.
-            var f = Mileage.emptyForm(session.trips.ping, Mileage.dateString(new Date()))
+            const f = Mileage.emptyForm(session.trips.ping, Mileage.dateString(new Date()))
             f.purpose = Mileage.Purpose.COMMUTE
             pushEdit({ form: f })
             return
         }
-        page.busy = true
-        // Offline (or behind waiting changes) the local trip shows the profile's distance.
-        var km = session.sync.offline || session.sync.unsynced > 0 ? Mileage.commuteKm(session.trips.ping) : null
-        session.trips.create(Mileage.commuteBody(Mileage.dateString(new Date()), km), function(r) {
+        session.trips.logCommute(function(r) {
             if (!page) { return }
-            page.busy = false
             if (r.ok) {
                 root.showPassiveNotification(i18n("Commute logged: %1 km", Mileage.displayKm(Mileage.tripKm(r.data))))
-                page.reload()
             } else {
                 root.showPassiveNotification((r.error && r.error.detail) || ApiErrors.text(r.error))
             }
@@ -111,31 +105,33 @@ Kirigami.Page {
     }
 
     function accept(sg) {
-        if (page.busy || !sg) return
-        page.busy = true
-        session.trips.accept(sg.id, {}, function(r) {
+        session.trips.acceptSuggestion(sg, function(r) {
             if (!page) { return }
-            page.busy = false
-            if (!r.ok && !(r.error && r.error.status === 409)) {
+            if (!r.ok) {
                 root.showPassiveNotification(i18n("The trip could not be accepted: %1", (r.error && r.error.detail) || ApiErrors.text(r.error)))
-                return
             }
-            page.reload()
         })
     }
 
     function dismiss(sg) {
-        if (page.busy || !sg) return
-        page.busy = true
-        session.trips.dismiss(sg.id, function(r) {
+        session.trips.dismissSuggestion(sg, function(r) {
             if (!page) { return }
-            page.busy = false
             if (!r.ok) {
                 root.showPassiveNotification(i18n("The trip could not be dismissed: %1", (r.error && r.error.detail) || ApiErrors.text(r.error)))
+            }
+        })
+    }
+
+    // Whoever changed a trip, and whether or not its page is still open: the list follows.
+    Connections {
+        target: session.trips
+        function onChanged(change, data) {
+            if (change !== Session.TripChange.Dismissed) {
+                page.reload()
                 return
             }
-            page.suggestions = page.suggestions.filter(function(x) { return x.id !== sg.id })
-        })
+            page.suggestions = page.suggestions.filter(function(x) { return x.id !== data.id })
+        }
     }
 
     actions: [

@@ -161,7 +161,7 @@ PlasmoidItem {
     /** Open trip suggestions (Dawarich), shown above Recent. */
     property var tripSuggestions: []
     property double tripSuggestionsLoadedAt: 0
-    property bool tripBusy: false
+    readonly property bool tripBusy: session.trips.busy
     /** Suggestion being edited in the trip sheet before accepting it, or null. */
     property var tripSheetSuggestion: null
 
@@ -1274,18 +1274,31 @@ PlasmoidItem {
     }
 
     function tripSaved(message) {
-        tripBusy = false
         tripSheetSuggestion = null
         returnToMainView()
         if (message) {
             notify(i18n("Trip saved"), message)
         }
-        statsTrips = null
-        loadTripSuggestions(true)
+    }
+
+    /** Statistics and suggestions follow what the session reports, whoever asked. */
+    Connections {
+        target: root.session.trips
+        function onChanged(change, data) {
+            if (change === Session.TripChange.Dismissed) {
+                root.removeSuggestion(data)
+                return
+            }
+            root.statsTrips = null
+            if (change === Session.TripChange.Accepted) {
+                root.removeSuggestion(data)
+                return
+            }
+            root.loadTripSuggestions(true)
+        }
     }
 
     function tripFailed(error) {
-        tripBusy = false
         if (!root.tripSheetRef) {
             return
         }
@@ -1294,38 +1307,16 @@ PlasmoidItem {
     }
 
     function saveTrip(body, tripId, form) {
-        if (!session.trips.canEdit || tripBusy) {
-            return
-        }
-        tripBusy = true
-        const answered = function(r) {
-            if (r.ok) {
-                root.tripSaved(i18n("%1 km", Mileage.displayKm(Mileage.tripKm(r.data))))
-            } else {
+        session.trips.save(body, tripId, form, tripSheetSuggestion, function(r) {
+            if (!r.ok) {
                 root.tripFailed(r.error)
-            }
-        }
-        if (tripSheetSuggestion) {
-            const sg = tripSheetSuggestion
-            session.trips.accept(sg.id, Mileage.acceptBodyFromForm(session.trips.ping, form, sg), answered)
-            return
-        }
-        if (tripId !== null && tripId !== undefined) {
-            if (Mileage.isEmptyBody(body)) {
-                tripSaved("")
                 return
             }
-            session.trips.patch(tripId, body, answered)
-            return
-        }
-        session.trips.create(body, answered)
+            root.tripSaved(r.data ? i18n("%1 km", Mileage.displayKm(Mileage.tripKm(r.data))) : "")
+        })
     }
 
     function deleteTrip(tripId) {
-        if (!session.trips.available || tripBusy) {
-            return
-        }
-        tripBusy = true
         session.trips.remove(tripId, function(r) {
             if (r.ok) {
                 root.tripSaved("")
@@ -1341,32 +1332,16 @@ PlasmoidItem {
 
     /** A5: accept a detected trip as suggested. */
     function acceptTripSuggestion(sg) {
-        if (!session.trips.canEdit || tripBusy || !sg) {
-            return
-        }
-        tripBusy = true
-        session.trips.accept(sg.id, {}, function(r) {
-            root.tripBusy = false
-            if (r.ok || (r.error && r.error.status === 409)) {
-                // 409: accepted or dismissed elsewhere meanwhile.
-                root.removeSuggestion(sg)
-                root.statsTrips = null
-            } else {
+        session.trips.acceptSuggestion(sg, function(r) {
+            if (!r.ok) {
                 root.userMessage = i18n("The trip could not be accepted: %1", (r.error && r.error.detail) || ApiErrors.text(r.error))
             }
         })
     }
 
     function dismissTripSuggestion(sg) {
-        if (!session.trips.canEdit || tripBusy || !sg) {
-            return
-        }
-        tripBusy = true
-        session.trips.dismiss(sg.id, function(r) {
-            root.tripBusy = false
-            if (r.ok) {
-                root.removeSuggestion(sg)
-            } else {
+        session.trips.dismissSuggestion(sg, function(r) {
+            if (!r.ok) {
                 root.userMessage = i18n("The trip could not be dismissed: %1", (r.error && r.error.detail) || ApiErrors.text(r.error))
             }
         })
