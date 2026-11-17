@@ -157,8 +157,6 @@ ROWS = [
      "Teste… (%1)", "Test en cours… (%1)", "Probando… (%1)", "Test in corso… (%1)", "Testen… (%1)", "Testando… (%1)", "Testowanie… (%1)", "Перевірка… (%1)", "Проверка… (%1)", "テスト中… (%1)", "正在测试… (%1)"),
     ("Connection OK!",
      "Verbindung OK!", "Connexion OK !", "¡Conexión correcta!", "Connessione OK!", "Verbinding OK!", "Conexão OK!", "Połączenie OK!", "З’єднання OK!", "Подключение OK!", "接続OK！", "连接正常！"),
-    ("Missing URL or token (type: %1)",
-     "URL oder Token fehlt (Typ: %1)", "URL ou jeton manquant (type : %1)", "Falta la URL o el token (tipo: %1)", "URL o token mancante (tipo: %1)", "URL of token ontbreekt (type: %1)", "URL ou token ausente (tipo: %1)", "Brak adresu URL lub tokenu (typ: %1)", "Бракує URL або токена (тип: %1)", "Отсутствует URL или токен (тип: %1)", "URLまたはトークンがありません (種類: %1)", "缺少 URL 或令牌（类型：%1）"),
     ("Tap a project to see its activities, then pin the ones you use often.",
      "Tippe auf ein Projekt, um dessen Tätigkeiten zu sehen, und pinne die, die du oft nutzt.",
      "Touchez un projet pour voir ses activités, puis épinglez celles que vous utilisez souvent.",

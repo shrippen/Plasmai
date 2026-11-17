@@ -63,6 +63,8 @@ T = {
     'Cancel': 'Annuleren',
     'Unknown error': 'Onbekende fout',
     'URL and API token are required': 'URL en API-token zijn verplicht',
+    'Missing or invalid input: %1': 'Invoer ontbreekt of is ongeldig: %1',
+    'Missing or invalid input.': 'Invoer ontbreekt of is ongeldig.',
     'Configure your time tracker URL and API token': 'Configureer de URL en het API-token van je tijdregistratiedienst',
     'This action is not supported for the selected service yet.': 'Deze actie wordt nog niet ondersteund voor de geselecteerde dienst.',
     'Cannot reach the server. Check your network, URL, or TLS certificate.': 'Kan de server niet bereiken. Controleer je netwerk, URL of TLS-certificaat.',

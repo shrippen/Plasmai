@@ -10,7 +10,7 @@ var ErrorType = {
     Unknown: "unknown",
     // URL, token, workspace or organization missing: set up the connection.
     NotConfigured: "not_configured",
-    // A required field is missing or malformed: detail names it.
+    // A required field or id is missing or malformed: detail names it.
     InvalidInput: "invalid_input",
     // The action needs the server and the app has none right now.
     Offline: "offline",

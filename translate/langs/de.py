@@ -138,6 +138,8 @@ T = {
     'Cancel': 'Abbrechen',
     'Unknown error': 'Unbekannter Fehler',
     'URL and API token are required': 'URL und API-Token sind erforderlich',
+    'Missing or invalid input: %1': 'Eingabe fehlt oder ist ungültig: %1',
+    'Missing or invalid input.': 'Eingabe fehlt oder ist ungültig.',
     'Configure your time tracker URL and API token': 'URL und API-Token deines Zeiterfassungsdienstes einrichten',
     'This action is not supported for the selected service yet.': 'Diese Aktion wird für den gewählten Dienst noch nicht unterstützt.',
     'Cannot reach the server. Check your network, URL, or TLS certificate.': 'Server nicht erreichbar. Prüfe Netzwerk, URL oder TLS-Zertifikat.',

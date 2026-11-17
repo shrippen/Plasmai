@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-11-10 13:31+0100\n"
+"POT-Creation-Date: 2026-11-17 16:35+0100\n"
 "PO-Revision-Date: 2026-08-09 19:45+0200\n"
 "Last-Translator: Cursor Agent\n"
 "Language-Team: Simplified Chinese\n"
@@ -45,127 +45,121 @@ msgid "More projects"
 msgstr "更多项目"
 
 #: app/qml/ConnectionPage.qml:14 app/qml/main.qml:431
-#: contents/config/config.qml:6 contents/ui/config/ConfigConnection.qml:350
+#: contents/config/config.qml:6 contents/ui/config/ConfigConnection.qml:328
 msgid "Connection"
 msgstr "连接"
 
-#: app/qml/ConnectionPage.qml:213 contents/ui/config/ConfigConnection.qml:372
+#: app/qml/ConnectionPage.qml:216 contents/ui/config/ConfigConnection.qml:350
 msgid "Profile:"
 msgstr "配置文件："
 
-#: app/qml/ConnectionPage.qml:227 contents/ui/config/ConfigConnection.qml:386
+#: app/qml/ConnectionPage.qml:230 contents/ui/config/ConfigConnection.qml:364
 msgid "Profile name:"
 msgstr "配置文件名称："
 
-#: app/qml/ConnectionPage.qml:248
+#: app/qml/ConnectionPage.qml:251
 msgid "Add"
 msgstr "添加"
 
-#: app/qml/ConnectionPage.qml:255 app/qml/ConnectionPage.qml:258
-#: contents/ui/config/ConfigConnection.qml:474
-#: contents/ui/config/ConfigConnection.qml:479
+#: app/qml/ConnectionPage.qml:254 contents/ui/config/ConfigConnection.qml:446
 msgid "Profile %1"
 msgstr "配置文件 %1"
 
-#: app/qml/ConnectionPage.qml:274 contents/ui/config/ConfigConnection.qml:493
+#: app/qml/ConnectionPage.qml:265 contents/ui/config/ConfigConnection.qml:455
 #: contents/ui/TagPicker.qml:204
 msgid "Remove"
 msgstr "移除"
 
-#: app/qml/ConnectionPage.qml:294
+#: app/qml/ConnectionPage.qml:283
 msgid "Use this"
 msgstr "使用此项"
 
-#: app/qml/ConnectionPage.qml:308
+#: app/qml/ConnectionPage.qml:297
 msgid "Switching profiles needs a connection to the server."
 msgstr "切换配置文件需要连接到服务器。"
 
-#: app/qml/ConnectionPage.qml:316 contents/ui/config/ConfigConnection.qml:531
+#: app/qml/ConnectionPage.qml:305 contents/ui/config/ConfigConnection.qml:491
 msgid "none"
 msgstr "无"
 
-#: app/qml/ConnectionPage.qml:316
+#: app/qml/ConnectionPage.qml:305
 msgid "Active: %1"
 msgstr "当前: %1"
 
-#: app/qml/ConnectionPage.qml:328
+#: app/qml/ConnectionPage.qml:317
 msgid "Provider:"
 msgstr "服务商:"
 
-#: app/qml/ConnectionPage.qml:356 contents/ui/config/ConfigConnection.qml:70
+#: app/qml/ConnectionPage.qml:328 contents/ui/config/ConfigConnection.qml:70
 msgid "Server URL:"
 msgstr "服务器 URL："
 
-#: app/qml/ConnectionPage.qml:358
+#: app/qml/ConnectionPage.qml:330
 msgid "https://your-server.com"
 msgstr "https://your-server.com"
 
-#: app/qml/ConnectionPage.qml:369
+#: app/qml/ConnectionPage.qml:341
 msgid "API Token:"
 msgstr "API 令牌:"
 
-#: app/qml/ConnectionPage.qml:371
+#: app/qml/ConnectionPage.qml:343
 msgid "Token stored."
 msgstr "令牌已存储。"
 
-#: app/qml/ConnectionPage.qml:371 app/qml/ConnectionPage.qml:445
+#: app/qml/ConnectionPage.qml:343 app/qml/ConnectionPage.qml:426
 msgid "No token stored."
 msgstr "未存储令牌。"
 
-#: app/qml/ConnectionPage.qml:379
+#: app/qml/ConnectionPage.qml:351
 msgid "Enter API token…"
 msgstr "输入 API 令牌…"
 
-#: app/qml/ConnectionPage.qml:393 contents/ui/config/ConfigConnection.qml:544
+#: app/qml/ConnectionPage.qml:365 contents/ui/config/ConfigConnection.qml:504
 msgid "Saving…"
 msgstr "保存中…"
 
-#: app/qml/ConnectionPage.qml:393 contents/ui/config/ConfigConnection.qml:544
+#: app/qml/ConnectionPage.qml:365 contents/ui/config/ConfigConnection.qml:504
 msgid "Save token"
 msgstr "保存令牌"
 
-#: app/qml/ConnectionPage.qml:405
+#: app/qml/ConnectionPage.qml:383
 msgid "Token saved."
 msgstr "令牌已保存。"
 
-#: app/qml/ConnectionPage.qml:411
+#: app/qml/ConnectionPage.qml:387
 msgid "Failed to save"
 msgstr "保存失败"
 
-#: app/qml/ConnectionPage.qml:417
+#: app/qml/ConnectionPage.qml:393
 msgid "Clear"
 msgstr "清除"
 
-#: app/qml/ConnectionPage.qml:425
+#: app/qml/ConnectionPage.qml:405
 msgid "Token removed."
 msgstr "令牌已移除。"
 
-#: app/qml/ConnectionPage.qml:429 app/qml/ConnectionPage.qml:458
-#: app/qml/ConnectionPage.qml:462
+#: app/qml/ConnectionPage.qml:409 app/qml/ConnectionPage.qml:441
+#: app/qml/ConnectionPage.qml:445
 msgid "Failed"
 msgstr "失败"
 
-#: app/qml/ConnectionPage.qml:435
+#: app/qml/ConnectionPage.qml:415
 msgid "Test"
 msgstr "测试"
 
-#: app/qml/ConnectionPage.qml:440
+#: app/qml/ConnectionPage.qml:420
 msgid "Testing…"
 msgstr "正在测试…"
 
-#: app/qml/ConnectionPage.qml:449
+#: app/qml/ConnectionPage.qml:431
 msgid "Testing… (%1)"
 msgstr "正在测试… (%1)"
 
-#: app/qml/ConnectionPage.qml:454
+#: app/qml/ConnectionPage.qml:437
 msgid "Connection OK!"
 msgstr "连接正常！"
 
-#: app/qml/ConnectionPage.qml:460
-msgid "Missing URL or token (type: %1)"
-msgstr "缺少 URL 或令牌（类型：%1）"
-
-#: app/qml/controls/FormDialog.qml:22 contents/ui/ActiveEditView.qml:348
+#: app/qml/controls/FormDialog.qml:22 contents/ui/ActiveEditView.qml:335
 msgid "Save"
 msgstr "保存"
 
@@ -174,62 +168,62 @@ msgstr "保存"
 #: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/TimePopup.qml:52
 #: app/qml/TimerPage.qml:688 app/qml/TimerPage.qml:838
 #: app/qml/TimerPage.qml:858 app/qml/TimerPage.qml:877
-#: app/qml/TimerPage.qml:900 contents/ui/ActiveEditView.qml:364
-#: contents/ui/ActiveEditView.qml:406 contents/ui/Controls/TimePicker.qml:113
-#: contents/ui/EntryLists.qml:154 contents/ui/FilmDayView.qml:958
-#: contents/ui/main.qml:2106 contents/ui/ManualEntryView.qml:417
-#: contents/ui/TripSheet.qml:437
+#: app/qml/TimerPage.qml:900 contents/ui/ActiveEditView.qml:351
+#: contents/ui/ActiveEditView.qml:393 contents/ui/Controls/TimePicker.qml:113
+#: contents/ui/EntryLists.qml:154 contents/ui/FilmDayView.qml:946
+#: contents/ui/main.qml:1975 contents/ui/ManualEntryView.qml:404
+#: contents/ui/TripSheet.qml:433
 msgid "Cancel"
 msgstr "取消"
 
 #: app/qml/FavoritesPage.qml:12 app/qml/main.qml:427 app/qml/TimerPage.qml:707
 #: contents/config/config.qml:11 contents/ui/config/ConfigDisplay.qml:860
 #: contents/ui/config/ConfigDisplay.qml:915
-#: contents/ui/config/ConfigFavorites.qml:378 contents/ui/EntryLists.qml:166
+#: contents/ui/config/ConfigFavorites.qml:379 contents/ui/EntryLists.qml:166
 msgid "Favorites"
 msgstr "收藏"
 
-#: app/qml/FavoritesPage.qml:47
+#: app/qml/FavoritesPage.qml:49
 msgid "Tap a project to see its activities, then pin the ones you use often."
 msgstr "点按项目查看其活动，然后固定常用的活动。"
 
-#: app/qml/FavoritesPage.qml:54
+#: app/qml/FavoritesPage.qml:56
 msgid "Connect a time tracker first"
 msgstr "请先连接时间追踪服务"
 
 #: app/qml/FilmDayPage.qml:15 app/qml/TimerPage.qml:58
-#: contents/ui/main.qml:2430 contents/ui/main.qml:2504
+#: contents/ui/main.qml:2299 contents/ui/main.qml:2373
 msgid "Film day"
 msgstr "拍摄日"
 
-#: app/qml/FilmDayPage.qml:109 contents/ui/main.qml:1104
+#: app/qml/FilmDayPage.qml:59 contents/ui/main.qml:1033
 msgid "The film day was not saved: %1"
 msgstr "未保存拍摄日: %1"
 
-#: app/qml/FilmDayPage.qml:125 app/qml/main.qml:285
+#: app/qml/FilmDayPage.qml:73 app/qml/main.qml:285
 msgid "Could not save the entry"
 msgstr "无法保存条目"
 
-#: app/qml/FilmDayPage.qml:150 contents/ui/main.qml:1141
-#: contents/ui/main.qml:1405
-msgid "Enter valid begin and end date/time."
-msgstr "请输入有效的开始和结束日期/时间。"
-
-#: app/qml/FilmDayPage.qml:154 contents/ui/main.qml:1145
-#: contents/ui/main.qml:1409
+#: app/qml/FilmDayPage.qml:105 contents/ui/main.qml:1072
+#: contents/ui/main.qml:1278
 msgid "End must be after begin."
 msgstr "结束时间必须晚于开始时间。"
 
-#: app/qml/FilmDayPage.qml:189 contents/ui/main.qml:1187
+#: app/qml/FilmDayPage.qml:109 contents/ui/main.qml:1076
+#: contents/ui/main.qml:1274
+msgid "Enter valid begin and end date/time."
+msgstr "请输入有效的开始和结束日期/时间。"
+
+#: app/qml/FilmDayPage.qml:120 contents/ui/main.qml:1091
 msgid "%1 other entry of this day could not be deleted: %2"
 msgid_plural "%1 other entries of this day could not be deleted: %2"
 msgstr[0] "无法删除当天的另外 %1 条记录: %2"
 
-#: app/qml/FilmDayPage.qml:197 contents/ui/main.qml:1183
+#: app/qml/FilmDayPage.qml:125 contents/ui/main.qml:1087
 msgid "Begin and end were saved, but the film day extras were not: %1"
 msgstr "已保存开始和结束时间，但未保存拍摄日附加信息: %1"
 
-#: app/qml/FilmDayPage.qml:204 contents/ui/main.qml:1197
+#: app/qml/FilmDayPage.qml:132 contents/ui/main.qml:1100
 msgid "Shooting day saved"
 msgstr "已保存拍摄日"
 
@@ -240,7 +234,7 @@ msgid "Select"
 msgstr "选择"
 
 #: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/private/DatePicker.qml:275
-#: contents/ui/FilmDayView.qml:969 contents/ui/SetupWizard.qml:149
+#: contents/ui/FilmDayView.qml:957 contents/ui/SetupWizard.qml:151
 msgid "Day"
 msgstr "日"
 
@@ -279,12 +273,12 @@ msgid "Minutes"
 msgstr "分钟"
 
 #: app/qml/main.qml:122 app/qml/main.qml:210 app/qml/main.qml:458
-#: app/qml/TimerPage.qml:18 contents/ui/main.qml:294 contents/ui/main.qml:296
-#: contents/ui/main.qml:1789 contents/ui/main.qml:2434
+#: app/qml/TimerPage.qml:18 contents/ui/main.qml:283 contents/ui/main.qml:285
+#: contents/ui/main.qml:1658 contents/ui/main.qml:2303
 msgid "Plasmai"
 msgstr "Plasmai"
 
-#: app/qml/main.qml:122 contents/ui/main.qml:310
+#: app/qml/main.qml:122 contents/ui/main.qml:299
 #: contents/ui/OfflineStatus.qml:42
 msgid "Offline"
 msgstr "离线"
@@ -314,19 +308,19 @@ msgstr "登录时启动"
 msgid "Quit"
 msgstr "退出"
 
-#: app/qml/main.qml:220 contents/ui/main.qml:1502
+#: app/qml/main.qml:220 contents/ui/main.qml:1371
 msgid "%1 left today"
 msgstr "今日剩余 %1"
 
-#: app/qml/main.qml:220 contents/ui/main.qml:1504
+#: app/qml/main.qml:220 contents/ui/main.qml:1373
 msgid "%1 over today"
 msgstr "今日超出 %1"
 
-#: app/qml/main.qml:221 contents/ui/main.qml:1510
+#: app/qml/main.qml:221 contents/ui/main.qml:1379
 msgid "%1 left this week"
 msgstr "本周剩余 %1"
 
-#: app/qml/main.qml:221 contents/ui/main.qml:1512
+#: app/qml/main.qml:221 contents/ui/main.qml:1381
 msgid "%1 over this week"
 msgstr "本周超出 %1"
 
@@ -338,19 +332,19 @@ msgstr "已开始"
 msgid "Stopped"
 msgstr "已停止"
 
-#: app/qml/main.qml:246 contents/ui/main.qml:642
+#: app/qml/main.qml:246 contents/ui/main.qml:613
 msgid "Tracking in progress"
 msgstr "正在计时"
 
-#: app/qml/main.qml:251 contents/ui/main.qml:647
+#: app/qml/main.qml:251 contents/ui/main.qml:618
 msgid "Saved without the billable change: your Kimai account is not allowed to edit billable."
 msgstr "已保存，但未更改可计费: 你的 Kimai 账户无权编辑可计费。"
 
-#: app/qml/main.qml:265 contents/ui/main.qml:726
+#: app/qml/main.qml:265 contents/ui/main.qml:697
 msgid "Idle time discarded"
 msgstr "已丢弃空闲时间"
 
-#: app/qml/main.qml:269 contents/ui/main.qml:733
+#: app/qml/main.qml:269 contents/ui/main.qml:704
 msgid "Nothing is tracking"
 msgstr "当前没有计时"
 
@@ -358,11 +352,11 @@ msgstr "当前没有计时"
 msgid "Start tracking when you begin work."
 msgstr "开始工作时开始计时。"
 
-#: app/qml/main.qml:279 app/qml/tui/Tui.qml:237
+#: app/qml/main.qml:279 app/qml/tui/Tui.qml:238
 msgid "Could not start tracking"
 msgstr "无法开始计时"
 
-#: app/qml/main.qml:282 app/qml/tui/Tui.qml:235
+#: app/qml/main.qml:282 app/qml/tui/Tui.qml:236
 msgid "Could not stop tracking"
 msgstr "无法停止计时"
 
@@ -374,12 +368,12 @@ msgstr "无法删除条目"
 msgid "Could not split the entry"
 msgstr "无法拆分条目"
 
-#: app/qml/main.qml:294 contents/ui/main.qml:657 contents/ui/main.qml:1772
-#: contents/ui/main.qml:2248
+#: app/qml/main.qml:294 contents/ui/main.qml:628 contents/ui/main.qml:1641
+#: contents/ui/main.qml:2117
 msgid "Split time must be between begin and end."
 msgstr "拆分时间必须介于开始和结束之间。"
 
-#: app/qml/main.qml:297 contents/ui/main.qml:665
+#: app/qml/main.qml:297 contents/ui/main.qml:636
 msgid "The first half was saved, but the second half could not be created."
 msgstr "前半段已保存，但无法创建后半段。"
 
@@ -395,7 +389,7 @@ msgstr "%1小时%2分"
 msgid "%1m %2s"
 msgstr "%1分%2秒"
 
-#: app/qml/main.qml:339 contents/ui/main.qml:543
+#: app/qml/main.qml:339 contents/ui/main.qml:514
 msgid "just now"
 msgstr "刚刚"
 
@@ -407,7 +401,7 @@ msgstr "%1分钟前"
 msgid "%1h ago"
 msgstr "%1小时前"
 
-#: app/qml/main.qml:345 contents/ui/main.qml:555
+#: app/qml/main.qml:345 contents/ui/main.qml:526
 msgid "yesterday"
 msgstr "昨天"
 
@@ -428,7 +422,7 @@ msgid "Add Entry"
 msgstr "添加条目"
 
 #: app/qml/main.qml:418 app/qml/StatsPage.qml:14 app/qml/TimerPage.qml:52
-#: contents/ui/main.qml:2429 contents/ui/main.qml:2490
+#: contents/ui/main.qml:2298 contents/ui/main.qml:2359
 msgid "Statistics"
 msgstr "统计"
 
@@ -436,205 +430,205 @@ msgstr "统计"
 msgid "Trips"
 msgstr "行程"
 
-#: app/qml/main.qml:435 app/qml/SettingsPage.qml:12
+#: app/qml/main.qml:435 app/qml/SettingsPage.qml:13
 msgid "Settings"
 msgstr "设置"
 
 #: app/qml/ManualEntryPage.qml:14 contents/ui/ActivityListRow.qml:364
-#: contents/ui/main.qml:2433
+#: contents/ui/main.qml:2302
 msgid "Edit entry"
 msgstr "编辑条目"
 
 #: app/qml/ManualEntryPage.qml:14 app/qml/TimerPage.qml:46
-#: contents/ui/main.qml:2433 contents/ui/main.qml:2475
+#: contents/ui/main.qml:2302 contents/ui/main.qml:2344
 msgid "Add entry"
 msgstr "添加条目"
 
-#: app/qml/SettingsPage.qml:59 contents/ui/config/ConfigDisplay.qml:481
+#: app/qml/SettingsPage.qml:62 contents/ui/config/ConfigDisplay.qml:481
 msgid "Appearance"
 msgstr "外观"
 
-#: app/qml/SettingsPage.qml:63 contents/ui/config/ConfigDisplay.qml:487
+#: app/qml/SettingsPage.qml:66 contents/ui/config/ConfigDisplay.qml:487
 msgid "Style:"
 msgstr "样式:"
 
-#: app/qml/SettingsPage.qml:66 contents/ui/config/ConfigDisplay.qml:491
+#: app/qml/SettingsPage.qml:69 contents/ui/config/ConfigDisplay.qml:491
 msgid "System (Plasma theme)"
 msgstr "系统 (Plasma 主题)"
 
-#: app/qml/SettingsPage.qml:66 contents/ui/config/ConfigDisplay.qml:492
-#: contents/ui/SetupWizard.qml:172
+#: app/qml/SettingsPage.qml:69 contents/ui/config/ConfigDisplay.qml:492
+#: contents/ui/SetupWizard.qml:174
 msgid "Kante"
 msgstr "Kante"
 
-#: app/qml/SettingsPage.qml:66 contents/ui/config/ConfigDisplay.qml:493
-#: contents/ui/SetupWizard.qml:174
+#: app/qml/SettingsPage.qml:69 contents/ui/config/ConfigDisplay.qml:493
+#: contents/ui/SetupWizard.qml:176
 msgid "Kante Light"
 msgstr "Kante Light"
 
-#: app/qml/SettingsPage.qml:78 contents/ui/config/ConfigDisplay.qml:505
+#: app/qml/SettingsPage.qml:81 contents/ui/config/ConfigDisplay.qml:505
 msgid "Kante is Plasmai's own look: warm colors, square cut corners and monospace figures. It deliberately does not follow Breeze; dark or light still follows your theme. Kante Light keeps your theme's colors and controls and adds only Kante's shapes, titles and figures."
 msgstr "Kante 是 Plasmai 自己的外观: 暖色、切角和等宽数字。它有意不跟随 Breeze; 明暗仍跟随你的主题。Kante Light 保留主题的颜色和控件，只添加 Kante 的形状、标题和数字。"
 
-#: app/qml/SettingsPage.qml:81 contents/config/config.qml:21
+#: app/qml/SettingsPage.qml:84 contents/config/config.qml:21
 #: contents/ui/config/ConfigBehavior.qml:229
 msgid "Behavior"
 msgstr "行为"
 
-#: app/qml/SettingsPage.qml:86
+#: app/qml/SettingsPage.qml:89
 msgid "Refresh interval:"
 msgstr "刷新间隔:"
 
-#: app/qml/SettingsPage.qml:95
+#: app/qml/SettingsPage.qml:98
 msgid "Recent entries:"
 msgstr "最近条目:"
 
-#: app/qml/SettingsPage.qml:102
+#: app/qml/SettingsPage.qml:106
 msgid "Timer view:"
 msgstr "计时器视图:"
 
-#: app/qml/SettingsPage.qml:103
+#: app/qml/SettingsPage.qml:107
 msgid "Show work summary (today / week totals)"
 msgstr "显示工作摘要（今日/本周合计）"
 
-#: app/qml/SettingsPage.qml:108
+#: app/qml/SettingsPage.qml:112
 msgid "Show recent entries"
 msgstr "显示最近条目"
 
-#: app/qml/SettingsPage.qml:113
+#: app/qml/SettingsPage.qml:117
 msgid "Show favorites"
 msgstr "显示收藏"
 
-#: app/qml/SettingsPage.qml:118
+#: app/qml/SettingsPage.qml:122
 msgid "Show \"Continue\" button"
 msgstr "显示“继续”按钮"
 
-#: app/qml/SettingsPage.qml:123
+#: app/qml/SettingsPage.qml:127
 msgid "Show start / switch activity controls"
 msgstr "显示开始/切换活动控件"
 
-#: app/qml/SettingsPage.qml:129
+#: app/qml/SettingsPage.qml:133
 msgid "Show day sparkline"
 msgstr "显示当日走势图"
 
-#: app/qml/SettingsPage.qml:136 contents/ui/config/ConfigDisplay.qml:594
+#: app/qml/SettingsPage.qml:140 contents/ui/config/ConfigDisplay.qml:594
 msgid "Show sun, moon, and work arcs"
 msgstr "显示太阳、月亮和工作弧"
 
-#: app/qml/SettingsPage.qml:142 contents/ui/config/ConfigDisplay.qml:968
+#: app/qml/SettingsPage.qml:146 contents/ui/config/ConfigDisplay.qml:968
 msgid "Trips:"
 msgstr "行程:"
 
-#: app/qml/SettingsPage.qml:143
+#: app/qml/SettingsPage.qml:147
 msgid "Log trips and show detected trips (Anfahrten plugin)"
 msgstr "记录行程并显示检测到的行程 (Anfahrten 插件)"
 
-#: app/qml/SettingsPage.qml:149
+#: app/qml/SettingsPage.qml:153
 msgid "Confirmations:"
 msgstr "确认:"
 
-#: app/qml/SettingsPage.qml:150
+#: app/qml/SettingsPage.qml:154
 msgid "Confirm before stopping tracking"
 msgstr "停止计时前确认"
 
-#: app/qml/SettingsPage.qml:155 contents/ui/config/ConfigBehavior.qml:254
+#: app/qml/SettingsPage.qml:159 contents/ui/config/ConfigBehavior.qml:254
 msgid "Ask before a start that overlaps the previous entry"
 msgstr "开始时间落入上一条记录时询问"
 
-#: app/qml/SettingsPage.qml:162
+#: app/qml/SettingsPage.qml:166
 msgid "When editing the running timer, the previous entry's end is shown. Saving an earlier start asks for confirmation."
 msgstr "编辑正在运行的计时器时会显示上一条目的结束时间。保存更早的开始时间时需要确认。"
 
-#: app/qml/SettingsPage.qml:165 contents/ui/config/ConfigDisplay.qml:549
-#: contents/ui/SetupWizard.qml:735
+#: app/qml/SettingsPage.qml:169 contents/ui/config/ConfigDisplay.qml:549
+#: contents/ui/SetupWizard.qml:733
 msgid "Work hours"
 msgstr "工作时间"
 
-#: app/qml/SettingsPage.qml:168
+#: app/qml/SettingsPage.qml:172
 msgid "Begin:"
 msgstr "开始:"
 
-#: app/qml/SettingsPage.qml:174
+#: app/qml/SettingsPage.qml:178
 msgid "End:"
 msgstr "结束:"
 
-#: app/qml/SettingsPage.qml:180
+#: app/qml/SettingsPage.qml:184
 msgid "Location (sun / moon accuracy)"
 msgstr "位置（日出日落/月相精度）"
 
-#: app/qml/SettingsPage.qml:183
+#: app/qml/SettingsPage.qml:187
 msgid "Current:"
 msgstr "当前:"
 
-#: app/qml/SettingsPage.qml:185
+#: app/qml/SettingsPage.qml:189
 msgid "Not set"
 msgstr "未设置"
 
-#: app/qml/SettingsPage.qml:186
+#: app/qml/SettingsPage.qml:190
 msgid "%1, %2"
 msgstr "%1，%2"
 
-#: app/qml/SettingsPage.qml:192
+#: app/qml/SettingsPage.qml:196
 msgid "Search city:"
 msgstr "搜索城市:"
 
-#: app/qml/SettingsPage.qml:193
+#: app/qml/SettingsPage.qml:197
 msgid "Search for a city…"
 msgstr "搜索城市…"
 
-#: app/qml/SettingsPage.qml:250
+#: app/qml/SettingsPage.qml:254
 msgid "Idle detection"
 msgstr "空闲检测"
 
-#: app/qml/SettingsPage.qml:252
+#: app/qml/SettingsPage.qml:256
 msgid "Enable:"
 msgstr "启用:"
 
-#: app/qml/SettingsPage.qml:254
+#: app/qml/SettingsPage.qml:258
 msgid "Prompt after being idle while tracking"
 msgstr "计时期间空闲后进行询问"
 
-#: app/qml/SettingsPage.qml:260
+#: app/qml/SettingsPage.qml:264
 msgid "Idle after:"
 msgstr "空闲时间:"
 
-#: app/qml/SettingsPage.qml:263
+#: app/qml/SettingsPage.qml:268
 msgid "%1 min"
 msgstr "%1 分钟"
 
-#: app/qml/SettingsPage.qml:267
+#: app/qml/SettingsPage.qml:272
 msgid "Notifications"
 msgstr "通知"
 
-#: app/qml/SettingsPage.qml:269
+#: app/qml/SettingsPage.qml:274
 msgid "Notify on:"
 msgstr "通知时机:"
 
-#: app/qml/SettingsPage.qml:271 app/qml/TimerPage.qml:678
-#: contents/ui/ActiveEditView.qml:282 contents/ui/EntryLists.qml:126
-#: contents/ui/SetupWizard.qml:514
+#: app/qml/SettingsPage.qml:276 app/qml/TimerPage.qml:678
+#: contents/ui/ActiveEditView.qml:269 contents/ui/EntryLists.qml:126
+#: contents/ui/SetupWizard.qml:512
 msgid "Start"
 msgstr "开始"
 
-#: app/qml/SettingsPage.qml:277 app/qml/TimerPage.qml:412
+#: app/qml/SettingsPage.qml:282 app/qml/TimerPage.qml:412
 #: app/qml/TimerPage.qml:837 contents/ui/TimerCardKante.qml:148
 #: contents/ui/TimerCard.qml:138
 msgid "Stop"
 msgstr "停止"
 
-#: app/qml/SettingsPage.qml:283
+#: app/qml/SettingsPage.qml:288
 msgid "Idle stop"
 msgstr "空闲停止"
 
-#: app/qml/SettingsPage.qml:289
+#: app/qml/SettingsPage.qml:294
 msgid "Forgot to start tracking"
 msgstr "忘记开始计时"
 
-#: app/qml/SettingsPage.qml:297
+#: app/qml/SettingsPage.qml:302
 msgid "Settings sync with the Plasma widget via shared.json on the same machine."
 msgstr "设置通过同一设备上的 shared.json 与 Plasma 小部件同步。"
 
-#: app/qml/TimerPage.qml:67 app/qml/TimerPage.qml:526 contents/ui/main.qml:1526
+#: app/qml/TimerPage.qml:67 app/qml/TimerPage.qml:526 contents/ui/main.qml:1395
 #: contents/ui/TimerCardKante.qml:301 contents/ui/TimerCard.qml:241
 msgid "Today %1"
 msgstr "今日 %1"
@@ -644,37 +638,37 @@ msgstr "今日 %1"
 msgid "Week %1"
 msgstr "周 %1"
 
-#: app/qml/TimerPage.qml:168 contents/ui/main.qml:579
+#: app/qml/TimerPage.qml:168 contents/ui/main.qml:550
 msgid "Not configured"
 msgstr "未配置"
 
-#: app/qml/TimerPage.qml:169 app/qml/tui/Tui.qml:152
-#: contents/ui/SetupWizard.qml:890
+#: app/qml/TimerPage.qml:169 app/qml/tui/Tui.qml:153
+#: contents/ui/SetupWizard.qml:888
 msgid "Connecting…"
 msgstr "正在连接…"
 
-#: app/qml/TimerPage.qml:170 app/qml/TimerPage.qml:187 contents/ui/main.qml:585
+#: app/qml/TimerPage.qml:170 app/qml/TimerPage.qml:187 contents/ui/main.qml:556
 msgid "Connection problem"
 msgstr "连接问题"
 
-#: app/qml/TimerPage.qml:173 contents/ui/main.qml:589
+#: app/qml/TimerPage.qml:173 contents/ui/main.qml:560
 msgid "Connected to %1 (%2)"
 msgstr "已连接到 %1 (%2)"
 
-#: app/qml/TimerPage.qml:173 contents/ui/main.qml:590
+#: app/qml/TimerPage.qml:173 contents/ui/main.qml:561
 msgid "Connected to %1"
 msgstr "已连接到 %1"
 
-#: app/qml/TimerPage.qml:189 contents/ui/main.qml:2656
+#: app/qml/TimerPage.qml:189 contents/ui/main.qml:2525
 #: contents/ui/UnsyncedList.qml:156
 msgid "Retry"
 msgstr "重试"
 
-#: app/qml/TimerPage.qml:190 contents/ui/main.qml:2661
+#: app/qml/TimerPage.qml:190 contents/ui/main.qml:2530
 msgid "Configure"
 msgstr "配置"
 
-#: app/qml/TimerPage.qml:240 contents/ui/main.qml:2644
+#: app/qml/TimerPage.qml:240 contents/ui/main.qml:2513
 msgid "More options in the settings"
 msgstr "更多选项请见设置"
 
@@ -688,11 +682,11 @@ msgid "Not tracking"
 msgstr "未在计时"
 
 #: app/qml/TimerPage.qml:355 app/qml/TimerPage.qml:384
-#: app/qml/TripEditPage.qml:19 app/qml/TripsPage.qml:139
-#: contents/ui/ActivityListRow.qml:378 contents/ui/FilmDayView.qml:897
-#: contents/ui/main.qml:2518 contents/ui/TimerCardKante.qml:89
-#: contents/ui/TimerCard.qml:90 contents/ui/TripSheet.qml:208
-#: contents/ui/TripSheet.qml:424
+#: app/qml/TripEditPage.qml:19 app/qml/TripsPage.qml:141
+#: contents/ui/ActivityListRow.qml:378 contents/ui/FilmDayView.qml:885
+#: contents/ui/main.qml:2387 contents/ui/TimerCardKante.qml:89
+#: contents/ui/TimerCard.qml:90 contents/ui/TripSheet.qml:204
+#: contents/ui/TripSheet.qml:420
 msgid "Log trip"
 msgstr "记录行程"
 
@@ -751,12 +745,12 @@ msgid "Start something else…"
 msgstr "开始其他工作…"
 
 #: app/qml/TimerPage.qml:671 contents/ui/EntryLists.qml:112
-#: contents/ui/ManualEntryView.qml:372
+#: contents/ui/ManualEntryView.qml:359
 msgid "Description (optional)"
 msgstr "描述（可选）"
 
 #: app/qml/TimerPage.qml:678 app/qml/TimerPage.qml:876
-#: contents/ui/EntryLists.qml:142 contents/ui/main.qml:2100
+#: contents/ui/EntryLists.qml:142 contents/ui/main.qml:1969
 msgid "Switch"
 msgstr "切换"
 
@@ -769,14 +763,14 @@ msgstr "已在进行中。"
 msgid "Pin an entry from Recent to add it to your favorites."
 msgstr "在“最近”中固定条目即可将其加入收藏。"
 
-#: app/qml/TimerPage.qml:744 app/qml/tui/Tui.qml:129
+#: app/qml/TimerPage.qml:744 app/qml/tui/Tui.qml:130
 #: contents/ui/EntryLists.qml:304
 msgid "Recent"
 msgstr "最近"
 
-#: app/qml/TimerPage.qml:767 app/qml/tui/Tui.qml:127
+#: app/qml/TimerPage.qml:767 app/qml/tui/Tui.qml:128
 #: contents/ui/DateField.qml:156 contents/ui/EntryLists.qml:335
-#: contents/ui/FilmDayView.qml:595 contents/ui/StatsView.qml:240
+#: contents/ui/FilmDayView.qml:583 contents/ui/StatsView.qml:240
 #: contents/ui/StatsView.qml:292 contents/ui/StatsView.qml:393
 #: contents/ui/StatsView.qml:466
 msgid "Today"
@@ -787,7 +781,7 @@ msgstr "今天"
 msgid "Yesterday"
 msgstr "昨天"
 
-#: app/qml/TimerPage.qml:832 contents/ui/main.qml:1946
+#: app/qml/TimerPage.qml:832 contents/ui/main.qml:1815
 msgid "Stop tracking?"
 msgstr "停止计时？"
 
@@ -795,7 +789,7 @@ msgstr "停止计时？"
 msgid "Stop %1 · %2?"
 msgstr "停止 %1 · %2？"
 
-#: app/qml/TimerPage.qml:852 contents/ui/main.qml:2122
+#: app/qml/TimerPage.qml:852 contents/ui/main.qml:1991
 msgid "Delete entry?"
 msgstr "删除此条目？"
 
@@ -803,12 +797,12 @@ msgstr "删除此条目？"
 msgid "Really delete this entry?"
 msgstr "确定要删除此条目吗？"
 
-#: app/qml/TimerPage.qml:857 contents/ui/TripSheet.qml:451
+#: app/qml/TimerPage.qml:857 contents/ui/TripSheet.qml:447
 msgid "Delete"
 msgstr "删除"
 
 #: app/qml/TimerPage.qml:871 contents/ui/EntryLists.qml:56
-#: contents/ui/main.qml:1970
+#: contents/ui/main.qml:1839
 msgid "Switch activity"
 msgstr "切换活动"
 
@@ -817,7 +811,7 @@ msgid "Switch to %1 · %2?"
 msgstr "切换到 %1 · %2？"
 
 #: app/qml/TimerPage.qml:895 app/qml/TimerPage.qml:899
-#: contents/ui/ActivityListRow.qml:371 contents/ui/main.qml:2155
+#: contents/ui/ActivityListRow.qml:371 contents/ui/main.qml:2024
 msgid "Split entry"
 msgstr "拆分条目"
 
@@ -825,7 +819,7 @@ msgstr "拆分条目"
 msgid "Split at:"
 msgstr "拆分于:"
 
-#: app/qml/TimerPage.qml:947 contents/ui/main.qml:2261
+#: app/qml/TimerPage.qml:947 contents/ui/main.qml:2130
 msgid "You were idle"
 msgstr "你处于空闲状态"
 
@@ -833,19 +827,19 @@ msgstr "你处于空闲状态"
 msgid "You were idle for %1. Keep this time, discard it, or discard and continue?"
 msgstr "你已空闲 %1。保留这段时间、丢弃，还是丢弃并继续？"
 
-#: app/qml/TimerPage.qml:958 contents/ui/main.qml:2303
+#: app/qml/TimerPage.qml:958 contents/ui/main.qml:2172
 msgid "Keep time"
 msgstr "保留时间"
 
-#: app/qml/TimerPage.qml:963 contents/ui/main.qml:2292
+#: app/qml/TimerPage.qml:963 contents/ui/main.qml:2161
 msgid "Discarding idle time needs a connection to the server."
 msgstr "放弃空闲时间需要连接到服务器。"
 
-#: app/qml/TimerPage.qml:965 contents/ui/main.qml:2313
+#: app/qml/TimerPage.qml:965 contents/ui/main.qml:2182
 msgid "Discard idle"
 msgstr "丢弃空闲"
 
-#: app/qml/TimerPage.qml:966 contents/ui/main.qml:2323
+#: app/qml/TimerPage.qml:966 contents/ui/main.qml:2192
 msgid "Discard and continue"
 msgstr "丢弃并继续"
 
@@ -853,11 +847,11 @@ msgstr "丢弃并继续"
 msgid "Detected trip"
 msgstr "检测到的行程"
 
-#: app/qml/TripEditPage.qml:19 contents/ui/TripSheet.qml:208
+#: app/qml/TripEditPage.qml:19 contents/ui/TripSheet.qml:204
 msgid "Edit trip"
 msgstr "编辑行程"
 
-#: app/qml/TripEditPage.qml:32
+#: app/qml/TripEditPage.qml:29
 msgid "Trip saved: %1 km"
 msgstr "已保存行程: %1 公里"
 
@@ -876,130 +870,130 @@ msgstr "通勤"
 msgid "Private"
 msgstr "私人"
 
-#: app/qml/TripsPage.qml:44
+#: app/qml/TripsPage.qml:46
 msgid "Trips could not be loaded: %1"
 msgstr "无法加载行程: %1"
 
-#: app/qml/TripsPage.qml:72
+#: app/qml/TripsPage.qml:75
 msgid "round trip"
 msgstr "往返"
 
-#: app/qml/TripsPage.qml:78 contents/ui/main.qml:1313
+#: app/qml/TripsPage.qml:81 contents/ui/main.qml:1219
 #: contents/ui/StatsView.qml:244 contents/ui/StatsView.qml:326
 #: contents/ui/TripSuggestionList.qml:84 contents/ui/UnsyncedList.qml:67
 msgid "%1 km"
 msgstr "%1 公里"
 
-#: app/qml/TripsPage.qml:101
+#: app/qml/TripsPage.qml:100
 msgid "Commute logged: %1 km"
 msgstr "已记录通勤: %1 公里"
 
-#: app/qml/TripsPage.qml:115 contents/ui/main.qml:1365
+#: app/qml/TripsPage.qml:111 contents/ui/main.qml:1241
 msgid "The trip could not be accepted: %1"
 msgstr "无法接受行程: %1"
 
-#: app/qml/TripsPage.qml:128 contents/ui/main.qml:1380
+#: app/qml/TripsPage.qml:120 contents/ui/main.qml:1249
 msgid "The trip could not be dismissed: %1"
 msgstr "无法忽略行程: %1"
 
-#: app/qml/TripsPage.qml:145
+#: app/qml/TripsPage.qml:147
 msgid "Commute today"
 msgstr "今日通勤"
 
-#: app/qml/TripsPage.qml:151
+#: app/qml/TripsPage.qml:153
 msgid "Refresh"
 msgstr "刷新"
 
-#: app/qml/TripsPage.qml:175 contents/ui/EntryLists.qml:281
+#: app/qml/TripsPage.qml:177 contents/ui/EntryLists.qml:281
 msgid "Detected trips"
 msgstr "检测到的行程"
 
-#: app/qml/TripsPage.qml:195
+#: app/qml/TripsPage.qml:197
 msgid "Previous month"
 msgstr "上个月"
 
-#: app/qml/TripsPage.qml:207
+#: app/qml/TripsPage.qml:209
 msgid "Next month"
 msgstr "下个月"
 
-#: app/qml/TripsPage.qml:217
+#: app/qml/TripsPage.qml:219
 msgid "%2 km in 1 trip"
 msgid_plural "%2 km in %1 trips"
 msgstr[0] "%1 次行程共 %2 公里"
 
-#: app/qml/TripsPage.qml:218
+#: app/qml/TripsPage.qml:220
 msgid "month closed"
 msgstr "本月已关闭"
 
-#: app/qml/TripsPage.qml:230
+#: app/qml/TripsPage.qml:232
 msgid "No trips this month"
 msgstr "本月没有行程"
 
-#: app/qml/TripsPage.qml:244
+#: app/qml/TripsPage.qml:246
 msgid "Time entry #%1"
 msgstr "时间记录 #%1"
 
-#: app/qml/tui/Tui.qml:126
+#: app/qml/tui/Tui.qml:127
 msgid "Nothing is running"
 msgstr "没有正在运行的计时"
 
-#: app/qml/tui/Tui.qml:128
+#: app/qml/tui/Tui.qml:129
 msgid "Week"
 msgstr "本周"
 
-#: app/qml/tui/Tui.qml:130
+#: app/qml/tui/Tui.qml:131
 msgid "No recent entries"
 msgstr "没有最近的条目"
 
-#: app/qml/tui/Tui.qml:131
+#: app/qml/tui/Tui.qml:132
 msgid "No entries this week"
 msgstr "本周没有条目"
 
-#: app/qml/tui/Tui.qml:132
+#: app/qml/tui/Tui.qml:133
 msgid "No gaps in the work day"
 msgstr "工作日内没有空档"
 
-#: app/qml/tui/Tui.qml:133
+#: app/qml/tui/Tui.qml:134
 msgid "Gaps:"
 msgstr "空档:"
 
-#: app/qml/tui/Tui.qml:134
+#: app/qml/tui/Tui.qml:135
 msgid "Total"
 msgstr "合计"
 
-#: app/qml/tui/Tui.qml:135
+#: app/qml/tui/Tui.qml:136
 msgid "1–9 start · s stop · t day · w week · r refresh · q quit"
 msgstr "1–9 开始 · s 停止 · t 日 · w 周 · r 刷新 · q 退出"
 
-#: app/qml/tui/Tui.qml:136
+#: app/qml/tui/Tui.qml:137
 msgid "Esc back · s stop · r refresh · q quit"
 msgstr "Esc 返回 · s 停止 · r 刷新 · q 退出"
 
-#: app/qml/tui/Tui.qml:143
+#: app/qml/tui/Tui.qml:144
 msgid "Set up a connection in the Plasmai app first"
 msgstr "请先在 Plasmai 应用中设置连接"
 
-#: app/qml/tui/Tui.qml:146
+#: app/qml/tui/Tui.qml:147
 msgid "Server not reachable"
 msgstr "无法连接服务器"
 
-#: app/qml/tui/Tui.qml:149
+#: app/qml/tui/Tui.qml:150
 msgid "Offline · %1 not synced"
 msgstr "离线 · %1 项未同步"
 
-#: app/qml/tui/Tui.qml:154
+#: app/qml/tui/Tui.qml:155
 msgid "Online"
 msgstr "在线"
 
-#: app/qml/tui/Tui.qml:236
+#: app/qml/tui/Tui.qml:237
 msgid "Could not refresh"
 msgstr "无法刷新"
 
-#: app/qml/tui/Tui.qml:246
+#: app/qml/tui/Tui.qml:247
 msgid "This build has no demo"
 msgstr "此版本没有演示"
 
-#: app/qml/UnsyncedPage.qml:14 contents/ui/main.qml:2428
+#: app/qml/UnsyncedPage.qml:14 contents/ui/main.qml:2297
 msgid "Not synced"
 msgstr "未同步"
 
@@ -1007,31 +1001,31 @@ msgstr "未同步"
 msgid "Display"
 msgstr "显示"
 
-#: contents/ui/ActiveEditView.qml:250
+#: contents/ui/ActiveEditView.qml:237
 msgid "Edit start, project, activity, billable, and tags for the running entry."
 msgstr "编辑进行中条目的开始时间、项目、活动、计费和标签。"
 
-#: contents/ui/ActiveEditView.qml:310
+#: contents/ui/ActiveEditView.qml:297
 msgid "Previous entry ended at %1"
 msgstr "上一条记录结束于 %1"
 
-#: contents/ui/ActiveEditView.qml:320
+#: contents/ui/ActiveEditView.qml:307
 msgid "Elapsed time updates from the new start."
 msgstr "已用时间会根据新的开始时间更新。"
 
-#: contents/ui/ActiveEditView.qml:321
+#: contents/ui/ActiveEditView.qml:308
 msgid "Start must be a valid time not in the future."
 msgstr "开始时间必须有效且不能是未来时间。"
 
-#: contents/ui/ActiveEditView.qml:374
+#: contents/ui/ActiveEditView.qml:361
 msgid "Overlapping start"
 msgstr "开始时间重叠"
 
-#: contents/ui/ActiveEditView.qml:388
+#: contents/ui/ActiveEditView.qml:375
 msgid "The new start is before the previous entry ended (%1). Set it anyway?"
 msgstr "新的开始早于上一条记录的结束时间（%1）。仍要设置吗？"
 
-#: contents/ui/ActiveEditView.qml:399
+#: contents/ui/ActiveEditView.qml:386
 msgid "Set anyway"
 msgstr "仍要设置"
 
@@ -1071,39 +1065,43 @@ msgstr "需要 URL 和 API 令牌"
 msgid "Configure your time tracker URL and API token"
 msgstr "配置时间跟踪服务的 URL 和 API 令牌"
 
-#: contents/ui/ApiErrors.qml:20
+#: contents/ui/ApiErrors.qml:21
+msgid "Missing or invalid input: %1"
+msgstr "输入缺失或无效：%1"
+
+#: contents/ui/ApiErrors.qml:22
+msgid "Missing or invalid input."
+msgstr "输入缺失或无效。"
+
+#: contents/ui/ApiErrors.qml:25
 msgid "This needs a connection to the server."
 msgstr "这需要连接到服务器。"
 
-#: contents/ui/ApiErrors.qml:23
-msgid "This action is not supported for the selected service yet."
-msgstr "所选服务尚不支持此操作。"
-
-#: contents/ui/ApiErrors.qml:26
+#: contents/ui/ApiErrors.qml:28
 msgid "Cannot reach the server. Check your network, URL, or TLS certificate."
 msgstr "无法访问服务器。请检查网络、URL 或 TLS 证书。"
 
-#: contents/ui/ApiErrors.qml:29
+#: contents/ui/ApiErrors.qml:31
 msgid "Authentication failed. Check your API token."
 msgstr "认证失败。请检查 API 令牌。"
 
-#: contents/ui/ApiErrors.qml:32
+#: contents/ui/ApiErrors.qml:34
 msgid "Server not found. Check your URL."
 msgstr "未找到服务器。请检查 URL。"
 
-#: contents/ui/ApiErrors.qml:35
+#: contents/ui/ApiErrors.qml:37
 msgid "Access denied. Your token may lack required permissions."
 msgstr "访问被拒绝。您的令牌可能缺少所需权限。"
 
-#: contents/ui/ApiErrors.qml:38
+#: contents/ui/ApiErrors.qml:40
 msgid "Server error (%1)."
 msgstr "服务器错误 (%1)。"
 
-#: contents/ui/ApiErrors.qml:41
+#: contents/ui/ApiErrors.qml:43
 msgid "Request failed: %1"
 msgstr "请求失败：%1"
 
-#: contents/ui/ApiErrors.qml:43
+#: contents/ui/ApiErrors.qml:45
 msgid "Request failed (%1)."
 msgstr "请求失败 (%1)。"
 
@@ -1195,71 +1193,71 @@ msgstr "API 密钥："
 msgid "API token:"
 msgstr "API 令牌："
 
-#: contents/ui/config/ConfigConnection.qml:360
+#: contents/ui/config/ConfigConnection.qml:338
 msgid "Configure a time-tracking profile. Choose Kimai, Clockify, Toggl Track, or SolidTime."
 msgstr "配置时间跟踪配置文件。请选择 Kimai、Clockify、Toggl Track 或 SolidTime。"
 
-#: contents/ui/config/ConfigConnection.qml:394
+#: contents/ui/config/ConfigConnection.qml:372
 msgid "A profile named \"%1\" already exists."
 msgstr "已存在名为“%1”的配置文件。"
 
-#: contents/ui/config/ConfigConnection.qml:406
+#: contents/ui/config/ConfigConnection.qml:384
 msgid "Service:"
 msgstr "服务："
 
-#: contents/ui/config/ConfigConnection.qml:452
+#: contents/ui/config/ConfigConnection.qml:430
 msgid "Paste token to save in KWallet"
 msgstr "粘贴令牌以保存到 KWallet"
 
-#: contents/ui/config/ConfigConnection.qml:465
+#: contents/ui/config/ConfigConnection.qml:443
 msgid "Add profile"
 msgstr "添加配置文件"
 
-#: contents/ui/config/ConfigConnection.qml:515
+#: contents/ui/config/ConfigConnection.qml:475
 msgid "Use this profile"
 msgstr "使用此配置文件"
 
-#: contents/ui/config/ConfigConnection.qml:531
+#: contents/ui/config/ConfigConnection.qml:491
 msgid "Active profile: %1"
 msgstr "活动配置文件：%1"
 
-#: contents/ui/config/ConfigConnection.qml:557
+#: contents/ui/config/ConfigConnection.qml:517
 msgid "Token saved to KWallet for this profile."
 msgstr "此配置文件的令牌已保存到 KWallet。"
 
-#: contents/ui/config/ConfigConnection.qml:560
+#: contents/ui/config/ConfigConnection.qml:520
 msgid "Failed to save token"
 msgstr "保存令牌失败"
 
-#: contents/ui/config/ConfigConnection.qml:565
+#: contents/ui/config/ConfigConnection.qml:525
 msgid "Clear token"
 msgstr "清除令牌"
 
-#: contents/ui/config/ConfigConnection.qml:575
+#: contents/ui/config/ConfigConnection.qml:535
 msgid "Token removed from KWallet."
 msgstr "令牌已从 KWallet 中移除。"
 
-#: contents/ui/config/ConfigConnection.qml:578
+#: contents/ui/config/ConfigConnection.qml:538
 msgid "Failed to clear token"
 msgstr "清除令牌失败"
 
-#: contents/ui/config/ConfigConnection.qml:583
+#: contents/ui/config/ConfigConnection.qml:543
 msgid "Test connection"
 msgstr "测试连接"
 
-#: contents/ui/config/ConfigConnection.qml:588
+#: contents/ui/config/ConfigConnection.qml:548
 msgid "Testing connection…"
 msgstr "正在测试连接…"
 
-#: contents/ui/config/ConfigConnection.qml:594
+#: contents/ui/config/ConfigConnection.qml:554
 msgid "No API token stored. Save a token first."
 msgstr "未存储 API 令牌。请先保存令牌。"
 
-#: contents/ui/config/ConfigConnection.qml:605
+#: contents/ui/config/ConfigConnection.qml:565
 msgid "ok"
 msgstr "ok"
 
-#: contents/ui/config/ConfigConnection.qml:606
+#: contents/ui/config/ConfigConnection.qml:566
 msgid "Connected to %1 (%2)."
 msgstr "已连接到 %1 (%2)。"
 
@@ -1268,7 +1266,7 @@ msgid "Enter a city or place name to search."
 msgstr "输入城市或地名进行搜索。"
 
 #: contents/ui/config/ConfigDisplay.qml:176
-#: contents/ui/config/ConfigDisplay.qml:631 contents/ui/SetupWizard.qml:267
+#: contents/ui/config/ConfigDisplay.qml:631 contents/ui/SetupWizard.qml:269
 msgid "Searching…"
 msgstr "搜索中…"
 
@@ -1348,7 +1346,7 @@ msgid "City, region, or address…"
 msgstr "城市、地区或地址…"
 
 #: contents/ui/config/ConfigDisplay.qml:631
-#: contents/ui/config/ConfigDisplay.qml:639 contents/ui/SetupWizard.qml:783
+#: contents/ui/config/ConfigDisplay.qml:639 contents/ui/SetupWizard.qml:781
 msgid "Search"
 msgstr "搜索"
 
@@ -1477,78 +1475,78 @@ msgstr "记录行程并显示检测到的行程"
 msgid "Only when the Anfahrten plugin (MileageBundle) is installed on the Kimai server and your account may use it."
 msgstr "仅当 Kimai 服务器安装了 Anfahrten 插件 (MileageBundle) 且你的账户可以使用时。"
 
-#: contents/ui/config/ConfigFavorites.qml:63
-#: contents/ui/config/ConfigFavorites.qml:224
-#: contents/ui/config/ConfigFavorites.qml:236
+#: contents/ui/config/ConfigFavorites.qml:64
+#: contents/ui/config/ConfigFavorites.qml:225
+#: contents/ui/config/ConfigFavorites.qml:237
 msgid "Loading projects…"
 msgstr "正在加载项目…"
 
-#: contents/ui/config/ConfigFavorites.qml:84
-#: contents/ui/config/ConfigFavorites.qml:210
+#: contents/ui/config/ConfigFavorites.qml:85
+#: contents/ui/config/ConfigFavorites.qml:211
 msgid "Configure a Kimai URL on the Connection tab first."
 msgstr "请先在“连接”选项卡上配置 Kimai URL。"
 
-#: contents/ui/config/ConfigFavorites.qml:165
+#: contents/ui/config/ConfigFavorites.qml:166
 msgid "Loaded %1 projects."
 msgstr "已加载 %1 个项目。"
 
-#: contents/ui/config/ConfigFavorites.qml:182
-#: contents/ui/config/ConfigFavorites.qml:186
+#: contents/ui/config/ConfigFavorites.qml:183
+#: contents/ui/config/ConfigFavorites.qml:187
 msgid "Select a project to pin activities."
 msgstr "选择项目以固定活动。"
 
-#: contents/ui/config/ConfigFavorites.qml:244
+#: contents/ui/config/ConfigFavorites.qml:245
 msgid "Save an API token on the Connection tab first."
 msgstr "请先在“连接”选项卡上保存 API 令牌。"
 
-#: contents/ui/config/ConfigFavorites.qml:250
+#: contents/ui/config/ConfigFavorites.qml:251
 msgid "Failed to load projects."
 msgstr "加载项目失败。"
 
-#: contents/ui/config/ConfigFavorites.qml:265
-#: contents/ui/config/ConfigFavorites.qml:298
+#: contents/ui/config/ConfigFavorites.qml:266
+#: contents/ui/config/ConfigFavorites.qml:299
 msgid "Loading activities…"
 msgstr "正在加载活动…"
 
-#: contents/ui/config/ConfigFavorites.qml:285
-#: contents/ui/config/ConfigFavorites.qml:315
+#: contents/ui/config/ConfigFavorites.qml:286
+#: contents/ui/config/ConfigFavorites.qml:316
 msgid "%1 project-specific, %2 global"
 msgstr "%1 个项目专用，%2 个全局"
 
-#: contents/ui/config/ConfigFavorites.qml:301
+#: contents/ui/config/ConfigFavorites.qml:302
 msgid "No API token available."
 msgstr "无可用 API 令牌。"
 
-#: contents/ui/config/ConfigFavorites.qml:306
+#: contents/ui/config/ConfigFavorites.qml:307
 msgid "Failed to load activities."
 msgstr "加载活动失败。"
 
-#: contents/ui/config/ConfigFavorites.qml:346 contents/ui/main.qml:226
+#: contents/ui/config/ConfigFavorites.qml:347 contents/ui/main.qml:215
 msgid "Project-specific"
 msgstr "项目专用"
 
-#: contents/ui/config/ConfigFavorites.qml:349 contents/ui/main.qml:227
+#: contents/ui/config/ConfigFavorites.qml:350 contents/ui/main.qml:216
 msgid "Global activities"
 msgstr "全局活动"
 
-#: contents/ui/config/ConfigFavorites.qml:387
+#: contents/ui/config/ConfigFavorites.qml:388
 msgid "Projects"
 msgstr "项目"
 
-#: contents/ui/config/ConfigFavorites.qml:392
+#: contents/ui/config/ConfigFavorites.qml:393
 msgid "Reload"
 msgstr "重新加载"
 
-#: contents/ui/config/ConfigFavorites.qml:410
-#: contents/ui/config/ConfigFavorites.qml:485
+#: contents/ui/config/ConfigFavorites.qml:411
+#: contents/ui/config/ConfigFavorites.qml:486
 msgid "Loading projects"
 msgstr "正在加载项目"
 
-#: contents/ui/config/ConfigFavorites.qml:503
+#: contents/ui/config/ConfigFavorites.qml:504
 msgid "Activities — %1"
 msgstr "活动 — %1"
 
-#: contents/ui/config/ConfigFavorites.qml:504
+#: contents/ui/config/ConfigFavorites.qml:505
 msgid "Activities"
 msgstr "活动"
 
@@ -1590,7 +1588,7 @@ msgstr "选择客户…"
 msgid "Pick date"
 msgstr "选择日期"
 
-#: contents/ui/DaySparkline.qml:486
+#: contents/ui/DaySparkline.qml:243
 msgid "Today's tracked time"
 msgstr "今日已记录时间"
 
@@ -1626,397 +1624,397 @@ msgstr "无最近活动"
 msgid "Start tracking to build your recent list."
 msgstr "开始计时可建立最近列表。"
 
-#: contents/ui/FilmDayView.qml:228
+#: contents/ui/FilmDayView.qml:216
 msgid "The Drehzettel plugin is not installed on this Kimai server. Only begin and end are saved."
 msgstr "此 Kimai 服务器未安装 Drehzettel 插件。只保存开始和结束时间。"
 
-#: contents/ui/FilmDayView.qml:231
+#: contents/ui/FilmDayView.qml:219
 msgid "No active engagement for this project and day. Only begin and end are saved."
 msgstr "此项目当天没有有效聘用。只保存开始和结束时间。"
 
-#: contents/ui/FilmDayView.qml:234
+#: contents/ui/FilmDayView.qml:222
 msgid "You lack the Drehzettel permission on this Kimai server. Only begin and end are saved."
 msgstr "你在此 Kimai 服务器上没有 Drehzettel 权限。只保存开始和结束时间。"
 
-#: contents/ui/FilmDayView.qml:237
+#: contents/ui/FilmDayView.qml:225
 msgid "Pick a project to load its film day."
 msgstr "选择项目以加载其拍摄日。"
 
-#: contents/ui/FilmDayView.qml:240
+#: contents/ui/FilmDayView.qml:228
 msgid "The Drehzettel plugin cannot be reached. Only begin and end can be saved right now."
 msgstr "无法连接 Drehzettel 插件。目前只能保存开始和结束时间。"
 
-#: contents/ui/FilmDayView.qml:251
+#: contents/ui/FilmDayView.qml:239
 msgid "Auto (from weekday)"
 msgstr "自动 (按星期)"
 
-#: contents/ui/FilmDayView.qml:252
+#: contents/ui/FilmDayView.qml:240
 msgid "Workday"
 msgstr "工作日"
 
-#: contents/ui/FilmDayView.qml:253
+#: contents/ui/FilmDayView.qml:241
 msgid "Saturday"
 msgstr "星期六"
 
-#: contents/ui/FilmDayView.qml:254
+#: contents/ui/FilmDayView.qml:242
 msgid "Sunday"
 msgstr "星期日"
 
-#: contents/ui/FilmDayView.qml:255
+#: contents/ui/FilmDayView.qml:243
 msgid "Holiday"
 msgstr "节假日"
 
-#: contents/ui/FilmDayView.qml:258
+#: contents/ui/FilmDayView.qml:246
 msgid "Shooting day"
 msgstr "拍摄日"
 
-#: contents/ui/FilmDayView.qml:259
+#: contents/ui/FilmDayView.qml:247
 msgid "Travel day"
 msgstr "旅行日"
 
-#: contents/ui/FilmDayView.qml:562 contents/ui/StatsView.qml:383
+#: contents/ui/FilmDayView.qml:550 contents/ui/StatsView.qml:383
 #: contents/ui/StatsView.qml:456
 msgid "Previous day"
 msgstr "上一天"
 
-#: contents/ui/FilmDayView.qml:604 contents/ui/StatsView.qml:408
+#: contents/ui/FilmDayView.qml:592 contents/ui/StatsView.qml:408
 #: contents/ui/StatsView.qml:481
 msgid "Next day"
 msgstr "下一天"
 
-#: contents/ui/FilmDayView.qml:642
+#: contents/ui/FilmDayView.qml:630
 msgid "Engagement"
 msgstr "聘用"
 
-#: contents/ui/FilmDayView.qml:642 contents/ui/UnsyncedList.qml:102
+#: contents/ui/FilmDayView.qml:630 contents/ui/UnsyncedList.qml:102
 msgid "Project"
 msgstr "项目"
 
-#: contents/ui/FilmDayView.qml:656
+#: contents/ui/FilmDayView.qml:644
 msgid "Pick an activity"
 msgstr "选择活动"
 
-#: contents/ui/FilmDayView.qml:666
+#: contents/ui/FilmDayView.qml:654
 msgid "Shooting day %1"
 msgstr "拍摄第 %1 天"
 
-#: contents/ui/FilmDayView.qml:678
+#: contents/ui/FilmDayView.qml:666
 msgid "Change engagement"
 msgstr "更换聘用"
 
-#: contents/ui/FilmDayView.qml:719
+#: contents/ui/FilmDayView.qml:707
 msgid "Or pick another project and activity:"
 msgstr "或选择其他项目和活动:"
 
-#: contents/ui/FilmDayView.qml:764
+#: contents/ui/FilmDayView.qml:752
 msgid "Start shooting day"
 msgstr "开始拍摄日"
 
-#: contents/ui/FilmDayView.qml:776
+#: contents/ui/FilmDayView.qml:764
 msgid "Begins now, with the timer of the main page."
 msgstr "现在开始,使用主页的计时器。"
 
-#: contents/ui/FilmDayView.qml:781
+#: contents/ui/FilmDayView.qml:769
 msgid "Enter times instead"
 msgstr "改为输入时间"
 
-#: contents/ui/FilmDayView.qml:811 contents/ui/ManualEntryView.qml:297
+#: contents/ui/FilmDayView.qml:799 contents/ui/ManualEntryView.qml:284
 #: contents/ui/UnsyncedList.qml:101
 msgid "Begin"
 msgstr "开始"
 
-#: contents/ui/FilmDayView.qml:834 contents/ui/ManualEntryView.qml:321
+#: contents/ui/FilmDayView.qml:822 contents/ui/ManualEntryView.qml:308
 #: contents/ui/UnsyncedList.qml:101
 msgid "End"
 msgstr "结束"
 
-#: contents/ui/FilmDayView.qml:850
+#: contents/ui/FilmDayView.qml:838
 msgid "running"
 msgstr "进行中"
 
-#: contents/ui/FilmDayView.qml:865
+#: contents/ui/FilmDayView.qml:853
 msgid "Break %1"
 msgstr "休息 %1"
 
-#: contents/ui/FilmDayView.qml:868
+#: contents/ui/FilmDayView.qml:856
 msgid "Work time so far %1"
 msgstr "目前工作时间 %1"
 
-#: contents/ui/FilmDayView.qml:870
+#: contents/ui/FilmDayView.qml:858
 msgid "Work time %1"
 msgstr "工作时间 %1"
 
-#: contents/ui/FilmDayView.qml:870
+#: contents/ui/FilmDayView.qml:858
 msgid "Work time: invalid range"
 msgstr "工作时间: 时间范围无效"
 
-#: contents/ui/FilmDayView.qml:886
+#: contents/ui/FilmDayView.qml:874
 msgid "Stop shooting day"
 msgstr "结束拍摄日"
 
-#: contents/ui/FilmDayView.qml:913
+#: contents/ui/FilmDayView.qml:901
 msgid "This activity has %1 more entry on this day (%2); the work time above does not include it."
 msgid_plural "This activity has %1 more entries on this day (%2); the work time above does not include them."
 msgstr[0] "此活动当天还有 %1 条记录 (%2);上面的工作时间不包含它们。"
 
-#: contents/ui/FilmDayView.qml:924
+#: contents/ui/FilmDayView.qml:912
 msgid "Merge into one entry"
 msgstr "合并为一条记录"
 
-#: contents/ui/FilmDayView.qml:949
+#: contents/ui/FilmDayView.qml:937
 msgid "Save shooting day"
 msgstr "保存拍摄日"
 
-#: contents/ui/FilmDayView.qml:979
+#: contents/ui/FilmDayView.qml:967
 msgid "Day type"
 msgstr "日期类型"
 
-#: contents/ui/FilmDayView.qml:989 contents/ui/FilmDayView.qml:994
+#: contents/ui/FilmDayView.qml:977 contents/ui/FilmDayView.qml:982
 msgid "Catering"
 msgstr "餐饮"
 
-#: contents/ui/FilmDayView.qml:998
+#: contents/ui/FilmDayView.qml:986
 msgid "Break"
 msgstr "休息"
 
-#: contents/ui/FilmDayView.qml:1011
+#: contents/ui/FilmDayView.qml:999
 msgid "Default"
 msgstr "默认"
 
-#: contents/ui/FilmDayView.qml:1012
+#: contents/ui/FilmDayView.qml:1000
 msgid "%1 minute"
 msgid_plural "%1 minutes"
 msgstr[0] "%1 分钟"
 
-#: contents/ui/FilmDayView.qml:1029
+#: contents/ui/FilmDayView.qml:1017
 msgid "Day category"
 msgstr "日期类别"
 
-#: contents/ui/FilmDayView.qml:1041 contents/ui/FilmDayView.qml:1055
+#: contents/ui/FilmDayView.qml:1029 contents/ui/FilmDayView.qml:1043
 msgid "Surcharge day"
 msgstr "加班补贴日"
 
-#: contents/ui/FilmDayView.qml:1056
+#: contents/ui/FilmDayView.qml:1044
 msgid "Automatic"
 msgstr "自动"
 
-#: contents/ui/FilmDayView.qml:1066
+#: contents/ui/FilmDayView.qml:1054
 msgid "Extra pay / expenses"
 msgstr "额外报酬 / 开支"
 
-#: contents/ui/FilmDayView.qml:1089
+#: contents/ui/FilmDayView.qml:1077
 msgid "Note"
 msgstr "备注"
 
-#: contents/ui/FilmDayView.qml:1095
+#: contents/ui/FilmDayView.qml:1083
 msgid "%1/%2"
 msgstr "%1/%2"
 
-#: contents/ui/FilmDayView.qml:1107
+#: contents/ui/FilmDayView.qml:1095
 msgid "Note (optional)"
 msgstr "备注 (可选)"
 
-#: contents/ui/FilmDayView.qml:1144
+#: contents/ui/FilmDayView.qml:1132
 msgid "Other activities"
 msgstr "其他活动"
 
-#: contents/ui/main.qml:300
+#: contents/ui/main.qml:289
 msgid "Loading…"
 msgstr "加载中…"
 
-#: contents/ui/main.qml:303
+#: contents/ui/main.qml:292
 msgid "Not configured — click to set up"
 msgstr "未配置 — 点击进行设置"
 
-#: contents/ui/main.qml:313 contents/ui/OfflineStatus.qml:47
+#: contents/ui/main.qml:302 contents/ui/OfflineStatus.qml:47
 msgid "%1 change not synced yet"
 msgid_plural "%1 changes not synced yet"
 msgstr[0] "%1 项更改尚未同步"
 
-#: contents/ui/main.qml:547
+#: contents/ui/main.qml:518
 msgid "%1 minute ago"
 msgid_plural "%1 minutes ago"
 msgstr[0] "%1 分钟前"
 
-#: contents/ui/main.qml:551
+#: contents/ui/main.qml:522
 msgid "%1 hour ago"
 msgid_plural "%1 hours ago"
 msgstr[0] "%1 小时前"
 
-#: contents/ui/main.qml:558
+#: contents/ui/main.qml:529
 msgid "%1 day ago"
 msgid_plural "%1 days ago"
 msgstr[0] "%1 天前"
 
-#: contents/ui/main.qml:582
+#: contents/ui/main.qml:553
 msgid "Connecting to %1…"
 msgstr "正在连接 %1…"
 
-#: contents/ui/main.qml:623
+#: contents/ui/main.qml:594
 msgid "Switched activity"
 msgstr "已切换活动"
 
-#: contents/ui/main.qml:623
+#: contents/ui/main.qml:594
 msgid "Tracking started"
 msgstr "已开始计时"
 
-#: contents/ui/main.qml:631
+#: contents/ui/main.qml:602
 msgid "Tracking stopped (idle)"
 msgstr "计时已停止（空闲）"
 
-#: contents/ui/main.qml:633
+#: contents/ui/main.qml:604
 msgid "Tracking stopped"
 msgstr "计时已停止"
 
-#: contents/ui/main.qml:733
+#: contents/ui/main.qml:704
 msgid "Work hours have started. Start a timer when you begin."
 msgstr "工作时间已开始。开始工作时请启动计时器。"
 
-#: contents/ui/main.qml:815
+#: contents/ui/main.qml:794
 msgid "Customer created"
 msgstr "已创建客户"
 
-#: contents/ui/main.qml:815
+#: contents/ui/main.qml:794
 msgid "Project created"
 msgstr "已创建项目"
 
-#: contents/ui/main.qml:815
+#: contents/ui/main.qml:794
 msgid "Activity created"
 msgstr "已创建活动"
 
-#: contents/ui/main.qml:905
+#: contents/ui/main.qml:884
 msgid "Enter a valid start date/time."
 msgstr "请输入有效的开始日期/时间。"
 
-#: contents/ui/main.qml:909
+#: contents/ui/main.qml:888
 msgid "Start must not be in the future."
 msgstr "开始时间不能是未来。"
 
-#: contents/ui/main.qml:1291
+#: contents/ui/main.qml:1184
 msgid "Trip saved"
 msgstr "已保存行程"
 
-#: contents/ui/main.qml:1435
+#: contents/ui/main.qml:1304
 msgid "Entry added"
 msgstr "已添加条目"
 
-#: contents/ui/main.qml:1435
+#: contents/ui/main.qml:1304
 msgid "Entry updated"
 msgstr "已更新条目"
 
-#: contents/ui/main.qml:1436
+#: contents/ui/main.qml:1305
 msgid "Manual time entry"
 msgstr "手动时间条目"
 
-#: contents/ui/main.qml:1436
+#: contents/ui/main.qml:1305
 msgid "Timesheet updated"
 msgstr "已更新工时表"
 
-#: contents/ui/main.qml:1700
+#: contents/ui/main.qml:1569
 msgid "Could not resolve project or activity for that entry"
 msgstr "无法解析该条目的项目或活动"
 
-#: contents/ui/main.qml:1744 contents/ui/UnsyncedList.qml:41
+#: contents/ui/main.qml:1613 contents/ui/UnsyncedList.qml:41
 msgid "Entry deleted"
 msgstr "已删除条目"
 
-#: contents/ui/main.qml:1779
+#: contents/ui/main.qml:1648
 msgid "Entry split"
 msgstr "已拆分条目"
 
-#: contents/ui/main.qml:1790
+#: contents/ui/main.qml:1659
 msgid "Open or close the Plasmai popup"
 msgstr "打开或关闭 Plasmai 弹出窗口"
 
-#: contents/ui/main.qml:1959
+#: contents/ui/main.qml:1828
 msgid "Stop tracking %1 · %2?"
 msgstr "停止计时 %1 · %2？"
 
-#: contents/ui/main.qml:2064
+#: contents/ui/main.qml:1933
 msgid "Current"
 msgstr "当前"
 
-#: contents/ui/main.qml:2083
+#: contents/ui/main.qml:1952
 msgid "Switch to"
 msgstr "切换到"
 
-#: contents/ui/main.qml:2139
+#: contents/ui/main.qml:2008
 msgid "Delete this finished entry? This cannot be undone."
 msgstr "删除这条已结束的条目？此操作无法撤销。"
 
-#: contents/ui/main.qml:2141
+#: contents/ui/main.qml:2010
 msgid "Delete \"%1 · %2\"? This cannot be undone."
 msgstr "删除“%1 · %2”？此操作无法撤销。"
 
-#: contents/ui/main.qml:2206
+#: contents/ui/main.qml:2075
 msgid "The first half keeps the original start. The second half starts at the split time."
 msgstr "前半段保留原来的开始时间。后半段从拆分时刻开始。"
 
-#: contents/ui/main.qml:2211
+#: contents/ui/main.qml:2080
 msgid "Split at"
 msgstr "拆分于"
 
-#: contents/ui/main.qml:2247
+#: contents/ui/main.qml:2116
 msgid "Both halves will have a positive duration."
 msgstr "两段都会有正的时长。"
 
-#: contents/ui/main.qml:2285
+#: contents/ui/main.qml:2154
 msgid "Keep the time, discard the idle gap, or discard and continue the same activity."
 msgstr "保留这段时间、丢弃空闲间隔，或丢弃后继续同一活动。"
 
-#: contents/ui/main.qml:2431
+#: contents/ui/main.qml:2300
 msgid "Trip"
 msgstr "行程"
 
-#: contents/ui/main.qml:2481
+#: contents/ui/main.qml:2350
 msgid "Add a manual time entry"
 msgstr "添加手动时间条目"
 
-#: contents/ui/main.qml:2496
+#: contents/ui/main.qml:2365
 msgid "Show statistics"
 msgstr "显示统计"
 
-#: contents/ui/main.qml:2510
+#: contents/ui/main.qml:2379
 msgid "Log a shooting day"
 msgstr "记录拍摄日"
 
-#: contents/ui/main.qml:2524
+#: contents/ui/main.qml:2393
 msgid "Log a trip (Anfahrten plugin)"
 msgstr "记录行程 (Anfahrten 插件)"
 
-#: contents/ui/main.qml:2534 contents/ui/SetupWizard.qml:858
+#: contents/ui/main.qml:2403 contents/ui/SetupWizard.qml:856
 msgid "Back"
 msgstr "返回"
 
-#: contents/ui/main.qml:2539
+#: contents/ui/main.qml:2408
 msgid "Back to timer"
 msgstr "返回计时器"
 
-#: contents/ui/ManualEntryView.qml:247
+#: contents/ui/ManualEntryView.qml:234
 msgid "Change project, activity, range, billable, and tags for this finished entry."
 msgstr "更改这条已结束条目的项目、活动、时间范围、计费和标签。"
 
-#: contents/ui/ManualEntryView.qml:248
+#: contents/ui/ManualEntryView.qml:235
 msgid "Create a finished entry with project, activity, and time range."
 msgstr "创建包含项目、活动和时间范围的已完成条目。"
 
-#: contents/ui/ManualEntryView.qml:351
+#: contents/ui/ManualEntryView.qml:338
 msgid "Duration: %1"
 msgstr "时长：%1"
 
-#: contents/ui/ManualEntryView.qml:355
+#: contents/ui/ManualEntryView.qml:342
 msgid "Duration: —"
 msgstr "时长：—"
 
-#: contents/ui/ManualEntryView.qml:357
+#: contents/ui/ManualEntryView.qml:344
 msgid "Duration: invalid range"
 msgstr "时长：无效范围"
 
-#: contents/ui/ManualEntryView.qml:399
+#: contents/ui/ManualEntryView.qml:386
 msgid "Save changes"
 msgstr "保存更改"
 
-#: contents/ui/ManualEntryView.qml:399
+#: contents/ui/ManualEntryView.qml:386
 msgid "Save entry"
 msgstr "保存条目"
 
@@ -2030,7 +2028,7 @@ msgid_plural "%1 changes need your decision"
 msgstr[0] "%1 项更改需要你决定"
 
 #: contents/ui/OfflineStatus.qml:63 contents/ui/OfflineStatus.qml:91
-#: contents/ui/SetupWizard.qml:698
+#: contents/ui/SetupWizard.qml:696
 msgid "Show"
 msgstr "显示"
 
@@ -2048,307 +2046,307 @@ msgstr "选择项目…"
 msgid "Select activity…"
 msgstr "选择活动…"
 
-#: contents/ui/SetupWizard.qml:141 contents/ui/SetupWizard.qml:170
+#: contents/ui/SetupWizard.qml:143 contents/ui/SetupWizard.qml:172
 msgid "System"
 msgstr "系统"
 
-#: contents/ui/SetupWizard.qml:143
+#: contents/ui/SetupWizard.qml:145
 msgid "Look"
 msgstr "外观"
 
-#: contents/ui/SetupWizard.qml:145
+#: contents/ui/SetupWizard.qml:147
 msgid "Service"
 msgstr "服务"
 
-#: contents/ui/SetupWizard.qml:147
+#: contents/ui/SetupWizard.qml:149
 msgid "Access"
 msgstr "访问"
 
-#: contents/ui/SetupWizard.qml:156
+#: contents/ui/SetupWizard.qml:158
 msgid "Check your system"
 msgstr "检查系统"
 
-#: contents/ui/SetupWizard.qml:158
+#: contents/ui/SetupWizard.qml:160
 msgid "Choose a look"
 msgstr "选择外观"
 
-#: contents/ui/SetupWizard.qml:160
+#: contents/ui/SetupWizard.qml:162
 msgid "Choose your time tracker"
 msgstr "选择你的工时记录服务"
 
-#: contents/ui/SetupWizard.qml:162
+#: contents/ui/SetupWizard.qml:164
 msgid "Connect to %1"
 msgstr "连接到 %1"
 
-#: contents/ui/SetupWizard.qml:164
+#: contents/ui/SetupWizard.qml:166
 msgid "Your work day"
 msgstr "你的工作日"
 
-#: contents/ui/SetupWizard.qml:171
+#: contents/ui/SetupWizard.qml:173
 msgid "Your Plasma theme, unchanged."
 msgstr "保持你的 Plasma 主题不变。"
 
-#: contents/ui/SetupWizard.qml:173
+#: contents/ui/SetupWizard.qml:175
 msgid "Own dark palette, cut corners, Rajdhani titles. Light on a light Plasma theme."
 msgstr "自有深色调色板、切角造型、Rajdhani 标题。使用浅色 Plasma 主题时为浅色。"
 
-#: contents/ui/SetupWizard.qml:175
+#: contents/ui/SetupWizard.qml:177
 msgid "Kante shapes and type with the colors of your theme."
 msgstr "采用 Kante 的造型和字体，配色沿用你的主题。"
 
-#: contents/ui/SetupWizard.qml:182
+#: contents/ui/SetupWizard.qml:184
 msgid "In Clockify: Profile settings, Preferences, tab Advanced, Manage API keys."
 msgstr "在 Clockify 中：个人资料设置 → 偏好设置 → 高级 → 管理 API 密钥。"
 
-#: contents/ui/SetupWizard.qml:184
+#: contents/ui/SetupWizard.qml:186
 msgid "In Toggl Track: Profile settings, at the bottom: API Token."
 msgstr "在 Toggl Track 中：个人资料设置页面底部的 API Token。"
 
-#: contents/ui/SetupWizard.qml:186
+#: contents/ui/SetupWizard.qml:188
 msgid "In SolidTime: open API Tokens from your profile menu and create a token."
 msgstr "在 SolidTime 中：从个人资料菜单打开 API Tokens 并创建令牌。"
 
-#: contents/ui/SetupWizard.qml:188
+#: contents/ui/SetupWizard.qml:190
 msgid "In Kimai: open API access from your user menu and create a token."
 msgstr "在 Kimai 中：从用户菜单打开 API 访问并创建令牌。"
 
-#: contents/ui/SetupWizard.qml:194
+#: contents/ui/SetupWizard.qml:196
 msgid "Enter the server address."
 msgstr "请输入服务器地址。"
 
-#: contents/ui/SetupWizard.qml:197
+#: contents/ui/SetupWizard.qml:199
 msgid "This is not a web address (https://…)."
 msgstr "这不是网址（https://…）。"
 
-#: contents/ui/SetupWizard.qml:211
+#: contents/ui/SetupWizard.qml:213
 msgid "Paste your API token."
 msgstr "请粘贴你的 API 令牌。"
 
-#: contents/ui/SetupWizard.qml:256
+#: contents/ui/SetupWizard.qml:258
 msgid "The token could not be stored securely: %1"
 msgstr "无法安全保存令牌：%1"
 
-#: contents/ui/SetupWizard.qml:258
+#: contents/ui/SetupWizard.qml:260
 msgid "Is KWallet or another password storage running?"
 msgstr "KWallet 或其他密码存储是否正在运行？"
 
-#: contents/ui/SetupWizard.qml:270
+#: contents/ui/SetupWizard.qml:272
 msgid "Search failed. Check your connection."
 msgstr "搜索失败。请检查网络连接。"
 
-#: contents/ui/SetupWizard.qml:275
+#: contents/ui/SetupWizard.qml:277
 msgid "No place found."
 msgstr "未找到地点。"
 
-#: contents/ui/SetupWizard.qml:328 contents/ui/SetupWizard.qml:342
+#: contents/ui/SetupWizard.qml:326 contents/ui/SetupWizard.qml:340
 msgid "Step %1 of %2"
 msgstr "第 %1 步，共 %2 步"
 
-#: contents/ui/SetupWizard.qml:330
+#: contents/ui/SetupWizard.qml:328
 msgid "done"
 msgstr "已完成"
 
-#: contents/ui/SetupWizard.qml:331
+#: contents/ui/SetupWizard.qml:329
 msgid "current"
 msgstr "当前"
 
-#: contents/ui/SetupWizard.qml:332
+#: contents/ui/SetupWizard.qml:330
 msgid "upcoming"
 msgstr "待完成"
 
-#: contents/ui/SetupWizard.qml:333
+#: contents/ui/SetupWizard.qml:331
 msgid "skipped"
 msgstr "已跳过"
 
-#: contents/ui/SetupWizard.qml:349
+#: contents/ui/SetupWizard.qml:347
 msgid "Welcome to Plasmai."
 msgstr "欢迎使用 Plasmai。"
 
-#: contents/ui/SetupWizard.qml:368
+#: contents/ui/SetupWizard.qml:366
 msgid "Plasmai keeps your API token in the system's password storage (KWallet). That needs a few things on your system."
 msgstr "Plasmai 将你的 API 令牌保存在系统密码存储（KWallet）中。这需要系统具备以下组件。"
 
-#: contents/ui/SetupWizard.qml:374
+#: contents/ui/SetupWizard.qml:372
 msgid "Missing: needed to store the token."
 msgstr "缺失：保存令牌需要它。"
 
-#: contents/ui/SetupWizard.qml:375
+#: contents/ui/SetupWizard.qml:373
 msgid "Password storage (KWallet)"
 msgstr "密码存储（KWallet）"
 
-#: contents/ui/SetupWizard.qml:376
+#: contents/ui/SetupWizard.qml:374
 msgid "Not running: turn on KDE Wallet in System Settings."
 msgstr "未运行：请在系统设置中启用 KDE 钱包。"
 
-#: contents/ui/SetupWizard.qml:378
+#: contents/ui/SetupWizard.qml:376
 msgid "Missing: reminders stay silent (optional)."
 msgstr "缺失：提醒将不会显示（可选）。"
 
-#: contents/ui/SetupWizard.qml:409
+#: contents/ui/SetupWizard.qml:407
 msgid "Ready."
 msgstr "就绪。"
 
-#: contents/ui/SetupWizard.qml:420
+#: contents/ui/SetupWizard.qml:418
 msgid "Install it in a terminal, then check again:"
 msgstr "请在终端中安装，然后重新检查："
 
-#: contents/ui/SetupWizard.qml:422
+#: contents/ui/SetupWizard.qml:420
 msgid "Install the package that provides secret-tool with your package manager, then check again."
 msgstr "请用包管理器安装提供 secret-tool 的软件包，然后重新检查。"
 
-#: contents/ui/SetupWizard.qml:423
+#: contents/ui/SetupWizard.qml:421
 msgid "Then check again."
 msgstr "然后重新检查。"
 
-#: contents/ui/SetupWizard.qml:437
+#: contents/ui/SetupWizard.qml:435
 msgid "Copy"
 msgstr "复制"
 
-#: contents/ui/SetupWizard.qml:452
+#: contents/ui/SetupWizard.qml:450
 msgid "The wizard changes with your choice. You can change it later in the settings."
 msgstr "向导会随你的选择而变化。之后可以在设置中更改。"
 
-#: contents/ui/SetupWizard.qml:500
+#: contents/ui/SetupWizard.qml:498
 msgid "Preview"
 msgstr "预览"
 
-#: contents/ui/SetupWizard.qml:504
+#: contents/ui/SetupWizard.qml:502
 msgid "%1 – %2"
 msgstr "%1 – %2"
 
-#: contents/ui/SetupWizard.qml:535
+#: contents/ui/SetupWizard.qml:533
 msgid "Ground"
 msgstr "背景"
 
-#: contents/ui/SetupWizard.qml:536
+#: contents/ui/SetupWizard.qml:534
 msgid "Card"
 msgstr "卡片"
 
-#: contents/ui/SetupWizard.qml:537
+#: contents/ui/SetupWizard.qml:535
 msgid "Text"
 msgstr "文字"
 
-#: contents/ui/SetupWizard.qml:538
+#: contents/ui/SetupWizard.qml:536
 msgid "Accent"
 msgstr "强调色"
 
-#: contents/ui/SetupWizard.qml:541
+#: contents/ui/SetupWizard.qml:539
 msgid "Focus"
 msgstr "焦点"
 
-#: contents/ui/SetupWizard.qml:584
+#: contents/ui/SetupWizard.qml:582
 msgid "Which service do you track your time with? More profiles can be added later in the settings."
 msgstr "你使用哪个服务记录工时？之后可以在设置中添加更多配置文件。"
 
-#: contents/ui/SetupWizard.qml:619
+#: contents/ui/SetupWizard.qml:617
 msgid "Tested with real accounts."
 msgstr "已用真实账户测试。"
 
-#: contents/ui/SetupWizard.qml:620
+#: contents/ui/SetupWizard.qml:618
 msgid "Experimental: not yet tested with real accounts."
 msgstr "实验性：尚未用真实账户测试。"
 
-#: contents/ui/SetupWizard.qml:635 contents/ui/SetupWizard.qml:645
+#: contents/ui/SetupWizard.qml:633 contents/ui/SetupWizard.qml:643
 msgid "Server address"
 msgstr "服务器地址"
 
-#: contents/ui/SetupWizard.qml:658
+#: contents/ui/SetupWizard.qml:656
 msgid "Shortened to the address of the Kimai instance: %1"
 msgstr "已缩短为 Kimai 实例地址：%1"
 
-#: contents/ui/SetupWizard.qml:666
+#: contents/ui/SetupWizard.qml:664
 msgid "This address is not encrypted (http). Your token would travel readable through the network."
 msgstr "此地址未加密（http）。你的令牌会以明文在网络中传输。"
 
-#: contents/ui/SetupWizard.qml:671
+#: contents/ui/SetupWizard.qml:669
 msgid "Use another address"
 msgstr "使用其他地址"
 
-#: contents/ui/SetupWizard.qml:680 contents/ui/SetupWizard.qml:692
+#: contents/ui/SetupWizard.qml:678 contents/ui/SetupWizard.qml:690
 msgid "API key"
 msgstr "API 密钥"
 
-#: contents/ui/SetupWizard.qml:680 contents/ui/SetupWizard.qml:692
+#: contents/ui/SetupWizard.qml:678 contents/ui/SetupWizard.qml:690
 msgid "API token"
 msgstr "API 令牌"
 
-#: contents/ui/SetupWizard.qml:698
+#: contents/ui/SetupWizard.qml:696
 msgid "Hide"
 msgstr "隐藏"
 
-#: contents/ui/SetupWizard.qml:707
+#: contents/ui/SetupWizard.qml:705
 msgid "The token is kept in the system's password storage, never in a plain file."
 msgstr "令牌保存在系统密码存储中，绝不写入普通文件。"
 
-#: contents/ui/SetupWizard.qml:723
+#: contents/ui/SetupWizard.qml:721
 msgid "Connected as %1."
 msgstr "已以 %1 身份连接。"
 
-#: contents/ui/SetupWizard.qml:724
+#: contents/ui/SetupWizard.qml:722
 msgid "Connected to %1."
 msgstr "已连接到 %1。"
 
-#: contents/ui/SetupWizard.qml:730
+#: contents/ui/SetupWizard.qml:728
 msgid "So the day bar and the remaining hours fit you. All of this can be changed later in the settings."
 msgstr "让日程条和剩余工时符合你的情况。之后都可以在设置中修改。"
 
-#: contents/ui/SetupWizard.qml:745
+#: contents/ui/SetupWizard.qml:743
 msgid "Work day begins"
 msgstr "工作日开始"
 
-#: contents/ui/SetupWizard.qml:754
+#: contents/ui/SetupWizard.qml:752
 msgid "Work day ends"
 msgstr "工作日结束"
 
-#: contents/ui/SetupWizard.qml:762
+#: contents/ui/SetupWizard.qml:760
 msgid "The work day must end after it begins."
 msgstr "工作日结束时间必须晚于开始时间。"
 
-#: contents/ui/SetupWizard.qml:768
+#: contents/ui/SetupWizard.qml:766
 msgid "Place for sunrise and sunset"
 msgstr "日出日落的地点"
 
-#: contents/ui/SetupWizard.qml:778
+#: contents/ui/SetupWizard.qml:776
 msgid "City"
 msgstr "城市"
 
-#: contents/ui/SetupWizard.qml:779
+#: contents/ui/SetupWizard.qml:777
 msgid "Place"
 msgstr "地点"
 
-#: contents/ui/SetupWizard.qml:796
+#: contents/ui/SetupWizard.qml:794
 msgid "Current: %1"
 msgstr "当前：%1"
 
-#: contents/ui/SetupWizard.qml:826
+#: contents/ui/SetupWizard.qml:824
 msgid "Remind me on work days when no timer runs"
 msgstr "工作日没有计时器运行时提醒我"
 
-#: contents/ui/SetupWizard.qml:835
+#: contents/ui/SetupWizard.qml:833
 msgid "Reminders need notify-send: %1"
 msgstr "提醒需要 notify-send：%1"
 
-#: contents/ui/SetupWizard.qml:836
+#: contents/ui/SetupWizard.qml:834
 msgid "Reminders need notify-send (libnotify)."
 msgstr "提醒需要 notify-send（libnotify）。"
 
-#: contents/ui/SetupWizard.qml:864
+#: contents/ui/SetupWizard.qml:862
 msgid "Skip"
 msgstr "跳过"
 
-#: contents/ui/SetupWizard.qml:875
+#: contents/ui/SetupWizard.qml:873
 msgid "Check again"
 msgstr "重新检查"
 
-#: contents/ui/SetupWizard.qml:882
+#: contents/ui/SetupWizard.qml:880
 msgid "Next"
 msgstr "下一步"
 
-#: contents/ui/SetupWizard.qml:890
+#: contents/ui/SetupWizard.qml:888
 msgid "Connect"
 msgstr "连接"
 
-#: contents/ui/SetupWizard.qml:897
+#: contents/ui/SetupWizard.qml:895
 msgid "Done"
 msgstr "完成"
 
@@ -2533,111 +2531,111 @@ msgstr "公共交通"
 msgid "No specific vehicle"
 msgstr "无指定车辆"
 
-#: contents/ui/TripSheet.qml:186
+#: contents/ui/TripSheet.qml:182
 msgid "This month of the logbook is closed."
 msgstr "该月的行车记录已关闭。"
 
-#: contents/ui/TripSheet.qml:190
+#: contents/ui/TripSheet.qml:186
 msgid "Enter the distance."
 msgstr "请输入距离。"
 
-#: contents/ui/TripSheet.qml:193
+#: contents/ui/TripSheet.qml:189
 msgid "Enter a distance between 0 and %1 km."
 msgstr "请输入 0 到 %1 公里之间的距离。"
 
-#: contents/ui/TripSheet.qml:196
+#: contents/ui/TripSheet.qml:192
 msgid "Arrival must be after departure."
 msgstr "到达时间必须晚于出发时间。"
 
-#: contents/ui/TripSheet.qml:199
+#: contents/ui/TripSheet.qml:195
 msgid "At most %1 characters."
 msgstr "最多 %1 个字符。"
 
-#: contents/ui/TripSheet.qml:201
+#: contents/ui/TripSheet.qml:197
 msgid "Invalid value."
 msgstr "值无效。"
 
-#: contents/ui/TripSheet.qml:207
+#: contents/ui/TripSheet.qml:203
 msgid "Accept detected trip"
 msgstr "接受检测到的行程"
 
-#: contents/ui/TripSheet.qml:215
+#: contents/ui/TripSheet.qml:211
 msgid "Date:"
 msgstr "日期:"
 
-#: contents/ui/TripSheet.qml:230
+#: contents/ui/TripSheet.qml:226
 msgid "Purpose:"
 msgstr "目的:"
 
-#: contents/ui/TripSheet.qml:248
+#: contents/ui/TripSheet.qml:244
 msgid "Means of travel:"
 msgstr "出行方式:"
 
-#: contents/ui/TripSheet.qml:266
+#: contents/ui/TripSheet.qml:262
 msgid "Vehicle:"
 msgstr "车辆:"
 
-#: contents/ui/TripSheet.qml:282
+#: contents/ui/TripSheet.qml:278
 msgid "Distance (one way):"
 msgstr "距离 (单程):"
 
-#: contents/ui/TripSheet.qml:294
+#: contents/ui/TripSheet.qml:290
 msgid "%1 (from your profile)"
 msgstr "%1 (来自个人资料)"
 
-#: contents/ui/TripSheet.qml:296
+#: contents/ui/TripSheet.qml:292
 msgid "Distance in kilometers"
 msgstr "距离 (公里)"
 
-#: contents/ui/TripSheet.qml:300
+#: contents/ui/TripSheet.qml:296
 msgid "km"
 msgstr "公里"
 
-#: contents/ui/TripSheet.qml:314
+#: contents/ui/TripSheet.qml:310
 msgid "Round trip (there and back)"
 msgstr "往返"
 
-#: contents/ui/TripSheet.qml:320
+#: contents/ui/TripSheet.qml:316
 msgid "From:"
 msgstr "出发地:"
 
-#: contents/ui/TripSheet.qml:328
+#: contents/ui/TripSheet.qml:324
 msgid "To:"
 msgstr "目的地:"
 
-#: contents/ui/TripSheet.qml:346
+#: contents/ui/TripSheet.qml:342
 msgid "Departure and arrival times"
 msgstr "出发和到达时间"
 
-#: contents/ui/TripSheet.qml:351
+#: contents/ui/TripSheet.qml:347
 msgid "Departure / arrival:"
 msgstr "出发 / 到达:"
 
-#: contents/ui/TripSheet.qml:378
+#: contents/ui/TripSheet.qml:374
 msgid "Comment:"
 msgstr "备注:"
 
-#: contents/ui/TripSheet.qml:385
+#: contents/ui/TripSheet.qml:381
 msgid "Time entry:"
 msgstr "时间记录:"
 
-#: contents/ui/TripSheet.qml:395
+#: contents/ui/TripSheet.qml:391
 msgid "Unlink"
 msgstr "取消关联"
 
-#: contents/ui/TripSheet.qml:399
+#: contents/ui/TripSheet.qml:395
 msgid "Do not link this trip to the time entry"
 msgstr "不将此行程关联到时间记录"
 
-#: contents/ui/TripSheet.qml:424 contents/ui/TripSuggestionList.qml:95
+#: contents/ui/TripSheet.qml:420 contents/ui/TripSuggestionList.qml:95
 msgid "Accept"
 msgstr "接受"
 
-#: contents/ui/TripSheet.qml:424
+#: contents/ui/TripSheet.qml:420
 msgid "Save trip"
 msgstr "保存行程"
 
-#: contents/ui/TripSheet.qml:451
+#: contents/ui/TripSheet.qml:447
 msgid "Really delete?"
 msgstr "确定删除？"
 

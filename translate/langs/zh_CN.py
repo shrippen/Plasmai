@@ -63,6 +63,8 @@ T = {
     'Cancel': '取消',
     'Unknown error': '未知错误',
     'URL and API token are required': '需要 URL 和 API 令牌',
+    'Missing or invalid input: %1': '输入缺失或无效：%1',
+    'Missing or invalid input.': '输入缺失或无效。',
     'Configure your time tracker URL and API token': '配置时间跟踪服务的 URL 和 API 令牌',
     'This action is not supported for the selected service yet.': '所选服务尚不支持此操作。',
     'Cannot reach the server. Check your network, URL, or TLS certificate.': '无法访问服务器。请检查网络、URL 或 TLS 证书。',

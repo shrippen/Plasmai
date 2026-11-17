@@ -1130,6 +1130,18 @@ function createSession(inner, host) {
     return s
 }
 
+/** Outboxes saved before the error kinds moved into ErrorType stored "config" for missing access. */
+var LEGACY_NOT_CONFIGURED = "config"
+
+function migratedOps(ops) {
+    return ops.map(function(op) {
+        if (op.error && op.error.type === LEGACY_NOT_CONFIGURED) {
+            op.error.type = ProviderUtil.ErrorType.NotConfigured
+        }
+        return op
+    })
+}
+
 /** Loads snapshot and outbox from disk; ops queued before that stay behind the loaded ones. */
 function load(s) {
     if (!s.enabled) {
@@ -1145,7 +1157,7 @@ function load(s) {
         var outbox = parts[1]
         if (outbox && outbox.v === SNAPSHOT_VERSION) {
             s.counter = Math.max(s.counter, outbox.counter || 0)
-            s.ops = (outbox.ops || []).concat(s.ops)
+            s.ops = migratedOps(outbox.ops || []).concat(s.ops)
         }
         notify(s)
     })

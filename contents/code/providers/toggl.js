@@ -242,7 +242,7 @@ function stopTracking(url, token, timesheetId, callback) {
             return
         }
         if (!timesheetId) {
-            callback(Util.fail({ type: ErrorType.NotConfigured, status: 0, detail: "" }))
+            callback(Util.fail({ type: ErrorType.InvalidInput, status: 0, detail: "timesheetId is required" }))
             return
         }
         request("PATCH", url, token, "/workspaces/" + _session.workspaceId + "/time_entries/" + timesheetId + "/stop", undefined, false, function(result) {
@@ -257,7 +257,7 @@ function stopTracking(url, token, timesheetId, callback) {
 
 function restartTimesheet(url, token, timesheetId, callback) {
     if (!timesheetId) {
-        callback(Util.fail({ type: ErrorType.NotConfigured, status: 0, detail: "" }))
+        callback(Util.fail({ type: ErrorType.InvalidInput, status: 0, detail: "timesheetId is required" }))
         return
     }
     getJson(url, token, "/me/time_entries/" + timesheetId, {}, function(entryResult) {
@@ -280,7 +280,7 @@ function restartTimesheet(url, token, timesheetId, callback) {
 
 function patchTimesheet(url, token, timesheetId, fields, callback) {
     if (!timesheetId) {
-        callback(Util.fail({ type: ErrorType.NotConfigured, status: 0, detail: "" }))
+        callback(Util.fail({ type: ErrorType.InvalidInput, status: 0, detail: "timesheetId is required" }))
         return
     }
     withSession(url, token, function(sessionResult) {
@@ -395,7 +395,7 @@ function createTimesheet(url, token, fields, callback) {
 
 function deleteTimesheet(url, token, timesheetId, callback) {
     if (!timesheetId) {
-        callback(Util.fail({ type: ErrorType.NotConfigured, status: 0, detail: "" }))
+        callback(Util.fail({ type: ErrorType.InvalidInput, status: 0, detail: "timesheetId is required" }))
         return
     }
     withSession(url, token, function(sessionResult) {
@@ -555,7 +555,7 @@ function loadProjects(url, token, callback) {
 function loadActivities(url, token, projectId, callback) {
     var pid = intId(projectId)
     if (!pid) {
-        callback(Util.fail({ type: ErrorType.NotConfigured, status: 0, detail: "" }))
+        callback(Util.fail({ type: ErrorType.InvalidInput, status: 0, detail: "projectId is required" }))
         return
     }
     withSession(url, token, function(sessionResult) {

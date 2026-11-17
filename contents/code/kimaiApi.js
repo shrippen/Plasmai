@@ -279,7 +279,7 @@ function loadCustomers(kimaiUrl, apiToken, callback) {
 
 function loadActivities(kimaiUrl, apiToken, projectId, callback) {
     if (!projectId) {
-        callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.NotConfigured, status: 0, detail: "" }))
+        callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.InvalidInput, status: 0, detail: "projectId is required" }))
         return
     }
     getJsonAllPages(kimaiUrl, apiToken,
@@ -842,8 +842,12 @@ function createTimesheet(kimaiUrl, apiToken, fields, callback) {
 }
 
 function stopTracking(kimaiUrl, apiToken, timesheetId, callback) {
-    if (!kimaiUrl || !apiToken || !timesheetId) {
+    if (!kimaiUrl || !apiToken) {
         callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.NotConfigured, status: 0, detail: "" }))
+        return
+    }
+    if (!timesheetId) {
+        callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.InvalidInput, status: 0, detail: "timesheetId is required" }))
         return
     }
 
@@ -858,8 +862,12 @@ function stopTracking(kimaiUrl, apiToken, timesheetId, callback) {
 }
 
 function restartTimesheet(kimaiUrl, apiToken, timesheetId, callback) {
-    if (!kimaiUrl || !apiToken || !timesheetId) {
+    if (!kimaiUrl || !apiToken) {
         callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.NotConfigured, status: 0, detail: "" }))
+        return
+    }
+    if (!timesheetId) {
+        callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.InvalidInput, status: 0, detail: "timesheetId is required" }))
         return
     }
 
@@ -876,8 +884,12 @@ function restartTimesheet(kimaiUrl, apiToken, timesheetId, callback) {
 }
 
 function patchTimesheet(kimaiUrl, apiToken, timesheetId, fields, callback) {
-    if (!kimaiUrl || !apiToken || !timesheetId) {
+    if (!kimaiUrl || !apiToken) {
         callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.NotConfigured, status: 0, detail: "" }))
+        return
+    }
+    if (!timesheetId) {
+        callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.InvalidInput, status: 0, detail: "timesheetId is required" }))
         return
     }
 
@@ -886,8 +898,12 @@ function patchTimesheet(kimaiUrl, apiToken, timesheetId, fields, callback) {
 }
 
 function deleteTimesheet(kimaiUrl, apiToken, timesheetId, callback) {
-    if (!kimaiUrl || !apiToken || !timesheetId) {
+    if (!kimaiUrl || !apiToken) {
         callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.NotConfigured, status: 0, detail: "" }))
+        return
+    }
+    if (!timesheetId) {
+        callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.InvalidInput, status: 0, detail: "timesheetId is required" }))
         return
     }
 
@@ -1346,7 +1362,7 @@ function createTrip(kimaiUrl, apiToken, body, callback) {
 
 function patchTrip(kimaiUrl, apiToken, tripId, body, callback) {
     if (tripId === null || tripId === undefined || tripId === "") {
-        callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.NotConfigured, status: 0, detail: "", fields: {} }))
+        callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.InvalidInput, status: 0, detail: "tripId is required", fields: {} }))
         return
     }
     mileageRequest("PATCH", kimaiUrl, apiToken, "/trips/" + encodeURIComponent(String(tripId)), body || {}, callback)
@@ -1354,7 +1370,7 @@ function patchTrip(kimaiUrl, apiToken, tripId, body, callback) {
 
 function deleteTrip(kimaiUrl, apiToken, tripId, callback) {
     if (tripId === null || tripId === undefined || tripId === "") {
-        callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.NotConfigured, status: 0, detail: "", fields: {} }))
+        callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.InvalidInput, status: 0, detail: "tripId is required", fields: {} }))
         return
     }
     mileageRequest("DELETE", kimaiUrl, apiToken, "/trips/" + encodeURIComponent(String(tripId)), undefined, callback)
