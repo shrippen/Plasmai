@@ -477,4 +477,21 @@ TestCase {
         held.shift()()
         verify(!JSON.parse(h.files[stateName]).entries["5"])
     }
+
+    // The film day plugin call of a waiting change goes through the same gate: no check, no send.
+    function test_filmDayOpWaitsForTheCheck() {
+        const k = fakeKimai()
+        k.putFilmDay = function(u, t, pid, day, patch, cb) { k.calls.push("film"); cb({ ok: true, data: null }) }
+        const h = fakeHost()
+        const op = { opId: "local:film", kind: "filmDay", projectId: 10, dateStr: "2026-09-28", patch: { note: "x" },
+                     state: "pending", attempts: 0, error: null, createdAt: fakes.t0 }
+        h.files[outboxName] = outboxFile(ownerA, [op])
+        const s = Offline.createSession(k, h)
+        fakes.loaded(s, this)
+        Outbox.replay(s)
+        compare(k.calls.indexOf("film"), -1)
+        Offline.verify(s)
+        compare(k.calls.indexOf("film") >= 0, true)
+        compare(Outbox.pendingCount(s), 0)
+    }
 }

@@ -804,7 +804,8 @@ Bad reception on set: Plasmai keeps working and syncs once the server answers
   `/api/users/me`, the name is for display). A file without an owner (made before) gets one after
   the first good check. `SessionSync.openFor` settles the owner on every open, also of the same
   profile, and `verify` asks `/api/users/me` (never cached, with the URL and token of that moment)
-  before the first refresh. A network error or a refused token (401, 403) leaves the account
+  beside the first refresh, which does not wait for it; the views read again when the check
+  changed the owner or sent what waited. A network error or a refused token (401, 403) leaves the account
   unknown: the changes stay, nothing is sent and no answer is kept in the snapshot until it
   is known. Another server (also http for https, IP for name, another path) or a checked other
   account parks the waiting ops as a group in `held` (one group per owner), empties the

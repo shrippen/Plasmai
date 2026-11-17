@@ -481,10 +481,12 @@ function createSession(inner, host) {
     s.tracker = s.enabled ? wrapTracker(s) : inner
     // For offlineOutbox.js, which cannot import this file.
     s.verify = function() {
+        var waited = Outbox.hasPending(s)
         return verify(s).then(function(settled) {
-            // A check after the views read (the server was away): they read again.
+            // The check came after the views read: they read again when it changed what they show
+            // or sent what waited.
             var changed = settled === Owner.Result.PARKED || settled === Owner.Result.RESUMED
-            if (changed && s.host.refresh) {
+            if ((changed || (waited && settled)) && s.host.refresh) {
                 s.host.refresh()
             }
         })

@@ -29,6 +29,7 @@ TestCase {
         property var connection: ({ url: "http://a.test", token: "tok" })
         property var timer: ({ followId: function() {} })
         property var filmDay: ({ context: function() { return {} } })
+        function refresh() { }
     }
 
     Component {

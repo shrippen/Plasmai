@@ -114,7 +114,7 @@ QtObject {
 
     /** Asks the server whose token this is (once per connection); the waiting changes go out after that. */
     function verify() {
-        return state ? Offline.verify(state) : Promise.resolve("")
+        return state ? state.verify() : Promise.resolve()
     }
 
     /** Resolves when the outbox of `s` is read (a read that failed is tried again); then the film day memo. */

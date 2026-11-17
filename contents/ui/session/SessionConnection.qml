@@ -160,12 +160,12 @@ QtObject {
             if (!token) {
                 return
             }
-            // Whose token it is decides whether the waiting changes may go out.
-            return session.sync.verify().then(function() {
-                session.refresh()
-                session.filmDay.resolveMode(Ui.Session.Probe.Cached)
-                session.trips.resolve(Ui.Session.Probe.Cached)
-            })
+            // Whose token it is decides whether the waiting changes may go out: asked beside the
+            // first refresh, not before it (a server that answers slowly must not hold the views).
+            session.sync.verify()
+            session.refresh()
+            session.filmDay.resolveMode(Ui.Session.Probe.Cached)
+            session.trips.resolve(Ui.Session.Probe.Cached)
         }).catch(function() {
             token = ""
             tokenLoaded = true
