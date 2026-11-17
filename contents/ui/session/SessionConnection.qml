@@ -94,7 +94,7 @@ QtObject {
         }).then(function() { return fresh }, function() { return fresh })
     }
 
-    /** Counts profile switches: an answer asked under an older one belongs to another profile. */
+    /** Counts profile switches, and a changed URL or token: an answer asked under an older one belongs to another server or account. */
     property int generation: 0
 
     /** Wraps a read's callback: dropped when the profile changed before the answer came. */
@@ -110,7 +110,7 @@ QtObject {
     /** Switches to `p`: its offline outbox, its token, a refresh. */
     function useProfile(p) {
         // Another profile: its first answers are pending again (views show loading rows).
-        if (!profile || !p || profile.id !== p.id) {
+        if (!profile || !p || profile.id !== p.id || url !== TimeTracker.resolveUrl(p)) {
             generation++
             session.timer.apply(null)
             session.timer.loaded = false
@@ -138,6 +138,10 @@ QtObject {
         const routed = KimaiApi.routeToken(profile.url)
         const pending = routed ? Promise.resolve(routed) : Platform.loadToken(session.dataSource, profile.id)
         return pending.then(function(t) {
+            // Another account on the same profile: answers asked with the old token are dropped.
+            if (token && t && token !== t) {
+                generation++
+            }
             token = t || ""
             tokenLoaded = true
             state = token ? online : unconfigured
