@@ -176,21 +176,18 @@ TestCase {
         var noColor = { id: 11, customer: 1 }
 
         // project before customer
-        compare(KimaiApi.effectiveColorFromProject(withColor, byId), green)
-        compare(KimaiApi.customerColorOfProject(withColor, byId), green)
-        compare(KimaiApi.effectiveColorFromProject(noColor, byId), red)
-        compare(KimaiApi.effectiveColorFromProject(null, byId), ProviderUtil.DEFAULT_CUSTOMER_COLOR)
+        compare(KimaiApi.projectBarColor(withColor, byId), green)
+        compare(KimaiApi.projectBarColor(noColor, byId), red)
+        compare(KimaiApi.projectBarColor(null, byId), ProviderUtil.DEFAULT_CUSTOMER_COLOR)
 
         // activity before project before customer
         var ts = { project: withColor, activity: { id: 5, color: "#0000ff" } }
-        compare(KimaiApi.effectiveColorFromTimesheet(ts, byId), blue)
-        compare(KimaiApi.customerColorFromTimesheet(ts, byId), blue)
+        compare(KimaiApi.timesheetBarColor(ts, byId), blue)
         ts = { project: withColor, activity: { id: 5 } }
-        compare(KimaiApi.effectiveColorFromTimesheet(ts, byId), green)
+        compare(KimaiApi.timesheetBarColor(ts, byId), green)
         ts = { project: noColor, activity: { id: 5 } }
-        compare(KimaiApi.effectiveColorFromTimesheet(ts, byId), red)
-        compare(KimaiApi.customerColorFromTimesheet(ts, byId), red)
-        compare(KimaiApi.effectiveColorFromTimesheet(null, byId), ProviderUtil.DEFAULT_CUSTOMER_COLOR)
+        compare(KimaiApi.timesheetBarColor(ts, byId), red)
+        compare(KimaiApi.timesheetBarColor(null, byId), ProviderUtil.DEFAULT_CUSTOMER_COLOR)
     }
 
     function test_serializeTimesheetWrite_tagsAreString() {

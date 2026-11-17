@@ -94,7 +94,7 @@ function activeState(timesheet, catalogs, nowMs) {
         project: KimaiApi.displayProjectName(timesheet, catalogs.projects),
         activity: KimaiApi.displayActivityName(timesheet, catalogs.activities, catalogs.activitiesByProject),
         customer: KimaiApi.customerNameFromTimesheet(timesheet, catalogs.customersById),
-        customerColor: KimaiApi.customerColorFromTimesheet(timesheet, catalogs.customersById),
+        customerColor: KimaiApi.timesheetBarColor(timesheet, catalogs.customersById),
         description: timesheet.description || "",
         elapsedSeconds: isNaN(begin.getTime()) ? -1 : Math.max(0, Math.floor((nowMs - begin.getTime()) / 1000))
     }

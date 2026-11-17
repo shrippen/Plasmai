@@ -64,12 +64,6 @@ function endOfWeek(date) {
     return KimaiApi.endOfWeekSunday(date)
 }
 
-function sameLocalDay(a, b) {
-    return a.getFullYear() === b.getFullYear()
-        && a.getMonth() === b.getMonth()
-        && a.getDate() === b.getDate()
-}
-
 function formatDayLabel(date) {
     if (!date || typeof date.getTime !== "function" || isNaN(date.getTime())) {
         return ""
@@ -92,7 +86,7 @@ function paletteColor(index) {
 
 function colorForKey(key, customersById, timesheetHint) {
     if (timesheetHint && timesheetHint.project) {
-        return KimaiApi.customerColorOfProject(timesheetHint.project, customersById || {})
+        return KimaiApi.projectBarColor(timesheetHint.project, customersById || {})
     }
     var hash = 0
     var s = String(key || "")
@@ -135,18 +129,6 @@ function entriesOverlappingDay(entries, dayDate, nowMs) {
     var out = []
     for (var i = 0; i < (entries || []).length; i++) {
         if (overlapSeconds(entries[i], dayStart, dayEnd, nowMs) > 0) {
-            out.push(entries[i])
-        }
-    }
-    return out
-}
-
-function entriesOverlappingWeek(entries, weekStart, nowMs) {
-    var ws = startOfWeek(weekStart)
-    var we = endOfWeek(ws)
-    var out = []
-    for (var i = 0; i < (entries || []).length; i++) {
-        if (overlapSeconds(entries[i], ws, we, nowMs) > 0) {
             out.push(entries[i])
         }
     }
@@ -370,7 +352,7 @@ function weeklyHourTimeline(entries, weekStart, customersById, nowMs, maxLegend,
             var pname = KimaiApi.projectName(entry) || ((pid === "_none" || pid === "0") ? "—" : ("#" + pid))
             var aname = KimaiApi.activityName(entry) || ((aid === "_none" || aid === "0") ? "—" : ("#" + aid))
             var label = pname + " · " + aname
-            var color = KimaiApi.effectiveColorFromTimesheet(entry, customersById || {})
+            var color = KimaiApi.timesheetBarColor(entry, customersById || {})
             if (color === ProviderUtil.DEFAULT_CUSTOMER_COLOR && !KimaiApi.activityColor(entry.activity)) {
                 color = paletteColor(key.length + pid.length)
             }
@@ -484,7 +466,7 @@ function activityBreakdown(entries, rangeStart, rangeEnd, nowMs, limit, customer
             aname = (aid === "_none" || aid === "0") ? "—" : ("#" + aid)
         }
         if (!map[aid]) {
-            var color = KimaiApi.effectiveColorFromTimesheet(entry, customersById || {})
+            var color = KimaiApi.timesheetBarColor(entry, customersById || {})
             // If nothing in the Kimai cascade had a color, use a stable palette tint.
             if (!KimaiApi.activityColor(entry.activity)
                 && !(entry.project && KimaiApi.projectColor(entry.project))
