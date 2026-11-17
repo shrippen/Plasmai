@@ -193,7 +193,6 @@
         <file alias="contents/code/dateTimeFormat.js">../contents/code/dateTimeFormat.js</file>
         <file alias="contents/code/geocode.js">../contents/code/geocode.js</file>
         <file alias="contents/code/setupWizard.js">../contents/code/setupWizard.js</file>
-        <file alias="contents/code/providers/_stub.js">../contents/code/providers/_stub.js</file>
         <file alias="contents/code/providers/clockify.js">../contents/code/providers/clockify.js</file>
         <file alias="contents/code/providers/toggl.js">../contents/code/providers/toggl.js</file>
         <file alias="contents/code/providers/solidtime.js">../contents/code/providers/solidtime.js</file>

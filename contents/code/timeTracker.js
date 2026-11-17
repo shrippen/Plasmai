@@ -7,7 +7,6 @@
  */
 
 .import "./kimaiApi.js" as KimaiApi
-.import "./providers/_stub.js" as Stub
 .import "./providers/clockify.js" as ClockifyApi
 .import "./providers/toggl.js" as TogglApi
 .import "./providers/solidtime.js" as SolidTimeApi
@@ -21,7 +20,6 @@ var PROVIDERS = [
     {
         id: PROVIDER_KIMAI,
         name: "Kimai",
-        implemented: true,
         // Verified with live accounts; the others are experimental (DESIGN.md).
         tested: true,
         needsUrl: true,
@@ -50,7 +48,6 @@ var PROVIDERS = [
     {
         id: PROVIDER_CLOCKIFY,
         name: "Clockify",
-        implemented: true,
         tested: false,
         needsUrl: false,
         defaultUrl: "https://api.clockify.me/api/v1",
@@ -71,7 +68,6 @@ var PROVIDERS = [
     {
         id: PROVIDER_TOGGL,
         name: "Toggl Track",
-        implemented: true,
         tested: false,
         needsUrl: false,
         defaultUrl: "https://api.track.toggl.com/api/v9",
@@ -92,7 +88,6 @@ var PROVIDERS = [
     {
         id: PROVIDER_SOLIDTIME,
         name: "SolidTime",
-        implemented: true,
         tested: false,
         needsUrl: true,
         defaultUrl: "https://api.solidtime.io",
@@ -160,15 +155,8 @@ function providerCapabilities(providerId) {
     }
 }
 
-function isImplemented(providerId) {
-    return !!providerMeta(providerId).implemented
-}
-
 function api(providerId) {
     var id = normalizeProviderId(providerId)
-    if (id === PROVIDER_KIMAI) {
-        return KimaiApi
-    }
     if (id === PROVIDER_CLOCKIFY) {
         return ClockifyApi
     }
@@ -178,7 +166,7 @@ function api(providerId) {
     if (id === PROVIDER_SOLIDTIME) {
         return SolidTimeApi
     }
-    return Stub.notImplementedApi(id)
+    return KimaiApi
 }
 
 function resolveUrl(profile) {

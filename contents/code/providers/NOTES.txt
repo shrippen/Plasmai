@@ -1,7 +1,7 @@
 Provider modules
 ===============
 
-Each file in this folder (except _stub.js / NOTES) implements the Kimai-compatible
+Each file in this folder (except NOTES) implements the Kimai-compatible
 API surface documented in ../timeTracker.js.
 
 Session extras (workspace / org / member / user ids) are set via setSession() from

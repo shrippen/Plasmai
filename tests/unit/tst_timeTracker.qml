@@ -35,7 +35,10 @@ TestCase {
         verify(!TimeTracker.providerCapabilities("clockify").drehzettelApi)
         verify(!TimeTracker.providerCapabilities("toggl").mileage)
         verify(!TimeTracker.providerCapabilities("solidtime").filmDays)
-        verify(TimeTracker.isImplemented("kimai"))
+    }
+
+    function test_unknownProviderIsKimai() {
+        verify(TimeTracker.api("nope") === TimeTracker.api("kimai"))
     }
 
     function test_onlyKimaiIsTested() {
