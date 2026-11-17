@@ -105,7 +105,7 @@ ColumnLayout {
 
     function stateText(op) {
         if (op.state === OfflineState.State.FAILED) {
-            return i18n("Not accepted: %1", (op.error && op.error.detail) || ApiErrors.text(op.error))
+            return i18n("Not accepted: %1", ApiErrors.withServer(op.error))
         }
         if (op.state === OfflineState.State.CONFLICT) {
             return i18n("Changed on the server meanwhile (%1). Overwrite it with this change, or discard this change?",

@@ -207,7 +207,7 @@ PlasmoidItem {
     /** "error" also while an action's error shows; otherwise the layer's state. */
     readonly property string connectionState: actionError ? session.connection.error : session.connection.state
     readonly property string errorMessage: userMessage.length > 0
-        ? userMessage : ApiErrors.text(actionError || session.connection.lastError)
+        ? userMessage : ApiErrors.withServer(actionError || session.connection.lastError)
     readonly property bool showSetupState: session.connection.tokenLoaded && !session.connection.configured
     readonly property bool showErrorState: errorMessage.length > 0 && connectionState === "error"
     /** Shown while shared.json is read or the session connects. */
@@ -885,7 +885,7 @@ PlasmoidItem {
         }, function(result) {
             if (result.extras === "failed") {
                 root.userMessage = i18n("The film day was not saved: %1",
-                                        (result.error && result.error.detail) || ApiErrors.text(result.error))
+                                        ApiErrors.withServer(result.error))
             }
         }, function(payCents) {
             if (root.filmDayViewRef) {
@@ -936,12 +936,12 @@ PlasmoidItem {
         const messages = []
         if (result.extras === "failed") {
             messages.push(i18n("Begin and end were saved, but the film day extras were not: %1",
-                               (result.error && result.error.detail) || ApiErrors.text(result.error)))
+                               ApiErrors.withServer(result.error)))
         }
         if (report && report.failed.length > 0) {
             messages.push(i18np("%1 other entry of this day could not be deleted: %2",
                                 "%1 other entries of this day could not be deleted: %2",
-                                report.failed.length, ApiErrors.text(report.failed[0].error)))
+                                report.failed.length, ApiErrors.withServer(report.failed[0].error)))
         }
         if (messages.length > 0) {
             root.userMessage = messages.join(" ")
@@ -1041,7 +1041,7 @@ PlasmoidItem {
             return
         }
         root.tripSheetRef.serverErrors = (error && error.fields) ? error.fields : ({})
-        root.tripSheetRef.errorText = (error && error.detail) ? error.detail : ApiErrors.text(error)
+        root.tripSheetRef.errorText = ApiErrors.withServer(error)
     }
 
     function saveTrip(body, tripId, form) {
@@ -1072,7 +1072,7 @@ PlasmoidItem {
     function acceptTripSuggestion(sg) {
         session.trips.acceptSuggestion(sg, function(r) {
             if (!r.ok) {
-                root.userMessage = i18n("The trip could not be accepted: %1", (r.error && r.error.detail) || ApiErrors.text(r.error))
+                root.userMessage = i18n("The trip could not be accepted: %1", ApiErrors.withServer(r.error))
             }
         })
     }
@@ -1080,7 +1080,7 @@ PlasmoidItem {
     function dismissTripSuggestion(sg) {
         session.trips.dismissSuggestion(sg, function(r) {
             if (!r.ok) {
-                root.userMessage = i18n("The trip could not be dismissed: %1", (r.error && r.error.detail) || ApiErrors.text(r.error))
+                root.userMessage = i18n("The trip could not be dismissed: %1", ApiErrors.withServer(r.error))
             }
         })
     }

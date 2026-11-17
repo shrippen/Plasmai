@@ -62,9 +62,12 @@ function parseApiError(status, statusText, responseText) {
     return { type: ErrorType.Unknown, status: status, detail: detail || statusText }
 }
 
-/** The text the server sent with an error; "" when it sent none or the error is the app's own (NotConfigured). */
+// Errors the app raises itself: no server answered, so there is no server text.
+var APP_ERRORS = [ErrorType.NotConfigured, ErrorType.InvalidInput, ErrorType.Offline, ErrorType.Network]
+
+/** The text the server sent with an error; "" when it sent none or the app raised the error itself. */
 function serverText(error) {
-    if (!error || error.type === ErrorType.NotConfigured) {
+    if (!error || APP_ERRORS.indexOf(error.type) >= 0) {
         return ""
     }
     return error.detail || error.statusText || ""

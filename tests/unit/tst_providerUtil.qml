@@ -44,5 +44,9 @@ TestCase {
         compare(Util.serverText({ type: Util.ErrorType.Unauthorized }), "")
         compare(Util.serverText({ type: Util.ErrorType.NotConfigured, detail: "no url" }), "")
         compare(Util.serverText(null), "")
+        // The app's own errors carry no server text, even with a detail.
+        compare(Util.serverText({ type: Util.ErrorType.InvalidInput, detail: "projectId" }), "")
+        compare(Util.serverText({ type: Util.ErrorType.Offline, detail: "x" }), "")
+        compare(Util.serverText({ type: Util.ErrorType.Network, detail: "x" }), "")
     }
 }

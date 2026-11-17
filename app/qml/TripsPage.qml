@@ -42,7 +42,7 @@ Kirigami.Page {
             if (!page) { return }
             page.loading = false
             if (res.ok) page.trips = Mileage.sortTrips(res.data)
-            else root.showPassiveNotification(i18n("Trips could not be loaded: %1", ApiErrors.text(res.error)))
+            else root.showPassiveNotification(i18n("Trips could not be loaded: %1", ApiErrors.withServer(res.error)))
         })
         if (page.hasDawarich && session.trips.canEdit) {
             session.trips.fetchSuggestions(function(res) {
@@ -98,7 +98,7 @@ Kirigami.Page {
             if (r.ok) {
                 root.showPassiveNotification(i18n("Commute logged: %1 km", Mileage.displayKm(Mileage.tripKm(r.data))))
             } else {
-                root.showPassiveNotification((r.error && r.error.detail) || ApiErrors.text(r.error))
+                root.showPassiveNotification(ApiErrors.withServer(r.error))
             }
         })
     }
@@ -107,7 +107,7 @@ Kirigami.Page {
         session.trips.acceptSuggestion(sg, function(r) {
             if (!page) { return }
             if (!r.ok) {
-                root.showPassiveNotification(i18n("The trip could not be accepted: %1", (r.error && r.error.detail) || ApiErrors.text(r.error)))
+                root.showPassiveNotification(i18n("The trip could not be accepted: %1", ApiErrors.withServer(r.error)))
             }
         })
     }
@@ -116,7 +116,7 @@ Kirigami.Page {
         session.trips.dismissSuggestion(sg, function(r) {
             if (!page) { return }
             if (!r.ok) {
-                root.showPassiveNotification(i18n("The trip could not be dismissed: %1", (r.error && r.error.detail) || ApiErrors.text(r.error)))
+                root.showPassiveNotification(i18n("The trip could not be dismissed: %1", ApiErrors.withServer(r.error)))
             }
         })
     }

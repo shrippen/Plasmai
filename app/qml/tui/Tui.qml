@@ -235,7 +235,7 @@ QtObject {
     }
 
     function failureText(action, result) {
-        const detail = result && result.error ? (result.error.detail || result.error.statusText || "") : ""
+        const detail = result && result.error ? Ui.ApiErrors.withServer(result.error) : ""
         const what = action === Ui.Session.Action.Stop ? i18n("Could not stop tracking")
                    : action === Ui.Session.Action.Refresh ? i18n("Could not refresh")
                    : i18n("Could not start tracking")

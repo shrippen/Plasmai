@@ -32,7 +32,7 @@ Kirigami.Page {
 
     function failed(error) {
         sheet.serverErrors = (error && error.fields) ? error.fields : ({})
-        sheet.errorText = (error && error.detail) ? error.detail : ApiErrors.text(error)
+        sheet.errorText = ApiErrors.withServer(error)
     }
 
     function save(body, tripId, form) {

@@ -29,7 +29,7 @@ QtObject {
     property string state: unconfigured
     /** The server's status text of the last failed refresh ("" when fine). */
     property string errorText: ""
-    /** The error of the last failed refresh (null when fine), for ApiErrors.text. */
+    /** The error of the last failed refresh (null when fine), for ApiErrors.withServer. */
     property var lastError: null
     property var profiles: []
     property var profile: null

@@ -276,7 +276,7 @@ Kirigami.ApplicationWindow {
     /** A write failed: say so instead of silently refreshing. */
     function reportWriteError(result, what) {
         if (!result || result.ok) return
-        var detail = (result.error && result.error.detail) || ApiErrors.text(result.error)
+        var detail = ApiErrors.withServer(result.error)
         showPassiveNotification(detail ? i18n("%1: %2", what, detail) : what)
     }
 
