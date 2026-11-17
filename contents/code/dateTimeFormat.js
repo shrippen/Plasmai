@@ -452,38 +452,6 @@ function hoursMinutes(seconds) {
 }
 
 /**
- * Time line label of an entry (Kante style), relative to `now`:
- *   same day      "07:42 – 09:40", without end "07:42 – <nowLabel>"
- *   last 6 days   "Thu 13:20"
- *   older         "12 Sep 08:05"
- * begin/end: Date or ISO string; "" for a missing or invalid begin.
- */
-function entryTimeLabel(begin, end, now, nowLabel) {
-    var b = begin ? parseStamp(begin) : null
-    if (!b || isNaN(b.getTime())) {
-        return ""
-    }
-    var clock = function(d) {
-        return formatLocaleTime(d.getHours(), d.getMinutes())
-    }
-    var today = new Date(now || new Date())
-    today.setHours(0, 0, 0, 0)
-    var day = new Date(b)
-    day.setHours(0, 0, 0, 0)
-    var daysAgo = Math.round((today.getTime() - day.getTime()) / 86400000)
-
-    if (daysAgo <= 0) {
-        var e = end ? parseStamp(end) : null
-        return clock(b) + " – " + (e && !isNaN(e.getTime()) ? clock(e) : nowLabel)
-    }
-    // 1 = QLocale::ShortFormat (no Locale enum in a pragma library)
-    if (daysAgo < 7) {
-        return Qt.locale().dayName(b.getDay(), 1) + " " + clock(b)
-    }
-    return b.getDate() + " " + Qt.locale().standaloneMonthName(b.getMonth(), 1) + " " + clock(b)
-}
-
-/**
  * Timestamp → Date; Invalid Date when unusable (never the epoch, as
  * `new Date(null)` would be). The one parser for server stamps of every
  * backend, so no JS engine's Date() quirks leak in:

@@ -212,24 +212,14 @@ function panelPillInfo(timesheet, projects, customersById) {
     }
 }
 
-function effectiveColorFromProject(project, customersById) {
+/** Project colour, else customer colour, else default. */
+function projectBarColor(project, customersById) {
     return barColorInfo(null, project, customersById).color
 }
 
-function effectiveColorFromActivity(activity, project, customersById) {
-    return barColorInfo(activity, project, customersById).color
-}
-
-function effectiveColorFromTimesheet(timesheet, customersById) {
+/** Activity colour, else project, else customer, else default. */
+function timesheetBarColor(timesheet, customersById) {
     return barColorInfoFromTimesheet(timesheet, customersById).color
-}
-
-function customerColorOfProject(project, customersById) {
-    return effectiveColorFromProject(project, customersById)
-}
-
-function customerColorFromTimesheet(timesheet, customersById) {
-    return effectiveColorFromTimesheet(timesheet, customersById)
 }
 
 function getJson(kimaiUrl, apiToken, endpoint, emptyValue, callback) {

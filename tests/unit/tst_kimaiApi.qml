@@ -167,6 +167,29 @@ TestCase {
         compare(noProjectColor.projectColor, noProjectColor.customerColor)
     }
 
+    function test_colorPrecedence() {
+        var byId = KimaiApi.buildCustomersById([{ id: 1, name: "Acme", color: "#ff0000" }])
+        var red = ProviderUtil.normalizeCustomerColor("#ff0000")
+        var green = ProviderUtil.normalizeCustomerColor("#00aa00")
+        var blue = ProviderUtil.normalizeCustomerColor("#0000ff")
+        var withColor = { id: 10, customer: 1, color: "#00aa00" }
+        var noColor = { id: 11, customer: 1 }
+
+        // project before customer
+        compare(KimaiApi.projectBarColor(withColor, byId), green)
+        compare(KimaiApi.projectBarColor(noColor, byId), red)
+        compare(KimaiApi.projectBarColor(null, byId), ProviderUtil.DEFAULT_CUSTOMER_COLOR)
+
+        // activity before project before customer
+        var ts = { project: withColor, activity: { id: 5, color: "#0000ff" } }
+        compare(KimaiApi.timesheetBarColor(ts, byId), blue)
+        ts = { project: withColor, activity: { id: 5 } }
+        compare(KimaiApi.timesheetBarColor(ts, byId), green)
+        ts = { project: noColor, activity: { id: 5 } }
+        compare(KimaiApi.timesheetBarColor(ts, byId), red)
+        compare(KimaiApi.timesheetBarColor(null, byId), ProviderUtil.DEFAULT_CUSTOMER_COLOR)
+    }
+
     function test_serializeTimesheetWrite_tagsAreString() {
         var data = KimaiApi.serializeTimesheetWrite({
             begin: "2026-08-17T23:15:00",

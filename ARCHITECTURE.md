@@ -106,8 +106,6 @@ favourites, statistics, offline work; for Kimai also film days and trips.
   (`AUDIT.md`, finding 6).
 - Error kinds stand partly as loose words; `config` means two things
   (`AUDIT.md`, finding 7).
-- Five functions are called by nothing or only by tests; one colour rule has five
-  names (`AUDIT.md`, finding 9).
 - `contents/ui/main.qml` holds view, film day, trips and the loading of statistics in
   one file of 3087 lines (`AUDIT.md`, finding 10).
 - The app's connection page has its own list of services (`AUDIT.md`, finding 12).

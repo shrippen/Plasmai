@@ -173,7 +173,6 @@ TestCase {
         var sorted = Mileage.sortTrips(trips.slice(0, 3))
         compare(sorted[0].id, 9)
         compare(sorted[2].id, 7)
-        compare(Mileage.tripsForTimesheet(trips, 99).length, 3)
         var k = StatsData.tripKmSummary(trips, new Date(2026, 8, 23))
         compare(k.todayKm, 10)
         compare(k.weekKm, 35)

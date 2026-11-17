@@ -237,7 +237,7 @@ function projectBreakdown(timesheets, customersById, limit) {
             map[key] = {
                 name: KimaiApi.projectName(ts) || "—",
                 seconds: 0,
-                color: KimaiApi.effectiveColorFromProject(
+                color: KimaiApi.projectBarColor(
                     (ts && typeof ts.project === "object") ? ts.project : null,
                     customersById || {})
             }
