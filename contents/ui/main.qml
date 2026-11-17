@@ -2080,11 +2080,12 @@ PlasmoidItem {
                 // Offline and sync state; "Show" opens the list of what is not synced yet.
                 OfflineStatus {
                     Layout.fillWidth: true
-                    visible: (root.session.sync.offline || root.session.sync.unsynced > 0 || root.session.sync.storageError !== "") && root.mainViewMode !== "unsynced"
+                    visible: root.session.sync.showStatus && root.mainViewMode !== "unsynced"
                     offline: root.session.sync.offline
                     stateAt: root.session.sync.stateAt
                     unsynced: root.session.sync.unsynced
                     stuck: root.session.sync.stuck
+                    held: root.session.sync.held
                     storageError: root.session.sync.storageError
                     onDetailsRequested: root.openUnsyncedView()
                 }
@@ -2100,6 +2101,7 @@ PlasmoidItem {
                         stateAt: root.session.sync.stateAt
                         unsynced: root.session.sync.unsynced
                         stuck: root.session.sync.stuck
+                        held: root.session.sync.held
                         storageError: root.session.sync.storageError
                         showDetails: false
                     }
@@ -2110,15 +2112,12 @@ PlasmoidItem {
                         projects: root.session.catalog.projects
                         activities: root.session.catalog.activities
                         activitiesByProject: root.session.catalog.activitiesByProject
-                        onRetryRequested: function(opId) {
-                            root.session.sync.retry(opId)
-                        }
-                        onOverwriteRequested: function(opId) {
-                            root.session.sync.overwrite(opId)
-                        }
-                        onDiscardRequested: function(opId) {
-                            root.session.sync.discard(opId)
-                        }
+                        onRetryRequested: function(opId) { root.session.sync.retry(opId) }
+                        onOverwriteRequested: function(opId) { root.session.sync.overwrite(opId) }
+                        onDiscardRequested: function(opId) { root.session.sync.discard(opId) }
+                        groups: root.session.sync.groups
+                        onAdoptRequested: function(index) { root.session.sync.adopt(index) }
+                        onDiscardGroupRequested: function(index) { root.session.sync.discardGroup(index) }
                     }
                 }
 

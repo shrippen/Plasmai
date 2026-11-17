@@ -151,6 +151,7 @@ function groups(s) {
     return s.held.map(function(group, index) {
         return { index: index, name: ownerName(group.owner), server: group.owner.server,
                  account: group.owner.account, count: group.ops.length, heldAt: group.heldAt,
+                 to: s.owner ? s.owner.server : "",
                  canAdopt: canAdopt(s, group), ops: clone(group.ops) }
     })
 }

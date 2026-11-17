@@ -34,6 +34,9 @@ Kirigami.Page {
                 onRetryRequested: function(opId) { session.sync.retry(opId) }
                 onOverwriteRequested: function(opId) { session.sync.overwrite(opId) }
                 onDiscardRequested: function(opId) { session.sync.discard(opId) }
+                groups: session.sync.groups
+                onAdoptRequested: function(index) { session.sync.adopt(index) }
+                onDiscardGroupRequested: function(index) { session.sync.discardGroup(index) }
             }
         }
     }

@@ -23,38 +23,17 @@ ColumnLayout {
     property var activities: []
     property var activitiesByProject: ({})
 
+    /** Offline.groups: the changes parked for another server or account, one group each. */
+    property var groups: []
+
     signal retryRequested(string opId)
     signal overwriteRequested(string opId)
     signal discardRequested(string opId)
+    /** The group at this index goes to the address in use / is dropped (asked before). */
+    signal adoptRequested(int index)
+    signal discardGroupRequested(int index)
 
     spacing: Kirigami.Units.largeSpacing
-
-    function kindText(op) {
-        if (op.kind === OfflineState.Op.CREATE) {
-            return op.fields.end ? i18n("New entry") : i18n("Timer started")
-        }
-        if (op.kind === OfflineState.Op.PATCH) {
-            var keys = Object.keys(op.fields || {})
-            return keys.length === 1 && keys[0] === "end" ? i18n("Timer stopped") : i18n("Entry changed")
-        }
-        if (op.kind === OfflineState.Op.DELETE) {
-            return i18n("Entry deleted")
-        }
-        if (op.kind === OfflineState.Op.TRIP_CREATE) {
-            return i18n("Trip added")
-        }
-        if (op.kind === OfflineState.Op.TRIP_PATCH) {
-            return i18n("Trip changed")
-        }
-        if (op.kind === OfflineState.Op.TRIP_DELETE) {
-            return i18n("Trip deleted")
-        }
-        if (op.kind === OfflineState.Op.FILM_DAY) {
-            return i18n("Film day details of %1",
-                        new Date(op.dateStr + "T12:00:00").toLocaleDateString(Qt.locale(), Locale.ShortFormat))
-        }
-        return op.kind
-    }
 
     /** "Start – Destination · 28.09.26 · 12 km" of a trip change (a delete knows only its id). */
     function tripText(op) {
@@ -96,26 +75,156 @@ ColumnLayout {
         return bits.filter(function(b) { return !!b }).join(" · ")
     }
 
-    /** The fields a conflict names, in the words of the forms. */
-    function fieldNames(detail) {
-        var names = { begin: i18n("Begin"), end: i18n("End"), description: i18n("Description"),
-                      project: i18n("Project"), activity: i18n("Activity") }
-        return String(detail || "").split(", ").map(function(k) { return names[k] || k }).join(", ")
+    /** One change: what it is and why it waits; the buttons unless the row is only shown. */
+    component OpRow: ColumnLayout {
+        id: row
+        property var op: ({})
+        property bool readOnly: false
+        readonly property bool stuck: op.state !== OfflineState.State.PENDING
+
+        Layout.fillWidth: true
+        spacing: Kirigami.Units.smallSpacing
+
+        Controls.Label {
+            Layout.fillWidth: true
+            text: ApiErrors.opKindText(row.op)
+            font.bold: true
+            wrapMode: Text.WordWrap
+        }
+        Controls.Label {
+            Layout.fillWidth: true
+            text: root.entryText(row.op)
+            wrapMode: Text.WordWrap
+        }
+        Controls.Label {
+            Layout.fillWidth: true
+            text: ApiErrors.opStateText(row.op)
+            color: row.stuck ? KanteStyle.negativeTextColor : KanteStyle.mutedTextColor
+            wrapMode: Text.WordWrap
+        }
+        RowLayout {
+            visible: !row.readOnly
+            spacing: Kirigami.Units.smallSpacing
+            Controls.Button {
+                visible: row.op.state === OfflineState.State.FAILED
+                text: i18n("Retry")
+                onClicked: root.retryRequested(row.op.opId)
+            }
+            Controls.Button {
+                visible: row.op.state === OfflineState.State.CONFLICT
+                text: i18n("Overwrite")
+                onClicked: root.overwriteRequested(row.op.opId)
+            }
+            Controls.Button {
+                text: i18n("Discard")
+                onClicked: root.discardRequested(row.op.opId)
+            }
+        }
     }
 
-    function stateText(op) {
-        if (op.state === OfflineState.State.FAILED) {
-            return i18n("Not accepted: %1", ApiErrors.withServer(op.error))
+    /**
+     * Changes parked for another server or account: what and for whom, the changes themselves
+     * (read only) on demand, "Send here" only for the same account on another address, "Discard";
+     * both ask once, naming the addresses.
+     */
+    component GroupBlock: ColumnLayout {
+        id: block
+        property var group: ({})
+        // "", "adopt" or "discard": what the question below is about.
+        property string asking: ""
+        property bool opened: false
+
+        objectName: "heldGroup"
+        Layout.fillWidth: true
+        spacing: Kirigami.Units.smallSpacing
+
+        Controls.Label {
+            objectName: "heldGroupTitle"
+            Layout.fillWidth: true
+            text: ApiErrors.heldGroupText(block.group)
+            font.bold: true
+            wrapMode: Text.WordWrap
         }
-        if (op.state === OfflineState.State.CONFLICT) {
-            return i18n("Changed on the server meanwhile (%1). Overwrite it with this change, or discard this change?",
-                        fieldNames(op.error ? op.error.detail : ""))
+        Controls.Label {
+            objectName: "heldHint"
+            Layout.fillWidth: true
+            visible: text !== ""
+            text: ApiErrors.heldHint(block.group)
+            color: KanteStyle.mutedTextColor
+            wrapMode: Text.WordWrap
         }
-        return i18n("Waiting for the connection")
+        RowLayout {
+            spacing: Kirigami.Units.smallSpacing
+            visible: block.asking === ""
+            Controls.Button {
+                objectName: "heldToggle"
+                text: block.opened ? i18n("Hide") : i18n("Show")
+                onClicked: block.opened = !block.opened
+            }
+            Controls.Button {
+                objectName: "adoptButton"
+                visible: block.group.canAdopt
+                text: i18n("Send here")
+                onClicked: block.asking = "adopt"
+            }
+            Controls.Button {
+                objectName: "discardGroupButton"
+                text: i18n("Discard")
+                onClicked: block.asking = "discard"
+            }
+        }
+        ColumnLayout {
+            objectName: "confirmRow"
+            Layout.fillWidth: true
+            visible: block.asking !== ""
+            spacing: Kirigami.Units.smallSpacing
+            Controls.Label {
+                objectName: "confirmText"
+                Layout.fillWidth: true
+                text: block.asking === "adopt" ? ApiErrors.adoptQuestion(block.group) : ApiErrors.discardGroupQuestion(block.group)
+                wrapMode: Text.WordWrap
+            }
+            RowLayout {
+                spacing: Kirigami.Units.smallSpacing
+                Controls.Button {
+                    objectName: "confirmButton"
+                    text: block.asking === "adopt" ? i18n("Send here") : i18n("Discard")
+                    onClicked: {
+                        const adopt = block.asking === "adopt"
+                        block.asking = ""
+                        if (adopt) {
+                            root.adoptRequested(block.group.index)
+                        } else {
+                            root.discardGroupRequested(block.group.index)
+                        }
+                    }
+                }
+                Controls.Button {
+                    objectName: "cancelButton"
+                    text: i18n("Cancel")
+                    onClicked: block.asking = ""
+                }
+            }
+        }
+        ColumnLayout {
+            objectName: "heldOps"
+            Layout.fillWidth: true
+            visible: block.opened
+            spacing: Kirigami.Units.largeSpacing
+            Repeater {
+                model: block.opened ? block.group.ops : []
+                OpRow {
+                    required property var modelData
+                    op: modelData
+                    readOnly: true
+                }
+            }
+        }
     }
 
     Controls.Label {
-        visible: root.ops.length === 0
+        objectName: "emptyLabel"
+        visible: root.ops.length === 0 && root.groups.length === 0
         Layout.fillWidth: true
         text: i18n("Everything is synced.")
         wrapMode: Text.WordWrap
@@ -123,49 +232,17 @@ ColumnLayout {
 
     Repeater {
         model: root.ops
-
-        ColumnLayout {
-            id: row
+        OpRow {
             required property var modelData
-            readonly property bool stuck: modelData.state !== OfflineState.State.PENDING
+            op: modelData
+        }
+    }
 
-            Layout.fillWidth: true
-            spacing: Kirigami.Units.smallSpacing
-
-            Controls.Label {
-                Layout.fillWidth: true
-                text: root.kindText(row.modelData)
-                font.bold: true
-                wrapMode: Text.WordWrap
-            }
-            Controls.Label {
-                Layout.fillWidth: true
-                text: root.entryText(row.modelData)
-                wrapMode: Text.WordWrap
-            }
-            Controls.Label {
-                Layout.fillWidth: true
-                text: root.stateText(row.modelData)
-                color: row.stuck ? KanteStyle.negativeTextColor : KanteStyle.mutedTextColor
-                wrapMode: Text.WordWrap
-            }
-            RowLayout {
-                spacing: Kirigami.Units.smallSpacing
-                Controls.Button {
-                    visible: row.modelData.state === OfflineState.State.FAILED
-                    text: i18n("Retry")
-                    onClicked: root.retryRequested(row.modelData.opId)
-                }
-                Controls.Button {
-                    visible: row.modelData.state === OfflineState.State.CONFLICT
-                    text: i18n("Overwrite")
-                    onClicked: root.overwriteRequested(row.modelData.opId)
-                }
-                Controls.Button {
-                    text: i18n("Discard")
-                    onClicked: root.discardRequested(row.modelData.opId)
-                }
-            }
+    Repeater {
+        model: root.groups
+        GroupBlock {
+            required property var modelData
+            group: modelData
         }
     }
 }

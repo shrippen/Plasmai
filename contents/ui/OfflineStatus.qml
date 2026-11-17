@@ -22,6 +22,8 @@ Item {
     property int unsynced: 0
     /** Of those: refused by the server or changed there meanwhile (need a decision). */
     property int stuck: 0
+    /** Changes parked for another server or account (they wait for a decision there). */
+    property int held: 0
     /** OfflineState.StorageError: what is wrong with the file of the waiting changes. */
     property string storageError: OfflineState.StorageError.NONE
     /** "Show" (the list of waiting changes); off where that list is shown already. */
@@ -31,7 +33,7 @@ Item {
 
     readonly property bool storageProblem: storageError !== OfflineState.StorageError.NONE
 
-    visible: offline || unsynced > 0 || storageProblem
+    visible: offline || unsynced > 0 || held > 0 || storageProblem
     implicitWidth: KanteStyle.active ? callout.implicitWidth : systemRow.implicitWidth
     implicitHeight: KanteStyle.active ? callout.implicitHeight : systemRow.implicitHeight
 
@@ -52,6 +54,9 @@ Item {
         } else if (root.unsynced > 0) {
             parts.push(i18np("%1 change not synced yet", "%1 changes not synced yet", root.unsynced))
         }
+        if (root.held > 0) {
+            parts.push(ApiErrors.heldStatusText(root.held))
+        }
         if (root.storageProblem) {
             parts.push(ApiErrors.storageText(root.storageError))
         }
@@ -64,11 +69,11 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         visible: KanteStyle.active
-        kind: root.stuck > 0 || root.storageProblem ? KanteCallout.Kind.Warn : KanteCallout.Kind.Info
+        kind: root.stuck > 0 || root.held > 0 || root.storageProblem ? KanteCallout.Kind.Warn : KanteCallout.Kind.Info
         text: root.text()
 
         Controls.Button {
-            visible: root.showDetails && root.unsynced > 0
+            visible: root.showDetails && (root.unsynced > 0 || root.held > 0)
             text: i18n("Show")
             onClicked: root.detailsRequested()
         }
@@ -84,7 +89,7 @@ Item {
             Layout.alignment: Qt.AlignVCenter
             implicitWidth: Kirigami.Units.iconSizes.small
             implicitHeight: Kirigami.Units.iconSizes.small
-            source: root.stuck > 0 || root.storageProblem ? "dialog-warning" : (root.offline ? "network-disconnect" : "view-refresh")
+            source: root.stuck > 0 || root.held > 0 || root.storageProblem ? "dialog-warning" : (root.offline ? "network-disconnect" : "view-refresh")
         }
 
         Controls.Label {
@@ -92,11 +97,11 @@ Item {
             Layout.alignment: Qt.AlignVCenter
             text: root.text()
             wrapMode: Text.WordWrap
-            color: root.stuck > 0 || root.storageProblem ? KanteStyle.negativeTextColor : KanteStyle.textColor
+            color: root.stuck > 0 || root.held > 0 || root.storageProblem ? KanteStyle.negativeTextColor : KanteStyle.textColor
         }
 
         Controls.Button {
-            visible: root.showDetails && root.unsynced > 0
+            visible: root.showDetails && (root.unsynced > 0 || root.held > 0)
             text: i18n("Show")
             onClicked: root.detailsRequested()
         }

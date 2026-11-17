@@ -57,7 +57,7 @@ QtObject {
     /** Their number. */
     readonly property int held: revision >= 0 && state ? Offline.heldCount(state) : 0
     /** Something to show in the status line. */
-    readonly property bool visible: offline || unsynced > 0 || held > 0 || storageError !== OfflineState.StorageError.NONE
+    readonly property bool showStatus: offline || unsynced > 0 || held > 0 || storageError !== OfflineState.StorageError.NONE
 
     /** Opens the outbox of `p` (resolves once loaded); the same profile keeps its session. */
     function openFor(p) {

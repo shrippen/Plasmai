@@ -9,6 +9,8 @@ import "../../contents/ui" as Ui
  */
 TestCase {
     name: "UnsyncedGroups"
+    visible: true
+    when: windowShown
     width: 400
     height: 600
 

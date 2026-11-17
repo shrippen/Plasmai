@@ -561,7 +561,7 @@ function retarget(s) {
 function verify(s) {
     var url = s.host.url()
     var token = s.host.token()
-    if (!s.enabled || !Owner.serverOf(url) || !token) {
+    if (!s.enabled || s.closed || !Owner.serverOf(url) || !token) {
         return Promise.resolve("")
     }
     if (s.verifying && s.verifying.url === url && s.verifying.token === token) {
