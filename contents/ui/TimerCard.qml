@@ -260,10 +260,10 @@ Rectangle {
                         text: {
                             var bits = []
                             if (session.totals.todayTargetSeconds > 0) {
-                                bits.push(view.remainingTodayText())
+                                bits.push(EntryTexts.leftToday(session.totals.remainingTodaySeconds))
                             }
                             if (session.totals.weekTargetSeconds > 0) {
-                                bits.push(view.remainingWeekText())
+                                bits.push(EntryTexts.leftWeek(session.totals.remainingWeekSeconds))
                             }
                             return bits.join(" · ")
                         }

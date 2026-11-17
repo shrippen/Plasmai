@@ -76,10 +76,11 @@ view ──binds / calls──▶ Session (contents/ui/Session.qml, QtQml only)
   │ started / stopped     ├─ catalog     customers, projects, activities, picker models
   │ trackingBegan         ├─ timer       running entry, start/switch/stop/continue, description
   │ droppedFields         ├─ recent · favorites
-  │                       ├─ entries     write, edit, remove, split, createEntity, ranges, tags
+  │ entriesWritten        ├─ entries     write, edit, remove, split, createEntity, ranges, tags
   └── words them          ├─ totals      today, week, targets, live and remaining
      (i18n, notices)      ├─ sync        offline outbox and its ops
                           ├─ filmDay · trips   plugin probes and calls
+                          ├─ stats       loaded range of entries and trips for the statistics
                           ├─ reminders   idle, forgot to start, notify
                           └─ setup       system check, connection test, place search
                                  │

@@ -380,7 +380,7 @@ ColumnLayout {
                         if (secs > 0) {
                             bits.push(KimaiApi.formatDurationShort(secs))
                         }
-                        bits.push(view.formatRelativeTime(ts.end || ts.begin))
+                        bits.push(EntryTexts.ago(ts.end || ts.begin))
                         return bits.join(" · ")
                     }
                     rowEnabled: session.connection.configured && !session.locked && view.connectionState !== "error"

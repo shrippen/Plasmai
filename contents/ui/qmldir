@@ -1,5 +1,6 @@
 singleton PlasmaiColors 1.0 PlasmaiColors.qml
 singleton ApiErrors 1.0 ApiErrors.qml
+singleton EntryTexts 1.0 EntryTexts.qml
 singleton TouchUi 1.0 TouchUi.qml
 ColorLabelRow 1.0 ColorLabelRow.qml
 CustomerColorDot 1.0 CustomerColorDot.qml

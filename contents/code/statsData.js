@@ -532,6 +532,48 @@ function tripKmSummary(trips, nowDate) {
     }
 }
 
+/** Weeks prefetched before the current one when the statistics open. */
+var PREFETCH_WEEKS = 4
+
+/**
+ * What to fetch so the loaded range [loadedBeginMs, loadedEndMs] also covers [begin, end]:
+ * null when it does, else { begin, end } in whole weeks, grown from the loaded range.
+ * An empty list or no loaded range counts as nothing loaded.
+ */
+function missingSpan(loadedBeginMs, loadedEndMs, loadedCount, begin, end) {
+    var bMs = begin.getTime()
+    var eMs = end.getTime()
+    var loaded = !!(loadedBeginMs && loadedEndMs && loadedCount > 0)
+    if (loaded && bMs >= loadedBeginMs && eMs <= loadedEndMs) {
+        return null
+    }
+    var from = loaded && loadedBeginMs < bMs ? loadedBeginMs : bMs
+    var to = loaded && loadedEndMs > eMs ? loadedEndMs : eMs
+    return { begin: startOfWeek(new Date(from)), end: endOfWeek(new Date(to)) }
+}
+
+/** The range the statistics prefetch when they open: PREFETCH_WEEKS weeks back to this week's end. */
+function prefetchSpan(now) {
+    var begin = startOfWeek(now)
+    begin.setDate(begin.getDate() - 7 * PREFETCH_WEEKS)
+    return { begin: begin, end: endOfWeek(now) }
+}
+
+/**
+ * The loaded entries with the entries of one week replaced by weekEntries: what a
+ * later answer for that week brings, without touching the older weeks around it.
+ */
+function replaceWeek(timesheets, weekEntries, weekBeginMs, weekEndMs) {
+    var out = []
+    for (var i = 0; i < timesheets.length; i++) {
+        var ms = DTF.parseStamp(timesheets[i].begin).getTime()
+        if (ms < weekBeginMs || ms > weekEndMs) {
+            out.push(timesheets[i])
+        }
+    }
+    return out.concat(weekEntries)
+}
+
 /** { from, to } covering this week and this month (weeks can reach into the previous/next month). */
 function tripRangeFor(nowDate) {
     var now = nowDate || new Date()

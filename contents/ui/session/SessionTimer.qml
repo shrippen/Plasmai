@@ -1,6 +1,7 @@
 import QtQml
 import "../../code/kimaiApi.js" as KimaiApi
 import "../../code/timerSession.js" as TimerSession
+import "../../code/providerUtil.js" as ProviderUtil
 import "../../code/dateTimeFormat.js" as DTF
 import ".." as Ui
 
@@ -160,6 +161,7 @@ QtObject {
             session.started(result.data, Ui.Session.Origin.Start, { project: projectLabel || "", activity: activityLabel || "" })
             rememberLastUsed(projectId, activityId, projectLabel, activityLabel)
             apply(session.catalog.hydrate([result.data])[0] || result.data)
+            session.entriesWritten()
             session.refresh()
         }, extras || {})
         return Ui.Session.Restart.Started
@@ -179,12 +181,14 @@ QtObject {
                                  { projectId: projectId, activityId: activityId, description: description, extras: extras }, {
             stopped: function() {
                 apply(null)
+                session.entriesWritten()
             },
             started: function(ts) {
                 session.busy = false
                 session.started(ts, Ui.Session.Origin.Switch, { project: projectLabel || "", activity: activityLabel || "" })
                 rememberLastUsed(projectId, activityId, projectLabel, activityLabel)
                 apply(session.catalog.hydrate([ts])[0] || ts)
+                session.entriesWritten()
                 session.refresh()
             },
             failed: function(phase, result) {
@@ -215,9 +219,13 @@ QtObject {
             }
             session.stopped(before, names)
             apply(null)
+            session.entriesWritten()
             session.refresh()
         })
     }
+
+    /** Errors that say the server looked at the restart and refused it. */
+    readonly property var refusals: [ProviderUtil.ErrorType.Forbidden, ProviderUtil.ErrorType.NotFound, ProviderUtil.ErrorType.InvalidInput]
 
     /** Restarts a stopped entry (same project, activity, description). */
     function continueEntry(ts) {
@@ -228,6 +236,9 @@ QtObject {
         session.busy = true
         c.tracker.restartTimesheet(c.url, c.token, ts.id, function(result) {
             session.busy = false
+            if (!result.ok && startAnew(ts, result)) {
+                return
+            }
             if (!result.ok) {
                 session.failed(Ui.Session.Action.Continue, result)
             }
@@ -237,9 +248,32 @@ QtObject {
                 session.started(entry, Ui.Session.Origin.Continue,
                                 { project: KimaiApi.projectName(entry), activity: KimaiApi.activityName(entry) })
                 apply(entry)
+                session.entriesWritten()
             }
             session.refresh()
         })
+    }
+
+    /**
+     * A refused restart (rights, a service that cannot do it) starts a new entry with the
+     * same project, activity and description, so work goes on. Only a clear refusal counts;
+     * network, offline, 5xx or unknown may follow a restart that arrived (a proxy's 502
+     * after Kimai restarted the entry), and a second entry would double it. True when a start was made.
+     */
+    function startAnew(ts, result) {
+        const type = result.error ? result.error.type : ""
+        if (refusals.indexOf(type) < 0) {
+            return false
+        }
+        const projectId = KimaiApi.projectId(ts)
+        const activityId = KimaiApi.activityId(ts)
+        if (!projectId || !activityId) {
+            return false
+        }
+        start(projectId, activityId, KimaiApi.displayProjectName(ts, session.catalog.projects),
+              KimaiApi.displayActivityName(ts, session.catalog.activities, session.catalog.activitiesByProject),
+              ts.description || "")
+        return true
     }
 
     /**
@@ -309,6 +343,7 @@ QtObject {
                 return
             }
             session.noteDropped(result)
+            session.entriesWritten()
             session.refresh()
             if (done) {
                 done()

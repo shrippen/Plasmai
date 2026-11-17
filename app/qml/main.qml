@@ -81,20 +81,12 @@ Kirigami.ApplicationWindow {
     // Shown at once by the setup wizard's Look step and the settings page.
     readonly property int visualStyle: session.settings.visualStyle
 
-    function timesheetSummaryText(ts) {
-        if (!ts) return ""
-        var bits = [KimaiApi.displayProjectName(ts, session.catalog.projects), KimaiApi.displayActivityName(ts, session.catalog.activities, session.catalog.activitiesByProject)]
-        var begin = DTF.parseStamp(ts.begin)
-        if (!isNaN(begin.getTime())) bits.push(begin.toLocaleDateString(Qt.locale(), Locale.ShortFormat) + " " + begin.toLocaleTimeString(Qt.locale(), Locale.ShortFormat))
-        return bits.filter(function(b) { return !!b }).join(" · ")
-    }
-
     /** Trip page for a new trip, or linked to a Kimai entry (Recent row, running entry, travel film day). */
     function openTripForTimesheet(ts) {
         if (!session.trips.canEdit) return
         pageStack.push(tripEditPageComponent, {
             form: ts ? Mileage.formForTimesheet(session.trips.ping, ts, KimaiApi.projectId) : Mileage.emptyForm(session.trips.ping, Mileage.dateString(new Date())),
-            linkedText: timesheetSummaryText(ts)
+            linkedText: EntryTexts.summary(ts, session.catalog)
         })
     }
 
@@ -217,9 +209,6 @@ Kirigami.ApplicationWindow {
     property bool descriptionSavedFlash: false
     property var pendingSwitchTimesheet: null
 
-    function remainingTodayText() { var r = session.totals.remainingTodaySeconds; return r >= 0 ? i18n("%1 left today", KimaiApi.formatDurationShort(r)) : i18n("%1 over today", KimaiApi.formatDurationShort(-r)) }
-    function remainingWeekText() { var r = session.totals.remainingWeekSeconds; return r >= 0 ? i18n("%1 left this week", KimaiApi.formatDurationShort(r)) : i18n("%1 over this week", KimaiApi.formatDurationShort(-r)) }
-
     Timer { id: alreadyRunningHintTimer; interval: 1400; repeat: false; onTriggered: root.alreadyRunningHintKey = "" }
     // Only while the window shows (the tray client hides it); catches up when shown again.
     Timer { id: sparklineTimer; interval: 30000; running: root.session.connection.configured && root.visible; repeat: true; triggeredOnStart: true; onTriggered: root.sparklineNowTick++ }
@@ -291,10 +280,10 @@ Kirigami.ApplicationWindow {
             reportWriteError(result, i18n("Could not split the entry"))
             return
         case Session.Action.SplitRange:
-            showPassiveNotification(i18n("Split time must be between begin and end."))
+            showPassiveNotification(EntryTexts.splitRange)
             return
         case Session.Action.SplitSecond:
-            showPassiveNotification(i18n("The first half was saved, but the second half could not be created."))
+            showPassiveNotification(EntryTexts.splitSecond)
             return
         default:
             // Refresh: the connection line and its retry show it.
@@ -331,21 +320,6 @@ Kirigami.ApplicationWindow {
     }
 
     function formatElapsed(sec) { var h = Math.floor(sec / 3600); var m = Math.floor((sec % 3600) / 60); if (h > 0) return i18n("%1h %2m", h, m); return i18n("%1m %2s", m, sec % 60) }
-
-    function formatRelativeTime(isoDate) {
-        if (!isoDate) return ""
-        var date = DTF.parseStamp(isoDate); if (isNaN(date.getTime())) return ""
-        var diffSec = Math.floor((Date.now() - date.getTime()) / 1000)
-        if (diffSec < 60) return i18n("just now")
-        var diffMin = Math.floor(diffSec / 60)
-        if (diffMin < 60) return i18n("%1m ago", diffMin)
-        var diffHour = Math.floor(diffMin / 60)
-        if (diffHour < 24) return i18n("%1h ago", diffHour)
-        var diffDay = Math.floor(diffHour / 24)
-        if (diffDay === 1) return i18n("yesterday")
-        return i18n("%1d ago", diffDay)
-    }
-
 
     /** Android Back, decided once per press (AndroidBackFilter in main.cpp): "handled" when it
      *  closed a drawer here, "pass" for Qt/Kirigami (an open dialog or menu, a subpage to go

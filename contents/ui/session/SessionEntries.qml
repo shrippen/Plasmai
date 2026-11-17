@@ -21,6 +21,7 @@ QtObject {
         const done = function(result) {
             if (result.ok) {
                 session.noteDropped(result)
+                session.entriesWritten()
                 session.refresh()
             } else {
                 session.failed(Ui.Session.Action.Save, result)
@@ -48,6 +49,7 @@ QtObject {
                 return
             }
             session.noteDropped(result)
+            session.entriesWritten()
             session.refresh()
         })
     }
@@ -65,6 +67,7 @@ QtObject {
                 session.failed(Ui.Session.Action.Delete, result)
                 return
             }
+            session.entriesWritten()
             session.refresh()
             if (done) {
                 done()
@@ -101,6 +104,7 @@ QtObject {
             }
             c.tracker.createTimesheet(c.url, c.token, twin, function(second) {
                 session.busy = false
+                session.entriesWritten()
                 if (!second.ok) {
                     session.failed(Ui.Session.Action.SplitSecond, second)
                 }

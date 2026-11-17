@@ -11,3 +11,4 @@ SessionFilmDay 1.0 SessionFilmDay.qml
 SessionTrips 1.0 SessionTrips.qml
 SessionReminders 1.0 SessionReminders.qml
 SessionSetup 1.0 SessionSetup.qml
+SessionStats 1.0 SessionStats.qml

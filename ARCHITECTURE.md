@@ -16,9 +16,9 @@ favourites, statistics, offline work; for Kimai also film days and trips.
 | Path | Its one task |
 |---|---|
 | `contents/ui/main.qml` and the files only it uses | The widget: panel chip and popup. It keeps view state and words the session's signals. |
-| `contents/ui/` (other files) | Components the widget and the app share: views and editors, pickers, fields, charts, rows, the setup wizard, `ApiErrors` (error kinds to texts), `PlasmaiColors`. |
+| `contents/ui/` (other files) | Components the widget and the app share: views and editors, pickers, fields, charts, rows, the setup wizard, `ApiErrors` (error kinds to texts), `EntryTexts` (the texts about entries and the day both show), `PlasmaiColors`. |
 | `contents/ui/config/`, `contents/config/` | The widget's settings pages; the description of its settings with their defaults (`main.xml`). |
-| `contents/ui/Session.qml`, `contents/ui/session/` | The session layer: everything a view needs of the tracker, without a view and without texts. One file per part (connection, settings, catalog, timer, entries, totals, sync, film day, trips, reminders, setup). |
+| `contents/ui/Session.qml`, `contents/ui/session/` | The session layer: everything a view needs of the tracker, without a view and without texts. One file per part (connection, settings, catalog, timer, entries, totals, sync, film day, trips, statistics, reminders, setup). |
 | `contents/code/timeTracker.js`, `kimaiApi.js`, `providers/`, `providerUtil.js` | The providers: the registry with each provider's capabilities, one file per service, and what they share (request, answer, error kinds). |
 | `contents/code/offline.js` | The offline layer's session: wraps the tracker so reads and writes work without network. |
 | `contents/code/offlineState.js` | The stored state of that layer: the snapshot of server answers on disk and the overlay of waiting changes on it. |
@@ -101,9 +101,7 @@ favourites, statistics, offline work; for Kimai also film days and trips.
 
 ## Known deviations
 
-- Several texts exist once in the widget and once in the app; the film day's and the
-  trips' flows stand once, in the session (`AUDIT.md`, finding 4; statistics follow).
 - `kimaiApi.js` holds, beside Kimai's requests, the display helpers and the day's
   calculation every service needs (`AUDIT.md`, finding 5).
-- `contents/ui/main.qml` holds the view and the loading of statistics in
-  one file of 2951 lines (`AUDIT.md`, finding 10).
+- `contents/ui/main.qml` is one file of 2787 lines, still over the size limit; film day,
+  trips, statistics and the shared texts have left it (`AUDIT.md`, finding 10).

@@ -2,7 +2,7 @@ import QtQuick
 import QtTest
 import "../qml"
 
-/** StatsPage (app/qml): an answer that arrives after the page is gone touches nothing. */
+/** StatsPage (app/qml): shows the session's statistics part and leaves nothing behind when closed. */
 TestCase {
     id: tc
     name: "StatsPageClosed"
@@ -18,13 +18,13 @@ TestCase {
         Item {
             id: root
             property QtObject session: QtObject {
-                property var trips: QtObject {
-                    property bool available: true
-                    property var ping: ({})
-                    function fetch(range, cb) { tc.pending.push(cb) }
-                }
-                property var entries: QtObject {
-                    function fetchRange(begin, end, cb) { tc.pending.push(cb) }
+                property var stats: QtObject {
+                    property var timesheets: []
+                    property var trips: null
+                    property bool loading: false
+                    function open() { tc.pending.push("open") }
+                    function load(begin, end) { tc.pending.push([begin, end]) }
+                    function forget() {}
                 }
                 property var connection: QtObject { property bool configured: true; property var capabilities: ({}) }
                 property var catalog: QtObject { property var customersById: ({}) }
@@ -41,30 +41,25 @@ TestCase {
         }
     }
 
-    /** Opens the page, lets `open` start requests, destroys it, calls the stored answers; returns what they threw. */
-    function lateAnswers(open, answer) {
+    // The page loads through the session and shows what it holds; it keeps nothing of its own.
+    function test_page_opens_the_session_part() {
+        pending = []
         const h = createTemporaryObject(host, tc)
         const obj = h.pageComponent.createObject(h)
         verify(obj !== null)
-        pending = []
-        open(obj)
-        verify(pending.length > 0)
+        verify(pending.indexOf("open") >= 0)
         obj.destroy()
         wait(0)
-
-        const thrown = []
-        for (const cb of pending.splice(0)) {
-            try { cb(answer) } catch (e) { thrown.push(String(e)) }
-        }
-        return thrown
     }
 
-    function test_late_trips_answer_does_not_throw() {
-        compare(lateAnswers(function(p) { p.loadTrips() }, { ok: true, data: [] }), [])
-    }
-
-    function test_late_range_answer_does_not_throw() {
-        const now = new Date()
-        compare(lateAnswers(function(p) { p.loadRange(new Date(now.getTime() - 1e9), now) }, { ok: true, data: [] }), [])
+    // A page that is gone leaves the part usable: no callback of the page is left to throw.
+    function test_page_leaves_no_callbacks() {
+        const h = createTemporaryObject(host, tc)
+        const obj = h.pageComponent.createObject(h)
+        obj.destroy()
+        wait(0)
+        h.session.stats.timesheets = [{ id: 1 }]
+        h.session.stats.trips = []
+        h.session.stats.loading = true
     }
 }
