@@ -110,7 +110,16 @@ TestCase {
         plasmoid.configuration.profilesJson = shared.profilesJson
         plasmoid.configuration.activeProfileId = "demo"
         const page = open(favoritesPage)
+        // pageEntered starts the page's own load (timer, then fetch). Let it end first: its late
+        // answer would otherwise reset activityRowModel and loadingActivities under the steps below.
+        tryVerify(function() { return page.session.catalog.cached("demo") !== null }, 5000)
+        tryCompare(page, "loadingProjects", false)
+        tryCompare(page, "loadingActivities", false)
+        CatalogCache.clear()
+        catalogText = ""
+
         page.loadProjects(true)
+        tryVerify(function() { return catalogText.length > 0 }, 5000)
         tryVerify(function() { return page.availableProjects.length > 0 }, 5000)
         tryCompare(page, "loadingActivities", false)
         verify(page.allActivities.length > 0)
