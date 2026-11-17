@@ -54,6 +54,13 @@ private slots:
     // A broken file is moved aside under <name>.broken-<time>, never deleted.
     void quarantineMovesAside()
     {
+        const QString dir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)
+            + QStringLiteral("/app");
+        // Leftovers of an earlier run (the test location persists).
+        for (const QString &old : QDir(dir).entryList({QStringLiteral("garbled.*")}, QDir::Files)) {
+            QFile::remove(dir + "/" + old);
+        }
+
         FileStore store;
         QSignalSpy saved(&store, &FileStore::localSaved);
         store.saveLocal(QStringLiteral("garbled"), QStringLiteral("{not json"));
@@ -63,8 +70,6 @@ private slots:
         store.quarantineLocal(QStringLiteral("garbled"));
         QVERIFY(moved.takeFirst().at(1).toBool());
 
-        const QString dir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)
-            + QStringLiteral("/app");
         QVERIFY(!QFile::exists(dir + QStringLiteral("/garbled.json")));
         const QStringList kept = QDir(dir).entryList({QStringLiteral("garbled.broken-*")}, QDir::Files);
         QCOMPARE(kept.size(), 1);
