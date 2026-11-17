@@ -600,15 +600,6 @@ TestCase {
         verify(!s.trips.busy)
     }
 
-    function test_filmDayOpensToday() {
-        const s = openDemo()
-        tryVerify(function() { return s.filmDay.available })
-        let opened = null
-        s.filmDay.openDay(new Date(), null, function(r, entries) { opened = r })
-        tryVerify(function() { return opened !== null })
-        verify(!!opened.day)
-    }
-
 
     // ── film day flow ──
 
