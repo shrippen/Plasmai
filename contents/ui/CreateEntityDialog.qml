@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
-import "../code/kimaiApi.js" as KimaiApi
+import "../code/providerUtil.js" as ProviderUtil
 import "."
 import "Kante"
 import "Controls" as Controls
@@ -27,7 +27,7 @@ Controls.FormDialog {
             rows.push({
                 id: c.id,
                 name: c.name || "",
-                color: KimaiApi.normalizeCustomerColor(c.color)
+                color: ProviderUtil.normalizeCustomerColor(c.color)
             })
         }
         return rows
