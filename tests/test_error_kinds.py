@@ -46,3 +46,10 @@ def test_missing_input_is_not_reported_as_missing_access():
     assert branch, "ApiErrors.qml has no branch for ErrorType.InvalidInput"
     assert "API token" not in branch.group(0)
     assert "error.detail" in branch.group(0)
+
+
+def test_access_check_stands_apart_from_id_check():
+    """Address and token missing is NotConfigured, an id missing InvalidInput: two checks."""
+    combined = re.compile(r"!\w*[uU]rl\s*\|\|\s*!\w*[tT]oken\s*\|\|")
+    found = [path.relative_to(ROOT).as_posix() for path, text in sources() if combined.search(text)]
+    assert not found, f"one check for address, token and more: {found}"

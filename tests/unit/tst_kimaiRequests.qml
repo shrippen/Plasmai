@@ -136,6 +136,32 @@ TestCase {
         compare(requests.length, 0)
     }
 
+    function test_missingIdIsNotMissingAccess() {
+        var got = null
+        var keep = function(r) { got = r }
+        var cases = [
+            function() { KimaiApi.loadActivities("http://k", "t", "", keep) },
+            function() { KimaiApi.stopTracking("http://k", "t", "", keep) },
+            function() { KimaiApi.restartTimesheet("http://k", "t", "", keep) },
+            function() { KimaiApi.patchTimesheet("http://k", "t", "", {}, keep) },
+            function() { KimaiApi.deleteTimesheet("http://k", "t", "", keep) },
+            function() { KimaiApi.patchTrip("http://k", "t", "", {}, keep) },
+            function() { KimaiApi.deleteTrip("http://k", "t", "", keep) }
+        ]
+        for (var i = 0; i < cases.length; i++) {
+            got = null
+            cases[i]()
+            compare(got.error.type, ProviderUtil.ErrorType.InvalidInput, "case " + i)
+            verify(got.error.detail.length > 0, "case " + i)
+        }
+        // Without address or token it stays a connection problem, id or not.
+        KimaiApi.deleteTimesheet("", "t", "5", keep)
+        compare(got.error.type, ProviderUtil.ErrorType.NotConfigured)
+        KimaiApi.deleteTimesheet("http://k", "", "", keep)
+        compare(got.error.type, ProviderUtil.ErrorType.NotConfigured)
+        compare(requests.length, 0)
+    }
+
     function extraFieldsBody() {
         return {
             code: 400, message: "Validation Failed",

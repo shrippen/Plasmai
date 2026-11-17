@@ -490,6 +490,22 @@ TestCase {
         compare(Offline.pendingCount(s2), 0)
     }
 
+    function test_outboxOfAnOlderVersionKeepsItsSetupError() {
+        // Before the error kinds moved into ErrorType, a refused op stored "config".
+        var h = fakeHost()
+        h.files["offline-outbox-p1"] = JSON.stringify({ v: 1, counter: 1, ops: [
+            { id: 1, kind: "create", state: "failed", fields: {}, error: { type: "config", status: 0, detail: "" } },
+            { id: 2, kind: "create", state: "failed", fields: {}, error: { type: "unknown", status: 400, detail: "no" } }
+        ] })
+        var s = session(fakeKimai(), h)
+        var loaded = false
+        Offline.load(s).then(function() { loaded = true })
+        tryVerify(function() { return loaded })
+        var ops = Offline.ops(s)
+        compare(ops[0].error.type, ProviderUtil.ErrorType.NotConfigured)
+        compare(ops[1].error.type, ProviderUtil.ErrorType.Unknown)
+    }
+
     function test_writesWaitBehindQueueOnline() {
         var k = fakeKimai()
         var s = session(k)

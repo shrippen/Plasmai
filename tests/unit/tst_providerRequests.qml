@@ -591,6 +591,37 @@ TestCase {
         }
     }
 
+    function test_missingIdIsNotMissingAccess() {
+        // Address and token are fine: only the id of the entry or project is empty.
+        var all = services()
+        var calls = [
+            { fn: "stopTracking", args: [""] },
+            { fn: "restartTimesheet", args: [""] },
+            { fn: "patchTimesheet", args: ["", {}] },
+            { fn: "deleteTimesheet", args: [""] },
+            { fn: "loadActivities", args: [""] }
+        ]
+        var checked = 0
+        for (var i = 0; i < all.length; i++) {
+            var svc = all[i]
+            svc.preset()
+            for (var c = 0; c < calls.length; c++) {
+                if (!svc.mod[calls[c].fn] || (svc.name === "clockify" && calls[c].fn === "stopTracking")) {
+                    continue
+                }
+                requests = []
+                var r = call(svc, calls[c].fn, [svc.url, "tok"].concat(calls[c].args))
+                var label = svc.name + " " + calls[c].fn
+                verify(!r.ok, label)
+                compare(r.error.type, Util.ErrorType.InvalidInput, label)
+                verify(r.error.detail.length > 0, label + ": detail names the id")
+                compare(requests.length, 0, label)
+                checked++
+            }
+        }
+        verify(checked >= 12, "checked " + checked)
+    }
+
     function test_togglContextNotFoundCountsAsEmpty() {
         // 404 on /me reads as an empty answer, so the context stays unresolved.
         Toggl.setSession({ workspaceId: 0, userId: 0 })
