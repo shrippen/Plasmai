@@ -164,4 +164,21 @@ TestCase {
         open(sync, profA, "http://a.test")
         tryCompare(sync, "unsynced", 1)
     }
+
+    // A write sent online when the profile is left, then no network: it is queued in the file of
+    // the profile it belongs to at once (the process may end before the profile is opened again).
+    function test_changeQueuedAfterLeavingIsWritten() {
+        files[fileA].ops = []
+        const sync = createTemporaryObject(syncComponent, this)
+        open(sync, profA, "http://a.test")
+        let answered = false
+        sync.state.tracker.createTimesheet("http://a.test", "tok",
+            { begin: "2026-09-28T09:00:00+0200", end: "2026-09-28T10:00:00+0200", project: 1, activity: 2 },
+            function() { answered = true })
+        compare(posts.length, 1)
+        open(sync, profB, "http://b.test")
+        held.shift().deliver(0, "")
+        tryVerify(function() { return answered })
+        compare(files[fileA].ops.length, 1)
+    }
 }
