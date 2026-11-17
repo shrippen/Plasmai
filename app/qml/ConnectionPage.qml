@@ -84,7 +84,7 @@ Kirigami.Page {
         profiles = Profiles.withProvider(profiles, selectedIndex, providerId, url)
         syncProfiles()
         updatingFields = true
-        urlField.text = url
+        urlField.text = profiles[selectedIndex].url || ""
         updatingFields = false
         showStatus("", false)
     }

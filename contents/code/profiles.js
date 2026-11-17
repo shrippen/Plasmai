@@ -118,6 +118,10 @@ function withProvider(profiles, index, providerId, defaultUrl) {
     if (!validIndex(profiles, index)) {
         return profiles
     }
+    // The same service picked again (a ComboBox reports that too): nothing changes.
+    if (profiles[index].provider === providerId) {
+        return profiles
+    }
     var copy = profiles.slice()
     copy[index] = Object.assign({}, copy[index], {
         provider: providerId,

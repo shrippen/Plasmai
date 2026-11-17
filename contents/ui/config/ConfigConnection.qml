@@ -190,7 +190,7 @@ ConfigPage {
         syncProfiles()
 
         updatingFields = true
-        kimaiUrlField.text = url
+        kimaiUrlField.text = profiles[selectedIndex].url || ""
         updatingFields = false
         showStatus("", false)
     }

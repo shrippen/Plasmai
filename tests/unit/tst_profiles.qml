@@ -109,6 +109,16 @@ TestCase {
         compare(Profiles.withProvider(list, 3, "toggl", "").length, 1)
     }
 
+    // Picking the service a profile already has (ComboBox.activated fires for it too) keeps its address and ids.
+    function test_withSameProviderKeepsProfile() {
+        const json = '[{"id":"a","provider":"kimai","url":"https://k","workspaceId":"w","userId":"u","organizationId":"o","memberId":"m"}]'
+        const list = Profiles.parseProfiles(json, "")
+        const out = Profiles.withProvider(list, 0, "kimai", "")
+        compare(out[0].url, "https://k")
+        compare(out[0].workspaceId, "w")
+        compare(out[0].memberId, "m")
+    }
+
     function test_withNewProfile() {
         var list = Profiles.parseProfiles('[{"id":"a","name":"Profile 2"}]', "")
         var out = Profiles.withNewProfile(list, function(n) { return "Profile " + n })
