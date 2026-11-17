@@ -87,7 +87,7 @@ favourites, statistics, offline work; for Kimai also film days and trips.
 | A new action or state of the tracker | A part in `contents/ui/session/` (a new part also in its `qmldir`, as a property in `Session.qml` and in `app/plasmai-app.qrc`), a test in `tests/unit/`; then the views of widget and app |
 | A new call to a service | The provider file; for all services also `timeTracker.js` with a capability flag |
 | A new service | `contents/code/providers/<name>.js`, its entry in `timeTracker.js` |
-| A new shared setting | `contents/code/sharedConfig.js`, `contents/config/main.xml`, until it reads them from there also `contents/ui/session/SessionSettings.qml`; a settings page in `contents/ui/config/` and `app/qml/SettingsPage.qml` |
+| A new shared setting | `contents/code/sharedConfig.js`, `contents/config/main.xml`, a property in `contents/ui/session/SessionSettings.qml` and its key in `SESSION_KEYS` if the session reads it, a range in `LIMITS` for a number; a settings page in `contents/ui/config/` and `app/qml/SettingsPage.qml` |
 | Something both widget and app show | A component in `contents/ui/` (listed in `app/qml/contents-ui.qmldir` and `app/plasmai-app.qrc`) |
 | A calculation or a format | The file for its topic in `contents/code/`, with a test |
 | Something the system does (file, token, notification) | `platform.js` and both backends |
@@ -98,9 +98,6 @@ favourites, statistics, offline work; for Kimai also film days and trips.
 
 ## Known deviations
 
-- The defaults of the settings stand in three places and differ already
-  (`AUDIT.md`, finding 3); the working day's default stands also in `kimaiApi.js` and
-  `SetupWizard.qml` (not in `AUDIT.md`).
 - The film day's flow and several texts exist once in the widget and once in the
   app (`AUDIT.md`, finding 4).
 - `kimaiApi.js` holds, beside Kimai's requests, the display helpers and the day's

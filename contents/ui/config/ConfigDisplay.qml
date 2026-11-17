@@ -259,10 +259,10 @@ ConfigPageBase {
 
     function applyCfgToControls() {
         suppressNotify = true
-        refreshIntervalSpin.value = SharedConfig.coerceInt(
-            page.cfg_refreshInterval, page.cfg_refreshIntervalDefault || 30, 10, 300)
-        recentCountSpin.value = SharedConfig.coerceInt(
-            page.cfg_recentCount, page.cfg_recentCountDefault || 10, 3, 25)
+        refreshIntervalSpin.value = SharedConfig.limitInt("refreshInterval",
+            page.cfg_refreshInterval, page.cfg_refreshIntervalDefault || SharedConfig.DEFAULTS.refreshInterval)
+        recentCountSpin.value = SharedConfig.limitInt("recentCount",
+            page.cfg_recentCount, page.cfg_recentCountDefault || SharedConfig.DEFAULTS.recentCount)
         if (page.cfg_workDayBegin) {
             workDayBeginField.text = page.cfg_workDayBegin
         }
@@ -331,12 +331,12 @@ ConfigPageBase {
         // applying shared.json early makes isConfigurationChanged() false and
         // hides the user's checks before they can click Apply.
         if (typeof shared.refreshInterval !== "undefined") {
-            refreshIntervalSpin.value = SharedConfig.coerceInt(
-                shared.refreshInterval, refreshIntervalSpin.value, 10, 300)
+            refreshIntervalSpin.value = SharedConfig.limitInt("refreshInterval",
+                shared.refreshInterval, refreshIntervalSpin.value)
         }
         if (typeof shared.recentCount !== "undefined") {
-            recentCountSpin.value = SharedConfig.coerceInt(
-                shared.recentCount, recentCountSpin.value, 3, 25)
+            recentCountSpin.value = SharedConfig.limitInt("recentCount",
+                shared.recentCount, recentCountSpin.value)
         }
         if (typeof shared.workDayBegin === "string" && shared.workDayBegin.length > 0) {
             workDayBeginField.text = shared.workDayBegin
@@ -538,8 +538,8 @@ ConfigPageBase {
                 QQC2.SpinBox {
                     id: refreshIntervalSpin
                     Kirigami.FormData.label: i18n("Refresh interval (seconds):")
-                    from: 10
-                    to: 300
+                    from: SharedConfig.LIMITS.refreshInterval.min
+                    to: SharedConfig.LIMITS.refreshInterval.max
                     stepSize: 5
                     onValueChanged: page.notifyEdited()
                 }
@@ -941,8 +941,8 @@ ConfigPageBase {
                 QQC2.SpinBox {
                     id: recentCountSpin
                     Kirigami.FormData.label: i18n("Activities shown:")
-                    from: 3
-                    to: 25
+                    from: SharedConfig.LIMITS.recentCount.min
+                    to: SharedConfig.LIMITS.recentCount.max
                     stepSize: 1
                     onValueChanged: page.notifyEdited()
                 }

@@ -216,7 +216,7 @@ PlasmoidItem {
     readonly property color currentCustomerColor: session.timer.colorInfo.color
 
     readonly property int recentVisibleCount: Math.min(
-        Math.max(1, session.settings.recentCount),
+        Math.max(SharedConfig.LIMITS.recentCount.min, session.settings.recentCount),
         session.recent.list.length)
     readonly property int favoritesVisibleCount: compactPopupLayout
         ? Math.min(session.favorites.pinned.length, 6)
@@ -340,7 +340,7 @@ PlasmoidItem {
     // An action's error shows until the next poll that finds the server (as before the layer).
     Timer {
         id: actionErrorTimer
-        interval: Math.max(10, root.session.settings.refreshInterval) * 1000
+        interval: Math.max(SharedConfig.LIMITS.refreshInterval.min, root.session.settings.refreshInterval) * 1000
         repeat: false
         onTriggered: {
             if (root.session.connection.state === root.session.connection.online) {

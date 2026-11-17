@@ -52,7 +52,7 @@ contents/ui/FilmDayView.qml	applyLoadedDay	ccn=16
 contents/ui/ScreenshotRunner.qml	(anonymous)	nesting=10
 contents/ui/ScreenshotRunner.qml	step	ccn=30 length=135 nesting=15
 contents/ui/SearchableCombo.qml	Keys.onPressed	nesting=5
-contents/ui/SetupWizard.qml	-	lines=898
+contents/ui/SetupWizard.qml	-	lines=899
 contents/ui/config/ConfigDisplay.qml	-	lines=987
 contents/ui/config/ConfigDisplay.qml	applyShared	ccn=34 length=113
 contents/ui/main.qml	-	lines=3072

@@ -3,6 +3,7 @@
 .import "./workContractAdjust.js" as WorkAdjust
 .import "./providerUtil.js" as ProviderUtil
 .import "./dateTimeFormat.js" as DTF
+.import "./sharedConfig.js" as SharedConfig
 
 /** Test hook: function() returning an XMLHttpRequest-like object (null = real XHR). */
 var requestFactory = null
@@ -2085,9 +2086,8 @@ function deduplicateRecent(entries) {
     return result
 }
 
-/** Kimai calendar defaults for calendar.businessHours.begin / .end */
-var DEFAULT_WORK_DAY_BEGIN = "08:00"
-var DEFAULT_WORK_DAY_END = "18:00"
+var DEFAULT_WORK_DAY_BEGIN = SharedConfig.DEFAULTS.workDayBegin
+var DEFAULT_WORK_DAY_END = SharedConfig.DEFAULTS.workDayEnd
 var DAY_SECONDS = 24 * 3600
 
 function parseTimeToMinutes(value, fallbackMinutes) {

@@ -3,6 +3,7 @@ import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import "shared"
+import "../contents/code/sharedConfig.js" as SharedConfig
 import "Kante"
 
 Kirigami.Page {
@@ -86,7 +87,7 @@ Kirigami.Page {
                     KanteFieldSkin { control: parent }
                     id: refreshSpin
                     Kirigami.FormData.label: i18n("Refresh interval:")
-                    from: 5; to: 300; stepSize: 5
+                    from: SharedConfig.LIMITS.refreshInterval.min; to: SharedConfig.LIMITS.refreshInterval.max; stepSize: 5
                     value: session.settings.refreshInterval
                     textFromValue: function(value) { return value + "s" }
                     onValueChanged: { page.saveSetting("refreshInterval", value) }
@@ -95,7 +96,8 @@ Kirigami.Page {
                 QQC2.SpinBox {
                     KanteFieldSkin { control: parent }
                     Kirigami.FormData.label: i18n("Recent entries:")
-                    from: 3; to: 50; value: session.settings.recentCount
+                    from: SharedConfig.LIMITS.recentCount.min; to: SharedConfig.LIMITS.recentCount.max
+                    value: session.settings.recentCount
                     textFromValue: function(v) { return v }
                     onValueChanged: { page.saveSetting("recentCount", value) }
                 }
@@ -261,7 +263,8 @@ Kirigami.Page {
                     KanteFieldSkin { control: parent }
                     Kirigami.FormData.label: i18n("Idle after:")
                     visible: root.supportsIdleDetection
-                    from: 3; to: 120; value: session.settings.idleStopMinutes
+                    from: SharedConfig.LIMITS.idleStopMinutes.min; to: SharedConfig.LIMITS.idleStopMinutes.max
+                    value: session.settings.idleStopMinutes
                     textFromValue: function(v) { return i18n("%1 min", v) }
                     onValueChanged: { page.saveSetting("idleStopMinutes", value) }
                 }
