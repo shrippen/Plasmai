@@ -48,4 +48,39 @@ TestCase {
         backend.runIdle(null, function(value) { ms = value })
         compare(ms, 1234)
     }
+
+    // The app tells a missing file from an unreadable one and from broken JSON.
+    function test_loadLocalStatus() {
+        var localLoaded = fakeSignal()
+        var store = { localLoaded: localLoaded, loadLocal: function() {} }
+        var backend = AppBackend.create({}, store, undefined, undefined)
+        var got = []
+        function ask(status, text) {
+            backend.loadLocal(null, "f", function(st, obj) { got.push([st, obj]) })
+            localLoaded.emit("f", text, status)
+        }
+        ask("missing", "")
+        ask("unreadable", "")
+        ask("ok", "{\"v\":1}")
+        ask("ok", "{broken")
+        ask("ok", "")
+        compare(got[0], ["missing", null])
+        compare(got[1], ["unreadable", null])
+        compare(got[2][0], "ok")
+        compare(got[2][1].v, 1)
+        compare(got[3], ["broken", null])
+        compare(got[4], ["broken", null], "an empty file is no JSON")
+    }
+
+    function test_quarantineLocal() {
+        var done = fakeSignal()
+        var asked = []
+        var store = { localQuarantined: done, quarantineLocal: function(name) { asked.push(name) } }
+        var backend = AppBackend.create({}, store, undefined, undefined)
+        var got = null
+        backend.quarantineLocal(null, "f", function(ok) { got = ok })
+        compare(asked, ["f"])
+        done.emit("f", true)
+        compare(got, true)
+    }
 }
