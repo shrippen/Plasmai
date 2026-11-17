@@ -1,0 +1,480 @@
+import QtQuick
+import QtTest
+import "../../contents/code/offline.js" as Offline
+import "../../contents/code/offlineOutbox.js" as Outbox
+import "../../contents/code/offlineState.js" as OfflineState
+import "../../contents/code/offlineOwner.js" as Owner
+import "../../contents/code/localFile.js" as LocalFile
+import "../../contents/code/providerUtil.js" as ProviderUtil
+
+/**
+ * The owner of the waiting changes (offlineOwner.js): a server and an account. Changes of
+ * another server or account are parked, never sent and never laid over the answers of
+ * the new one; the user sends or discards them. A fake Kimai answers at once.
+ */
+TestCase {
+    name: "OfflineOwner"
+
+    OfflineFakes { id: fakes }
+
+    readonly property string outboxName: "offline-outbox-p1"
+    readonly property string stateName: "offline-state-p1"
+    readonly property string urlA: "https://kimai.test"
+    readonly property string urlB: "https://other.test"
+    readonly property var ownerA: ({ server: "https://kimai.test", account: "7", name: "User 7" })
+    readonly property var ownerB: ({ server: "https://other.test", account: "7", name: "User 7" })
+
+    function stamp(h, m) { return fakes.stamp(h, m) }
+    function fakeKimai() { return fakes.fakeKimai() }
+    function fakeHost(files) { return fakes.fakeHost(files) }
+    function call(fn) { return fakes.call(fn) }
+
+    function createOp(id, state) {
+        return { opId: "local:op-" + id, kind: "create", entryId: "local:" + id, state: state || "pending", attempts: 0,
+                 maybeSent: false, error: null, createdAt: fakes.t0,
+                 fields: { begin: stamp(9, 0), end: stamp(10, 0), project: 10, activity: 20 } }
+    }
+
+    function patchOp(entryId, fields, base) {
+        return { opId: "local:patch-" + entryId, kind: "patch", entryId: entryId, state: "pending", attempts: 0,
+                 error: null, createdAt: fakes.t0, fields: fields, base: base || null }
+    }
+
+    function outboxFile(owner, ops, held) {
+        const file = { v: 1, counter: 9, owner: owner, ops: ops, held: held || [] }
+        if (!owner) {
+            delete file.owner
+        }
+        return JSON.stringify(file)
+    }
+
+    /** A session on `url` over the files of `h`, read and its account checked. */
+    function open(k, h, url) {
+        h.currentUrl = url
+        const s = fakes.session(k, h)
+        fakes.loaded(s, this)
+        Offline.verify(s)
+        return s
+    }
+
+    function saved(h) { return JSON.parse(h.files[outboxName]) }
+
+    // -- serverOf, settle -----------------------------------------------------------
+
+    function test_sameServerSpellings_data() {
+        return [
+            { a: "https://Kimai.Test/", b: "https://kimai.test", same: true },
+            { a: "HTTPS://kimai.test", b: "https://kimai.test", same: true },
+            { a: "https://kimai.test:443", b: "https://kimai.test", same: true },
+            { a: "http://kimai.test:80/", b: "http://kimai.test", same: true },
+            { a: "https://kimai.test:8443", b: "https://kimai.test", same: false },
+            { a: "http://kimai.test", b: "https://kimai.test", same: false },
+            { a: "https://10.0.0.5", b: "https://kimai.test", same: false },
+            { a: "https://kimai.test/kimai", b: "https://kimai.test", same: false },
+            { a: "https://kimai.test/Kimai/", b: "https://kimai.test/kimai", same: false }
+        ]
+    }
+
+    function test_sameServerSpellings(data) {
+        compare(Owner.serverOf(data.a) === Owner.serverOf(data.b), data.same)
+    }
+
+    function sessionOf(owner, ops, held) {
+        return { owner: owner, ops: ops || [], held: held || [], snapshot: OfflineState.emptySnapshot() }
+    }
+
+    function test_noServerSettlesNothing() {
+        const s = sessionOf(ownerA, [createOp(1)])
+        compare(Owner.settle(s, { server: "", account: "", name: "" }), Owner.Result.NONE)
+        compare(s.ops.length, 1)
+        compare(s.held.length, 0)
+        compare(s.owner.server, ownerA.server)
+    }
+
+    function test_noOwnerWaitsForTheAccount() {
+        const s = sessionOf(null, [createOp(1)])
+        compare(Owner.settle(s, { server: ownerA.server, account: "", name: "" }), Owner.Result.NONE)
+        verify(!s.owner)
+        compare(Owner.settle(s, ownerA), Owner.Result.CLAIMED)
+        compare(s.owner.account, "7")
+        compare(s.ops.length, 1)
+    }
+
+    function test_sameServerUnknownAccountChangesNothing() {
+        const s = sessionOf(ownerA, [createOp(1)])
+        compare(Owner.settle(s, { server: ownerA.server, account: "", name: "" }), Owner.Result.NONE)
+        compare(s.ops.length, 1)
+        compare(Owner.settle(s, ownerA), Owner.Result.NONE)
+        compare(s.ops.length, 1)
+    }
+
+    function test_otherServerParksTheOps() {
+        const s = sessionOf(ownerA, [createOp(1), createOp(2)])
+        s.snapshot.entries["5"] = { id: 5 }
+        const b = { server: "https://other.test", account: "", name: "" }
+        compare(Owner.settle(s, b), Owner.Result.PARKED)
+        compare(s.ops.length, 0)
+        compare(s.held.length, 1)
+        compare(s.held[0].ops.length, 2)
+        compare(s.held[0].owner.server, ownerA.server)
+        compare(s.owner.server, b.server)
+        compare(Object.keys(s.snapshot.entries).length, 0, "the snapshot of the other server is gone")
+    }
+
+    function test_otherAccountParksTheOps() {
+        const s = sessionOf(ownerA, [createOp(1)])
+        const other = { server: ownerA.server, account: "8", name: "User 8" }
+        compare(Owner.settle(s, other), Owner.Result.PARKED)
+        compare(s.held.length, 1)
+        compare(s.owner.account, "8")
+    }
+
+    function test_noOpsLeavesNoGroup() {
+        const s = sessionOf(ownerA, [])
+        compare(Owner.settle(s, { server: "https://other.test", account: "", name: "" }), Owner.Result.PARKED)
+        compare(s.held.length, 0)
+    }
+
+    function test_backToTheOwnerResumesItsGroup() {
+        const s = sessionOf(ownerA, [createOp(1), patchOp("local:1", { description: "x" })])
+        Owner.settle(s, { server: "https://other.test", account: "", name: "" })
+        Owner.settle(s, { server: "https://other.test", account: "3", name: "Three" })
+        compare(s.ops.length, 0)
+        compare(Owner.settle(s, ownerA), Owner.Result.PARKED, "B's own ops (none) park, A's group is resumed")
+        compare(s.held.length, 0)
+        compare(s.ops.length, 2)
+        compare(s.ops[0].kind, "create")
+        compare(s.ops[1].kind, "patch")
+    }
+
+    function test_unknownAccountFillsInOnVerify() {
+        const s = sessionOf({ server: "https://other.test", account: "", name: "" }, [createOp(3)])
+        compare(Owner.settle(s, { server: "https://other.test", account: "3", name: "Three" }), Owner.Result.NONE)
+        compare(s.owner.account, "3")
+        compare(s.ops.length, 1)
+    }
+
+    // -- Files ----------------------------------------------------------------------
+
+    // A start without an address decides nothing and writes nothing; with it, everything is there.
+    function test_emptyUrlStartKeepsTheFile() {
+        const k = fakeKimai()
+        const h = fakeHost()
+        h.files[outboxName] = outboxFile(ownerA, [createOp(1)])
+        const before = h.files[outboxName]
+        const s = open(k, h, "")
+        compare(h.files[outboxName], before)
+        compare(h.saves.length, 0)
+        compare(Outbox.pendingCount(s), 1)
+        compare(k.meCalls, 0, "no address, no account check")
+        compare(k.calls.length, 0)
+
+        const again = open(k, fakeHost(h.files), urlA)
+        compare(Offline.heldCount(again), 0)
+        compare(k.calls.indexOf("create") >= 0, true, "all there, and sent")
+        compare(Outbox.pendingCount(again), 0)
+    }
+
+    function test_oldFileIsClaimedAfterTheCheckAndSent() {
+        const k = fakeKimai()
+        const h = fakeHost()
+        h.files[outboxName] = outboxFile(null, [createOp(1)])
+        const s = fakes.session(k, h)
+        fakes.loaded(s, this)
+        compare(h.saves.length, 0, "unknown account: nothing claimed")
+        Outbox.replay(s)
+        compare(k.calls.length, 0, "nothing is sent before the check")
+
+        Offline.verify(s)
+        compare(saved(h).owner.account, "7")
+        compare(saved(h).owner.server, urlA)
+        compare(k.calls.indexOf("create") >= 0, true, "sent after the claim")
+        compare(Outbox.pendingCount(s), 0)
+    }
+
+    function test_changedSpellingParksAndAdoptSends() {
+        const k = fakeKimai()
+        const h = fakeHost()
+        h.files[outboxName] = outboxFile(ownerA, [createOp(1), createOp(2)])
+        const s = open(k, h, "https://kimai.test/kimai")
+        compare(Outbox.pendingCount(s), 0)
+        compare(Offline.groups(s).length, 1)
+        compare(Offline.heldCount(s), 2)
+        compare(k.calls.indexOf("create"), -1, "nothing went to the new address")
+        compare(saved(h).held.length, 1)
+        verify(Offline.groups(s)[0].canAdopt)
+
+        let sent = -1
+        Offline.adopt(s, 0, function(n) { sent = n })
+        compare(sent, 2)
+        compare(k.calls.filter(function(c) { return c === "create" }).length, 2)
+        compare(Offline.groups(s).length, 0)
+        compare(saved(h).held.length, 0)
+    }
+
+    // The save of the parking fails: the file still holds the ops under the old owner,
+    // so the next start parks them again. Nothing twice, nothing lost.
+    function test_failedSaveWhileParkingParksAgainAfterRestart() {
+        const k = fakeKimai()
+        const h = fakeHost()
+        h.files[outboxName] = outboxFile(ownerA, [createOp(1)])
+        const before = h.files[outboxName]
+        h.failSave = true
+        const s = open(k, h, urlB)
+        compare(Offline.heldCount(s), 1)
+        compare(h.files[outboxName], before)
+        tryCompare(s, "storageError", OfflineState.StorageError.SAVE)
+
+        const restarted = open(k, fakeHost(h.files), urlB)
+        compare(Offline.heldCount(restarted), 1)
+        compare(Outbox.pendingCount(restarted), 0)
+        compare(saved(h).held.length, 1)
+        compare(saved(h).held[0].ops.length, 1)
+        compare(saved(h).ops.length, 0)
+        compare(saved(h).owner.server, urlB)
+    }
+
+    // -- What B sees ----------------------------------------------------------------
+
+    // #84 round 2: changes made on A are never laid over B's answers.
+    function test_changesOfAAreNotLaidOverB() {
+        const ka = fakeKimai()
+        ka.server[5] = { id: 5, begin: stamp(8, 0), end: stamp(9, 0), project: 10, activity: 20, description: "a" }
+        ka.server[7] = { id: 7, begin: stamp(9, 0), end: stamp(10, 0), project: 10, activity: 20 }
+        const ha = fakeHost()
+        const a = open(ka, ha, urlA)
+        call(function(cb) { a.tracker.fetchRecentTimesheets("u", "t", 10, cb) })
+        ka.net = false
+        call(function(cb) { a.tracker.patchTimesheet("u", "t", 5, { end: stamp(9, 30) }, cb) })
+        call(function(cb) { a.tracker.deleteTimesheet("u", "t", 7, cb) })
+        call(function(cb) { a.tracker.startTracking("u", "t", 10, 20, "", cb, {}) })
+        compare(Outbox.pendingCount(a), 3)
+
+        const kb = fakeKimai()
+        kb.userId = 7
+        kb.server[5] = { id: 5, begin: stamp(8, 0), end: stamp(8, 45), project: 10, activity: 20, description: "b" }
+        kb.server[7] = { id: 7, begin: stamp(10, 0), end: stamp(11, 0), project: 10, activity: 20 }
+        const b = open(kb, fakeHost(ha.files), urlB)
+        compare(Outbox.pendingCount(b), 0)
+        compare(Offline.heldCount(b), 3)
+
+        const recent = call(function(cb) { b.tracker.fetchRecentTimesheets("u", "t", 10, cb) })
+        compare(recent.data.length, 2)
+        compare(recent.data.filter(function(ts) { return ts.id === 5 })[0].end, stamp(8, 45))
+        verify(recent.data.some(function(ts) { return ts.id === 7 }))
+        const active = call(function(cb) { b.tracker.fetchActiveTimesheet("u", "t", cb) })
+        compare(active.data.length, 0)
+    }
+
+    // The parked group blocks nothing: a start on B goes straight to the server.
+    function test_startOnBAfterParkingIsNotQueued() {
+        const k = fakeKimai()
+        const h = fakeHost()
+        h.files[outboxName] = outboxFile(ownerA, [createOp(1)])
+        const s = open(k, h, urlB)
+        const result = call(function(cb) { s.tracker.startTracking("u", "t", 10, 20, "", cb, {}) })
+        verify(result.ok)
+        verify(!result.queued)
+        compare(k.calls[k.calls.length - 1], "start")
+    }
+
+    // A conflict or a refusal waits in the group; after the adopt every server entry is read again.
+    function test_adoptedOpsAreCheckedAgain() {
+        const k = fakeKimai()
+        const h = fakeHost()
+        const base = { begin: fakes.t0 - 3600000, end: fakes.t0, description: "", project: "10", activity: "20" }
+        const conflict = patchOp(5, { description: "mine" }, base)
+        conflict.state = "conflict"
+        conflict.server = { id: 5 }
+        conflict.error = { type: "conflict", status: 409, detail: "description" }
+        const failed = patchOp(6, { description: "mine" }, base)
+        failed.state = "failed"
+        failed.error = { type: "unknown", status: 500, detail: "x" }
+        h.files[outboxName] = outboxFile(ownerB, [], [{ owner: ownerA, heldAt: fakes.t0, ops: [conflict, failed] }])
+        // Someone else changed entry 5 on the new address
+        k.server[5] = { id: 5, begin: stamp(11, 0), end: stamp(12, 0), project: 10, activity: 20, description: "theirs" }
+        k.server[6] = { id: 6, begin: stamp(11, 0), end: stamp(12, 0), project: 10, activity: 20, description: "" }
+        const s = open(k, h, urlB)
+        compare(Offline.groups(s).length, 1)
+
+        Offline.adopt(s, 0, function() {})
+        compare(k.calls.indexOf("patch 5"), -1, "not overwritten blind")
+        compare(k.server[5].description, "theirs")
+        compare(Outbox.ops(s)[0].state, OfflineState.State.CONFLICT)
+        compare(Outbox.ops(s)[0].server.description, "theirs")
+        compare(Outbox.ops(s)[0].error.type, ProviderUtil.ErrorType.Conflict)
+    }
+
+    function test_adoptingResetsWhatBlockedTheOps() {
+        const k = fakeKimai()
+        const h = fakeHost()
+        const failed = createOp(1, "failed")
+        failed.error = { type: "unknown", status: 500, detail: "x" }
+        h.files[outboxName] = outboxFile(ownerB, [], [{ owner: ownerA, heldAt: fakes.t0, ops: [failed] }])
+        const s = open(k, h, urlB)
+        Offline.adopt(s, 0, function() {})
+        compare(k.calls.indexOf("create") >= 0, true)
+        compare(Outbox.pendingCount(s), 0)
+    }
+
+    function test_backToAResumesTheGroupInOrder() {
+        const ka = fakeKimai()
+        const h = fakeHost()
+        h.files[outboxName] = outboxFile(ownerA, [createOp(1), patchOp("local:1", { description: "later" })])
+        const kb = fakeKimai()
+        const b = open(kb, h, urlB)
+        compare(Offline.heldCount(b), 2)
+
+        const a = open(ka, fakeHost(h.files), urlA)
+        compare(Offline.heldCount(a), 0)
+        compare(Outbox.pendingCount(a), 0, "sent on the way back")
+        compare(ka.calls.filter(function(c) { return c === "create" || c.indexOf("patch") === 0 }).length, 2)
+        compare(ka.calls.indexOf("create") < ka.calls.indexOf("patch 100"), true, "create first, then its patch")
+    }
+
+    // -- Accounts -------------------------------------------------------------------
+
+    function test_otherAccountOnTheSameServerCannotBeAdopted() {
+        const k = fakeKimai()
+        k.userId = 8
+        const h = fakeHost()
+        h.files[outboxName] = outboxFile(ownerA, [createOp(1)])
+        const s = open(k, h, urlA)
+        compare(Offline.groups(s).length, 1)
+        const group = Offline.groups(s)[0]
+        verify(!group.canAdopt)
+        compare(group.name, "User 7")
+        let called = false
+        Offline.adopt(s, 0, function() { called = true })
+        compare(Offline.heldCount(s), 1, "still parked")
+        compare(k.calls.indexOf("create"), -1)
+        compare(Outbox.pendingCount(s), 0)
+    }
+
+    function test_unauthorizedCheckParksAndSendsNothing() {
+        const k = fakeKimai()
+        k.meError = { type: "unauthorized", status: 401, detail: "" }
+        const h = fakeHost()
+        h.files[outboxName] = outboxFile(ownerA, [createOp(1)])
+        const s = open(k, h, urlA)
+        verify(!s.verified)
+        compare(Offline.heldCount(s), 0)
+        compare(Outbox.pendingCount(s), 1)
+        Outbox.replay(s)
+        compare(k.calls.indexOf("create"), -1)
+        compare(h.saves.length, 0)
+    }
+
+    function test_noNetworkCheckWaits() {
+        const k = fakeKimai()
+        k.net = false
+        const h = fakeHost()
+        h.files[outboxName] = outboxFile(ownerA, [createOp(1)])
+        const s = open(k, h, urlA)
+        verify(!s.verified)
+        k.net = true
+        // The first good answer of the server checks the account, then the outbox goes out.
+        call(function(cb) { s.tracker.fetchActiveTimesheet("u", "t", cb) })
+        verify(s.verified)
+        compare(k.calls.indexOf("create") >= 0, true)
+        compare(Outbox.pendingCount(s), 0)
+    }
+
+    function test_answersAreNotRememberedBeforeTheCheck() {
+        const k = fakeKimai()
+        k.meError = { type: "unauthorized", status: 401, detail: "" }
+        k.server[1] = { id: 1, begin: stamp(9, 0), end: stamp(10, 0), project: 10, activity: 20 }
+        const h = fakeHost()
+        const s = open(k, h, urlA)
+        call(function(cb) { s.tracker.fetchRecentTimesheets("u", "t", 10, cb) })
+        compare(Object.keys(s.snapshot.entries).length, 0)
+    }
+
+    // -- Replay ---------------------------------------------------------------------
+
+    // A change of address during a replay waits for it: the op on its way is neither
+    // sent twice nor parked while it is still being sent.
+    function test_settleWaitsForTheReplay() {
+        const h = fakeHost()
+        h.files[outboxName] = outboxFile(ownerA, [createOp(3), createOp(4)])
+        const slow = fakeKimai()
+        const held = []
+        slow.createTimesheet = function(u, t, f, cb) { held.push(cb) }
+        slow.fetchTimesheetsRange = function(u, t, b, e, cb) { cb({ ok: true, data: [] }) }
+        const h2 = h
+        const s2 = open(slow, h2, urlA)
+        compare(held.length, 1)
+
+        h2.currentUrl = urlB
+        Offline.retarget(s2)
+        compare(Outbox.pendingCount(s2), 2, "not parked while the op is on its way")
+        compare(Offline.heldCount(s2), 0)
+
+        held.shift()({ ok: true, data: { id: 99 } })
+        compare(Outbox.pendingCount(s2), 0)
+        compare(Offline.heldCount(s2), 1, "the rest is parked once the replay stopped")
+        compare(held.length, 0, "the second op did not go to the new address")
+        compare(s2.owner.server, urlB)
+    }
+
+    function test_ownerChangeIsSignalled() {
+        const k = fakeKimai()
+        const h = fakeHost()
+        h.files[outboxName] = outboxFile(ownerA, [createOp(1)])
+        open(k, h, urlB)
+        compare(h.ownerChanges, 1)
+    }
+
+    // -- Terminal: an op that failed no longer blocks everything --------------------
+
+    function test_discardingAFailedOpFreesTheQueue() {
+        const k = fakeKimai()
+        const h = fakeHost()
+        const failed = createOp(1, "failed")
+        failed.error = { type: "unknown", status: 500, detail: "x" }
+        h.files[outboxName] = outboxFile(ownerA, [failed])
+        const s = open(k, h, urlA)
+        const queued = call(function(cb) { s.tracker.startTracking("u", "t", 10, 20, "", cb, {}) })
+        verify(queued.queued, "behind the failed op")
+        Outbox.discard(s, "local:op-1")
+        Outbox.discard(s, Outbox.ops(s)[0].opId)
+        const direct = call(function(cb) { s.tracker.startTracking("u", "t", 10, 20, "", cb, {}) })
+        verify(direct.ok)
+        verify(!direct.queued)
+    }
+
+    function test_discardGroup() {
+        const k = fakeKimai()
+        const h = fakeHost()
+        h.files[outboxName] = outboxFile(ownerA, [createOp(1)])
+        const s = open(k, h, urlB)
+        compare(Offline.heldCount(s), 1)
+        Offline.discardGroup(s, 0)
+        compare(Offline.heldCount(s), 0)
+        compare(saved(h).held.length, 0)
+        compare(k.calls.indexOf("create"), -1)
+    }
+
+    // -- Closed session -------------------------------------------------------------
+
+    // #89 round 4: a closed session that sends a waiting delete writes the snapshot too, so the
+    // entry does not come back after a restart without network.
+    function test_closedSessionWritesTheSnapshotOfASentOp() {
+        const k = fakeKimai()
+        k.server[5] = { id: 5, begin: stamp(8, 0), end: stamp(9, 0), project: 10, activity: 20 }
+        const h = fakeHost()
+        const s = open(k, h, urlA)
+        call(function(cb) { s.tracker.fetchRecentTimesheets("u", "t", 10, cb) })
+        k.net = false
+        call(function(cb) { s.tracker.deleteTimesheet("u", "t", 5, cb) })
+        k.net = true
+        const held = []
+        const del = k.deleteTimesheet
+        k.deleteTimesheet = function(u, t, id, cb) { held.push(function() { del(u, t, id, cb) }) }
+        Outbox.observe(s, { ok: true, data: [] })
+        compare(held.length, 1)
+        Offline.close(s)
+        held.shift()()
+        verify(!JSON.parse(h.files[stateName]).entries["5"])
+    }
+}
