@@ -4,6 +4,7 @@ import "../../contents/ui" as Ui
 import "../../contents/code/kimaiApi.js" as KimaiApi
 import "../../contents/code/demoKimai.js" as DemoKimai
 import "../../contents/code/platform.js" as Platform
+import "../../contents/code/catalogCache.js" as CatalogCache
 import "../../contents/code/profiles.js" as Profiles
 import "../../contents/code/sharedConfig.js" as SharedConfig
 
@@ -106,6 +107,86 @@ TestCase {
         verify(!tokens["default"])
         compare(shared[SharedConfig.VERSION_KEY], SharedConfig.SETTINGS_VERSION)
         verify(s.setup.showWizard)
+    }
+
+    function test_runModeClearsEveryProfilesToken() {
+        shared = {
+            kimaiUrl: "https://old.example",
+            profilesJson: JSON.stringify([{ id: "p1", name: "One" }, { id: "p2", name: "Two" }])
+        }
+        tokens = { "default": "a", p1: "b", p2: "c", unrelated: "d" }
+        Platform.setBackend(backend())
+        const s = createTemporaryObject(sessionComponent, this)
+        s.open()
+        tryCompare(s.connection, "tokenLoaded", true)
+        compare(Object.keys(tokens), ["unrelated"])
+    }
+
+    function resetOldOf(s, current, own) {
+        let result
+        let done = false
+        s.connection.resetOld(current, own).then(function(r) {
+            result = r
+            done = true
+        })
+        tryVerify(function() { return done })
+        return result
+    }
+
+    function sessionForReset() {
+        Platform.setBackend(backend())
+        return createTemporaryObject(sessionComponent, this)
+    }
+
+    function test_resetOldKeepsCurrentSettings() {
+        const current = demoShared()
+        tokens = { p1: "x" }
+        const s = sessionForReset()
+        const fired = spy(s.connection, "oldReset")
+        compare(resetOldOf(s, current, null), current)
+        compare(tokens.p1, "x")
+        compare(fired.count, 0)
+    }
+
+    function test_resetOldTakesNothingWithoutAny() {
+        shared = null
+        const s = sessionForReset()
+        const fired = spy(s.connection, "oldReset")
+        compare(resetOldOf(s, null, null), null)
+        compare(shared, null)
+        compare(fired.count, 0)
+    }
+
+    function test_resetOldClearsForeignProfiles() {
+        tokens = { "default": "a", p1: "b", own1: "c" }
+        const s = sessionForReset()
+        const old = { kimaiUrl: "https://old.example", profilesJson: JSON.stringify([{ id: "p1" }]) }
+        const own = { kimaiUrl: "https://own.example", profilesJson: JSON.stringify([{ id: "own1" }]) }
+        const fresh = resetOldOf(s, old, own)
+        compare(Object.keys(tokens), [])
+        compare(fresh[SharedConfig.VERSION_KEY], SharedConfig.SETTINGS_VERSION)
+        compare(shared, fresh)
+    }
+
+    function test_resetOldTakesOwnConnection() {
+        shared = null
+        tokens = { own1: "c" }
+        const s = sessionForReset()
+        const own = { kimaiUrl: "https://own.example", profilesJson: JSON.stringify([{ id: "own1" }]) }
+        const fresh = resetOldOf(s, null, own)
+        compare(Object.keys(tokens), [])
+        compare(shared, fresh)
+        verify(fresh)
+    }
+
+    function test_resetOldInvalidatesCatalog() {
+        const s = sessionForReset()
+        CatalogCache.store("p1", { projects: [{ id: 1 }] })
+        verify(CatalogCache.hasCatalog("p1"))
+        const fired = spy(s.connection, "oldReset")
+        resetOldOf(s, { kimaiUrl: "https://old.example" }, null)
+        verify(!CatalogCache.hasCatalog("p1"))
+        compare(fired.count, 1)
     }
 
     function test_settingsSetWritesShared() {
