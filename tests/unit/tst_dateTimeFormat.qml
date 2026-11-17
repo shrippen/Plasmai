@@ -30,6 +30,21 @@ TestCase {
         compare(DateTimeFormat.atTime(null, 7, 15), null)
     }
 
+    function test_combineStamp() {
+        const time = { hours: 7, minutes: 15 }
+        const picked = { selectedDate: new Date(2026, 8, 5, 23, 59), text: "ignored",
+                         parseDate: function() { throw new Error("not needed") } }
+        compare(DateTimeFormat.combineStamp(picked, time).getTime(), new Date(2026, 8, 5, 7, 15).getTime())
+
+        // Nothing picked: the typed text decides.
+        const typed = { selectedDate: null, text: "06.09.2026",
+                        parseDate: function(t) { return t === "06.09.2026" ? new Date(2026, 8, 6, 12) : null } }
+        compare(DateTimeFormat.combineStamp(typed, time).getTime(), new Date(2026, 8, 6, 7, 15).getTime())
+
+        const none = { selectedDate: null, text: "", parseDate: function() { return null } }
+        compare(DateTimeFormat.combineStamp(none, time), null)
+    }
+
     function test_coerceDate() {
         var d = DateTimeFormat.coerceDate(new Date(2026, 7, 13, 18, 45, 0))
         compare(d.getFullYear(), 2026)

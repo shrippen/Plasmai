@@ -31,9 +31,6 @@ ColumnLayout {
     readonly property bool locked: busy && visible
     property bool configured: true
     property bool connectionOk: true
-    /** Pending ids to select once picker models refresh. */
-    property var pendingProjectId: null
-    property var pendingActivityId: null
     property bool suppressProjectSignal: false
 
     property bool supportsBillableEdit: true
@@ -60,21 +57,22 @@ ColumnLayout {
         pickers.closePickers()
     }
 
-    function combineStamp(dateField, timeField) {
-        var d = DTF.coerceDate(dateField.selectedDate)
-        if (!d) {
-            d = dateField.parseDate(dateField.text)
+    Connections {
+        target: pickers
+        function onPendingProjectSelected(projectId) {
+            if (!root.suppressProjectSignal) {
+                root.projectChosen(projectId)
+            }
         }
-        return DTF.atTime(d, timeField.hours, timeField.minutes)
     }
 
     function stampText(dateField, timeField) {
-        return DTF.dateTimeText(combineStamp(dateField, timeField))
+        return DTF.dateTimeText(DTF.combineStamp(dateField, timeField))
     }
 
     readonly property bool beginValid: {
         var _d = beginDate.selectedDateMs + beginTime.hours * 60 + beginTime.minutes
-        var begin = combineStamp(beginDate, beginTime)
+        var begin = DTF.combineStamp(beginDate, beginTime)
         return !!(begin && !isNaN(begin.getTime()) && begin.getTime() <= Date.now() + 60 * 1000)
     }
 
@@ -93,7 +91,7 @@ ColumnLayout {
             return false
         }
         return TimesheetFields.beginIsBeforePreviousEnd(
-            combineStamp(beginDate, beginTime), root.previousTimesheet)
+            DTF.combineStamp(beginDate, beginTime), root.previousTimesheet)
     }
 
     function emitSave() {
@@ -113,61 +111,6 @@ ColumnLayout {
         return new Date(Date.now() - Math.max(0, root.elapsedSeconds) * 1000)
     }
 
-    function hasId(value) {
-        return value !== null && value !== undefined && value !== ""
-    }
-
-    function selectProjectId(projectId) {
-        if (!hasId(projectId)) {
-            projectCombo.currentIndex = -1
-            return false
-        }
-        for (var i = 0; i < projectCombo.items.length; i++) {
-            var item = projectCombo.items[i]
-            if (item && item.value && String(item.value.id) === String(projectId)) {
-                // Force label refresh even if index was already i
-                if (projectCombo.currentIndex === i) {
-                    projectCombo.currentIndex = -1
-                }
-                projectCombo.currentIndex = i
-                return true
-            }
-        }
-        projectCombo.currentIndex = -1
-        return false
-    }
-
-    function trySelectPendingActivity() {
-        if (!hasId(pendingActivityId)) {
-            return
-        }
-        for (var i = 0; i < activityCombo.items.length; i++) {
-            var item = activityCombo.items[i]
-            if (item && item.value && String(item.value.id) === String(pendingActivityId)) {
-                if (activityCombo.currentIndex === i) {
-                    activityCombo.currentIndex = -1
-                }
-                activityCombo.currentIndex = i
-                pendingActivityId = null
-                return
-            }
-        }
-    }
-
-    function trySelectPendingProject() {
-        if (!hasId(pendingProjectId)) {
-            return
-        }
-        if (!selectProjectId(pendingProjectId)) {
-            return
-        }
-        var pid = pendingProjectId
-        pendingProjectId = null
-        if (!suppressProjectSignal) {
-            root.projectChosen(pid)
-        }
-    }
-
     function loadFromTimesheet(ts) {
         var sheet = ts || root.timesheet
         if (!sheet) {
@@ -177,22 +120,8 @@ ColumnLayout {
         beginDate.setDate(begin)
         beginTime.setTime(begin.getHours(), begin.getMinutes())
 
-        pendingActivityId = Names.activityId(sheet)
-        pendingProjectId = Names.projectId(sheet)
-        if (!hasId(pendingProjectId)) {
-            pendingProjectId = null
-        }
-        if (!hasId(pendingActivityId)) {
-            pendingActivityId = null
-        }
-
         suppressProjectSignal = false
-        if (hasId(pendingProjectId) && selectProjectId(pendingProjectId)) {
-            var pid = pendingProjectId
-            pendingProjectId = null
-            root.projectChosen(pid)
-        }
-        Qt.callLater(trySelectPendingActivity)
+        pickers.setPending(Names.projectId(sheet), Names.activityId(sheet))
         metaFields.loadFromTimesheet(sheet)
     }
 
@@ -217,8 +146,8 @@ ColumnLayout {
             return
         }
         Qt.callLater(function() {
-            trySelectPendingProject()
-            trySelectPendingActivity()
+            pickers.trySelectPendingProject()
+            pickers.trySelectPendingActivity()
         })
     }
 
@@ -226,7 +155,7 @@ ColumnLayout {
         if (!visible) {
             return
         }
-        Qt.callLater(trySelectPendingActivity)
+        Qt.callLater(pickers.trySelectPendingActivity)
     }
 
     Controls.Label {
@@ -252,7 +181,6 @@ ColumnLayout {
             root.aboutToOpenPicker(projectField, activityField)
         }
         onProjectActivated: function(index) {
-            pendingProjectId = null
             if (index < 0 || index >= pickers.projectPickerModel.length) {
                 root.projectChosen(null)
                 return

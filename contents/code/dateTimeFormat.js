@@ -25,6 +25,19 @@ function atTime(date, hours, minutes) {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate(), hours, minutes, 0, 0)
 }
 
+/**
+ * The instant of a date field plus a time field, as a Date; null if invalid.
+ * dateField: selectedDate, and parseDate(text) for a date typed but not yet picked.
+ * timeField: hours and minutes, kept in sync by TimeField.setTime and digit entry.
+ */
+function combineStamp(dateField, timeField) {
+    var d = coerceDate(dateField.selectedDate)
+    if (!d) {
+        d = dateField.parseDate(dateField.text)
+    }
+    return atTime(d, timeField.hours, timeField.minutes)
+}
+
 /** Local "YYYY-MM-DD HH:MM" of a Date; "" if invalid. */
 function dateTimeText(date) {
     if (!date || isNaN(date.getTime())) {

@@ -36,8 +36,8 @@ Kirigami.Page {
         filmDayView.productionDayNumber = production.number
         // No activity from the day or Recent: the engagement's usual film activity.
         if (filmDayView.activityCombo.currentIndex < 0 && production.activityId !== null) {
-            filmDayView.pendingActivityId = production.activityId
-            filmDayView.trySelectPendingActivity()
+            filmDayView.pickers.pendingActivityId = production.activityId
+            filmDayView.pickers.trySelectPendingActivity()
         }
     }
 
@@ -191,7 +191,7 @@ Kirigami.Page {
                 tripsAvailable: session.trips.canEdit
                 onTripRequested: root.openTripForTimesheet(session.filmDay.dayTimesheet)
                 onEngagementPicked: function(projectId) {
-                    filmDayView.selectProjectId(projectId)
+                    filmDayView.pickers.selectProjectId(projectId)
                     page.loadForDate(page.selectedDate, true)
                 }
                 onCancelled: pageStack.pop()

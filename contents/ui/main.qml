@@ -870,8 +870,8 @@ PlasmoidItem {
         view.productionDayNumber = production.number
         // No activity from the day or Recent: the engagement's usual film activity.
         if (view.activityCombo.currentIndex < 0 && production.activityId !== null) {
-            view.pendingActivityId = production.activityId
-            view.trySelectPendingActivity()
+            view.pickers.pendingActivityId = production.activityId
+            view.pickers.trySelectPendingActivity()
         }
     }
 
@@ -2460,7 +2460,7 @@ PlasmoidItem {
                         }
                     }
                     onEngagementPicked: function(projectId) {
-                        filmDayView.selectProjectId(projectId)
+                        filmDayView.pickers.selectProjectId(projectId)
                         root.loadFilmDayForDate(root.filmDaySelectedDate, true)
                     }
                     tripsAvailable: root.session.trips.canEdit

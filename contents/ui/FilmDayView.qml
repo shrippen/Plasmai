@@ -108,12 +108,11 @@ ColumnLayout {
     readonly property int effectiveBreakMinutes: !extrasVisible ? 0
         : (breakSpin.value < 0 ? fallbackBreakMinutes : breakSpin.value)
 
-    property var pendingProjectId: null
-    property var pendingActivityId: null
     property bool suppressProjectSignal: false
     /** True while loadForDay() sets dayField programmatically (avoids re-triggering dayChosen). */
     property bool suppressDayChosen: false
 
+    readonly property alias pickers: pickers
     readonly property alias projectCombo: pickers.projectCombo
     readonly property alias activityCombo: pickers.activityCombo
     readonly property var selectedDay: DTF.coerceDate(dayField.selectedDate) || new Date()
@@ -148,8 +147,13 @@ ColumnLayout {
         pickers.closePickers()
     }
 
-    function hasId(value) {
-        return value !== null && value !== undefined && value !== ""
+    Connections {
+        target: pickers
+        function onPendingProjectSelected(projectId) {
+            if (!root.suppressProjectSignal) {
+                root.projectChosen(projectId)
+            }
+        }
     }
 
     function stampText(date, timeField) {
@@ -182,7 +186,7 @@ ColumnLayout {
     function otherEntryIds() {
         var ids = []
         for (var i = 0; i < otherEntries.length; i++) {
-            if (hasId(otherEntries[i].id)) {
+            if (pickers.hasId(otherEntries[i].id)) {
                 ids.push(otherEntries[i].id)
             }
         }
@@ -366,56 +370,6 @@ ColumnLayout {
         return fallback
     }
 
-    function selectProjectId(projectId) {
-        if (!hasId(projectId)) {
-            projectCombo.currentIndex = -1
-            return false
-        }
-        for (var i = 0; i < projectCombo.items.length; i++) {
-            var item = projectCombo.items[i]
-            if (item && item.value && String(item.value.id) === String(projectId)) {
-                if (projectCombo.currentIndex === i) {
-                    projectCombo.currentIndex = -1
-                }
-                projectCombo.currentIndex = i
-                return true
-            }
-        }
-        projectCombo.currentIndex = -1
-        return false
-    }
-
-    function trySelectPendingActivity() {
-        if (!hasId(pendingActivityId)) {
-            return
-        }
-        for (var i = 0; i < activityCombo.items.length; i++) {
-            var item = activityCombo.items[i]
-            if (item && item.value && String(item.value.id) === String(pendingActivityId)) {
-                if (activityCombo.currentIndex === i) {
-                    activityCombo.currentIndex = -1
-                }
-                activityCombo.currentIndex = i
-                pendingActivityId = null
-                return
-            }
-        }
-    }
-
-    function trySelectPendingProject() {
-        if (!hasId(pendingProjectId)) {
-            return
-        }
-        if (!selectProjectId(pendingProjectId)) {
-            return
-        }
-        var pid = pendingProjectId
-        pendingProjectId = null
-        if (!suppressProjectSignal) {
-            root.projectChosen(pid)
-        }
-    }
-
     /**
      * Fill the view from a FilmDaySync.loadDay() result. `currency` is the
      * fallback when the day summary has none (customer currency from the catalog).
@@ -462,39 +416,23 @@ ColumnLayout {
         endTime.setTime(end.getHours(), end.getMinutes())
 
         if (timesheet) {
-            pendingActivityId = Names.activityId(timesheet)
-            pendingProjectId = Names.projectId(timesheet)
-            if (!hasId(pendingProjectId)) {
-                pendingProjectId = null
-            }
-            if (!hasId(pendingActivityId)) {
-                pendingActivityId = null
-            }
             suppressProjectSignal = false
-            if (hasId(pendingProjectId) && selectProjectId(pendingProjectId)) {
-                var pid = pendingProjectId
-                pendingProjectId = null
-                root.projectChosen(pid)
-            }
-            Qt.callLater(trySelectPendingActivity)
-        } else if (hasId(projectId)) {
+            pickers.setPending(Names.projectId(timesheet), Names.activityId(timesheet))
+        } else if (pickers.hasId(projectId)) {
             // No entry yet, but the day's engagement names the project; the
             // activity is the project's usual film activity (or the running one).
             // Both stay pending until the project list has loaded.
-            pendingProjectId = projectId
-            pendingActivityId = hasId(activityId) ? activityId : null
             suppressProjectSignal = false
-            trySelectPendingProject()
-            Qt.callLater(trySelectPendingActivity)
+            pickers.setPending(projectId, activityId)
         }
     }
 
     onVisibleChanged: {
-        if (visible && hasId(pendingProjectId)) {
+        if (visible && pickers.hasPendingProject) {
             Qt.callLater(function() {
                 if (root.visible) {
-                    root.trySelectPendingProject()
-                    root.trySelectPendingActivity()
+                    pickers.trySelectPendingProject()
+                    pickers.trySelectPendingActivity()
                 }
             })
         }
@@ -505,8 +443,8 @@ ColumnLayout {
             return
         }
         Qt.callLater(function() {
-            trySelectPendingProject()
-            trySelectPendingActivity()
+            pickers.trySelectPendingProject()
+            pickers.trySelectPendingActivity()
         })
     }
 
@@ -514,7 +452,7 @@ ColumnLayout {
         if (!visible) {
             return
         }
-        Qt.callLater(trySelectPendingActivity)
+        Qt.callLater(pickers.trySelectPendingActivity)
     }
 
     /** Hidden — keeps the working date-segment/calendar-popup logic, driven by the big header below. */
@@ -722,7 +660,6 @@ ColumnLayout {
                 root.aboutToOpenPicker(projectField, activityField)
             }
             onProjectActivated: function(index) {
-                pendingProjectId = null
                 if (index < 0 || index >= pickers.projectPickerModel.length) {
                     root.projectChosen(null)
                     return
