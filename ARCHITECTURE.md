@@ -102,8 +102,6 @@ favourites, statistics, offline work; for Kimai also film days and trips.
   app (`AUDIT.md`, finding 4).
 - `kimaiApi.js` holds, beside Kimai's requests, the display helpers and the day's
   calculation every service needs (`AUDIT.md`, finding 5).
-- Clockify, Toggl and SolidTime each carry their own copy of the request frame
-  (`AUDIT.md`, finding 6).
 - Error kinds stand partly as loose words; `config` means two things
   (`AUDIT.md`, finding 7).
 - `contents/ui/main.qml` holds view, film day, trips and the loading of statistics in
