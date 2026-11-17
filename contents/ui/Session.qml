@@ -22,6 +22,7 @@ import "session"
  *            ├─ sync        offline outbox (offline.js)
  *            ├─ filmDay     Drehzettel plugin (filmDaySync.js)
  *            ├─ trips       kimai-anfahrten plugin (mileage)
+ *            ├─ stats       the statistics view: loaded range, trips
  *            ├─ reminders   idle, forgot to start, notifications
  *            └─ setup       system check, connection test, place search
  *     │
@@ -72,6 +73,7 @@ QtObject {
     readonly property SessionSync sync: SessionSync { session: session }
     readonly property SessionFilmDay filmDay: SessionFilmDay { session: session }
     readonly property SessionTrips trips: SessionTrips { session: session }
+    readonly property SessionStats stats: SessionStats { session: session }
     readonly property SessionReminders reminders: SessionReminders { session: session }
     readonly property SessionSetup setup: SessionSetup { session: session }
 

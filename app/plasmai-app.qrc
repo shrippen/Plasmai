@@ -151,6 +151,7 @@
         <file alias="contents/ui/session/SessionSync.qml">../contents/ui/session/SessionSync.qml</file>
         <file alias="contents/ui/session/SessionFilmDay.qml">../contents/ui/session/SessionFilmDay.qml</file>
         <file alias="contents/ui/session/SessionTrips.qml">../contents/ui/session/SessionTrips.qml</file>
+        <file alias="contents/ui/session/SessionStats.qml">../contents/ui/session/SessionStats.qml</file>
         <file alias="contents/ui/session/SessionReminders.qml">../contents/ui/session/SessionReminders.qml</file>
         <file alias="contents/ui/session/SessionSetup.qml">../contents/ui/session/SessionSetup.qml</file>
         <file alias="contents/ui/ActiveEditView.qml">../contents/ui/ActiveEditView.qml</file>
