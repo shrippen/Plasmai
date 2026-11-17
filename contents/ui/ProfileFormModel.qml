@@ -149,8 +149,13 @@ QtObject {
         return activeId === removedId
     }
 
-    /** Sets the ids a connection test reported on the profile `id` of the current list (it may have changed since the test began). */
-    function applyTested(id, data) {
+    /** Sets the ids a connection test reported on the profile `id` of the current list; only while it still has the `provider` and `url` the test began with. */
+    function applyTested(id, data, provider, url) {
+        const current = profiles.find(function(p) { return p.id === id })
+        if (!current || current.provider !== provider
+                || ProviderUtil.normalizeUrl(current.url) !== ProviderUtil.normalizeUrl(url)) {
+            return
+        }
         const next = Profiles.withTestMeta(profiles, id, data)
         if (next === profiles) {
             return

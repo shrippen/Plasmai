@@ -385,7 +385,7 @@ Kirigami.Page {
                                     if (!page) { return }
                                     page.busy = false
                                     if (result.ok) {
-                                        form.applyTested(profile.id, result.data)
+                                        form.applyTested(profile.id, result.data, profile.provider, profile.url)
                                         page.persistShared()
                                     }
                                     page.showStatus(ApiErrors.testText(result, session.setup.providerName(profile.provider)), !result.ok)

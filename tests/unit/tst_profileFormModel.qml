@@ -146,7 +146,7 @@ TestCase {
 
     function test_applyTestedSetsIdsOnTheTestedProfile() {
         const f = make()
-        f.applyTested("b", { workspaceId: "w2" })
+        f.applyTested("b", { workspaceId: "w2" }, "toggl", "https://b.example")
         compare(f.profiles[1].workspaceId, "w2")
         compare(edits, 1)
     }
@@ -155,7 +155,7 @@ TestCase {
         const f = make()
         // The test of "a" runs; the user adds a profile; the answer comes.
         f.add(function(n) { return "Profile " + n })
-        f.applyTested("a", { workspaceId: "w1" })
+        f.applyTested("a", { workspaceId: "w1" }, "kimai", "https://a.example")
         compare(f.profiles.length, 3)
         compare(f.profiles[0].workspaceId, "w1")
         compare(f.selectedIndex, 2)
@@ -166,8 +166,33 @@ TestCase {
         const f = make()
         f.removeSelected("zzz")
         edits = 0
-        f.applyTested("a", { workspaceId: "w1" })
+        f.applyTested("a", { workspaceId: "w1" }, "kimai", "https://a.example")
         compare(f.profiles.length, 1)
         compare(edits, 0)
+    }
+
+    function test_applyTestedIgnoresAnswerAfterProviderSwitch() {
+        const f = make()
+        // Test of "a" (kimai) runs; the user switches "a" to toggl; the answer comes.
+        f.changeProvider("toggl")
+        edits = 0
+        f.applyTested("a", { workspaceId: "kimai-ws" }, "kimai", "https://a.example")
+        verify(!f.profiles[0].workspaceId)
+        compare(edits, 0)
+    }
+
+    function test_applyTestedIgnoresAnswerAfterUrlChange() {
+        const f = make()
+        f.commitUrl("https://other.example")
+        edits = 0
+        f.applyTested("a", { workspaceId: "w1" }, "kimai", "https://a.example")
+        verify(!f.profiles[0].workspaceId)
+        compare(edits, 0)
+    }
+
+    function test_applyTestedComparesTheNormalizedUrl() {
+        const f = make()
+        f.applyTested("a", { workspaceId: "w1" }, "kimai", "https://a.example/")
+        compare(f.profiles[0].workspaceId, "w1")
     }
 }
