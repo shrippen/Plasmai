@@ -117,4 +117,3 @@ favourites, statistics, offline work; for Kimai also film days and trips.
 - `contents/ui/main.qml` holds view, film day, trips and the loading of statistics in
   one file of 3087 lines (`AUDIT.md`, finding 10).
 - The app's connection page has its own list of services (`AUDIT.md`, finding 12).
-- `main.qml` repeats the session's reset of old settings (`AUDIT.md`, finding 13).

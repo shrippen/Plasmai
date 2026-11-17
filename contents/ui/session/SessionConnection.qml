@@ -55,7 +55,7 @@ QtObject {
                 state = needsSetup
                 return null
             }
-            return resetOld(shared).then(function(fresh) {
+            return resetOld(shared, null).then(function(fresh) {
                 return useShared(fresh)
             })
         })
@@ -67,19 +67,28 @@ QtObject {
         return useProfile(Profiles.profileById(profiles, shared ? shared.activeProfileId : "default"))
     }
 
+    /** The old settings were reset: views drop what they hold for the old profiles. */
+    signal oldReset()
+
     /**
      * Settings of a version before the setup wizard (sharedConfig.js needsReset): once,
      * tokens cleared and every setting at its default, so the wizard runs. Resolves with
-     * the settings to load.
+     * the settings to load. `own` is a connection the caller holds besides shared.json
+     * (the widget's Plasma settings, or null): without shared.json it counts as old too,
+     * and its profiles' tokens are cleared as well.
      */
-    function resetOld(shared) {
-        if (!SharedConfig.needsReset(shared)) {
+    function resetOld(shared, own) {
+        const old = shared || own
+        if (!SharedConfig.needsReset(old)) {
             return Promise.resolve(shared)
         }
         const fresh = SharedConfig.resetShared()
-        const clears = SharedConfig.profileIds(shared).map(function(id) {
+        const ids = SharedConfig.profileIds(old).concat(SharedConfig.profileIds(own))
+        const clears = ids.map(function(id) {
             return Platform.clearToken(session.dataSource, id).catch(function() {})
         })
+        session.catalog.invalidate()
+        oldReset()
         return Promise.all(clears).then(function() {
             return Platform.saveShared(session.dataSource, fresh)
         }).then(function() { return fresh }, function() { return fresh })
