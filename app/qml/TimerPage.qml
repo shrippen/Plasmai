@@ -81,7 +81,7 @@ Kirigami.Page {
         if (!session.timer.tracking || !session.timer.active) return
         editingActive = true
         var pid = KimaiApi.projectId(session.timer.active)
-        session.catalog.loadActivities(pid, function(model) { page.editActivityPickerModel = model })
+        session.catalog.loadActivities(pid, function(model) { if (typeof page !== "undefined" && page) { page.editActivityPickerModel = model } }) // not once the page is gone
         activeEditLoader.item.timesheet = session.timer.active
     }
 
@@ -505,7 +505,7 @@ Kirigami.Page {
                                 previousTimesheet: TimesheetFields.previousStoppedTimesheet(session.recent.list, session.totals.todayEntries, session.timer.active)
                                 overlapGuardEnabled: session.settings.confirmStartBeforePreviousEnd
                                 onProjectChosen: function(projectId) {
-                                    session.catalog.loadActivities(projectId, function(model) { page.editActivityPickerModel = model })
+                                    session.catalog.loadActivities(projectId, function(model) { if (typeof page !== "undefined" && page) { page.editActivityPickerModel = model } }) // not once the page is gone
                                 }
                                 onSaveRequested: function(projectId, activityId, beginText, billable, tags) {
                                     session.timer.patchActive({ project: projectId, activity: activityId, begin: beginText, billable: billable, tags: tags })
@@ -661,7 +661,7 @@ Kirigami.Page {
                                     showCreateActions: session.entries.canCreate
                                     onProjectActivated: function(index) {
                                         var projectId = index >= 0 ? session.catalog.projectPickerModel[index].value.id : null
-                                        session.catalog.loadActivities(projectId, function(model) { page.newActivityPickerModel = model })
+                                        session.catalog.loadActivities(projectId, function(model) { if (typeof page !== "undefined" && page) { page.newActivityPickerModel = model } }) // not once the page is gone
                                     }
                                     onCreateProjectRequested: page.createEntity("project", null)
                                     onCreateActivityRequested: page.createEntity("activity", newActivityPickers.projectCombo.currentItem ? newActivityPickers.projectCombo.currentItem.value : null)

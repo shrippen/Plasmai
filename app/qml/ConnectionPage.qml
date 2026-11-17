@@ -122,6 +122,8 @@ Kirigami.Page {
             return
         }
         session.connection.hasToken(profiles[selectedIndex].id).then(function(has) {
+            // The page is gone: nothing to show.
+            if (!page) { return }
             hasStoredToken = has
         })
     }
@@ -133,6 +135,7 @@ Kirigami.Page {
 
     function loadSharedState() {
         session.connection.loadStored().then(function(shared) {
+            if (!page) { return }
             if (!shared) return
             syncing = true
             urlField.text = shared.kimaiUrl || ""
@@ -398,15 +401,19 @@ Kirigami.Page {
                             page.showStatus("", false)
                             page.persistShared()
                             var pid = page.profiles[page.selectedIndex].id
-                            session.connection.saveToken(pid, tokenField.text).then(function() {
+                            // Kept for the answer: the page may be gone by then.
+                            const sess = session
+                            sess.connection.saveToken(pid, tokenField.text).then(function() {
+                                // Live-apply: root only reads the token from the keychain
+                                // once at startup otherwise.
+                                sess.open()
+                                if (!page) { return }
                                 page.busy = false
                                 tokenField.text = ""
                                 page.hasStoredToken = true
                                 page.showStatus(i18n("Token saved."), false)
-                                // Live-apply: root only reads the token from the keychain
-                                // once at startup otherwise.
-                                session.open()
                             }).catch(function(err) {
+                                if (!page) { return }
                                 page.busy = false
                                 page.showStatus(err || i18n("Failed to save"), true)
                             })
@@ -419,12 +426,16 @@ Kirigami.Page {
                         enabled: !page.busy && page.hasStoredToken
                         onClicked: {
                             page.busy = true
-                            session.connection.clearToken(page.profiles[page.selectedIndex].id).then(function() {
+                            // Kept for the answer: the page may be gone by then.
+                            const sess = session
+                            sess.connection.clearToken(page.profiles[page.selectedIndex].id).then(function() {
+                                sess.open()
+                                if (!page) { return }
                                 page.busy = false
                                 page.hasStoredToken = false
                                 page.showStatus(i18n("Token removed."), false)
-                                session.open()
                             }).catch(function(err) {
+                                if (!page) { return }
                                 page.busy = false
                                 page.showStatus(i18n("Failed"), true)
                             })
@@ -441,14 +452,17 @@ Kirigami.Page {
                             page.persistShared()
                             session.connection.test(page.profiles[page.selectedIndex], {
                                 noToken: function() {
+                                    if (!page) { return }
                                     page.busy = false
                                     page.showStatus(i18n("No token stored."), true)
                                 },
                                 testing: function(url) {
+                                    if (!page) { return }
                                     page.busy = false
                                     page.showStatus(i18n("Testing… (%1)", url), false)
                                 },
                                 done: function(result) {
+                                    if (!page) { return }
                                     page.busy = false
                                     if (result.ok) {
                                         page.showStatus(i18n("Connection OK!"), false)
@@ -462,6 +476,7 @@ Kirigami.Page {
                                     page.showStatus(detail || i18n("Failed"), true)
                                 },
                                 failed: function(err) {
+                                    if (!page) { return }
                                     page.busy = false
                                     page.showStatus(err, true)
                                 }

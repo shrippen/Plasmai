@@ -23,6 +23,8 @@ Kirigami.Page {
         page.expandedProjectId = projectId
         page.expandedActivities = []
         session.catalog.loadActivities(projectId, function(model) {
+            // The page is gone: nothing to show.
+            if (!page) { return }
             if (page.expandedProjectId === projectId) page.expandedActivities = model
         })
     }

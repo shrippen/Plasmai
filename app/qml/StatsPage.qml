@@ -25,6 +25,8 @@ Kirigami.Page {
         var now = new Date()
         var range = Mileage.hasFeature(session.trips.ping, "dateRange") ? StatsData.tripRangeFor(now) : { year: now.getFullYear() }
         session.trips.fetch(range, function(r) {
+            // The page is gone: nothing to show.
+            if (!page) { return }
             page.trips = r.ok ? r.data : null
         })
     }
@@ -47,6 +49,8 @@ Kirigami.Page {
         if (_rangeBeginMs && _rangeEndMs && bMs >= _rangeBeginMs && eMs <= _rangeEndMs && timesheets.length > 0) return
         loading = true
         session.entries.fetchRange(rangeBegin, rangeEnd, function(r) {
+            // The page is gone: nothing to show.
+            if (!page) { return }
             loading = false
             if (r.ok) {
                 timesheets = r.data
