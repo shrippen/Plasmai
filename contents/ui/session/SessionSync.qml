@@ -21,6 +21,9 @@ QtObject {
     /** Bumped by offline.js on every change, so the bindings below re-read it. */
     property int revision: 0
 
+    // Closed sessions by profile key: their replay in flight, then their last write (Offline.settled).
+    property var closing: ({})
+
     // A refresh answers a dozen reads within a second: the snapshot is saved once after them.
     property var pendingSave: null
     property Timer saveTimer: Timer {
@@ -56,12 +59,16 @@ QtObject {
         const key = providerId === TimeTracker.PROVIDER_KIMAI && p
             ? session.offlinePrefix + String(p.id).replace(/[^A-Za-z0-9_-]/g, "_") : ""
         if (state && state.host.key === key && state.inner === inner) {
+            if (state.opening) {
+                return state.opening
+            }
             return state.outboxBlocked ? Outbox.loadOutbox(state) : Promise.resolve()
         }
         // The old session's deferred save would be replaced by the new one's.
         flushSave()
         if (state) {
             Offline.close(state)
+            closing[state.host.key] = Offline.settled(state)
         }
         const s = Offline.createSession(inner, {
             key: key,
@@ -77,9 +84,16 @@ QtObject {
             idChanged: function(localId, serverId) { session.timer.followId(localId, serverId) }
         })
         state = s
-        return Offline.load(s).then(function() {
+        // Not written before the file is read, and not before a closed session of this profile
+        // has written the answer of the op that was on its way (else it is sent twice).
+        s.outboxBlocked = true
+        s.opening = (closing[key] || Promise.resolve()).then(function() {
+            return Offline.load(s)
+        }).then(function() {
+            s.opening = null
             FilmDaySync.restoreMemo(session.filmDay.context(), OfflineState.filmDays(s))
         })
+        return s.opening
     }
 
     function isUnsynced(entryId) {

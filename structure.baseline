@@ -60,7 +60,6 @@ tests/lib/atspi_clicks.py	showing_nodes	nesting=5
 tests/lib/atspi_clicks.py	sweep	ccn=17
 tests/test_startup_lazy.py	blocks	nesting=5
 tests/unit/tst_filmDaySync.qml	-	lines=831
-tests/unit/tst_offline.qml	fakeKimai	length=102
 tests/viewer/test_kcm_tab_persistence.py	test_kcm_tab_option_persistence	length=190
 translate/fill_po.py	read_entries	ccn=21
 translate/po2json.py	parse	ccn=18

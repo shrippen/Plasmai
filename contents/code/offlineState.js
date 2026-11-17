@@ -135,6 +135,9 @@ function snapshotText(snapshot) {
  * reads a dozen): comparing the text costs a stringify of the whole snapshot.
  */
 function saveSnapshot(s) {
+    if (s.closed) {
+        return
+    }
     if (!s.host.defer) {
         writeSnapshot(s)
         return

@@ -53,19 +53,9 @@ Item {
             parts.push(i18np("%1 change not synced yet", "%1 changes not synced yet", root.unsynced))
         }
         if (root.storageProblem) {
-            parts.push(storageText())
+            parts.push(ApiErrors.storageText(root.storageError))
         }
         return parts.join(" · ")
-    }
-
-    function storageText() {
-        if (root.storageError === OfflineState.StorageError.SAVE) {
-            return i18n("Waiting changes could not be saved on this device")
-        }
-        if (root.storageError === OfflineState.StorageError.LOAD) {
-            return i18n("Waiting changes could not be read; new ones are kept in memory only")
-        }
-        return i18n("The saved list of waiting changes was damaged and set aside")
     }
 
     // Kante: stuck changes and storage problems warn, anything else informs.

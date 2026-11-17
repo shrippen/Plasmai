@@ -443,6 +443,9 @@ function createSession(inner, host) {
         // The outbox file could not be read: it is not written until a read works.
         outboxBlocked: false,
         loadingOutbox: null,
+        // a write was asked for while blocked or loading
+        saveWaits: false,
+        lastWrite: null,
         storageError: OfflineState.StorageError.NONE
     }
     s.tracker = s.enabled ? wrapTracker(s) : inner
@@ -460,9 +463,17 @@ function load(s) {
     })
 }
 
-/** The profile of this session is not the active one any more: a replay in flight stops. */
+/**
+ * The profile of this session is not the active one any more: a replay in flight
+ * stops after its op and writes the outbox a last time; nothing else is written.
+ */
 function close(s) {
     s.closed = true
+}
+
+/** Resolves when a closed session's last op is answered and the outbox written; open the profile again after that. */
+function settled(s) {
+    return Outbox.settled(s)
 }
 
 function isOffline(s) {

@@ -191,6 +191,11 @@ function loadLocal(dataSource, name) {
                 resolve({ status: status, data: status === LocalFile.Status.OK ? data : null })
                 return
             }
+            // A write of this file is running: the content read may be the one it replaces.
+            if (_localWrites[name] && _localWrites[name].running) {
+                resolve({ status: LocalFile.Status.UNREADABLE, data: null })
+                return
+            }
             _backend.quarantineLocal(dataSource, name, function(moved) {
                 resolve({ status: moved ? LocalFile.Status.BROKEN : LocalFile.Status.UNREADABLE, data: null })
             })

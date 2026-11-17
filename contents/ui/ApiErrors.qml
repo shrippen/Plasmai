@@ -1,8 +1,23 @@
 pragma Singleton
 import QtQuick
 import "../code/providerUtil.js" as ProviderUtil
+import "../code/offlineState.js" as OfflineState
 
 QtObject {
+    /** The words for the offline layer's storage problem (OfflineState.StorageError); "" for none. */
+    function storageText(storageError) {
+        if (storageError === OfflineState.StorageError.SAVE) {
+            return i18n("Waiting changes could not be saved on this device")
+        }
+        if (storageError === OfflineState.StorageError.LOAD) {
+            return i18n("Waiting changes could not be read; new ones are kept in memory only")
+        }
+        if (storageError === OfflineState.StorageError.BROKEN) {
+            return i18n("The saved list of waiting changes was damaged and set aside")
+        }
+        return ""
+    }
+
     /**
      * @param error API / config error object
      * @param configContext when true, use connection-form wording for NotConfigured

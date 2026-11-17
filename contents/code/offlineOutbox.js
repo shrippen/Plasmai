@@ -38,21 +38,43 @@ function newLocalId(s) {
 }
 
 /**
- * Writes the whole outbox. Not while its file could not be read (the file holds
- * ops this run does not know); a failed write sets storageError, the next write
- * carries everything again and a good one clears it.
+ * Writes the whole outbox, unless the session was closed (the next one for this
+ * profile owns the file). See writeOutbox.
  */
 function saveOutbox(s) {
-    if (s.outboxBlocked) {
+    if (!s.closed) {
+        writeOutbox(s)
+    }
+}
+
+/**
+ * Not while the file is being read or could not be read (it holds ops this run
+ * does not know): the write waits for the read (saveWaits). A failed write sets
+ * storageError, the next write carries everything again and a good one clears it.
+ */
+function writeOutbox(s) {
+    if (s.outboxBlocked || s.loadingOutbox) {
+        s.saveWaits = true
         return
     }
     var written = s.host.save(outboxName(s), { v: OfflineState.SNAPSHOT_VERSION, counter: s.counter, ops: s.ops })
-    Promise.resolve(written).then(function() {
+    s.lastWrite = Promise.resolve(written).then(function() {
         setStorageError(s, OfflineState.StorageError.NONE, OfflineState.StorageError.SAVE)
     }, function(err) {
         console.warn("Plasmai: could not save", outboxName(s), err)
         setStorageError(s, OfflineState.StorageError.SAVE)
     })
+}
+
+/** Resolves when no replay of s runs and its last write is done (the file is final). */
+function settled(s) {
+    return new Promise(function(resolve) {
+        if (!s.replaying) {
+            resolve()
+            return
+        }
+        replay(s, resolve)
+    }).then(function() { return s.lastWrite })
 }
 
 /** Sets the error; with `only` it replaces just that one (a good write clears a failed write only). */
@@ -365,7 +387,9 @@ function replay(s, callback) {
     var sent = 0
     function stop() {
         s.replaying = false
-        saveOutbox(s)
+        // Also when closed: the answer of the op that was on its way must reach the file
+        // before the next session of this profile reads it.
+        writeOutbox(s)
         OfflineState.saveSnapshot(s)
         OfflineState.notify(s)
         var waiters = s.replayWaiters
@@ -424,6 +448,11 @@ function loadOutbox(s) {
     s.loadingOutbox = s.host.load(outboxName(s)).then(function(file) {
         s.loadingOutbox = null
         applyLoaded(s, file)
+        // Ops made while the file was read or could not be read: written behind the loaded ones.
+        if (s.saveWaits && !s.outboxBlocked) {
+            s.saveWaits = false
+            saveOutbox(s)
+        }
         OfflineState.notify(s)
     })
     return s.loadingOutbox
@@ -449,14 +478,9 @@ function applyLoaded(s, file) {
     if (file.status === Status.OK) {
         restoreOps(s, file.data)
     }
-    var wasBlocked = s.outboxBlocked
     s.outboxBlocked = false
     if (s.storageError === StorageError.LOAD) {
         s.storageError = StorageError.NONE
-    }
-    // Ops made while the file could not be read: now written behind the loaded ones.
-    if (wasBlocked && s.ops.length) {
-        saveOutbox(s)
     }
 }
 

@@ -52,7 +52,17 @@ case "$CMD" in
         cat "$FILE" || exit 2
         ;;
     quarantine)
-        mv "$FILE" "$DIR/$NAME.broken-$(date +%Y%m%dT%H%M%S)"
+        # A hard link never replaces a file set aside before (mv would); a second one in the
+        # same second gets a counter. When links are not possible the exit is not 0.
+        STAMP=$(date +%Y%m%dT%H%M%S)
+        DEST="$DIR/$NAME.broken-$STAMP"
+        N=0
+        while ! ln "$FILE" "$DEST" 2>/dev/null; do
+            [ -e "$DEST" ] || exit 1
+            N=$((N + 1))
+            DEST="$DIR/$NAME.broken-$STAMP-$N"
+        done
+        rm "$FILE"
         ;;
     store)
         if [ -z "${PLASMAI_LOCAL_JSON:-}" ]; then
