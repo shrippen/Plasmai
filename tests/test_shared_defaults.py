@@ -57,6 +57,28 @@ def test_defaults_match_main_xml():
     assert not differ, f"DEFAULTS differ from main.xml (js, xml): {differ}"
 
 
+def session_properties():
+    """name -> default expression of every `property <type> name: expr` in SessionSettings.qml."""
+    src = (ROOT / "contents" / "ui" / "session" / "SessionSettings.qml").read_text(encoding="utf-8")
+    found = re.findall(r"^\s+property \w+ (\w+): (.+)$", src, re.M)
+    return {name: expr.strip() for name, expr in found if name != "session"}
+
+
+def session_keys():
+    src = (ROOT / "contents" / "code" / "sharedConfig.js").read_text(encoding="utf-8")
+    block = re.search(r"var SESSION_KEYS = \[(.*?)\]", src, re.S).group(1)
+    return re.findall(r'"(\w+)"', block)
+
+
+def test_session_has_no_defaults_of_its_own():
+    """SessionSettings.qml reads every default from sharedConfig.js DEFAULTS."""
+    props = session_properties()
+    own = {k: v for k, v in props.items() if v != f"SharedConfig.DEFAULTS.{k}"}
+    assert not own, f"use SharedConfig.DEFAULTS.<name> instead: {own}"
+    assert sorted(props) == sorted(session_keys()), "properties and SESSION_KEYS differ"
+    assert set(session_keys()) <= set(shared_keys())
+
+
 def test_init_creates_the_shared_folder(tmp_path):
     """SharedConfigWatch watches the folder; without it only the 5-minute poll sees changes."""
     base = tmp_path / "config"

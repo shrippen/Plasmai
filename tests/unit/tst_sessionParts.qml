@@ -96,6 +96,18 @@ TestCase {
         verify(s.connection.capabilities.tags)
     }
 
+    // A fresh session starts at sharedConfig.js's defaults, not at values of its own.
+    function test_settingsStartAtSharedDefaults() {
+        const s = createTemporaryObject(sessionComponent, this)
+        compare(s.settings.keys, SharedConfig.SESSION_KEYS)
+        for (let i = 0; i < SharedConfig.SESSION_KEYS.length; i++) {
+            const key = SharedConfig.SESSION_KEYS[i]
+            compare(s.settings[key], SharedConfig.DEFAULTS[key], key)
+        }
+        compare(s.settings.workDayBegin, "08:00")
+        compare(s.settings.idleStopMinutes, 15)
+    }
+
     function test_runModeResetsOldSettings() {
         shared = { kimaiUrl: "https://old.example", popupShowRecent: false }
         tokens = { "default": "secret" }
