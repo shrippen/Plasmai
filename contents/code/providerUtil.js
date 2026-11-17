@@ -342,7 +342,7 @@ function normalizeCustomerColor(color) {
 }
 
 function unwrapData(body) {
-    if (body && body.data !== undefined && body.data !== null) {
+    if (body && body.data !== undefined) {
         return body.data
     }
     return body
