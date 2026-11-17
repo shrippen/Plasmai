@@ -196,10 +196,6 @@ QtObject {
 
     // ── Connection page ──
 
-    function metaOf(id) {
-        return TimeTracker.providerMeta(id)
-    }
-
     /** shared.json as stored (the Connection page edits profiles before they are used). */
     function loadStored() {
         return Platform.loadShared(session.dataSource)

@@ -22,10 +22,26 @@ ConfigPage {
         return Math.max(Kirigami.Units.gridUnit * 10, formW - Kirigami.Units.gridUnit * 14)
     }
 
-    property var profiles: Profiles.parseProfiles(profilesField.text, kimaiUrlField.text)
-    property int selectedIndex: 0
-    property bool updatingFields: false
-    property bool syncing: false
+    // The profile list and its actions; the page binds its fields to it.
+    ProfileFormModel {
+        id: form
+        session: page.session
+        providers: page.providers
+        profiles: Profiles.parseProfiles(profilesField.text, kimaiUrlField.text)
+        onEdited: page.syncProfiles()
+        onFieldsReset: {
+            profileCombo.currentIndex = form.selectedIndex
+            profileNameField.text = form.selectedProfile.name
+            kimaiUrlField.text = form.selectedProfile.url || ""
+            providerCombo.currentIndex = form.selectedProviderIndex
+        }
+        onUrlReset: kimaiUrlField.text = form.selectedProfile.url || ""
+        onProviderSwitched: page.showStatus("", false)
+    }
+    property alias profiles: form.profiles
+    property alias selectedIndex: form.selectedIndex
+    property alias updatingFields: form.updatingFields
+    property alias syncing: form.syncing
 
     property string statusMessage: ""
     property bool statusIsError: false
@@ -43,11 +59,9 @@ ConfigPage {
         })
     }
 
-    readonly property var selectedProfile: (profiles.length > 0 && selectedIndex >= 0 && selectedIndex < profiles.length)
-        ? profiles[selectedIndex] : null
-    readonly property string selectedProviderId: selectedProfile && selectedProfile.provider
-        ? selectedProfile.provider : "kimai"
-    readonly property var selectedProviderMeta: session.setup.providerMeta(selectedProviderId)
+    readonly property var selectedProfile: form.selectedProfile
+    readonly property string selectedProviderId: form.selectedProviderId
+    readonly property var selectedProviderMeta: form.selectedProviderMeta
     /** Every service in display order (id, name, needsUrl, defaultUrl, …). */
     readonly property var providers: session.setup.listProviders()
 
@@ -129,7 +143,7 @@ ConfigPage {
     }
 
     function persistConnectionConfig() {
-        page.commitUrlField()
+        form.commitUrl(kimaiUrlField.text)
         page.syncConnectionToCfg()
         page.persistShared()
         unsavedChanges = false
@@ -144,104 +158,12 @@ ConfigPage {
     }
 
     function ensureSelection() {
-        if (profiles.length === 0) {
-            profiles = Profiles.ensured(profiles, ProviderUtil.normalizeUrl(kimaiUrlField.text))
-            syncProfiles()
-        }
-
-        var activeIdx = Profiles.activeIndex(profiles, activeProfileField.text)
-        selectedIndex = activeIdx
-        profileCombo.currentIndex = activeIdx
-        updateFieldsForSelection()
-    }
-
-    function updateFieldsForSelection() {
-        if (profiles.length === 0 || selectedIndex < 0) {
-            return
-        }
-        updatingFields = true
-        profileNameField.text = profiles[selectedIndex].name
-        kimaiUrlField.text = profiles[selectedIndex].url || ""
-        var pid = profiles[selectedIndex].provider || "kimai"
-        var pIdx = page.providers.map(function(p) { return p.id }).indexOf(pid)
-        providerCombo.currentIndex = pIdx >= 0 ? pIdx : 0
-        updatingFields = false
-    }
-
-    function updateSelectedProfile(field, value) {
-        if (updatingFields || syncing || profiles.length === 0 || selectedIndex < 0) {
-            return
-        }
-        profiles = Profiles.withField(profiles, selectedIndex, field, value)
-        syncProfiles()
-    }
-
-    /**
-     * Switch service: clear URL + session ids, then prefill defaults for
-     * Clockify / Toggl / SolidTime. Kimai stays empty with a helpful placeholder.
-     */
-    function applyProviderChange(providerId) {
-        if (updatingFields || syncing || profiles.length === 0 || selectedIndex < 0) {
-            return
-        }
-        var meta = session.setup.providerMeta(providerId)
-        var url = meta.defaultUrl || ""
-        profiles = Profiles.withProvider(profiles, selectedIndex, providerId, url)
-        syncProfiles()
-
-        updatingFields = true
-        kimaiUrlField.text = profiles[selectedIndex].url || ""
-        updatingFields = false
-        showStatus("", false)
-    }
-
-    function commitUrlField() {
-        if (updatingFields || syncing || profiles.length === 0 || selectedIndex < 0) {
-            return
-        }
-        var normalized = ProviderUtil.normalizeUrl(kimaiUrlField.text)
-        updateSelectedProfile("url", normalized)
-        if (kimaiUrlField.text !== normalized) {
-            updatingFields = true
-            kimaiUrlField.text = normalized
-            updatingFields = false
-        }
+        form.ensureSelection(activeProfileField.text, kimaiUrlField.text)
     }
 
     function setActiveProfile() {
-        if (profiles.length === 0 || selectedIndex < 0) {
-            return
-        }
-        commitUrlField()
-        activeProfileField.text = profiles[selectedIndex].id
-        updatingFields = true
-        kimaiUrlField.text = profiles[selectedIndex].url || ""
-        updatingFields = false
+        activeProfileField.text = form.activate(kimaiUrlField.text)
         persistShared()
-    }
-
-    function applyTestConnectionMeta(data) {
-        if (!data || profiles.length === 0 || selectedIndex < 0) {
-            return
-        }
-        var copy = profiles.slice()
-        var p = copy[selectedIndex]
-        if (data.workspaceId) {
-            p.workspaceId = data.workspaceId
-        }
-        if (data.userId) {
-            p.userId = data.userId
-        }
-        if (data.organizationId) {
-            p.organizationId = data.organizationId
-        }
-        if (data.memberId) {
-            p.memberId = data.memberId
-        }
-        copy[selectedIndex] = p
-        profiles = copy
-        syncProfiles()
-        notifyEdited()
     }
 
     function reloadConnectionState() {
@@ -353,8 +275,7 @@ ConfigPage {
                     model: page.profiles.map(function(p) { return p.name })
                     currentIndex: page.selectedIndex
                     onActivated: function(index) {
-                        page.selectedIndex = index
-                        page.updateFieldsForSelection()
+                        form.select(index)
                         page.checkStoredToken()
                     }
                 }
@@ -366,15 +287,11 @@ ConfigPage {
                     Layout.maximumWidth: page.buddyMaxWidth(connectionForm)
                     onTextChanged: {
                         if (page.updatingFields) return
-                        var trimmed = text.trim()
-                        for (var i = 0; i < page.profiles.length; i++) {
-                            if (i !== page.selectedIndex && page.profiles[i].name === trimmed) {
-                                page.showStatus(i18n("A profile named \"%1\" already exists.", trimmed), true)
-                                return
-                            }
+                        if (!form.rename(text)) {
+                            page.showStatus(i18n("A profile named \"%1\" already exists.", text.trim()), true)
+                            return
                         }
                         page.showStatus("", false)
-                        page.updateSelectedProfile("name", text)
                         page.notifyEdited()
                     }
                 }
@@ -389,7 +306,7 @@ ConfigPage {
                         if (page.updatingFields) {
                             return
                         }
-                        page.applyProviderChange(page.providers[index].id)
+                        form.changeProvider(page.providers[index].id)
                         page.notifyEdited()
                     }
                 }
@@ -414,11 +331,11 @@ ConfigPage {
                     onTextChanged: {
                         page.cfg_kimaiUrl = text
                         if (!page.updatingFields && !page.syncing) {
-                            page.updateSelectedProfile("url", text)
+                            form.updateSelected("url", text)
                             page.notifyEdited()
                         }
                     }
-                    onEditingFinished: page.commitUrlField()
+                    onEditingFinished: form.commitUrl(kimaiUrlField.text)
                 }
 
                 QQC2.TextField {
@@ -443,11 +360,7 @@ ConfigPage {
                         text: i18n("Add profile")
                         icon.name: "list-add"
                         onClicked: {
-                            page.profiles = Profiles.withNewProfile(page.profiles, function(n) { return i18n("Profile %1", n) })
-                            page.syncProfiles()
-                            page.selectedIndex = page.profiles.length - 1
-                            profileCombo.currentIndex = page.selectedIndex
-                            page.updateFieldsForSelection()
+                            form.add(function(n) { return i18n("Profile %1", n) })
                             page.notifyEdited()
                         }
                     }
@@ -456,16 +369,7 @@ ConfigPage {
                         icon.name: "list-remove"
                         enabled: page.profiles.length > 1
                         onClicked: {
-                            if (page.profiles.length <= 1) {
-                                return
-                            }
-                            var removedId = page.profiles[page.selectedIndex].id
-                            page.profiles = Profiles.withoutProfile(page.profiles, page.selectedIndex)
-                            page.syncProfiles()
-                            page.selectedIndex = Math.max(0, page.selectedIndex - 1)
-                            profileCombo.currentIndex = page.selectedIndex
-                            page.updateFieldsForSelection()
-                            if (activeProfileField.text === removedId) {
+                            if (form.removeSelected(activeProfileField.text)) {
                                 page.setActiveProfile()
                             }
                             page.notifyEdited()
@@ -507,7 +411,7 @@ ConfigPage {
                         onClicked: {
                             page.busy = true
                             page.showStatus("", false)
-                            page.commitUrlField()
+                            form.commitUrl(kimaiUrlField.text)
                             page.setActiveProfile()
                             var profileId = page.profiles[page.selectedIndex].id
                             session.connection.saveToken(profileId, tokenField.text).then(function() {
@@ -546,7 +450,7 @@ ConfigPage {
                         onClicked: {
                             page.testingConnection = true
                             page.showStatus(i18n("Testing connection…"), false)
-                            page.commitUrlField()
+                            form.commitUrl(kimaiUrlField.text)
                             const profile = page.profiles[page.selectedIndex]
                             session.connection.test(profile, {
                                 noToken: function() {
@@ -556,14 +460,11 @@ ConfigPage {
                                 testing: function() {},
                                 done: function(result) {
                                     page.testingConnection = false
-                                    if (!result.ok) {
-                                        page.showStatus(ApiErrors.text(result.error, true), true)
-                                        return
+                                    if (result.ok) {
+                                        form.applyTested(profile.id, result.data)
+                                        page.notifyEdited()
                                     }
-                                    page.applyTestConnectionMeta(result.data)
-                                    const label = session.setup.providerName(profile.provider)
-                                    const ver = (result.data && (result.data.version || result.data.name)) || i18n("ok")
-                                    page.showStatus(i18n("Connected to %1 (%2).", label, ver), false)
+                                    page.showStatus(ApiErrors.testText(result, session.setup.providerName(profile.provider)), !result.ok)
                                 },
                                 failed: function(err) {
                                     page.testingConnection = false

@@ -62,6 +62,14 @@ function parseApiError(status, statusText, responseText) {
     return { type: ErrorType.Unknown, status: status, detail: detail || statusText }
 }
 
+/** The text the server sent with an error; "" when it sent none or the error is the app's own (NotConfigured). */
+function serverText(error) {
+    if (!error || error.type === ErrorType.NotConfigured) {
+        return ""
+    }
+    return error.detail || error.statusText || ""
+}
+
 function ok(data) {
     return { ok: true, data: data }
 }

@@ -298,25 +298,6 @@ function applyService(profiles, activeId, providerId, providerName, url) {
     return { profiles: list, profileId: p.id }
 }
 
-/** Account ids a connection test returns (Clockify, Toggl, SolidTime need them later). */
-function withConnectionMeta(profile, data) {
-    var p = {}
-    for (var k in profile) {
-        p[k] = profile[k]
-    }
-    if (!data) {
-        return p
-    }
-
-    var keys = ["workspaceId", "userId", "organizationId", "memberId"]
-    for (var i = 0; i < keys.length; i++) {
-        if (data[keys[i]]) {
-            p[keys[i]] = data[keys[i]]
-        }
-    }
-    return p
-}
-
 /** Name to greet: Kimai alias, else name, username or e-mail ("" when none). */
 function userLabel(user) {
     if (!user) {

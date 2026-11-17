@@ -121,6 +121,7 @@
         <file alias="contents/ui/Controls/FormDialog.qml">qml/controls/FormDialog.qml</file>
         <file alias="contents/ui/ApiErrors.qml">../contents/ui/ApiErrors.qml</file>
         <file alias="contents/ui/EntryTexts.qml">../contents/ui/EntryTexts.qml</file>
+        <file alias="contents/ui/ProfileFormModel.qml">../contents/ui/ProfileFormModel.qml</file>
         <file alias="contents/code/dayIntervals.js">../contents/code/dayIntervals.js</file>
         <file alias="contents/code/entityColors.js">../contents/code/entityColors.js</file>
         <file alias="contents/code/entityNames.js">../contents/code/entityNames.js</file>

@@ -127,6 +127,29 @@ function withProvider(profiles, index, providerId, defaultUrl) {
     return copy
 }
 
+/** The ids a connection test reports (workspace, user, ...) set on the profile with this id; empty ones change nothing, an unknown id changes nothing. */
+function withTestMeta(profiles, id, data) {
+    var index = -1
+    for (var i = 0; i < (profiles || []).length; i++) {
+        if (profiles[i].id === id) {
+            index = i
+        }
+    }
+    if (!data || index < 0) {
+        return profiles
+    }
+    var copy = profiles.slice()
+    var row = Object.assign({}, copy[index])
+    var keys = ["workspaceId", "userId", "organizationId", "memberId"]
+    for (var k = 0; k < keys.length; k++) {
+        if (data[keys[k]]) {
+            row[keys[k]] = data[keys[k]]
+        }
+    }
+    copy[index] = row
+    return copy
+}
+
 /** Append a Kimai profile; nameOf(n) words its name, n is the first free number. */
 function withNewProfile(profiles, nameOf) {
     var taken = {}

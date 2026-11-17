@@ -144,14 +144,6 @@ TestCase {
         compare(Wizard.applyService([], "default", "kimai", "Kimai", "https://c").profiles[0].id, "default")
     }
 
-    function test_withConnectionMeta() {
-        var p = Wizard.withConnectionMeta({ id: "x", workspaceId: "" }, { workspaceId: 7, userId: 3, version: "Toggl Track" })
-        compare(p.workspaceId, 7)
-        compare(p.userId, 3)
-        verify(p.version === undefined)
-        compare(Wizard.withConnectionMeta({ id: "x" }, null).id, "x")
-    }
-
     function test_userLabel() {
         compare(Wizard.userLabel({ alias: "Anna B.", username: "anna" }), "Anna B.")
         compare(Wizard.userLabel({ username: "anna" }), "anna")

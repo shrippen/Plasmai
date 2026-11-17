@@ -145,4 +145,32 @@ TestCase {
         var one = [{ id: "x" }]
         compare(Profiles.ensured(one, "https://k.example"), one)
     }
+
+    function test_withTestMeta() {
+        var list = Profiles.parseProfiles('[{"id":"a","workspaceId":"old","userId":"u0"},{"id":"b"}]', "")
+        var out = Profiles.withTestMeta(list, "a", { workspaceId: "w1", organizationId: "o1", memberId: "m1", version: "1.0" })
+        // Ids the test reports replace the stored ones; the others stay.
+        compare(out[0].workspaceId, "w1")
+        compare(out[0].userId, "u0")
+        compare(out[0].organizationId, "o1")
+        compare(out[0].memberId, "m1")
+        compare(out[1].id, "b")
+        // The input list is not touched, and only ids are taken.
+        compare(list[0].workspaceId, "old")
+        compare(out[0].version, undefined)
+    }
+
+    function test_withTestMetaTakesTheNumbersAsGiven() {
+        var out = Profiles.withTestMeta([{ id: "x", workspaceId: "" }], "x", { workspaceId: 7, userId: 3 })
+        compare(out[0].workspaceId, 7)
+        compare(out[0].userId, 3)
+    }
+
+    function test_withTestMetaKeepsWithoutIds() {
+        var list = Profiles.parseProfiles('[{"id":"a","workspaceId":"old"}]', "")
+        compare(Profiles.withTestMeta(list, "a", null), list)
+        // The tested profile is gone (removed while the test ran): nothing changes.
+        compare(Profiles.withTestMeta(list, "gone", { workspaceId: "w" }), list)
+        compare(Profiles.withTestMeta(list, "a", { version: "1" })[0].workspaceId, "old")
+    }
 }
