@@ -26,6 +26,42 @@ TestCase {
         compare(View.hourLabel(13.25), "13:15")
     }
 
+    function test_wrap() {
+        compare(View.wrap("", 10, 3).length, 0)
+        compare(View.wrap("aaa bbb ccc", 7, 3).join("|"), "aaa bbb|ccc")
+        compare(View.wrap("aaa bbb ccc ddd", 3, 2).join("|"), "aaa|bb…")
+    }
+
+    function test_mainWrapsMessage() {
+        const text = View.main({
+            profileName: "Demo", statusText: "Online", tracking: false, selected: 0,
+            message: "Could not start tracking: " + "word ".repeat(30), recent: []
+        }, size, t)
+        const lines = plain(text).split("\n")
+
+        compare(lines.length, size.rows)
+        verify(lines.every(function(l) { return l.length <= size.columns }))
+        verify(lines[lines.length - 4].indexOf("Could not start tracking") === 0)
+    }
+
+    // A full list and a long message: exactly `rows` lines, the footer last.
+    function test_mainFullListWithMessage() {
+        const recent = []
+        for (let i = 0; i < 30; i++) {
+            recent.push({ title: "Entry " + i, sub: "Project" })
+        }
+        const small = { columns: 40, rows: 24 }
+        const text = View.main({
+            profileName: "Demo", statusText: "Online", tracking: false, selected: 0,
+            message: "Could not start tracking: " + "word ".repeat(30), recent: recent
+        }, small, t)
+        const lines = plain(text).split("\n")
+
+        compare(lines.length, small.rows)
+        verify(lines.every(function(l) { return l.length <= small.columns }))
+        verify(lines[lines.length - 1].indexOf(t.mainKeys.slice(0, 5)) === 0)
+    }
+
     // Every line fits the terminal; the screen has exactly `rows` lines.
     function test_mainScreen() {
         const text = View.main({

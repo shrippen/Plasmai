@@ -3,6 +3,8 @@ import QtQuick
 import "../code/providerUtil.js" as ProviderUtil
 import "../code/offlineState.js" as OfflineState
 
+// The rule: a kind with a hint (token, URL, permissions, server error) shows the hint and the server's
+// own text after it; any other kind shows the server's text; the app's own errors only the hint (`withServer`).
 QtObject {
     /** The words for the offline layer's storage problem (OfflineState.StorageError); "" for none. */
     function storageText(storageError) {
@@ -54,16 +56,30 @@ QtObject {
         if (error.type === ProviderUtil.ErrorType.Server) {
             return i18n("Server error (%1).", error.status)
         }
-        if (error.detail) {
-            return i18n("Request failed: %1", error.detail)
+        const reason = error.detail || error.statusText
+        if (reason) {
+            return i18n("Request failed: %1", reason)
         }
         return i18n("Request failed (%1).", error.status)
+    }
+
+    /** The error as every place that shows a service's error words it; see the rule at the top. */
+    function withServer(error, configContext) {
+        const show = ProviderUtil.errorShow(error)
+        if (show === ProviderUtil.ErrorShow.Hint) {
+            return text(error, configContext)
+        }
+        const server = ProviderUtil.serverText(error)
+        if (show === ProviderUtil.ErrorShow.Server) {
+            return server
+        }
+        return i18n("%1 (%2)", text(error, configContext), server)
     }
 
     /** The line under "Test connection": `result` as the session's test hands it, `service` the service's name. */
     function testText(result, service) {
         if (!result.ok) {
-            return ProviderUtil.serverText(result.error) || text(result.error, true)
+            return withServer(result.error, true)
         }
         const data = result.data
         const version = (data && (data.version || data.name)) || i18n("ok")

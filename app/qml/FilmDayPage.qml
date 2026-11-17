@@ -55,7 +55,7 @@ Kirigami.Page {
             if (!page) { return }
             if (result.extras === "failed") {
                 root.showPassiveNotification(i18n("The film day was not saved: %1",
-                                                  (result.error && result.error.detail) || ApiErrors.text(result.error)))
+                                                  ApiErrors.withServer(result.error)))
             }
         }, function(payCents) {
             if (!page) { return }
@@ -104,7 +104,7 @@ Kirigami.Page {
             return
         }
         if (!result.ok) {
-            root.showPassiveNotification(ApiErrors.text(result.error))
+            root.showPassiveNotification(ApiErrors.withServer(result.error))
             return
         }
         var report = result.deleteReport
@@ -113,11 +113,11 @@ Kirigami.Page {
             // The day still has more than one entry.
             messages.push(i18np("%1 other entry of this day could not be deleted: %2",
                                 "%1 other entries of this day could not be deleted: %2",
-                                report.failed.length, ApiErrors.text(report.failed[0].error)))
+                                report.failed.length, ApiErrors.withServer(report.failed[0].error)))
         }
         if (result.extras === "failed") {
             messages.push(i18n("Begin and end were saved, but the film day extras were not: %1",
-                               (result.error && result.error.detail) || ApiErrors.text(result.error)))
+                               ApiErrors.withServer(result.error)))
         }
         if (messages.length > 0) {
             // Stay on the page so the field can be fixed or the save repeated.

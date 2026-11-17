@@ -233,7 +233,7 @@ ColumnLayout {
         root.setup.testConnection(providerId, applied.profiles[index], check.url, token, function(result) {
             if (!result.ok) {
                 root.busy = false
-                root.errorText = ApiErrors.text(result.error, true)
+                root.errorText = ApiErrors.withServer(result.error, true)
                 return
             }
             applied.profiles = Profiles.withTestMeta(applied.profiles, applied.profileId, result.data)

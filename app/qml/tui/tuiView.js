@@ -30,6 +30,7 @@ const HOURS_SHOWN_MIN = 6
 const HOURS_SHOWN_MAX = 22
 const QUARTERS = 4
 const WEEK_DAYS = 7
+const MESSAGE_LINES_MAX = 3
 
 function paint(style, text) {
     return style + text + Style.RESET
@@ -45,6 +46,30 @@ function fit(text, width) {
         return width > 1 ? s.slice(0, width - 1) + "…" : s.slice(0, width)
     }
     return s + " ".repeat(width - s.length)
+}
+
+/** `text` broken at spaces into lines of at most `width` characters, at most `maxLines` (the last one cut with …). */
+function wrap(text, width, maxLines) {
+    const lines = []
+    let line = ""
+    const words = String(text || "").split(" ")
+    for (let i = 0; i < words.length; i++) {
+        const next = line ? line + " " + words[i] : words[i]
+        if (line && next.length > width) {
+            lines.push(line)
+            line = words[i]
+            continue
+        }
+        line = next
+    }
+    if (line) {
+        lines.push(line)
+    }
+    if (lines.length > maxLines) {
+        lines.length = maxLines
+        lines[maxLines - 1] = lines[maxLines - 1].slice(0, width - 1) + "…"
+    }
+    return lines.map(function(l) { return l.slice(0, width) })
 }
 
 /** 5425 → "1:30:25"; seconds always shown, for a running timer. */
@@ -100,8 +125,12 @@ function main(model, size, t) {
     lines.push("")
     lines.push(paint(Style.BOLD, t.recent))
 
+    // The message wraps over up to MESSAGE_LINES_MAX lines above the footer; no message, one blank line.
+    const message = wrap(model.message, w, MESSAGE_LINES_MAX)
+    const messageRows = Math.max(1, message.length)
+
     // Recent rows with their number key; the selected one inverted.
-    const room = Math.max(1, size.rows - lines.length - 3)
+    const room = Math.max(1, size.rows - lines.length - 2 - messageRows)
     const rows = (model.recent || []).slice(0, room)
     for (let i = 0; i < rows.length; i++) {
         const key = i < 9 ? String(i + 1) : " "
@@ -112,10 +141,15 @@ function main(model, size, t) {
         lines.push(paint(Style.DIM, t.noRecent))
     }
 
-    while (lines.length < size.rows - 2) {
+    while (lines.length < size.rows - 1 - messageRows) {
         lines.push("")
     }
-    lines.push(model.message ? paint(Style.DANGER, fit(model.message, w)) : "")
+    if (message.length === 0) {
+        lines.push("")
+    }
+    for (let i = 0; i < message.length; i++) {
+        lines.push(paint(Style.DANGER, message[i]))
+    }
     lines.push(footer(t.mainKeys, w))
     return lines.join("\n")
 }

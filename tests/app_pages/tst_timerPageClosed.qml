@@ -31,7 +31,7 @@ TestCase {
                 property var connection: QtObject {
                     property bool configured: true
                     property string state: "ok"
-                    property string errorText: ""
+                    property var lastError: null
                     property var profiles: []
                     property var profile: null
                     property var capabilities: ({})

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-11-17 22:38+0100\n"
+"POT-Creation-Date: 2026-11-17 22:54+0100\n"
 "PO-Revision-Date: 2026-08-09 19:45+0200\n"
 "Last-Translator: Cursor Agent\n"
 "Language-Team: Brazilian Portuguese\n"
@@ -975,75 +975,79 @@ msgstr "Fixar como favorito"
 msgid "Delete entry"
 msgstr "Excluir entrada"
 
-#: contents/ui/ApiErrors.qml:10
+#: contents/ui/ApiErrors.qml:12
 msgid "Waiting changes could not be saved on this device"
 msgstr "Não foi possível salvar as alterações pendentes neste dispositivo"
 
-#: contents/ui/ApiErrors.qml:13
+#: contents/ui/ApiErrors.qml:15
 msgid "Waiting changes could not be read; new ones are kept in memory only"
 msgstr "Não foi possível ler as alterações pendentes; as novas ficam apenas na memória"
 
-#: contents/ui/ApiErrors.qml:16
+#: contents/ui/ApiErrors.qml:18
 msgid "The saved list of waiting changes was damaged and set aside"
 msgstr "A lista salva de alterações pendentes estava danificada e foi separada"
 
-#: contents/ui/ApiErrors.qml:27
+#: contents/ui/ApiErrors.qml:29
 msgid "Unknown error"
 msgstr "Erro desconhecido"
 
-#: contents/ui/ApiErrors.qml:31
+#: contents/ui/ApiErrors.qml:33
 msgid "URL and API token are required"
 msgstr "URL e token de API são obrigatórios"
 
-#: contents/ui/ApiErrors.qml:32
+#: contents/ui/ApiErrors.qml:34
 msgid "Configure your time tracker URL and API token"
 msgstr "Configure a URL e o token de API do seu serviço de registro de tempo"
 
-#: contents/ui/ApiErrors.qml:36
+#: contents/ui/ApiErrors.qml:38
 msgid "Missing or invalid input: %1"
 msgstr "Entrada ausente ou inválida: %1"
 
-#: contents/ui/ApiErrors.qml:37
+#: contents/ui/ApiErrors.qml:39
 msgid "Missing or invalid input."
 msgstr "Entrada ausente ou inválida."
 
-#: contents/ui/ApiErrors.qml:40
+#: contents/ui/ApiErrors.qml:42
 msgid "This needs a connection to the server."
 msgstr "Isso precisa de uma conexão com o servidor."
 
-#: contents/ui/ApiErrors.qml:43
+#: contents/ui/ApiErrors.qml:45
 msgid "Cannot reach the server. Check your network, URL, or TLS certificate."
 msgstr "Não foi possível alcançar o servidor. Verifique sua rede, URL ou certificado TLS."
 
-#: contents/ui/ApiErrors.qml:46
+#: contents/ui/ApiErrors.qml:48
 msgid "Authentication failed. Check your API token."
 msgstr "Falha na autenticação. Verifique seu token de API."
 
-#: contents/ui/ApiErrors.qml:49
+#: contents/ui/ApiErrors.qml:51
 msgid "Server not found. Check your URL."
 msgstr "Servidor não encontrado. Verifique sua URL."
 
-#: contents/ui/ApiErrors.qml:52
+#: contents/ui/ApiErrors.qml:54
 msgid "Access denied. Your token may lack required permissions."
 msgstr "Acesso negado. Seu token pode não ter as permissões necessárias."
 
-#: contents/ui/ApiErrors.qml:55
+#: contents/ui/ApiErrors.qml:57
 msgid "Server error (%1)."
 msgstr "Erro do servidor (%1)."
 
-#: contents/ui/ApiErrors.qml:58
+#: contents/ui/ApiErrors.qml:61
 msgid "Request failed: %1"
 msgstr "Falha na requisição: %1"
 
-#: contents/ui/ApiErrors.qml:60
+#: contents/ui/ApiErrors.qml:63
 msgid "Request failed (%1)."
 msgstr "Falha na requisição (%1)."
 
-#: contents/ui/ApiErrors.qml:69
+#: contents/ui/ApiErrors.qml:76
+msgid "%1 (%2)"
+msgstr ""
+
+#: contents/ui/ApiErrors.qml:85
 msgid "ok"
 msgstr "ok"
 
-#: contents/ui/ApiErrors.qml:70
+#: contents/ui/ApiErrors.qml:86
 msgid "Connected to %1 (%2)."
 msgstr "Conectado a %1 (%2)."
 

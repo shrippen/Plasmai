@@ -185,7 +185,7 @@ Kirigami.Page {
             Layout.fillWidth: true
             visible: session.connection.configured && session.connection.state === "error"
             type: Kirigami.MessageType.Error
-            text: session.connection.errorText.length > 0 ? session.connection.errorText : i18n("Connection problem")
+            text: ApiErrors.withServer(session.connection.lastError) || i18n("Connection problem")
             actions: [
                 Kirigami.Action { text: i18n("Retry"); icon.name: "view-refresh"; onTriggered: session.refresh() },
                 Kirigami.Action { text: i18n("Configure"); icon.name: "configure"; onTriggered: pageStack.push(connectionComponent) }
