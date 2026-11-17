@@ -495,18 +495,6 @@ function sortTrips(trips) {
     return copy
 }
 
-/** Trips linked to one Kimai entry. */
-function tripsForTimesheet(trips, timesheetId) {
-    var out = []
-    for (var i = 0; i < (trips || []).length; i++) {
-        if (trips[i] && trips[i].timesheet !== null && trips[i].timesheet !== undefined
-                && String(trips[i].timesheet) === String(timesheetId)) {
-            out.push(trips[i])
-        }
-    }
-    return out
-}
-
 /** "From → To" of a trip or suggestion, with whatever is known. */
 function routeText(from, to) {
     var a = String(from || "").trim()

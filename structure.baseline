@@ -29,7 +29,7 @@ contents/code/favorites.js	resolvePinnedEntries	ccn=20 nesting=5
 contents/code/filmDaySync.js	-	lines=860
 contents/code/filmDaySync.js	viewInfo	ccn=28
 contents/code/filmDays.js	normalizeServer	ccn=18
-contents/code/kimaiApi.js	-	lines=2291
+contents/code/kimaiApi.js	-	lines=2281
 contents/code/kimaiApi.js	colorFromTagName	nesting=5
 contents/code/kimaiApi.js	dayIntervalsFromTimesheets	ccn=17
 contents/code/kimaiApi.js	hydrateTimesheets	ccn=32

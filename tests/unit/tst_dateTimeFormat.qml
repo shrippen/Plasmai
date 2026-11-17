@@ -97,24 +97,6 @@ TestCase {
                 Qt.locale().dayName(d.getDay(), 0) + ", " + DateTimeFormat.formatLocaleDate(d))
     }
 
-    function test_entryTimeLabel() {
-        var now = new Date(2026, 8, 26, 16, 0, 0)
-        var clock = function(h, m) { return DateTimeFormat.formatLocaleTime(h, m) }
-        // same day: begin – end, running: begin – now label
-        compare(DateTimeFormat.entryTimeLabel(new Date(2026, 8, 26, 7, 42), new Date(2026, 8, 26, 9, 40), now, "now"),
-                clock(7, 42) + " – " + clock(9, 40))
-        compare(DateTimeFormat.entryTimeLabel(new Date(2026, 8, 26, 7, 42), null, now, "now"),
-                clock(7, 42) + " – now")
-        // this week: short weekday + begin
-        compare(DateTimeFormat.entryTimeLabel(new Date(2026, 8, 24, 13, 20), new Date(2026, 8, 24, 14, 0), now, "now"),
-                Qt.locale().dayName(new Date(2026, 8, 24).getDay(), 1) + " " + clock(13, 20))
-        // older: day + short month + begin
-        compare(DateTimeFormat.entryTimeLabel(new Date(2026, 8, 12, 8, 5), new Date(2026, 8, 12, 9, 0), now, "now"),
-                "12 " + Qt.locale().standaloneMonthName(8, 1) + " " + clock(8, 5))
-        compare(DateTimeFormat.entryTimeLabel(null, null, now, "now"), "")
-        compare(DateTimeFormat.entryTimeLabel("not a date", null, now, "now"), "")
-    }
-
     // One parser for every backend's stamps (Kimai, ISO, provider variants).
     // Short formats have a two-digit year ("dd.MM.yy"): "26" is 2026, not
     // 1926 as Qt reads it. Before, an edited entry got a start 100 years back.

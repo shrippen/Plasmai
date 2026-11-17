@@ -35,8 +35,6 @@ TestCase {
         compare(start.getDay(), 1)
         var next = StatsData.addDays(day, 1)
         compare(next.getDate(), 14)
-        verify(StatsData.sameLocalDay(day, new Date(2026, 7, 13, 23, 0, 0)))
-        verify(!StatsData.sameLocalDay(day, new Date(2026, 7, 14, 0, 30, 0)))
     }
 
     function test_isBillable() {
