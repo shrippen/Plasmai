@@ -88,8 +88,6 @@ PlasmoidItem {
     property var pendingSwitchTimesheet: null
     property var pendingDeleteTimesheet: null
     property var pendingSplitTimesheet: null
-    /** A restart of this entry runs; if it fails, the entry starts anew. */
-    property var continuing: null
     /** A start of this widget runs: trackingBegan is no news then. */
     property bool localStart: false
     /** The next stop is the idle prompt's (its own notification). */
@@ -493,36 +491,6 @@ PlasmoidItem {
 
     // ── Words for the session's answers ──
 
-    function formatRelativeTime(isoDate) {
-        if (!isoDate) {
-            return ""
-        }
-        var date = DTF.parseStamp(isoDate)
-        if (isNaN(date.getTime())) {
-            return ""
-        }
-        var diffSec = Math.floor((Date.now() - date.getTime()) / 1000)
-        if (diffSec < 60) {
-            return i18n("just now")
-        }
-        var diffMin = Math.floor(diffSec / 60)
-        if (diffMin < 60) {
-            return i18np("%1 minute ago", "%1 minutes ago", diffMin)
-        }
-        var diffHour = Math.floor(diffMin / 60)
-        if (diffHour < 24) {
-            return i18np("%1 hour ago", "%1 hours ago", diffHour)
-        }
-        var diffDay = Math.floor(diffHour / 24)
-        if (diffDay === 1) {
-            return i18n("yesterday")
-        }
-        if (diffDay < 7) {
-            return i18np("%1 day ago", "%1 days ago", diffDay)
-        }
-        return date.toLocaleDateString(Qt.locale())
-    }
-
     function connectionIcon() {
         if (!session.connection.configured) {
             return "network-disconnect"
@@ -576,7 +544,6 @@ PlasmoidItem {
         }
         function onStarted(ts, origin, names) {
             root.clearError()
-            root.continuing = null
             // trackingBegan follows at once: no "in progress" news for a start here.
             root.localStart = true
             Qt.callLater(function() { root.localStart = false })
@@ -617,30 +584,13 @@ PlasmoidItem {
             return
         }
         if (action === Session.Action.SplitRange) {
-            userMessage = i18n("Split time must be between begin and end.")
-            return
-        }
-        if (action === Session.Action.Continue && startAnew(continuing)) {
+            userMessage = EntryTexts.splitRange
             return
         }
         showError(result ? result.error : null)
         if (action === Session.Action.SplitSecond) {
-            userMessage = i18n("The first half was saved, but the second half could not be created.")
+            userMessage = EntryTexts.splitSecond
         }
-    }
-
-    /** A restart failed: the same project and activity start as a new entry. */
-    function startAnew(ts) {
-        continuing = null
-        const pid = ts ? KimaiApi.projectId(ts) : null
-        const aid = ts ? KimaiApi.activityId(ts) : null
-        if (!pid || !aid) {
-            return false
-        }
-        session.timer.start(pid, aid, KimaiApi.displayProjectName(ts, session.catalog.projects),
-                            KimaiApi.displayActivityName(ts, session.catalog.activities, session.catalog.activitiesByProject),
-                            ts.description || "")
-        return true
     }
 
     Connections {
@@ -1077,21 +1027,6 @@ PlasmoidItem {
         }, range)
     }
 
-    function timesheetSummaryText(ts) {
-        if (!ts) {
-            return ""
-        }
-        const cat = session.catalog
-        const bits = [KimaiApi.displayProjectName(ts, cat.projects),
-                      KimaiApi.displayActivityName(ts, cat.activities, cat.activitiesByProject)]
-        const begin = DTF.parseStamp(ts.begin)
-        if (!isNaN(begin.getTime())) {
-            bits.push(begin.toLocaleDateString(Qt.locale(), Locale.ShortFormat) + " "
-                      + begin.toLocaleTimeString(Qt.locale(), Locale.ShortFormat))
-        }
-        return bits.filter(function(b) { return !!b }).join(" · ")
-    }
-
     /** Show the trip sheet (mainViewMode "trip"). */
     function openTripSheet(form, original, linkedText, suggestion) {
         if (!session.trips.available) {
@@ -1115,7 +1050,7 @@ PlasmoidItem {
         if (!ts) {
             return
         }
-        openTripSheet(Mileage.formForTimesheet(session.trips.ping, ts, KimaiApi.projectId), null, timesheetSummaryText(ts))
+        openTripSheet(Mileage.formForTimesheet(session.trips.ping, ts, KimaiApi.projectId), null, EntryTexts.summary(ts, session.catalog))
     }
 
     function tripSaved(message) {
@@ -1292,22 +1227,6 @@ PlasmoidItem {
         t.flushDescription()
     }
 
-    function remainingTodayText() {
-        const r = session.totals.remainingTodaySeconds
-        if (r >= 0) {
-            return i18n("%1 left today", KimaiApi.formatDurationShort(r))
-        }
-        return i18n("%1 over today", KimaiApi.formatDurationShort(-r))
-    }
-
-    function remainingWeekText() {
-        const r = session.totals.remainingWeekSeconds
-        if (r >= 0) {
-            return i18n("%1 left this week", KimaiApi.formatDurationShort(r))
-        }
-        return i18n("%1 over this week", KimaiApi.formatDurationShort(-r))
-    }
-
     /** Panel hover tooltip body; respects Panel-Flyout work-summary setting. */
     function panelTooltipBody() {
         const showSummary = plasmoid.configuration.popupShowWorkSummary
@@ -1327,10 +1246,10 @@ PlasmoidItem {
         if (showSummary && sum.hasWorkContract) {
             const line2 = []
             if (sum.todayTargetSeconds > 0) {
-                line2.push(remainingTodayText())
+                line2.push(EntryTexts.leftToday(session.totals.remainingTodaySeconds))
             }
             if (sum.weekTargetSeconds > 0) {
-                line2.push(remainingWeekText())
+                line2.push(EntryTexts.leftWeek(session.totals.remainingWeekSeconds))
             }
             if (line2.length > 0) {
                 lines.push(line2.join(" · "))
@@ -1478,7 +1397,6 @@ PlasmoidItem {
         }
         if (!session.timer.tracking) {
             userMessage = ""
-            continuing = timesheet
         }
         presentRestart(session.timer.requestRestart(timesheet), timesheet)
     }
@@ -1564,7 +1482,7 @@ PlasmoidItem {
                    ? splitEntryDialogRef.splitInstant()
                    : null
         if (!TimesheetFields.splitStoppedEntry(timesheet, at).ok) {
-            userMessage = i18n("Split time must be between begin and end.")
+            userMessage = EntryTexts.splitRange
             return
         }
         userMessage = ""
@@ -2040,7 +1958,7 @@ PlasmoidItem {
                             root.pendingSplitTimesheet, splitEntryDialog.splitInstant())
                         return split.ok
                                ? i18n("Both halves will have a positive duration.")
-                               : i18n("Split time must be between begin and end.")
+                               : EntryTexts.splitRange
                     }
                 }
             }

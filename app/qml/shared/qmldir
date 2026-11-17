@@ -1,5 +1,6 @@
 singleton PlasmaiColors 1.0 ../../contents/ui/PlasmaiColors.qml
 singleton ApiErrors 1.0 ../../contents/ui/ApiErrors.qml
+singleton EntryTexts 1.0 ../../contents/ui/EntryTexts.qml
 ColorLabelRow 1.0 ../../contents/ui/ColorLabelRow.qml
 CustomerColorDot 1.0 ../../contents/ui/CustomerColorDot.qml
 WrapCheckBox 1.0 WrapCheckBox.qml

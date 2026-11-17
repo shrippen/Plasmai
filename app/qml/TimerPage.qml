@@ -71,8 +71,8 @@ Kirigami.Page {
     function remainingText() {
         if (!session.totals.hasWorkContract) return ""
         var bits = []
-        if (session.totals.todayTargetSeconds > 0) bits.push(root.remainingTodayText())
-        if (session.totals.weekEffectiveTargetSeconds > 0) bits.push(root.remainingWeekText())
+        if (session.totals.todayTargetSeconds > 0) bits.push(EntryTexts.leftToday(session.totals.remainingTodaySeconds))
+        if (session.totals.weekEffectiveTargetSeconds > 0) bits.push(EntryTexts.leftWeek(session.totals.remainingWeekSeconds))
         return bits.join(" · ")
     }
     function isOverTime() { return session.totals.hasWorkContract && (session.totals.remainingTodaySeconds < 0 || session.totals.remainingWeekSeconds < 0) }
@@ -791,7 +791,7 @@ Kirigami.Page {
                             var bits = [KimaiApi.displayProjectName(modelData, session.catalog.projects)]
                             var secs = modelData.duration || 0
                             if (secs > 0) bits.push(KimaiApi.formatDurationShort(secs))
-                            bits.push(root.formatRelativeTime(modelData.end || modelData.begin))
+                            bits.push(EntryTexts.ago(modelData.end || modelData.begin))
                             return bits.join(" · ")
                         }
                         customerColor: barColorInfo.color || PlasmaiColors.entityFallback
