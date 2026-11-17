@@ -52,7 +52,7 @@ contents/ui/SearchableCombo.qml	Keys.onPressed	nesting=5
 contents/ui/SetupWizard.qml	-	lines=899
 contents/ui/config/ConfigDisplay.qml	-	lines=987
 contents/ui/config/ConfigDisplay.qml	applyShared	ccn=34 length=113
-contents/ui/main.qml	-	lines=2789
+contents/ui/main.qml	-	lines=2775
 demo/bench-report.py	medians	ccn=27
 tests/lib/atspi_clicks.py	collect_clickables	ccn=18
 tests/lib/atspi_clicks.py	should_skip	ccn=21

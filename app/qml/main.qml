@@ -271,6 +271,10 @@ Kirigami.ApplicationWindow {
             reportWriteError(result, i18n("Could not stop tracking"))
             return
         case Session.Action.Save:
+            if (result && result.invalid) {
+                showPassiveNotification(EntryTexts.timeProblem(result.invalid))
+                return
+            }
             reportWriteError(result, i18n("Could not save the entry"))
             return
         case Session.Action.Delete:

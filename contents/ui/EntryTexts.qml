@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import "../code/entryText.js" as EntryText
 import "../code/dateTimeFormat.js" as DTF
+import "../code/timesheetFields.js" as TimesheetFields
 
 /** Texts about entries and the day that widget and app both show; the logic is in entryText.js. */
 QtObject {
@@ -43,6 +44,21 @@ QtObject {
             return i18n("%1 left this week", DTF.formatDurationShort(seconds))
         }
         return i18n("%1 over this week", DTF.formatDurationShort(-seconds))
+    }
+
+    /** Why a save was refused (TimesheetFields.TimeProblem). */
+    function timeProblem(problem) {
+        switch (problem) {
+        case TimesheetFields.TimeProblem.DATES:
+            return i18n("Enter valid begin and end date/time.")
+        case TimesheetFields.TimeProblem.ORDER:
+            return i18n("End must be after begin.")
+        case TimesheetFields.TimeProblem.BEGIN:
+            return i18n("Enter a valid start date/time.")
+        case TimesheetFields.TimeProblem.FUTURE:
+            return i18n("Start must not be in the future.")
+        }
+        return ""
     }
 
     readonly property string splitRange: i18n("Split time must be between begin and end.")

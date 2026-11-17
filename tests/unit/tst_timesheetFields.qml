@@ -147,4 +147,47 @@ TestCase {
         verify(!Fields.beginIsBeforePreviousEnd("2026-03-10T11:01:00", prev))
         verify(!Fields.beginIsBeforePreviousEnd("2026-03-10T10:00:00", null))
     }
+
+    // ── timeFields: check and convert begin / end before a save ──
+
+    readonly property double now: new Date(2026, 5, 10, 12, 0, 0).getTime()
+    readonly property string stampPattern: "^2026-06-10T09:00:00[+-]\\d{4}$"
+
+    function test_timeFieldsEntryConvertsToStampWithOffset() {
+        var r = Fields.timeFields({ begin: "2026-06-10T09:00", end: "2026-06-10 10:00", project: 1 }, Fields.TimeCheck.ENTRY, now)
+        compare(r.problem, Fields.TimeProblem.NONE)
+        verify(new RegExp(stampPattern).test(r.fields.begin), r.fields.begin)
+        verify(/^2026-06-10T10:00:00[+-]\d{4}$/.test(r.fields.end), r.fields.end)
+        compare(r.fields.project, 1)
+    }
+
+    function test_timeFieldsEntryRefusesBadDates() {
+        compare(Fields.timeFields({ begin: "nope", end: "2026-06-10T10:00" }, Fields.TimeCheck.ENTRY, now).problem, Fields.TimeProblem.DATES)
+        compare(Fields.timeFields({ begin: "2026-06-10T09:00" }, Fields.TimeCheck.ENTRY, now).problem, Fields.TimeProblem.DATES)
+    }
+
+    function test_timeFieldsEntryRefusesEndNotAfterBegin() {
+        compare(Fields.timeFields({ begin: "2026-06-10T10:00", end: "2026-06-10T10:00" }, Fields.TimeCheck.ENTRY, now).problem, Fields.TimeProblem.ORDER)
+        compare(Fields.timeFields({ begin: "2026-06-10T10:00", end: "2026-06-10T09:00" }, Fields.TimeCheck.ENTRY, now).problem, Fields.TimeProblem.ORDER)
+    }
+
+    function test_timeFieldsEntryWithoutTimesPassesThrough() {
+        var r = Fields.timeFields({ description: "x" }, Fields.TimeCheck.ENTRY, now)
+        compare(r.problem, Fields.TimeProblem.NONE)
+        compare(r.fields.description, "x")
+        verify(r.fields.begin === undefined)
+    }
+
+    function test_timeFieldsRunningChecksBegin() {
+        compare(Fields.timeFields({ begin: "x" }, Fields.TimeCheck.RUNNING, now).problem, Fields.TimeProblem.BEGIN)
+        compare(Fields.timeFields({ begin: "2026-06-10T12:02" }, Fields.TimeCheck.RUNNING, now).problem, Fields.TimeProblem.FUTURE)
+        compare(Fields.timeFields({ begin: "2026-06-10T12:00:30" }, Fields.TimeCheck.RUNNING, now).problem, Fields.TimeProblem.NONE)
+        var r = Fields.timeFields({ begin: "2026-06-10T09:00", tags: [] }, Fields.TimeCheck.RUNNING, now)
+        verify(new RegExp(stampPattern).test(r.fields.begin), r.fields.begin)
+    }
+
+    function test_timeFieldsKeepsAStampWithOffset() {
+        var r = Fields.timeFields({ begin: "2026-06-10T09:00:00+0200" }, Fields.TimeCheck.RUNNING, now)
+        compare(new Date(r.fields.begin.replace(/([+-]\d{2})(\d{2})$/, "$1:$2")).getTime(), new Date("2026-06-10T09:00:00+02:00").getTime())
+    }
 }

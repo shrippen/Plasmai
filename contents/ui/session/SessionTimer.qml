@@ -4,6 +4,7 @@ import "../../code/entityNames.js" as Names
 import "../../code/timerSession.js" as TimerSession
 import "../../code/providerUtil.js" as ProviderUtil
 import "../../code/dateTimeFormat.js" as DTF
+import "../../code/timesheetFields.js" as TimesheetFields
 import ".." as Ui
 
 /**
@@ -330,11 +331,17 @@ QtObject {
         return TimerSession.switchHintKey(ts)
     }
 
-    /** Changes the running entry (project, activity, begin, billable, tags); done() once saved. */
+    /** Changes the running entry (project, activity, begin, billable, tags); done() once saved. A refused begin is failed(Save) with result.invalid (TimesheetFields.TimeProblem). */
     function patchActive(fields, done) {
         if (!timesheetId || !loaded) {
             return
         }
+        const checked = TimesheetFields.timeFields(fields, TimesheetFields.TimeCheck.RUNNING, Date.now())
+        if (checked.problem !== TimesheetFields.TimeProblem.NONE) {
+            session.failed(Ui.Session.Action.Save, { ok: false, invalid: checked.problem })
+            return
+        }
+        fields = checked.fields
         const c = session.connection
         session.busy = true
         c.tracker.patchTimesheet(c.url, c.token, timesheetId, fields, function(result) {
