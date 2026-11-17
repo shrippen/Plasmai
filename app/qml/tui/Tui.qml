@@ -2,7 +2,7 @@ import QtQml
 import "../../contents/ui" as Ui
 import "../platform/appBackend.js" as AppBackend
 import "../../contents/code/platform.js" as Platform
-import "../../contents/code/kimaiApi.js" as KimaiApi
+import "../../contents/code/entityNames.js" as Names
 import "../../contents/code/dayModel.js" as DayModel
 import "../../contents/code/statsData.js" as StatsData
 import "../../contents/code/sharedConfig.js" as SharedConfig
@@ -116,8 +116,8 @@ QtObject {
         if (session.timer.requestRestart(ts) !== Ui.Session.Restart.Confirm) {
             return
         }
-        session.timer.switchTo(KimaiApi.projectId(ts), KimaiApi.activityId(ts), KimaiApi.projectName(ts),
-                               KimaiApi.activityName(ts), ts.description || "")
+        session.timer.switchTo(Names.projectId(ts), Names.activityId(ts), Names.projectName(ts),
+                               Names.activityName(ts), ts.description || "")
     }
 
     // ── Drawing ──
@@ -181,13 +181,13 @@ QtObject {
         const a = session.timer.active
         terminal.render(View.main(Object.assign(model, {
             tracking: session.timer.tracking,
-            activity: a ? KimaiApi.activityName(a) : "",
-            project: a ? KimaiApi.projectName(a) : "",
+            activity: a ? Names.activityName(a) : "",
+            project: a ? Names.projectName(a) : "",
             elapsed: session.timer.elapsedSeconds,
             todaySeconds: session.totals.todaySeconds,
             weekSeconds: session.totals.weekSeconds,
             recent: session.recent.list.map(function(r) {
-                return { title: KimaiApi.activityName(r), sub: KimaiApi.projectName(r) + (r.description ? " · " + r.description : "") }
+                return { title: Names.activityName(r), sub: Names.projectName(r) + (r.description ? " · " + r.description : "") }
             }),
             selected: selected,
             message: message
@@ -197,7 +197,7 @@ QtObject {
     function dayModel() {
         const now = new Date()
         const blocks = DayModel.blocks(session.totals.todayEntries, now, now.getTime()).map(function(b) {
-            return Object.assign(b, { label: KimaiApi.activityName(b.entry) + " · " + KimaiApi.projectName(b.entry) })
+            return Object.assign(b, { label: Names.activityName(b.entry) + " · " + Names.projectName(b.entry) })
         })
         return {
             title: Qt.locale().toString(now, "dddd, d. MMMM"),

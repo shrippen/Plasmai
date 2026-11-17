@@ -1,7 +1,6 @@
 pragma Singleton
 import QtQuick
 import "../code/entryText.js" as EntryText
-import "../code/kimaiApi.js" as KimaiApi
 import "../code/dateTimeFormat.js" as DTF
 
 /** Texts about entries and the day that widget and app both show; the logic is in entryText.js. */
@@ -34,16 +33,16 @@ QtObject {
     /** Time left today, or over it (seconds < 0). */
     function leftToday(seconds) {
         if (seconds >= 0) {
-            return i18n("%1 left today", KimaiApi.formatDurationShort(seconds))
+            return i18n("%1 left today", DTF.formatDurationShort(seconds))
         }
-        return i18n("%1 over today", KimaiApi.formatDurationShort(-seconds))
+        return i18n("%1 over today", DTF.formatDurationShort(-seconds))
     }
 
     function leftWeek(seconds) {
         if (seconds >= 0) {
-            return i18n("%1 left this week", KimaiApi.formatDurationShort(seconds))
+            return i18n("%1 left this week", DTF.formatDurationShort(seconds))
         }
-        return i18n("%1 over this week", KimaiApi.formatDurationShort(-seconds))
+        return i18n("%1 over this week", DTF.formatDurationShort(-seconds))
     }
 
     readonly property string splitRange: i18n("Split time must be between begin and end.")

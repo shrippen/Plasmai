@@ -1,5 +1,5 @@
 import QtQml
-import "../../code/kimaiApi.js" as KimaiApi
+import "../../code/dateTimeFormat.js" as DTF
 import "../../code/platform.js" as Platform
 import "../../code/timerSession.js" as TimerSession
 import ".." as Ui
@@ -104,7 +104,7 @@ QtObject {
         const end = TimerSession.discardEnd(snap, since)
         const c = session.connection
         session.busy = true
-        c.tracker.patchTimesheet(c.url, c.token, snap.timesheetId, { end: KimaiApi.localDateTimeString(end) }, function(result) {
+        c.tracker.patchTimesheet(c.url, c.token, snap.timesheetId, { end: DTF.localDateTimeString(end) }, function(result) {
             session.busy = false
             if (!result.ok) {
                 session.failed(Ui.Session.Action.Stop, result)

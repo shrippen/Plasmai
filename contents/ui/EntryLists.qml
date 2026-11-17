@@ -2,7 +2,9 @@ import QtQuick
 import QtQuick.Layouts
 import org.kde.plasma.components as PlasmaComponents3
 import org.kde.kirigami as Kirigami
-import "../code/kimaiApi.js" as KimaiApi
+import "../code/entityColors.js" as Colors
+import "../code/entityNames.js" as Names
+import "../code/workTotals.js" as WorkTotals
 import "../code/favorites.js" as Favorites
 import "../code/mileage.js" as Mileage
 import "../code/dateTimeFormat.js" as DTF
@@ -208,7 +210,7 @@ ColumnLayout {
                 runningHintVisible: view.alreadyRunningHintKey === pinKey
                 runningHintText: i18n("Already running.")
                 runningHintCounterText: session.timer.tracking
-                                        ? KimaiApi.formatDurationPanel(session.timer.elapsedSeconds)
+                                        ? DTF.formatDurationPanel(session.timer.elapsedSeconds)
                                         : ""
                 onRowActivated: view.startPinned(session.favorites.pinned[index])
                 onPinRequested: {
@@ -359,26 +361,26 @@ ColumnLayout {
                     readonly property var ts: session.recent.list[rowIndex]
                     readonly property string tsKey: session.timer.hintKey(ts)
                     Layout.fillWidth: true
-                    readonly property var barInfo: KimaiApi.barColorInfoFromTimesheet(
+                    readonly property var barInfo: Colors.barColorInfoFromTimesheet(
                         session.recent.list[rowIndex], session.catalog.customersById)
                     customerColor: barInfo.color
-                    titleText: KimaiApi.displayActivityName(
+                    titleText: Names.displayActivityName(
                         session.recent.list[rowIndex], session.catalog.activities, session.catalog.activitiesByProject)
                     timeText: listSection.beginClock(ts)
                     durationText: {
-                        var secs = KimaiApi.timesheetDurationSeconds(ts)
+                        var secs = WorkTotals.timesheetDurationSeconds(ts)
                         return secs > 0 ? DTF.hoursMinutes(secs) : ""
                     }
                     subtitleText: {
                         var ts = session.recent.list[rowIndex]
                         if (KanteStyle.active) {
                             // Time and duration have their own columns in the Kante time line.
-                            return KimaiApi.displayProjectName(ts, session.catalog.projects)
+                            return Names.displayProjectName(ts, session.catalog.projects)
                         }
-                        var bits = [KimaiApi.displayProjectName(ts, session.catalog.projects)]
-                        var secs = KimaiApi.timesheetDurationSeconds(ts)
+                        var bits = [Names.displayProjectName(ts, session.catalog.projects)]
+                        var secs = WorkTotals.timesheetDurationSeconds(ts)
                         if (secs > 0) {
-                            bits.push(KimaiApi.formatDurationShort(secs))
+                            bits.push(DTF.formatDurationShort(secs))
                         }
                         bits.push(EntryTexts.ago(ts.end || ts.begin))
                         return bits.join(" · ")
@@ -387,7 +389,7 @@ ColumnLayout {
                     runningHintVisible: view.alreadyRunningHintKey === tsKey
                     runningHintText: i18n("Already running.")
                     runningHintCounterText: session.timer.tracking
-                                            ? KimaiApi.formatDurationPanel(session.timer.elapsedSeconds)
+                                            ? DTF.formatDurationPanel(session.timer.elapsedSeconds)
                                             : ""
                     showHistoryActions: {
                         var sheet = session.recent.list[rowIndex]
@@ -405,14 +407,14 @@ ColumnLayout {
                     canPin: true
                     canLogTrip: session.trips.canEdit
                     onTripRequested: view.openTripForTimesheet(session.recent.list[rowIndex])
-                    isPinned: session.favorites.isPinned(KimaiApi.projectId(session.recent.list[rowIndex]), KimaiApi.activityId(session.recent.list[rowIndex]))
+                    isPinned: session.favorites.isPinned(Names.projectId(session.recent.list[rowIndex]), Names.activityId(session.recent.list[rowIndex]))
                     onRowActivated: view.requestRestartFromRecent(session.recent.list[rowIndex])
                     onEditRequested: view.openStoppedEdit(session.recent.list[rowIndex])
                     onDeleteRequested: view.requestDeleteStopped(session.recent.list[rowIndex])
                     onSplitRequested: view.requestSplitStopped(session.recent.list[rowIndex])
                     onPinRequested: {
                         var ts = session.recent.list[rowIndex]
-                        session.favorites.toggle(KimaiApi.projectId(ts), KimaiApi.activityId(ts))
+                        session.favorites.toggle(Names.projectId(ts), Names.activityId(ts))
                     }
                 }
         }

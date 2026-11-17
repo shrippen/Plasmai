@@ -1,5 +1,5 @@
 .pragma library
-.import "./kimaiApi.js" as KimaiApi
+.import "./entityNames.js" as Names
 .import "./dateTimeFormat.js" as DTF
 
 /** The parts of an entry's texts that need no translation; EntryTexts.qml words them. */
@@ -18,8 +18,8 @@ function summary(ts, catalog) {
     if (!ts) {
         return ""
     }
-    var bits = [KimaiApi.displayProjectName(ts, catalog.projects),
-                KimaiApi.displayActivityName(ts, catalog.activities, catalog.activitiesByProject)]
+    var bits = [Names.displayProjectName(ts, catalog.projects),
+                Names.displayActivityName(ts, catalog.activities, catalog.activitiesByProject)]
     var begin = DTF.parseStamp(ts.begin)
     if (!isNaN(begin.getTime())) {
         bits.push(begin.toLocaleDateString(Qt.locale(), SHORT_FORMAT) + " "

@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
-import "../code/kimaiApi.js" as KimaiApi
+import "../code/entityNames.js" as Names
 import "../code/dateTimeFormat.js" as DTF
 import "."
 import "Kante"
@@ -16,7 +16,7 @@ ColumnLayout {
 
     /** Duration label: h:mm in Kante (mono figures), "1h 5m" otherwise. */
     function durationText(seconds) {
-        return KanteStyle.active ? DTF.hoursMinutes(seconds) : KimaiApi.formatDurationShort(seconds)
+        return KanteStyle.active ? DTF.hoursMinutes(seconds) : DTF.formatDurationShort(seconds)
     }
 
     width: parent ? parent.width : implicitWidth
@@ -176,8 +176,8 @@ ColumnLayout {
         endTime.setTime(end.getHours(), end.getMinutes())
         descriptionField.text = ts.description || ""
 
-        pendingActivityId = KimaiApi.activityId(ts)
-        pendingProjectId = KimaiApi.projectId(ts)
+        pendingActivityId = Names.activityId(ts)
+        pendingProjectId = Names.projectId(ts)
         if (!hasId(pendingProjectId)) {
             pendingProjectId = null
         }

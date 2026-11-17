@@ -1,5 +1,5 @@
 import QtQuick
-import "../code/kimaiApi.js" as KimaiApi
+import "../code/entityColors.js" as Colors
 import "../code/dateTimeFormat.js" as DTF
 import "../code/solar.js" as Solar
 import "Kante"
@@ -94,7 +94,7 @@ KanteDayStrip {
             var end = ts.end ? DTF.parseStamp(ts.end) : null
             var segment = { from: hoursOfDay(begin), to: end ? hoursOfDay(end) : nowHours, kind: "work" }
             if (end) {
-                segment.color = String(KimaiApi.barColorInfoFromTimesheet(ts, customersById).color)
+                segment.color = String(Colors.barColorInfoFromTimesheet(ts, customersById).color)
             }
             out.push(segment)
         }

@@ -1,5 +1,6 @@
 .pragma library
 .import "./kimaiApi.js" as KimaiApi
+.import "./dateTimeFormat.js" as DTF
 .import "./providerUtil.js" as ProviderUtil
 .import "./offlineState.js" as OfflineState
 .import "./offlineOutbox.js" as Outbox
@@ -49,7 +50,7 @@ function offlineFail() {
 }
 
 function localNowString(s) {
-    return KimaiApi.localDateTimeString(new Date(OfflineState.nowOf(s)))
+    return DTF.localDateTimeString(new Date(OfflineState.nowOf(s)))
 }
 
 // -- The wrapped tracker --------------------------------------------------------

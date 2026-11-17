@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
 import "../code/kimaiApi.js" as KimaiApi
+import "../code/entityNames.js" as Names
 import "../code/filmDays.js" as FilmDays
 import "../code/dateTimeFormat.js" as DTF
 import "."
@@ -36,7 +37,7 @@ ColumnLayout {
 
     /** Duration label: h:mm in Kante (mono figures), "1h 5m" otherwise. */
     function durationText(seconds) {
-        return KanteStyle.active ? DTF.hoursMinutes(seconds) : KimaiApi.formatDurationShort(seconds)
+        return KanteStyle.active ? DTF.hoursMinutes(seconds) : DTF.formatDurationShort(seconds)
     }
 
     width: parent ? parent.width : implicitWidth
@@ -462,8 +463,8 @@ ColumnLayout {
         endTime.setTime(end.getHours(), end.getMinutes())
 
         if (timesheet) {
-            pendingActivityId = KimaiApi.activityId(timesheet)
-            pendingProjectId = KimaiApi.projectId(timesheet)
+            pendingActivityId = Names.activityId(timesheet)
+            pendingProjectId = Names.projectId(timesheet)
             if (!hasId(pendingProjectId)) {
                 pendingProjectId = null
             }
@@ -779,7 +780,7 @@ ColumnLayout {
         Layout.topMargin: Kirigami.Units.largeSpacing
         visible: root.shownPhase === "running"
         horizontalAlignment: Text.AlignHCenter
-        text: KimaiApi.formatDuration(root.elapsedSeconds)
+        text: DTF.formatDuration(root.elapsedSeconds)
         font: KanteStyle.monoFont(KanteStyle.defaultFont.pointSize * 2.4, true)
         color: KanteStyle.active ? KanteStyle.accentTextColor : KanteStyle.positiveTextColor
     }

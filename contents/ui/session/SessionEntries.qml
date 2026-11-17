@@ -1,5 +1,6 @@
 import QtQml
-import "../../code/kimaiApi.js" as KimaiApi
+import "../../code/dateTimeFormat.js" as DTF
+import "../../code/entityNames.js" as Names
 import "../../code/timesheetFields.js" as TimesheetFields
 import ".." as Ui
 
@@ -90,16 +91,16 @@ QtObject {
         }
         const c = session.connection
         session.busy = true
-        c.tracker.patchTimesheet(c.url, c.token, ts.id, { end: KimaiApi.localDateTimeString(parts.firstEnd) }, function(result) {
+        c.tracker.patchTimesheet(c.url, c.token, ts.id, { end: DTF.localDateTimeString(parts.firstEnd) }, function(result) {
             if (!result.ok) {
                 session.busy = false
                 session.failed(Ui.Session.Action.Split, result)
                 return
             }
             const twin = {
-                project: KimaiApi.projectId(ts), activity: KimaiApi.activityId(ts),
-                begin: KimaiApi.localDateTimeString(parts.secondBegin),
-                end: KimaiApi.localDateTimeString(parts.secondEnd),
+                project: Names.projectId(ts), activity: Names.activityId(ts),
+                begin: DTF.localDateTimeString(parts.secondBegin),
+                end: DTF.localDateTimeString(parts.secondEnd),
                 description: parts.description, billable: parts.billable, tags: parts.tags
             }
             c.tracker.createTimesheet(c.url, c.token, twin, function(second) {

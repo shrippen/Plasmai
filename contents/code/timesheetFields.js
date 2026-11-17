@@ -1,5 +1,7 @@
 .pragma library
 .import "./dateTimeFormat.js" as DTF
+.import "./entityNames.js" as Names
+.import "./providerUtil.js" as ProviderUtil
 
 /**
  * Shared timesheet extras: tags and billable.
@@ -136,7 +138,7 @@ function midpointInstant(timesheet) {
 /**
  * Split a stopped timesheet at splitAt (strictly between begin and end).
  * firstEnd / secondBegin / secondEnd are Date objects. Copy project/activity
- * from the original; callers send ids via kimaiApi.projectId / activityId.
+ * from the original; callers send ids via entityNames.projectId / activityId.
  */
 function splitStoppedEntry(timesheet, splitAt) {
     var begin = parseInstant(timesheet && timesheet.begin)
@@ -220,4 +222,179 @@ function beginIsBeforePreviousEnd(begin, previousTimesheet) {
         return false
     }
     return start.getTime() < prevEnd.getTime()
+}
+
+function tagEntityName(item) {
+    if (typeof item === "string") {
+        return String(item).trim()
+    }
+    return String(item && (item.name || item.tag || item.title) || "").trim()
+}
+
+/** Resolved display color from Kimai TagEntity (`color-safe` when explicit color is absent). */
+function tagEntityColor(item) {
+    if (!item || typeof item !== "object") {
+        return ProviderUtil.DEFAULT_CUSTOMER_COLOR
+    }
+    var raw = item["color-safe"] || item.color || ""
+    if (raw === null || raw === undefined || String(raw).trim().length === 0) {
+        var name = tagEntityName(item)
+        return name ? colorFromTagName(name) : ProviderUtil.DEFAULT_CUSTOMER_COLOR
+    }
+    return ProviderUtil.normalizeCustomerColor(raw)
+}
+
+/** Deterministic accent when Kimai has not assigned an explicit tag color yet. */
+function colorFromTagName(name) {
+    var s = String(name || "")
+    var hash = 0
+    for (var i = 0; i < s.length; i++) {
+        hash = ((hash << 5) - hash + s.charCodeAt(i)) | 0
+    }
+    var hue = Math.abs(hash) % 360
+    var sNorm = 0.52
+    var lNorm = 0.54
+    var c = (1 - Math.abs(2 * lNorm - 1)) * sNorm
+    var x = c * (1 - Math.abs((hue / 60) % 2 - 1))
+    var m = lNorm - c / 2
+    var r = 0
+    var g = 0
+    var b = 0
+    if (hue < 60) {
+        r = c; g = x; b = 0
+    } else if (hue < 120) {
+        r = x; g = c; b = 0
+    } else if (hue < 180) {
+        r = 0; g = c; b = x
+    } else if (hue < 240) {
+        r = 0; g = x; b = c
+    } else if (hue < 300) {
+        r = x; g = 0; b = c
+    } else {
+        r = c; g = 0; b = x
+    }
+    function hex(n) {
+        var v = Math.round((n + m) * 255)
+        if (v < 0) v = 0
+        if (v > 255) v = 255
+        var h = v.toString(16)
+        return h.length === 1 ? "0" + h : h
+    }
+    return "#" + hex(r) + hex(g) + hex(b)
+}
+
+/** Shallow-merge cached entity fields onto a partial API object (names/colors). */
+function mergeEntity(partial, cached) {
+    if (!cached) {
+        return partial
+    }
+    if (!partial) {
+        return cached
+    }
+    var out = {}
+    var k
+    for (k in partial) {
+        if (partial.hasOwnProperty(k)) {
+            out[k] = partial[k]
+        }
+    }
+    for (k in cached) {
+        if (!cached.hasOwnProperty(k)) {
+            continue
+        }
+        if (out[k] === null || out[k] === undefined || out[k] === "") {
+            out[k] = cached[k]
+        }
+    }
+    return out
+}
+
+/**
+ * Expand bare project/activity IDs on timesheets using local caches so
+ * stats grouping and legends get real names/colors.
+ * Never replaces an embedded name with a blank cached name.
+ */
+function hydrateTimesheets(entries, projects, activities, activitiesByProject) {
+    var projectsById = Names.indexById(projects)
+    var activitiesById = Names.activitiesIndexFromCache(activities, activitiesByProject)
+    var out = []
+    for (var i = 0; i < (entries || []).length; i++) {
+        var ts = entries[i]
+        if (!ts) {
+            continue
+        }
+        var pid = Names.projectId(ts)
+        var aid = Names.activityId(ts)
+        var projectObj = (typeof ts.project === "object" && ts.project) ? ts.project : null
+        var activityObj = (typeof ts.activity === "object" && ts.activity) ? ts.activity : null
+
+        if (pid && projectsById[String(pid)]) {
+            var cachedProject = projectsById[String(pid)]
+            if (!projectObj) {
+                projectObj = cachedProject
+            } else {
+                projectObj = mergeEntity(projectObj, cachedProject)
+            }
+        }
+        if (aid && activitiesById[String(aid)]) {
+            var cachedActivity = activitiesById[String(aid)]
+            if (!activityObj) {
+                activityObj = cachedActivity
+            } else {
+                activityObj = mergeEntity(activityObj, cachedActivity)
+            }
+        }
+
+        // Normalize scalar IDs into stub objects so callers always see .name/.id
+        if (!projectObj && pid) {
+            projectObj = { id: pid, name: "" }
+        }
+        if (!activityObj && aid) {
+            activityObj = { id: aid, name: "" }
+        }
+        if (projectObj && !Names.entityName(projectObj) && projectsById[String(pid)]) {
+            projectObj = mergeEntity(projectObj, projectsById[String(pid)])
+        }
+        if (activityObj && !Names.entityName(activityObj) && activitiesById[String(aid)]) {
+            activityObj = mergeEntity(activityObj, activitiesById[String(aid)])
+        }
+
+        var changed = projectObj !== ts.project || activityObj !== ts.activity
+            || (typeof ts.project !== "object") || (typeof ts.activity !== "object")
+        if (changed) {
+            var copy = {}
+            for (var k in ts) {
+                if (ts.hasOwnProperty(k)) {
+                    copy[k] = ts[k]
+                }
+            }
+            if (projectObj) {
+                copy.project = projectObj
+            }
+            if (activityObj) {
+                copy.activity = activityObj
+            }
+            attachKimaiShape(copy, ts)
+            out.push(copy)
+        } else {
+            attachKimaiShape(ts, ts)
+            out.push(ts)
+        }
+    }
+    return out
+}
+
+function deduplicateRecent(entries) {
+    var seen = {}
+    var result = []
+    for (var i = 0; i < entries.length; i++) {
+        var entry = entries[i]
+        var key = Names.projectId(entry) + ":" + Names.activityId(entry)
+        if (seen[key]) {
+            continue
+        }
+        seen[key] = true
+        result.push(entry)
+    }
+    return result
 }

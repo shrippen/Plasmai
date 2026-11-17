@@ -1,7 +1,7 @@
 import QtQuick
 import org.kde.kirigami as Kirigami
 import "Controls" as Controls
-import "../code/kimaiApi.js" as KimaiApi
+import "../code/dateTimeFormat.js" as DTF
 import "../code/statsData.js" as StatsData
 import "."
 import "Kante"
@@ -107,7 +107,7 @@ Item {
             font.pointSize: KanteStyle.smallFont.pointSize - 1
             opacity: 0.65
             elide: Text.ElideRight
-            text: KimaiApi.formatDurationShort(root.axisSeconds)
+            text: DTF.formatDurationShort(root.axisSeconds)
         }
         Controls.Label {
             anchors.left: parent.left
@@ -117,7 +117,7 @@ Item {
             font.pointSize: KanteStyle.smallFont.pointSize - 1
             opacity: 0.65
             elide: Text.ElideRight
-            text: KimaiApi.formatDurationShort(Math.round(root.axisSeconds / 2))
+            text: DTF.formatDurationShort(Math.round(root.axisSeconds / 2))
         }
         Controls.Label {
             anchors.left: parent.left
@@ -224,7 +224,7 @@ Item {
                                         }
                                         var dayLabel = (dayCol.day && dayCol.day.label) ? dayCol.day.label : ""
                                         var name = stackSeg.stack.name || ""
-                                        var dur = KimaiApi.formatDurationShort(stackSeg.stack.seconds || 0)
+                                        var dur = DTF.formatDurationShort(stackSeg.stack.seconds || 0)
                                         if (dayLabel.length > 0) {
                                             return dayLabel + " · " + name + " · " + dur
                                         }

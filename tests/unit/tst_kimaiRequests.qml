@@ -68,11 +68,11 @@ TestCase {
         requests = []
         responses = []
         KimaiApi.resetDeniedWriteFields()
-        KimaiApi.setRequestFactory(fakeXhr)
+        ProviderUtil.setRequestFactory(fakeXhr)
     }
 
     function cleanup() {
-        KimaiApi.setRequestFactory(null)
+        ProviderUtil.setRequestFactory(null)
     }
 
     function bodyOf(i) {
@@ -298,40 +298,11 @@ TestCase {
         compare(ProviderUtil.pendingRequestCount(), 0)
     }
 
-    function test_pickersHideHiddenEntries() {
-        var customers = [{ id: 1, name: "Visible", visible: true }, { id: 2, name: "Gone", visible: false }]
-        var projects = [
-            { id: 10, name: "P visible", customer: 1, visible: true },
-            { id: 11, name: "P hidden", customer: 1, visible: false },
-            { id: 12, name: "P of hidden customer", customer: 2, visible: true }
-        ]
-        var items = KimaiApi.projectPickerItems(projects, customers)
-        compare(items.length, 1)
-        compare(items[0].value.id, 10)
-
-        var activities = [
-            { id: 1, name: "A", project: null, visible: true },
-            { id: 2, name: "B", project: null, visible: false },
-            { id: 3, name: "C", project: 10 }
-        ]
-        var acts = KimaiApi.activityPickerItems(activities, 10, projects[0], {})
-        compare(acts.length, 2)
-    }
-
     function test_absenceDurationSecondsVsHours() {
         compare(WorkAdjust.durationToSeconds(4), 4 * 3600)
         compare(WorkAdjust.durationToSeconds(24), 24 * 3600)
         compare(WorkAdjust.durationToSeconds(900), 900)
         compare(WorkAdjust.durationToSeconds(8 * 3600), 8 * 3600)
-    }
-
-    function test_dayIntervalsWallClock() {
-        var day = new Date(2026, 8, 25, 12, 0, 0)
-        var entries = [{ begin: "2026-09-25T09:00:00", end: "2026-09-25T10:30:15" }]
-        var iv = KimaiApi.dayIntervalsFromTimesheets(entries, day, day.getTime())
-        compare(iv.length, 1)
-        compare(iv[0].startSec, 9 * 3600)
-        compare(iv[0].endSec, 10 * 3600 + 30 * 60 + 15)
     }
 
     // ── Plugin detection + Drehzettel API ──
@@ -503,13 +474,6 @@ TestCase {
         compare(r[1].data.active, false)
         compare(r[2].data.currency, "EUR")
         compare(r[3].data.length, 0)   // non-array answer normalized
-    }
-
-    function test_customerCurrencyOfProject() {
-        compare(KimaiApi.customerCurrencyOfProject({ customer: 3 }, [{ id: 3, currency: "CHF" }]), "CHF")
-        compare(KimaiApi.customerCurrencyOfProject({ customer: { id: 3, currency: "EUR" } }, []), "EUR")
-        compare(KimaiApi.customerCurrencyOfProject({ customer: 4 }, [{ id: 3, currency: "CHF" }]), "")
-        compare(KimaiApi.customerCurrencyOfProject(null, []), "")
     }
 
     // ── MileageBundle (/api/mileage) ──

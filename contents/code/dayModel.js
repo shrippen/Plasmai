@@ -1,5 +1,5 @@
 .pragma library
-.import "./kimaiApi.js" as KimaiApi
+.import "./entityNames.js" as Names
 .import "./statsData.js" as StatsData
 .import "./dateTimeFormat.js" as DTF
 
@@ -52,7 +52,7 @@ function cutOf(before, after) {
  * Example: 08:15–12:30 → { fromHour: 8.25, toHour: 12.5, cut: NONE }.
  */
 function blocks(entries, day, nowMs) {
-    const dayStart = KimaiApi.startOfLocalDay(day)
+    const dayStart = DTF.startOfLocalDay(day)
     const nextDay = new Date(dayStart.getFullYear(), dayStart.getMonth(), dayStart.getDate() + 1)
     const out = []
 
@@ -126,7 +126,7 @@ function gaps(dayBlocks, fromHour, toHour, minMinutes) {
 
 /** Row key of an entry: project and activity, as Kimai books them. */
 function rowKey(entry) {
-    return String(KimaiApi.projectId(entry) || 0) + "/" + String(KimaiApi.activityId(entry) || 0)
+    return String(Names.projectId(entry) || 0) + "/" + String(Names.activityId(entry) || 0)
 }
 
 /**
@@ -158,8 +158,8 @@ function weekGrid(entries, weekStart, nowMs) {
             if (!row) {
                 row = {
                     key: key,
-                    project: KimaiApi.projectName(entry),
-                    activity: KimaiApi.activityName(entry),
+                    project: Names.projectName(entry),
+                    activity: Names.activityName(entry),
                     days: [0, 0, 0, 0, 0, 0, 0],
                     total: 0,
                     running: false

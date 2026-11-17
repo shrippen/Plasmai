@@ -2,6 +2,7 @@ import QtQuick
 import QtTest
 import "../../contents/code/kimaiApi.js" as KimaiApi
 import "../../contents/code/filmDays.js" as FilmDays
+import "../../contents/code/providerUtil.js" as ProviderUtil
 import "../../contents/code/filmDaySync.js" as Sync
 
 /**
@@ -68,11 +69,11 @@ TestCase {
         requests = []
         responses = []
         KimaiApi.resetDeniedWriteFields()
-        KimaiApi.setRequestFactory(fakeXhr)
+        ProviderUtil.setRequestFactory(fakeXhr)
     }
 
     function cleanup() {
-        KimaiApi.setRequestFactory(null)
+        ProviderUtil.setRequestFactory(null)
     }
 
     function bodyOf(i) {

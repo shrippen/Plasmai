@@ -2,6 +2,8 @@ import QtQuick
 import QtTest
 import "../../contents/ui" as Ui
 import "../../contents/code/kimaiApi.js" as KimaiApi
+import "../../contents/code/dateTimeFormat.js" as DTF
+import "../../contents/code/entityNames.js" as Names
 import "../../contents/code/demoKimai.js" as DemoKimai
 import "../../contents/code/platform.js" as Platform
 import "../../contents/code/catalogCache.js" as CatalogCache
@@ -272,13 +274,13 @@ TestCase {
     function test_restartDecisions() {
         const s = openDemo()
         tryVerify(function() { return s.timer.tracking })
-        const same = { project: KimaiApi.projectId(s.timer.active), activity: KimaiApi.activityId(s.timer.active) }
+        const same = { project: Names.projectId(s.timer.active), activity: Names.activityId(s.timer.active) }
         compare(s.timer.requestRestart(same), Ui.Session.Restart.Hint)
         const other = s.recent.list.filter(function(r) {
-            return String(KimaiApi.activityId(r)) !== String(same.activity)
+            return String(Names.activityId(r)) !== String(same.activity)
         })[0]
         compare(s.timer.requestRestart(other), Ui.Session.Restart.Confirm)
-        compare(s.timer.start(KimaiApi.projectId(other), KimaiApi.activityId(other), "", "", ""), Ui.Session.Restart.Confirm)
+        compare(s.timer.start(Names.projectId(other), Names.activityId(other), "", "", ""), Ui.Session.Restart.Confirm)
 
         s.timer.stop()
         tryCompare(s.timer, "tracking", false)
@@ -295,13 +297,13 @@ TestCase {
         const started = spy(s, "started")
         const began = spy(s, "trackingBegan")
         const first = s.recent.list[0]
-        s.timer.start(KimaiApi.projectId(first), KimaiApi.activityId(first), "P", "A", "")
+        s.timer.start(Names.projectId(first), Names.activityId(first), "P", "A", "")
         tryCompare(s.timer, "tracking", true)
         compare(started.count, 1)
         compare(started.signalArguments[0][1], Ui.Session.Origin.Start)
         compare(started.signalArguments[0][2].project, "P")
         compare(began.count, 1)
-        compare(s.settings.lastUsedProjectId, String(KimaiApi.projectId(first)))
+        compare(s.settings.lastUsedProjectId, String(Names.projectId(first)))
         verify(s.timer.hasLastUsed)
     }
 
@@ -324,7 +326,7 @@ TestCase {
         tryVerify(function() { return s.timer.tracking })
         const begin = new Date(Date.now() - 3 * 3600 * 1000)
         begin.setSeconds(0, 0)
-        s.timer.patchActive({ begin: KimaiApi.localDateTimeString(begin) })
+        s.timer.patchActive({ begin: DTF.localDateTimeString(begin) })
         tryVerify(function() { return Math.abs(s.timer.elapsedSeconds - 3 * 3600) < 120 })
     }
 
@@ -338,8 +340,8 @@ TestCase {
         day.setHours(9, 0, 0, 0)
         const end = new Date(day.getTime() + 2 * 3600 * 1000)
         let answer = null
-        s.entries.write(null, { project: KimaiApi.projectId(first), activity: KimaiApi.activityId(first),
-                                begin: KimaiApi.localDateTimeString(day), end: KimaiApi.localDateTimeString(end),
+        s.entries.write(null, { project: Names.projectId(first), activity: Names.activityId(first),
+                                begin: DTF.localDateTimeString(day), end: DTF.localDateTimeString(end),
                                 description: "Two hours" }, function(r) { answer = r })
         tryVerify(function() { return answer !== null })
         verify(answer.ok)
@@ -376,8 +378,8 @@ TestCase {
         day.setHours(9, 0, 0, 0)
         const end = new Date(day.getTime() + 2 * 3600 * 1000)
         let created = null
-        s.entries.write(null, { project: KimaiApi.projectId(first), activity: KimaiApi.activityId(first),
-                                begin: KimaiApi.localDateTimeString(day), end: KimaiApi.localDateTimeString(end),
+        s.entries.write(null, { project: Names.projectId(first), activity: Names.activityId(first),
+                                begin: DTF.localDateTimeString(day), end: DTF.localDateTimeString(end),
                                 description: "Done test" }, function(r) { created = r.data })
         tryVerify(function() { return created !== null })
 
@@ -406,7 +408,7 @@ TestCase {
         tryVerify(function() { return s.catalog.loaded })
         // Entries that came before the catalog: ids only.
         s.recent.list = s.recent.list.map(function(ts) {
-            return Object.assign({}, ts, { project: KimaiApi.projectId(ts), activity: KimaiApi.activityId(ts) })
+            return Object.assign({}, ts, { project: Names.projectId(ts), activity: Names.activityId(ts) })
         })
         verify(typeof s.recent.list[0].project !== "object")
         const updated = spy(s.catalog, "updated")
@@ -609,7 +611,7 @@ TestCase {
         day.setHours(0, 0, 0, 0)
         const req = {
             projectId: DemoKimai.FILM_PROJECT, activityId: DemoKimai.SHOOTING, date: day,
-            beginText: KimaiApi.localDateString(day) + "T09:00:00", endText: KimaiApi.localDateString(day) + "T17:00:00",
+            beginText: DTF.localDateString(day) + "T09:00:00", endText: DTF.localDateString(day) + "T17:00:00",
             fields: {}, direct: true, mergeIds: [], breakMinutes: 0, note: "flow marker"
         }
         for (const k in extra) {
@@ -626,7 +628,7 @@ TestCase {
     }
 
     function addStopped(s, req, hour, marker) {
-        const day = KimaiApi.localDateString(req.date)
+        const day = DTF.localDateString(req.date)
         let created = null
         s.entries.write(null, { project: req.projectId, activity: req.activityId,
                                 begin: day + "T" + hour + ":00:00", end: day + "T" + hour + ":30:00",
@@ -640,7 +642,7 @@ TestCase {
         tryVerify(function() { return s.filmDay.available })
         let answer = null
         const early = filmDay9to17(s)
-        early.endText = KimaiApi.localDateString(early.date) + "T01:00:00"
+        early.endText = DTF.localDateString(early.date) + "T01:00:00"
         s.filmDay.saveDay(early, function(r) { answer = r })
         tryVerify(function() { return answer !== null })
         verify(!answer.ok)

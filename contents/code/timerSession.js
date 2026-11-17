@@ -1,5 +1,7 @@
 .pragma library
-.import "./kimaiApi.js" as KimaiApi
+.import "./dayIntervals.js" as Intervals
+.import "./entityColors.js" as Colors
+.import "./entityNames.js" as Names
 .import "./timesheetFields.js" as TimesheetFields
 .import "./dateTimeFormat.js" as DTF
 
@@ -45,8 +47,8 @@ function snapshot(timesheet, timesheetId, names) {
     return {
         beginMs: begin ? begin.getTime() : 0,
         timesheetId: timesheetId,
-        projectId: timesheet ? KimaiApi.projectId(timesheet) : null,
-        activityId: timesheet ? KimaiApi.activityId(timesheet) : null,
+        projectId: timesheet ? Names.projectId(timesheet) : null,
+        activityId: timesheet ? Names.activityId(timesheet) : null,
         projectName: names.project,
         activityName: names.activity,
         description: names.description
@@ -76,7 +78,7 @@ function forgotToStartDay(state, now) {
     if (!state.enabled || !state.configured || state.tracking) {
         return ""
     }
-    if (!KimaiApi.isWithinWorkHours(state.workDayBegin, state.workDayEnd, now)) {
+    if (!Intervals.isWithinWorkHours(state.workDayBegin, state.workDayEnd, now)) {
         return ""
     }
     var day = Qt.formatDate(now, "yyyy-MM-dd")
@@ -91,10 +93,10 @@ function activeState(timesheet, catalogs, nowMs) {
     var begin = DTF.parseStamp(timesheet.begin)
     return {
         timesheetId: timesheet.id,
-        project: KimaiApi.displayProjectName(timesheet, catalogs.projects),
-        activity: KimaiApi.displayActivityName(timesheet, catalogs.activities, catalogs.activitiesByProject),
-        customer: KimaiApi.customerNameFromTimesheet(timesheet, catalogs.customersById),
-        customerColor: KimaiApi.timesheetBarColor(timesheet, catalogs.customersById),
+        project: Names.displayProjectName(timesheet, catalogs.projects),
+        activity: Names.displayActivityName(timesheet, catalogs.activities, catalogs.activitiesByProject),
+        customer: Names.customerNameFromTimesheet(timesheet, catalogs.customersById),
+        customerColor: Colors.timesheetBarColor(timesheet, catalogs.customersById),
         description: timesheet.description || "",
         elapsedSeconds: isNaN(begin.getTime()) ? -1 : Math.max(0, Math.floor((nowMs - begin.getTime()) / 1000))
     }
@@ -117,8 +119,8 @@ function sameActivity(a, b) {
     if (!a || !b) {
         return false
     }
-    return String(KimaiApi.projectId(a)) === String(KimaiApi.projectId(b))
-        && String(KimaiApi.activityId(a)) === String(KimaiApi.activityId(b))
+    return String(Names.projectId(a)) === String(Names.projectId(b))
+        && String(Names.activityId(a)) === String(Names.activityId(b))
 }
 
 /**
@@ -147,5 +149,5 @@ function switchTimer(tracker, url, token, runningId, target, steps) {
 /** Key of project, activity and entry id: marks the row an "already running" hint belongs to. */
 function switchHintKey(timesheet) {
     var id = timesheet && timesheet.id !== undefined && timesheet.id !== null ? timesheet.id : ""
-    return String(KimaiApi.projectId(timesheet)) + "|" + String(KimaiApi.activityId(timesheet)) + "|" + String(id)
+    return String(Names.projectId(timesheet)) + "|" + String(Names.activityId(timesheet)) + "|" + String(id)
 }

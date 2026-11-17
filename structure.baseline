@@ -9,7 +9,7 @@ app/i18nfallback.cpp	I18nFallback::pluralIndex	ccn=16
 app/main.cpp	main	ccn=38 length=174
 app/platform/appidmigration.h	AppIdMigration::copyFolders	ccn=20
 app/platform/traycontroller.cpp	TrayController::onBorderEvent	ccn=16
-app/qml/TimerPage.qml	-	lines=1001
+app/qml/TimerPage.qml	-	lines=1002
 app/qml/main.qml	trayAction	nesting=5
 app/qml/platform/appBackend.js	create	length=121
 app/qml/tui/Tui.qml	handle	nesting=6
@@ -19,19 +19,17 @@ contents/code/dateTimeFormat.js	coerceDate	ccn=19
 contents/code/dateTimeFormat.js	parseLocaleDate	ccn=23 nesting=5
 contents/code/dateTimeFormat.js	parseLocaleTime	ccn=25
 contents/code/dateTimeFormat.js	timeSegmentRoles	ccn=16
+contents/code/dayIntervals.js	dayIntervalsFromTimesheets	ccn=17
 contents/code/demoKimai.js	applyFields	nesting=7
 contents/code/demoKimai.js	drehzettel	ccn=16
 contents/code/demoKimai.js	handle	ccn=23
 contents/code/demoKimai.js	mileage	ccn=25
 contents/code/demoKimai.js	timesheets	ccn=31
 contents/code/favorites.js	resolvePinnedEntries	ccn=20 nesting=5
-contents/code/filmDaySync.js	-	lines=860
+contents/code/filmDaySync.js	-	lines=861
 contents/code/filmDaySync.js	viewInfo	ccn=28
 contents/code/filmDays.js	normalizeServer	ccn=18
-contents/code/kimaiApi.js	-	lines=2297
-contents/code/kimaiApi.js	colorFromTagName	nesting=5
-contents/code/kimaiApi.js	dayIntervalsFromTimesheets	ccn=17
-contents/code/kimaiApi.js	hydrateTimesheets	ccn=32
+contents/code/kimaiApi.js	-	lines=1269
 contents/code/mileage.js	validateForm	ccn=27
 contents/code/offline.js	wrapTracker	length=156
 contents/code/providers/clockify.js	(anonymous)	ccn=19
@@ -44,7 +42,9 @@ contents/code/solar.js	daySolarFractions	length=82
 contents/code/statsData.js	activityBreakdown	ccn=21
 contents/code/statsData.js	weeklyHourTimeline	ccn=42 length=163
 contents/code/statsData.js	weeklyProjectStacks	ccn=24 length=92
-contents/ui/FilmDayView.qml	-	lines=1153
+contents/code/timesheetFields.js	colorFromTagName	nesting=5
+contents/code/timesheetFields.js	hydrateTimesheets	ccn=32
+contents/ui/FilmDayView.qml	-	lines=1154
 contents/ui/FilmDayView.qml	applyLoadedDay	ccn=16
 contents/ui/ScreenshotRunner.qml	(anonymous)	nesting=10
 contents/ui/ScreenshotRunner.qml	step	ccn=30 length=135 nesting=15
@@ -52,14 +52,14 @@ contents/ui/SearchableCombo.qml	Keys.onPressed	nesting=5
 contents/ui/SetupWizard.qml	-	lines=899
 contents/ui/config/ConfigDisplay.qml	-	lines=987
 contents/ui/config/ConfigDisplay.qml	applyShared	ccn=34 length=113
-contents/ui/main.qml	-	lines=2787
+contents/ui/main.qml	-	lines=2789
 demo/bench-report.py	medians	ccn=27
 tests/lib/atspi_clicks.py	collect_clickables	ccn=18
 tests/lib/atspi_clicks.py	should_skip	ccn=21
 tests/lib/atspi_clicks.py	showing_nodes	nesting=5
 tests/lib/atspi_clicks.py	sweep	ccn=17
 tests/test_startup_lazy.py	blocks	nesting=5
-tests/unit/tst_filmDaySync.qml	-	lines=846
+tests/unit/tst_filmDaySync.qml	-	lines=847
 tests/unit/tst_offline.qml	fakeKimai	length=102
 tests/viewer/test_kcm_tab_persistence.py	test_kcm_tab_option_persistence	length=190
 translate/fill_po.py	read_entries	ccn=21

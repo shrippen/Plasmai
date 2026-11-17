@@ -2,6 +2,7 @@ import QtQuick
 import QtTest
 import "../../contents/ui" as Ui
 import "../../contents/code/kimaiApi.js" as KimaiApi
+import "../../contents/code/entityNames.js" as Names
 import "../../contents/code/demoKimai.js" as DemoKimai
 import "../../contents/code/platform.js" as Platform
 import "../../contents/code/profiles.js" as Profiles
@@ -60,7 +61,7 @@ TestCase {
     function test_openShowsRunningEntryAndRecents() {
         const s = openDemo()
         tryVerify(function() { return s.timer.tracking })
-        verify(KimaiApi.projectId(s.timer.active) > 0)
+        verify(Names.projectId(s.timer.active) > 0)
         verify(s.timer.elapsedSeconds >= 0)
         verify(s.connection.url.indexOf("demo.invalid") >= 0)
         tryVerify(function() { return s.totals.todayEntries.length > 0 })
@@ -76,19 +77,19 @@ TestCase {
         compare(stopSpy.count, 1)
 
         const first = s.recent.list[0]
-        s.timer.start(KimaiApi.projectId(first), KimaiApi.activityId(first), "", "", "Test")
+        s.timer.start(Names.projectId(first), Names.activityId(first), "", "", "Test")
         tryCompare(s.timer, "tracking", true)
-        compare(String(KimaiApi.activityId(s.timer.active)), String(KimaiApi.activityId(first)))
+        compare(String(Names.activityId(s.timer.active)), String(Names.activityId(first)))
 
         const startSpy = createTemporaryObject(signalSpy, this, { target: s, signalName: "started" })
         const other = s.recent.list.filter(function(r) {
-            return String(KimaiApi.activityId(r)) !== String(KimaiApi.activityId(first))
+            return String(Names.activityId(r)) !== String(Names.activityId(first))
         })[0]
         verify(!!other)
         // Like the views: no switch while a refresh or write runs.
         tryCompare(s, "busy", false)
-        s.timer.switchTo(KimaiApi.projectId(other), KimaiApi.activityId(other), "", "", "")
-        tryVerify(function() { return s.timer.tracking && String(KimaiApi.activityId(s.timer.active)) === String(KimaiApi.activityId(other)) })
+        s.timer.switchTo(Names.projectId(other), Names.activityId(other), "", "", "")
+        tryVerify(function() { return s.timer.tracking && String(Names.activityId(s.timer.active)) === String(Names.activityId(other)) })
         compare(startSpy.count, 1)
         compare(startSpy.signalArguments[0][1], Ui.Session.Origin.Switch)
     }

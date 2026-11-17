@@ -1,5 +1,6 @@
 .pragma library
 .import "./kimaiApi.js" as KimaiApi
+.import "./dateTimeFormat.js" as DTF
 .import "./providerUtil.js" as ProviderUtil
 .import "./filmDays.js" as FilmDays
 
@@ -238,7 +239,7 @@ function productionDay(ctx, projectId, activityId, activityIds, fromDateStr, dat
     // One fetch from the engagement's start to today (or a later dateStr)
     // serves every day of it: day steps count from the same entries.
     var key = [ctx.profileKey, projectId, fromDateStr].join("|")
-    var todayStr = KimaiApi.localDateString(new Date(nowOf(ctx)))
+    var todayStr = DTF.localDateString(new Date(nowOf(ctx)))
     var toStr = dateStr > todayStr ? dateStr : todayStr
     var whitelisted = !!activityIds && activityIds.length > 0
     function answer(entries) {
@@ -673,9 +674,9 @@ function forgetDay(ctx, dateStr) {
 
 /** Timesheets of the local day `date` (raw, not hydrated). */
 function dayTimesheets(ctx, date, callback) {
-    dayCall(ctx, KimaiApi.localDateString(date), "timesheets", function(done) {
+    dayCall(ctx, DTF.localDateString(date), "timesheets", function(done) {
         trackerOf(ctx).fetchTimesheetsRange(ctx.url, ctx.token,
-            KimaiApi.startOfLocalDay(date), KimaiApi.endOfLocalDay(date), done)
+            DTF.startOfLocalDay(date), DTF.endOfLocalDay(date), done)
     }, callback)
 }
 
@@ -687,7 +688,7 @@ function dayTimesheets(ctx, date, callback) {
  * background prefetch of the last month (at most hourly per profile).
  */
 function openDay(ctx, date, selectedProjectId, ids, hydrate, callback, preferSelected) {
-    var dateStr = KimaiApi.localDateString(date)
+    var dateStr = DTF.localDateString(date)
     function run(pass, done) {
         dayTimesheets(pass, date, function(result) {
             var entries = result.ok ? hydrate(result.data || []) : []
@@ -773,7 +774,7 @@ function overlappedDays(ts, nowMs) {
     var day = new Date(begin)
     day.setHours(0, 0, 0, 0)
     while (day.getTime() <= end) {
-        out.push(KimaiApi.localDateString(day))
+        out.push(DTF.localDateString(day))
         day.setDate(day.getDate() + 1)
     }
     return out
@@ -806,7 +807,7 @@ function prefetchDays(ctx, done) {
     var first = dates[dates.length - 1]
 
     trackerOf(ctx).fetchTimesheetsRange(ctx.url, ctx.token,
-        KimaiApi.startOfLocalDay(first), KimaiApi.endOfLocalDay(today), function(result) {
+        DTF.startOfLocalDay(first), DTF.endOfLocalDay(today), function(result) {
         // An offline answer is the snapshot: prefetch again once the server is back.
         if (!result.ok || result.offline) {
             delete memo.prefetched[ctx.profileKey]
@@ -825,7 +826,7 @@ function prefetchDays(ctx, done) {
 function splitTimesheets(ctx, dates, entries) {
     var byDay = {}
     for (var i = 0; i < dates.length; i++) {
-        byDay[KimaiApi.localDateString(dates[i])] = []
+        byDay[DTF.localDateString(dates[i])] = []
     }
     for (var j = 0; j < entries.length; j++) {
         var keys = overlappedDays(entries[j], nowOf(ctx))
@@ -846,7 +847,7 @@ function prefetchExtras(ctx, dates, index, done) {
         done()
         return
     }
-    var dateStr = KimaiApi.localDateString(dates[index])
+    var dateStr = DTF.localDateString(dates[index])
     function next() {
         prefetchExtras(ctx, dates, index + 1, done)
     }

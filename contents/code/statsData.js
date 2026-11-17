@@ -1,5 +1,8 @@
 .pragma library
-.import "./kimaiApi.js" as KimaiApi
+.import "./dayIntervals.js" as Intervals
+.import "./entityColors.js" as Colors
+.import "./entityNames.js" as Names
+.import "./workContractAdjust.js" as WorkAdjust
 .import "./providerUtil.js" as ProviderUtil
 .import "./mileage.js" as Mileage
 .import "./dateTimeFormat.js" as DTF
@@ -49,19 +52,19 @@ function addDays(date, days) {
 }
 
 function startOfDay(date) {
-    return KimaiApi.startOfLocalDay(date)
+    return DTF.startOfLocalDay(date)
 }
 
 function endOfDay(date) {
-    return KimaiApi.endOfLocalDay(date)
+    return DTF.endOfLocalDay(date)
 }
 
 function startOfWeek(date) {
-    return KimaiApi.startOfWeekMonday(date)
+    return WorkAdjust.startOfWeekMonday(date)
 }
 
 function endOfWeek(date) {
-    return KimaiApi.endOfWeekSunday(date)
+    return WorkAdjust.endOfWeekSunday(date)
 }
 
 function formatDayLabel(date) {
@@ -86,7 +89,7 @@ function paletteColor(index) {
 
 function colorForKey(key, customersById, timesheetHint) {
     if (timesheetHint && timesheetHint.project) {
-        return KimaiApi.projectBarColor(timesheetHint.project, customersById || {})
+        return Colors.projectBarColor(timesheetHint.project, customersById || {})
     }
     var hash = 0
     var s = String(key || "")
@@ -194,8 +197,8 @@ function weeklyProjectStacks(entries, weekStart, customersById, nowMs, maxProjec
             if (secs <= 0) {
                 continue
             }
-            var pid = String(KimaiApi.projectId(entry) || "_none")
-            var pname = KimaiApi.projectName(entry)
+            var pid = String(Names.projectId(entry) || "_none")
+            var pname = Names.projectName(entry)
             if (!pname) {
                 pname = (pid === "_none" || pid === "0") ? "—" : ("#" + pid)
             }
@@ -295,10 +298,10 @@ function weeklyHourTimeline(entries, weekStart, customersById, nowMs, maxLegend,
     var hasActivity = false
     var d
 
-    var beginMin = KimaiApi.parseTimeToMinutes(
-        workBegin, KimaiApi.parseTimeToMinutes(KimaiApi.DEFAULT_WORK_DAY_BEGIN, 8 * 60))
-    var endMin = KimaiApi.parseTimeToMinutes(
-        workEnd, KimaiApi.parseTimeToMinutes(KimaiApi.DEFAULT_WORK_DAY_END, 18 * 60))
+    var beginMin = Intervals.parseTimeToMinutes(
+        workBegin, Intervals.parseTimeToMinutes(Intervals.DEFAULT_WORK_DAY_BEGIN, 8 * 60))
+    var endMin = Intervals.parseTimeToMinutes(
+        workEnd, Intervals.parseTimeToMinutes(Intervals.DEFAULT_WORK_DAY_END, 18 * 60))
     var businessHourMin = beginMin / 60
     var businessHourMax = endMin / 60
     if (!(businessHourMax > businessHourMin)) {
@@ -346,14 +349,14 @@ function weeklyHourTimeline(entries, weekStart, customersById, nowMs, maxLegend,
                 continue
             }
 
-            var pid = String(KimaiApi.projectId(entry) || "_none")
-            var aid = String(KimaiApi.activityId(entry) || "_none")
+            var pid = String(Names.projectId(entry) || "_none")
+            var aid = String(Names.activityId(entry) || "_none")
             var key = pid + ":" + aid
-            var pname = KimaiApi.projectName(entry) || ((pid === "_none" || pid === "0") ? "—" : ("#" + pid))
-            var aname = KimaiApi.activityName(entry) || ((aid === "_none" || aid === "0") ? "—" : ("#" + aid))
+            var pname = Names.projectName(entry) || ((pid === "_none" || pid === "0") ? "—" : ("#" + pid))
+            var aname = Names.activityName(entry) || ((aid === "_none" || aid === "0") ? "—" : ("#" + aid))
             var label = pname + " · " + aname
-            var color = KimaiApi.timesheetBarColor(entry, customersById || {})
-            if (color === ProviderUtil.DEFAULT_CUSTOMER_COLOR && !KimaiApi.activityColor(entry.activity)) {
+            var color = Colors.timesheetBarColor(entry, customersById || {})
+            if (color === ProviderUtil.DEFAULT_CUSTOMER_COLOR && !Colors.activityColor(entry.activity)) {
                 color = paletteColor(key.length + pid.length)
             }
 
@@ -460,16 +463,16 @@ function activityBreakdown(entries, rangeStart, rangeEnd, nowMs, limit, customer
         if (secs <= 0) {
             continue
         }
-        var aid = String(KimaiApi.activityId(entry) || "_none")
-        var aname = KimaiApi.activityName(entry)
+        var aid = String(Names.activityId(entry) || "_none")
+        var aname = Names.activityName(entry)
         if (!aname) {
             aname = (aid === "_none" || aid === "0") ? "—" : ("#" + aid)
         }
         if (!map[aid]) {
-            var color = KimaiApi.timesheetBarColor(entry, customersById || {})
+            var color = Colors.timesheetBarColor(entry, customersById || {})
             // If nothing in the Kimai cascade had a color, use a stable palette tint.
-            if (!KimaiApi.activityColor(entry.activity)
-                && !(entry.project && KimaiApi.projectColor(entry.project))
+            if (!Colors.activityColor(entry.activity)
+                && !(entry.project && Colors.projectColor(entry.project))
                 && color === ProviderUtil.DEFAULT_CUSTOMER_COLOR) {
                 color = paletteColor(order.length)
             }

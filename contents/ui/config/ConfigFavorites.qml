@@ -3,7 +3,7 @@ import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
-import "../../code/kimaiApi.js" as KimaiApi
+import "../../code/entityPickers.js" as Pickers
 import "../../code/providerUtil.js" as ProviderUtil
 import "../../code/profiles.js" as Profiles
 import "../../code/favorites.js" as Favorites
@@ -162,7 +162,7 @@ ConfigPage {
         page.customers = customers || []
         page.availableProjects = projects || []
         page.allActivities = activities || []
-        page.projectRows = KimaiApi.projectsGroupedByCustomer(page.availableProjects, page.customers)
+        page.projectRows = Pickers.projectsGroupedByCustomer(page.availableProjects, page.customers)
         page.projectsStatus = i18n("Loaded %1 projects.", page.availableProjects.length)
         page.loadingProjects = false
         page.loadingActivities = false
@@ -281,8 +281,8 @@ ConfigPage {
             || page.projectActivities[String(project.id)]
         var source = cachedForProject || page.allActivities
         if (source && source.length) {
-            page.activityRowModel = KimaiApi.activitiesListModel(source, project.id)
-            var split = KimaiApi.splitActivitiesForProject(source, project.id)
+            page.activityRowModel = Pickers.activitiesListModel(source, project.id)
+            var split = Pickers.splitActivitiesForProject(source, project.id)
             activitiesStatus = i18n("%1 project-specific, %2 global",
                                    split.projectSpecific.length, split.global.length)
             return
@@ -311,8 +311,8 @@ ConfigPage {
             const copy = Object.assign({}, page.projectActivities)
             copy[project.id] = result.data || []
             page.projectActivities = copy
-            page.activityRowModel = KimaiApi.activitiesListModel(result.data || [], project.id)
-            const split = KimaiApi.splitActivitiesForProject(result.data || [], project.id)
+            page.activityRowModel = Pickers.activitiesListModel(result.data || [], project.id)
+            const split = Pickers.splitActivitiesForProject(result.data || [], project.id)
             activitiesStatus = i18n("%1 project-specific, %2 global",
                                    split.projectSpecific.length, split.global.length)
             page.loadingActivities = false

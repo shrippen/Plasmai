@@ -19,7 +19,8 @@ favourites, statistics, offline work; for Kimai also film days and trips.
 | `contents/ui/` (other files) | Components the widget and the app share: views and editors, pickers, fields, charts, rows, the setup wizard, `ApiErrors` (error kinds to texts), `EntryTexts` (the texts about entries and the day both show), `PlasmaiColors`. |
 | `contents/ui/config/`, `contents/config/` | The widget's settings pages; the description of its settings with their defaults (`main.xml`). |
 | `contents/ui/Session.qml`, `contents/ui/session/` | The session layer: everything a view needs of the tracker, without a view and without texts. One file per part (connection, settings, catalog, timer, entries, totals, sync, film day, trips, statistics, reminders, setup). |
-| `contents/code/timeTracker.js`, `kimaiApi.js`, `providers/`, `providerUtil.js` | The providers: the registry with each provider's capabilities, one file per service, and what they share (request, answer, error kinds). |
+| `contents/code/timeTracker.js`, `kimaiApi.js`, `providers/`, `providerUtil.js` | The providers: the registry with each provider's capabilities, one file per service (`kimaiApi.js` holds Kimai's requests only), and what they share (request, answer, error kinds). |
+| `contents/code/entityNames.js`, `entityColors.js`, `entityPickers.js`, `dayIntervals.js` | What every service shows alike: ids and names of projects, activities and customers, their colors, the picker lists, and the day's intervals with the day chart's model. |
 | `contents/code/offline.js` | The offline layer's session: wraps the tracker so reads and writes work without network. |
 | `contents/code/offlineState.js` | The stored state of that layer: the snapshot of server answers on disk and the overlay of waiting changes on it. |
 | `contents/code/offlineOutbox.js` | The outbox of that layer: queued changes, sending them again in order, conflicts, retry and discard. |
@@ -101,7 +102,5 @@ favourites, statistics, offline work; for Kimai also film days and trips.
 
 ## Known deviations
 
-- `kimaiApi.js` holds, beside Kimai's requests, the display helpers and the day's
-  calculation every service needs (`AUDIT.md`, finding 5).
-- `contents/ui/main.qml` is one file of 2787 lines, still over the size limit; film day,
+- `contents/ui/main.qml` is one file of 2789 lines, still over the size limit; film day,
   trips, statistics and the shared texts have left it (`AUDIT.md`, finding 10).

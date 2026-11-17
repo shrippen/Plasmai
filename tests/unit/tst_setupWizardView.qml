@@ -3,6 +3,7 @@ import QtTest
 import "../../contents/ui" as Shared
 import "../../contents/code/platform.js" as Platform
 import "../../contents/code/kimaiApi.js" as KimaiApi
+import "../../contents/code/providerUtil.js" as ProviderUtil
 
 /**
  * SetupWizard.qml driven like a person would: system check, service, a
@@ -86,13 +87,13 @@ TestCase {
         responses = []
         requests = []
         Platform.setBackend(fakeBackend())
-        KimaiApi.setRequestFactory(fakeXhr)
+        ProviderUtil.setRequestFactory(fakeXhr)
         connectedSpy.clear()
         finishedSpy.clear()
     }
 
     function cleanup() {
-        KimaiApi.setRequestFactory(null)
+        ProviderUtil.setRequestFactory(null)
     }
 
     function makeWizard() {

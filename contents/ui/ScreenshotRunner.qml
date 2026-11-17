@@ -2,6 +2,7 @@ import QtQuick
 import org.kde.kirigami as Kirigami
 import "../code/secret.js" as Secret
 import "../code/kimaiApi.js" as KimaiApi
+import "../code/entityNames.js" as Names
 
 /**
  * Landing-page screenshots, only when a plan file exists:
@@ -109,7 +110,7 @@ Item {
                 r.returnToMainView()
                 var recent = r.session.recent.list
                 for (var k = 0; k < recent.length; ++k) {
-                    if (KimaiApi.displayActivityName(recent[k], r.session.catalog.activities,
+                    if (Names.displayActivityName(recent[k], r.session.catalog.activities,
                             r.session.catalog.activitiesByProject) !== r.session.timer.activity) {
                         r.pendingSwitchTimesheet = recent[k]
                         // The viewer's popup is smaller than the dialog: placed at the top without

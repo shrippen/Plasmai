@@ -3,7 +3,7 @@ import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import "../contents/code/profiles.js" as Profiles
-import "../contents/code/kimaiApi.js" as KimaiApi
+import "../contents/code/entityNames.js" as Names
 import "shared"
 import "Kante"
 
@@ -37,7 +37,7 @@ Kirigami.Page {
 
     Component.onCompleted: {
         if (editTs) {
-            var pid = KimaiApi.projectId(editTs)
+            var pid = Names.projectId(editTs)
             session.catalog.loadActivities(pid, function(model) {
                 // The page is gone: nothing to fill.
                 if (!page) { return }

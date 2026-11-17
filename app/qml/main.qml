@@ -5,7 +5,7 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import "platform/appBackend.js" as AppBackend
 import "../contents/code/platform.js" as Platform
-import "../contents/code/kimaiApi.js" as KimaiApi
+import "../contents/code/entityNames.js" as Names
 import "../contents/code/mileage.js" as Mileage
 import "../contents/code/dateTimeFormat.js" as DTF
 import "shared"
@@ -85,7 +85,7 @@ Kirigami.ApplicationWindow {
     function openTripForTimesheet(ts) {
         if (!session.trips.canEdit) return
         pageStack.push(tripEditPageComponent, {
-            form: ts ? Mileage.formForTimesheet(session.trips.ping, ts, KimaiApi.projectId) : Mileage.emptyForm(session.trips.ping, Mileage.dateString(new Date())),
+            form: ts ? Mileage.formForTimesheet(session.trips.ping, ts, Names.projectId) : Mileage.emptyForm(session.trips.ping, Mileage.dateString(new Date())),
             linkedText: EntryTexts.summary(ts, session.catalog)
         })
     }
@@ -110,7 +110,7 @@ Kirigami.ApplicationWindow {
         when: !!root.trayService
         property: "toolTip"
         value: root.session.timer.tracking
-            ? root.session.timer.project + " · " + root.session.timer.activity + " · " + KimaiApi.formatDurationShort(root.session.timer.elapsedSeconds)
+            ? root.session.timer.project + " · " + root.session.timer.activity + " · " + DTF.formatDurationShort(root.session.timer.elapsedSeconds)
             : (root.session.sync.offline ? i18n("Plasmai") + " · " + i18n("Offline") : i18n("Plasmai"))
     }
     Binding {
@@ -232,7 +232,7 @@ Kirigami.ApplicationWindow {
         function onTrackingBegan(ts) {
             const t = root.session.timer
             if (root.session.settings.notifyOnStart) {
-                root.session.reminders.notify(i18n("Tracking in progress"), t.project + " · " + t.activity + " · " + KimaiApi.formatDurationShort(t.elapsedSeconds))
+                root.session.reminders.notify(i18n("Tracking in progress"), t.project + " · " + t.activity + " · " + DTF.formatDurationShort(t.elapsedSeconds))
             }
         }
         /** Kimai saved the entry but ignored billable (no edit_billable permission). */

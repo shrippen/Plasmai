@@ -121,6 +121,10 @@
         <file alias="contents/ui/Controls/FormDialog.qml">qml/controls/FormDialog.qml</file>
         <file alias="contents/ui/ApiErrors.qml">../contents/ui/ApiErrors.qml</file>
         <file alias="contents/ui/EntryTexts.qml">../contents/ui/EntryTexts.qml</file>
+        <file alias="contents/code/dayIntervals.js">../contents/code/dayIntervals.js</file>
+        <file alias="contents/code/entityColors.js">../contents/code/entityColors.js</file>
+        <file alias="contents/code/entityNames.js">../contents/code/entityNames.js</file>
+        <file alias="contents/code/entityPickers.js">../contents/code/entityPickers.js</file>
         <file alias="contents/code/entryText.js">../contents/code/entryText.js</file>
         <file alias="contents/ui/BarChart.qml">../contents/ui/BarChart.qml</file>
         <file alias="contents/ui/ColorLabelRow.qml">../contents/ui/ColorLabelRow.qml</file>
