@@ -102,5 +102,13 @@ favourites, statistics, offline work; for Kimai also film days and trips.
 
 ## Known deviations
 
+- Widget and app each bind the film day and trip views to the session, word the
+  notifications and choose between the server's text and the error kind
+  (`AUDIT.md`, findings 1, 3, 4); profile editing and the time checks before a save
+  exist twice or only in the widget (findings 2, 8).
+- Kimai's plugins are reached three ways: through the provider, through the offline
+  layer and around both (`AUDIT.md`, finding 7).
+- The offline layer's files belong to a profile, the catalog cache to a profile and
+  its server (`AUDIT.md`, finding 9).
 - `contents/ui/main.qml` is one file of 2789 lines, still over the size limit; film day,
   trips, statistics and the shared texts have left it (`AUDIT.md`, finding 10).
