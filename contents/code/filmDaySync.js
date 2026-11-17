@@ -1,5 +1,6 @@
 .pragma library
 .import "./kimaiApi.js" as KimaiApi
+.import "./providerUtil.js" as ProviderUtil
 .import "./filmDays.js" as FilmDays
 
 /**
@@ -54,7 +55,7 @@ var Source = {
 }
 
 function profileKey(profileId, kimaiUrl) {
-    return String(profileId || "") + "|" + KimaiApi.normalizeUrl(kimaiUrl)
+    return String(profileId || "") + "|" + ProviderUtil.normalizeUrl(kimaiUrl)
 }
 
 function trackerOf(ctx) {
@@ -157,7 +158,7 @@ function loadEngagements(ctx, dateStr, callback) {
     KimaiApi.fetchDrehzettelEngagements(ctx.url, ctx.token, dateStr, function(result) {
         if (!result.ok) {
             // Offline: the last known list, whatever its age.
-            callback(cached && result.error && result.error.type === KimaiApi.ErrorType.Network ? cached.list : null)
+            callback(cached && result.error && result.error.type === ProviderUtil.ErrorType.Network ? cached.list : null)
             return
         }
         if (cached && JSON.stringify(cached.list) !== JSON.stringify(result.data)) {

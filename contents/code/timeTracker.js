@@ -7,6 +7,7 @@
  */
 
 .import "./kimaiApi.js" as KimaiApi
+.import "./providerUtil.js" as ProviderUtil
 .import "./providers/clockify.js" as ClockifyApi
 .import "./providers/toggl.js" as TogglApi
 .import "./providers/solidtime.js" as SolidTimeApi
@@ -172,7 +173,7 @@ function api(providerId) {
 function resolveUrl(profile) {
     var meta = providerMeta(profile && profile.provider)
     var url = profile && profile.url ? String(profile.url) : ""
-    url = KimaiApi.normalizeUrl(url)
+    url = ProviderUtil.normalizeUrl(url)
     if (!url && meta.defaultUrl) {
         return meta.defaultUrl
     }

@@ -4,7 +4,7 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import "shared"
 import "../contents/code/profiles.js" as Profiles
-import "../contents/code/kimaiApi.js" as KimaiApi
+import "../contents/code/providerUtil.js" as ProviderUtil
 import "Kante"
 
 Kirigami.Page {
@@ -51,7 +51,7 @@ Kirigami.Page {
         if (profiles.length === 0) {
             profiles = Profiles.defaultProfiles()
             if (urlField.text) {
-                profiles[0].url = KimaiApi.normalizeUrl(urlField.text)
+                profiles[0].url = ProviderUtil.normalizeUrl(urlField.text)
             }
             syncProfiles()
         }
@@ -105,7 +105,7 @@ Kirigami.Page {
 
     function commitUrlField() {
         if (updatingFields || syncing || profiles.length === 0 || selectedIndex < 0) return
-        var normalized = KimaiApi.normalizeUrl(urlField.text)
+        var normalized = ProviderUtil.normalizeUrl(urlField.text)
         updateSelectedProfile("url", normalized)
         if (urlField.text !== normalized) {
             updatingFields = true

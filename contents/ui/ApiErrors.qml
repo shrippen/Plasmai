@@ -1,6 +1,6 @@
 pragma Singleton
 import QtQuick
-import "../code/kimaiApi.js" as KimaiApi
+import "../code/providerUtil.js" as ProviderUtil
 
 QtObject {
     /**
@@ -19,19 +19,19 @@ QtObject {
         if (error.type === "offline") {
             return i18n("This needs a connection to the server.")
         }
-        if (error.type === KimaiApi.ErrorType.Network) {
+        if (error.type === ProviderUtil.ErrorType.Network) {
             return i18n("Cannot reach the server. Check your network, URL, or TLS certificate.")
         }
-        if (error.type === KimaiApi.ErrorType.Unauthorized) {
+        if (error.type === ProviderUtil.ErrorType.Unauthorized) {
             return i18n("Authentication failed. Check your API token.")
         }
-        if (error.type === KimaiApi.ErrorType.NotFound) {
+        if (error.type === ProviderUtil.ErrorType.NotFound) {
             return i18n("Server not found. Check your URL.")
         }
-        if (error.type === KimaiApi.ErrorType.Forbidden) {
+        if (error.type === ProviderUtil.ErrorType.Forbidden) {
             return i18n("Access denied. Your token may lack required permissions.")
         }
-        if (error.type === KimaiApi.ErrorType.Server) {
+        if (error.type === ProviderUtil.ErrorType.Server) {
             return i18n("Server error (%1).", error.status)
         }
         if (error.detail) {

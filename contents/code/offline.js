@@ -1,5 +1,6 @@
 .pragma library
 .import "./kimaiApi.js" as KimaiApi
+.import "./providerUtil.js" as ProviderUtil
 .import "./dateTimeFormat.js" as DTF
 
 /**
@@ -80,7 +81,7 @@ function isLocalId(id) {
 }
 
 function isNetworkError(result) {
-    return !!(result && !result.ok && result.error && result.error.type === KimaiApi.ErrorType.Network)
+    return !!(result && !result.ok && result.error && result.error.type === ProviderUtil.ErrorType.Network)
 }
 
 function offlineFail() {

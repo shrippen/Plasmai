@@ -98,8 +98,6 @@ favourites, statistics, offline work; for Kimai also film days and trips.
 
 ## Known deviations
 
-- `kimaiApi.js` rebuilds what `providerUtil.js` has: error kinds, reading an answer,
-  colours (`AUDIT.md`, finding 1).
 - The version stands by hand in ten places (`AUDIT.md`, finding 2).
 - The defaults of the settings stand in three places and differ already
   (`AUDIT.md`, finding 3); the working day's default stands also in `kimaiApi.js` and

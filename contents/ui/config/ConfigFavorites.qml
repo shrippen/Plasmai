@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
 import "../../code/kimaiApi.js" as KimaiApi
+import "../../code/providerUtil.js" as ProviderUtil
 import "../../code/profiles.js" as Profiles
 import "../../code/favorites.js" as Favorites
 import "../../code/sharedConfig.js" as SharedConfig
@@ -354,10 +355,10 @@ ConfigPage {
     function customerColorForSection(name) {
         for (var i = 0; i < projectRows.length; i++) {
             if (projectRows[i].customerName === name) {
-                return projectRows[i].customerColor || KimaiApi.DEFAULT_CUSTOMER_COLOR
+                return projectRows[i].customerColor || ProviderUtil.DEFAULT_CUSTOMER_COLOR
             }
         }
-        return KimaiApi.DEFAULT_CUSTOMER_COLOR
+        return ProviderUtil.DEFAULT_CUSTOMER_COLOR
     }
 
     RowLayout {
@@ -468,7 +469,7 @@ ConfigPage {
                         contentItem: ColorLabelRow {
                             width: parent ? parent.width : implicitWidth
                             customerRole: false
-                            customerColor: modelData.projectColor || modelData.customerColor || KimaiApi.DEFAULT_CUSTOMER_COLOR
+                            customerColor: modelData.projectColor || modelData.customerColor || ProviderUtil.DEFAULT_CUSTOMER_COLOR
                             label: modelData.project.name
                             labelBold: false
                         }

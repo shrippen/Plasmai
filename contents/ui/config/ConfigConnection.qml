@@ -3,7 +3,7 @@ import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
-import "../../code/kimaiApi.js" as KimaiApi
+import "../../code/providerUtil.js" as ProviderUtil
 import "../../code/profiles.js" as Profiles
 import "../../code/sharedConfig.js" as SharedConfig
 import ".."
@@ -111,7 +111,7 @@ ConfigPage {
 
     function connectionPatch() {
         var patch = {
-            kimaiUrl: KimaiApi.normalizeUrl(kimaiUrlField.text),
+            kimaiUrl: ProviderUtil.normalizeUrl(kimaiUrlField.text),
             activeProfileId: activeProfileField.text || "default"
         }
         // Avoid persisting an empty profilesJson while reloading between KCM pages;
@@ -123,7 +123,7 @@ ConfigPage {
     }
 
     function syncConnectionToCfg() {
-        page.cfg_kimaiUrl = KimaiApi.normalizeUrl(kimaiUrlField.text)
+        page.cfg_kimaiUrl = ProviderUtil.normalizeUrl(kimaiUrlField.text)
         page.cfg_profilesJson = profilesField.text
         page.cfg_activeProfileId = activeProfileField.text || "default"
     }
@@ -147,7 +147,7 @@ ConfigPage {
         if (profiles.length === 0) {
             profiles = Profiles.defaultProfiles()
             if (kimaiUrlField.text) {
-                profiles[0].url = KimaiApi.normalizeUrl(kimaiUrlField.text)
+                profiles[0].url = ProviderUtil.normalizeUrl(kimaiUrlField.text)
             }
             syncProfiles()
         }
@@ -221,7 +221,7 @@ ConfigPage {
         if (updatingFields || syncing || profiles.length === 0 || selectedIndex < 0) {
             return
         }
-        var normalized = KimaiApi.normalizeUrl(kimaiUrlField.text)
+        var normalized = ProviderUtil.normalizeUrl(kimaiUrlField.text)
         updateSelectedProfile("url", normalized)
         if (kimaiUrlField.text !== normalized) {
             updatingFields = true

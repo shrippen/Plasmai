@@ -1,6 +1,7 @@
 import QtQuick
 import QtTest
 import "../../contents/code/kimaiApi.js" as KimaiApi
+import "../../contents/code/providerUtil.js" as ProviderUtil
 
 TestCase {
     name: "KimaiApi"
@@ -37,9 +38,9 @@ TestCase {
     }
 
     function test_normalizeUrl() {
-        compare(KimaiApi.normalizeUrl("https://ki.example.com/"), "https://ki.example.com")
-        compare(KimaiApi.normalizeUrl("https://ki.example.com///"), "https://ki.example.com")
-        compare(KimaiApi.normalizeUrl(""), "")
+        compare(ProviderUtil.normalizeUrl("https://ki.example.com/"), "https://ki.example.com")
+        compare(ProviderUtil.normalizeUrl("https://ki.example.com///"), "https://ki.example.com")
+        compare(ProviderUtil.normalizeUrl(""), "")
     }
 
     function test_formatDuration() {
@@ -158,11 +159,11 @@ TestCase {
             { project: 10, activity: 2 }, projects, byId)
         compare(info.customerId, 1)
         compare(info.projectId, 10)
-        compare(info.customerColor, KimaiApi.normalizeCustomerColor("#ff0000"))
-        compare(info.projectColor, KimaiApi.normalizeCustomerColor("#00aa00"))
+        compare(info.customerColor, ProviderUtil.normalizeCustomerColor("#ff0000"))
+        compare(info.projectColor, ProviderUtil.normalizeCustomerColor("#00aa00"))
         var noProjectColor = KimaiApi.panelPillInfo(
             { project: { id: 11, customer: 1 } }, [], byId)
-        compare(noProjectColor.customerColor, KimaiApi.normalizeCustomerColor("#ff0000"))
+        compare(noProjectColor.customerColor, ProviderUtil.normalizeCustomerColor("#ff0000"))
         compare(noProjectColor.projectColor, noProjectColor.customerColor)
     }
 

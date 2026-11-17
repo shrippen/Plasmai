@@ -1,5 +1,6 @@
 .pragma library
 .import "./kimaiApi.js" as KimaiApi
+.import "./providerUtil.js" as ProviderUtil
 .import "./mileage.js" as Mileage
 .import "./dateTimeFormat.js" as DTF
 
@@ -370,7 +371,7 @@ function weeklyHourTimeline(entries, weekStart, customersById, nowMs, maxLegend,
             var aname = KimaiApi.activityName(entry) || ((aid === "_none" || aid === "0") ? "—" : ("#" + aid))
             var label = pname + " · " + aname
             var color = KimaiApi.effectiveColorFromTimesheet(entry, customersById || {})
-            if (color === KimaiApi.DEFAULT_CUSTOMER_COLOR && !KimaiApi.activityColor(entry.activity)) {
+            if (color === ProviderUtil.DEFAULT_CUSTOMER_COLOR && !KimaiApi.activityColor(entry.activity)) {
                 color = paletteColor(key.length + pid.length)
             }
 
@@ -487,7 +488,7 @@ function activityBreakdown(entries, rangeStart, rangeEnd, nowMs, limit, customer
             // If nothing in the Kimai cascade had a color, use a stable palette tint.
             if (!KimaiApi.activityColor(entry.activity)
                 && !(entry.project && KimaiApi.projectColor(entry.project))
-                && color === KimaiApi.DEFAULT_CUSTOMER_COLOR) {
+                && color === ProviderUtil.DEFAULT_CUSTOMER_COLOR) {
                 color = paletteColor(order.length)
             }
             map[aid] = {

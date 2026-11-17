@@ -4,25 +4,6 @@
 .import "./providerUtil.js" as ProviderUtil
 .import "./dateTimeFormat.js" as DTF
 
-var ErrorType = {
-    Network: "network",
-    Unauthorized: "unauthorized",
-    Forbidden: "forbidden",
-    NotFound: "not_found",
-    Server: "server",
-    Unknown: "unknown"
-}
-
-function normalizeUrl(url) {
-    if (!url) {
-        return ""
-    }
-    var s = String(url).replace(/\/+$/, "")
-    // Lowercase scheme: "Https://" -> "https://"
-    s = s.replace(/^(HTTPS?)(:)/i, function(m, p1, p2) { return p1.toLowerCase() + p2 })
-    return s
-}
-
 /** Test hook: function() returning an XMLHttpRequest-like object (null = real XHR). */
 var requestFactory = null
 
@@ -48,7 +29,7 @@ function routeToken(url) {
 function createRequest(method, kimaiUrl, endpoint, apiToken, isJson) {
     var xhr = requestFactory ? requestFactory()
         : (urlRoute && urlRoute.handles(kimaiUrl) ? urlRoute.request() : new XMLHttpRequest())
-    xhr.open(method, normalizeUrl(kimaiUrl) + endpoint, true)
+    xhr.open(method, ProviderUtil.normalizeUrl(kimaiUrl) + endpoint, true)
     xhr.setRequestHeader("Authorization", "Bearer " + apiToken)
     xhr.setRequestHeader("Accept", "application/json")
     if (isJson) {
@@ -61,14 +42,6 @@ function runRequest(xhr, body, callback) {
     ProviderUtil.runRequest(xhr, body, function(status, responseText, statusText) {
         callback(status, responseText, statusText, xhr)
     })
-}
-
-function parseJson(responseText, fallback) {
-    try {
-        return JSON.parse(responseText)
-    } catch (e) {
-        return fallback
-    }
 }
 
 function collectFormErrors(errors, prefix) {
@@ -97,29 +70,14 @@ function collectFormErrors(errors, prefix) {
     return out
 }
 
+/** ProviderUtil.parseApiError, with Kimai's form errors as the detail when present. */
 function parseApiError(status, statusText, responseText) {
-    var body = parseJson(responseText, {})
-    var formBits = collectFormErrors(body.errors)
-    var detail = formBits.length
-        ? formBits.join("; ")
-        : (body.title || body.detail || body.message || body["hydra:description"] || "")
-
-    if (status === 0) {
-        return { type: ErrorType.Network, status: 0, detail: detail }
+    var err = ProviderUtil.parseApiError(status, statusText, responseText)
+    var formBits = collectFormErrors(ProviderUtil.parseJson(responseText, {}).errors)
+    if (formBits.length) {
+        err.detail = formBits.join("; ")
     }
-    if (status === 401) {
-        return { type: ErrorType.Unauthorized, status: 401, detail: detail }
-    }
-    if (status === 403) {
-        return { type: ErrorType.Forbidden, status: 403, detail: detail }
-    }
-    if (status === 404) {
-        return { type: ErrorType.NotFound, status: 404, detail: detail }
-    }
-    if (status >= 500) {
-        return { type: ErrorType.Server, status: status, detail: detail }
-    }
-    return { type: ErrorType.Unknown, status: status, detail: detail || statusText }
+    return err
 }
 
 /** Kimai PATCH may return HTTP 200 with a form-error body instead of 400. */
@@ -136,27 +94,6 @@ function isFormErrorBody(body) {
     return false
 }
 
-function ok(data) {
-    return { ok: true, data: data }
-}
-
-function fail(error) {
-    return { ok: false, error: error }
-}
-
-var DEFAULT_CUSTOMER_COLOR = "#d2d6de"
-
-function normalizeCustomerColor(color) {
-    var c = String(color || "").trim()
-    if (!c) {
-        return DEFAULT_CUSTOMER_COLOR
-    }
-    if (c.charAt(0) !== "#") {
-        c = "#" + c
-    }
-    return c
-}
-
 /** True when Kimai provided an explicit color (non-empty). */
 function hasExplicitColor(value) {
     return String(value || "").trim().length > 0
@@ -168,14 +105,14 @@ function hasExplicitColor(value) {
  */
 function activityColor(activity) {
     if (activity && typeof activity === "object" && hasExplicitColor(activity.color)) {
-        return normalizeCustomerColor(activity.color)
+        return ProviderUtil.normalizeCustomerColor(activity.color)
     }
     return ""
 }
 
 function projectColor(project) {
     if (project && typeof project === "object" && hasExplicitColor(project.color)) {
-        return normalizeCustomerColor(project.color)
+        return ProviderUtil.normalizeCustomerColor(project.color)
     }
     return ""
 }
@@ -185,13 +122,13 @@ function customerColorOnly(project, customersById) {
         return ""
     }
     if (project.customer && typeof project.customer === "object" && hasExplicitColor(project.customer.color)) {
-        return normalizeCustomerColor(project.customer.color)
+        return ProviderUtil.normalizeCustomerColor(project.customer.color)
     }
     var cid = customerIdOfProject(project)
     if (cid && customersById) {
         var cust = customersById[cid] || customersById[String(cid)]
         if (cust && hasExplicitColor(cust.color)) {
-            return normalizeCustomerColor(cust.color)
+            return ProviderUtil.normalizeCustomerColor(cust.color)
         }
     }
     return ""
@@ -199,7 +136,7 @@ function customerColorOnly(project, customersById) {
 
 /** Customer bar color, for section headers and customer pills. */
 function customerBarColor(project, customersById) {
-    return customerColorOnly(project, customersById) || DEFAULT_CUSTOMER_COLOR
+    return customerColorOnly(project, customersById) || ProviderUtil.DEFAULT_CUSTOMER_COLOR
 }
 
 /**
@@ -224,7 +161,7 @@ function barColorInfo(activity, project, customersById) {
         }
     }
     var cid = customerIdOfProject(project)
-    var cc = customerColorOnly(project, customersById) || DEFAULT_CUSTOMER_COLOR
+    var cc = customerColorOnly(project, customersById) || ProviderUtil.DEFAULT_CUSTOMER_COLOR
     return {
         color: cc,
         category: "customer",
@@ -234,7 +171,7 @@ function barColorInfo(activity, project, customersById) {
 
 function barColorInfoFromTimesheet(timesheet, customersById) {
     if (!timesheet) {
-        return { color: DEFAULT_CUSTOMER_COLOR, category: "", id: null }
+        return { color: ProviderUtil.DEFAULT_CUSTOMER_COLOR, category: "", id: null }
     }
     var activity = (typeof timesheet.activity === "object" && timesheet.activity) ? timesheet.activity : null
     var project = (typeof timesheet.project === "object" && timesheet.project) ? timesheet.project : null
@@ -247,9 +184,9 @@ function barColorInfoFromTimesheet(timesheet, customersById) {
  */
 function panelPillInfo(timesheet, projects, customersById) {
     var empty = {
-        customerColor: DEFAULT_CUSTOMER_COLOR,
+        customerColor: ProviderUtil.DEFAULT_CUSTOMER_COLOR,
         customerId: null,
-        projectColor: DEFAULT_CUSTOMER_COLOR,
+        projectColor: ProviderUtil.DEFAULT_CUSTOMER_COLOR,
         projectId: null
     }
     if (!timesheet) {
@@ -264,7 +201,7 @@ function panelPillInfo(timesheet, projects, customersById) {
         project = byId[pid] || byId[String(pid)] || null
     }
     var cid = customerIdOfProject(project)
-    var cc = customerColorOnly(project, customersById) || DEFAULT_CUSTOMER_COLOR
+    var cc = customerColorOnly(project, customersById) || ProviderUtil.DEFAULT_CUSTOMER_COLOR
     var pc = projectColor(project) || cc
     return {
         customerColor: cc,
@@ -296,15 +233,15 @@ function customerColorFromTimesheet(timesheet, customersById) {
 
 function getJson(kimaiUrl, apiToken, endpoint, emptyValue, callback) {
     if (!kimaiUrl || !apiToken) {
-        callback(fail({ type: "config", status: 0, detail: "" }))
+        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "" }))
         return
     }
     var xhr = createRequest("GET", kimaiUrl, endpoint, apiToken, false)
     runRequest(xhr, undefined, function(status, responseText, statusText) {
         if (status === 200) {
-            callback(ok(parseJson(responseText, emptyValue)))
+            callback(ProviderUtil.ok(ProviderUtil.parseJson(responseText, emptyValue)))
         } else {
-            callback(fail(parseApiError(status, statusText, responseText)))
+            callback(ProviderUtil.fail(parseApiError(status, statusText, responseText)))
         }
     })
 }
@@ -351,7 +288,7 @@ function loadCustomers(kimaiUrl, apiToken, callback) {
 
 function loadActivities(kimaiUrl, apiToken, projectId, callback) {
     if (!projectId) {
-        callback(fail({ type: "config", status: 0, detail: "" }))
+        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "" }))
         return
     }
     getJsonAllPages(kimaiUrl, apiToken,
@@ -381,13 +318,13 @@ function customerCreateDefaults(customers) {
 
 function createCustomer(kimaiUrl, apiToken, fields, callback) {
     if (!kimaiUrl || !apiToken) {
-        callback(fail({ type: "config", status: 0, detail: "" }))
+        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "" }))
         return
     }
     var f = fields || {}
     var name = String(f.name || "").trim()
     if (!name) {
-        callback(fail({ type: "config", status: 0, detail: "name is required" }))
+        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "name is required" }))
         return
     }
     var defaults = customerCreateDefaults(f.customers)
@@ -402,22 +339,22 @@ function createCustomer(kimaiUrl, apiToken, fields, callback) {
     var xhr = createRequest("POST", kimaiUrl, "/api/customers", apiToken, true)
     runRequest(xhr, JSON.stringify(data), function(status, responseText, statusText) {
         if (status === 200 || status === 201) {
-            callback(ok(parseJson(responseText, null)))
+            callback(ProviderUtil.ok(ProviderUtil.parseJson(responseText, null)))
         } else {
-            callback(fail(parseApiError(status, statusText, responseText)))
+            callback(ProviderUtil.fail(parseApiError(status, statusText, responseText)))
         }
     })
 }
 
 function createProject(kimaiUrl, apiToken, fields, callback) {
     if (!kimaiUrl || !apiToken) {
-        callback(fail({ type: "config", status: 0, detail: "" }))
+        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "" }))
         return
     }
     var f = fields || {}
     var name = String(f.name || "").trim()
     if (!name || !f.customer) {
-        callback(fail({ type: "config", status: 0, detail: "name and customer are required" }))
+        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "name and customer are required" }))
         return
     }
     var data = {
@@ -429,22 +366,22 @@ function createProject(kimaiUrl, apiToken, fields, callback) {
     var xhr = createRequest("POST", kimaiUrl, "/api/projects", apiToken, true)
     runRequest(xhr, JSON.stringify(data), function(status, responseText, statusText) {
         if (status === 200 || status === 201) {
-            callback(ok(parseJson(responseText, null)))
+            callback(ProviderUtil.ok(ProviderUtil.parseJson(responseText, null)))
         } else {
-            callback(fail(parseApiError(status, statusText, responseText)))
+            callback(ProviderUtil.fail(parseApiError(status, statusText, responseText)))
         }
     })
 }
 
 function createActivity(kimaiUrl, apiToken, fields, callback) {
     if (!kimaiUrl || !apiToken) {
-        callback(fail({ type: "config", status: 0, detail: "" }))
+        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "" }))
         return
     }
     var f = fields || {}
     var name = String(f.name || "").trim()
     if (!name) {
-        callback(fail({ type: "config", status: 0, detail: "name is required" }))
+        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "name is required" }))
         return
     }
     var data = {
@@ -458,9 +395,9 @@ function createActivity(kimaiUrl, apiToken, fields, callback) {
     var xhr = createRequest("POST", kimaiUrl, "/api/activities", apiToken, true)
     runRequest(xhr, JSON.stringify(data), function(status, responseText, statusText) {
         if (status === 200 || status === 201) {
-            callback(ok(parseJson(responseText, null)))
+            callback(ProviderUtil.ok(ProviderUtil.parseJson(responseText, null)))
         } else {
-            callback(fail(parseApiError(status, statusText, responseText)))
+            callback(ProviderUtil.fail(parseApiError(status, statusText, responseText)))
         }
     })
 }
@@ -492,7 +429,7 @@ function buildCustomersById(customers) {
         map[customer.id] = {
             id: customer.id,
             name: customer.name || "",
-            color: normalizeCustomerColor(customer.color)
+            color: ProviderUtil.normalizeCustomerColor(customer.color)
         }
     }
     return map
@@ -785,7 +722,7 @@ function resetDeniedWriteFields() {
 }
 
 function deniedFieldsKey(kimaiUrl, apiToken) {
-    return normalizeUrl(kimaiUrl) + "|" + String(apiToken || "")
+    return ProviderUtil.normalizeUrl(kimaiUrl) + "|" + String(apiToken || "")
 }
 
 /**
@@ -794,7 +731,7 @@ function deniedFieldsKey(kimaiUrl, apiToken) {
  * that is missing there was rejected.
  */
 function rejectedPermissionFields(responseText, data) {
-    var body = parseJson(responseText, null)
+    var body = ProviderUtil.parseJson(responseText, null)
     if (!body || !body.errors || !body.errors.children || !body.errors.errors) {
         return []
     }
@@ -874,12 +811,12 @@ function sendTimesheetWrite(method, kimaiUrl, apiToken, endpoint, data, callback
 }
 
 function finishTimesheetWrite(status, responseText, statusText, callback) {
-    var body = parseJson(responseText, null)
+    var body = ProviderUtil.parseJson(responseText, null)
     if (status >= 200 && status < 300 && !isFormErrorBody(body)) {
-        callback(ok(body))
+        callback(ProviderUtil.ok(body))
         return
     }
-    callback(fail(parseApiError(status >= 200 && status < 300 ? 400 : status, statusText, responseText)))
+    callback(ProviderUtil.fail(parseApiError(status >= 200 && status < 300 ? 400 : status, statusText, responseText)))
 }
 
 /**
@@ -888,13 +825,13 @@ function finishTimesheetWrite(status, responseText, statusText, callback) {
  */
 function createTimesheet(kimaiUrl, apiToken, fields, callback) {
     if (!kimaiUrl || !apiToken) {
-        callback(fail({ type: "config", status: 0, detail: "" }))
+        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "" }))
         return
     }
     var f = fields || {}
     // begin may only be omitted for a running entry (Kimai then uses "now").
     if ((!f.begin && f.end) || !f.project || !f.activity) {
-        callback(fail({ type: "config", status: 0, detail: "begin, project and activity are required" }))
+        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "begin, project and activity are required" }))
         return
     }
 
@@ -915,23 +852,23 @@ function createTimesheet(kimaiUrl, apiToken, fields, callback) {
 
 function stopTracking(kimaiUrl, apiToken, timesheetId, callback) {
     if (!kimaiUrl || !apiToken || !timesheetId) {
-        callback(fail({ type: "config", status: 0, detail: "" }))
+        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "" }))
         return
     }
 
     var xhr = createRequest("PATCH", kimaiUrl, "/api/timesheets/" + timesheetId + "/stop", apiToken, true)
     runRequest(xhr, "{}", function(status, responseText, statusText) {
         if (status === 200) {
-            callback(ok(null))
+            callback(ProviderUtil.ok(null))
         } else {
-            callback(fail(parseApiError(status, statusText, responseText)))
+            callback(ProviderUtil.fail(parseApiError(status, statusText, responseText)))
         }
     })
 }
 
 function restartTimesheet(kimaiUrl, apiToken, timesheetId, callback) {
     if (!kimaiUrl || !apiToken || !timesheetId) {
-        callback(fail({ type: "config", status: 0, detail: "" }))
+        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "" }))
         return
     }
 
@@ -940,16 +877,16 @@ function restartTimesheet(kimaiUrl, apiToken, timesheetId, callback) {
     var xhr = createRequest("PATCH", kimaiUrl, "/api/timesheets/" + timesheetId + "/restart", apiToken, true)
     runRequest(xhr, JSON.stringify({ copy: "all" }), function(status, responseText, statusText) {
         if (status === 200 || status === 201) {
-            callback(ok(parseJson(responseText, null)))
+            callback(ProviderUtil.ok(ProviderUtil.parseJson(responseText, null)))
         } else {
-            callback(fail(parseApiError(status, statusText, responseText)))
+            callback(ProviderUtil.fail(parseApiError(status, statusText, responseText)))
         }
     })
 }
 
 function patchTimesheet(kimaiUrl, apiToken, timesheetId, fields, callback) {
     if (!kimaiUrl || !apiToken || !timesheetId) {
-        callback(fail({ type: "config", status: 0, detail: "" }))
+        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "" }))
         return
     }
 
@@ -959,16 +896,16 @@ function patchTimesheet(kimaiUrl, apiToken, timesheetId, fields, callback) {
 
 function deleteTimesheet(kimaiUrl, apiToken, timesheetId, callback) {
     if (!kimaiUrl || !apiToken || !timesheetId) {
-        callback(fail({ type: "config", status: 0, detail: "" }))
+        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "" }))
         return
     }
 
     var xhr = createRequest("DELETE", kimaiUrl, "/api/timesheets/" + timesheetId, apiToken, false)
     runRequest(xhr, "", function(status, responseText, statusText) {
         if (status >= 200 && status < 300) {
-            callback(ok(null))
+            callback(ProviderUtil.ok(null))
         } else {
-            callback(fail(parseApiError(status, statusText, responseText)))
+            callback(ProviderUtil.fail(parseApiError(status, statusText, responseText)))
         }
     })
 }
@@ -1015,7 +952,7 @@ function resetHolidayPluginCache() {
 }
 
 function rememberHolidayPlugin(kimaiUrl, source, atMs) {
-    holidayPluginByUrl[normalizeUrl(kimaiUrl)] = WorkAdjust.holidayPluginCacheEntry(source, atMs)
+    holidayPluginByUrl[ProviderUtil.normalizeUrl(kimaiUrl)] = WorkAdjust.holidayPluginCacheEntry(source, atMs)
 }
 
 function holidaySourceFromProbes(holidayTypesStatus, workContractTypesStatus) {
@@ -1023,7 +960,7 @@ function holidaySourceFromProbes(holidayTypesStatus, workContractTypesStatus) {
 }
 
 function cachedHolidayPlugin(kimaiUrl, nowMs) {
-    return WorkAdjust.holidayPluginCacheSource(holidayPluginByUrl[normalizeUrl(kimaiUrl)], nowMs)
+    return WorkAdjust.holidayPluginCacheSource(holidayPluginByUrl[ProviderUtil.normalizeUrl(kimaiUrl)], nowMs)
 }
 
 function storeHolidayPlugin(kimaiUrl, source) {
@@ -1032,7 +969,7 @@ function storeHolidayPlugin(kimaiUrl, source) {
 
 /** Detect kimai-holiday-bundle vs WorkContractBundle. Cached per server URL for one hour. */
 function detectHolidayPlugin(kimaiUrl, apiToken, callback) {
-    var key = normalizeUrl(kimaiUrl)
+    var key = ProviderUtil.normalizeUrl(kimaiUrl)
     var cached = cachedHolidayPlugin(key)
     if (cached) {
         callback(cached)
@@ -1106,7 +1043,7 @@ var PluginState = {
 
 /** Cache key: profile + server URL + plugin, so an edited profile URL re-probes. */
 function pluginCacheKey(profileId, kimaiUrl, plugin) {
-    return String(profileId || "") + "|" + normalizeUrl(kimaiUrl) + "|" + String(plugin || "")
+    return String(profileId || "") + "|" + ProviderUtil.normalizeUrl(kimaiUrl) + "|" + String(plugin || "")
 }
 
 /** State from one probe answer, or null when the answer is transient. */
@@ -1130,7 +1067,7 @@ function parsePluginCache(jsonStr) {
     if (!jsonStr) {
         return {}
     }
-    var data = parseJson(jsonStr, {})
+    var data = ProviderUtil.parseJson(jsonStr, {})
     return (data && typeof data === "object" && !Array.isArray(data)) ? data : {}
 }
 
@@ -1222,7 +1159,7 @@ function detectDrehzettel(kimaiUrl, apiToken, options, callback) {
 /** parseApiError plus the plugin's {error, code} body (code: no_engagement, …). */
 function drehzettelError(status, statusText, responseText) {
     var err = parseApiError(status, statusText, responseText)
-    var body = parseJson(responseText, {})
+    var body = ProviderUtil.parseJson(responseText, {})
     err.code = (body && typeof body.code === "string") ? body.code : ""
     if (body && typeof body.error === "string" && body.error) {
         err.detail = body.error
@@ -1243,15 +1180,15 @@ function drehzettelQuery(projectId, dateStr) {
 
 function drehzettelRequest(method, kimaiUrl, apiToken, endpoint, body, callback) {
     if (!kimaiUrl || !apiToken) {
-        callback(fail({ type: "config", status: 0, detail: "", code: "" }))
+        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "", code: "" }))
         return
     }
     var xhr = createRequest(method, kimaiUrl, "/api/drehzettel" + endpoint, apiToken, body !== undefined)
     runRequest(xhr, body === undefined ? undefined : JSON.stringify(body), function(status, responseText, statusText) {
         if (status === 200) {
-            callback(ok(parseJson(responseText, null)))
+            callback(ProviderUtil.ok(ProviderUtil.parseJson(responseText, null)))
         } else {
-            callback(fail(drehzettelError(status, statusText, responseText)))
+            callback(ProviderUtil.fail(drehzettelError(status, statusText, responseText)))
         }
     })
 }
@@ -1281,7 +1218,7 @@ function filmDayEndpoint(projectId, dateStr) {
 
 function fetchFilmDay(kimaiUrl, apiToken, projectId, dateStr, callback) {
     if (!isValidDateString(dateStr)) {
-        callback(fail({ type: "config", status: 0, detail: "invalid date", code: "invalid_date" }))
+        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "invalid date", code: "invalid_date" }))
         return
     }
     drehzettelRequest("GET", kimaiUrl, apiToken, filmDayEndpoint(projectId, dateStr), undefined, callback)
@@ -1290,7 +1227,7 @@ function fetchFilmDay(kimaiUrl, apiToken, projectId, dateStr, callback) {
 /** Partial update: only the keys in `patch` change on the server. Answers like GET. */
 function putFilmDay(kimaiUrl, apiToken, projectId, dateStr, patch, callback) {
     if (!isValidDateString(dateStr)) {
-        callback(fail({ type: "config", status: 0, detail: "invalid date", code: "invalid_date" }))
+        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "invalid date", code: "invalid_date" }))
         return
     }
     drehzettelRequest("PUT", kimaiUrl, apiToken, filmDayEndpoint(projectId, dateStr), patch || {}, callback)
@@ -1299,7 +1236,7 @@ function putFilmDay(kimaiUrl, apiToken, projectId, dateStr, patch, callback) {
 /** D5: calculated day (workMinutes, overtime, payCents, currency, …). */
 function fetchDaySummary(kimaiUrl, apiToken, projectId, dateStr, callback) {
     if (!isValidDateString(dateStr)) {
-        callback(fail({ type: "config", status: 0, detail: "invalid date", code: "invalid_date" }))
+        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "invalid date", code: "invalid_date" }))
         return
     }
     drehzettelRequest("GET", kimaiUrl, apiToken,
@@ -1339,7 +1276,7 @@ function detectMileage(kimaiUrl, apiToken, options, callback) {
  */
 function mileageError(status, statusText, responseText) {
     var err = parseApiError(status, statusText, responseText)
-    var body = parseJson(responseText, {})
+    var body = ProviderUtil.parseJson(responseText, {})
     err.fields = {}
     if (body && body.errors && typeof body.errors === "object" && !Array.isArray(body.errors)
             && !body.errors.children && !body.errors.errors) {
@@ -1360,15 +1297,15 @@ function mileageError(status, statusText, responseText) {
 
 function mileageRequest(method, kimaiUrl, apiToken, endpoint, body, callback) {
     if (!kimaiUrl || !apiToken) {
-        callback(fail({ type: "config", status: 0, detail: "", fields: {} }))
+        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "", fields: {} }))
         return
     }
     var xhr = createRequest(method, kimaiUrl, "/api/mileage" + endpoint, apiToken, body !== undefined)
     runRequest(xhr, body === undefined ? undefined : JSON.stringify(body), function(status, responseText, statusText) {
         if (status >= 200 && status < 300) {
-            callback(ok(status === 204 ? null : parseJson(responseText, null)))
+            callback(ProviderUtil.ok(status === 204 ? null : ProviderUtil.parseJson(responseText, null)))
         } else {
-            callback(fail(mileageError(status, statusText, responseText)))
+            callback(ProviderUtil.fail(mileageError(status, statusText, responseText)))
         }
     })
 }
@@ -1418,7 +1355,7 @@ function createTrip(kimaiUrl, apiToken, body, callback) {
 
 function patchTrip(kimaiUrl, apiToken, tripId, body, callback) {
     if (tripId === null || tripId === undefined || tripId === "") {
-        callback(fail({ type: "config", status: 0, detail: "", fields: {} }))
+        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "", fields: {} }))
         return
     }
     mileageRequest("PATCH", kimaiUrl, apiToken, "/trips/" + encodeURIComponent(String(tripId)), body || {}, callback)
@@ -1426,7 +1363,7 @@ function patchTrip(kimaiUrl, apiToken, tripId, body, callback) {
 
 function deleteTrip(kimaiUrl, apiToken, tripId, callback) {
     if (tripId === null || tripId === undefined || tripId === "") {
-        callback(fail({ type: "config", status: 0, detail: "", fields: {} }))
+        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "", fields: {} }))
         return
     }
     mileageRequest("DELETE", kimaiUrl, apiToken, "/trips/" + encodeURIComponent(String(tripId)), undefined, callback)
@@ -1496,13 +1433,13 @@ function emptyContractAdjustments(source) {
 
 /**
  * Absences + public holidays for the current week, from whichever Kimai
- * plugin is installed. Callback receives ok({ source, absences, publicHolidays }).
+ * plugin is installed. Callback receives ProviderUtil.ok({ source, absences, publicHolidays }).
  */
 function fetchContractAdjustments(kimaiUrl, apiToken, now, prefs, callback) {
     var when = now || new Date()
     detectHolidayPlugin(kimaiUrl, apiToken, function(source) {
         if (source === WorkAdjust.SOURCE_NONE) {
-            callback(ok(emptyContractAdjustments(source)))
+            callback(ProviderUtil.ok(emptyContractAdjustments(source)))
             return
         }
         var absencesLoaded = false
@@ -1514,7 +1451,7 @@ function fetchContractAdjustments(kimaiUrl, apiToken, now, prefs, callback) {
             if (!absencesLoaded || !holidaysLoaded) {
                 return
             }
-            callback(ok({
+            callback(ProviderUtil.ok({
                 source: source,
                 absences: absencesRaw,
                 publicHolidays: holidaysRaw
@@ -1580,14 +1517,14 @@ function tagEntityName(item) {
 /** Resolved display color from Kimai TagEntity (`color-safe` when explicit color is absent). */
 function tagEntityColor(item) {
     if (!item || typeof item !== "object") {
-        return DEFAULT_CUSTOMER_COLOR
+        return ProviderUtil.DEFAULT_CUSTOMER_COLOR
     }
     var raw = item["color-safe"] || item.color || ""
     if (raw === null || raw === undefined || String(raw).trim().length === 0) {
         var name = tagEntityName(item)
-        return name ? colorFromTagName(name) : DEFAULT_CUSTOMER_COLOR
+        return name ? colorFromTagName(name) : ProviderUtil.DEFAULT_CUSTOMER_COLOR
     }
-    return normalizeCustomerColor(raw)
+    return ProviderUtil.normalizeCustomerColor(raw)
 }
 
 /** Deterministic accent when Kimai has not assigned an explicit tag color yet. */
@@ -1807,7 +1744,7 @@ function sumTimesheetDurations(entries, nowMs) {
  */
 function fetchTimesheetsRange(kimaiUrl, apiToken, beginDate, endDate, callback, filters) {
     if (!kimaiUrl || !apiToken) {
-        callback(fail({ type: "config", status: 0, detail: "" }))
+        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "" }))
         return
     }
 
@@ -1832,14 +1769,14 @@ function fetchTimesheetsRange(kimaiUrl, apiToken, beginDate, endDate, callback, 
         runRequest(xhr, undefined, function(status, responseText, statusText) {
             // Kimai answers 404 for a page past the end (e.g. exactly 100 entries).
             if (status === 404 && page > 1) {
-                callback(ok(collected))
+                callback(ProviderUtil.ok(collected))
                 return
             }
             if (status !== 200) {
-                callback(fail(parseApiError(status, statusText, responseText)))
+                callback(ProviderUtil.fail(parseApiError(status, statusText, responseText)))
                 return
             }
-            var batch = parseJson(responseText, [])
+            var batch = ProviderUtil.parseJson(responseText, [])
             if (!Array.isArray(batch)) {
                 batch = []
             }
@@ -1854,7 +1791,7 @@ function fetchTimesheetsRange(kimaiUrl, apiToken, beginDate, endDate, callback, 
                 page++
                 fetchPage()
             } else {
-                callback(ok(collected))
+                callback(ProviderUtil.ok(collected))
             }
         })
     }
