@@ -1,13 +1,16 @@
 # Tests
 
-Plasmai has two layers of automated tests:
+Plasmai has three layers of automated tests:
 
 1. **QML unit tests** (`tests/unit/tst_*.qml`) — `QtTest` cases against the
    `.js` libraries (`kimaiApi`, `profiles`, `timesheetFields`, …). No network,
    no Plasma shell. WorkContractBundle remaining-hours coverage uses the
    documented `/api/absences` JSON shape as fixtures — not a live Kimai
    plugin (the official bundle is paid).
-2. **plasmoidviewer click sweeps** (`tests/viewer/`) — launch the applet in
+2. **App page tests** (`tests/app_pages/tst_*.qml`) — pages of `app/qml` load only
+   with the app's resource layout; `tests/test_app_pages.py` rebuilds it from
+   `app/plasmai-app.qrc` as symlinks and runs these tests on it.
+3. **plasmoidviewer click sweeps** (`tests/viewer/`) — launch the applet in
    `plasmoidviewer`, click every safe control, and fail if **plasmoidviewer
    stderr** or the **plasmashell / plasmoidviewer journal** contains QML
    `TypeError` / `ReferenceError` / similar fatals.

@@ -29,7 +29,7 @@ favourites, statistics, offline work; for Kimai also film days and trips.
 | `app/qml/` | The app's pages and its start; `tui/` the terminal client's screens. They reuse `contents/ui/` and `contents/code/`. |
 | `app/main.cpp`, `app/platform/`, `app/tui/`, `app/android/` | The app's C++ start; one file per platform for tray, idle, notifications, token store, autostart; the terminal; the Android package. |
 | `app/addons/`, `app/qml/kirigami-*`, `app/libs/` | Foreign code the app ships. Not edited here. |
-| `tests/`, `app/tests/` | Unit tests in QML (`unit/`), tests of packaging and structure in Python, tests in the running widget (`viewer/`); C++ tests of the app. |
+| `tests/`, `app/tests/` | Unit tests in QML (`unit/`; `app_pages/` for app pages, run on a copy of the app's qrc layout), tests of packaging and structure in Python, tests in the running widget (`viewer/`); C++ tests of the app. |
 | `scripts/`, `packaging/`, `translate/`, `demo/`, `docs/`, `fastlane/`, `tools/` | Build, install and package per platform; store packages; translations; the demo start, screenshots and benchmarks; landing page; store texts; the structure check (synced copy). |
 
 ## Layers

@@ -49,6 +49,8 @@ Kirigami.Page {
         // summary decides which of the project's entries is the film day.
         // Cached days show at once; the live answer follows when it differs.
         session.filmDay.openDay(date, selectedProjectIdForDay, function(r, entries) {
+                    // The page is gone: nothing to show.
+                    if (!page) { return }
                     if (serial !== page.loadSerial) return
                     var day = r.day
                     page.loadingFilmDay = false
@@ -85,6 +87,7 @@ Kirigami.Page {
         if (!r.engagement || !r.engagement.validFrom) return
         session.filmDay.productionDay(r.projectId, info.activityId, r.activityIds,
                                       String(r.engagement.validFrom), dateStr, function(count) {
+            if (!page) { return }
             if (serial !== page.loadSerial || !count) return
             // A day without its entry yet (before the start) is the next shooting day.
             var n = count.includesDay ? count.count : (info.phase === "before" ? count.count + 1 : 0)
@@ -105,6 +108,7 @@ Kirigami.Page {
             projectId: projectId, dateStr: dateStr, fields: fields,
             server: page.filmDayServer, dayMode: page.filmDayLoadMode
         }, function(result) {
+            if (!page) { return }
             if (result.extras === "failed") {
                 root.showPassiveNotification(i18n("The film day was not saved: %1",
                                                   (result.error && result.error.detail) || ApiErrors.text(result.error)))
@@ -112,6 +116,7 @@ Kirigami.Page {
             }
             if (result.server) page.filmDayServer = result.server
         }, function(payCents) {
+            if (!page) { return }
             filmDayView.earningsCents = payCents
         })
     }
@@ -121,6 +126,7 @@ Kirigami.Page {
         session.filmDay.saveNote({
             timesheetId: page.noteEntry ? page.noteEntry.id : null, note: text, previous: page.savedNote
         }, function(result) {
+            if (!page) { return }
             if (result.saved === "failed") {
                 root.reportWriteError({ ok: false, error: result.error }, i18n("Could not save the entry"))
                 return
@@ -178,12 +184,14 @@ Kirigami.Page {
             server: page.filmDayServer,
             dayMode: page.filmDayLoadMode
         }, function(result) {
+            if (!page) { return }
             page.saving = false
             if (!result.ok) {
                 root.showPassiveNotification(ApiErrors.text(result.error))
                 return
             }
             function finish(deleteReport) {
+                if (!page) { return }
                 if (deleteReport && deleteReport.failed.length > 0) {
                     // Stay on the page: the day still has more than one entry.
                     root.showPassiveNotification(i18np("%1 other entry of this day could not be deleted: %2",
@@ -221,6 +229,7 @@ Kirigami.Page {
         }
         page.loadingFilmDay = true
         session.filmDay.resolveMode(Session.Probe.Cached, function() {
+            if (!page) { return }
             page.loadForDate(page.selectedDate)
         })
     }
@@ -247,7 +256,10 @@ Kirigami.Page {
                 connectionOk: session.connection.state !== "error"
                 showCreateActions: session.entries.canCreate
                 onProjectChosen: function(projectId) {
-                    session.catalog.loadActivities(projectId, function(model) { filmDayView.activityPickerModel = model })
+                    session.catalog.loadActivities(projectId, function(model) {
+                        if (!page) { return }
+                        filmDayView.activityPickerModel = model
+                    })
                 }
                 onProjectPicked: function(projectId) {
                     page.loadForDate(page.selectedDate)
@@ -324,6 +336,9 @@ Kirigami.Page {
         z: 10
         flickable: pageScroll.contentItem
         busy: page.loadingFilmDay
-        onRefreshRequested: { session.filmDay.resolveMode(Session.Probe.Fresh, function() { page.loadForDate(page.selectedDate) }) }
+        onRefreshRequested: { session.filmDay.resolveMode(Session.Probe.Fresh, function() {
+            if (!page) { return }
+            page.loadForDate(page.selectedDate)
+        }) }
     }
 }
