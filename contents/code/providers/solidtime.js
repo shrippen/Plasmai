@@ -43,7 +43,7 @@ function apiBase(url) {
 }
 
 function createRequest(method, url, endpoint, token, isJson) {
-    var xhr = new XMLHttpRequest()
+    var xhr = Util.newXhr()
     xhr.open(method, apiBase(url) + endpoint, true)
     xhr.setRequestHeader("Authorization", "Bearer " + token)
     xhr.setRequestHeader("Accept", "application/json")

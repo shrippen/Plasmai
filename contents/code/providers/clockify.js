@@ -39,7 +39,7 @@ function baseUrl(url) {
 }
 
 function createRequest(method, url, endpoint, token, isJson) {
-    var xhr = new XMLHttpRequest()
+    var xhr = Util.newXhr()
     xhr.open(method, baseUrl(url) + endpoint, true)
     xhr.setRequestHeader("X-Api-Key", token)
     xhr.setRequestHeader("Accept", "application/json")

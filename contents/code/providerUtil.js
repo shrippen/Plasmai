@@ -103,6 +103,17 @@ function pendingRequestCount() {
     return pendingRequests.length
 }
 
+/** Test hook: function() returning an XMLHttpRequest-like object (null = real XHR). */
+var requestFactory = null
+
+function setRequestFactory(factory) {
+    requestFactory = factory || null
+}
+
+function newXhr() {
+    return requestFactory ? requestFactory() : new XMLHttpRequest()
+}
+
 function runRequest(xhr, body, callback) {
     var entry = { xhr: xhr, deadline: Date.now() + REQUEST_TIMEOUT_MS, timedOut: false, finished: false }
     // onerror and DONE can both fire; abort() also reports DONE. Answer once.
