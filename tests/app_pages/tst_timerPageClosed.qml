@@ -138,4 +138,16 @@ TestCase {
             view.projectActivated(-1)
         }), [])
     }
+
+    // The timer ends elsewhere while the editor is open: nothing is left to save, the editor closes.
+    function test_editor_closes_when_the_timer_ends() {
+        const h = createTemporaryObject(host, tc)
+        const obj = h.pageComponent.createObject(h)
+        verify(obj !== null)
+        obj.openEdit()
+        verify(obj.editingActive)
+        h.session.timer.tracking = false
+        verify(!obj.editingActive)
+        obj.destroy()
+    }
 }

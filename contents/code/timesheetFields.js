@@ -1,6 +1,7 @@
 .pragma library
 .import "./dateTimeFormat.js" as DTF
 .import "./entityNames.js" as Names
+.import "./filmDays.js" as FilmDays
 .import "./providerUtil.js" as ProviderUtil
 
 /**
@@ -397,4 +398,60 @@ function deduplicateRecent(entries) {
         result.push(entry)
     }
     return result
+}
+
+/** Why begin / end cannot be saved: the film day's span problems, plus the running entry's. */
+var TimeProblem = {
+    NONE: FilmDays.SpanProblem.NONE,
+    DATES: FilmDays.SpanProblem.DATES,
+    ORDER: FilmDays.SpanProblem.ORDER,
+    BEGIN: "begin",
+    FUTURE: "future"
+}
+
+/** ENTRY: a stopped entry (begin and end); RUNNING: the running one (begin only). */
+var TimeCheck = {
+    ENTRY: "entry",
+    RUNNING: "running"
+}
+
+/** A running entry may begin this far ahead of the clock (the minute being typed). */
+var FUTURE_SLACK_MS = 60 * 1000
+
+/**
+ * Checks the times typed for a save and converts them to the tracker's stamp (device
+ * offset, DTF.localDateTimeString). Returns { problem, fields }: a copy of `fields`
+ * with begin / end converted; fields without times pass unchanged.
+ * "2026-06-10 09:00" -> "2026-06-10T09:00:00+0200".
+ */
+function timeFields(fields, check, nowMs) {
+    var out = Object.assign({}, fields)
+    if (check === TimeCheck.RUNNING) {
+        return checkRunning(out, nowMs)
+    }
+    if (out.begin === undefined && out.end === undefined) {
+        return { problem: TimeProblem.NONE, fields: out }
+    }
+    var span = FilmDays.checkSpan(out.begin, out.end)
+    if (span.problem !== TimeProblem.NONE) {
+        return { problem: span.problem, fields: out }
+    }
+    out.begin = DTF.localDateTimeString(new Date(span.beginMs))
+    out.end = DTF.localDateTimeString(new Date(span.endMs))
+    return { problem: TimeProblem.NONE, fields: out }
+}
+
+function checkRunning(out, nowMs) {
+    if (out.begin === undefined) {
+        return { problem: TimeProblem.NONE, fields: out }
+    }
+    var begin = DTF.parseStamp(out.begin)
+    if (isNaN(begin.getTime())) {
+        return { problem: TimeProblem.BEGIN, fields: out }
+    }
+    if (begin.getTime() > nowMs + FUTURE_SLACK_MS) {
+        return { problem: TimeProblem.FUTURE, fields: out }
+    }
+    out.begin = DTF.localDateTimeString(begin)
+    return { problem: TimeProblem.NONE, fields: out }
 }

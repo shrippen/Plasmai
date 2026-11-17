@@ -77,6 +77,7 @@ Kirigami.Page {
     }
     function isOverTime() { return session.totals.hasWorkContract && (session.totals.remainingTodaySeconds < 0 || session.totals.remainingWeekSeconds < 0) }
 
+    Connections { target: session.timer; function onTrackingChanged() { if (!session.timer.tracking) { page.editingActive = false } } } // ended elsewhere: nothing to save
     function openEdit() {
         if (!session.timer.tracking || !session.timer.active) return
         editingActive = true
@@ -508,8 +509,8 @@ Kirigami.Page {
                                     session.catalog.loadActivities(projectId, function(model) { if (typeof page !== "undefined" && page) { page.editActivityPickerModel = model } }) // not once the page is gone
                                 }
                                 onSaveRequested: function(projectId, activityId, beginText, billable, tags) {
-                                    session.timer.patchActive({ project: projectId, activity: activityId, begin: beginText, billable: billable, tags: tags })
-                                    page.editingActive = false
+                                    // A refused begin keeps the editor open; the session reports it.
+                                    session.timer.patchActive({ project: projectId, activity: activityId, begin: beginText, billable: billable, tags: tags }, function() { page.editingActive = false })
                                 }
                                 onCancelled: page.editingActive = false
                                 onCreateProjectRequested: page.createEntity("project", null)

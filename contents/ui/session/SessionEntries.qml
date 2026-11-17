@@ -16,9 +16,21 @@ QtObject {
     /** Master data and multi-entry changes need the server (offline.js: online only). */
     readonly property bool canCreate: session.connection.capabilities.createEntities && !session.sync.offline
 
-    /** Add (id null) or edit entry `id`; on success the dropped fields are reported and all refreshes, a failure is failed(Save). */
+    /**
+     * Add (id null) or edit entry `id`; on success the dropped fields are reported and all refreshes, a failure is failed(Save).
+     * begin / end are checked and sent as stamps with an offset; a refused time sends nothing: result.invalid is a
+     * TimesheetFields.TimeProblem.
+     */
     function write(id, fields, callback) {
         const c = session.connection
+        const checked = TimesheetFields.timeFields(fields, TimesheetFields.TimeCheck.ENTRY, Date.now())
+        if (checked.problem !== TimesheetFields.TimeProblem.NONE) {
+            const refused = { ok: false, invalid: checked.problem }
+            session.failed(Ui.Session.Action.Save, refused)
+            callback(refused)
+            return
+        }
+        fields = checked.fields
         const done = function(result) {
             if (result.ok) {
                 session.noteDropped(result)

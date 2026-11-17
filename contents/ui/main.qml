@@ -20,7 +20,6 @@ import "../code/favorites.js" as Favorites
 import "../code/sharedConfig.js" as SharedConfig
 import "../code/buildInfo.js" as BuildInfo
 import "../code/timesheetFields.js" as TimesheetFields
-import "../code/filmDays.js" as FilmDays
 import "../code/dateTimeFormat.js" as DTF
 import "../code/mileage.js" as Mileage
 import "../code/statsData.js" as StatsData
@@ -589,6 +588,10 @@ PlasmoidItem {
             userMessage = EntryTexts.splitRange
             return
         }
+        if (result && result.invalid) {
+            userMessage = EntryTexts.timeProblem(result.invalid)
+            return
+        }
         showError(result ? result.error : null)
         if (action === Session.Action.SplitSecond) {
             userMessage = EntryTexts.splitSecond
@@ -809,18 +812,10 @@ PlasmoidItem {
         if (!session.timer.tracking || session.locked || !session.timer.timesheetId) {
             return
         }
-        const beginDate = DTF.parseStamp(beginText)
-        if (isNaN(beginDate.getTime())) {
-            userMessage = i18n("Enter a valid start date/time.")
-            return
-        }
-        if (beginDate.getTime() > Date.now() + 60 * 1000) {
-            userMessage = i18n("Start must not be in the future.")
-            return
-        }
         userMessage = ""
+        // The session checks the begin and refuses it as failed(Save).
         session.timer.patchActive({
-            begin: DTF.localDateTimeString(beginDate),
+            begin: beginText,
             project: projectId,
             activity: activityId,
             billable: typeof billable === "boolean" ? billable : undefined,
@@ -954,12 +949,9 @@ PlasmoidItem {
     }
 
     function filmDaySaved(result, direct) {
-        if (result.invalid === FilmDays.SpanProblem.ORDER) {
-            userMessage = i18n("End must be after begin.")
-            return
-        }
-        if (result.invalid === FilmDays.SpanProblem.DATES) {
-            userMessage = i18n("Enter valid begin and end date/time.")
+        // The film day's span problems are TimeProblem values (DATES, ORDER).
+        if (result.invalid) {
+            userMessage = EntryTexts.timeProblem(result.invalid)
             return
         }
         if (!result.ok) {
@@ -1124,21 +1116,11 @@ PlasmoidItem {
         if (!session.connection.configured || session.busy || savingEntry) {
             return
         }
-        const beginDate = DTF.parseStamp(beginText)
-        const endDate = DTF.parseStamp(endText)
-        if (isNaN(beginDate.getTime()) || isNaN(endDate.getTime())) {
-            userMessage = i18n("Enter valid begin and end date/time.")
-            return
-        }
-        if (endDate.getTime() <= beginDate.getTime()) {
-            userMessage = i18n("End must be after begin.")
-            return
-        }
         savingEntry = true
         userMessage = ""
         const fields = {
-            begin: DTF.localDateTimeString(beginDate),
-            end: DTF.localDateTimeString(endDate),
+            begin: beginText,
+            end: endText,
             project: projectId,
             activity: activityId,
             description: description || "",
