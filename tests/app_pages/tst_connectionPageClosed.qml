@@ -39,11 +39,12 @@ TestCase {
                     function saveToken() { return tc.thenable() }
                     function clearToken() { return tc.thenable() }
                     function saveProfiles() {}
-                    function test(profile, handlers) { tc.testHandlers = handlers }
+                    function testProfile(profiles, index, handlers) { tc.testHandlers = handlers }
                 }
                 property var setup: QtObject {
                     function listProviders() { return [{ id: "kimai", name: "Kimai", defaultUrl: "" }] }
                     function providerMeta() { return { defaultUrl: "" } }
+                    function providerName() { return "Kimai" }
                 }
                 property var sync: QtObject { property bool offline: false }
                 function open() { tc.opened++ }
@@ -166,9 +167,13 @@ TestCase {
         obj.selectedIndex = 0
         findButton(obj, "network-connect").clicked()
         verify(testHandlers !== null)
-        testHandlers.done({ ok: true, data: { workspaceId: "w1", userId: "u1" } })
+        // The session hands back the profiles with the ids the test reported.
+        const tested = [{ id: "p1", name: "One", url: "https://x", provider: "clockify", workspaceId: "w1", userId: "u1" }]
+        // The status text throws here (ApiErrors has no i18n in tests), after the profiles are taken.
+        thrownBy([function() { testHandlers.done({ ok: true, data: {}, profiles: tested }) }])
         compare(obj.profiles[0].workspaceId, "w1")
         compare(obj.profiles[0].userId, "u1")
+        compare(obj.profiles[0].id, "p1")
         obj.destroy()
     }
 }

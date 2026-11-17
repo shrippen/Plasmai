@@ -220,30 +220,6 @@ ConfigPage {
         persistShared()
     }
 
-    function applyTestConnectionMeta(data) {
-        if (!data || profiles.length === 0 || selectedIndex < 0) {
-            return
-        }
-        var copy = profiles.slice()
-        var p = copy[selectedIndex]
-        if (data.workspaceId) {
-            p.workspaceId = data.workspaceId
-        }
-        if (data.userId) {
-            p.userId = data.userId
-        }
-        if (data.organizationId) {
-            p.organizationId = data.organizationId
-        }
-        if (data.memberId) {
-            p.memberId = data.memberId
-        }
-        copy[selectedIndex] = p
-        profiles = copy
-        syncProfiles()
-        notifyEdited()
-    }
-
     function reloadConnectionState() {
         session.connection.loadStored().then(function(shared) {
             page.syncing = true
@@ -548,7 +524,7 @@ ConfigPage {
                             page.showStatus(i18n("Testing connection…"), false)
                             page.commitUrlField()
                             const profile = page.profiles[page.selectedIndex]
-                            session.connection.test(profile, {
+                            session.connection.testProfile(page.profiles, page.selectedIndex, {
                                 noToken: function() {
                                     page.testingConnection = false
                                     page.showStatus(i18n("No API token stored. Save a token first."), true)
@@ -556,14 +532,12 @@ ConfigPage {
                                 testing: function() {},
                                 done: function(result) {
                                     page.testingConnection = false
-                                    if (!result.ok) {
-                                        page.showStatus(ApiErrors.text(result.error, true), true)
-                                        return
+                                    if (result.ok) {
+                                        page.profiles = result.profiles
+                                        page.syncProfiles()
+                                        page.notifyEdited()
                                     }
-                                    page.applyTestConnectionMeta(result.data)
-                                    const label = session.setup.providerName(profile.provider)
-                                    const ver = (result.data && (result.data.version || result.data.name)) || i18n("ok")
-                                    page.showStatus(i18n("Connected to %1 (%2).", label, ver), false)
+                                    page.showStatus(ApiErrors.testText(result, session.setup.providerName(profile.provider)), !result.ok)
                                 },
                                 failed: function(err) {
                                     page.testingConnection = false

@@ -44,4 +44,14 @@ QtObject {
         }
         return i18n("Request failed (%1).", error.status)
     }
+
+    /** The line under "Test connection": `result` as the session's testProfile hands it, `service` the service's name. */
+    function testText(result, service) {
+        if (!result.ok) {
+            return text(result.error, true)
+        }
+        const data = result.data
+        const version = (data && (data.version || data.name)) || i18n("ok")
+        return i18n("Connected to %1 (%2).", service, version)
+    }
 }

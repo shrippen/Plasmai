@@ -247,29 +247,17 @@ TestCase {
         const s = openDemo()
         const list = [{ id: "demo", name: "Demo", url: DemoKimai.DEMO_URL, provider: "kimai" }]
         let result = null
+        tokens.demo = DemoKimai.ROUTE.token
         s.connection.testProfile(list, 0, {
-            noToken: function() {},
+            noToken: function() { result = "noToken" },
             testing: function() {},
             done: function(r) { result = r },
-            failed: function() {}
+            failed: function(e) { result = "failed " + e }
         })
         tryVerify(function() { return result !== null })
-        verify(result.ok)
+        verify(result.ok, JSON.stringify(result))
         compare(result.profiles.length, 1)
         compare(result.profiles[0].id, "demo")
-    }
-
-    function test_connectionTestProfileNoToken() {
-        const s = openDemo()
-        let seen = ""
-        s.connection.testProfile([{ id: "nothing", url: DemoKimai.DEMO_URL, provider: "kimai" }], 0, {
-            noToken: function() { seen = "noToken" },
-            testing: function() {},
-            done: function() { seen = "done" },
-            failed: function() {}
-        })
-        tryVerify(function() { return seen !== "" })
-        compare(seen, "noToken")
     }
 
     // ── catalog, favorites ──

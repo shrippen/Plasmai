@@ -419,7 +419,8 @@ Kirigami.Page {
                             page.busy = true
                             page.showStatus(i18n("Testing…"), false)
                             page.persistShared()
-                            session.connection.test(page.profiles[page.selectedIndex], {
+                            const profile = page.profiles[page.selectedIndex]
+                            session.connection.testProfile(page.profiles, page.selectedIndex, {
                                 noToken: function() {
                                     if (!page) { return }
                                     page.busy = false
@@ -434,15 +435,11 @@ Kirigami.Page {
                                     if (!page) { return }
                                     page.busy = false
                                     if (result.ok) {
-                                        page.showStatus(i18n("Connection OK!"), false)
-                                        return
+                                        page.profiles = result.profiles
+                                        page.syncProfiles()
+                                        page.persistShared()
                                     }
-                                    const err = result.error || {}
-                                    let detail = err.detail || err.statusText || i18n("Failed")
-                                    if (err.type === ProviderUtil.ErrorType.NotConfigured) {
-                                        detail = ApiErrors.text(err, true)
-                                    }
-                                    page.showStatus(detail || i18n("Failed"), true)
+                                    page.showStatus(ApiErrors.testText(result, session.setup.providerName(profile.provider)), !result.ok)
                                 },
                                 failed: function(err) {
                                     if (!page) { return }

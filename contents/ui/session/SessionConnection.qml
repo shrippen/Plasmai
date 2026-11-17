@@ -243,4 +243,28 @@ QtObject {
             steps.failed(err)
         })
     }
+
+    /**
+     * Like test, for the profile at `index` of an edited list. done(result) gets
+     * result.profiles with the ids the test reported (workspace, user, ...) set on
+     * that profile, when the test succeeded.
+     */
+    function testProfile(profiles, index, steps) {
+        test(profiles[index], {
+            noToken: steps.noToken,
+            testing: steps.testing,
+            failed: steps.failed,
+            done: function(result) {
+                if (!result.ok) {
+                    steps.done(result)
+                    return
+                }
+                steps.done({
+                    ok: true,
+                    data: result.data,
+                    profiles: Profiles.withTestMeta(profiles, index, result.data)
+                })
+            }
+        })
+    }
 }
