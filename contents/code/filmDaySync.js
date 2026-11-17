@@ -1,5 +1,6 @@
 .pragma library
 .import "./kimaiApi.js" as KimaiApi
+.import "./timeTracker.js" as TimeTracker
 .import "./dateTimeFormat.js" as DTF
 .import "./providerUtil.js" as ProviderUtil
 .import "./filmDays.js" as FilmDays
@@ -60,7 +61,7 @@ function profileKey(profileId, kimaiUrl) {
 }
 
 function trackerOf(ctx) {
-    return (ctx && ctx.tracker) ? ctx.tracker : KimaiApi
+    return (ctx && ctx.tracker) ? ctx.tracker : TimeTracker.api(TimeTracker.PROVIDER_KIMAI)
 }
 
 function nowOf(ctx) {
@@ -103,13 +104,14 @@ function modeFromDetection(detection) {
 
 /**
  * Probe the plugin (cached 24 h per profile in probeCache, a parsed
- * pluginProbesJson map). callback({ mode, ping, probeCache }) where
- * probeCache is the updated map to persist, or null if unchanged.
+ * pluginProbesJson map). options.tracker: the active tracker. callback({ mode,
+ * ping, probeCache }) where probeCache is the updated map to persist, or null
+ * if unchanged.
  */
 function resolveMode(url, token, profileId, probeCache, options, callback) {
     var o = options || {}
     var key = KimaiApi.pluginCacheKey(profileId, url, KimaiApi.DREHZETTEL_PLUGIN)
-    KimaiApi.detectDrehzettel(url, token, {
+    trackerOf({ tracker: o.tracker }).detectDrehzettel(url, token, {
         cache: probeCache, key: key, nowMs: o.nowMs, force: !!o.force
     }, function(det) {
         callback({
@@ -147,7 +149,7 @@ function loadEngagements(ctx, dateStr, callback) {
         callback(null)
         return
     }
-    KimaiApi.fetchDrehzettelEngagements(ctx.url, ctx.token, dateStr, function(result) {
+    trackerOf(ctx).fetchDrehzettelEngagements(ctx.url, ctx.token, dateStr, function(result) {
         if (!result.ok) {
             // Offline: the last known list, whatever its age.
             callback(cached && result.error && result.error.type === ProviderUtil.ErrorType.Network ? cached.list : null)
@@ -179,7 +181,7 @@ function loadRulesetName(ctx, projectId, dateStr, callback) {
         return
     }
     dayCall(ctx, dateStr, "status|" + projectId, function(done) {
-        KimaiApi.fetchEngagementStatus(ctx.url, ctx.token, projectId, dateStr, done)
+        trackerOf(ctx).fetchEngagementStatus(ctx.url, ctx.token, projectId, dateStr, done)
     }, function(result) {
         callback(result.ok && result.data && result.data.active ? (result.data.rulesetName || "") : "")
     })
@@ -306,7 +308,7 @@ function loadDay(ctx, projectId, dateStr, callback) {
         return
     }
     dayCall(ctx, dateStr, "filmDay|" + projectId, function(done) {
-        KimaiApi.fetchFilmDay(ctx.url, ctx.token, projectId, dateStr, done)
+        trackerOf(ctx).fetchFilmDay(ctx.url, ctx.token, projectId, dateStr, done)
     }, function(result) {
         if (!result.ok) {
             var err = result.error || {}
@@ -350,7 +352,7 @@ function loadDay(ctx, projectId, dateStr, callback) {
         })
         if (wantSummary) {
             dayCall(ctx, dateStr, "summary|" + projectId, function(summaryDone) {
-                KimaiApi.fetchDaySummary(ctx.url, ctx.token, projectId, dateStr, summaryDone)
+                trackerOf(ctx).fetchDaySummary(ctx.url, ctx.token, projectId, dateStr, summaryDone)
             }, function(sres) {
                 out.summary = sres.ok ? sres.data : null
                 done()
@@ -504,10 +506,8 @@ function saveExtras(ctx, req, callback) {
         callback(result("unchanged", { server: req.server }))
         return
     }
-    // Through the tracker when it has it: the offline layer queues the extras.
-    var tracker = trackerOf(ctx)
-    var put = typeof tracker.putFilmDay === "function" ? tracker.putFilmDay : KimaiApi.putFilmDay
-    put(ctx.url, ctx.token, req.projectId, req.dateStr, patch, function(put) {
+    // Through the tracker: the offline layer queues the extras.
+    trackerOf(ctx).putFilmDay(ctx.url, ctx.token, req.projectId, req.dateStr, patch, function(put) {
         if (put.ok) {
             forgetDay(ctx, req.dateStr)
             callback(result("saved", { server: put.data }))

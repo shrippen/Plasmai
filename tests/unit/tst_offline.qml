@@ -477,4 +477,39 @@ TestCase {
         verify(!k.trips[7])
         compare(k.trips[500].timesheet, null)
     }
+
+    // Film-day extras go through the inner tracker, online and again on replay.
+    function test_filmDayExtrasQueueAndReplay() {
+        var k = fakeKimai()
+        var s = session(k)
+        var t = s.tracker
+        var online = call(function(cb) { t.putFilmDay("u", "t", 1, "2026-09-28", { note: "a" }, cb) })
+        verify(online.ok && !online.queued)
+        compare(k.filmDays["1|2026-09-28"].note, "a")
+
+        k.net = false
+        var queued = call(function(cb) { t.putFilmDay("u", "t", 1, "2026-09-28", { note: "b" }, cb) })
+        verify(queued.ok && queued.queued)
+        compare(Outbox.pendingCount(s), 1)
+        compare(k.filmDays["1|2026-09-28"].note, "a")
+
+        k.net = true
+        call(function(cb) { Outbox.replay(s, cb) })
+        compare(Outbox.pendingCount(s), 0)
+        compare(k.filmDays["1|2026-09-28"].note, "b")
+    }
+
+    // Plugin calls reach the server as asked; their failure does not flip the layer offline.
+    function test_pluginCallsReachServerUnobserved() {
+        var k = fakeKimai()
+        var s = session(k)
+        var t = s.tracker
+        compare(call(function(cb) { t.fetchDaySummary("u", "t", 1, "2026-09-28", cb) }).data.payCents, 100)
+        k.net = false
+        var failed = call(function(cb) { t.fetchDaySummary("u", "t", 1, "2026-09-28", cb) })
+        compare(failed.error.type, "network")
+        compare(call(function(cb) { t.detectDrehzettel("u", "t", {}, cb) }).state, "unknown")
+        verify(!Offline.isOffline(s))
+        compare(k.calls.filter(function(c) { return c === "summary" || c === "detect" }).length, 3)
+    }
 }

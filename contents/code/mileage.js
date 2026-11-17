@@ -67,7 +67,7 @@ function monthRange(date) {
 /** { from, to } of the Monday-based week containing date. */
 function weekRange(date) {
     var d = date || new Date()
-    var day = d.getDay() === 0 ? 7 : d.getDay()
+    var day = DTF.isoWeekday(d)
     var monday = new Date(d.getFullYear(), d.getMonth(), d.getDate() - (day - 1))
     var sunday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6)
     return { from: dateString(monday), to: dateString(sunday) }

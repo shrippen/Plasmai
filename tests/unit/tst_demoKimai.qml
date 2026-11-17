@@ -2,6 +2,7 @@ import QtQuick
 import QtTest
 import "../../contents/code/demoKimai.js" as Demo
 import "../../contents/code/kimaiApi.js" as KimaiApi
+import "../../contents/code/workContractAdjust.js" as WorkAdjust
 
 TestCase {
     name: "DemoKimai"
@@ -122,7 +123,7 @@ TestCase {
 
     function test_workContract() {
         var prefs = KimaiApi.preferenceMap(get("/api/users/me").body)
-        compare(KimaiApi.workWeekSecondsFromPrefs(prefs, now), 40 * 3600)
+        compare(WorkAdjust.workWeekSecondsFromPrefs(prefs, now), 40 * 3600)
     }
 
     // With the demo's route registered, the request layer answers its address without a network.

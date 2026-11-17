@@ -104,8 +104,6 @@ favourites, statistics, offline work; for Kimai also film days and trips.
 
 - Widget and app each bind the film day and trip views to the session (`AUDIT.md`,
   finding 1).
-- Kimai's plugins are reached three ways: through the provider, through the offline
-  layer and around both (`AUDIT.md`, finding 7).
 - The offline layer's files belong to a profile, the catalog cache to a profile and
   its server (`AUDIT.md`, finding 9).
 - `contents/ui/main.qml` is one file of 2771 lines, still over the size limit; film day,

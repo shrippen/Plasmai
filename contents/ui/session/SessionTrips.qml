@@ -47,7 +47,7 @@ QtObject {
             return
         }
         const cache = KimaiApi.parsePluginCache(session.settings.pluginProbesJson)
-        KimaiApi.detectMileage(c.url, c.token, { cache: cache, key: key, force: probe === Ui.Session.Probe.Fresh }, function(det) {
+        c.tracker.detectMileage(c.url, c.token, { cache: cache, key: key, force: probe === Ui.Session.Probe.Fresh }, function(det) {
             state = det.state
             ping = det.data || null
             if (det.cacheEntry) {

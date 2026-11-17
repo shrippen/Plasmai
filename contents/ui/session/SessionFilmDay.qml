@@ -76,7 +76,7 @@ QtObject {
             return
         }
         const cache = KimaiApi.parsePluginCache(session.settings.pluginProbesJson)
-        FilmDaySync.resolveMode(c.url, c.token, profileId, cache, { force: probe === Ui.Session.Probe.Fresh }, function(r) {
+        FilmDaySync.resolveMode(c.url, c.token, profileId, cache, { force: probe === Ui.Session.Probe.Fresh, tracker: c.tracker }, function(r) {
             mode = r.mode
             ping = r.ping
             if (r.probeCache) {
@@ -253,7 +253,7 @@ QtObject {
             if (result.extras !== "saved" || !KimaiApi.drehzettelHasFeature(ping, "daySummary")) {
                 return
             }
-            KimaiApi.fetchDaySummary(c.url, c.token, req.projectId, dateStr, function(sres) {
+            c.tracker.fetchDaySummary(c.url, c.token, req.projectId, dateStr, function(sres) {
                 if (sres.ok && sres.data && typeof sres.data.payCents === "number") {
                     earnings(sres.data.payCents)
                 }

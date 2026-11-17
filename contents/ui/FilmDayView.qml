@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
-import "../code/kimaiApi.js" as KimaiApi
 import "../code/entityNames.js" as Names
 import "../code/filmDays.js" as FilmDays
 import "../code/dateTimeFormat.js" as DTF
@@ -118,7 +117,7 @@ ColumnLayout {
     readonly property alias projectCombo: pickers.projectCombo
     readonly property alias activityCombo: pickers.activityCombo
     readonly property var selectedDay: DTF.coerceDate(dayField.selectedDate) || new Date()
-    readonly property int isoWeekday: KimaiApi.kimaiWeekday(root.selectedDay)
+    readonly property int isoWeekday: DTF.isoWeekday(root.selectedDay)
 
     signal aboutToOpenPicker(var projectField, var activityField)
     signal projectChosen(var projectId)

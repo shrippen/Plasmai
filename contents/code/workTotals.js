@@ -1,5 +1,4 @@
 .pragma library
-.import "./kimaiApi.js" as KimaiApi
 .import "./dayIntervals.js" as Intervals
 .import "./dateTimeFormat.js" as DTF
 .import "./workContractAdjust.js" as WorkAdjust
@@ -11,7 +10,7 @@
  *
  *   load(ctx, now, callback)
  *     ├─ tracker.fetchCurrentUser        → work preferences → targets
- *     ├─ KimaiApi.fetchContractAdjustments (holiday plugin, with a contract)
+ *     ├─ tracker.fetchContractAdjustments (holiday plugin, with a contract)
  *     └─ tracker.fetchTimesheetsRange    → this week's entries
  *   summarize(...) → { todaySeconds, weekSeconds, targets, credits, … }
  *
@@ -68,7 +67,7 @@ function todayEntriesOf(weekEntries, now, nowMs) {
 /**
  * The totals from the loaded pieces. input = {
  *   now, nowMs,
- *   tracker          provider module (preferenceMap, work*SecondsFromPrefs)
+ *   tracker          provider module (preferenceMap)
  *   user             fetchCurrentUser data, or null (failed)
  *   holidayBundle    provider has the holiday / WorkContract plugins
  *   adjustments      { absences, publicHolidays } or null
@@ -82,8 +81,8 @@ function summarize(input) {
 
     if (input.user) {
         out.prefs = tracker.preferenceMap(input.user)
-        out.todayTargetSeconds = tracker.workDaySecondsFromPrefs(out.prefs, now)
-        out.weekTargetSeconds = tracker.workWeekSecondsFromPrefs(out.prefs, now)
+        out.todayTargetSeconds = WorkAdjust.workDaySecondsFromPrefs(out.prefs, now)
+        out.weekTargetSeconds = WorkAdjust.workWeekSecondsFromPrefs(out.prefs, now)
         out.hasWorkContract = out.weekTargetSeconds > 0 || out.todayTargetSeconds > 0
     }
     out.weekEffectiveTargetSeconds = out.weekTargetSeconds
@@ -153,13 +152,13 @@ function loadContract(ctx, now, callback) {
     ctx.tracker.fetchCurrentUser(ctx.url, ctx.token, function(result) {
         var user = result.ok ? result.data : null
         var prefs = user ? ctx.tracker.preferenceMap(user) : null
-        var contract = !!prefs && (ctx.tracker.workWeekSecondsFromPrefs(prefs, now) > 0
-                                   || ctx.tracker.workDaySecondsFromPrefs(prefs, now) > 0)
+        var contract = !!prefs && (WorkAdjust.workWeekSecondsFromPrefs(prefs, now) > 0
+                                   || WorkAdjust.workDaySecondsFromPrefs(prefs, now) > 0)
         if (!ctx.holidayBundle || !contract) {
             keep(user, null)
             return
         }
-        KimaiApi.fetchContractAdjustments(ctx.url, ctx.token, now, prefs, function(adj) {
+        ctx.tracker.fetchContractAdjustments(ctx.url, ctx.token, now, prefs, function(adj) {
             keep(user, (adj && adj.ok && adj.data) ? adj.data : { absences: [], publicHolidays: [] })
         })
     })
@@ -206,21 +205,21 @@ function load(ctx, now, callback) {
 }
 
 function effectiveWeekTargetSeconds(prefs, date, absences, publicHolidays) {
-    return WorkAdjust.effectiveWeekTargetSeconds(prefs, date || new Date(), absences, publicHolidays, KimaiApi.workDaySecondsFromPrefs)
+    return WorkAdjust.effectiveWeekTargetSeconds(prefs, date || new Date(), absences, publicHolidays, WorkAdjust.workDaySecondsFromPrefs)
 }
 
 function effectiveDayTargetSeconds(prefs, date, absences, publicHolidays) {
-    return WorkAdjust.effectiveDayTargetSeconds(prefs, date || new Date(), absences, publicHolidays, KimaiApi.workDaySecondsFromPrefs)
+    return WorkAdjust.effectiveDayTargetSeconds(prefs, date || new Date(), absences, publicHolidays, WorkAdjust.workDaySecondsFromPrefs)
 }
 
 function absenceCreditSeconds(prefs, date, absences, publicHolidays, entries, nowMs) {
     return WorkAdjust.absenceCreditSeconds(
-        prefs, date || new Date(), absences, publicHolidays, entries, nowMs, KimaiApi.workDaySecondsFromPrefs)
+        prefs, date || new Date(), absences, publicHolidays, entries, nowMs, WorkAdjust.workDaySecondsFromPrefs)
 }
 
 function dayAbsenceCreditSeconds(prefs, date, absences, publicHolidays, entries, nowMs) {
     return WorkAdjust.dayAbsenceCreditSeconds(
-        prefs, date || new Date(), absences, publicHolidays, entries, nowMs, KimaiApi.workDaySecondsFromPrefs)
+        prefs, date || new Date(), absences, publicHolidays, entries, nowMs, WorkAdjust.workDaySecondsFromPrefs)
 }
 
 function timesheetDurationSeconds(timesheet, nowMs) {
