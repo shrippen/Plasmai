@@ -5,18 +5,18 @@ the list "Release steps" in `RELEASE.md`; this file has the details behind its s
 
 ## 1. Version numbers
 
-`X.Y.Z` is set in: `metadata.json` (Plasmoid), `app/CMakeLists.txt` (project version,
-`QT_ANDROID_VERSION_NAME`, `QT_ANDROID_VERSION_CODE`), `app/main.cpp` (`kAppVersion`),
-`app/android/AndroidManifest.xml` (`versionCode`, `versionName`), `STORE.md`,
-`translate/extract.sh` and `translate/template.pot` (package version), a `<release>` in
-`packaging/linux/io.github.shrippen.Plasmai.metainfo.xml`,
+`X.Y.Z` is set in `metadata.json` (`KPlugin.Version`); `app/CMakeLists.txt` (project version,
+`QT_ANDROID_VERSION_NAME`, `QT_ANDROID_VERSION_CODE`, the `PLASMAI_VERSION` define for
+`app/main.cpp`) and `translate/extract.sh` read it from there. By hand, checked by
+`tests/test_version.py`: `app/android/AndroidManifest.xml` (`versionCode`, `versionName`),
+`STORE.md`, a `<release>` in `packaging/linux/io.github.shrippen.Plasmai.metainfo.xml`,
 `fastlane/metadata/android/{en-US,de-DE}/changelogs/<versionCode>.txt` and `docs/index.html`
 (footer, `#changes`). `./scripts/bump-build.sh` regenerates `contents/code/buildInfo.js` (reads
 the version from `metadata.json`, bumps `build.number`). Release 2.6.2 (PR #42) is an example
 of the whole bump.
 
-versionCode is `major*10000 + minor*100 + patch` (2.0.0 → 20000), set in
-`app/CMakeLists.txt` (`QT_ANDROID_VERSION_CODE`) and `app/android/AndroidManifest.xml`. It
+versionCode is `major*10000 + minor*100 + patch` (2.0.0 → 20000), derived in
+`app/CMakeLists.txt` and written in `app/android/AndroidManifest.xml`. It
 replaced the 1.x scheme `major*100 + minor*10 + patch` before any APK was published; it can
 only increase from here (F-Droid, Play Store).
 
