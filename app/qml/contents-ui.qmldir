@@ -24,6 +24,7 @@ FilmDayView 1.0 FilmDayView.qml
 ActiveEditView 1.0 ActiveEditView.qml
 StatsView 1.0 StatsView.qml
 DaySparkline 1.0 DaySparkline.qml
+DaySky 1.0 DaySky.qml
 DateField 1.0 DateField.qml
 TimeField 1.0 TimeField.qml
 CreateEntityDialog 1.0 CreateEntityDialog.qml
