@@ -26,6 +26,7 @@ TestCase {
             id: fake
             signal failed(int action, var result)
             signal started(var timesheet, int origin, var names)
+            signal trackingBegan(var timesheet)
             property bool busy: false
             property bool locked: false
             function refresh() {}
@@ -46,7 +47,7 @@ TestCase {
                 function hydrate(list) { return list }
                 function catalogs() { return ({}) }
             }
-            property var settings: QtObject { property string lastUsedProjectId: ""; property string lastUsedActivityId: ""; function mergeMaps() {} }
+            property var settings: QtObject { property string lastUsedProjectId: ""; property string lastUsedActivityId: ""; function set() { } function mergeMaps() { } }
             property var timer: Parts.SessionTimer { session: fake; loaded: true }
         }
     }

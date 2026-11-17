@@ -1,6 +1,7 @@
 import QtQml
 import "../../code/kimaiApi.js" as KimaiApi
 import "../../code/timerSession.js" as TimerSession
+import "../../code/providerUtil.js" as ProviderUtil
 import "../../code/dateTimeFormat.js" as DTF
 import ".." as Ui
 
@@ -228,6 +229,9 @@ QtObject {
         session.busy = true
         c.tracker.restartTimesheet(c.url, c.token, ts.id, function(result) {
             session.busy = false
+            if (!result.ok && startAnew(ts, result)) {
+                return
+            }
             if (!result.ok) {
                 session.failed(Ui.Session.Action.Continue, result)
             }
@@ -240,6 +244,28 @@ QtObject {
             }
             session.refresh()
         })
+    }
+
+    /**
+     * A refused restart (rights, a service that cannot do it) starts a new entry with the
+     * same project, activity and description, so work goes on. Without an answer of the
+     * server (network, offline) nothing starts: the restart may have arrived, a second
+     * entry would double it. True when a start was made.
+     */
+    function startAnew(ts, result) {
+        const type = result.error ? result.error.type : ""
+        if (type === ProviderUtil.ErrorType.Network || type === ProviderUtil.ErrorType.Offline) {
+            return false
+        }
+        const projectId = KimaiApi.projectId(ts)
+        const activityId = KimaiApi.activityId(ts)
+        if (!projectId || !activityId) {
+            return false
+        }
+        start(projectId, activityId, KimaiApi.displayProjectName(ts, session.catalog.projects),
+              KimaiApi.displayActivityName(ts, session.catalog.activities, session.catalog.activitiesByProject),
+              ts.description || "")
+        return true
     }
 
     /**
