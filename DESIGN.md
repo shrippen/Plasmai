@@ -322,7 +322,7 @@ is finished or skipped (`setupAwaitingDay`).
 - No hardcoded brand palette for chrome in the System style (Kante below is
   the opt-in exception). Customer/project colors come from
   Kimai (or the distinction map). Default placeholder color is
-  `KimaiApi.DEFAULT_CUSTOMER_COLOR` (`#d2d6de`).
+  `ProviderUtil.DEFAULT_CUSTOMER_COLOR` (`#d2d6de`).
 - Brand accent (`#E8DCC4` warm cream from DesignDefault) is used only for
   the icon mark fill and version badges, never for interactive controls.
   The icon's shards use the gold accent `#FABD2F`; the monochrome variant
