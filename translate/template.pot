@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 2.7.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-11-17 23:03+0100\n"
+"POT-Creation-Date: 2026-11-17 23:24+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -171,9 +171,9 @@ msgstr ""
 #: app/qml/TimerPage.qml:859 app/qml/TimerPage.qml:878
 #: app/qml/TimerPage.qml:901 contents/ui/ActiveEditView.qml:351
 #: contents/ui/ActiveEditView.qml:393 contents/ui/Controls/TimePicker.qml:113
-#: contents/ui/EntryLists.qml:156 contents/ui/FilmDayView.qml:947
+#: contents/ui/EntryLists.qml:156 contents/ui/FilmDayView.qml:946
 #: contents/ui/main.qml:1768 contents/ui/ManualEntryView.qml:404
-#: contents/ui/TripSheet.qml:433
+#: contents/ui/TripSheet.qml:433 contents/ui/UnsyncedList.qml:204
 msgid "Cancel"
 msgstr ""
 
@@ -226,7 +226,7 @@ msgid "Select"
 msgstr ""
 
 #: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/private/DatePicker.qml:275
-#: contents/ui/FilmDayView.qml:958 contents/ui/SetupWizard.qml:151
+#: contents/ui/FilmDayView.qml:957 contents/ui/SetupWizard.qml:151
 msgid "Day"
 msgstr ""
 
@@ -271,7 +271,7 @@ msgid "Plasmai"
 msgstr ""
 
 #: app/qml/main.qml:114 contents/ui/main.qml:287
-#: contents/ui/OfflineStatus.qml:48
+#: contents/ui/OfflineStatus.qml:50
 msgid "Offline"
 msgstr ""
 
@@ -306,11 +306,11 @@ msgid ""
 "billable."
 msgstr ""
 
-#: app/qml/main.qml:246 app/qml/tui/Tui.qml:241
+#: app/qml/main.qml:246 app/qml/tui/Tui.qml:333
 msgid "Could not start tracking"
 msgstr ""
 
-#: app/qml/main.qml:249 app/qml/tui/Tui.qml:239
+#: app/qml/main.qml:249 app/qml/tui/Tui.qml:331
 msgid "Could not stop tracking"
 msgstr ""
 
@@ -574,7 +574,7 @@ msgstr ""
 msgid "Not configured"
 msgstr ""
 
-#: app/qml/TimerPage.qml:170 app/qml/tui/Tui.qml:156
+#: app/qml/TimerPage.qml:170 app/qml/tui/Tui.qml:239
 #: contents/ui/SetupWizard.qml:888
 msgid "Connecting…"
 msgstr ""
@@ -591,16 +591,16 @@ msgstr ""
 msgid "Connected to %1"
 msgstr ""
 
-#: app/qml/TimerPage.qml:190 contents/ui/main.qml:2320
-#: contents/ui/UnsyncedList.qml:156
+#: app/qml/TimerPage.qml:190 contents/ui/main.qml:2319
+#: contents/ui/UnsyncedList.qml:110
 msgid "Retry"
 msgstr ""
 
-#: app/qml/TimerPage.qml:191 contents/ui/main.qml:2325
+#: app/qml/TimerPage.qml:191 contents/ui/main.qml:2324
 msgid "Configure"
 msgstr ""
 
-#: app/qml/TimerPage.qml:241 contents/ui/main.qml:2308
+#: app/qml/TimerPage.qml:241 contents/ui/main.qml:2307
 msgid "More options in the settings"
 msgstr ""
 
@@ -615,7 +615,7 @@ msgstr ""
 
 #: app/qml/TimerPage.qml:356 app/qml/TimerPage.qml:385
 #: app/qml/TripEditPage.qml:18 app/qml/TripsPage.qml:140
-#: contents/ui/ActivityListRow.qml:378 contents/ui/FilmDayView.qml:886
+#: contents/ui/ActivityListRow.qml:378 contents/ui/FilmDayView.qml:885
 #: contents/ui/main.qml:2180 contents/ui/TimerCardKante.qml:89
 #: contents/ui/TimerCard.qml:91 contents/ui/TripSheet.qml:204
 #: contents/ui/TripSheet.qml:420
@@ -695,14 +695,14 @@ msgstr ""
 msgid "Pin an entry from Recent to add it to your favorites."
 msgstr ""
 
-#: app/qml/TimerPage.qml:745 app/qml/tui/Tui.qml:130
+#: app/qml/TimerPage.qml:745 app/qml/tui/Tui.qml:207
 #: contents/ui/EntryLists.qml:306
 msgid "Recent"
 msgstr ""
 
-#: app/qml/TimerPage.qml:768 app/qml/tui/Tui.qml:128
+#: app/qml/TimerPage.qml:768 app/qml/tui/Tui.qml:205
 #: contents/ui/DateField.qml:156 contents/ui/EntryLists.qml:337
-#: contents/ui/FilmDayView.qml:584 contents/ui/StatsView.qml:241
+#: contents/ui/FilmDayView.qml:583 contents/ui/StatsView.qml:241
 #: contents/ui/StatsView.qml:293 contents/ui/StatsView.qml:394
 #: contents/ui/StatsView.qml:467
 msgid "Today"
@@ -813,7 +813,7 @@ msgstr ""
 
 #: app/qml/TripsPage.qml:80 contents/ui/main.qml:1053
 #: contents/ui/StatsView.qml:245 contents/ui/StatsView.qml:327
-#: contents/ui/TripSuggestionList.qml:84 contents/ui/UnsyncedList.qml:67
+#: contents/ui/TripSuggestionList.qml:84 contents/ui/UnsyncedList.qml:46
 msgid "%1 km"
 msgstr ""
 
@@ -867,68 +867,93 @@ msgstr ""
 msgid "Time entry #%1"
 msgstr ""
 
-#: app/qml/tui/Tui.qml:127
+#: app/qml/tui/Tui.qml:182
+msgid "Send this change again?"
+msgstr ""
+
+#: app/qml/tui/Tui.qml:186
+msgid "Discard this change?"
+msgstr ""
+
+#: app/qml/tui/Tui.qml:188
+msgid "%1 (y = yes, any other key = no)"
+msgstr ""
+
+#: app/qml/tui/Tui.qml:204
 msgid "Nothing is running"
 msgstr ""
 
-#: app/qml/tui/Tui.qml:129
+#: app/qml/tui/Tui.qml:206
 msgid "Week"
 msgstr ""
 
-#: app/qml/tui/Tui.qml:131
+#: app/qml/tui/Tui.qml:208
 msgid "No recent entries"
 msgstr ""
 
-#: app/qml/tui/Tui.qml:132
+#: app/qml/tui/Tui.qml:209
 msgid "No entries this week"
 msgstr ""
 
-#: app/qml/tui/Tui.qml:133
+#: app/qml/tui/Tui.qml:210
 msgid "No gaps in the work day"
 msgstr ""
 
-#: app/qml/tui/Tui.qml:134
+#: app/qml/tui/Tui.qml:211
 msgid "Gaps:"
 msgstr ""
 
-#: app/qml/tui/Tui.qml:135
+#: app/qml/tui/Tui.qml:212
 msgid "Total"
 msgstr ""
 
-#: app/qml/tui/Tui.qml:136
+#: app/qml/tui/Tui.qml:213 app/qml/UnsyncedPage.qml:14
+#: contents/ui/main.qml:2090
+msgid "Not synced"
+msgstr ""
+
+#: app/qml/tui/Tui.qml:214
+msgid "↑↓ select · r send again · a send here · d discard · Esc back"
+msgstr ""
+
+#: app/qml/tui/Tui.qml:215 contents/ui/UnsyncedList.qml:229
+msgid "Everything is synced."
+msgstr ""
+
+#: app/qml/tui/Tui.qml:216
 msgid "1–9 start · s stop · t day · w week · r refresh · q quit"
 msgstr ""
 
-#: app/qml/tui/Tui.qml:137
+#: app/qml/tui/Tui.qml:217
 msgid "Esc back · s stop · r refresh · q quit"
 msgstr ""
 
-#: app/qml/tui/Tui.qml:144
+#: app/qml/tui/Tui.qml:224
 msgid "Set up a connection in the Plasmai app first"
 msgstr ""
 
-#: app/qml/tui/Tui.qml:147
+#: app/qml/tui/Tui.qml:227
 msgid "Server not reachable"
 msgstr ""
 
-#: app/qml/tui/Tui.qml:153
+#: app/qml/tui/Tui.qml:233
+msgid "Changes need a decision · u"
+msgstr ""
+
+#: app/qml/tui/Tui.qml:236
 msgid "Offline · %1 not synced"
 msgstr ""
 
-#: app/qml/tui/Tui.qml:158
+#: app/qml/tui/Tui.qml:241
 msgid "Online"
 msgstr ""
 
-#: app/qml/tui/Tui.qml:240
+#: app/qml/tui/Tui.qml:332
 msgid "Could not refresh"
 msgstr ""
 
-#: app/qml/tui/Tui.qml:250
+#: app/qml/tui/Tui.qml:342
 msgid "This build has no demo"
-msgstr ""
-
-#: app/qml/UnsyncedPage.qml:14 contents/ui/main.qml:2090
-msgid "Not synced"
 msgstr ""
 
 #: contents/config/config.qml:16 contents/ui/config/ConfigDisplay.qml:467
@@ -1063,6 +1088,106 @@ msgstr ""
 #: contents/ui/ApiErrors.qml:86
 msgid "Connected to %1 (%2)."
 msgstr ""
+
+#: contents/ui/ApiErrors.qml:94
+msgid "New entry"
+msgstr ""
+
+#: contents/ui/ApiErrors.qml:94
+msgid "Timer started"
+msgstr ""
+
+#: contents/ui/ApiErrors.qml:98
+msgid "Timer stopped"
+msgstr ""
+
+#: contents/ui/ApiErrors.qml:98
+msgid "Entry changed"
+msgstr ""
+
+#: contents/ui/ApiErrors.qml:101 contents/ui/main.qml:1406
+msgid "Entry deleted"
+msgstr ""
+
+#: contents/ui/ApiErrors.qml:104
+msgid "Trip added"
+msgstr ""
+
+#: contents/ui/ApiErrors.qml:107
+msgid "Trip changed"
+msgstr ""
+
+#: contents/ui/ApiErrors.qml:110
+msgid "Trip deleted"
+msgstr ""
+
+#: contents/ui/ApiErrors.qml:113
+msgid "Film day details of %1"
+msgstr ""
+
+#: contents/ui/ApiErrors.qml:121 contents/ui/FilmDayView.qml:799
+#: contents/ui/ManualEntryView.qml:284
+msgid "Begin"
+msgstr ""
+
+#: contents/ui/ApiErrors.qml:121 contents/ui/FilmDayView.qml:822
+#: contents/ui/ManualEntryView.qml:308
+msgid "End"
+msgstr ""
+
+#: contents/ui/ApiErrors.qml:121 contents/ui/DescriptionField.qml:30
+msgid "Description"
+msgstr ""
+
+#: contents/ui/ApiErrors.qml:122 contents/ui/FilmDayView.qml:630
+msgid "Project"
+msgstr ""
+
+#: contents/ui/ApiErrors.qml:122
+msgid "Activity"
+msgstr ""
+
+#: contents/ui/ApiErrors.qml:129
+msgid "Not accepted: %1"
+msgstr ""
+
+#: contents/ui/ApiErrors.qml:132
+msgid ""
+"Changed on the server meanwhile (%1). Overwrite it with this change, or "
+"discard this change?"
+msgstr ""
+
+#: contents/ui/ApiErrors.qml:135
+msgid "Waiting for the connection"
+msgstr ""
+
+#: contents/ui/ApiErrors.qml:140
+msgid "%1 change waits for another server or account"
+msgid_plural "%1 changes wait for another server or account"
+msgstr[0] ""
+msgstr[1] ""
+
+#: contents/ui/ApiErrors.qml:145
+msgid "%1 change waits for %2 on %3"
+msgid_plural "%1 changes wait for %2 on %3"
+msgstr[0] ""
+msgstr[1] ""
+
+#: contents/ui/ApiErrors.qml:150
+msgid "Sign in as %1 to send them."
+msgstr ""
+
+#: contents/ui/ApiErrors.qml:155
+msgid ""
+"Send these changes to %1 instead of %2? Each entry is checked on the server "
+"first."
+msgstr ""
+
+#: contents/ui/ApiErrors.qml:159
+msgid "Discard %1 change for %2?"
+msgid_plural "Discard %1 changes for %2?"
+msgstr[0] ""
+msgstr[1] ""
 
 #: contents/ui/BarChart.qml:55 contents/ui/StackedBarChart.qml:89
 msgid "Time"
@@ -1560,10 +1685,6 @@ msgstr ""
 msgid "Today's tracked time"
 msgstr ""
 
-#: contents/ui/DescriptionField.qml:30 contents/ui/UnsyncedList.qml:101
-msgid "Description"
-msgstr ""
-
 #: contents/ui/EntryLists.qml:58
 msgid "New activity"
 msgstr ""
@@ -1690,142 +1811,128 @@ msgstr ""
 msgid "Work hours have started. Start a timer when you begin."
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:217
+#: contents/ui/FilmDayView.qml:216
 msgid ""
 "The Drehzettel plugin is not installed on this Kimai server. Only begin and "
 "end are saved."
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:220
+#: contents/ui/FilmDayView.qml:219
 msgid ""
 "No active engagement for this project and day. Only begin and end are saved."
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:223
+#: contents/ui/FilmDayView.qml:222
 msgid ""
 "You lack the Drehzettel permission on this Kimai server. Only begin and end "
 "are saved."
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:226
+#: contents/ui/FilmDayView.qml:225
 msgid "Pick a project to load its film day."
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:229
+#: contents/ui/FilmDayView.qml:228
 msgid ""
 "The Drehzettel plugin cannot be reached. Only begin and end can be saved "
 "right now."
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:240
+#: contents/ui/FilmDayView.qml:239
 msgid "Auto (from weekday)"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:241
+#: contents/ui/FilmDayView.qml:240
 msgid "Workday"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:242
+#: contents/ui/FilmDayView.qml:241
 msgid "Saturday"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:243
+#: contents/ui/FilmDayView.qml:242
 msgid "Sunday"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:244
+#: contents/ui/FilmDayView.qml:243
 msgid "Holiday"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:247
+#: contents/ui/FilmDayView.qml:246
 msgid "Shooting day"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:248
+#: contents/ui/FilmDayView.qml:247
 msgid "Travel day"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:551 contents/ui/StatsView.qml:384
+#: contents/ui/FilmDayView.qml:550 contents/ui/StatsView.qml:384
 #: contents/ui/StatsView.qml:457
 msgid "Previous day"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:593 contents/ui/StatsView.qml:409
+#: contents/ui/FilmDayView.qml:592 contents/ui/StatsView.qml:409
 #: contents/ui/StatsView.qml:482
 msgid "Next day"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:631
+#: contents/ui/FilmDayView.qml:630
 msgid "Engagement"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:631 contents/ui/UnsyncedList.qml:102
-msgid "Project"
-msgstr ""
-
-#: contents/ui/FilmDayView.qml:645
+#: contents/ui/FilmDayView.qml:644
 msgid "Pick an activity"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:655
+#: contents/ui/FilmDayView.qml:654
 msgid "Shooting day %1"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:667
+#: contents/ui/FilmDayView.qml:666
 msgid "Change engagement"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:708
+#: contents/ui/FilmDayView.qml:707
 msgid "Or pick another project and activity:"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:753
+#: contents/ui/FilmDayView.qml:752
 msgid "Start shooting day"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:765
+#: contents/ui/FilmDayView.qml:764
 msgid "Begins now, with the timer of the main page."
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:770
+#: contents/ui/FilmDayView.qml:769
 msgid "Enter times instead"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:800 contents/ui/ManualEntryView.qml:284
-#: contents/ui/UnsyncedList.qml:101
-msgid "Begin"
-msgstr ""
-
-#: contents/ui/FilmDayView.qml:823 contents/ui/ManualEntryView.qml:308
-#: contents/ui/UnsyncedList.qml:101
-msgid "End"
-msgstr ""
-
-#: contents/ui/FilmDayView.qml:839
+#: contents/ui/FilmDayView.qml:838
 msgid "running"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:854
+#: contents/ui/FilmDayView.qml:853
 msgid "Break %1"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:857
+#: contents/ui/FilmDayView.qml:856
 msgid "Work time so far %1"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:859
+#: contents/ui/FilmDayView.qml:858
 msgid "Work time %1"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:859
+#: contents/ui/FilmDayView.qml:858
 msgid "Work time: invalid range"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:875
+#: contents/ui/FilmDayView.qml:874
 msgid "Stop shooting day"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:902
+#: contents/ui/FilmDayView.qml:901
 msgid ""
 "This activity has %1 more entry on this day (%2); the work time above does "
 "not include it."
@@ -1835,65 +1942,65 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: contents/ui/FilmDayView.qml:913
+#: contents/ui/FilmDayView.qml:912
 msgid "Merge into one entry"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:938
+#: contents/ui/FilmDayView.qml:937
 msgid "Save shooting day"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:968
+#: contents/ui/FilmDayView.qml:967
 msgid "Day type"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:978 contents/ui/FilmDayView.qml:983
+#: contents/ui/FilmDayView.qml:977 contents/ui/FilmDayView.qml:982
 msgid "Catering"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:987
+#: contents/ui/FilmDayView.qml:986
 msgid "Break"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:1000
+#: contents/ui/FilmDayView.qml:999
 msgid "Default"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:1001
+#: contents/ui/FilmDayView.qml:1000
 msgid "%1 minute"
 msgid_plural "%1 minutes"
 msgstr[0] ""
 msgstr[1] ""
 
-#: contents/ui/FilmDayView.qml:1018
+#: contents/ui/FilmDayView.qml:1017
 msgid "Day category"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:1030 contents/ui/FilmDayView.qml:1044
+#: contents/ui/FilmDayView.qml:1029 contents/ui/FilmDayView.qml:1043
 msgid "Surcharge day"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:1045
+#: contents/ui/FilmDayView.qml:1044
 msgid "Automatic"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:1055
+#: contents/ui/FilmDayView.qml:1054
 msgid "Extra pay / expenses"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:1078
+#: contents/ui/FilmDayView.qml:1077
 msgid "Note"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:1084
+#: contents/ui/FilmDayView.qml:1083
 msgid "%1/%2"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:1096
+#: contents/ui/FilmDayView.qml:1095
 msgid "Note (optional)"
 msgstr ""
 
-#: contents/ui/FilmDayView.qml:1133
+#: contents/ui/FilmDayView.qml:1132
 msgid "Other activities"
 msgstr ""
 
@@ -1905,7 +2012,7 @@ msgstr ""
 msgid "Not configured — click to set up"
 msgstr ""
 
-#: contents/ui/main.qml:290 contents/ui/OfflineStatus.qml:53
+#: contents/ui/main.qml:290 contents/ui/OfflineStatus.qml:55
 msgid "%1 change not synced yet"
 msgid_plural "%1 changes not synced yet"
 msgstr[0] ""
@@ -1949,10 +2056,6 @@ msgstr ""
 
 #: contents/ui/main.qml:1362
 msgid "Could not resolve project or activity for that entry"
-msgstr ""
-
-#: contents/ui/main.qml:1406 contents/ui/UnsyncedList.qml:41
-msgid "Entry deleted"
 msgstr ""
 
 #: contents/ui/main.qml:1441
@@ -2060,18 +2163,18 @@ msgstr ""
 msgid "Save entry"
 msgstr ""
 
-#: contents/ui/OfflineStatus.qml:48
+#: contents/ui/OfflineStatus.qml:50
 msgid "Offline · as of %1"
 msgstr ""
 
-#: contents/ui/OfflineStatus.qml:51
+#: contents/ui/OfflineStatus.qml:53
 msgid "%1 change needs your decision"
 msgid_plural "%1 changes need your decision"
 msgstr[0] ""
 msgstr[1] ""
 
-#: contents/ui/OfflineStatus.qml:72 contents/ui/OfflineStatus.qml:100
-#: contents/ui/SetupWizard.qml:696
+#: contents/ui/OfflineStatus.qml:77 contents/ui/OfflineStatus.qml:105
+#: contents/ui/SetupWizard.qml:696 contents/ui/UnsyncedList.qml:161
 msgid "Show"
 msgstr ""
 
@@ -2326,7 +2429,7 @@ msgstr ""
 msgid "API token"
 msgstr ""
 
-#: contents/ui/SetupWizard.qml:696
+#: contents/ui/SetupWizard.qml:696 contents/ui/UnsyncedList.qml:161
 msgid "Hide"
 msgstr ""
 
@@ -2721,64 +2824,15 @@ msgid_plural "+%1 more detected trips"
 msgstr[0] ""
 msgstr[1] ""
 
-#: contents/ui/UnsyncedList.qml:34
-msgid "New entry"
-msgstr ""
-
-#: contents/ui/UnsyncedList.qml:34
-msgid "Timer started"
-msgstr ""
-
-#: contents/ui/UnsyncedList.qml:38
-msgid "Timer stopped"
-msgstr ""
-
-#: contents/ui/UnsyncedList.qml:38
-msgid "Entry changed"
-msgstr ""
-
-#: contents/ui/UnsyncedList.qml:44
-msgid "Trip added"
-msgstr ""
-
-#: contents/ui/UnsyncedList.qml:47
-msgid "Trip changed"
-msgstr ""
-
-#: contents/ui/UnsyncedList.qml:50
-msgid "Trip deleted"
-msgstr ""
-
-#: contents/ui/UnsyncedList.qml:53
-msgid "Film day details of %1"
-msgstr ""
-
-#: contents/ui/UnsyncedList.qml:102
-msgid "Activity"
-msgstr ""
-
-#: contents/ui/UnsyncedList.qml:108
-msgid "Not accepted: %1"
-msgstr ""
-
-#: contents/ui/UnsyncedList.qml:111
-msgid ""
-"Changed on the server meanwhile (%1). Overwrite it with this change, or "
-"discard this change?"
-msgstr ""
-
-#: contents/ui/UnsyncedList.qml:114
-msgid "Waiting for the connection"
-msgstr ""
-
-#: contents/ui/UnsyncedList.qml:120
-msgid "Everything is synced."
-msgstr ""
-
-#: contents/ui/UnsyncedList.qml:161
+#: contents/ui/UnsyncedList.qml:115
 msgid "Overwrite"
 msgstr ""
 
-#: contents/ui/UnsyncedList.qml:165
+#: contents/ui/UnsyncedList.qml:119 contents/ui/UnsyncedList.qml:172
+#: contents/ui/UnsyncedList.qml:191
 msgid "Discard"
+msgstr ""
+
+#: contents/ui/UnsyncedList.qml:167 contents/ui/UnsyncedList.qml:191
+msgid "Send here"
 msgstr ""
