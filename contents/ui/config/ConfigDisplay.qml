@@ -556,7 +556,7 @@ ConfigPageBase {
                     Layout.fillWidth: false
                     Layout.preferredWidth: page.compactFieldWidth
                     Layout.maximumWidth: page.compactFieldWidth
-                    placeholderText: "08:00"
+                    placeholderText: SharedConfig.DEFAULTS.workDayBegin
                     onEditingFinished: page.notifyEdited()
                 }
 
@@ -566,7 +566,7 @@ ConfigPageBase {
                     Layout.fillWidth: false
                     Layout.preferredWidth: page.compactFieldWidth
                     Layout.maximumWidth: page.compactFieldWidth
-                    placeholderText: "18:00"
+                    placeholderText: SharedConfig.DEFAULTS.workDayEnd
                     onEditingFinished: page.notifyEdited()
                 }
 
