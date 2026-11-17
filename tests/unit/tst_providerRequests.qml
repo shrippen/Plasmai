@@ -583,7 +583,7 @@ TestCase {
             verify(!r.ok, svc.name)
             compare(r.error.type, Util.ErrorType.InvalidInput, svc.name)
             compare(r.error.detail, "name is required", svc.name)
-            r = call(svc, "createProject", [svc.url, "tok", { name: "P" }])
+            r = call(svc, "createProject", [svc.url, "tok", { name: "" }])
             compare(r.error.type, Util.ErrorType.InvalidInput, svc.name)
             r = call(svc, "createActivity", [svc.url, "tok", { name: "A" }])
             compare(r.error.type, Util.ErrorType.InvalidInput, svc.name)

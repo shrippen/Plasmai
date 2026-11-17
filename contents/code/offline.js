@@ -39,7 +39,6 @@
  */
 
 var LOCAL_PREFIX = "local:"
-var OFFLINE = "offline"
 
 var Op = {
     CREATE: "create",
@@ -85,7 +84,7 @@ function isNetworkError(result) {
 }
 
 function offlineFail() {
-    return { ok: false, error: { type: OFFLINE, status: 0, detail: "" } }
+    return { ok: false, error: { type: ProviderUtil.ErrorType.Offline, status: 0, detail: "" } }
 }
 
 function copy(value) {
@@ -540,7 +539,7 @@ function checked(s, op, run, done) {
         if (changed.length) {
             op.state = State.CONFLICT
             op.server = found.data
-            op.error = { type: "conflict", status: 409, detail: changed.join(", ") }
+            op.error = { type: ProviderUtil.ErrorType.Conflict, status: 409, detail: changed.join(", ") }
             done(null)
             return
         }
@@ -600,7 +599,7 @@ function runOp(s, op, done) {
         })
         return
     }
-    done({ ok: false, error: { type: "unknown", status: 0, detail: "unknown op " + op.kind } })
+    done({ ok: false, error: { type: ProviderUtil.ErrorType.Unknown, status: 0, detail: "unknown op " + op.kind } })
 }
 
 /** Sends the outbox in order; callback(sent) when it stops (empty, offline or a failed op). */

@@ -224,7 +224,7 @@ function timesheetBarColor(timesheet, customersById) {
 
 function getJson(kimaiUrl, apiToken, endpoint, emptyValue, callback) {
     if (!kimaiUrl || !apiToken) {
-        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "" }))
+        callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.NotConfigured, status: 0, detail: "" }))
         return
     }
     var xhr = createRequest("GET", kimaiUrl, endpoint, apiToken, false)
@@ -279,7 +279,7 @@ function loadCustomers(kimaiUrl, apiToken, callback) {
 
 function loadActivities(kimaiUrl, apiToken, projectId, callback) {
     if (!projectId) {
-        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "" }))
+        callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.NotConfigured, status: 0, detail: "" }))
         return
     }
     getJsonAllPages(kimaiUrl, apiToken,
@@ -309,13 +309,13 @@ function customerCreateDefaults(customers) {
 
 function createCustomer(kimaiUrl, apiToken, fields, callback) {
     if (!kimaiUrl || !apiToken) {
-        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "" }))
+        callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.NotConfigured, status: 0, detail: "" }))
         return
     }
     var f = fields || {}
     var name = String(f.name || "").trim()
     if (!name) {
-        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "name is required" }))
+        callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.InvalidInput, status: 0, detail: "name is required" }))
         return
     }
     var defaults = customerCreateDefaults(f.customers)
@@ -339,13 +339,13 @@ function createCustomer(kimaiUrl, apiToken, fields, callback) {
 
 function createProject(kimaiUrl, apiToken, fields, callback) {
     if (!kimaiUrl || !apiToken) {
-        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "" }))
+        callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.NotConfigured, status: 0, detail: "" }))
         return
     }
     var f = fields || {}
     var name = String(f.name || "").trim()
     if (!name || !f.customer) {
-        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "name and customer are required" }))
+        callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.InvalidInput, status: 0, detail: "name and customer are required" }))
         return
     }
     var data = {
@@ -366,13 +366,13 @@ function createProject(kimaiUrl, apiToken, fields, callback) {
 
 function createActivity(kimaiUrl, apiToken, fields, callback) {
     if (!kimaiUrl || !apiToken) {
-        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "" }))
+        callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.NotConfigured, status: 0, detail: "" }))
         return
     }
     var f = fields || {}
     var name = String(f.name || "").trim()
     if (!name) {
-        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "name is required" }))
+        callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.InvalidInput, status: 0, detail: "name is required" }))
         return
     }
     var data = {
@@ -816,13 +816,13 @@ function finishTimesheetWrite(status, responseText, statusText, callback) {
  */
 function createTimesheet(kimaiUrl, apiToken, fields, callback) {
     if (!kimaiUrl || !apiToken) {
-        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "" }))
+        callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.NotConfigured, status: 0, detail: "" }))
         return
     }
     var f = fields || {}
     // begin may only be omitted for a running entry (Kimai then uses "now").
     if ((!f.begin && f.end) || !f.project || !f.activity) {
-        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "begin, project and activity are required" }))
+        callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.InvalidInput, status: 0, detail: "begin, project and activity are required" }))
         return
     }
 
@@ -843,7 +843,7 @@ function createTimesheet(kimaiUrl, apiToken, fields, callback) {
 
 function stopTracking(kimaiUrl, apiToken, timesheetId, callback) {
     if (!kimaiUrl || !apiToken || !timesheetId) {
-        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "" }))
+        callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.NotConfigured, status: 0, detail: "" }))
         return
     }
 
@@ -859,7 +859,7 @@ function stopTracking(kimaiUrl, apiToken, timesheetId, callback) {
 
 function restartTimesheet(kimaiUrl, apiToken, timesheetId, callback) {
     if (!kimaiUrl || !apiToken || !timesheetId) {
-        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "" }))
+        callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.NotConfigured, status: 0, detail: "" }))
         return
     }
 
@@ -877,7 +877,7 @@ function restartTimesheet(kimaiUrl, apiToken, timesheetId, callback) {
 
 function patchTimesheet(kimaiUrl, apiToken, timesheetId, fields, callback) {
     if (!kimaiUrl || !apiToken || !timesheetId) {
-        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "" }))
+        callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.NotConfigured, status: 0, detail: "" }))
         return
     }
 
@@ -887,7 +887,7 @@ function patchTimesheet(kimaiUrl, apiToken, timesheetId, fields, callback) {
 
 function deleteTimesheet(kimaiUrl, apiToken, timesheetId, callback) {
     if (!kimaiUrl || !apiToken || !timesheetId) {
-        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "" }))
+        callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.NotConfigured, status: 0, detail: "" }))
         return
     }
 
@@ -1171,7 +1171,7 @@ function drehzettelQuery(projectId, dateStr) {
 
 function drehzettelRequest(method, kimaiUrl, apiToken, endpoint, body, callback) {
     if (!kimaiUrl || !apiToken) {
-        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "", code: "" }))
+        callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.NotConfigured, status: 0, detail: "", code: "" }))
         return
     }
     var xhr = createRequest(method, kimaiUrl, "/api/drehzettel" + endpoint, apiToken, body !== undefined)
@@ -1209,7 +1209,7 @@ function filmDayEndpoint(projectId, dateStr) {
 
 function fetchFilmDay(kimaiUrl, apiToken, projectId, dateStr, callback) {
     if (!isValidDateString(dateStr)) {
-        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "invalid date", code: "invalid_date" }))
+        callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.InvalidInput, status: 0, detail: "invalid date", code: "invalid_date" }))
         return
     }
     drehzettelRequest("GET", kimaiUrl, apiToken, filmDayEndpoint(projectId, dateStr), undefined, callback)
@@ -1218,7 +1218,7 @@ function fetchFilmDay(kimaiUrl, apiToken, projectId, dateStr, callback) {
 /** Partial update: only the keys in `patch` change on the server. Answers like GET. */
 function putFilmDay(kimaiUrl, apiToken, projectId, dateStr, patch, callback) {
     if (!isValidDateString(dateStr)) {
-        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "invalid date", code: "invalid_date" }))
+        callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.InvalidInput, status: 0, detail: "invalid date", code: "invalid_date" }))
         return
     }
     drehzettelRequest("PUT", kimaiUrl, apiToken, filmDayEndpoint(projectId, dateStr), patch || {}, callback)
@@ -1227,7 +1227,7 @@ function putFilmDay(kimaiUrl, apiToken, projectId, dateStr, patch, callback) {
 /** D5: calculated day (workMinutes, overtime, payCents, currency, …). */
 function fetchDaySummary(kimaiUrl, apiToken, projectId, dateStr, callback) {
     if (!isValidDateString(dateStr)) {
-        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "invalid date", code: "invalid_date" }))
+        callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.InvalidInput, status: 0, detail: "invalid date", code: "invalid_date" }))
         return
     }
     drehzettelRequest("GET", kimaiUrl, apiToken,
@@ -1288,7 +1288,7 @@ function mileageError(status, statusText, responseText) {
 
 function mileageRequest(method, kimaiUrl, apiToken, endpoint, body, callback) {
     if (!kimaiUrl || !apiToken) {
-        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "", fields: {} }))
+        callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.NotConfigured, status: 0, detail: "", fields: {} }))
         return
     }
     var xhr = createRequest(method, kimaiUrl, "/api/mileage" + endpoint, apiToken, body !== undefined)
@@ -1346,7 +1346,7 @@ function createTrip(kimaiUrl, apiToken, body, callback) {
 
 function patchTrip(kimaiUrl, apiToken, tripId, body, callback) {
     if (tripId === null || tripId === undefined || tripId === "") {
-        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "", fields: {} }))
+        callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.NotConfigured, status: 0, detail: "", fields: {} }))
         return
     }
     mileageRequest("PATCH", kimaiUrl, apiToken, "/trips/" + encodeURIComponent(String(tripId)), body || {}, callback)
@@ -1354,7 +1354,7 @@ function patchTrip(kimaiUrl, apiToken, tripId, body, callback) {
 
 function deleteTrip(kimaiUrl, apiToken, tripId, callback) {
     if (tripId === null || tripId === undefined || tripId === "") {
-        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "", fields: {} }))
+        callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.NotConfigured, status: 0, detail: "", fields: {} }))
         return
     }
     mileageRequest("DELETE", kimaiUrl, apiToken, "/trips/" + encodeURIComponent(String(tripId)), undefined, callback)
@@ -1735,7 +1735,7 @@ function sumTimesheetDurations(entries, nowMs) {
  */
 function fetchTimesheetsRange(kimaiUrl, apiToken, beginDate, endDate, callback, filters) {
     if (!kimaiUrl || !apiToken) {
-        callback(ProviderUtil.fail({ type: "config", status: 0, detail: "" }))
+        callback(ProviderUtil.fail({ type: ProviderUtil.ErrorType.NotConfigured, status: 0, detail: "" }))
         return
     }
 

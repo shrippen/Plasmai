@@ -9,6 +9,7 @@ import org.kde.plasma.components as PlasmaComponents3
 import org.kde.plasma.extras as PlasmaExtras
 import org.kde.kirigami as Kirigami
 import "../code/kimaiApi.js" as KimaiApi
+import "../code/providerUtil.js" as ProviderUtil
 import "../code/secret.js" as Secret
 import "../code/platform.js" as Platform
 import "../code/desktopBackend.js" as DesktopBackend
@@ -562,7 +563,7 @@ PlasmoidItem {
 
     /** An action failed: its error shows (error state) until the next poll. */
     function showError(error) {
-        actionError = error || { type: "network", status: 0, detail: "empty result" }
+        actionError = error || { type: ProviderUtil.ErrorType.Network, status: 0, detail: "empty result" }
         actionErrorTimer.restart()
     }
 

@@ -78,7 +78,7 @@ function resolveSession(url, token, callback) {
             picked = memberships[0]
         }
         if (!picked) {
-            callback(Util.fail({ type: "config", status: 0, detail: "No organization membership found" }))
+            callback(Util.fail({ type: ErrorType.NotConfigured, status: 0, detail: "No organization membership found" }))
             return
         }
         _session.memberId = _session.memberId || picked.id || ""
@@ -278,7 +278,7 @@ function startTracking(url, token, projectId, activityId, description, callback,
 
 function stopTracking(url, token, timesheetId, callback) {
     if (!timesheetId) {
-        callback(Util.fail({ type: "config", status: 0, detail: "" }))
+        callback(Util.fail({ type: ErrorType.NotConfigured, status: 0, detail: "" }))
         return
     }
     withSession(url, token, function(sessionResult) {
@@ -299,7 +299,7 @@ function stopTracking(url, token, timesheetId, callback) {
 
 function restartTimesheet(url, token, timesheetId, callback) {
     if (!timesheetId) {
-        callback(Util.fail({ type: "config", status: 0, detail: "" }))
+        callback(Util.fail({ type: ErrorType.NotConfigured, status: 0, detail: "" }))
         return
     }
     withSession(url, token, function(sessionResult) {
@@ -328,7 +328,7 @@ function restartTimesheet(url, token, timesheetId, callback) {
 
 function patchTimesheet(url, token, timesheetId, fields, callback) {
     if (!timesheetId) {
-        callback(Util.fail({ type: "config", status: 0, detail: "" }))
+        callback(Util.fail({ type: ErrorType.NotConfigured, status: 0, detail: "" }))
         return
     }
     withSession(url, token, function(sessionResult) {
@@ -390,7 +390,7 @@ function createTimesheet(url, token, fields, callback) {
         }
         var f = fields || {}
         if (!f.begin) {
-            callback(Util.fail({ type: "config", status: 0, detail: "begin is required" }))
+            callback(Util.fail({ type: ErrorType.InvalidInput, status: 0, detail: "begin is required" }))
             return
         }
         var beginDate = DTF.parseStamp(f.begin)
@@ -422,7 +422,7 @@ function createTimesheet(url, token, fields, callback) {
 
 function deleteTimesheet(url, token, timesheetId, callback) {
     if (!timesheetId) {
-        callback(Util.fail({ type: "config", status: 0, detail: "" }))
+        callback(Util.fail({ type: ErrorType.NotConfigured, status: 0, detail: "" }))
         return
     }
     withSession(url, token, function(sessionResult) {
@@ -439,7 +439,7 @@ function deleteTimesheet(url, token, timesheetId, callback) {
 function createCustomer(url, token, fields, callback) {
     var name = String((fields && fields.name) || "").trim()
     if (!name) {
-        callback(Util.fail({ type: "config", status: 0, detail: "name is required" }))
+        callback(Util.fail({ type: ErrorType.InvalidInput, status: 0, detail: "name is required" }))
         return
     }
     withSession(url, token, function(sessionResult) {
@@ -467,7 +467,7 @@ function createProject(url, token, fields, callback) {
     var f = fields || {}
     var name = String(f.name || "").trim()
     if (!name || !f.customer) {
-        callback(Util.fail({ type: "config", status: 0, detail: "name and customer are required" }))
+        callback(Util.fail({ type: ErrorType.InvalidInput, status: 0, detail: "name and customer are required" }))
         return
     }
     withSession(url, token, function(sessionResult) {
@@ -501,7 +501,7 @@ function createActivity(url, token, fields, callback) {
     var f = fields || {}
     var name = String(f.name || "").trim()
     if (!name || !f.project) {
-        callback(Util.fail({ type: "config", status: 0, detail: "name and project are required" }))
+        callback(Util.fail({ type: ErrorType.InvalidInput, status: 0, detail: "name and project are required" }))
         return
     }
     withSession(url, token, function(sessionResult) {
@@ -588,7 +588,7 @@ function loadProjects(url, token, callback) {
 
 function loadActivities(url, token, projectId, callback) {
     if (!projectId) {
-        callback(Util.fail({ type: "config", status: 0, detail: "" }))
+        callback(Util.fail({ type: ErrorType.NotConfigured, status: 0, detail: "" }))
         return
     }
     withSession(url, token, function(sessionResult) {

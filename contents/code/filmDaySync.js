@@ -651,7 +651,7 @@ function dayCall(ctx, dateStr, what, live, callback) {
         var hit = dayStore(ctx, dateStr)[what]
         if (!hit) {
             ctx.missed = true
-            callback({ ok: false, data: null, error: { type: "cache", status: 0, detail: "" } })
+            callback({ ok: false, data: null, error: { type: ProviderUtil.ErrorType.CacheMiss, status: 0, detail: "" } })
             return
         }
         callback(hit.result)

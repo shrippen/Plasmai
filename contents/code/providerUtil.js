@@ -7,7 +7,17 @@ var ErrorType = {
     Forbidden: "forbidden",
     NotFound: "not_found",
     Server: "server",
-    Unknown: "unknown"
+    Unknown: "unknown",
+    // URL, token, workspace or organization missing: set up the connection.
+    NotConfigured: "not_configured",
+    // A required field is missing or malformed: detail names it.
+    InvalidInput: "invalid_input",
+    // The action needs the server and the app has none right now.
+    Offline: "offline",
+    // The server changed an entry that has a queued change.
+    Conflict: "conflict",
+    // A day cache answers only what it has stored (never shown).
+    CacheMiss: "cache"
 }
 
 var DEFAULT_CUSTOMER_COLOR = "#d2d6de"
@@ -151,7 +161,7 @@ var UrlMode = { Optional: "optional", Required: "required" }
 var NotFoundMode = { Error: "error", Empty: "empty" }
 
 function configFail(detail) {
-    return fail({ type: "config", status: 0, detail: detail })
+    return fail({ type: ErrorType.NotConfigured, status: 0, detail: detail })
 }
 
 /**
