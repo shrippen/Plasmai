@@ -186,18 +186,45 @@ TestCase {
     function test_oldFileIsClaimedAfterTheCheckAndSent() {
         const k = fakeKimai()
         const h = fakeHost()
-        h.files[outboxName] = outboxFile(null, [createOp(1)])
+        const old = createOp(1)
+        delete old.by
+        h.files[outboxName] = outboxFile(null, [old])
         const s = Offline.createSession(k, h)
         fakes.loaded(s, this)
-        compare(h.saves.length, 0, "unknown account: nothing claimed")
+        // The connection at the load is the one the changes were made on: stamped now, account later.
+        compare(saved(h).owner.server, urlA)
+        compare(saved(h).owner.account, "")
+        compare(saved(h).ops[0].by.mark, markTok)
         Outbox.replay(s)
         compare(k.calls.length, 0, "nothing is sent before the check")
 
         Offline.verify(s)
         compare(saved(h).owner.account, "7")
-        compare(saved(h).owner.server, urlA)
-        compare(k.calls.indexOf("create") >= 0, true, "sent after the claim")
+        compare(k.calls.indexOf("create") >= 0, true, "sent after the check")
         compare(Outbox.pendingCount(s), 0)
+    }
+
+    // A file of 2.7.0 (no owner, no stamps), offline at the start, the profile gets another
+    // address before the first check: its changes belong to the first address, not to the one
+    // that is checked first.
+    function test_oldFileOpsDoNotGoToTheAddressCheckedFirst() {
+        const k = fakeKimai()
+        k.net = false
+        const h = fakeHost()
+        const old = createOp(1)
+        delete old.by
+        h.files[outboxName] = outboxFile(null, [old])
+        const s = open(k, h, urlA, "TA")
+        compare(Outbox.ops(s)[0].by.server, urlA)
+
+        h.currentUrl = urlB
+        h.currentToken = "TB"
+        Offline.retarget(s)
+        k.net = true
+        Offline.verify(s)
+        compare(k.calls.indexOf("create"), -1, "nothing went to B")
+        compare(Offline.groups(s).length, 1)
+        compare(Offline.groups(s)[0].server, urlA)
     }
 
     // A changed address parks the changes: nothing goes there, only "discard" is offered. Entering
@@ -705,6 +732,7 @@ TestCase {
         k.net = false
         const s = open(k, h, urlA)
         compare(Outbox.pendingCount(s), 1)
+        compare(Outbox.ops(s)[0].by.mark, markTok, "stamped when it was read")
         k.net = true
         Offline.verify(s)
         compare(saved(h).owner.mark, markTok)

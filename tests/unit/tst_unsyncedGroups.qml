@@ -50,6 +50,8 @@ TestCase {
         compare(Ui.ApiErrors.heldHint(sendable), "Enter the old address or token again to send them.")
         // No name to show: the words do not leave a hole, and say what brings the changes back.
         compare(Ui.ApiErrors.heldGroupText(orphan), "1 change waits on https://b.test")
+        compare(Ui.ApiErrors.discardGroupQuestion(orphan), "Discard 1 change on https://b.test?")
+        compare(Ui.ApiErrors.discardGroupQuestion(sendable), "Discard 2 changes for Ann?")
         compare(Ui.ApiErrors.heldHint(orphan), "Enter the old address or token again to send them.")
         compare(Ui.ApiErrors.adoptQuestion, undefined, "nothing is sent to another address")
     }

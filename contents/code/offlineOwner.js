@@ -65,37 +65,6 @@ function markOf(token) {
     return text ? (hash || 1) : 0
 }
 
-var DEFAULT_PORT = { http: "80", https: "443" }
-var ADDRESS = /^([a-z][a-z0-9+.-]*):\/\/([^\/?#]*)(.*)$/i
-
-/**
- * The server of an address: the same server whatever its spelling may be at the end
- * (slash), in scheme and host (case) and in the standard port. Anything else (http or
- * https, IP or name, a path) is another server: the user decides once.
- */
-function serverOf(url) {
-    var text = ProviderUtil.normalizeUrl(url)
-    var parts = ADDRESS.exec(text)
-    if (!parts) {
-        return text
-    }
-    var scheme = parts[1].toLowerCase()
-    var host = parts[2].toLowerCase().replace(/:(\d+)$/, function(all, port) {
-        return port === DEFAULT_PORT[scheme] ? "" : all
-    })
-    return scheme + "://" + host + parts[3]
-}
-
-/** A short hash of a token (never the token): tells one token from another, 0 for none. */
-function markOf(token) {
-    var text = String(token || "")
-    var hash = 0
-    for (var i = 0; i < text.length; i++) {
-        hash = (Math.imul(hash, 31) + text.charCodeAt(i)) | 0
-    }
-    return text ? (hash || 1) : 0
-}
-
 function clone(value) {
     return JSON.parse(JSON.stringify(value))
 }
