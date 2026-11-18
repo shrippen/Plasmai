@@ -39,7 +39,6 @@ ColumnLayout {
     property var tagSource: null
     /** True when editing a stopped Recent entry (same form as Add entry). */
     property bool editingExisting: false
-    property bool suppressProjectSignal: false
 
     readonly property alias projectCombo: pickers.projectCombo
     readonly property alias activityCombo: pickers.activityCombo
@@ -58,9 +57,7 @@ ColumnLayout {
     Connections {
         target: pickers
         function onPendingProjectSelected(projectId) {
-            if (!root.suppressProjectSignal) {
-                root.projectChosen(projectId)
-            }
+            root.projectChosen(projectId)
         }
     }
 
@@ -120,7 +117,6 @@ ColumnLayout {
         endTime.setTime(end.getHours(), end.getMinutes())
         descriptionField.text = ts.description || ""
 
-        suppressProjectSignal = false
         pickers.setPending(Names.projectId(ts), Names.activityId(ts))
         metaFields.loadFromTimesheet(ts)
     }
