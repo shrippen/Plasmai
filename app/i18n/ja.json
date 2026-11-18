@@ -5,6 +5,15 @@
 "\u0004%1 change not synced yet": [
 "%1 件の変更が未同期です"
 ],
+"\u0004%1 change waits for %2 on %3": [
+"%1 件の変更が %3 の %2 を待っています"
+],
+"\u0004%1 change waits for another server or account": [
+"%1 件の変更が別のサーバーまたはアカウントを待っています"
+],
+"\u0004%1 change waits on %2": [
+"%1 件の変更が %2 で待機しています"
+],
 "\u0004%1 day ago": [
 "%1 日前"
 ],
@@ -32,6 +41,12 @@
 "\u0004+%1 more detected trip": [
 "+ 検出された移動 %1 件"
 ],
+"\u0004Discard %1 change for %2?": [
+"%2 の %1 件の変更を破棄しますか？"
+],
+"\u0004Discard %1 change on %2?": [
+"%2 の %1 件の変更を破棄しますか？"
+],
 "\u0004Plural-Forms": "0",
 "\u0004This activity has %1 more entry on this day (%2); the work time above does not include it.": [
 "この作業にはこの日さらに %1 件のエントリーがあります (%2)。上の作業時間には含まれません。"
@@ -39,6 +54,7 @@
 "\"%1\" was not found": "「%1」が見つかりません",
 "%1 (%2)": "%1（%2）",
 "%1 (from your profile)": "%1 (プロフィールから)",
+"%1 (y = yes, any other key = no)": "%1 (y = はい、他のキー = いいえ)",
 "%1 left": "残り %1",
 "%1 left this week": "今週あと %1",
 "%1 left today": "今日あと %1",
@@ -115,6 +131,7 @@
 "Change engagement": "契約を変更",
 "Change project, activity, range, billable, and tags for this finished entry.": "この完了済みエントリのプロジェクト・アクティビティ・期間・請求・タグを変更します。",
 "Changed on the server meanwhile (%1). Overwrite it with this change, or discard this change?": "その間にサーバーで変更されました (%1)。この変更で上書きしますか、それともこの変更を破棄しますか?",
+"Changes need a decision · u": "判断が必要な変更あり · u",
 "Check again": "再確認",
 "Check your system": "システムを確認",
 "Choose a look": "外観を選択",
@@ -194,6 +211,7 @@
 "Discard": "破棄",
 "Discard and continue": "破棄して続ける",
 "Discard idle": "アイドルを破棄",
+"Discard this change?": "この変更を破棄しますか？",
 "Discarding idle time needs a connection to the server.": "アイドル時間の破棄にはサーバーへの接続が必要です。",
 "Dismiss": "破棄",
 "Dismiss this detected trip": "この検出された移動を破棄",
@@ -223,6 +241,7 @@
 "Enter a distance between 0 and %1 km.": "0〜%1 km の距離を入力してください。",
 "Enter a valid start date/time.": "有効な開始日時を入力してください。",
 "Enter the distance.": "距離を入力してください。",
+"Enter the old address or token again to send them.": "送信するには、以前のアドレスまたはトークンを再入力してください。",
 "Enter the server address.": "サーバーのアドレスを入力してください。",
 "Enter times instead": "時刻を入力する",
 "Enter valid begin and end date/time.": "有効な開始・終了日時を入力してください。",
@@ -464,6 +483,7 @@
 "Select customer…": "顧客を選択…",
 "Select project…": "プロジェクトを選択…",
 "Self-hosted Kimai or the official hosted service (kimai.cloud). Paste the instance URL.": "セルフホストのKimai、または公式ホストサービス（kimai.cloud）。インスタンスURLを貼り付けてください。",
+"Send this change again?": "この変更をもう一度送信しますか？",
 "Server URL:": "サーバー URL:",
 "Server address": "サーバーアドレス",
 "Server error (%1).": "サーバーエラー (%1)。",
@@ -489,6 +509,7 @@
 "Show sun, moon, and work arcs": "太陽・月・勤務の弧を表示",
 "Show work summary (today / week totals)": "作業サマリーを表示 (今日／週の合計)",
 "Show:": "表示:",
+"Sign in as %1 to send them.": "%1 としてサインインすると送信できます。",
 "Skip": "スキップ",
 "So the day bar and the remaining hours fit you. All of this can be changed later in the settings.": "一日のバーと残り時間をあなたに合わせるためです。後から設定でいつでも変更できます。",
 "SolidTime cloud API is prefilled. For self-hosting, replace with your instance base URL.": "SolidTimeクラウドAPIは事前入力済みです。セルフホストの場合はインスタンスのベースURLに置き換えてください。",
@@ -656,5 +677,6 @@
 "skipped": "スキップ",
 "upcoming": "未完了",
 "yesterday": "昨日",
-"© OpenStreetMap contributors": "© OpenStreetMap の貢献者"
+"© OpenStreetMap contributors": "© OpenStreetMap の貢献者",
+"↑↓ select · r send again · d discard · Esc back": "↑↓ 選択 · r 再送信 · d 破棄 · Esc 戻る"
 }

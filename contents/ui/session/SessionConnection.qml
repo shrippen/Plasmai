@@ -4,6 +4,7 @@ import "../../code/kimaiApi.js" as KimaiApi
 import "../../code/profiles.js" as Profiles
 import "../../code/platform.js" as Platform
 import "../../code/sharedConfig.js" as SharedConfig
+import "../../code/offlineOwner.js" as Owner
 import ".." as Ui
 
 /**
@@ -11,7 +12,7 @@ import ".." as Ui
  * Connection page's token and test actions.
  *
  *   open() ─▶ shared.json ─▶ [reset old] ─▶ settings.apply ─▶ useProfile
- *   useProfile(p) ─▶ sync.openFor(p) ─▶ readToken ─▶ session.refresh, plugin probes
+ *   useProfile(p) ─▶ loadToken ─▶ sync.openFor(p, t) ─▶ applyToken ─▶ session.refresh, plugin probes
  */
 QtObject {
     id: connection
@@ -97,14 +98,6 @@ QtObject {
     /** Hash of the last token that was set, kept over a cleared one to tell another account (never the token). */
     property int lastTokenHash: 0
 
-    function hashOf(text) {
-        let hash = 0
-        for (let i = 0; i < text.length; i++) {
-            hash = (Math.imul(hash, 31) + text.charCodeAt(i)) | 0
-        }
-        return hash || 1
-    }
-
     /** Wraps a read's callback: dropped when the profile changed before the answer came. */
     function current(callback) {
         const asked = generation
@@ -134,7 +127,15 @@ QtObject {
             return Promise.resolve()
         }
         TimeTracker.applySession(providerId, p)
-        return session.sync.openFor(p).then(readToken)
+        // The token first: the waiting changes of the profile are settled with its own token, not
+        // with the one of the profile before (this.token holds that until applyToken).
+        let unreadable = false
+        return loadToken(p).catch(function() {
+            unreadable = true
+            return ""
+        }).then(function(t) {
+            return session.sync.openFor(p, t).then(function() { return unreadable ? failed() : applyToken(t) })
+        }).catch(failed)
     }
 
     /** Looks the token up again (the demo route can bring one later). */
@@ -142,32 +143,39 @@ QtObject {
         return useProfile(profile)
     }
 
-    function readToken() {
+    function loadToken(p) {
         // Internal builds route the demo address and bring its token.
-        const routed = KimaiApi.routeToken(profile.url)
-        const pending = routed ? Promise.resolve(routed) : Platform.loadToken(session.dataSource, profile.id)
-        return pending.then(function(t) {
-            // Another account on the same profile (also after a cleared token in between):
-            // answers asked with the old token are dropped.
-            const previous = token ? hashOf(token) : lastTokenHash
-            if (t && previous && previous !== hashOf(t)) {
-                generation++
-            }
-            lastTokenHash = t ? hashOf(t) : lastTokenHash
-            token = t || ""
-            tokenLoaded = true
-            state = token ? online : unconfigured
-            if (!token) {
-                return
-            }
-            session.refresh()
-            session.filmDay.resolveMode(Ui.Session.Probe.Cached)
-            session.trips.resolve(Ui.Session.Probe.Cached)
-        }).catch(function() {
-            token = ""
-            tokenLoaded = true
-            state = error
-        })
+        const routed = KimaiApi.routeToken(p.url)
+        return routed ? Promise.resolve(routed) : Platform.loadToken(session.dataSource, p.id)
+    }
+
+    function failed() {
+        token = ""
+        tokenLoaded = true
+        state = error
+    }
+
+    /** `t` is the token of the active profile. */
+    function applyToken(t) {
+        // Another account on the same profile (also after a cleared token in between):
+        // answers asked with the old token are dropped.
+        const previous = token ? Owner.markOf(token) : lastTokenHash
+        if (t && previous && previous !== Owner.markOf(t)) {
+            generation++
+        }
+        lastTokenHash = t ? Owner.markOf(t) : lastTokenHash
+        token = t || ""
+        tokenLoaded = true
+        state = token ? online : unconfigured
+        if (!token) {
+            return
+        }
+        // Whose token it is decides whether the waiting changes may go out: asked beside the
+        // first refresh, not before it (a server that answers slowly must not hold the views).
+        session.sync.verify()
+        session.refresh()
+        session.filmDay.resolveMode(Ui.Session.Probe.Cached)
+        session.trips.resolve(Ui.Session.Probe.Cached)
     }
 
     /** The answer of a running-entry fetch decides the state; a good one clears an error. */

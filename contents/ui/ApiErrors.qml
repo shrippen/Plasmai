@@ -85,4 +85,81 @@ QtObject {
         const version = (data && (data.version || data.name)) || i18n("ok")
         return i18n("Connected to %1 (%2).", service, version)
     }
+
+    // -- Waiting changes (offline layer) ---------------------------------------------
+
+    /** What a waiting change is. */
+    function opKindText(op) {
+        if (op.kind === OfflineState.Op.CREATE) {
+            return op.fields.end ? i18n("New entry") : i18n("Timer started")
+        }
+        if (op.kind === OfflineState.Op.PATCH) {
+            const keys = Object.keys(op.fields || {})
+            return keys.length === 1 && keys[0] === "end" ? i18n("Timer stopped") : i18n("Entry changed")
+        }
+        if (op.kind === OfflineState.Op.DELETE) {
+            return i18n("Entry deleted")
+        }
+        if (op.kind === OfflineState.Op.TRIP_CREATE) {
+            return i18n("Trip added")
+        }
+        if (op.kind === OfflineState.Op.TRIP_PATCH) {
+            return i18n("Trip changed")
+        }
+        if (op.kind === OfflineState.Op.TRIP_DELETE) {
+            return i18n("Trip deleted")
+        }
+        if (op.kind === OfflineState.Op.FILM_DAY) {
+            return i18n("Film day details of %1",
+                        new Date(op.dateStr + "T12:00:00").toLocaleDateString(Qt.locale(), Locale.ShortFormat))
+        }
+        return op.kind
+    }
+
+    /** The fields a conflict names, in the words of the forms. */
+    function fieldNames(detail) {
+        const names = { begin: i18n("Begin"), end: i18n("End"), description: i18n("Description"),
+                        project: i18n("Project"), activity: i18n("Activity") }
+        return String(detail || "").split(", ").map(function(k) { return names[k] || k }).join(", ")
+    }
+
+    /** Why a waiting change waits: the connection, a refusal, a change on the server. */
+    function opStateText(op) {
+        if (op.state === OfflineState.State.FAILED) {
+            return i18n("Not accepted: %1", withServer(op.error))
+        }
+        if (op.state === OfflineState.State.CONFLICT) {
+            return i18n("Changed on the server meanwhile (%1). Overwrite it with this change, or discard this change?",
+                        fieldNames(op.error ? op.error.detail : ""))
+        }
+        return i18n("Waiting for the connection")
+    }
+
+    /** The status line's words for changes parked for another server or account. */
+    function heldStatusText(count) {
+        return i18np("%1 change waits for another server or account", "%1 changes wait for another server or account", count)
+    }
+
+    /** A parked group (Offline.groups): "2 changes wait for Ann on https://kimai.test"; without a name, "... wait on ...". */
+    function heldGroupText(group) {
+        if (!group.name) {
+            return i18np("%1 change waits on %2", "%1 changes wait on %2", group.count, group.server)
+        }
+        return i18np("%1 change waits for %2 on %3", "%1 changes wait for %2 on %3", group.count, group.name, group.server)
+    }
+
+    /** What brings a parked group back: its connection, or the account it was made for. */
+    function heldHint(group) {
+        if (group.name && group.sameServer) {
+            return i18n("Sign in as %1 to send them.", group.name)
+        }
+        return i18n("Enter the old address or token again to send them.")
+    }
+
+    function discardGroupQuestion(group) {
+        if (!group.name) {
+            return i18np("Discard %1 change on %2?", "Discard %1 changes on %2?", group.count, group.server)
+        }
+        return i18np("Discard %1 change for %2?", "Discard %1 changes for %2?", group.count, group.name)
+    }
 }

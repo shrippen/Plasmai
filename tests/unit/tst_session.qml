@@ -201,11 +201,11 @@ TestCase {
         s.connection.token = "other-account"
         const before = s.connection.generation
         let read = false
-        s.connection.readToken().then(function() { read = true })
+        s.connection.reloadToken().then(function() { read = true })
         tryVerify(function() { return read })
         compare(s.connection.generation, before + 1)
         read = false
-        s.connection.readToken().then(function() { read = true })
+        s.connection.reloadToken().then(function() { read = true })
         tryVerify(function() { return read })
         compare(s.connection.generation, before + 1, "the same token: nothing is dropped")
     }

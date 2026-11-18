@@ -26,6 +26,11 @@ var Style = {
     INVERSE: ESC + "7m"
 }
 
+/** What a key does in the list of waiting changes. */
+var Action = { NONE: "none", RETRY: "retry", DISCARD: "discard" }
+/** What a row of that list is: a change that waits here, or a group parked for another owner. */
+var ItemKind = { OP: "op", GROUP: "group" }
+
 const HOURS_SHOWN_MIN = 6
 const HOURS_SHOWN_MAX = 22
 const QUARTERS = 4
@@ -256,5 +261,54 @@ function week(model, size, t) {
         lines.push("")
     }
     lines.push(footer(t.subKeys, w))
+    return lines.join("\n")
+}
+
+/** d discards, r sends a change again (asked before). */
+function unsyncedAction(key, item) {
+    if (!item) {
+        return Action.NONE
+    }
+    if (key === "d") {
+        return Action.DISCARD
+    }
+    if (key === "r" && item.kind === ItemKind.OP) {
+        return Action.RETRY
+    }
+    return Action.NONE
+}
+
+/**
+ * The waiting changes and the parked groups, two lines each: what and why.
+ * model: { profileName, statusText, statusStyle, items: [{ title, sub }], selected, question, message }
+ * A question to answer replaces the message line.
+ */
+function unsynced(model, size, t) {
+    const w = size.columns
+    const lines = [header(model, w, t), rule(w), paint(Style.BOLD, t.unsyncedTitle), ""]
+    const items = model.items || []
+
+    // Two lines per item; the window follows the selection.
+    const room = Math.max(1, Math.floor((size.rows - lines.length - 3) / 2))
+    const first = Math.max(0, Math.min(model.selected - Math.floor(room / 2), items.length - room))
+    const shown = items.slice(first, first + room)
+    for (let i = 0; i < shown.length; i++) {
+        const plain = fit(shown[i].title, w)
+        lines.push(first + i === model.selected ? paint(Style.INVERSE, plain) : paint(Style.BOLD, plain))
+        lines.push(paint(Style.DIM, fit("  " + (shown[i].sub || ""), w)))
+    }
+    if (items.length === 0) {
+        lines.push(paint(Style.OK, t.allSynced))
+    }
+
+    while (lines.length < size.rows - 2) {
+        lines.push("")
+    }
+    if (model.question) {
+        lines.push(paint(Style.PRIMARY, fit(model.question, w)))
+    } else {
+        lines.push(model.message ? paint(Style.DANGER, fit(model.message, w)) : "")
+    }
+    lines.push(footer(t.unsyncedKeys, w))
     return lines.join("\n")
 }

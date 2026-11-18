@@ -34,6 +34,14 @@ TestCase {
         verify(!Demo.isDemoUrl(""))
     }
 
+    // The offline layer's owner is the account id: it must not change from one start to the next.
+    function test_accountIdIsStable() {
+        var first = get("/api/users/me").body.id
+        verify(first !== undefined && first !== null)
+        Demo.reset(new Date(2027, 0, 5, 9, 0, 0))
+        compare(get("/api/users/me").body.id, first)
+    }
+
     // The shared shrippen demo world: Studio Weber's customers, Jonas' shoot days.
     function test_worldNames() {
         Demo.reset(now, "en")

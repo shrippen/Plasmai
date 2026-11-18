@@ -2,6 +2,7 @@
 .import "./providerUtil.js" as ProviderUtil
 .import "./dateTimeFormat.js" as DTF
 .import "./offlineState.js" as OfflineState
+.import "./offlineOwner.js" as Owner
 .import "./localFile.js" as LocalFile
 
 /**
@@ -49,7 +50,11 @@ function saveOutbox(s) {
         return
     }
     s.saveWaits = false
-    var written = s.host.save(outboxName(s), { v: OfflineState.SNAPSHOT_VERSION, counter: s.counter, ops: s.ops })
+    var file = { v: OfflineState.SNAPSHOT_VERSION, counter: s.counter, ops: s.ops, held: s.held }
+    if (s.owner) {
+        file.owner = s.owner
+    }
+    var written = s.host.save(outboxName(s), file)
     Promise.resolve(written).then(function() {
         setStorageError(s, OfflineState.StorageError.NONE, OfflineState.StorageError.SAVE)
     }, function(err) {
@@ -94,6 +99,10 @@ function observe(s, result, noReplay) {
         return
     }
     setOffline(s, false)
+    // The first good answer of a server whose account is not known yet: check it.
+    if (result.ok && !s.verified && !s.verifying && s.verify) {
+        s.verify()
+    }
     if (result.ok && !noReplay && hasPending(s) && !s.replaying) {
         replay(s)
     }
@@ -107,6 +116,8 @@ function hasPending(s) {
 
 function enqueue(s, op) {
     op.opId = newLocalId(s)
+    // The connection it is made on: a replay sends it over that one only.
+    op.by = { server: Owner.serverOf(s.host.url()), mark: Owner.markOf(s.host.token()) }
     op.createdAt = OfflineState.nowOf(s)
     op.attempts = 0
     op.state = OfflineState.State.PENDING
@@ -267,7 +278,7 @@ function runCreate(s, op, conn, done) {
 
 /** Reads the entry first: changed on the server since it was loaded → conflict. */
 function checked(s, op, conn, run, done) {
-    if (!op.base || isLocalId(op.entryId)) {
+    if (!op.base || op.force || isLocalId(op.entryId)) {
         run()
         return
     }
@@ -363,11 +374,24 @@ function replay(s, callback) {
         }
         return
     }
+    // Nothing is sent before the account is known: the ops may belong to another one.
+    if (!s.verified) {
+        if (callback) {
+            callback(0)
+        }
+        return
+    }
     s.replaying = true
     var conn = connectionOf(s)
+    var key = { server: Owner.serverOf(conn.url), mark: Owner.markOf(conn.token) }
     var sent = 0
     function stop() {
         s.replaying = false
+        // A change of owner asked for during the replay: now that no op is on its way.
+        if (s.settleWaits) {
+            s.settleWaits = false
+            s.settle()
+        }
         saveOutbox(s)
         OfflineState.saveSnapshot(s)
         OfflineState.notify(s)
@@ -382,7 +406,7 @@ function replay(s, callback) {
     }
     function next() {
         var op = s.ops.length ? s.ops[0] : null
-        if (!op || op.state !== OfflineState.State.PENDING || moved(s, conn)) {
+        if (!op || op.state !== OfflineState.State.PENDING || moved(s, conn) || !s.verified || !Owner.sameKey(op.by, key)) {
             stop()
             return
         }
@@ -416,7 +440,21 @@ function migratedOps(ops) {
 /** Takes the saved outbox; ops queued before that stay behind the loaded ones. */
 function restoreOps(s, outbox) {
     s.counter = Math.max(s.counter, outbox.counter || 0)
-    s.ops = migratedOps(outbox.ops || []).concat(s.ops)
+    var ops = migratedOps(outbox.ops || [])
+    // Ops of a file of 2.7.0 and before carry no connection: they are the owner's of the file.
+    if (outbox.owner) {
+        Owner.stampUnowned(ops, outbox.owner)
+    }
+    s.ops = ops.concat(s.ops)
+    s.held = (outbox.held || []).map(function(group) {
+        group.ops = migratedOps(group.ops || [])
+        group.id = group.id || Owner.newGroupId(s)
+        Owner.stampUnowned(group.ops, group.owner)
+        return group
+    }).concat(s.held)
+    if (outbox.owner) {
+        s.owner = outbox.owner
+    }
 }
 
 /** Reads the outbox file again while it is blocked; resolves when this try is done. */
@@ -427,6 +465,8 @@ function loadOutbox(s) {
     s.loadingOutbox = s.host.load(outboxName(s)).then(function(file) {
         s.loadingOutbox = null
         applyLoaded(s, file)
+        // The owner first: its write carries the ops made meanwhile too.
+        s.settle()
         // Ops made while the file was read or could not be read: written behind the loaded ones.
         if (s.saveWaits && !s.outboxBlocked) {
             s.saveWaits = false
@@ -444,6 +484,7 @@ function applyLoaded(s, file) {
     if (file.status === Status.BROKEN) {
         // Set aside by the platform: nothing to lose by writing a new one.
         s.outboxBlocked = false
+        s.loaded = true
         s.storageError = StorageError.BROKEN
         return
     }
@@ -458,6 +499,7 @@ function applyLoaded(s, file) {
         restoreOps(s, file.data)
     }
     s.outboxBlocked = false
+    s.loaded = true
     if (s.storageError === StorageError.LOAD) {
         s.storageError = StorageError.NONE
     }
@@ -501,7 +543,7 @@ function retry(s, opId, callback) {
 function overwrite(s, opId, callback) {
     var op = findOp(s, opId)
     if (op) {
-        op.base = null
+        op.force = true
         op.server = null
     }
     retry(s, opId, callback)

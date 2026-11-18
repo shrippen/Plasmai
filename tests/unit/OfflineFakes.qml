@@ -23,7 +23,10 @@ QtObject {
             server: {},              // id → timesheet
             refuse: null,            // name → error (server-side refusal)
             loseAnswer: false,       // next write reaches the server, answer lost
-            projects: [{ id: 10, name: "P" }]
+            projects: [{ id: 10, name: "P" }],
+            userId: 7,               // /api/users/me
+            meError: null,           // an error /api/users/me answers with
+            meCalls: 0
         }
         function answer(name, cb, fn) {
             k.calls.push(name)
@@ -52,6 +55,13 @@ QtObject {
                 return k.server[id] ? { ok: true, data: JSON.parse(JSON.stringify(k.server[id])) }
                                     : { ok: false, error: { type: "not_found", status: 404, detail: "" } }
             })
+        }
+        // Not in `calls`: the account check is no read of the tests' interest.
+        k.fetchCurrentUser = function(u, t, cb) {
+            k.meCalls++
+            if (!k.net) { cb(netErr()); return }
+            if (k.meError) { cb({ ok: false, error: k.meError }); return }
+            cb({ ok: true, data: { id: k.userId, username: "user" + k.userId, alias: "User " + k.userId } })
         }
         addWriteCalls(k, answer)
         addTripCalls(k, answer)
@@ -163,7 +173,10 @@ QtObject {
             failSave: false,
             currentUrl: "https://kimai.test",
             url: function() { return h.currentUrl },
-            token: function() { return "tok" },
+            currentToken: "tok",
+            token: function() { return h.currentToken },
+            ownerChanges: 0,
+            ownerChanged: function() { h.ownerChanges += 1 },
             load: function(name) {
                 if (h.holdLoad && name.indexOf("offline-outbox-") === 0) {
                     return new Promise(function(resolve) {
@@ -201,7 +214,18 @@ QtObject {
         return out
     }
 
+    /** A session whose account is checked (the fake's /api/users/me answers at once). */
     function session(k, h) {
-        return Offline.createSession(k, h || fakeHost())
+        var s = Offline.createSession(k, h || fakeHost())
+        Offline.verify(s)
+        return s
+    }
+
+    /** `s` read from its files (resolves when loaded). */
+    function loaded(s, test) {
+        var done = false
+        Offline.load(s).then(function() { done = true })
+        test.tryVerify(function() { return done })
+        return s
     }
 }

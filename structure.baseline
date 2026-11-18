@@ -12,7 +12,7 @@ app/platform/traycontroller.cpp	TrayController::onBorderEvent	ccn=16
 app/qml/TimerPage.qml	-	lines=1002
 app/qml/main.qml	trayAction	nesting=5
 app/qml/platform/appBackend.js	create	length=120
-app/qml/tui/Tui.qml	handle	nesting=6
+app/qml/tui/Tui.qml	handle	nesting=5
 app/testdriver.h	TestDriver::next	ccn=22 nesting=10
 app/tui/terminal_posix.cpp	Terminal::readInput	ccn=23 nesting=9
 contents/code/dateTimeFormat.js	coerceDate	ccn=19
@@ -52,7 +52,7 @@ contents/ui/SearchableCombo.qml	Keys.onPressed	nesting=5
 contents/ui/SetupWizard.qml	-	lines=899
 contents/ui/config/ConfigDisplay.qml	-	lines=987
 contents/ui/config/ConfigDisplay.qml	applyShared	ccn=34 length=113
-contents/ui/main.qml	-	lines=2568
+contents/ui/main.qml	-	lines=2566
 demo/bench-report.py	medians	ccn=27
 tests/lib/atspi_clicks.py	collect_clickables	ccn=18
 tests/lib/atspi_clicks.py	should_skip	ccn=21

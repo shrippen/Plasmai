@@ -122,4 +122,50 @@ TestCase {
         verify(lines.some(function(l) { return l.indexOf("Total") === 0 }))
         compare(lines.length, size.rows)
     }
+
+    readonly property var words: Object.assign({ unsyncedTitle: "Not synced", unsyncedKeys: "keys", allSynced: "Everything is synced." }, t)
+    readonly property var failedOp: ({ kind: "op", id: "local:1", title: "Entry deleted", sub: "Not accepted: x" })
+    readonly property var sendable: ({ kind: "group", id: 0, title: "2 changes wait for Ann on https://old.test", sub: "" })
+    readonly property var foreign: ({ kind: "group", id: 1, title: "1 change waits for Bob on https://new.test",
+                                      sub: "Sign in as Bob to send them." })
+
+    // The list of changes that wait: the ones that hang here, then the parked groups.
+    function test_unsyncedScreen() {
+        const text = View.unsynced({ profileName: "Demo", statusText: "Online", items: [failedOp, sendable, foreign],
+                                     selected: 1, question: "", message: "" }, size, words)
+        const lines = plain(text).split("\n")
+
+        compare(lines.length, size.rows)
+        verify(lines.some(function(l) { return l.indexOf("Not synced") === 0 }))
+        const at = lines.findIndex(function(l) { return l.indexOf("Entry deleted") === 0 })
+        verify(at >= 0)
+        verify(lines[at + 1].indexOf("Not accepted: x") >= 0, "why, under it")
+        verify(lines.some(function(l) { return l.indexOf("Sign in as Bob") >= 0 }))
+        verify(lines.every(function(l) { return l.length <= size.columns }))
+        verify(text.indexOf(View.Style.INVERSE) >= 0)
+    }
+
+    function test_unsyncedQuestionReplacesTheMessage() {
+        const lines = plain(View.unsynced({ items: [failedOp], selected: 0, question: "Discard this change?", message: "old" },
+                                          size, words)).split("\n")
+        verify(lines.some(function(l) { return l.indexOf("Discard this change?") === 0 }))
+        verify(!lines.some(function(l) { return l.indexOf("old") >= 0 }))
+    }
+
+    function test_unsyncedEmpty() {
+        const lines = plain(View.unsynced({ items: [], selected: 0, question: "", message: "" }, size, words)).split("\n")
+        verify(lines.some(function(l) { return l.indexOf("Everything is synced.") === 0 }))
+    }
+
+    // d discards, r retries what hangs; nothing else does anything.
+    function test_unsyncedKeys() {
+        compare(View.unsyncedAction("d", failedOp), View.Action.DISCARD)
+        compare(View.unsyncedAction("d", sendable), View.Action.DISCARD)
+        compare(View.unsyncedAction("r", failedOp), View.Action.RETRY)
+        compare(View.unsyncedAction("r", sendable), View.Action.NONE)
+        compare(View.unsyncedAction("a", sendable), View.Action.NONE, "nothing is sent to another address")
+        compare(View.Action.ADOPT, undefined)
+        compare(View.unsyncedAction("x", failedOp), View.Action.NONE)
+        compare(View.unsyncedAction("d", null), View.Action.NONE)
+    }
 }

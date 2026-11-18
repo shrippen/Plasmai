@@ -472,7 +472,7 @@ Kirigami.ApplicationWindow {
 
     // Offline and sync state under every page; "Show" lists what is not synced yet.
     footer: QQC2.Pane {
-        visible: root.session.sync.offline || root.session.sync.unsynced > 0 || root.session.sync.storageError !== ""
+        visible: root.session.sync.showStatus
         padding: Kirigami.Units.smallSpacing
         leftPadding: Kirigami.Units.largeSpacing
         rightPadding: Kirigami.Units.largeSpacing
@@ -483,6 +483,7 @@ Kirigami.ApplicationWindow {
             stateAt: root.session.sync.stateAt
             unsynced: root.session.sync.unsynced
             stuck: root.session.sync.stuck
+            held: root.session.sync.held
             storageError: root.session.sync.storageError
             showDetails: !pageStack.currentItem || pageStack.currentItem.objectName !== "unsyncedPage"
             onDetailsRequested: root.navigateTo(unsyncedComponent)

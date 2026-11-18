@@ -796,16 +796,47 @@ Bad reception on set: Plasmai keeps working and syncs once the server answers
   and a good one clears it.
 - **Replay and the connection**: URL and token are taken once when a replay starts. Before
   each op, a changed connection or a closed session (another profile was opened)
-  stops the replay; the op stays pending for the next one. Not solved yet: a change of
-  the address within the same profile still sends the remaining ops to the new address
-  on the next replay (part 2 of the offline rework).
+  stops the replay; the op stays pending for the next one. Nothing is sent before the
+  account is known (see "Owner").
+- **Owner** (`offlineOwner.js`): a connection is an address and a token. Its key is the server
+  (the address without a trailing slash, scheme and host in lower case, without the standard
+  port) and a short hash of the token (`mark`; the file holds the hash, never the token, and it
+  stays private to the device). Every waiting op carries the key it was made on (`op.by`), and a
+  replay sends an op only over a connection of that key; only resuming restamps
+  it. The account is what the server says of a connection (`/api/users/me`, the id), checked
+  after the key and kept in the owner (`owner: { server, mark, account, name }`; the name is for
+  display). A file without an owner or stamps (2.7.0) takes the key of the connection that reads it: its ops are stamped with it and the owner is set, the account follows with the first check.
+  `SessionSync.openFor` gets the token of the profile it opens (read first; the connection still holds the previous profile's token then); address and token are the session's own from then on (not those of the profile active at the moment: a change made while the next profile's token is read, or a network error that comes after a switch, belongs to the session it was made in). It settles with that key on every open, also of the same profile, a write settles before
+  it is queued, and `verify` asks `/api/users/me` (never cached, with the address and token of
+  that moment) beside the first refresh, which does not wait for it; the views read again when
+  the check changed the owner or sent what waited. A network error or a refused token (401, 403)
+  leaves the account unknown: the changes stay, nothing is sent and no answer is kept in the
+  snapshot until it is known. Another key parks the ops of the old key as a group in `held`
+  (one group per key and account, each with a fixed id), empties the snapshot and sets the owner
+  to the new connection with the account empty until the check. The same key with another
+  checked account (the database behind it was swapped) parks the ops under the old account.
+  Going back to a connection resumes its group by itself, also unchecked, as long as no known
+  account differs; so does a renewed token of the same account on the same server, after the
+  check. While a replay runs, settling to another key waits for its end (the op on its way must
+  come off the queue). A group is never taken over by another address or token ("Send here"
+  does not exist): Kimai counts users, projects and entries from 1 on every server, so a
+  foreign server is not provably the same database. A group can only be discarded (one
+  question) or brought back by entering the address and token it was made on again; the lists
+  say so ("Enter the old address or token again to send them", "Sign in as ..." where the
+  name of the account is known on the same server). Local ids are never
+  shared between groups (the counter is the file's); a timer that follows a parked op's local
+  id is cleared by the owner change. The status line counts parked changes apart (also
+  online); the list shows one foldable block per group. The terminal client opens the same list
+  with `u` (retry, discard, each confirmed with `y`, the group meant by its id), so a
+  failed op no longer blocks it for good. Not done: the catalog per account.
 - **Sessions and their files**: a file has one session, ever. `SessionSync` keeps the session of
   every profile it opened (by key); leaving a profile closes its session, coming back reopens
   the same one (`Offline.reopen`), also while its replay is waiting for the op on its way, so that
   op is neither sent twice nor lost. Nothing is written while the outbox is read. A closed session
   still writes its outbox at once, like an open one (the answer of the op that was on its way, a
-  change queued after the switch); it does not write its snapshot (a cache, and its deferred save
-  would replace the active session's). A file that is no JSON is
+  change queued after the switch), and its snapshot at once too, never deferred (its deferred save
+  would replace the active session's), so an entry it deleted does not come back after a restart.
+  A file that is no JSON is
   moved aside only when no write of it is running. A profile without offline layer (key "") has
   no files and nothing to read.
 - **Offline begin**: a timer started offline sends its begin explicitly (the

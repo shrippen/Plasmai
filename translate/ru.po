@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-11-17 23:03+0100\n"
+"POT-Creation-Date: 2026-11-18 10:23+0100\n"
 "PO-Revision-Date: 2026-08-09 19:45+0200\n"
 "Last-Translator: Cursor Agent\n"
 "Language-Team: Russian\n"
@@ -158,7 +158,7 @@ msgstr "Проверка…"
 msgid "Testing… (%1)"
 msgstr "Проверка… (%1)"
 
-#: app/qml/controls/FormDialog.qml:22 contents/ui/ActiveEditView.qml:335
+#: app/qml/controls/FormDialog.qml:22 contents/ui/ActiveEditView.qml:259
 msgid "Save"
 msgstr "Сохранить"
 
@@ -167,11 +167,11 @@ msgstr "Сохранить"
 #: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/TimePopup.qml:52
 #: app/qml/TimerPage.qml:689 app/qml/TimerPage.qml:839
 #: app/qml/TimerPage.qml:859 app/qml/TimerPage.qml:878
-#: app/qml/TimerPage.qml:901 contents/ui/ActiveEditView.qml:351
-#: contents/ui/ActiveEditView.qml:393 contents/ui/Controls/TimePicker.qml:113
-#: contents/ui/EntryLists.qml:156 contents/ui/FilmDayView.qml:947
-#: contents/ui/main.qml:1768 contents/ui/ManualEntryView.qml:404
-#: contents/ui/TripSheet.qml:433
+#: app/qml/TimerPage.qml:901 contents/ui/ActiveEditView.qml:275
+#: contents/ui/ActiveEditView.qml:317 contents/ui/Controls/TimePicker.qml:113
+#: contents/ui/EntryLists.qml:156 contents/ui/FilmDayView.qml:886
+#: contents/ui/main.qml:1612 contents/ui/ManualEntryView.qml:329
+#: contents/ui/TripSheet.qml:433 contents/ui/UnsyncedList.qml:192
 msgid "Cancel"
 msgstr "Отмена"
 
@@ -191,32 +191,13 @@ msgid "Connect a time tracker first"
 msgstr "Сначала подключите сервис учёта времени"
 
 #: app/qml/FilmDayPage.qml:13 app/qml/TimerPage.qml:58
-#: contents/ui/main.qml:2092 contents/ui/main.qml:2166
+#: contents/ui/main.qml:1936 contents/ui/main.qml:2010
 msgid "Film day"
 msgstr "Съёмочный день"
 
-#: app/qml/FilmDayPage.qml:57 contents/ui/main.qml:887
-msgid "The film day was not saved: %1"
-msgstr "Съёмочный день не сохранён: %1"
-
-#: app/qml/FilmDayPage.qml:71 app/qml/main.qml:256
+#: app/qml/FilmDayPage.qml:22 app/qml/main.qml:256
 msgid "Could not save the entry"
 msgstr "Не удалось сохранить запись"
-
-#: app/qml/FilmDayPage.qml:114 contents/ui/main.qml:942
-msgid "%1 other entry of this day could not be deleted: %2"
-msgid_plural "%1 other entries of this day could not be deleted: %2"
-msgstr[0] "Не удалось удалить %1 другую запись этого дня: %2"
-msgstr[1] "Не удалось удалить %1 другие записи этого дня: %2"
-msgstr[2] "Не удалось удалить %1 других записей этого дня: %2"
-
-#: app/qml/FilmDayPage.qml:119 contents/ui/main.qml:938
-msgid "Begin and end were saved, but the film day extras were not: %1"
-msgstr "Начало и конец сохранены, но дополнения съёмочного дня — нет: %1"
-
-#: app/qml/FilmDayPage.qml:126 contents/ui/main.qml:951
-msgid "Shooting day saved"
-msgstr "Съёмочный день сохранён"
 
 #: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/DatePopup.qml:99
 #: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/TimePopup.qml:63
@@ -225,7 +206,7 @@ msgid "Select"
 msgstr "Выбрать"
 
 #: app/qml/kirigami-addons/org/kde/kirigamiaddons/dateandtime/private/DatePicker.qml:275
-#: contents/ui/FilmDayView.qml:958 contents/ui/SetupWizard.qml:151
+#: contents/ui/FilmDayView.qml:897 contents/ui/SetupWizard.qml:151
 msgid "Day"
 msgstr "День"
 
@@ -264,13 +245,13 @@ msgid "Minutes"
 msgstr "Минуты"
 
 #: app/qml/main.qml:114 app/qml/main.qml:202 app/qml/main.qml:414
-#: app/qml/TimerPage.qml:18 contents/ui/main.qml:271 contents/ui/main.qml:273
-#: contents/ui/main.qml:1451 contents/ui/main.qml:2096
+#: app/qml/TimerPage.qml:18 contents/ui/main.qml:268 contents/ui/main.qml:270
+#: contents/ui/main.qml:1295 contents/ui/main.qml:1940
 msgid "Plasmai"
 msgstr "Plasmai"
 
-#: app/qml/main.qml:114 contents/ui/main.qml:287
-#: contents/ui/OfflineStatus.qml:48
+#: app/qml/main.qml:114 contents/ui/main.qml:284
+#: contents/ui/OfflineStatus.qml:50
 msgid "Offline"
 msgstr "Офлайн"
 
@@ -299,15 +280,15 @@ msgstr "Запускать при входе в систему"
 msgid "Quit"
 msgstr "Выйти"
 
-#: app/qml/main.qml:223 contents/ui/main.qml:561
+#: app/qml/main.qml:223 contents/ui/main.qml:558
 msgid "Saved without the billable change: your Kimai account is not allowed to edit billable."
 msgstr "Сохранено без изменения «оплачиваемое»: ваша учётная запись Kimai не может его менять."
 
-#: app/qml/main.qml:246 app/qml/tui/Tui.qml:241
+#: app/qml/main.qml:246 app/qml/tui/Tui.qml:329
 msgid "Could not start tracking"
 msgstr "Не удалось начать учёт"
 
-#: app/qml/main.qml:249 app/qml/tui/Tui.qml:239
+#: app/qml/main.qml:249 app/qml/tui/Tui.qml:327
 msgid "Could not stop tracking"
 msgstr "Не удалось остановить учёт"
 
@@ -344,7 +325,7 @@ msgid "Add Entry"
 msgstr "Добавить запись"
 
 #: app/qml/main.qml:374 app/qml/StatsPage.qml:13 app/qml/TimerPage.qml:52
-#: contents/ui/main.qml:2091 contents/ui/main.qml:2152
+#: contents/ui/main.qml:1935 contents/ui/main.qml:1996
 msgid "Statistics"
 msgstr "Статистика"
 
@@ -357,12 +338,12 @@ msgid "Settings"
 msgstr "Настройки"
 
 #: app/qml/ManualEntryPage.qml:14 contents/ui/ActivityListRow.qml:364
-#: contents/ui/main.qml:2095
+#: contents/ui/main.qml:1939
 msgid "Edit entry"
 msgstr "Изменить запись"
 
 #: app/qml/ManualEntryPage.qml:14 app/qml/TimerPage.qml:46
-#: contents/ui/main.qml:2095 contents/ui/main.qml:2137
+#: contents/ui/main.qml:1939 contents/ui/main.qml:1981
 msgid "Add entry"
 msgstr "Добавить запись"
 
@@ -527,7 +508,7 @@ msgid "Notify on:"
 msgstr "Уведомлять о:"
 
 #: app/qml/SettingsPage.qml:276 app/qml/TimerPage.qml:679
-#: contents/ui/ActiveEditView.qml:269 contents/ui/EntryLists.qml:128
+#: contents/ui/ActiveEditView.qml:193 contents/ui/EntryLists.qml:128
 #: contents/ui/SetupWizard.qml:512
 msgid "Start"
 msgstr "Начать"
@@ -550,7 +531,7 @@ msgstr "Забыли запустить учёт"
 msgid "Settings sync with the Plasma widget via shared.json on the same machine."
 msgstr "Настройки синхронизируются с виджетом Plasma через shared.json на том же устройстве."
 
-#: app/qml/TimerPage.qml:67 app/qml/TimerPage.qml:527 contents/ui/main.qml:1190
+#: app/qml/TimerPage.qml:67 app/qml/TimerPage.qml:527 contents/ui/main.qml:1034
 #: contents/ui/TimerCardKante.qml:301 contents/ui/TimerCard.qml:242
 msgid "Today %1"
 msgstr "Сегодня %1"
@@ -560,37 +541,37 @@ msgstr "Сегодня %1"
 msgid "Week %1"
 msgstr "Неделя %1"
 
-#: app/qml/TimerPage.qml:169 contents/ui/main.qml:508
+#: app/qml/TimerPage.qml:169 contents/ui/main.qml:505
 msgid "Not configured"
 msgstr "Не настроено"
 
-#: app/qml/TimerPage.qml:170 app/qml/tui/Tui.qml:156
+#: app/qml/TimerPage.qml:170 app/qml/tui/Tui.qml:235
 #: contents/ui/SetupWizard.qml:888
 msgid "Connecting…"
 msgstr "Подключение…"
 
-#: app/qml/TimerPage.qml:171 app/qml/TimerPage.qml:188 contents/ui/main.qml:514
+#: app/qml/TimerPage.qml:171 app/qml/TimerPage.qml:188 contents/ui/main.qml:511
 msgid "Connection problem"
 msgstr "Проблема соединения"
 
-#: app/qml/TimerPage.qml:174 contents/ui/main.qml:518
+#: app/qml/TimerPage.qml:174 contents/ui/main.qml:515
 msgid "Connected to %1 (%2)"
 msgstr "Подключено к %1 (%2)"
 
-#: app/qml/TimerPage.qml:174 contents/ui/main.qml:519
+#: app/qml/TimerPage.qml:174 contents/ui/main.qml:516
 msgid "Connected to %1"
 msgstr "Подключено к %1"
 
-#: app/qml/TimerPage.qml:190 contents/ui/main.qml:2320
-#: contents/ui/UnsyncedList.qml:156
+#: app/qml/TimerPage.qml:190 contents/ui/main.qml:2162
+#: contents/ui/UnsyncedList.qml:109
 msgid "Retry"
 msgstr "Повторить"
 
-#: app/qml/TimerPage.qml:191 contents/ui/main.qml:2325
+#: app/qml/TimerPage.qml:191 contents/ui/main.qml:2167
 msgid "Configure"
 msgstr "Настроить"
 
-#: app/qml/TimerPage.qml:241 contents/ui/main.qml:2308
+#: app/qml/TimerPage.qml:241 contents/ui/main.qml:2150
 msgid "More options in the settings"
 msgstr "Больше параметров в настройках"
 
@@ -605,8 +586,8 @@ msgstr "Не отслеживается"
 
 #: app/qml/TimerPage.qml:356 app/qml/TimerPage.qml:385
 #: app/qml/TripEditPage.qml:18 app/qml/TripsPage.qml:140
-#: contents/ui/ActivityListRow.qml:378 contents/ui/FilmDayView.qml:886
-#: contents/ui/main.qml:2180 contents/ui/TimerCardKante.qml:89
+#: contents/ui/ActivityListRow.qml:378 contents/ui/FilmDayView.qml:825
+#: contents/ui/main.qml:2024 contents/ui/TimerCardKante.qml:89
 #: contents/ui/TimerCard.qml:91 contents/ui/TripSheet.qml:204
 #: contents/ui/TripSheet.qml:420
 msgid "Log trip"
@@ -667,12 +648,12 @@ msgid "Start something else…"
 msgstr "Начать что-то другое…"
 
 #: app/qml/TimerPage.qml:672 contents/ui/EntryLists.qml:114
-#: contents/ui/ManualEntryView.qml:359
+#: contents/ui/ManualEntryView.qml:284
 msgid "Description (optional)"
 msgstr "Описание (необязательно)"
 
 #: app/qml/TimerPage.qml:679 app/qml/TimerPage.qml:877
-#: contents/ui/EntryLists.qml:144 contents/ui/main.qml:1762
+#: contents/ui/EntryLists.qml:144 contents/ui/main.qml:1606
 msgid "Switch"
 msgstr "Сменить"
 
@@ -685,14 +666,14 @@ msgstr "Уже запущено."
 msgid "Pin an entry from Recent to add it to your favorites."
 msgstr "Закрепите запись из «Недавние», чтобы добавить её в избранное."
 
-#: app/qml/TimerPage.qml:745 app/qml/tui/Tui.qml:130
+#: app/qml/TimerPage.qml:745 app/qml/tui/Tui.qml:203
 #: contents/ui/EntryLists.qml:306
 msgid "Recent"
 msgstr "Недавние"
 
-#: app/qml/TimerPage.qml:768 app/qml/tui/Tui.qml:128
+#: app/qml/TimerPage.qml:768 app/qml/tui/Tui.qml:201
 #: contents/ui/DateField.qml:156 contents/ui/EntryLists.qml:337
-#: contents/ui/FilmDayView.qml:584 contents/ui/StatsView.qml:241
+#: contents/ui/FilmDayView.qml:524 contents/ui/StatsView.qml:241
 #: contents/ui/StatsView.qml:293 contents/ui/StatsView.qml:394
 #: contents/ui/StatsView.qml:467
 msgid "Today"
@@ -703,7 +684,7 @@ msgstr "Сегодня"
 msgid "Yesterday"
 msgstr "Вчера"
 
-#: app/qml/TimerPage.qml:833 contents/ui/main.qml:1608
+#: app/qml/TimerPage.qml:833 contents/ui/main.qml:1452
 msgid "Stop tracking?"
 msgstr "Остановить отслеживание?"
 
@@ -711,7 +692,7 @@ msgstr "Остановить отслеживание?"
 msgid "Stop %1 · %2?"
 msgstr "Остановить %1 · %2?"
 
-#: app/qml/TimerPage.qml:853 contents/ui/main.qml:1784
+#: app/qml/TimerPage.qml:853 contents/ui/main.qml:1628
 msgid "Delete entry?"
 msgstr "Удалить запись?"
 
@@ -724,7 +705,7 @@ msgid "Delete"
 msgstr "Удалить"
 
 #: app/qml/TimerPage.qml:872 contents/ui/EntryLists.qml:58
-#: contents/ui/main.qml:1632
+#: contents/ui/main.qml:1476
 msgid "Switch activity"
 msgstr "Сменить активность"
 
@@ -733,7 +714,7 @@ msgid "Switch to %1 · %2?"
 msgstr "Переключиться на %1 · %2?"
 
 #: app/qml/TimerPage.qml:896 app/qml/TimerPage.qml:900
-#: contents/ui/ActivityListRow.qml:371 contents/ui/main.qml:1817
+#: contents/ui/ActivityListRow.qml:371 contents/ui/main.qml:1661
 msgid "Split entry"
 msgstr "Разделить запись"
 
@@ -741,7 +722,7 @@ msgstr "Разделить запись"
 msgid "Split at:"
 msgstr "Разделить в:"
 
-#: app/qml/TimerPage.qml:948 contents/ui/main.qml:1923
+#: app/qml/TimerPage.qml:948 contents/ui/main.qml:1767
 msgid "You were idle"
 msgstr "Вы были в простое"
 
@@ -749,19 +730,19 @@ msgstr "Вы были в простое"
 msgid "You were idle for %1. Keep this time, discard it, or discard and continue?"
 msgstr "Вы были неактивны %1. Оставить это время, отбросить его или отбросить и продолжить?"
 
-#: app/qml/TimerPage.qml:959 contents/ui/main.qml:1965
+#: app/qml/TimerPage.qml:959 contents/ui/main.qml:1809
 msgid "Keep time"
 msgstr "Оставить время"
 
-#: app/qml/TimerPage.qml:964 contents/ui/main.qml:1954
+#: app/qml/TimerPage.qml:964 contents/ui/main.qml:1798
 msgid "Discarding idle time needs a connection to the server."
 msgstr "Чтобы отменить время простоя, нужно подключение к серверу."
 
-#: app/qml/TimerPage.qml:966 contents/ui/main.qml:1975
+#: app/qml/TimerPage.qml:966 contents/ui/main.qml:1819
 msgid "Discard idle"
 msgstr "Отбросить простой"
 
-#: app/qml/TimerPage.qml:967 contents/ui/main.qml:1985
+#: app/qml/TimerPage.qml:967 contents/ui/main.qml:1829
 msgid "Discard and continue"
 msgstr "Отбросить и продолжить"
 
@@ -773,7 +754,7 @@ msgstr "Найденная поездка"
 msgid "Edit trip"
 msgstr "Изменить поездку"
 
-#: app/qml/TripEditPage.qml:28
+#: app/qml/TripEditPage.qml:32
 msgid "Trip saved: %1 km"
 msgstr "Поездка сохранена: %1 км"
 
@@ -800,9 +781,9 @@ msgstr "Не удалось загрузить поездки: %1"
 msgid "round trip"
 msgstr "туда и обратно"
 
-#: app/qml/TripsPage.qml:80 contents/ui/main.qml:1053
+#: app/qml/TripsPage.qml:80 contents/ui/main.qml:2315
 #: contents/ui/StatsView.qml:245 contents/ui/StatsView.qml:327
-#: contents/ui/TripSuggestionList.qml:84 contents/ui/UnsyncedList.qml:67
+#: contents/ui/TripSuggestionList.qml:84 contents/ui/UnsyncedList.qml:45
 msgid "%1 km"
 msgstr "%1 км"
 
@@ -810,11 +791,11 @@ msgstr "%1 км"
 msgid "Commute logged: %1 km"
 msgstr "Дорога на работу записана: %1 км"
 
-#: app/qml/TripsPage.qml:110 contents/ui/main.qml:1075
+#: app/qml/TripsPage.qml:110 contents/ui/main.qml:919
 msgid "The trip could not be accepted: %1"
 msgstr "Не удалось принять поездку: %1"
 
-#: app/qml/TripsPage.qml:119 contents/ui/main.qml:1083
+#: app/qml/TripsPage.qml:119 contents/ui/main.qml:927
 msgid "The trip could not be dismissed: %1"
 msgstr "Не удалось отклонить поездку: %1"
 
@@ -857,99 +838,124 @@ msgstr "В этом месяце поездок нет"
 msgid "Time entry #%1"
 msgstr "Запись времени № %1"
 
-#: app/qml/tui/Tui.qml:127
+#: app/qml/tui/Tui.qml:180
+msgid "Send this change again?"
+msgstr "Отправить это изменение ещё раз?"
+
+#: app/qml/tui/Tui.qml:182
+msgid "Discard this change?"
+msgstr "Отменить это изменение?"
+
+#: app/qml/tui/Tui.qml:184
+msgid "%1 (y = yes, any other key = no)"
+msgstr "%1 (y = да, другая клавиша = нет)"
+
+#: app/qml/tui/Tui.qml:200
 msgid "Nothing is running"
 msgstr "Ничего не запущено"
 
-#: app/qml/tui/Tui.qml:129
+#: app/qml/tui/Tui.qml:202
 msgid "Week"
 msgstr "Неделя"
 
-#: app/qml/tui/Tui.qml:131
+#: app/qml/tui/Tui.qml:204
 msgid "No recent entries"
 msgstr "Нет последних записей"
 
-#: app/qml/tui/Tui.qml:132
+#: app/qml/tui/Tui.qml:205
 msgid "No entries this week"
 msgstr "На этой неделе записей нет"
 
-#: app/qml/tui/Tui.qml:133
+#: app/qml/tui/Tui.qml:206
 msgid "No gaps in the work day"
 msgstr "Нет пробелов в рабочем дне"
 
-#: app/qml/tui/Tui.qml:134
+#: app/qml/tui/Tui.qml:207
 msgid "Gaps:"
 msgstr "Пробелы:"
 
-#: app/qml/tui/Tui.qml:135
+#: app/qml/tui/Tui.qml:208
 msgid "Total"
 msgstr "Итого"
 
-#: app/qml/tui/Tui.qml:136
+#: app/qml/tui/Tui.qml:209 app/qml/UnsyncedPage.qml:14
+#: contents/ui/main.qml:1934
+msgid "Not synced"
+msgstr "Не синхронизировано"
+
+#: app/qml/tui/Tui.qml:210
+msgid "↑↓ select · r send again · d discard · Esc back"
+msgstr "↑↓ выбор · r отправить снова · d отменить · Esc назад"
+
+#: app/qml/tui/Tui.qml:211 contents/ui/UnsyncedList.qml:217
+msgid "Everything is synced."
+msgstr "Всё синхронизировано."
+
+#: app/qml/tui/Tui.qml:212
 msgid "1–9 start · s stop · t day · w week · r refresh · q quit"
 msgstr "1–9 запуск · s стоп · t день · w неделя · r обновить · q выход"
 
-#: app/qml/tui/Tui.qml:137
+#: app/qml/tui/Tui.qml:213
 msgid "Esc back · s stop · r refresh · q quit"
 msgstr "Esc назад · s стоп · r обновить · q выход"
 
-#: app/qml/tui/Tui.qml:144
+#: app/qml/tui/Tui.qml:220
 msgid "Set up a connection in the Plasmai app first"
 msgstr "Сначала настройте подключение в приложении Plasmai"
 
-#: app/qml/tui/Tui.qml:147
+#: app/qml/tui/Tui.qml:223
 msgid "Server not reachable"
 msgstr "Сервер недоступен"
 
-#: app/qml/tui/Tui.qml:153
+#: app/qml/tui/Tui.qml:229
+msgid "Changes need a decision · u"
+msgstr "Изменения ждут решения · u"
+
+#: app/qml/tui/Tui.qml:232
 msgid "Offline · %1 not synced"
 msgstr "Офлайн · не синхронизировано: %1"
 
-#: app/qml/tui/Tui.qml:158
+#: app/qml/tui/Tui.qml:237
 msgid "Online"
 msgstr "Онлайн"
 
-#: app/qml/tui/Tui.qml:240
+#: app/qml/tui/Tui.qml:328
 msgid "Could not refresh"
 msgstr "Не удалось обновить"
 
-#: app/qml/tui/Tui.qml:250
+#: app/qml/tui/Tui.qml:338
 msgid "This build has no demo"
 msgstr "В этой сборке нет демо"
-
-#: app/qml/UnsyncedPage.qml:14 contents/ui/main.qml:2090
-msgid "Not synced"
-msgstr "Не синхронизировано"
 
 #: contents/config/config.qml:16 contents/ui/config/ConfigDisplay.qml:467
 msgid "Display"
 msgstr "Отображение"
 
-#: contents/ui/ActiveEditView.qml:237
+#: contents/ui/ActiveEditView.qml:162
 msgid "Edit start, project, activity, billable, and tags for the running entry."
 msgstr "Изменить начало, проект, деятельность, оплачиваемость и теги текущей записи."
 
-#: contents/ui/ActiveEditView.qml:297
+#: contents/ui/ActiveEditView.qml:221
 msgid "Previous entry ended at %1"
 msgstr "Предыдущая запись завершилась в %1"
 
-#: contents/ui/ActiveEditView.qml:307
+#: contents/ui/ActiveEditView.qml:231
 msgid "Elapsed time updates from the new start."
 msgstr "Прошедшее время пересчитывается от нового начала."
 
-#: contents/ui/ActiveEditView.qml:308
+#: contents/ui/ActiveEditView.qml:232
 msgid "Start must be a valid time not in the future."
 msgstr "Начало должно быть корректным временем и не в будущем."
 
-#: contents/ui/ActiveEditView.qml:361
+#: contents/ui/ActiveEditView.qml:285
 msgid "Overlapping start"
 msgstr "Пересечение начала"
 
-#: contents/ui/ActiveEditView.qml:375
+#: contents/ui/ActiveEditView.qml:299
 msgid "The new start is before the previous entry ended (%1). Set it anyway?"
 msgstr "Новое начало раньше конца предыдущей записи (%1). Всё равно установить?"
 
-#: contents/ui/ActiveEditView.qml:386
+#: contents/ui/ActiveEditView.qml:310
 msgid "Set anyway"
 msgstr "Всё равно установить"
 
@@ -1052,6 +1058,119 @@ msgstr "ok"
 #: contents/ui/ApiErrors.qml:86
 msgid "Connected to %1 (%2)."
 msgstr "Подключено к %1 (%2)."
+
+#: contents/ui/ApiErrors.qml:94
+msgid "New entry"
+msgstr "Новая запись"
+
+#: contents/ui/ApiErrors.qml:94
+msgid "Timer started"
+msgstr "Таймер запущен"
+
+#: contents/ui/ApiErrors.qml:98
+msgid "Timer stopped"
+msgstr "Таймер остановлен"
+
+#: contents/ui/ApiErrors.qml:98
+msgid "Entry changed"
+msgstr "Запись изменена"
+
+#: contents/ui/ApiErrors.qml:101 contents/ui/main.qml:1250
+msgid "Entry deleted"
+msgstr "Запись удалена"
+
+#: contents/ui/ApiErrors.qml:104
+msgid "Trip added"
+msgstr "Поездка добавлена"
+
+#: contents/ui/ApiErrors.qml:107
+msgid "Trip changed"
+msgstr "Поездка изменена"
+
+#: contents/ui/ApiErrors.qml:110
+msgid "Trip deleted"
+msgstr "Поездка удалена"
+
+#: contents/ui/ApiErrors.qml:113
+msgid "Film day details of %1"
+msgstr "Данные съёмочного дня %1"
+
+#: contents/ui/ApiErrors.qml:121 contents/ui/FilmDayView.qml:739
+#: contents/ui/ManualEntryView.qml:209
+msgid "Begin"
+msgstr "Начало"
+
+#: contents/ui/ApiErrors.qml:121 contents/ui/FilmDayView.qml:762
+#: contents/ui/ManualEntryView.qml:233
+msgid "End"
+msgstr "Конец"
+
+#: contents/ui/ApiErrors.qml:121 contents/ui/DescriptionField.qml:30
+msgid "Description"
+msgstr "Описание"
+
+#: contents/ui/ApiErrors.qml:122 contents/ui/FilmDayView.qml:571
+msgid "Project"
+msgstr "Проект"
+
+#: contents/ui/ApiErrors.qml:122
+msgid "Activity"
+msgstr "Деятельность"
+
+#: contents/ui/ApiErrors.qml:129
+msgid "Not accepted: %1"
+msgstr "Не принято: %1"
+
+#: contents/ui/ApiErrors.qml:132
+msgid "Changed on the server meanwhile (%1). Overwrite it with this change, or discard this change?"
+msgstr "Тем временем изменено на сервере (%1). Перезаписать этим изменением или отменить это изменение?"
+
+#: contents/ui/ApiErrors.qml:135
+msgid "Waiting for the connection"
+msgstr "Ожидает подключения"
+
+#: contents/ui/ApiErrors.qml:140
+msgid "%1 change waits for another server or account"
+msgid_plural "%1 changes wait for another server or account"
+msgstr[0] "%1 изменение ждёт другого сервера или учётной записи"
+msgstr[1] "%1 изменения ждут другого сервера или учётной записи"
+msgstr[2] "%1 изменений ждут другого сервера или учётной записи"
+
+#: contents/ui/ApiErrors.qml:146
+msgid "%1 change waits on %2"
+msgid_plural "%1 changes wait on %2"
+msgstr[0] "%1 изменение ждёт на %2"
+msgstr[1] "%1 изменения ждут на %2"
+msgstr[2] "%1 изменений ждут на %2"
+
+#: contents/ui/ApiErrors.qml:148
+msgid "%1 change waits for %2 on %3"
+msgid_plural "%1 changes wait for %2 on %3"
+msgstr[0] "%1 изменение ждёт для %2 на %3"
+msgstr[1] "%1 изменения ждут для %2 на %3"
+msgstr[2] "%1 изменений ждут для %2 на %3"
+
+#: contents/ui/ApiErrors.qml:154
+msgid "Sign in as %1 to send them."
+msgstr "Войдите как %1, чтобы отправить их."
+
+#: contents/ui/ApiErrors.qml:156
+msgid "Enter the old address or token again to send them."
+msgstr "Введите старый адрес или токен снова, чтобы отправить их."
+
+#: contents/ui/ApiErrors.qml:161
+msgid "Discard %1 change on %2?"
+msgid_plural "Discard %1 changes on %2?"
+msgstr[0] "Отменить %1 изменение на %2?"
+msgstr[1] "Отменить %1 изменения на %2?"
+msgstr[2] "Отменить %1 изменений на %2?"
+
+#: contents/ui/ApiErrors.qml:163
+msgid "Discard %1 change for %2?"
+msgid_plural "Discard %1 changes for %2?"
+msgstr[0] "Отменить %1 изменение для %2?"
+msgstr[1] "Отменить %1 изменения для %2?"
+msgstr[2] "Отменить %1 изменений для %2?"
 
 #: contents/ui/BarChart.qml:55 contents/ui/StackedBarChart.qml:89
 msgid "Time"
@@ -1459,11 +1578,11 @@ msgstr "API-токен недоступен."
 msgid "Failed to load activities."
 msgstr "Не удалось загрузить активности."
 
-#: contents/ui/config/ConfigFavorites.qml:356 contents/ui/main.qml:203
+#: contents/ui/config/ConfigFavorites.qml:356 contents/ui/main.qml:200
 msgid "Project-specific"
 msgstr "Специфичные для проекта"
 
-#: contents/ui/config/ConfigFavorites.qml:359 contents/ui/main.qml:204
+#: contents/ui/config/ConfigFavorites.qml:359 contents/ui/main.qml:201
 msgid "Global activities"
 msgstr "Глобальные активности"
 
@@ -1497,12 +1616,12 @@ msgid "Create customer"
 msgstr "Создать клиента"
 
 #: contents/ui/CreateEntityDialog.qml:46
-#: contents/ui/ProjectActivityPickers.qml:102
+#: contents/ui/ProjectActivityPickers.qml:165
 msgid "Create activity"
 msgstr "Создать деятельность"
 
 #: contents/ui/CreateEntityDialog.qml:48
-#: contents/ui/ProjectActivityPickers.qml:65
+#: contents/ui/ProjectActivityPickers.qml:128
 msgid "Create project"
 msgstr "Создать проект"
 
@@ -1529,10 +1648,6 @@ msgstr "Выбрать дату"
 #: contents/ui/DaySparkline.qml:243
 msgid "Today's tracked time"
 msgstr "Учёт времени за сегодня"
-
-#: contents/ui/DescriptionField.qml:30 contents/ui/UnsyncedList.qml:101
-msgid "Description"
-msgstr "Описание"
 
 #: contents/ui/EntryLists.qml:58
 msgid "New activity"
@@ -1663,376 +1778,377 @@ msgstr "Ничего не учитывается"
 msgid "Work hours have started. Start a timer when you begin."
 msgstr "Рабочие часы начались. Запустите таймер, когда начнёте."
 
-#: contents/ui/FilmDayView.qml:217
+#: contents/ui/FilmDayBinding.qml:104
+msgid "The film day was not saved: %1"
+msgstr "Съёмочный день не сохранён: %1"
+
+#: contents/ui/FilmDayBinding.qml:170
+msgid "Begin and end were saved, but the film day extras were not: %1"
+msgstr "Начало и конец сохранены, но дополнения съёмочного дня — нет: %1"
+
+#: contents/ui/FilmDayBinding.qml:175
+msgid "%1 other entry of this day could not be deleted: %2"
+msgid_plural "%1 other entries of this day could not be deleted: %2"
+msgstr[0] "Не удалось удалить %1 другую запись этого дня: %2"
+msgstr[1] "Не удалось удалить %1 другие записи этого дня: %2"
+msgstr[2] "Не удалось удалить %1 других записей этого дня: %2"
+
+#: contents/ui/FilmDayBinding.qml:182
+msgid "Shooting day saved"
+msgstr "Съёмочный день сохранён"
+
+#: contents/ui/FilmDayView.qml:225
 msgid "The Drehzettel plugin is not installed on this Kimai server. Only begin and end are saved."
 msgstr "Плагин Drehzettel не установлен на этом сервере Kimai. Сохраняются только начало и конец."
 
-#: contents/ui/FilmDayView.qml:220
+#: contents/ui/FilmDayView.qml:228
 msgid "No active engagement for this project and day. Only begin and end are saved."
 msgstr "Нет активного ангажемента для этого проекта и дня. Сохраняются только начало и конец."
 
-#: contents/ui/FilmDayView.qml:223
+#: contents/ui/FilmDayView.qml:231
 msgid "You lack the Drehzettel permission on this Kimai server. Only begin and end are saved."
 msgstr "У вас нет права Drehzettel на этом сервере Kimai. Сохраняются только начало и конец."
 
-#: contents/ui/FilmDayView.qml:226
+#: contents/ui/FilmDayView.qml:234
 msgid "Pick a project to load its film day."
 msgstr "Выберите проект, чтобы загрузить съёмочный день."
 
-#: contents/ui/FilmDayView.qml:229
+#: contents/ui/FilmDayView.qml:237
 msgid "The Drehzettel plugin cannot be reached. Only begin and end can be saved right now."
 msgstr "Плагин Drehzettel недоступен. Сейчас можно сохранить только начало и конец."
 
-#: contents/ui/FilmDayView.qml:240
+#: contents/ui/FilmDayView.qml:248
 msgid "Auto (from weekday)"
 msgstr "Авто (по дню недели)"
 
-#: contents/ui/FilmDayView.qml:241
+#: contents/ui/FilmDayView.qml:249
 msgid "Workday"
 msgstr "Рабочий день"
 
-#: contents/ui/FilmDayView.qml:242
+#: contents/ui/FilmDayView.qml:250
 msgid "Saturday"
 msgstr "Суббота"
 
-#: contents/ui/FilmDayView.qml:243
+#: contents/ui/FilmDayView.qml:251
 msgid "Sunday"
 msgstr "Воскресенье"
 
-#: contents/ui/FilmDayView.qml:244
+#: contents/ui/FilmDayView.qml:252
 msgid "Holiday"
 msgstr "Праздник"
 
-#: contents/ui/FilmDayView.qml:247
+#: contents/ui/FilmDayView.qml:255
 msgid "Shooting day"
 msgstr "Съёмочный день"
 
-#: contents/ui/FilmDayView.qml:248
+#: contents/ui/FilmDayView.qml:256
 msgid "Travel day"
 msgstr "День в пути"
 
-#: contents/ui/FilmDayView.qml:551 contents/ui/StatsView.qml:384
+#: contents/ui/FilmDayView.qml:491 contents/ui/StatsView.qml:384
 #: contents/ui/StatsView.qml:457
 msgid "Previous day"
 msgstr "Предыдущий день"
 
-#: contents/ui/FilmDayView.qml:593 contents/ui/StatsView.qml:409
+#: contents/ui/FilmDayView.qml:533 contents/ui/StatsView.qml:409
 #: contents/ui/StatsView.qml:482
 msgid "Next day"
 msgstr "Следующий день"
 
-#: contents/ui/FilmDayView.qml:631
+#: contents/ui/FilmDayView.qml:571
 msgid "Engagement"
 msgstr "Ангажемент"
 
-#: contents/ui/FilmDayView.qml:631 contents/ui/UnsyncedList.qml:102
-msgid "Project"
-msgstr "Проект"
-
-#: contents/ui/FilmDayView.qml:645
+#: contents/ui/FilmDayView.qml:585
 msgid "Pick an activity"
 msgstr "Выберите вид деятельности"
 
-#: contents/ui/FilmDayView.qml:655
+#: contents/ui/FilmDayView.qml:595
 msgid "Shooting day %1"
 msgstr "Съёмочный день %1"
 
-#: contents/ui/FilmDayView.qml:667
+#: contents/ui/FilmDayView.qml:607
 msgid "Change engagement"
 msgstr "Сменить ангажемент"
 
-#: contents/ui/FilmDayView.qml:708
+#: contents/ui/FilmDayView.qml:648
 msgid "Or pick another project and activity:"
 msgstr "Или выберите другой проект и вид деятельности:"
 
-#: contents/ui/FilmDayView.qml:753
+#: contents/ui/FilmDayView.qml:692
 msgid "Start shooting day"
 msgstr "Начать съёмочный день"
 
-#: contents/ui/FilmDayView.qml:765
+#: contents/ui/FilmDayView.qml:704
 msgid "Begins now, with the timer of the main page."
 msgstr "Начинается сейчас, с таймером главной страницы."
 
-#: contents/ui/FilmDayView.qml:770
+#: contents/ui/FilmDayView.qml:709
 msgid "Enter times instead"
 msgstr "Ввести время вручную"
 
-#: contents/ui/FilmDayView.qml:800 contents/ui/ManualEntryView.qml:284
-#: contents/ui/UnsyncedList.qml:101
-msgid "Begin"
-msgstr "Начало"
-
-#: contents/ui/FilmDayView.qml:823 contents/ui/ManualEntryView.qml:308
-#: contents/ui/UnsyncedList.qml:101
-msgid "End"
-msgstr "Конец"
-
-#: contents/ui/FilmDayView.qml:839
+#: contents/ui/FilmDayView.qml:778
 msgid "running"
 msgstr "идёт"
 
-#: contents/ui/FilmDayView.qml:854
+#: contents/ui/FilmDayView.qml:793
 msgid "Break %1"
 msgstr "Перерыв %1"
 
-#: contents/ui/FilmDayView.qml:857
+#: contents/ui/FilmDayView.qml:796
 msgid "Work time so far %1"
 msgstr "Рабочее время пока %1"
 
-#: contents/ui/FilmDayView.qml:859
+#: contents/ui/FilmDayView.qml:798
 msgid "Work time %1"
 msgstr "Рабочее время %1"
 
-#: contents/ui/FilmDayView.qml:859
+#: contents/ui/FilmDayView.qml:798
 msgid "Work time: invalid range"
 msgstr "Рабочее время: неверный интервал"
 
-#: contents/ui/FilmDayView.qml:875
+#: contents/ui/FilmDayView.qml:814
 msgid "Stop shooting day"
 msgstr "Завершить съёмочный день"
 
-#: contents/ui/FilmDayView.qml:902
+#: contents/ui/FilmDayView.qml:841
 msgid "This activity has %1 more entry on this day (%2); the work time above does not include it."
 msgid_plural "This activity has %1 more entries on this day (%2); the work time above does not include them."
 msgstr[0] "У этого вида деятельности в этот день есть ещё %1 запись (%2); рабочее время выше её не учитывает."
 msgstr[1] "У этого вида деятельности в этот день есть ещё %1 записи (%2); рабочее время выше их не учитывает."
 msgstr[2] "У этого вида деятельности в этот день есть ещё %1 записей (%2); рабочее время выше их не учитывает."
 
-#: contents/ui/FilmDayView.qml:913
+#: contents/ui/FilmDayView.qml:852
 msgid "Merge into one entry"
 msgstr "Объединить в одну запись"
 
-#: contents/ui/FilmDayView.qml:938
+#: contents/ui/FilmDayView.qml:877
 msgid "Save shooting day"
 msgstr "Сохранить съёмочный день"
 
-#: contents/ui/FilmDayView.qml:968
+#: contents/ui/FilmDayView.qml:907
 msgid "Day type"
 msgstr "Тип дня"
 
-#: contents/ui/FilmDayView.qml:978 contents/ui/FilmDayView.qml:983
+#: contents/ui/FilmDayView.qml:917 contents/ui/FilmDayView.qml:922
 msgid "Catering"
 msgstr "Кейтеринг"
 
-#: contents/ui/FilmDayView.qml:987
+#: contents/ui/FilmDayView.qml:926
 msgid "Break"
 msgstr "Перерыв"
 
-#: contents/ui/FilmDayView.qml:1000
+#: contents/ui/FilmDayView.qml:939
 msgid "Default"
 msgstr "По умолчанию"
 
-#: contents/ui/FilmDayView.qml:1001
+#: contents/ui/FilmDayView.qml:940
 msgid "%1 minute"
 msgid_plural "%1 minutes"
 msgstr[0] "%1 минута"
 msgstr[1] "%1 минуты"
 msgstr[2] "%1 минут"
 
-#: contents/ui/FilmDayView.qml:1018
+#: contents/ui/FilmDayView.qml:957
 msgid "Day category"
 msgstr "Категория дня"
 
-#: contents/ui/FilmDayView.qml:1030 contents/ui/FilmDayView.qml:1044
+#: contents/ui/FilmDayView.qml:969 contents/ui/FilmDayView.qml:983
 msgid "Surcharge day"
 msgstr "День надбавки"
 
-#: contents/ui/FilmDayView.qml:1045
+#: contents/ui/FilmDayView.qml:984
 msgid "Automatic"
 msgstr "Автоматически"
 
-#: contents/ui/FilmDayView.qml:1055
+#: contents/ui/FilmDayView.qml:994
 msgid "Extra pay / expenses"
 msgstr "Доплата / расходы"
 
-#: contents/ui/FilmDayView.qml:1078
+#: contents/ui/FilmDayView.qml:1017
 msgid "Note"
 msgstr "Заметка"
 
-#: contents/ui/FilmDayView.qml:1084
+#: contents/ui/FilmDayView.qml:1023
 msgid "%1/%2"
 msgstr "%1/%2"
 
-#: contents/ui/FilmDayView.qml:1096
+#: contents/ui/FilmDayView.qml:1035
 msgid "Note (optional)"
 msgstr "Заметка (необязательно)"
 
-#: contents/ui/FilmDayView.qml:1133
+#: contents/ui/FilmDayView.qml:1072
 msgid "Other activities"
 msgstr "Другие виды деятельности"
 
-#: contents/ui/main.qml:277
+#: contents/ui/main.qml:274
 msgid "Loading…"
 msgstr "Загрузка…"
 
-#: contents/ui/main.qml:280
+#: contents/ui/main.qml:277
 msgid "Not configured — click to set up"
 msgstr "Не настроено — нажмите, чтобы настроить"
 
-#: contents/ui/main.qml:290 contents/ui/OfflineStatus.qml:53
+#: contents/ui/main.qml:287 contents/ui/OfflineStatus.qml:55
 msgid "%1 change not synced yet"
 msgid_plural "%1 changes not synced yet"
 msgstr[0] "%1 изменение ещё не синхронизировано"
 msgstr[1] "%1 изменения ещё не синхронизированы"
 msgstr[2] "%1 изменений ещё не синхронизировано"
 
-#: contents/ui/main.qml:511
+#: contents/ui/main.qml:508
 msgid "Connecting to %1…"
 msgstr "Подключение к %1…"
 
-#: contents/ui/main.qml:700
+#: contents/ui/main.qml:697
 msgid "Customer created"
 msgstr "Клиент создан"
 
-#: contents/ui/main.qml:700
+#: contents/ui/main.qml:697
 msgid "Project created"
 msgstr "Проект создан"
 
-#: contents/ui/main.qml:700
+#: contents/ui/main.qml:697
 msgid "Activity created"
 msgstr "Деятельность создана"
 
-#: contents/ui/main.qml:1019
+#: contents/ui/main.qml:891
 msgid "Trip saved"
 msgstr "Поездка сохранена"
 
-#: contents/ui/main.qml:1115
+#: contents/ui/main.qml:959
 msgid "Entry added"
 msgstr "Запись добавлена"
 
-#: contents/ui/main.qml:1115
+#: contents/ui/main.qml:959
 msgid "Entry updated"
 msgstr "Запись обновлена"
 
-#: contents/ui/main.qml:1116
+#: contents/ui/main.qml:960
 msgid "Manual time entry"
 msgstr "Ручная запись времени"
 
-#: contents/ui/main.qml:1116
+#: contents/ui/main.qml:960
 msgid "Timesheet updated"
 msgstr "Табель обновлён"
 
-#: contents/ui/main.qml:1362
+#: contents/ui/main.qml:1206
 msgid "Could not resolve project or activity for that entry"
 msgstr "Не удалось определить проект или активность для этой записи"
 
-#: contents/ui/main.qml:1406 contents/ui/UnsyncedList.qml:41
-msgid "Entry deleted"
-msgstr "Запись удалена"
-
-#: contents/ui/main.qml:1441
+#: contents/ui/main.qml:1285
 msgid "Entry split"
 msgstr "Запись разделена"
 
-#: contents/ui/main.qml:1452
+#: contents/ui/main.qml:1296
 msgid "Open or close the Plasmai popup"
 msgstr "Открыть или закрыть всплывающее окно Plasmai"
 
-#: contents/ui/main.qml:1621
+#: contents/ui/main.qml:1465
 msgid "Stop tracking %1 · %2?"
 msgstr "Остановить отслеживание %1 · %2?"
 
-#: contents/ui/main.qml:1726
+#: contents/ui/main.qml:1570
 msgid "Current"
 msgstr "Текущая"
 
-#: contents/ui/main.qml:1745
+#: contents/ui/main.qml:1589
 msgid "Switch to"
 msgstr "Переключиться на"
 
-#: contents/ui/main.qml:1801
+#: contents/ui/main.qml:1645
 msgid "Delete this finished entry? This cannot be undone."
 msgstr "Удалить эту завершённую запись? Это нельзя отменить."
 
-#: contents/ui/main.qml:1803
+#: contents/ui/main.qml:1647
 msgid "Delete \"%1 · %2\"? This cannot be undone."
 msgstr "Удалить «%1 · %2»? Это нельзя отменить."
 
-#: contents/ui/main.qml:1868
+#: contents/ui/main.qml:1712
 msgid "The first half keeps the original start. The second half starts at the split time."
 msgstr "Первая половина сохраняет исходное начало. Вторая начинается в момент разделения."
 
-#: contents/ui/main.qml:1873
+#: contents/ui/main.qml:1717
 msgid "Split at"
 msgstr "Разделить в"
 
-#: contents/ui/main.qml:1909
+#: contents/ui/main.qml:1753
 msgid "Both halves will have a positive duration."
 msgstr "Обе половины будут иметь положительную длительность."
 
-#: contents/ui/main.qml:1947
+#: contents/ui/main.qml:1791
 msgid "Keep the time, discard the idle gap, or discard and continue the same activity."
 msgstr "Оставить время, отбросить простой или отбросить и продолжить ту же деятельность."
 
-#: contents/ui/main.qml:2093
+#: contents/ui/main.qml:1937
 msgid "Trip"
 msgstr "Поездка"
 
-#: contents/ui/main.qml:2143
+#: contents/ui/main.qml:1987
 msgid "Add a manual time entry"
 msgstr "Добавить ручную запись времени"
 
-#: contents/ui/main.qml:2158
+#: contents/ui/main.qml:2002
 msgid "Show statistics"
 msgstr "Показать статистику"
 
-#: contents/ui/main.qml:2172
+#: contents/ui/main.qml:2016
 msgid "Log a shooting day"
 msgstr "Записать съёмочный день"
 
-#: contents/ui/main.qml:2186
+#: contents/ui/main.qml:2030
 msgid "Log a trip (Anfahrten plugin)"
 msgstr "Записать поездку (плагин Anfahrten)"
 
-#: contents/ui/main.qml:2196 contents/ui/SetupWizard.qml:856
+#: contents/ui/main.qml:2040 contents/ui/SetupWizard.qml:856
 msgid "Back"
 msgstr "Назад"
 
-#: contents/ui/main.qml:2201
+#: contents/ui/main.qml:2045
 msgid "Back to timer"
 msgstr "Назад к таймеру"
 
-#: contents/ui/ManualEntryView.qml:234
+#: contents/ui/ManualEntryView.qml:160
 msgid "Change project, activity, range, billable, and tags for this finished entry."
 msgstr "Изменить проект, деятельность, интервал, оплачиваемость и теги этой завершённой записи."
 
-#: contents/ui/ManualEntryView.qml:235
+#: contents/ui/ManualEntryView.qml:161
 msgid "Create a finished entry with project, activity, and time range."
 msgstr "Создать завершённую запись с проектом, активностью и диапазоном времени."
 
-#: contents/ui/ManualEntryView.qml:338
+#: contents/ui/ManualEntryView.qml:263
 msgid "Duration: %1"
 msgstr "Длительность: %1"
 
-#: contents/ui/ManualEntryView.qml:342
+#: contents/ui/ManualEntryView.qml:267
 msgid "Duration: —"
 msgstr "Длительность: —"
 
-#: contents/ui/ManualEntryView.qml:344
+#: contents/ui/ManualEntryView.qml:269
 msgid "Duration: invalid range"
 msgstr "Длительность: недопустимый диапазон"
 
-#: contents/ui/ManualEntryView.qml:386
+#: contents/ui/ManualEntryView.qml:311
 msgid "Save changes"
 msgstr "Сохранить изменения"
 
-#: contents/ui/ManualEntryView.qml:386
+#: contents/ui/ManualEntryView.qml:311
 msgid "Save entry"
 msgstr "Сохранить запись"
 
-#: contents/ui/OfflineStatus.qml:48
+#: contents/ui/OfflineStatus.qml:50
 msgid "Offline · as of %1"
 msgstr "Офлайн · состояние на %1"
 
-#: contents/ui/OfflineStatus.qml:51
+#: contents/ui/OfflineStatus.qml:53
 msgid "%1 change needs your decision"
 msgid_plural "%1 changes need your decision"
 msgstr[0] "%1 изменение ждёт вашего решения"
 msgstr[1] "%1 изменения ждут вашего решения"
 msgstr[2] "%1 изменений ждут вашего решения"
 
-#: contents/ui/OfflineStatus.qml:72 contents/ui/OfflineStatus.qml:100
-#: contents/ui/SetupWizard.qml:696
+#: contents/ui/OfflineStatus.qml:77 contents/ui/OfflineStatus.qml:105
+#: contents/ui/SetupWizard.qml:696 contents/ui/UnsyncedList.qml:160
 msgid "Show"
 msgstr "Показать"
 
@@ -2042,11 +2158,11 @@ msgstr "Показать"
 msgid "Other"
 msgstr "Другое"
 
-#: contents/ui/ProjectActivityPickers.qml:53
+#: contents/ui/ProjectActivityPickers.qml:115
 msgid "Select project…"
 msgstr "Выберите проект…"
 
-#: contents/ui/ProjectActivityPickers.qml:89
+#: contents/ui/ProjectActivityPickers.qml:152
 msgid "Select activity…"
 msgstr "Выберите активность…"
 
@@ -2274,7 +2390,7 @@ msgstr "Ключ API"
 msgid "API token"
 msgstr "API-токен"
 
-#: contents/ui/SetupWizard.qml:696
+#: contents/ui/SetupWizard.qml:696 contents/ui/UnsyncedList.qml:160
 msgid "Hide"
 msgstr "Скрыть"
 
@@ -2668,62 +2784,11 @@ msgstr[0] "+%1 найденная поездка"
 msgstr[1] "+%1 найденные поездки"
 msgstr[2] "+%1 найденных поездок"
 
-#: contents/ui/UnsyncedList.qml:34
-msgid "New entry"
-msgstr "Новая запись"
-
-#: contents/ui/UnsyncedList.qml:34
-msgid "Timer started"
-msgstr "Таймер запущен"
-
-#: contents/ui/UnsyncedList.qml:38
-msgid "Timer stopped"
-msgstr "Таймер остановлен"
-
-#: contents/ui/UnsyncedList.qml:38
-msgid "Entry changed"
-msgstr "Запись изменена"
-
-#: contents/ui/UnsyncedList.qml:44
-msgid "Trip added"
-msgstr "Поездка добавлена"
-
-#: contents/ui/UnsyncedList.qml:47
-msgid "Trip changed"
-msgstr "Поездка изменена"
-
-#: contents/ui/UnsyncedList.qml:50
-msgid "Trip deleted"
-msgstr "Поездка удалена"
-
-#: contents/ui/UnsyncedList.qml:53
-msgid "Film day details of %1"
-msgstr "Данные съёмочного дня %1"
-
-#: contents/ui/UnsyncedList.qml:102
-msgid "Activity"
-msgstr "Деятельность"
-
-#: contents/ui/UnsyncedList.qml:108
-msgid "Not accepted: %1"
-msgstr "Не принято: %1"
-
-#: contents/ui/UnsyncedList.qml:111
-msgid "Changed on the server meanwhile (%1). Overwrite it with this change, or discard this change?"
-msgstr "Тем временем изменено на сервере (%1). Перезаписать этим изменением или отменить это изменение?"
-
 #: contents/ui/UnsyncedList.qml:114
-msgid "Waiting for the connection"
-msgstr "Ожидает подключения"
-
-#: contents/ui/UnsyncedList.qml:120
-msgid "Everything is synced."
-msgstr "Всё синхронизировано."
-
-#: contents/ui/UnsyncedList.qml:161
 msgid "Overwrite"
 msgstr "Перезаписать"
 
-#: contents/ui/UnsyncedList.qml:165
+#: contents/ui/UnsyncedList.qml:118 contents/ui/UnsyncedList.qml:165
+#: contents/ui/UnsyncedList.qml:184
 msgid "Discard"
 msgstr "Отменить"

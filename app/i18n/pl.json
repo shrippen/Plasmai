@@ -9,6 +9,21 @@
 "%1 zmiany jeszcze niezsynchronizowane",
 "%1 zmian jeszcze niezsynchronizowanych"
 ],
+"\u0004%1 change waits for %2 on %3": [
+"%1 zmiana czeka dla %2 na %3",
+"%1 zmiany czekają dla %2 na %3",
+"%1 zmian czeka dla %2 na %3"
+],
+"\u0004%1 change waits for another server or account": [
+"%1 zmiana czeka na inny serwer lub inne konto",
+"%1 zmiany czekają na inny serwer lub inne konto",
+"%1 zmian czeka na inny serwer lub inne konto"
+],
+"\u0004%1 change waits on %2": [
+"%1 zmiana czeka na %2",
+"%1 zmiany czekają na %2",
+"%1 zmian czeka na %2"
+],
 "\u0004%1 day ago": [
 "%1 dzień temu",
 "%1 dni temu",
@@ -54,6 +69,16 @@
 "+%1 kolejne wykryte przejazdy",
 "+%1 kolejnych wykrytych przejazdów"
 ],
+"\u0004Discard %1 change for %2?": [
+"Odrzucić %1 zmianę dla %2?",
+"Odrzucić %1 zmiany dla %2?",
+"Odrzucić %1 zmian dla %2?"
+],
+"\u0004Discard %1 change on %2?": [
+"Odrzucić %1 zmianę na %2?",
+"Odrzucić %1 zmiany na %2?",
+"Odrzucić %1 zmian na %2?"
+],
 "\u0004Plural-Forms": "(n==1?0:n%10>=2&&n%10<=4&&(n%100<10||n%100>=20)?1:2)",
 "\u0004This activity has %1 more entry on this day (%2); the work time above does not include it.": [
 "Ta czynność ma tego dnia jeszcze %1 wpis (%2); czas pracy powyżej go nie obejmuje.",
@@ -62,6 +87,7 @@
 ],
 "\"%1\" was not found": "Nie znaleziono „%1”",
 "%1 (from your profile)": "%1 (z profilu)",
+"%1 (y = yes, any other key = no)": "%1 (y = tak, inny klawisz = nie)",
 "%1 left": "zostało %1",
 "%1 left this week": "Pozostało w tym tygodniu: %1",
 "%1 left today": "Pozostało dziś: %1",
@@ -134,6 +160,7 @@
 "Change engagement": "Zmień angaż",
 "Change project, activity, range, billable, and tags for this finished entry.": "Zmień projekt, czynność, zakres, płatność i tagi tego zakończonego wpisu.",
 "Changed on the server meanwhile (%1). Overwrite it with this change, or discard this change?": "W międzyczasie zmieniono na serwerze (%1). Nadpisać tą zmianą czy odrzucić tę zmianę?",
+"Changes need a decision · u": "Zmiany czekają na decyzję · u",
 "Check again": "Sprawdź ponownie",
 "Check your system": "Sprawdź system",
 "Choose a look": "Wybierz wygląd",
@@ -213,6 +240,7 @@
 "Discard": "Odrzuć",
 "Discard and continue": "Odrzuć i kontynuuj",
 "Discard idle": "Odrzuć bezczynność",
+"Discard this change?": "Odrzucić tę zmianę?",
 "Discarding idle time needs a connection to the server.": "Odrzucenie czasu bezczynności wymaga połączenia z serwerem.",
 "Dismiss": "Odrzuć",
 "Dismiss this detected trip": "Odrzuć ten wykryty przejazd",
@@ -242,6 +270,7 @@
 "Enter a distance between 0 and %1 km.": "Wpisz odległość od 0 do %1 km.",
 "Enter a valid start date/time.": "Podaj prawidłową datę/godzinę rozpoczęcia.",
 "Enter the distance.": "Wpisz odległość.",
+"Enter the old address or token again to send them.": "Wpisz ponownie stary adres lub token, aby je wysłać.",
 "Enter the server address.": "Wpisz adres serwera.",
 "Enter times instead": "Wpisz godziny",
 "Enter valid begin and end date/time.": "Wprowadź prawidłową datę i godzinę rozpoczęcia oraz zakończenia.",
@@ -480,6 +509,7 @@
 "Select customer…": "Wybierz klienta…",
 "Select project…": "Wybierz projekt…",
 "Self-hosted Kimai or the official hosted service (kimai.cloud). Paste the instance URL.": "Kimai self-hosted lub oficjalna usługa hostowana (kimai.cloud). Wklej URL instancji.",
+"Send this change again?": "Wysłać tę zmianę ponownie?",
 "Server URL:": "Adres URL serwera:",
 "Server address": "Adres serwera",
 "Server error (%1).": "Błąd serwera (%1).",
@@ -505,6 +535,7 @@
 "Show sun, moon, and work arcs": "Pokaż łuki słońca, księżyca i pracy",
 "Show work summary (today / week totals)": "Pokaż podsumowanie pracy (sumy z dziś / tygodnia)",
 "Show:": "Pokaż:",
+"Sign in as %1 to send them.": "Zaloguj się jako %1, aby je wysłać.",
 "Skip": "Pomiń",
 "So the day bar and the remaining hours fit you. All of this can be changed later in the settings.": "Aby pasek dnia i pozostałe godziny pasowały do ciebie. Wszystko możesz zmienić później w ustawieniach.",
 "SolidTime cloud API is prefilled. For self-hosting, replace with your instance base URL.": "API chmury SolidTime jest wstępnie wypełnione. Przy self-hostingu zamień na bazowy URL swojej instancji.",
@@ -669,5 +700,6 @@
 "skipped": "pominięto",
 "upcoming": "do zrobienia",
 "yesterday": "wczoraj",
-"© OpenStreetMap contributors": "© współtwórcy OpenStreetMap"
+"© OpenStreetMap contributors": "© współtwórcy OpenStreetMap",
+"↑↓ select · r send again · d discard · Esc back": "↑↓ wybierz · r wyślij ponownie · d odrzuć · Esc wstecz"
 }
