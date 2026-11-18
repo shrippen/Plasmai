@@ -72,9 +72,11 @@ TestCase {
         tryVerify(function() { return s.timer.tracking })
         const stopSpy = createTemporaryObject(signalSpy, this, { target: s, signalName: "stopped" })
 
-        s.timer.stop()
+        // The cause reaches `stopped`, so the notice can tell an idle stop from a manual one.
+        s.timer.stop(Ui.Session.StopCause.Idle)
         tryCompare(s.timer, "tracking", false)
         compare(stopSpy.count, 1)
+        compare(stopSpy.signalArguments[0][2], Ui.Session.StopCause.Idle)
 
         const first = s.recent.list[0]
         s.timer.start(Names.projectId(first), Names.activityId(first), "", "", "Test")
