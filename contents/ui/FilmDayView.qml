@@ -112,7 +112,6 @@ ColumnLayout {
     /** True while loadForDay() sets dayField programmatically (avoids re-triggering dayChosen). */
     property bool suppressDayChosen: false
 
-    readonly property alias pickers: pickers
     readonly property alias projectCombo: pickers.projectCombo
     readonly property alias activityCombo: pickers.activityCombo
     readonly property var selectedDay: DTF.coerceDate(dayField.selectedDate) || new Date()
@@ -145,6 +144,15 @@ ColumnLayout {
 
     function closePickers() {
         pickers.closePickers()
+    }
+
+    function selectProject(projectId) {
+        pickers.selectProjectId(projectId)
+    }
+
+    function selectActivity(activityId) {
+        pickers.pendingActivityId = activityId
+        pickers.trySelectPendingActivity()
     }
 
     Connections {

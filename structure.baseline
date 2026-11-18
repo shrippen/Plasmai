@@ -44,7 +44,7 @@ contents/code/statsData.js	weeklyHourTimeline	ccn=42 length=163
 contents/code/statsData.js	weeklyProjectStacks	ccn=24 length=92
 contents/code/timesheetFields.js	colorFromTagName	nesting=5
 contents/code/timesheetFields.js	hydrateTimesheets	ccn=32
-contents/ui/FilmDayView.qml	-	lines=1090
+contents/ui/FilmDayView.qml	-	lines=1098
 contents/ui/FilmDayView.qml	applyLoadedDay	ccn=16
 contents/ui/ScreenshotRunner.qml	(anonymous)	nesting=10
 contents/ui/ScreenshotRunner.qml	step	ccn=30 length=135 nesting=15
@@ -52,7 +52,7 @@ contents/ui/SearchableCombo.qml	Keys.onPressed	nesting=5
 contents/ui/SetupWizard.qml	-	lines=899
 contents/ui/config/ConfigDisplay.qml	-	lines=987
 contents/ui/config/ConfigDisplay.qml	applyShared	ccn=34 length=113
-contents/ui/main.qml	-	lines=2746
+contents/ui/main.qml	-	lines=2745
 demo/bench-report.py	medians	ccn=27
 tests/lib/atspi_clicks.py	collect_clickables	ccn=18
 tests/lib/atspi_clicks.py	should_skip	ccn=21
