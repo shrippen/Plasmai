@@ -115,8 +115,9 @@ TestCase {
         verify(page !== null)
         const view = findView(page)
         verify(view !== null)
+        const day = named("open")[0].date
         calls = []
-        return { page: page, view: view }
+        return { page: page, view: view, day: day }
     }
 
     function named(name) {
@@ -132,7 +133,7 @@ TestCase {
 
     function test_day_step_loads_the_neighbour_day() {
         const p = openPage()
-        const before = new Date(p.page.selectedDate)
+        const before = new Date(p.day)
         p.view.dayStepRequested(-1)
         compare(named("load").length, 1)
         const loaded = named("load")[0].date
@@ -219,7 +220,7 @@ TestCase {
         p.view.extrasEdited({ crew: 2 })
         compare(named("extras").length, 1)
         compare(named("extras")[0].req.fields.crew, 2)
-        compare(named("extras")[0].req.date.getTime(), p.page.selectedDate.getTime())
+        compare(named("extras")[0].req.date.getTime(), p.day.getTime())
         tc.answers.earnings(1234)
         compare(p.view.earningsCents, 1234)
         tc.answers.extras({ extras: "failed", error: { type: "unknown", status: 400, detail: "No extras" } })
@@ -264,6 +265,6 @@ TestCase {
         const p = openPage()
         p.view.projectPicked(7)
         compare(named("load").length, 1)
-        compare(named("load")[0].date.getTime(), p.page.selectedDate.getTime())
+        compare(named("load")[0].date.getTime(), p.day.getTime())
     }
 }

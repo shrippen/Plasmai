@@ -35,6 +35,20 @@ TestCase {
         }
     }
 
+    /** The trip sheet inside the page: the item with the sheet's save signal. */
+    function sheetOf(item) {
+        if (typeof item.saveRequested === "function" && typeof item.load === "function") {
+            return item
+        }
+        for (const child of item.children) {
+            const found = sheetOf(child)
+            if (found) {
+                return found
+            }
+        }
+        return null
+    }
+
     /** Opens the page, lets `open` start a request, destroys it, calls the stored answer; returns what it threw. */
     function lateAnswers(open, answer) {
         const h = createTemporaryObject(host, tc)
@@ -54,22 +68,22 @@ TestCase {
     }
 
     function test_late_save_answer_does_not_throw() {
-        compare(lateAnswers(function(p) { p.save({ km: 5 }, null, {}) }, { ok: true, data: null }), [])
+        compare(lateAnswers(function(p) { sheetOf(p).saveRequested({ km: 5 }, null, {}) }, { ok: true, data: null }), [])
     }
 
     function test_late_save_failure_does_not_throw() {
-        compare(lateAnswers(function(p) { p.save({ km: 5 }, null, {}) }, { ok: false, error: { detail: "x" } }), [])
+        compare(lateAnswers(function(p) { sheetOf(p).saveRequested({ km: 5 }, null, {}) }, { ok: false, error: { detail: "x" } }), [])
     }
 
     function test_late_patch_answer_does_not_throw() {
-        compare(lateAnswers(function(p) { p.save({ km: 5 }, 4, {}) }, { ok: true, data: null }), [])
+        compare(lateAnswers(function(p) { sheetOf(p).saveRequested({ km: 5 }, 4, {}) }, { ok: true, data: null }), [])
     }
 
     function test_late_remove_answer_does_not_throw() {
-        compare(lateAnswers(function(p) { p.remove(4) }, { ok: true }), [])
+        compare(lateAnswers(function(p) { sheetOf(p).deleteRequested(4) }, { ok: true }), [])
     }
 
     function test_late_remove_failure_does_not_throw() {
-        compare(lateAnswers(function(p) { p.remove(4) }, { ok: false, error: { detail: "x" } }), [])
+        compare(lateAnswers(function(p) { sheetOf(p).deleteRequested(4) }, { ok: false, error: { detail: "x" } }), [])
     }
 }

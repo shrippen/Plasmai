@@ -23,32 +23,16 @@ Kirigami.Page {
     property var suggestion: null
     readonly property bool busy: session.trips.busy
 
-    function done(tripJson) {
-        if (tripJson) {
-            root.showPassiveNotification(i18n("Trip saved: %1 km", Mileage.displayKm(Mileage.tripKm(tripJson))))
+    TripSheetBinding {
+        session: page.session
+        view: sheet
+        suggestion: page.suggestion
+        onDone: function(trip) {
+            if (trip) {
+                root.showPassiveNotification(i18n("Trip saved: %1 km", Mileage.displayKm(Mileage.tripKm(trip))))
+            }
+            pageStack.pop()
         }
-        pageStack.pop()
-    }
-
-    function failed(error) {
-        sheet.serverErrors = (error && error.fields) ? error.fields : ({})
-        sheet.errorText = ApiErrors.withServer(error)
-    }
-
-    function save(body, tripId, form) {
-        session.trips.save(body, tripId, form, page.suggestion, function(r) {
-            // The page is gone: nothing to close or show.
-            if (!page) { return }
-            if (r.ok) page.done(r.data); else page.failed(r.error)
-        })
-    }
-
-    function remove(tripId) {
-        session.trips.remove(tripId, function(r) {
-            // The page is gone: nothing to close or show.
-            if (!page) { return }
-            if (r.ok) page.done(null); else page.failed(r.error)
-        })
     }
 
     Component.onCompleted: sheet.load(page.form || Mileage.emptyForm(session.trips.ping, ""), page.original, page.linkedText, !!page.suggestion)
@@ -69,14 +53,7 @@ Kirigami.Page {
                 id: sheet
                 Layout.fillWidth: true
                 busy: page.busy
-                places: session.setup
-                configured: session.connection.configured
                 connectionOk: session.connection.state !== "error"
-                ping: session.trips.ping
-                meta: session.trips.meta
-                vehicles: session.trips.vehicles
-                onSaveRequested: function(body, tripId, form) { page.save(body, tripId, form) }
-                onDeleteRequested: function(tripId) { page.remove(tripId) }
                 onCancelled: pageStack.pop()
             }
 

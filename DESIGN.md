@@ -456,7 +456,7 @@ read as Kante. It is the design system's `KanteStyle.Kind.KanteLight`:
 ### Film day view (Kimai only)
 
 - `mainViewMode: "filmday"` (`FilmDayView.qml`; app: `FilmDayPage.qml` with the
-  shared copy), gated by `providerCapabilities.filmDays` (Kimai only — no parallel
+  shared copy; both connect it to the session through `FilmDayBinding.qml`), gated by `providerCapabilities.filmDays` (Kimai only — no parallel
   UI on other providers).
 - **Three states** (`FilmDays.phaseOf`, `FilmDaySync.viewInfo`), the view is an
   alternative to the timer page, not a separate tracker:

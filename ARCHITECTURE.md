@@ -16,7 +16,7 @@ favourites, statistics, offline work; for Kimai also film days and trips.
 | Path | Its one task |
 |---|---|
 | `contents/ui/main.qml` and the files only it uses | The widget: panel chip and popup. It keeps view state and words the session's signals. |
-| `contents/ui/` (other files) | Components the widget and the app share: views and editors, pickers, fields, charts, rows, the setup wizard, `ApiErrors` (error kinds to texts), `EntryTexts` (the texts about entries and the day both show), `PlasmaiColors`. |
+| `contents/ui/` (other files) | Components the widget and the app share: views and editors, pickers, fields, charts, rows, the setup wizard, `ApiErrors` (error kinds to texts), `EntryTexts` (the texts about entries and the day both show), `PlasmaiColors`, `FilmDayBinding` and `TripSheetBinding` (connect the film day view and the trip form to the session; the host words only how a message appears). |
 | `contents/ui/config/`, `contents/config/` | The widget's settings pages; the description of its settings with their defaults (`main.xml`). |
 | `contents/ui/Session.qml`, `contents/ui/session/` | The session layer: everything a view needs of the tracker, without a view and without texts. One file per part (connection, settings, catalog, timer, entries, totals, sync, film day, trips, statistics, reminders, setup). |
 | `contents/code/timeTracker.js`, `kimaiApi.js`, `providers/`, `providerUtil.js` | The providers: the registry with each provider's capabilities, one file per service (`kimaiApi.js` holds Kimai's requests only), and what they share (request, answer, error kinds). |
@@ -102,8 +102,6 @@ favourites, statistics, offline work; for Kimai also film days and trips.
 
 ## Known deviations
 
-- Widget and app each bind the film day and trip views to the session (`AUDIT.md`,
-  finding 1).
 - The offline layer's files belong to a profile, the catalog cache to a profile and
   its server (`AUDIT.md`, finding 9).
 - `contents/ui/main.qml` is one file of 2771 lines, still over the size limit; film day,
