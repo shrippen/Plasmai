@@ -481,8 +481,6 @@
 "Select customer…": "Klant kiezen…",
 "Select project…": "Project selecteren…",
 "Self-hosted Kimai or the official hosted service (kimai.cloud). Paste the instance URL.": "Zelfgehoste Kimai of de officiële hosted dienst (kimai.cloud). Plak de instantie-URL.",
-"Send here": "Hierheen sturen",
-"Send these changes to %1 instead of %2? Each entry is checked on the server first.": "Deze wijzigingen naar %1 sturen in plaats van naar %2? Elk item wordt eerst op de server gecontroleerd.",
 "Send this change again?": "Deze wijziging opnieuw sturen?",
 "Server URL:": "Server-URL:",
 "Server address": "Serveradres",
@@ -671,5 +669,5 @@
 "upcoming": "nog te doen",
 "yesterday": "gisteren",
 "© OpenStreetMap contributors": "© OpenStreetMap-bijdragers",
-"↑↓ select · r send again · a send here · d discard · Esc back": "↑↓ kiezen · r opnieuw sturen · a hierheen sturen · d verwerpen · Esc terug"
+"↑↓ select · r send again · d discard · Esc back": "↑↓ kiezen · r opnieuw sturen · d verwerpen · Esc terug"
 }

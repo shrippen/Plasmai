@@ -512,8 +512,6 @@
 "Select customer…": "Вибрати клієнта…",
 "Select project…": "Оберіть проєкт…",
 "Self-hosted Kimai or the official hosted service (kimai.cloud). Paste the instance URL.": "Самостійно розміщений Kimai або офіційний хостинг (kimai.cloud). Вставте URL екземпляра.",
-"Send here": "Надіслати сюди",
-"Send these changes to %1 instead of %2? Each entry is checked on the server first.": "Надіслати ці зміни на %1 замість %2? Кожен запис спершу перевіряється на сервері.",
 "Send this change again?": "Надіслати цю зміну ще раз?",
 "Server URL:": "URL сервера:",
 "Server address": "Адреса сервера",
@@ -711,5 +709,5 @@
 "upcoming": "попереду",
 "yesterday": "учора",
 "© OpenStreetMap contributors": "© учасники OpenStreetMap",
-"↑↓ select · r send again · a send here · d discard · Esc back": "↑↓ вибір · r надіслати знову · a надіслати сюди · d відкинути · Esc назад"
+"↑↓ select · r send again · d discard · Esc back": "↑↓ вибір · r надіслати знову · d відкинути · Esc назад"
 }

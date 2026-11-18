@@ -4,7 +4,7 @@ import "../../contents/ui" as Ui
 
 /**
  * Changes parked for another server or account: the status line counts them apart, the list
- * shows one block per group (read only, foldable) with "Discard", each after one question that names the addresses. The words stand once, in ApiErrors.
+ * shows one block per group (read only, foldable) with "Discard", which asks once. Nothing is sent to another address. The words stand once, in ApiErrors.
  */
 TestCase {
     name: "UnsyncedGroups"

@@ -12,7 +12,7 @@ import "tuiView.js" as View
  * The terminal client (`plasmai-app --tui`): the same Session as the app,
  * drawn as text. Keys: 1–9 or ↑↓ Enter start or switch to a recent entry,
  * s stop, t day, w week, r refresh, Esc back, q quit; u lists the waiting changes
- * (↑↓ select, r send again, a send a parked group here, d discard; y confirms).
+ * (↑↓ select, r send again, d discard; y confirms).
  *
  *   Terminal.keyPressed ──▶ handle() ──▶ Session actions
  *   Session state / 1 s tick ──▶ draw() ──▶ View.main|day|week ──▶ Terminal.render
@@ -151,11 +151,11 @@ QtObject {
     function unsyncedItems() {
         const ops = session.sync.ops.map(function(op) {
             return { kind: View.ItemKind.OP, id: op.opId, title: Ui.ApiErrors.opKindText(op),
-                     sub: Ui.ApiErrors.opStateText(op), canAdopt: false }
+                     sub: Ui.ApiErrors.opStateText(op) }
         })
         const groups = session.sync.groups.map(function(group) {
             return { kind: View.ItemKind.GROUP, id: group.id, title: Ui.ApiErrors.heldGroupText(group),
-                     sub: Ui.ApiErrors.heldHint(group), canAdopt: group.canAdopt, group: group }
+                     sub: Ui.ApiErrors.heldHint(group), group: group }
         })
         return ops.concat(groups)
     }
@@ -164,8 +164,6 @@ QtObject {
         const item = pending.item
         if (pending.action === View.Action.RETRY) {
             session.sync.retry(item.id)
-        } else if (pending.action === View.Action.ADOPT) {
-            session.sync.adopt(item.id)
         } else if (item.kind === View.ItemKind.GROUP) {
             session.sync.discardGroup(item.id)
         } else {
@@ -180,9 +178,7 @@ QtObject {
         }
         const item = asked.item
         let question = i18n("Send this change again?")
-        if (asked.action === View.Action.ADOPT) {
-            question = Ui.ApiErrors.adoptQuestion(item.group)
-        } else if (asked.action === View.Action.DISCARD) {
+        if (asked.action === View.Action.DISCARD) {
             question = item.kind === View.ItemKind.GROUP ? Ui.ApiErrors.discardGroupQuestion(item.group) : i18n("Discard this change?")
         }
         return i18n("%1 (y = yes, any other key = no)", question)
@@ -211,7 +207,7 @@ QtObject {
             gaps: i18n("Gaps:"),
             total: i18n("Total"),
             unsyncedTitle: i18n("Not synced"),
-            unsyncedKeys: i18n("↑↓ select · r send again · a send here · d discard · Esc back"),
+            unsyncedKeys: i18n("↑↓ select · r send again · d discard · Esc back"),
             allSynced: i18n("Everything is synced."),
             mainKeys: i18n("1–9 start · s stop · t day · w week · r refresh · q quit"),
             subKeys: i18n("Esc back · s stop · r refresh · q quit")

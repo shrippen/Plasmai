@@ -480,8 +480,6 @@
 "Select customer…": "顧客を選択…",
 "Select project…": "プロジェクトを選択…",
 "Self-hosted Kimai or the official hosted service (kimai.cloud). Paste the instance URL.": "セルフホストのKimai、または公式ホストサービス（kimai.cloud）。インスタンスURLを貼り付けてください。",
-"Send here": "ここに送信",
-"Send these changes to %1 instead of %2? Each entry is checked on the server first.": "これらの変更を %2 ではなく %1 に送信しますか？各エントリはまずサーバー上で確認されます。",
 "Send this change again?": "この変更をもう一度送信しますか？",
 "Server URL:": "サーバー URL:",
 "Server address": "サーバーアドレス",
@@ -677,5 +675,5 @@
 "upcoming": "未完了",
 "yesterday": "昨日",
 "© OpenStreetMap contributors": "© OpenStreetMap の貢献者",
-"↑↓ select · r send again · a send here · d discard · Esc back": "↑↓ 選択 · r 再送信 · a ここに送信 · d 破棄 · Esc 戻る"
+"↑↓ select · r send again · d discard · Esc back": "↑↓ 選択 · r 再送信 · d 破棄 · Esc 戻る"
 }

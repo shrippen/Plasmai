@@ -150,14 +150,6 @@ QtObject {
         session.refresh()
     }
 
-    /** Sends a parked group to this server (made on another address with the same token). */
-    function adopt(id) {
-        Offline.adopt(state, id, function() {
-            session.entriesWritten()
-            session.refresh()
-        })
-    }
-
     function discardGroup(id) {
         Offline.discardGroup(state, id)
     }

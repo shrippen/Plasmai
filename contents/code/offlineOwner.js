@@ -295,27 +295,16 @@ function settle(s, identity, now) {
 
 // -- Held groups ----------------------------------------------------------------
 
-/**
- * A group may be sent here when it was made on another address with the token in use (the
- * same user there, as far as an account is known). Another token is another user: no.
- */
-function canAdopt(s, group) {
-    var owner = s.owner
-    return !!s.verified && !!owner && group.owner.server !== owner.server
-        && group.owner.mark === owner.mark && accountsFit(group.owner.account, owner.account)
-}
-
 function ownerName(owner) {
     return owner.name || owner.account || ""
 }
 
-/** The groups for the lists: owner, count, whether they can be sent here. */
+/** The groups for the lists: owner, address, count. */
 function groups(s) {
     return s.held.map(function(group) {
         return { id: group.id, name: ownerName(group.owner), server: group.owner.server,
                  account: group.owner.account, count: group.ops.length, heldAt: group.heldAt,
-                 to: s.owner ? s.owner.server : "", sameServer: !!s.owner && group.owner.server === s.owner.server,
-                 canAdopt: canAdopt(s, group), ops: clone(group.ops) }
+                 sameServer: !!s.owner && group.owner.server === s.owner.server, ops: clone(group.ops) }
     })
 }
 
@@ -330,30 +319,6 @@ function indexOfGroup(s, id) {
         }
     }
     return -1
-}
-
-/**
- * The group's ops go behind the queue, pending again and stamped with the connection in use:
- * what blocked them (a refusal, a conflict, a forced overwrite) was said to another server.
- * Their base stays, so every server entry that is changed or deleted is read again and a
- * difference is a conflict; nothing is overwritten blind.
- */
-function adopt(s, id) {
-    var at = indexOfGroup(s, id)
-    if (at < 0 || !canAdopt(s, s.held[at])) {
-        return false
-    }
-    var group = s.held.splice(at, 1)[0]
-    for (var i = 0; i < group.ops.length; i++) {
-        var op = group.ops[i]
-        op.state = OfflineState.State.PENDING
-        op.error = null
-        delete op.server
-        delete op.force
-        stamp(op, s.owner)
-    }
-    s.ops = s.ops.concat(group.ops)
-    return true
 }
 
 function dropGroup(s, id) {

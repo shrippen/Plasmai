@@ -27,7 +27,7 @@ var Style = {
 }
 
 /** What a key does in the list of waiting changes. */
-var Action = { NONE: "none", RETRY: "retry", DISCARD: "discard", ADOPT: "adopt" }
+var Action = { NONE: "none", RETRY: "retry", DISCARD: "discard" }
 /** What a row of that list is: a change that waits here, or a group parked for another owner. */
 var ItemKind = { OP: "op", GROUP: "group" }
 
@@ -264,7 +264,7 @@ function week(model, size, t) {
     return lines.join("\n")
 }
 
-/** d discards, r sends a change again, a sends a group that may be sent here (asked before). */
+/** d discards, r sends a change again (asked before). */
 function unsyncedAction(key, item) {
     if (!item) {
         return Action.NONE
@@ -274,9 +274,6 @@ function unsyncedAction(key, item) {
     }
     if (key === "r" && item.kind === ItemKind.OP) {
         return Action.RETRY
-    }
-    if (key === "a" && item.kind === ItemKind.GROUP && item.canAdopt) {
-        return Action.ADOPT
     }
     return Action.NONE
 }

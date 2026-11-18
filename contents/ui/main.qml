@@ -2116,7 +2116,6 @@ PlasmoidItem {
                         onOverwriteRequested: function(opId) { root.session.sync.overwrite(opId) }
                         onDiscardRequested: function(opId) { root.session.sync.discard(opId) }
                         groups: root.session.sync.groups
-                        onAdoptRequested: function(id) { root.session.sync.adopt(id) }
                         onDiscardGroupRequested: function(id) { root.session.sync.discardGroup(id) }
                     }
                 }

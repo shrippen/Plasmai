@@ -148,20 +148,12 @@ QtObject {
         return i18np("%1 change waits for %2 on %3", "%1 changes wait for %2 on %3", group.count, group.name, group.server)
     }
 
-    /** What to do with a group that cannot be sent here ("" for one that can). */
+    /** What brings a parked group back: its connection, or the account it was made for. */
     function heldHint(group) {
-        if (group.canAdopt) {
-            return ""
-        }
         if (group.name && group.sameServer) {
             return i18n("Sign in as %1 to send them.", group.name)
         }
         return i18n("Enter the old address or token again to send them.")
-    }
-
-    /** The question before a group is sent to the address in use; it names both addresses. */
-    function adoptQuestion(group) {
-        return i18n("Send these changes to %1 instead of %2? Each entry is checked on the server first.", group.to, group.server)
     }
 
     function discardGroupQuestion(group) {

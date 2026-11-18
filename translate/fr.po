@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-11-17 23:43+0100\n"
+"POT-Creation-Date: 2026-11-18 07:04+0100\n"
 "PO-Revision-Date: 2026-08-09 19:45+0200\n"
 "Last-Translator: Cursor Agent\n"
 "Language-Team: French\n"
@@ -171,7 +171,7 @@ msgstr "Enregistrer"
 #: contents/ui/ActiveEditView.qml:393 contents/ui/Controls/TimePicker.qml:113
 #: contents/ui/EntryLists.qml:156 contents/ui/FilmDayView.qml:946
 #: contents/ui/main.qml:1768 contents/ui/ManualEntryView.qml:404
-#: contents/ui/TripSheet.qml:433 contents/ui/UnsyncedList.qml:204
+#: contents/ui/TripSheet.qml:433 contents/ui/UnsyncedList.qml:192
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -302,11 +302,11 @@ msgstr "Quitter"
 msgid "Saved without the billable change: your Kimai account is not allowed to edit billable."
 msgstr "Enregistré sans modifier « facturable » : votre compte Kimai n’a pas le droit de le modifier."
 
-#: app/qml/main.qml:246 app/qml/tui/Tui.qml:333
+#: app/qml/main.qml:246 app/qml/tui/Tui.qml:329
 msgid "Could not start tracking"
 msgstr "Impossible de démarrer le suivi"
 
-#: app/qml/main.qml:249 app/qml/tui/Tui.qml:331
+#: app/qml/main.qml:249 app/qml/tui/Tui.qml:327
 msgid "Could not stop tracking"
 msgstr "Impossible d’arrêter le suivi"
 
@@ -563,7 +563,7 @@ msgstr "Semaine %1"
 msgid "Not configured"
 msgstr "Non configuré"
 
-#: app/qml/TimerPage.qml:170 app/qml/tui/Tui.qml:239
+#: app/qml/TimerPage.qml:170 app/qml/tui/Tui.qml:235
 #: contents/ui/SetupWizard.qml:888
 msgid "Connecting…"
 msgstr "Connexion…"
@@ -580,16 +580,16 @@ msgstr "Connecté à %1 (%2)"
 msgid "Connected to %1"
 msgstr "Connecté à %1"
 
-#: app/qml/TimerPage.qml:190 contents/ui/main.qml:2319
-#: contents/ui/UnsyncedList.qml:110
+#: app/qml/TimerPage.qml:190 contents/ui/main.qml:2318
+#: contents/ui/UnsyncedList.qml:109
 msgid "Retry"
 msgstr "Réessayer"
 
-#: app/qml/TimerPage.qml:191 contents/ui/main.qml:2324
+#: app/qml/TimerPage.qml:191 contents/ui/main.qml:2323
 msgid "Configure"
 msgstr "Configurer"
 
-#: app/qml/TimerPage.qml:241 contents/ui/main.qml:2307
+#: app/qml/TimerPage.qml:241 contents/ui/main.qml:2306
 msgid "More options in the settings"
 msgstr "Plus d’options dans les paramètres"
 
@@ -684,12 +684,12 @@ msgstr "Déjà en cours."
 msgid "Pin an entry from Recent to add it to your favorites."
 msgstr "Épinglez une entrée de « Récents » pour l’ajouter à vos favoris."
 
-#: app/qml/TimerPage.qml:745 app/qml/tui/Tui.qml:207
+#: app/qml/TimerPage.qml:745 app/qml/tui/Tui.qml:203
 #: contents/ui/EntryLists.qml:306
 msgid "Recent"
 msgstr "Récents"
 
-#: app/qml/TimerPage.qml:768 app/qml/tui/Tui.qml:205
+#: app/qml/TimerPage.qml:768 app/qml/tui/Tui.qml:201
 #: contents/ui/DateField.qml:156 contents/ui/EntryLists.qml:337
 #: contents/ui/FilmDayView.qml:583 contents/ui/StatsView.qml:241
 #: contents/ui/StatsView.qml:293 contents/ui/StatsView.qml:394
@@ -801,7 +801,7 @@ msgstr "aller-retour"
 
 #: app/qml/TripsPage.qml:80 contents/ui/main.qml:1053
 #: contents/ui/StatsView.qml:245 contents/ui/StatsView.qml:327
-#: contents/ui/TripSuggestionList.qml:84 contents/ui/UnsyncedList.qml:46
+#: contents/ui/TripSuggestionList.qml:84 contents/ui/UnsyncedList.qml:45
 msgid "%1 km"
 msgstr "%1 km"
 
@@ -855,92 +855,92 @@ msgstr "Aucun trajet ce mois-ci"
 msgid "Time entry #%1"
 msgstr "Saisie de temps n° %1"
 
-#: app/qml/tui/Tui.qml:182
+#: app/qml/tui/Tui.qml:180
 msgid "Send this change again?"
 msgstr "Renvoyer cette modification ?"
 
-#: app/qml/tui/Tui.qml:186
+#: app/qml/tui/Tui.qml:182
 msgid "Discard this change?"
 msgstr "Abandonner cette modification ?"
 
-#: app/qml/tui/Tui.qml:188
+#: app/qml/tui/Tui.qml:184
 msgid "%1 (y = yes, any other key = no)"
 msgstr "%1 (y = oui, autre touche = non)"
 
-#: app/qml/tui/Tui.qml:204
+#: app/qml/tui/Tui.qml:200
 msgid "Nothing is running"
 msgstr "Rien n’est en cours"
 
-#: app/qml/tui/Tui.qml:206
+#: app/qml/tui/Tui.qml:202
 msgid "Week"
 msgstr "Semaine"
 
-#: app/qml/tui/Tui.qml:208
+#: app/qml/tui/Tui.qml:204
 msgid "No recent entries"
 msgstr "Aucune entrée récente"
 
-#: app/qml/tui/Tui.qml:209
+#: app/qml/tui/Tui.qml:205
 msgid "No entries this week"
 msgstr "Aucune entrée cette semaine"
 
-#: app/qml/tui/Tui.qml:210
+#: app/qml/tui/Tui.qml:206
 msgid "No gaps in the work day"
 msgstr "Aucun trou dans la journée de travail"
 
-#: app/qml/tui/Tui.qml:211
+#: app/qml/tui/Tui.qml:207
 msgid "Gaps:"
 msgstr "Trous :"
 
-#: app/qml/tui/Tui.qml:212
+#: app/qml/tui/Tui.qml:208
 msgid "Total"
 msgstr "Total"
 
-#: app/qml/tui/Tui.qml:213 app/qml/UnsyncedPage.qml:14
+#: app/qml/tui/Tui.qml:209 app/qml/UnsyncedPage.qml:14
 #: contents/ui/main.qml:2090
 msgid "Not synced"
 msgstr "Non synchronisé"
 
-#: app/qml/tui/Tui.qml:214
-msgid "↑↓ select · r send again · a send here · d discard · Esc back"
-msgstr "↑↓ choisir · r renvoyer · a envoyer ici · d abandonner · Esc retour"
+#: app/qml/tui/Tui.qml:210
+msgid "↑↓ select · r send again · d discard · Esc back"
+msgstr "↑↓ choisir · r renvoyer · d abandonner · Esc retour"
 
-#: app/qml/tui/Tui.qml:215 contents/ui/UnsyncedList.qml:229
+#: app/qml/tui/Tui.qml:211 contents/ui/UnsyncedList.qml:217
 msgid "Everything is synced."
 msgstr "Tout est synchronisé."
 
-#: app/qml/tui/Tui.qml:216
+#: app/qml/tui/Tui.qml:212
 msgid "1–9 start · s stop · t day · w week · r refresh · q quit"
 msgstr "1–9 démarrer · s arrêter · t jour · w semaine · r actualiser · q quitter"
 
-#: app/qml/tui/Tui.qml:217
+#: app/qml/tui/Tui.qml:213
 msgid "Esc back · s stop · r refresh · q quit"
 msgstr "Esc retour · s arrêter · r actualiser · q quitter"
 
-#: app/qml/tui/Tui.qml:224
+#: app/qml/tui/Tui.qml:220
 msgid "Set up a connection in the Plasmai app first"
 msgstr "Configurez d’abord une connexion dans l’application Plasmai"
 
-#: app/qml/tui/Tui.qml:227
+#: app/qml/tui/Tui.qml:223
 msgid "Server not reachable"
 msgstr "Serveur injoignable"
 
-#: app/qml/tui/Tui.qml:233
+#: app/qml/tui/Tui.qml:229
 msgid "Changes need a decision · u"
 msgstr "Modifications en attente de décision · u"
 
-#: app/qml/tui/Tui.qml:236
+#: app/qml/tui/Tui.qml:232
 msgid "Offline · %1 not synced"
 msgstr "Hors ligne · %1 non synchronisé(s)"
 
-#: app/qml/tui/Tui.qml:241
+#: app/qml/tui/Tui.qml:237
 msgid "Online"
 msgstr "En ligne"
 
-#: app/qml/tui/Tui.qml:332
+#: app/qml/tui/Tui.qml:328
 msgid "Could not refresh"
 msgstr "Échec de l’actualisation"
 
-#: app/qml/tui/Tui.qml:342
+#: app/qml/tui/Tui.qml:338
 msgid "This build has no demo"
 msgstr "Cette version n’a pas de démo"
 
@@ -1164,19 +1164,15 @@ msgid_plural "%1 changes wait for %2 on %3"
 msgstr[0] "%1 modification attend pour %2 sur %3"
 msgstr[1] "%1 modifications attendent pour %2 sur %3"
 
-#: contents/ui/ApiErrors.qml:157
+#: contents/ui/ApiErrors.qml:154
 msgid "Sign in as %1 to send them."
 msgstr "Connecte-toi en tant que %1 pour les envoyer."
 
-#: contents/ui/ApiErrors.qml:159
+#: contents/ui/ApiErrors.qml:156
 msgid "Enter the old address or token again to send them."
 msgstr "Saisis à nouveau l’ancienne adresse ou l’ancien jeton pour les envoyer."
 
-#: contents/ui/ApiErrors.qml:164
-msgid "Send these changes to %1 instead of %2? Each entry is checked on the server first."
-msgstr "Envoyer ces modifications à %1 au lieu de %2 ? Chaque entrée est d’abord vérifiée sur le serveur."
-
-#: contents/ui/ApiErrors.qml:168
+#: contents/ui/ApiErrors.qml:160
 msgid "Discard %1 change for %2?"
 msgid_plural "Discard %1 changes for %2?"
 msgstr[0] "Abandonner %1 modification pour %2 ?"
@@ -2131,7 +2127,7 @@ msgstr[0] "%1 modification attend ta décision"
 msgstr[1] "%1 modifications attendent ta décision"
 
 #: contents/ui/OfflineStatus.qml:77 contents/ui/OfflineStatus.qml:105
-#: contents/ui/SetupWizard.qml:696 contents/ui/UnsyncedList.qml:161
+#: contents/ui/SetupWizard.qml:696 contents/ui/UnsyncedList.qml:160
 msgid "Show"
 msgstr "Afficher"
 
@@ -2373,7 +2369,7 @@ msgstr "Clé API"
 msgid "API token"
 msgstr "Jeton API"
 
-#: contents/ui/SetupWizard.qml:696 contents/ui/UnsyncedList.qml:161
+#: contents/ui/SetupWizard.qml:696 contents/ui/UnsyncedList.qml:160
 msgid "Hide"
 msgstr "Masquer"
 
@@ -2765,15 +2761,11 @@ msgid_plural "+%1 more detected trips"
 msgstr[0] "+%1 autre trajet détecté"
 msgstr[1] "+%1 autres trajets détectés"
 
-#: contents/ui/UnsyncedList.qml:115
+#: contents/ui/UnsyncedList.qml:114
 msgid "Overwrite"
 msgstr "Écraser"
 
-#: contents/ui/UnsyncedList.qml:119 contents/ui/UnsyncedList.qml:172
-#: contents/ui/UnsyncedList.qml:191
+#: contents/ui/UnsyncedList.qml:118 contents/ui/UnsyncedList.qml:165
+#: contents/ui/UnsyncedList.qml:184
 msgid "Discard"
 msgstr "Abandonner"
-
-#: contents/ui/UnsyncedList.qml:167 contents/ui/UnsyncedList.qml:191
-msgid "Send here"
-msgstr "Envoyer ici"

@@ -624,17 +624,6 @@ function heldCount(s) {
     return Owner.heldCount(s)
 }
 
-/** Sends a parked group over the connection in use (same token only); callback(sent) when the replay stops. */
-function adopt(s, id, callback) {
-    if (!Owner.adopt(s, id)) {
-        return false
-    }
-    Outbox.saveOutbox(s)
-    OfflineState.notify(s)
-    Outbox.replay(s, callback)
-    return true
-}
-
 function discardGroup(s, id) {
     if (!Owner.dropGroup(s, id)) {
         return

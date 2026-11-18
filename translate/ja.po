@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-11-17 23:43+0100\n"
+"POT-Creation-Date: 2026-11-18 07:04+0100\n"
 "PO-Revision-Date: 2026-08-09 19:45+0200\n"
 "Last-Translator: Cursor Agent\n"
 "Language-Team: Japanese\n"
@@ -171,7 +171,7 @@ msgstr "保存"
 #: contents/ui/ActiveEditView.qml:393 contents/ui/Controls/TimePicker.qml:113
 #: contents/ui/EntryLists.qml:156 contents/ui/FilmDayView.qml:946
 #: contents/ui/main.qml:1768 contents/ui/ManualEntryView.qml:404
-#: contents/ui/TripSheet.qml:433 contents/ui/UnsyncedList.qml:204
+#: contents/ui/TripSheet.qml:433 contents/ui/UnsyncedList.qml:192
 msgid "Cancel"
 msgstr "キャンセル"
 
@@ -301,11 +301,11 @@ msgstr "終了"
 msgid "Saved without the billable change: your Kimai account is not allowed to edit billable."
 msgstr "請求対象の変更なしで保存しました: この Kimai アカウントでは請求対象を編集できません。"
 
-#: app/qml/main.qml:246 app/qml/tui/Tui.qml:333
+#: app/qml/main.qml:246 app/qml/tui/Tui.qml:329
 msgid "Could not start tracking"
 msgstr "記録を開始できませんでした"
 
-#: app/qml/main.qml:249 app/qml/tui/Tui.qml:331
+#: app/qml/main.qml:249 app/qml/tui/Tui.qml:327
 msgid "Could not stop tracking"
 msgstr "記録を停止できませんでした"
 
@@ -562,7 +562,7 @@ msgstr "週 %1"
 msgid "Not configured"
 msgstr "未設定"
 
-#: app/qml/TimerPage.qml:170 app/qml/tui/Tui.qml:239
+#: app/qml/TimerPage.qml:170 app/qml/tui/Tui.qml:235
 #: contents/ui/SetupWizard.qml:888
 msgid "Connecting…"
 msgstr "接続中…"
@@ -579,16 +579,16 @@ msgstr "%1 (%2) に接続済み"
 msgid "Connected to %1"
 msgstr "%1 に接続済み"
 
-#: app/qml/TimerPage.qml:190 contents/ui/main.qml:2319
-#: contents/ui/UnsyncedList.qml:110
+#: app/qml/TimerPage.qml:190 contents/ui/main.qml:2318
+#: contents/ui/UnsyncedList.qml:109
 msgid "Retry"
 msgstr "再試行"
 
-#: app/qml/TimerPage.qml:191 contents/ui/main.qml:2324
+#: app/qml/TimerPage.qml:191 contents/ui/main.qml:2323
 msgid "Configure"
 msgstr "設定"
 
-#: app/qml/TimerPage.qml:241 contents/ui/main.qml:2307
+#: app/qml/TimerPage.qml:241 contents/ui/main.qml:2306
 msgid "More options in the settings"
 msgstr "その他のオプションは設定で"
 
@@ -683,12 +683,12 @@ msgstr "すでに計測中です。"
 msgid "Pin an entry from Recent to add it to your favorites."
 msgstr "「最近」からエントリをピン留めすると、お気に入りに追加されます。"
 
-#: app/qml/TimerPage.qml:745 app/qml/tui/Tui.qml:207
+#: app/qml/TimerPage.qml:745 app/qml/tui/Tui.qml:203
 #: contents/ui/EntryLists.qml:306
 msgid "Recent"
 msgstr "最近"
 
-#: app/qml/TimerPage.qml:768 app/qml/tui/Tui.qml:205
+#: app/qml/TimerPage.qml:768 app/qml/tui/Tui.qml:201
 #: contents/ui/DateField.qml:156 contents/ui/EntryLists.qml:337
 #: contents/ui/FilmDayView.qml:583 contents/ui/StatsView.qml:241
 #: contents/ui/StatsView.qml:293 contents/ui/StatsView.qml:394
@@ -800,7 +800,7 @@ msgstr "往復"
 
 #: app/qml/TripsPage.qml:80 contents/ui/main.qml:1053
 #: contents/ui/StatsView.qml:245 contents/ui/StatsView.qml:327
-#: contents/ui/TripSuggestionList.qml:84 contents/ui/UnsyncedList.qml:46
+#: contents/ui/TripSuggestionList.qml:84 contents/ui/UnsyncedList.qml:45
 msgid "%1 km"
 msgstr "%1 km"
 
@@ -853,92 +853,92 @@ msgstr "今月の移動はありません"
 msgid "Time entry #%1"
 msgstr "時間エントリー #%1"
 
-#: app/qml/tui/Tui.qml:182
+#: app/qml/tui/Tui.qml:180
 msgid "Send this change again?"
 msgstr "この変更をもう一度送信しますか？"
 
-#: app/qml/tui/Tui.qml:186
+#: app/qml/tui/Tui.qml:182
 msgid "Discard this change?"
 msgstr "この変更を破棄しますか？"
 
-#: app/qml/tui/Tui.qml:188
+#: app/qml/tui/Tui.qml:184
 msgid "%1 (y = yes, any other key = no)"
 msgstr "%1 (y = はい、他のキー = いいえ)"
 
-#: app/qml/tui/Tui.qml:204
+#: app/qml/tui/Tui.qml:200
 msgid "Nothing is running"
 msgstr "実行中のものはありません"
 
-#: app/qml/tui/Tui.qml:206
+#: app/qml/tui/Tui.qml:202
 msgid "Week"
 msgstr "週"
 
-#: app/qml/tui/Tui.qml:208
+#: app/qml/tui/Tui.qml:204
 msgid "No recent entries"
 msgstr "最近のエントリはありません"
 
-#: app/qml/tui/Tui.qml:209
+#: app/qml/tui/Tui.qml:205
 msgid "No entries this week"
 msgstr "今週のエントリはありません"
 
-#: app/qml/tui/Tui.qml:210
+#: app/qml/tui/Tui.qml:206
 msgid "No gaps in the work day"
 msgstr "勤務時間内に空きはありません"
 
-#: app/qml/tui/Tui.qml:211
+#: app/qml/tui/Tui.qml:207
 msgid "Gaps:"
 msgstr "空き:"
 
-#: app/qml/tui/Tui.qml:212
+#: app/qml/tui/Tui.qml:208
 msgid "Total"
 msgstr "合計"
 
-#: app/qml/tui/Tui.qml:213 app/qml/UnsyncedPage.qml:14
+#: app/qml/tui/Tui.qml:209 app/qml/UnsyncedPage.qml:14
 #: contents/ui/main.qml:2090
 msgid "Not synced"
 msgstr "未同期"
 
-#: app/qml/tui/Tui.qml:214
-msgid "↑↓ select · r send again · a send here · d discard · Esc back"
-msgstr "↑↓ 選択 · r 再送信 · a ここに送信 · d 破棄 · Esc 戻る"
+#: app/qml/tui/Tui.qml:210
+msgid "↑↓ select · r send again · d discard · Esc back"
+msgstr "↑↓ 選択 · r 再送信 · d 破棄 · Esc 戻る"
 
-#: app/qml/tui/Tui.qml:215 contents/ui/UnsyncedList.qml:229
+#: app/qml/tui/Tui.qml:211 contents/ui/UnsyncedList.qml:217
 msgid "Everything is synced."
 msgstr "すべて同期済みです。"
 
-#: app/qml/tui/Tui.qml:216
+#: app/qml/tui/Tui.qml:212
 msgid "1–9 start · s stop · t day · w week · r refresh · q quit"
 msgstr "1–9 開始 · s 停止 · t 日 · w 週 · r 更新 · q 終了"
 
-#: app/qml/tui/Tui.qml:217
+#: app/qml/tui/Tui.qml:213
 msgid "Esc back · s stop · r refresh · q quit"
 msgstr "Esc 戻る · s 停止 · r 更新 · q 終了"
 
-#: app/qml/tui/Tui.qml:224
+#: app/qml/tui/Tui.qml:220
 msgid "Set up a connection in the Plasmai app first"
 msgstr "先に Plasmai アプリで接続を設定してください"
 
-#: app/qml/tui/Tui.qml:227
+#: app/qml/tui/Tui.qml:223
 msgid "Server not reachable"
 msgstr "サーバーに接続できません"
 
-#: app/qml/tui/Tui.qml:233
+#: app/qml/tui/Tui.qml:229
 msgid "Changes need a decision · u"
 msgstr "判断が必要な変更あり · u"
 
-#: app/qml/tui/Tui.qml:236
+#: app/qml/tui/Tui.qml:232
 msgid "Offline · %1 not synced"
 msgstr "オフライン · 未同期 %1 件"
 
-#: app/qml/tui/Tui.qml:241
+#: app/qml/tui/Tui.qml:237
 msgid "Online"
 msgstr "オンライン"
 
-#: app/qml/tui/Tui.qml:332
+#: app/qml/tui/Tui.qml:328
 msgid "Could not refresh"
 msgstr "更新できませんでした"
 
-#: app/qml/tui/Tui.qml:342
+#: app/qml/tui/Tui.qml:338
 msgid "This build has no demo"
 msgstr "このビルドにはデモがありません"
 
@@ -1159,19 +1159,15 @@ msgid "%1 change waits for %2 on %3"
 msgid_plural "%1 changes wait for %2 on %3"
 msgstr[0] "%1 件の変更が %3 の %2 を待っています"
 
-#: contents/ui/ApiErrors.qml:157
+#: contents/ui/ApiErrors.qml:154
 msgid "Sign in as %1 to send them."
 msgstr "%1 としてサインインすると送信できます。"
 
-#: contents/ui/ApiErrors.qml:159
+#: contents/ui/ApiErrors.qml:156
 msgid "Enter the old address or token again to send them."
 msgstr "送信するには、以前のアドレスまたはトークンを再入力してください。"
 
-#: contents/ui/ApiErrors.qml:164
-msgid "Send these changes to %1 instead of %2? Each entry is checked on the server first."
-msgstr "これらの変更を %2 ではなく %1 に送信しますか？各エントリはまずサーバー上で確認されます。"
-
-#: contents/ui/ApiErrors.qml:168
+#: contents/ui/ApiErrors.qml:160
 msgid "Discard %1 change for %2?"
 msgid_plural "Discard %1 changes for %2?"
 msgstr[0] "%2 の %1 件の変更を破棄しますか？"
@@ -2117,7 +2113,7 @@ msgid_plural "%1 changes need your decision"
 msgstr[0] "%1 件の変更に判断が必要です"
 
 #: contents/ui/OfflineStatus.qml:77 contents/ui/OfflineStatus.qml:105
-#: contents/ui/SetupWizard.qml:696 contents/ui/UnsyncedList.qml:161
+#: contents/ui/SetupWizard.qml:696 contents/ui/UnsyncedList.qml:160
 msgid "Show"
 msgstr "表示"
 
@@ -2359,7 +2355,7 @@ msgstr "API キー"
 msgid "API token"
 msgstr "API トークン"
 
-#: contents/ui/SetupWizard.qml:696 contents/ui/UnsyncedList.qml:161
+#: contents/ui/SetupWizard.qml:696 contents/ui/UnsyncedList.qml:160
 msgid "Hide"
 msgstr "隠す"
 
@@ -2749,15 +2745,11 @@ msgid "+%1 more detected trip"
 msgid_plural "+%1 more detected trips"
 msgstr[0] "+ 検出された移動 %1 件"
 
-#: contents/ui/UnsyncedList.qml:115
+#: contents/ui/UnsyncedList.qml:114
 msgid "Overwrite"
 msgstr "上書き"
 
-#: contents/ui/UnsyncedList.qml:119 contents/ui/UnsyncedList.qml:172
-#: contents/ui/UnsyncedList.qml:191
+#: contents/ui/UnsyncedList.qml:118 contents/ui/UnsyncedList.qml:165
+#: contents/ui/UnsyncedList.qml:184
 msgid "Discard"
 msgstr "破棄"
-
-#: contents/ui/UnsyncedList.qml:167 contents/ui/UnsyncedList.qml:191
-msgid "Send here"
-msgstr "ここに送信"

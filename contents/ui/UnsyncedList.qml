@@ -29,8 +29,7 @@ ColumnLayout {
     signal retryRequested(string opId)
     signal overwriteRequested(string opId)
     signal discardRequested(string opId)
-    /** The group with this id goes to the address in use / is dropped (asked before). */
-    signal adoptRequested(string id)
+    /** The group with this id is dropped (asked before). */
     signal discardGroupRequested(string id)
 
     spacing: Kirigami.Units.largeSpacing
@@ -124,14 +123,14 @@ ColumnLayout {
 
     /**
      * Changes parked for another server or account: what and for whom, the changes themselves
-     * (read only) on demand, "Send here" only for the same account on another address, "Discard";
-     * both ask once, naming the addresses.
+     * (read only) on demand, and "Discard", which asks once. They are sent only when the address
+     * and token they were made on are entered again; nothing is sent to another address.
      */
     component GroupBlock: ColumnLayout {
         id: block
         property var group: ({})
-        // "", "adopt" or "discard": what the question below is about.
-        property string asking: ""
+        // The question to discard is shown.
+        property bool asking: false
         property bool opened: false
 
         objectName: "heldGroup"
@@ -155,54 +154,43 @@ ColumnLayout {
         }
         RowLayout {
             spacing: Kirigami.Units.smallSpacing
-            visible: block.asking === ""
+            visible: !block.asking
             Controls.Button {
                 objectName: "heldToggle"
                 text: block.opened ? i18n("Hide") : i18n("Show")
                 onClicked: block.opened = !block.opened
             }
             Controls.Button {
-                objectName: "adoptButton"
-                visible: block.group.canAdopt
-                text: i18n("Send here")
-                onClicked: block.asking = "adopt"
-            }
-            Controls.Button {
                 objectName: "discardGroupButton"
                 text: i18n("Discard")
-                onClicked: block.asking = "discard"
+                onClicked: block.asking = true
             }
         }
         ColumnLayout {
             objectName: "confirmRow"
             Layout.fillWidth: true
-            visible: block.asking !== ""
+            visible: block.asking
             spacing: Kirigami.Units.smallSpacing
             Controls.Label {
                 objectName: "confirmText"
                 Layout.fillWidth: true
-                text: block.asking === "adopt" ? ApiErrors.adoptQuestion(block.group) : ApiErrors.discardGroupQuestion(block.group)
+                text: ApiErrors.discardGroupQuestion(block.group)
                 wrapMode: Text.WordWrap
             }
             RowLayout {
                 spacing: Kirigami.Units.smallSpacing
                 Controls.Button {
                     objectName: "confirmButton"
-                    text: block.asking === "adopt" ? i18n("Send here") : i18n("Discard")
+                    text: i18n("Discard")
                     onClicked: {
-                        const adopt = block.asking === "adopt"
-                        block.asking = ""
-                        if (adopt) {
-                            root.adoptRequested(block.group.id)
-                        } else {
-                            root.discardGroupRequested(block.group.id)
-                        }
+                        block.asking = false
+                        root.discardGroupRequested(block.group.id)
                     }
                 }
                 Controls.Button {
                     objectName: "cancelButton"
                     text: i18n("Cancel")
-                    onClicked: block.asking = ""
+                    onClicked: block.asking = false
                 }
             }
         }

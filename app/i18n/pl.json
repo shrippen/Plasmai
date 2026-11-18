@@ -504,8 +504,6 @@
 "Select customer…": "Wybierz klienta…",
 "Select project…": "Wybierz projekt…",
 "Self-hosted Kimai or the official hosted service (kimai.cloud). Paste the instance URL.": "Kimai self-hosted lub oficjalna usługa hostowana (kimai.cloud). Wklej URL instancji.",
-"Send here": "Wyślij tutaj",
-"Send these changes to %1 instead of %2? Each entry is checked on the server first.": "Wysłać te zmiany do %1 zamiast do %2? Każdy wpis jest najpierw sprawdzany na serwerze.",
 "Send this change again?": "Wysłać tę zmianę ponownie?",
 "Server URL:": "Adres URL serwera:",
 "Server address": "Adres serwera",
@@ -698,5 +696,5 @@
 "upcoming": "do zrobienia",
 "yesterday": "wczoraj",
 "© OpenStreetMap contributors": "© współtwórcy OpenStreetMap",
-"↑↓ select · r send again · a send here · d discard · Esc back": "↑↓ wybierz · r wyślij ponownie · a wyślij tutaj · d odrzuć · Esc wstecz"
+"↑↓ select · r send again · d discard · Esc back": "↑↓ wybierz · r wyślij ponownie · d odrzuć · Esc wstecz"
 }

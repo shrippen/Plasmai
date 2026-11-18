@@ -483,8 +483,6 @@
 "Select customer…": "选择客户…",
 "Select project…": "选择项目…",
 "Self-hosted Kimai or the official hosted service (kimai.cloud). Paste the instance URL.": "自托管 Kimai 或官方托管服务（kimai.cloud）。粘贴实例 URL。",
-"Send here": "发送到此处",
-"Send these changes to %1 instead of %2? Each entry is checked on the server first.": "将这些更改发送到 %1 而不是 %2？每个条目会先在服务器上检查。",
 "Send this change again?": "再次发送此更改？",
 "Server URL:": "服务器 URL：",
 "Server address": "服务器地址",
@@ -681,5 +679,5 @@
 "upcoming": "待完成",
 "yesterday": "昨天",
 "© OpenStreetMap contributors": "© OpenStreetMap 贡献者",
-"↑↓ select · r send again · a send here · d discard · Esc back": "↑↓ 选择 · r 重新发送 · a 发送到此处 · d 放弃 · Esc 返回"
+"↑↓ select · r send again · d discard · Esc back": "↑↓ 选择 · r 重新发送 · d 放弃 · Esc 返回"
 }
