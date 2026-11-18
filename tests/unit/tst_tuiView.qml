@@ -125,9 +125,9 @@ TestCase {
 
     readonly property var words: Object.assign({ unsyncedTitle: "Not synced", unsyncedKeys: "keys", allSynced: "Everything is synced." }, t)
     readonly property var failedOp: ({ kind: "op", id: "local:1", title: "Entry deleted", sub: "Not accepted: x" })
-    readonly property var sendable: ({ kind: "group", id: 0, title: "2 changes wait for Ann on https://old.test", sub: "", canAdopt: true })
+    readonly property var sendable: ({ kind: "group", id: 0, title: "2 changes wait for Ann on https://old.test", sub: "" })
     readonly property var foreign: ({ kind: "group", id: 1, title: "1 change waits for Bob on https://new.test",
-                                      sub: "Sign in as Bob to send them.", canAdopt: false })
+                                      sub: "Sign in as Bob to send them." })
 
     // The list of changes that wait: the ones that hang here, then the parked groups.
     function test_unsyncedScreen() {
@@ -157,15 +157,14 @@ TestCase {
         verify(lines.some(function(l) { return l.indexOf("Everything is synced.") === 0 }))
     }
 
-    // d discards, r retries what hangs, a sends a group that may be sent; nothing else does anything.
+    // d discards, r retries what hangs; nothing else does anything.
     function test_unsyncedKeys() {
         compare(View.unsyncedAction("d", failedOp), View.Action.DISCARD)
         compare(View.unsyncedAction("d", sendable), View.Action.DISCARD)
         compare(View.unsyncedAction("r", failedOp), View.Action.RETRY)
         compare(View.unsyncedAction("r", sendable), View.Action.NONE)
-        compare(View.unsyncedAction("a", sendable), View.Action.ADOPT)
-        compare(View.unsyncedAction("a", foreign), View.Action.NONE)
-        compare(View.unsyncedAction("a", failedOp), View.Action.NONE)
+        compare(View.unsyncedAction("a", sendable), View.Action.NONE, "nothing is sent to another address")
+        compare(View.Action.ADOPT, undefined)
         compare(View.unsyncedAction("x", failedOp), View.Action.NONE)
         compare(View.unsyncedAction("d", null), View.Action.NONE)
     }

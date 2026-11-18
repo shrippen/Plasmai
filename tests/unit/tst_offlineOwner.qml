@@ -200,7 +200,9 @@ TestCase {
         compare(Outbox.pendingCount(s), 0)
     }
 
-    function test_changedSpellingParksAndAdoptSends() {
+    // A changed address parks the changes: nothing goes there, only "discard" is offered. Entering
+    // the old address again brings them back, and they are sent.
+    function test_changedSpellingParksAndTheOldAddressSends() {
         const k = fakeKimai()
         const h = fakeHost()
         h.files[outboxName] = outboxFile(ownerA, [createOp(1), createOp(2)])
@@ -210,13 +212,12 @@ TestCase {
         compare(Offline.heldCount(s), 2)
         compare(k.calls.indexOf("create"), -1, "nothing went to the new address")
         compare(saved(h).held.length, 1)
-        verify(Offline.groups(s)[0].canAdopt)
+        compare(Offline.groups(s)[0].canAdopt, undefined, "there is no sending to another address")
+        compare(Offline.adopt, undefined)
 
-        let sent = -1
-        Offline.adopt(s, Offline.groups(s)[0].id, function(n) { sent = n })
-        compare(sent, 2)
+        const back = open(k, fakeHost(h.files), urlA)
+        compare(Offline.groups(back).length, 0)
         compare(k.calls.filter(function(c) { return c === "create" }).length, 2)
-        compare(Offline.groups(s).length, 0)
         compare(saved(h).held.length, 0)
     }
 
@@ -286,43 +287,19 @@ TestCase {
         compare(k.calls[k.calls.length - 1], "start")
     }
 
-    // A conflict or a refusal waits in the group; after the adopt every server entry is read again.
-    function test_adoptedOpsAreCheckedAgain() {
-        const k = fakeKimai()
-        const h = fakeHost()
-        const base = { begin: fakes.t0 - 3600000, end: fakes.t0, description: "", project: "10", activity: "20" }
-        const conflict = patchOp(5, { description: "mine" }, base)
-        conflict.state = "conflict"
-        conflict.server = { id: 5 }
-        conflict.error = { type: "conflict", status: 409, detail: "description" }
-        const failed = patchOp(6, { description: "mine" }, base)
-        failed.state = "failed"
-        failed.error = { type: "unknown", status: 500, detail: "x" }
-        h.files[outboxName] = outboxFile(ownerB, [], [{ id: "g1", owner: ownerA, heldAt: fakes.t0, ops: [conflict, failed] }])
-        // Someone else changed entry 5 on the new address
-        k.server[5] = { id: 5, begin: stamp(11, 0), end: stamp(12, 0), project: 10, activity: 20, description: "theirs" }
-        k.server[6] = { id: 6, begin: stamp(11, 0), end: stamp(12, 0), project: 10, activity: 20, description: "" }
-        const s = open(k, h, urlB)
-        compare(Offline.groups(s).length, 1)
-
-        Offline.adopt(s, Offline.groups(s)[0].id, function() {})
-        compare(k.calls.indexOf("patch 5"), -1, "not overwritten blind")
-        compare(k.server[5].description, "theirs")
-        compare(Outbox.ops(s)[0].state, OfflineState.State.CONFLICT)
-        compare(Outbox.ops(s)[0].server.description, "theirs")
-        compare(Outbox.ops(s)[0].error.type, ProviderUtil.ErrorType.Conflict)
-    }
-
-    function test_adoptingResetsWhatBlockedTheOps() {
+    // A refusal waits in the group as it is; on the old address it is the queue's again, still refused.
+    function test_refusedOpKeepsItsStateThroughAGroup() {
         const k = fakeKimai()
         const h = fakeHost()
         const failed = createOp(1, "failed")
         failed.error = { type: "unknown", status: 500, detail: "x" }
-        h.files[outboxName] = outboxFile(ownerB, [], [{ id: "g1", owner: ownerA, heldAt: fakes.t0, ops: [failed] }])
-        const s = open(k, h, urlB)
-        Offline.adopt(s, Offline.groups(s)[0].id, function() {})
-        compare(k.calls.indexOf("create") >= 0, true)
-        compare(Outbox.pendingCount(s), 0)
+        h.files[outboxName] = outboxFile(ownerA, [failed])
+        const b = open(k, h, urlB)
+        compare(Offline.groups(b).length, 1)
+        const a = open(k, fakeHost(h.files), urlA)
+        compare(Outbox.ops(a)[0].state, OfflineState.State.FAILED)
+        compare(Outbox.ops(a)[0].error.status, 500)
+        compare(k.calls.indexOf("create"), -1)
     }
 
     function test_backToAResumesTheGroupInOrder() {
@@ -342,7 +319,7 @@ TestCase {
 
     // -- Accounts -------------------------------------------------------------------
 
-    function test_otherAccountOnTheSameServerCannotBeAdopted() {
+    function test_otherAccountOnTheSameServerStaysParked() {
         const k = fakeKimai()
         k.userId = 8
         const h = fakeHost()
@@ -350,10 +327,7 @@ TestCase {
         const s = open(k, h, urlA)
         compare(Offline.groups(s).length, 1)
         const group = Offline.groups(s)[0]
-        verify(!group.canAdopt)
         compare(group.name, "User 7")
-        let called = false
-        Offline.adopt(s, Offline.groups(s)[0].id, function() { called = true })
         compare(Offline.heldCount(s), 1, "still parked")
         compare(k.calls.indexOf("create"), -1)
         compare(Outbox.pendingCount(s), 0)
@@ -553,8 +527,6 @@ TestCase {
         const orphan = groups.filter(function(g) { return g.server === urlB })[0]
         compare(orphan.name, "")
         compare(orphan.account, "")
-        verify(!orphan.canAdopt)
-        verify(groups.every(function(g) { return !g.canAdopt }))
     }
 
     // Review: Ann is checked, offline Bob's token (same server) goes in and Bob starts a timer.
@@ -601,7 +573,6 @@ TestCase {
         const bob = Offline.groups(s)
         compare(bob.length, 1)
         compare(bob[0].count, 1)
-        verify(!bob[0].canAdopt)
     }
 
     // Review: a write while the file is read must not land in the group of the file's owner.
@@ -660,8 +631,8 @@ TestCase {
         compare(s.ops.length, 1)
     }
 
-    // The same user id on another server and another token is somebody else.
-    function test_otherServerOtherTokenIsNotAdopted() {
+    // The same user id on another server and another token is somebody else: only discarding.
+    function test_otherServerOtherTokenStaysParked() {
         const k = fakeKimai()
         k.userId = 7
         const h = fakeHost()
@@ -669,28 +640,26 @@ TestCase {
         const s = open(k, h, urlB, "otherToken")
         const groups = Offline.groups(s)
         compare(groups.length, 1)
-        verify(!groups[0].canAdopt)
-        Offline.adopt(s, groups[0].id, function() {})
         compare(k.calls.indexOf("create"), -1)
         compare(Offline.heldCount(s), 1)
+        Offline.discardGroup(s, groups[0].id)
+        compare(Offline.heldCount(s), 0)
     }
 
-    // Another server, the same token and the same account: sent after the question; the op is
-    // the new connection's from then on.
-    function test_adoptingStampsTheOpWithTheNewConnection() {
+    // Another server with the same token is not the same database either (Kimai counts users and
+    // projects from 1 on every server): parked, only discarding is offered; the old address
+    // brings the group back and it is sent.
+    function test_otherServerSameTokenIsNotSentThere() {
         const k = fakeKimai()
         const h = fakeHost()
         h.files[outboxName] = outboxFile(ownerA, [createOp(1)])
         const s = open(k, h, urlB)
-        const group = Offline.groups(s)[0]
-        verify(group.canAdopt)
-        k.net = false
-        Offline.adopt(s, group.id, function() {})
-        compare(Outbox.ops(s)[0].by.server, urlB)
-        compare(Outbox.ops(s)[0].by.mark, markTok)
-        k.net = true
-        Offline.verify(s)
-        Outbox.replay(s)
+        compare(Offline.groups(s).length, 1)
+        compare(Offline.groups(s)[0].canAdopt, undefined)
+        compare(k.calls.indexOf("create"), -1)
+        compare(Outbox.pendingCount(s), 0)
+        const back = open(k, fakeHost(h.files), urlA)
+        compare(Offline.heldCount(back), 0)
         compare(k.calls.indexOf("create") >= 0, true)
     }
 

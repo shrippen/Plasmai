@@ -123,20 +123,25 @@ TestCase {
         compare(sync.groups.length, 1)
         compare(sync.groups[0].name, "User 1", "the name the server gave last")
         compare(sync.groups[0].server, "http://a.test")
-        verify(sync.groups[0].canAdopt)
+        compare(sync.groups[0].canAdopt, undefined)
         compare(posts().length, 0)
         compare(files[fileA].held.length, 1)
         compare(files[fileA].owner.server, "http://a.test/kimai")
     }
 
-    function test_adoptSendsToTheNewAddress() {
+    function test_oldAddressSendsTheGroupAgain() {
         const sync = createTemporaryObject(syncComponent, this)
         opened(sync, "http://a.test")
         opened(sync, "http://a.test/kimai")
-        sync.adopt(sync.groups[0].id)
-        tryCompare(sync, "held", 0)
+        compare(sync.held, 1)
+        compare(posts().length, 0)
+        opened(sync, "http://a.test")
+        compare(sync.held, 0)
+        compare(sync.unsynced, 1, "back in the queue, still refused")
+        sync.retry(sync.ops[0].opId)
+        tryCompare(sync, "unsynced", 0)
         compare(posts().length, 1)
-        verify(posts()[0].indexOf("http://a.test/kimai/api/timesheets") > 0)
+        verify(posts()[0].indexOf("http://a.test/api/timesheets") > 0)
     }
 
     function test_discardGroupDropsIt() {
@@ -149,13 +154,10 @@ TestCase {
         compare(posts().length, 0)
     }
 
-    function test_otherAccountIsNotOffered() {
+    function test_otherAccountStaysParked() {
         const sync = createTemporaryObject(syncComponent, this)
         accounts["http://a.test"] = "2"
         opened(sync, "http://a.test")
-        compare(sync.held, 1)
-        verify(!sync.groups[0].canAdopt)
-        sync.adopt(sync.groups[0].id)
         compare(sync.held, 1)
         compare(posts().length, 0)
     }
