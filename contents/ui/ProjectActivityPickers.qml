@@ -24,11 +24,17 @@ ColumnLayout {
     property bool requireProjectSelection: true
     property bool showCreateActions: false
 
+    /** Ids to select once the lists hold them (an entry loads before its lists do). */
+    property var pendingProjectId: null
+    property var pendingActivityId: null
+    readonly property bool hasPendingProject: hasId(pendingProjectId)
+
     readonly property alias projectCombo: projectPicker
     readonly property alias activityCombo: activityPicker
 
     signal aboutToOpenPicker(var projectField, var activityField)
     signal projectActivated(int index)
+    signal pendingProjectSelected(var projectId)
     signal activityActivated(int index)
     signal createProjectRequested()
     signal createActivityRequested()
@@ -38,6 +44,62 @@ ColumnLayout {
     function closePickers() {
         projectPicker.closePopup()
         activityPicker.closePopup()
+    }
+
+    function hasId(value) {
+        return value !== null && value !== undefined && value !== ""
+    }
+
+    // Picks the item whose value.id is `id`; false, selection untouched, if the list lacks it.
+    // The index is reset first so a pick of the current item still fires its change.
+    function selectId(combo, id) {
+        for (let i = 0; i < combo.items.length; i++) {
+            const item = combo.items[i]
+            if (!item || !item.value || String(item.value.id) !== String(id)) {
+                continue
+            }
+            if (combo.currentIndex === i) {
+                combo.currentIndex = -1
+            }
+            combo.currentIndex = i
+            return true
+        }
+        return false
+    }
+
+    // Unlike the activity, a project that is not picked clears the field.
+    function selectProjectId(projectId) {
+        if (hasId(projectId) && selectId(projectPicker, projectId)) {
+            return true
+        }
+        projectPicker.currentIndex = -1
+        return false
+    }
+
+    // Remembers both ids and picks what the lists already hold; the rest follows on trySelect*.
+    function setPending(projectId, activityId) {
+        pendingProjectId = hasId(projectId) ? projectId : null
+        pendingActivityId = hasId(activityId) ? activityId : null
+        trySelectPendingProject()
+        Qt.callLater(trySelectPendingActivity)
+    }
+
+    function trySelectPendingProject() {
+        if (!hasId(pendingProjectId) || !selectProjectId(pendingProjectId)) {
+            return
+        }
+        const projectId = pendingProjectId
+        pendingProjectId = null
+        pendingProjectSelected(projectId)
+    }
+
+    function trySelectPendingActivity() {
+        if (!hasId(pendingActivityId)) {
+            return
+        }
+        if (selectId(activityPicker, pendingActivityId)) {
+            pendingActivityId = null
+        }
     }
 
     RowLayout {
@@ -56,6 +118,7 @@ ColumnLayout {
             openBelow: root.pickerOpenBelow
             onAboutToOpen: root.aboutToOpenPicker(projectPicker, activityPicker)
             onActivated: function(index) {
+                root.pendingProjectId = null
                 root.projectActivated(index)
             }
         }

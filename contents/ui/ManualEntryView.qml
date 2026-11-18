@@ -39,8 +39,6 @@ ColumnLayout {
     property var tagSource: null
     /** True when editing a stopped Recent entry (same form as Add entry). */
     property bool editingExisting: false
-    property var pendingProjectId: null
-    property var pendingActivityId: null
     property bool suppressProjectSignal: false
 
     readonly property alias projectCombo: pickers.projectCombo
@@ -57,25 +55,25 @@ ColumnLayout {
         pickers.closePickers()
     }
 
-    function combineStamp(dateField, timeField) {
-        var d = DTF.coerceDate(dateField.selectedDate)
-        if (!d) {
-            d = dateField.parseDate(dateField.text)
+    Connections {
+        target: pickers
+        function onPendingProjectSelected(projectId) {
+            if (!root.suppressProjectSignal) {
+                root.projectChosen(projectId)
+            }
         }
-        // hours/minutes are kept in sync by TimeField.setTime / digit entry
-        return DTF.atTime(d, timeField.hours, timeField.minutes)
     }
 
     function stampText(dateField, timeField) {
-        return DTF.dateTimeText(combineStamp(dateField, timeField))
+        return DTF.dateTimeText(DTF.combineStamp(dateField, timeField))
     }
 
     readonly property int durationSeconds: {
         // Depend on structured values (not String(date), which is locale text)
         var _b = beginDate.selectedDateMs + beginTime.hours * 60 + beginTime.minutes
         var _e = endDate.selectedDateMs + endTime.hours * 60 + endTime.minutes
-        var begin = combineStamp(beginDate, beginTime)
-        var end = combineStamp(endDate, endTime)
+        var begin = DTF.combineStamp(beginDate, beginTime)
+        var end = DTF.combineStamp(endDate, endTime)
         if (!begin || !end || isNaN(begin.getTime()) || isNaN(end.getTime())) {
             return -1
         }
@@ -95,13 +93,9 @@ ColumnLayout {
         descriptionField.text = ""
         projectCombo.currentIndex = -1
         activityCombo.currentIndex = -1
-        pendingProjectId = null
-        pendingActivityId = null
+        pickers.pendingProjectId = null
+        pickers.pendingActivityId = null
         metaFields.resetDefaults()
-    }
-
-    function hasId(value) {
-        return value !== null && value !== undefined && value !== ""
     }
 
     function parseStampDate(raw, fallback) {
@@ -112,56 +106,6 @@ ColumnLayout {
             }
         }
         return fallback || new Date()
-    }
-
-    function selectProjectId(projectId) {
-        if (!hasId(projectId)) {
-            projectCombo.currentIndex = -1
-            return false
-        }
-        for (var i = 0; i < projectCombo.items.length; i++) {
-            var item = projectCombo.items[i]
-            if (item && item.value && String(item.value.id) === String(projectId)) {
-                if (projectCombo.currentIndex === i) {
-                    projectCombo.currentIndex = -1
-                }
-                projectCombo.currentIndex = i
-                return true
-            }
-        }
-        projectCombo.currentIndex = -1
-        return false
-    }
-
-    function trySelectPendingActivity() {
-        if (!hasId(pendingActivityId)) {
-            return
-        }
-        for (var i = 0; i < activityCombo.items.length; i++) {
-            var item = activityCombo.items[i]
-            if (item && item.value && String(item.value.id) === String(pendingActivityId)) {
-                if (activityCombo.currentIndex === i) {
-                    activityCombo.currentIndex = -1
-                }
-                activityCombo.currentIndex = i
-                pendingActivityId = null
-                return
-            }
-        }
-    }
-
-    function trySelectPendingProject() {
-        if (!hasId(pendingProjectId)) {
-            return
-        }
-        if (!selectProjectId(pendingProjectId)) {
-            return
-        }
-        var pid = pendingProjectId
-        pendingProjectId = null
-        if (!suppressProjectSignal) {
-            root.projectChosen(pid)
-        }
     }
 
     function loadFromTimesheet(ts) {
@@ -176,33 +120,19 @@ ColumnLayout {
         endTime.setTime(end.getHours(), end.getMinutes())
         descriptionField.text = ts.description || ""
 
-        pendingActivityId = Names.activityId(ts)
-        pendingProjectId = Names.projectId(ts)
-        if (!hasId(pendingProjectId)) {
-            pendingProjectId = null
-        }
-        if (!hasId(pendingActivityId)) {
-            pendingActivityId = null
-        }
-
         suppressProjectSignal = false
-        if (hasId(pendingProjectId) && selectProjectId(pendingProjectId)) {
-            var pid = pendingProjectId
-            pendingProjectId = null
-            root.projectChosen(pid)
-        }
-        Qt.callLater(trySelectPendingActivity)
+        pickers.setPending(Names.projectId(ts), Names.activityId(ts))
         metaFields.loadFromTimesheet(ts)
     }
 
     Component.onCompleted: resetDefaults()
 
     onVisibleChanged: {
-        if (visible && editingExisting && hasId(pendingProjectId)) {
+        if (visible && editingExisting && pickers.hasPendingProject) {
             Qt.callLater(function() {
                 if (root.visible && root.editingExisting) {
-                    root.trySelectPendingProject()
-                    root.trySelectPendingActivity()
+                    pickers.trySelectPendingProject()
+                    pickers.trySelectPendingActivity()
                 }
             })
         }
@@ -213,8 +143,8 @@ ColumnLayout {
             return
         }
         Qt.callLater(function() {
-            trySelectPendingProject()
-            trySelectPendingActivity()
+            pickers.trySelectPendingProject()
+            pickers.trySelectPendingActivity()
         })
     }
 
@@ -222,7 +152,7 @@ ColumnLayout {
         if (!visible || !editingExisting) {
             return
         }
-        Qt.callLater(trySelectPendingActivity)
+        Qt.callLater(pickers.trySelectPendingActivity)
     }
 
     Controls.Label {
@@ -267,7 +197,6 @@ ColumnLayout {
                     root.aboutToOpenPicker(projectField, activityField)
                 }
                 onProjectActivated: function(index) {
-                    pendingProjectId = null
                     if (index < 0 || index >= pickers.projectPickerModel.length) {
                         root.projectChosen(null)
                         return
