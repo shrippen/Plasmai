@@ -118,6 +118,7 @@ Both:
 
 - ~~Component copies drift~~ — one source since pillar 5.
 - ~~Plugin views not checked rendered~~ — film day and trips are rendered and used in the Plasmoid, the app offscreen and on a Pixel 6.
+- Trip suggestions look back 14 days in the Plasmoid and without limit in the app. Both should look back 14 days, decided once in `SessionTrips.fetchSuggestions` (owner, 18.11.2026).
 
 ### 4. Plasma extras — optional, not blocking
 
