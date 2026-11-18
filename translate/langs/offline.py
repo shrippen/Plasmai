@@ -247,6 +247,19 @@ PLURALS = {
         "ja": ["%1 件の変更が %2 で待機しています"],
         "zh_CN": ["%1 项更改在 %2 上等待"],
     },
+    "Discard %1 change on %2?": {
+        "de": ["%1 Änderung auf %2 verwerfen?", "%1 Änderungen auf %2 verwerfen?"],
+        "fr": ["Abandonner %1 modification sur %2 ?", "Abandonner %1 modifications sur %2 ?"],
+        "es": ["¿Descartar %1 cambio en %2?", "¿Descartar %1 cambios en %2?"],
+        "it": ["Scartare %1 modifica su %2?", "Scartare %1 modifiche su %2?"],
+        "nl": ["%1 wijziging op %2 verwerpen?", "%1 wijzigingen op %2 verwerpen?"],
+        "pt_BR": ["Descartar %1 alteração em %2?", "Descartar %1 alterações em %2?"],
+        "pl": ["Odrzucić %1 zmianę na %2?", "Odrzucić %1 zmiany na %2?", "Odrzucić %1 zmian na %2?"],
+        "uk": ["Відкинути %1 зміну на %2?", "Відкинути %1 зміни на %2?", "Відкинути %1 змін на %2?"],
+        "ru": ["Отменить %1 изменение на %2?", "Отменить %1 изменения на %2?", "Отменить %1 изменений на %2?"],
+        "ja": ["%2 の %1 件の変更を破棄しますか？"],
+        "zh_CN": ["放弃 %2 上的 %1 项更改？"],
+    },
 }
 
 T_BY_LANG = {lang: {} for lang in LANGS}

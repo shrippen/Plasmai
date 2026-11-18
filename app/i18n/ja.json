@@ -44,6 +44,9 @@
 "\u0004Discard %1 change for %2?": [
 "%2 の %1 件の変更を破棄しますか？"
 ],
+"\u0004Discard %1 change on %2?": [
+"%2 の %1 件の変更を破棄しますか？"
+],
 "\u0004Plural-Forms": "0",
 "\u0004This activity has %1 more entry on this day (%2); the work time above does not include it.": [
 "この作業にはこの日さらに %1 件のエントリーがあります (%2)。上の作業時間には含まれません。"

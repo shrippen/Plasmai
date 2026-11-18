@@ -102,7 +102,7 @@ TestCase {
     function opened(sync, url) {
         fakeSession.connection = { url: url, token: "tok" }
         let done = false
-        sync.openFor(profA).then(function() { return sync.verify() }).then(function() { done = true })
+        sync.openFor(profA, "tok").then(function() { return sync.verify() }).then(function() { done = true })
         tryVerify(function() { return done })
     }
 

@@ -59,14 +59,20 @@ QtObject {
     /** Something to show in the status line. */
     readonly property bool showStatus: offline || unsynced > 0 || held > 0 || storageError !== OfflineState.StorageError.NONE
 
-    /** Opens the outbox of `p` (resolves once loaded); the same profile keeps its session. */
-    function openFor(p) {
+    /**
+     * Opens the outbox of `p` (resolves once loaded); the same profile keeps its session. `token`
+     * is the token of `p` (read before: the connection holds the previous profile's until then):
+     * it and the address make the key the waiting changes are settled with.
+     */
+    function openFor(p, token) {
+        const own = token || ""
         const providerId = p && p.provider ? p.provider : TimeTracker.PROVIDER_KIMAI
         const inner = TimeTracker.api(providerId)
         const key = providerId === TimeTracker.PROVIDER_KIMAI && p
             ? session.offlinePrefix + String(p.id).replace(/[^A-Za-z0-9_-]/g, "_") : ""
         // Also the same profile: its address or token may have changed since.
         if (state && state.host.key === key && state.inner === inner) {
+            state.host.tokenOfProfile = own
             Offline.retarget(state)
             return restored(state)
         }
@@ -78,6 +84,7 @@ QtObject {
         const known = key ? sessions[key] : null
         if (known && known.inner === inner) {
             Offline.reopen(known)
+            known.host.tokenOfProfile = own
             Offline.retarget(known)
             state = known
             return restored(known)
@@ -85,7 +92,8 @@ QtObject {
         const s = Offline.createSession(inner, {
             key: key,
             url: function() { return session.connection.url },
-            token: function() { return session.connection.token },
+            tokenOfProfile: own,
+            token: function() { return s.host.tokenOfProfile },
             load: function(name) { return Platform.loadLocal(session.dataSource, name) },
             save: function(name, obj) { return Platform.saveLocal(session.dataSource, name, obj) },
             defer: function(fn) {

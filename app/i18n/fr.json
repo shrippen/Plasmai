@@ -59,6 +59,10 @@
 "Abandonner %1 modification pour %2 ?",
 "Abandonner %1 modifications pour %2 ?"
 ],
+"\u0004Discard %1 change on %2?": [
+"Abandonner %1 modification sur %2 ?",
+"Abandonner %1 modifications sur %2 ?"
+],
 "\u0004Plural-Forms": "(n>1)",
 "\u0004This activity has %1 more entry on this day (%2); the work time above does not include it.": [
 "Cette activité a %1 autre entrée ce jour (%2) ; le temps de travail ci-dessus ne l’inclut pas.",

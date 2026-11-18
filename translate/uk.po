@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-11-18 07:12+0100\n"
+"POT-Creation-Date: 2026-11-18 07:24+0100\n"
 "PO-Revision-Date: 2026-08-09 19:45+0200\n"
 "Last-Translator: Cursor Agent\n"
 "Language-Team: Ukrainian\n"
@@ -1177,7 +1177,14 @@ msgstr "Увійдіть як %1, щоб надіслати їх."
 msgid "Enter the old address or token again to send them."
 msgstr "Введіть стару адресу або токен знову, щоб надіслати їх."
 
-#: contents/ui/ApiErrors.qml:160
+#: contents/ui/ApiErrors.qml:161
+msgid "Discard %1 change on %2?"
+msgid_plural "Discard %1 changes on %2?"
+msgstr[0] "Відкинути %1 зміну на %2?"
+msgstr[1] "Відкинути %1 зміни на %2?"
+msgstr[2] "Відкинути %1 змін на %2?"
+
+#: contents/ui/ApiErrors.qml:163
 msgid "Discard %1 change for %2?"
 msgid_plural "Discard %1 changes for %2?"
 msgstr[0] "Відкинути %1 зміну для %2?"

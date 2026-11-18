@@ -109,7 +109,11 @@ function groupOf(s, key, account, name, now) {
     return group
 }
 
-/** Moves the ops of `ops` that `wanted` picks into the group of `key`, account `owner`'s when it is theirs. */
+/**
+ * Moves the ops of the queue that `picked(op)` says yes to into the group of their own key. The group
+ * has the account and name of `owner` when that is the key they were made on (else none).
+ * Returns whether any op moved.
+ */
 function park(s, picked, owner, now) {
     var kept = []
     for (var i = 0; i < s.ops.length; i++) {
@@ -205,7 +209,10 @@ function needsMove(s, identity) {
 /** The owner of the session becomes `identity` where that is a change (or is learned); returns what it was. */
 function takeIdentity(s, prev, identity, now) {
     if (!prev) {
-        if (!identity.account) {
+        // A file made before owners (2.7.0) has ops without a key: they are of the connection that
+        // reads them. Without such ops the owner is set with the first check.
+        var legacy = s.ops.some(function(op) { return !op.by })
+        if (!identity.account && !legacy) {
             return Result.NONE
         }
         s.owner = clone(identity)

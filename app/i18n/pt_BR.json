@@ -59,6 +59,10 @@
 "Descartar %1 alteração de %2?",
 "Descartar %1 alterações de %2?"
 ],
+"\u0004Discard %1 change on %2?": [
+"Descartar %1 alteração em %2?",
+"Descartar %1 alterações em %2?"
+],
 "\u0004Plural-Forms": "(n>1)",
 "\u0004This activity has %1 more entry on this day (%2); the work time above does not include it.": [
 "Esta atividade tem mais %1 entrada neste dia (%2); o tempo de trabalho acima não a inclui.",

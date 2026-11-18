@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Plasmai 0.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/shrippen/Plasmai/issues\n"
-"POT-Creation-Date: 2026-11-18 07:12+0100\n"
+"POT-Creation-Date: 2026-11-18 07:24+0100\n"
 "PO-Revision-Date: 2026-08-09 19:45+0200\n"
 "Last-Translator: Cursor Agent\n"
 "Language-Team: Simplified Chinese\n"
@@ -1167,7 +1167,12 @@ msgstr "以 %1 身份登录后即可发送。"
 msgid "Enter the old address or token again to send them."
 msgstr "重新输入旧地址或令牌即可发送。"
 
-#: contents/ui/ApiErrors.qml:160
+#: contents/ui/ApiErrors.qml:161
+msgid "Discard %1 change on %2?"
+msgid_plural "Discard %1 changes on %2?"
+msgstr[0] "放弃 %2 上的 %1 项更改？"
+
+#: contents/ui/ApiErrors.qml:163
 msgid "Discard %1 change for %2?"
 msgid_plural "Discard %1 changes for %2?"
 msgstr[0] "放弃 %2 的 %1 项更改？"

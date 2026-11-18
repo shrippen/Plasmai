@@ -59,6 +59,10 @@
 "%1 wijziging voor %2 verwerpen?",
 "%1 wijzigingen voor %2 verwerpen?"
 ],
+"\u0004Discard %1 change on %2?": [
+"%1 wijziging op %2 verwerpen?",
+"%1 wijzigingen op %2 verwerpen?"
+],
 "\u0004Plural-Forms": "(n!=1)",
 "\u0004This activity has %1 more entry on this day (%2); the work time above does not include it.": [
 "Deze activiteit heeft op deze dag nog %1 invoer (%2); de werktijd hierboven telt die niet mee.",

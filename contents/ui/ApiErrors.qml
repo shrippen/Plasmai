@@ -157,6 +157,9 @@ QtObject {
     }
 
     function discardGroupQuestion(group) {
+        if (!group.name) {
+            return i18np("Discard %1 change on %2?", "Discard %1 changes on %2?", group.count, group.server)
+        }
         return i18np("Discard %1 change for %2?", "Discard %1 changes for %2?", group.count, group.name)
     }
 }

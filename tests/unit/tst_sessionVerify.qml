@@ -5,6 +5,7 @@ import "../../contents/code/platform.js" as Platform
 import "../../contents/code/profiles.js" as Profiles
 import "../../contents/code/sharedConfig.js" as SharedConfig
 import "../../contents/code/kimaiApi.js" as KimaiApi
+import "../../contents/code/offlineOwner.js" as Owner
 
 /**
  * The first refresh does not wait for /api/users/me: with that answer held, the entries are
@@ -82,8 +83,8 @@ TestCase {
         meWaiting = []
         posts = []
         files = {}
-        files[outbox] = { v: 1, counter: 1, owner: { server: "http://a.test", account: "1", name: "One" }, held: [], ops: [
-            { opId: "local:1", kind: "create", entryId: "local:1", state: "pending", attempts: 0, maybeSent: false, error: null,
+        files[outbox] = { v: 1, counter: 1, owner: { server: "http://a.test", mark: Owner.markOf("tok"), account: "1", name: "One" }, held: [], ops: [
+            { opId: "local:1", kind: "create", entryId: "local:1", state: "pending", attempts: 0, maybeSent: false, error: null, by: { server: "http://a.test", mark: Owner.markOf("tok") },
               fields: { begin: "2026-09-28T09:00:00+0200", end: "2026-09-28T10:00:00+0200", project: 1, activity: 2 } }] }
         Platform.setBackend(backend())
         KimaiApi.setUrlRoute(route())

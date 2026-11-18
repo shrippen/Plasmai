@@ -59,6 +59,10 @@
 "%1 Änderung für %2 verwerfen?",
 "%1 Änderungen für %2 verwerfen?"
 ],
+"\u0004Discard %1 change on %2?": [
+"%1 Änderung auf %2 verwerfen?",
+"%1 Änderungen auf %2 verwerfen?"
+],
 "\u0004Plural-Forms": "(n!=1)",
 "\u0004This activity has %1 more entry on this day (%2); the work time above does not include it.": [
 "Diese Tätigkeit hat an diesem Tag %1 weiteren Eintrag (%2); die Arbeitszeit oben enthält ihn nicht.",

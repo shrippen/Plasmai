@@ -498,7 +498,7 @@ TestCase {
         const nameA = "offline-state-" + prefix + "a"
         let opened = false
 
-        s.sync.openFor({ id: "a", provider: "kimai" }).then(function() { opened = true })
+        s.sync.openFor({ id: "a", provider: "kimai" }, "tok").then(function() { opened = true })
         tryVerify(function() { return opened })
         // Kept only once the account of the connection is known.
         s.sync.verify()
@@ -507,7 +507,7 @@ TestCase {
         verify(!files[nameA])
 
         opened = false
-        s.sync.openFor({ id: "b", provider: "kimai" }).then(function() { opened = true })
+        s.sync.openFor({ id: "b", provider: "kimai" }, "tok").then(function() { opened = true })
         tryVerify(function() { return opened })
         s.sync.verify()
         tryVerify(function() { return s.sync.state.verified })
