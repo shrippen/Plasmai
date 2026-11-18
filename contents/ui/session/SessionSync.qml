@@ -61,18 +61,18 @@ QtObject {
 
     /**
      * Opens the outbox of `p` (resolves once loaded); the same profile keeps its session. `token`
-     * is the token of `p` (read before: the connection holds the previous profile's until then):
-     * it and the address make the key the waiting changes are settled with.
+     * is the token of `p` (read before: the connection holds the previous profile's until then).
+     * Address and token are the session's own (aim): they make the key its waiting changes are
+     * settled with, whichever profile is active when a late answer or a change comes.
      */
     function openFor(p, token) {
-        const own = token || ""
         const providerId = p && p.provider ? p.provider : TimeTracker.PROVIDER_KIMAI
         const inner = TimeTracker.api(providerId)
         const key = providerId === TimeTracker.PROVIDER_KIMAI && p
             ? session.offlinePrefix + String(p.id).replace(/[^A-Za-z0-9_-]/g, "_") : ""
         // Also the same profile: its address or token may have changed since.
         if (state && state.host.key === key && state.inner === inner) {
-            state.host.tokenOfProfile = own
+            aim(state, p, token)
             Offline.retarget(state)
             return restored(state)
         }
@@ -84,15 +84,14 @@ QtObject {
         const known = key ? sessions[key] : null
         if (known && known.inner === inner) {
             Offline.reopen(known)
-            known.host.tokenOfProfile = own
+            aim(known, p, token)
             Offline.retarget(known)
             state = known
             return restored(known)
         }
         const s = Offline.createSession(inner, {
             key: key,
-            url: function() { return session.connection.url },
-            tokenOfProfile: own,
+            url: function() { return s.host.urlOfProfile },
             token: function() { return s.host.tokenOfProfile },
             load: function(name) { return Platform.loadLocal(session.dataSource, name) },
             save: function(name, obj) { return Platform.saveLocal(session.dataSource, name, obj) },
@@ -105,11 +104,18 @@ QtObject {
             ownerChanged: sync.ownerChanged,
             refresh: function() { session.refresh() }
         })
+        aim(s, p, token)
         state = s
         if (key) {
             sessions[key] = s
         }
         return Offline.load(s).then(function() { return restored(s) })
+    }
+
+    /** The address and token a session is on: those of its profile, not of the one active now. */
+    function aim(s, p, token) {
+        s.host.urlOfProfile = TimeTracker.resolveUrl(p)
+        s.host.tokenOfProfile = token || ""
     }
 
     /** The waiting changes went to another owner: nothing shown is the new owner's. */

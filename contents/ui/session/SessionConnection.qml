@@ -12,7 +12,7 @@ import ".." as Ui
  * Connection page's token and test actions.
  *
  *   open() ─▶ shared.json ─▶ [reset old] ─▶ settings.apply ─▶ useProfile
- *   useProfile(p) ─▶ sync.openFor(p) ─▶ readToken ─▶ session.refresh, plugin probes
+ *   useProfile(p) ─▶ loadToken ─▶ sync.openFor(p, t) ─▶ applyToken ─▶ session.refresh, plugin probes
  */
 QtObject {
     id: connection

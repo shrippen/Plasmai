@@ -101,7 +101,7 @@ TestCase {
     function opened(sync, prof, url) {
         fakeSession.connection = { url: url, token: "tok" }
         let done = false
-        sync.openFor(prof, prof.id === "a" ? "tokA" : "tokB").then(function() { return sync.verify() }).then(function() { done = true })
+        sync.openFor(Object.assign({}, prof, { url: url }), prof.id === "a" ? "tokA" : "tokB").then(function() { return sync.verify() }).then(function() { done = true })
         return function() { return done }
     }
 

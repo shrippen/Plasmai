@@ -806,7 +806,7 @@ Bad reception on set: Plasmai keeps working and syncs once the server answers
   it. The account is what the server says of a connection (`/api/users/me`, the id), checked
   after the key and kept in the owner (`owner: { server, mark, account, name }`; the name is for
   display). A file without an owner or stamps (2.7.0) takes the key of the connection that reads it: its ops are stamped with it and the owner is set, the account follows with the first check.
-  `SessionSync.openFor` gets the token of the profile it opens (read first; the connection still holds the previous profile's token then) and settles with that key on every open, also of the same profile, a write settles before
+  `SessionSync.openFor` gets the token of the profile it opens (read first; the connection still holds the previous profile's token then); address and token are the session's own from then on (not those of the profile active at the moment: a change made while the next profile's token is read, or a network error that comes after a switch, belongs to the session it was made in). It settles with that key on every open, also of the same profile, a write settles before
   it is queued, and `verify` asks `/api/users/me` (never cached, with the address and token of
   that moment) beside the first refresh, which does not wait for it; the views read again when
   the check changed the owner or sent what waited. A network error or a refused token (401, 403)
