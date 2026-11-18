@@ -10,7 +10,6 @@ TestCase {
 
     function test_start_kinds() {
         compare(Notices.forStart(Notices.Begin.Start, on), Notices.Kind.Started)
-        compare(Notices.forStart(Notices.Begin.Start, on), Notices.Kind.Started)
         compare(Notices.forStart(Notices.Begin.Switch, on), Notices.Kind.Switched)
         compare(Notices.forStart(Notices.Begin.Start, off), null)
         compare(Notices.forStart(Notices.Begin.Switch, off), null)

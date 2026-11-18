@@ -101,7 +101,7 @@ PlasmoidItem {
     property var manualEntryViewRef: null
     property var tripSheetRef: null
     property var activeEditViewRef: null
-    property var filmDayViewRef: null
+    property var filmDayBindingRef: null
     property var descriptionFieldRef: null
     /** Bumps DaySparkline live edge; kept coarse to avoid per-second canvas work. */
     property int sparklineNowTick: 0
@@ -130,9 +130,6 @@ PlasmoidItem {
     }
     /** A manual entry is being saved. */
     property bool savingEntry: false
-
-    // Film day: the shown day; the loaded day, mode, probe and calls are session.filmDay's.
-    property var filmDaySelectedDate: new Date()
 
     // Trips: probe, meta and calls are session.trips'.
     /** Open trip suggestions (Dawarich), shown above Recent. */
@@ -223,8 +220,8 @@ PlasmoidItem {
         if (root.activeEditViewRef) {
             root.activeEditViewRef.closePickers()
         }
-        if (root.filmDayViewRef) {
-            root.filmDayViewRef.closePickers()
+        if (root.filmDayBindingRef) {
+            root.filmDayBindingRef.view.closePickers()
         }
     }
 
@@ -595,8 +592,8 @@ PlasmoidItem {
                 root.resetTrackingView()
             }
             // The film day follows the timer (Start, Stop, a switch from the main view).
-            if (root.mainViewMode === "filmday") {
-                root.loadFilmDayForDate(root.filmDaySelectedDate)
+            if (root.mainViewMode === "filmday" && root.filmDayBindingRef) {
+                root.filmDayBindingRef.reload()
             }
         }
         function onActiveChanged() {
@@ -823,133 +820,9 @@ PlasmoidItem {
         editingStoppedTimesheet = null
         mainViewMode = "filmday"
         ensureCatalog()
-        session.filmDay.openView(Session.Probe.Cached, filmDaySelectedDate, root.pickedFilmProject, false,
-                                 root.showFilmDay, root.showFilmDayProduction)
-    }
-
-    function stepFilmDay(deltaDays) {
-        const next = new Date(filmDaySelectedDate)
-        next.setDate(next.getDate() + deltaDays)
-        loadFilmDayForDate(next)
-    }
-
-    /** The project the film day view has picked, null before. */
-    function pickedFilmProject() {
-        const view = root.filmDayViewRef
-        return view && view.projectCombo.currentIndex >= 0 ? view.projectCombo.currentItem.value.id : null
-    }
-
-    /**
-     * Loads the Kimai entry and film-day extras for `date` into the Filmday view.
-     * preferSelected: the engagement chooser picked the project, it wins over the day's engagement.
-     */
-    function loadFilmDayForDate(date, preferSelected) {
-        filmDaySelectedDate = date
-        session.filmDay.loadDay(date, root.pickedFilmProject(), !!preferSelected, root.showFilmDay, root.showFilmDayProduction)
-    }
-
-    function showFilmDay(loaded) {
-        const view = root.filmDayViewRef
-        if (!view) {
-            return
+        if (root.filmDayBindingRef) {
+            root.filmDayBindingRef.open(Session.Probe.Cached)
         }
-        const r = loaded.r
-        const info = loaded.info
-        view.applyLoadedDay(loaded.date, info.timesheet, loaded.day, loaded.currency, r.others, r.projectId, {
-            phase: info.phase, isToday: info.isToday, activityId: info.activityId,
-            engagement: r.engagement, engagements: r.engagements,
-            otherActivities: info.otherActivities
-        })
-    }
-
-    function showFilmDayProduction(production) {
-        const view = root.filmDayViewRef
-        if (!view) {
-            return
-        }
-        view.productionDayNumber = production.number
-        // No activity from the day or Recent: the engagement's usual film activity.
-        if (view.activityCombo.currentIndex < 0 && production.activityId !== null) {
-            view.selectActivity(production.activityId)
-        }
-    }
-
-    /** Direct save of the film day's extras (no busy state: the fields stay usable). */
-    function saveFilmDayExtras(fields) {
-        if (!root.filmDayViewRef) {
-            return
-        }
-        session.filmDay.saveExtras({
-            projectId: root.pickedFilmProject(), date: root.filmDaySelectedDate, fields: fields
-        }, function(result) {
-            if (result.extras === "failed") {
-                root.userMessage = i18n("The film day was not saved: %1",
-                                        ApiErrors.withServer(result.error))
-            }
-        }, function(payCents) {
-            if (root.filmDayViewRef) {
-                root.filmDayViewRef.earningsCents = payCents
-            }
-        })
-    }
-
-    function saveFilmDayNote(text) {
-        session.filmDay.saveNote(text, function(result) {
-            if (result.saved === "failed") {
-                root.showError(result.error)
-            }
-        })
-    }
-
-    /** Saves entry and extras. direct: begin / end of the shown entry changed (no message, fields stay usable). */
-    function saveFilmDay(projectId, activityId, beginText, endText, filmDayFields, direct) {
-        if (!session.connection.configured || session.busy) {
-            return
-        }
-        const view = root.filmDayViewRef
-        userMessage = ""
-        session.filmDay.saveDay({
-            projectId: projectId, activityId: activityId, date: root.filmDaySelectedDate,
-            beginText: beginText, endText: endText, fields: filmDayFields, direct: direct,
-            // B3: the other entries of the project on this day, deleted after a successful save.
-            mergeIds: (view && view.mergeOthers) ? view.otherEntryIds() : [],
-            breakMinutes: (view && view.extrasVisible) ? view.effectiveBreakMinutes : 0,
-            note: view ? view.noteText() : ""
-        }, function(result) {
-            root.filmDaySaved(result, direct)
-        })
-    }
-
-    function filmDaySaved(result, direct) {
-        // The film day's span problems are TimeProblem values (DATES, ORDER).
-        if (result.invalid) {
-            userMessage = EntryTexts.timeProblem(result.invalid)
-            return
-        }
-        if (!result.ok) {
-            root.showError(result.error)
-            return
-        }
-        root.clearError()
-        const report = result.deleteReport
-        const messages = []
-        if (result.extras === "failed") {
-            messages.push(i18n("Begin and end were saved, but the film day extras were not: %1",
-                               ApiErrors.withServer(result.error)))
-        }
-        if (report && report.failed.length > 0) {
-            messages.push(i18np("%1 other entry of this day could not be deleted: %2",
-                                "%1 other entries of this day could not be deleted: %2",
-                                report.failed.length, ApiErrors.withServer(report.failed[0].error)))
-        }
-        if (messages.length > 0) {
-            root.userMessage = messages.join(" ")
-        }
-        root.session.refresh()
-        if (!direct && messages.length === 0) {
-            root.notify(i18n("Shooting day saved"), DTF.formatDurationShort(result.workSeconds))
-        }
-        root.loadFilmDayForDate(root.filmDaySelectedDate)
     }
 
     // ── Trips (kimai-anfahrten) ──────────────────────────────────────────
@@ -1033,34 +906,6 @@ PlasmoidItem {
             }
             root.loadTripSuggestions(true)
         }
-    }
-
-    function tripFailed(error) {
-        if (!root.tripSheetRef) {
-            return
-        }
-        root.tripSheetRef.serverErrors = (error && error.fields) ? error.fields : ({})
-        root.tripSheetRef.errorText = ApiErrors.withServer(error)
-    }
-
-    function saveTrip(body, tripId, form) {
-        session.trips.save(body, tripId, form, tripSheetSuggestion, function(r) {
-            if (!r.ok) {
-                root.tripFailed(r.error)
-                return
-            }
-            root.tripSaved(r.data ? i18n("%1 km", Mileage.displayKm(Mileage.tripKm(r.data))) : "")
-        })
-    }
-
-    function deleteTrip(tripId) {
-        session.trips.remove(tripId, function(r) {
-            if (r.ok) {
-                root.tripSaved("")
-            } else {
-                root.tripFailed(r.error)
-            }
-        })
     }
 
     function removeSuggestion(sg) {
@@ -2393,80 +2238,60 @@ PlasmoidItem {
 
                 FilmDayView {
                     id: filmDayView
-                    onlineActions: !root.session.sync.offline
-                    Component.onCompleted: root.filmDayViewRef = filmDayView
-                    Component.onDestruction: {
-                        if (root.filmDayViewRef === filmDayView) {
-                            root.filmDayViewRef = null
-                        }
-                    }
                     Layout.fillWidth: true
                     visible: root.mainViewMode === "filmday" && root.session.connection.configured
                              && root.session.connection.capabilities.filmDays
-                    projectPickerModel: root.session.catalog.projectPickerModel
                     activityPickerModel: root.activityPickerModel
                     activitySectionTitles: root.activitySectionTitles
                     pickerOpenBelow: root.pickerOpenBelow
                     pickerViewport: popupScroll
                     busy: root.session.busy || root.session.filmDay.saving || root.session.filmDay.loading
-                    configured: root.session.connection.configured
                     connectionOk: root.connectionState !== "error"
-                    showCreateActions: root.session.entries.canCreate
                     onAboutToOpenPicker: function(projectField, activityField) {
                         root.updatePickerOpenDirection(projectField, activityField)
                     }
                     onProjectChosen: function(projectId) {
                         root.loadActivitiesForProject(projectId)
                     }
-                    onProjectPicked: function(projectId) {
-                        root.loadFilmDayForDate(root.filmDaySelectedDate)
-                    }
-                    onDayStepRequested: function(deltaDays) {
-                        root.stepFilmDay(deltaDays)
-                    }
-                    onDayChosen: function(date) {
-                        root.loadFilmDayForDate(date)
-                    }
                     // Ticks only while shown (it stays built, holding the chosen day).
                     elapsedSeconds: root.mainViewMode === "filmday" ? root.session.timer.elapsedSeconds : 0
-                    onSaveRequested: function(projectId, activityId, beginText, endText, filmDayFields) {
-                        root.saveFilmDay(projectId, activityId, beginText, endText, filmDayFields, false)
-                    }
-                    onTimesEdited: function(beginText, endText) {
-                        root.saveFilmDay(filmDayView.projectCombo.currentItem.value.id, filmDayView.activityCombo.currentItem.value.id,
-                                         beginText, endText, filmDayView.currentEntryFields(), true)
-                    }
-                    onExtrasEdited: function(fields) {
-                        root.saveFilmDayExtras(fields)
-                    }
-                    onNoteEdited: function(text) {
-                        root.saveFilmDayNote(text)
-                    }
                     // Closing the popup or leaving the film day must not drop a note still being typed.
                     onVisibleChanged: {
                         if (!visible) {
                             filmDayView.flushPending()
                         }
                     }
-                    onStartRequested: function(projectId, activityId, projectLabel, activityLabel) {
-                        root.session.timer.switchTo(projectId, activityId, projectLabel, activityLabel, filmDayView.noteText())
-                    }
-                    onStopRequested: root.session.timer.stop()
                     onRunningBeginEdited: function(beginText) {
                         var ts = root.session.timer.active
                         if (ts) {
                             root.saveActiveEdit(Names.projectId(ts), Names.activityId(ts), beginText, ts.billable, ts.tags || [])
                         }
                     }
-                    onEngagementPicked: function(projectId) {
-                        filmDayView.selectProject(projectId)
-                        root.loadFilmDayForDate(root.filmDaySelectedDate, true)
-                    }
-                    tripsAvailable: root.session.trips.canEdit
                     onTripRequested: root.openTripForTimesheet(root.session.filmDay.dayTimesheet)
                     onCancelled: root.returnToMainView()
                     onCreateProjectRequested: root.openCreateEntity("project")
                     onCreateActivityRequested: root.openCreateEntity("activity")
+                }
+
+                FilmDayBinding {
+                    id: filmDayBinding
+                    session: root.session
+                    view: filmDayView
+                    canSave: root.session.connection.configured && !root.session.busy
+                    Component.onCompleted: root.filmDayBindingRef = filmDayBinding
+                    Component.onDestruction: {
+                        if (root.filmDayBindingRef === filmDayBinding) {
+                            root.filmDayBindingRef = null
+                        }
+                    }
+                    onSaveStarted: root.userMessage = ""
+                    onSaved: {
+                        root.clearError()
+                        root.session.refresh()
+                    }
+                    onProblem: function(text) { root.userMessage = text }
+                    onFailed: function(error) { root.showError(error) }
+                    onNoteFailed: function(error) { root.showError(error) }
                 }
 
                 TripSheet {
@@ -2480,19 +2305,17 @@ PlasmoidItem {
                     Layout.fillWidth: true
                     visible: root.mainViewMode === "trip" && root.session.trips.available
                     busy: root.session.busy || root.tripBusy
-                    configured: root.session.connection.configured
                     connectionOk: root.connectionState !== "error"
-                    ping: root.session.trips.ping
-                    meta: root.session.trips.meta
-                    vehicles: root.session.trips.vehicles
-                    places: root.session.setup
-                    onSaveRequested: function(body, tripId, form) {
-                        root.saveTrip(body, tripId, form)
-                    }
-                    onDeleteRequested: function(tripId) {
-                        root.deleteTrip(tripId)
-                    }
                     onCancelled: root.returnToMainView()
+                }
+
+                TripSheetBinding {
+                    session: root.session
+                    view: tripSheet
+                    suggestion: root.tripSheetSuggestion
+                    onDone: function(trip) {
+                        root.tripSaved(trip ? i18n("%1 km", Mileage.displayKm(Mileage.tripKm(trip))) : "")
+                    }
                 }
 
                 ColumnLayout {
@@ -2722,8 +2545,8 @@ PlasmoidItem {
         function onExpandedChanged() {
             if (!root.expanded) {
                 // A note still being typed in the film day is saved on close.
-                if (root.filmDayViewRef) {
-                    root.filmDayViewRef.flushPending()
+                if (root.filmDayBindingRef) {
+                    root.filmDayBindingRef.view.flushPending()
                 }
                 return
             }

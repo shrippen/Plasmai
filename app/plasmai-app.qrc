@@ -164,10 +164,12 @@
         <file alias="contents/ui/session/SessionSetup.qml">../contents/ui/session/SessionSetup.qml</file>
         <file alias="contents/ui/ActiveEditView.qml">../contents/ui/ActiveEditView.qml</file>
         <file alias="contents/ui/FilmDayView.qml">../contents/ui/FilmDayView.qml</file>
+        <file alias="contents/ui/FilmDayBinding.qml">../contents/ui/FilmDayBinding.qml</file>
         <file alias="contents/ui/TouchUi.qml">../contents/ui/TouchUi.qml</file>
         <file alias="contents/ui/ProjectActivityPickers.qml">../contents/ui/ProjectActivityPickers.qml</file>
         <file alias="contents/ui/ActivityListRow.qml">../contents/ui/ActivityListRow.qml</file>
         <file alias="contents/ui/TripSheet.qml">../contents/ui/TripSheet.qml</file>
+        <file alias="contents/ui/TripSheetBinding.qml">../contents/ui/TripSheetBinding.qml</file>
         <file alias="contents/ui/SetupWizard.qml">../contents/ui/SetupWizard.qml</file>
         <file alias="contents/ui/SearchableCombo.qml">../contents/ui/SearchableCombo.qml</file>
         <file alias="contents/ui/TripSuggestionList.qml">../contents/ui/TripSuggestionList.qml</file>

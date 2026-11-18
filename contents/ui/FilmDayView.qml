@@ -108,7 +108,6 @@ ColumnLayout {
     readonly property int effectiveBreakMinutes: !extrasVisible ? 0
         : (breakSpin.value < 0 ? fallbackBreakMinutes : breakSpin.value)
 
-    property bool suppressProjectSignal: false
     /** True while loadForDay() sets dayField programmatically (avoids re-triggering dayChosen). */
     property bool suppressDayChosen: false
 
@@ -158,9 +157,7 @@ ColumnLayout {
     Connections {
         target: pickers
         function onPendingProjectSelected(projectId) {
-            if (!root.suppressProjectSignal) {
-                root.projectChosen(projectId)
-            }
+            root.projectChosen(projectId)
         }
     }
 
@@ -424,13 +421,11 @@ ColumnLayout {
         endTime.setTime(end.getHours(), end.getMinutes())
 
         if (timesheet) {
-            suppressProjectSignal = false
             pickers.setPending(Names.projectId(timesheet), Names.activityId(timesheet))
         } else if (pickers.hasId(projectId)) {
             // No entry yet, but the day's engagement names the project; the
             // activity is the project's usual film activity (or the running one).
             // Both stay pending until the project list has loaded.
-            suppressProjectSignal = false
             pickers.setPending(projectId, activityId)
         }
     }

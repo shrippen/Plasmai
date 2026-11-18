@@ -31,7 +31,6 @@ ColumnLayout {
     readonly property bool locked: busy && visible
     property bool configured: true
     property bool connectionOk: true
-    property bool suppressProjectSignal: false
 
     property bool supportsBillableEdit: true
     property bool supportsTags: true
@@ -60,9 +59,7 @@ ColumnLayout {
     Connections {
         target: pickers
         function onPendingProjectSelected(projectId) {
-            if (!root.suppressProjectSignal) {
-                root.projectChosen(projectId)
-            }
+            root.projectChosen(projectId)
         }
     }
 
@@ -120,7 +117,6 @@ ColumnLayout {
         beginDate.setDate(begin)
         beginTime.setTime(begin.getHours(), begin.getMinutes())
 
-        suppressProjectSignal = false
         pickers.setPending(Names.projectId(sheet), Names.activityId(sheet))
         metaFields.loadFromTimesheet(sheet)
     }
